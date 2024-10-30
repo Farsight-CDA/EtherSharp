@@ -11,9 +11,9 @@ public partial class AbiDecoder
         _bytes = bytes;
     }
 
-    public AbiDecoder Int8(out int value)
-    {
-        value = FixedType<string>.Short.Decode(_bytes, 8);
-        return this;
-    }
+    //public AbiDecoder Int8(out int value)
+    //{
+    //    value = FixedType<string>.Short.Decode(_bytes, 8);
+    //    return this;
+    //}
 }
