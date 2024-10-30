@@ -21,9 +21,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ABI\AbiEncoderGeneratedFunctions.tt">
+    <None Update="ABI\IAbiEncoderGenerated.tt">
+      <LastGenOutput>IAbiEncoderGenerated.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AbiEncoderGeneratedFunctions.cs</LastGenOutput>
+    </None>
+    <None Update="ABI\AbiEncoderGenerated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>AbiEncoderGenerated.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -32,10 +36,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="ABI\AbiEncoderGeneratedFunctions.cs">
+    <Compile Update="ABI\IAbiEncoderGenerated.cs">
+      <DependentUpon>IAbiEncoderGenerated.tt</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>AbiEncoderGeneratedFunctions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="ABI\AbiEncoderGenerated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AbiEncoderGenerated.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
