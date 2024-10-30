@@ -17,5 +17,5 @@ public partial interface IAbiEncoder
 
     public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func);
 
-    public AbiEncoder Struct(Func<IStructAbiEncoder, IStructAbiEncoder> func);
+    public AbiEncoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func);
 }

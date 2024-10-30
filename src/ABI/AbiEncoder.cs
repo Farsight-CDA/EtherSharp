@@ -76,10 +76,10 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
         return this;
     }
 
-    public AbiEncoder Struct(Func<IStructAbiEncoder, IStructAbiEncoder> func)
+    public AbiEncoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
     {
 
-        AddElement(new DynamicEncodeType<string>.Struct(func(new AbiEncoder())));
+        AddElement(new DynamicEncodeType<string>.Struct(typeId, func(new AbiEncoder())));
         return this;
     }
 
@@ -160,8 +160,8 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
         }
     }
 
-    IStructAbiEncoder IStructAbiEncoder.Struct(Func<IStructAbiEncoder, IStructAbiEncoder> func)
-    => Struct(func);
+    IStructAbiEncoder IStructAbiEncoder.Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
+    => Struct(typeId, func);
 
     public void WriteToParent(Span<byte> result, Span<byte> payload, uint payloadOffset)
     {
