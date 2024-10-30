@@ -1,7 +1,8 @@
-﻿using System.Numerics;
+﻿using EtherSharp.ABI.Fixed;
+using System.Numerics;
 
-namespace EtherSharp.ABI;
-public abstract partial class FixedEncodeType<T> : IFixedEncodeType
+namespace EtherSharp.ABI.Types;
+internal abstract partial class FixedEncodeType<T> : IFixedEncodeType
 {
     public class GenerateInts : FixedEncodeType<int>
     {
