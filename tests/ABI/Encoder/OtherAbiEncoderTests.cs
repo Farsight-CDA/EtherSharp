@@ -18,8 +18,6 @@ public class OtherAbiEncoderTests
         Assert.Equal(expected, actual);
     }
 
-
-
     [Fact]
     public void Test_2String()
     {
