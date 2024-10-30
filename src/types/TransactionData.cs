@@ -1,4 +1,4 @@
-﻿namespace EVM.net.types;
+﻿namespace EtherSharp.Types;
 public record TransactionData(
     string BlockHash,
     string BlockNumber,

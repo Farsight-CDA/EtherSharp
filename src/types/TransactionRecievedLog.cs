@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace EVM.net.types;
+namespace EtherSharp.Types;
 public record TransactionRecievedLog(
     int LogIndex,
     BigInteger? BlockNumber,

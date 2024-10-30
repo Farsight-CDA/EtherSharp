@@ -1,4 +1,6 @@
-﻿namespace EVM.net.ABI;
+﻿using EtherSharp.ABI;
+
+namespace EVM.net.ABI;
 
 internal interface IFixedEncodeType : IEncodeType;
 public abstract partial class FixedEncodeType<T>(T value) : IFixedEncodeType

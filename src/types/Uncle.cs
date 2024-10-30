@@ -1,2 +1,2 @@
-﻿namespace EVM.net.types;
+﻿namespace EtherSharp.Types;
 public record Uncle();

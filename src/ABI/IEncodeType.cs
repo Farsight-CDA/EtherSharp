@@ -1,4 +1,4 @@
-﻿namespace EVM.net.ABI;
+﻿namespace EtherSharp.ABI;
 
 public interface IEncodeType
 {

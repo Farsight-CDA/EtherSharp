@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
 
-namespace EVM.net.types;
+namespace EtherSharp.Types;
 public record Signature(uint V, BigInteger R, BigInteger S);
 

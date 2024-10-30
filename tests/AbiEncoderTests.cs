@@ -1,4 +1,4 @@
-﻿namespace EVM.Net.Tests;
+﻿namespace EtherSharp.Tests;
 public class AbiEncoderTests
 {
     private readonly AbiEncoder _encoder;

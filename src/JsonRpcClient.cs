@@ -1,5 +1,5 @@
-﻿using EVM.net.converter;
-using EVM.net.types;
+﻿using EtherSharp.Types;
+using EVM.net.converter;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;

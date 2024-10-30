@@ -3,7 +3,7 @@ using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EVM.net.converter;
+namespace EtherSharp.Converter;
 
 internal class BigIntHexConverter : JsonConverter<BigInteger>
 {

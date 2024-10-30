@@ -1,4 +1,4 @@
-﻿namespace EVM.net.types;
+﻿namespace EtherSharp.Types;
 
 public record RpcResult<T>
 {

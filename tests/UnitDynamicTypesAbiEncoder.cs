@@ -1,4 +1,4 @@
-﻿namespace EVM.Net.Tests;
+﻿namespace EtherSharp.Tests;
 
 public class UnitDynamicTypesAbiEncoder
 {

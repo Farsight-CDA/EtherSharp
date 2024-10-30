@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EtherSharp", "src\EtherShar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EtherSharp.Tests", "tests\EtherSharp.Tests.csproj", "{C32F3ABD-9983-4C8B-B145-AAEEE0FC2DCB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtherSharp.Bench", "EtherSharp.Bench\EtherSharp.Bench.csproj", "{0F102C97-4957-4566-9C79-CFEE38B9D86C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{C32F3ABD-9983-4C8B-B145-AAEEE0FC2DCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C32F3ABD-9983-4C8B-B145-AAEEE0FC2DCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C32F3ABD-9983-4C8B-B145-AAEEE0FC2DCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F102C97-4957-4566-9C79-CFEE38B9D86C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F102C97-4957-4566-9C79-CFEE38B9D86C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F102C97-4957-4566-9C79-CFEE38B9D86C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F102C97-4957-4566-9C79-CFEE38B9D86C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

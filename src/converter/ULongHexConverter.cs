@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EVM.net.converter;
+namespace EtherSharp.Converter;
 internal class ULongHexConverter : JsonConverter<ulong>
 {
     public override ulong Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

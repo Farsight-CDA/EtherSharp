@@ -1,4 +1,4 @@
-﻿namespace EVM.net.ABI;
+﻿namespace EtherSharp.ABI;
 public interface IArrayAbiEncoder
 {
     public IArrayAbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func);
