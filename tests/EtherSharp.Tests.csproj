@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\EVM.net.csproj" />
+    <ProjectReference Include="..\src\EtherSharp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
