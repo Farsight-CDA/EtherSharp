@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using EtherSharp.ABI.Fixed;
+using System.Numerics;
 
 namespace EtherSharp.ABI.Dynamic;
 internal abstract partial class DynamicType<T>
@@ -7,7 +8,7 @@ internal abstract partial class DynamicType<T>
     {
         private readonly bool _isUnsigned;
 
-        public override uint PayloadSize => 32 * (uint) Value.Length + 32;
+        public override uint PayloadSize => (32 * (uint) Value.Length) + 32;
 
         public BigIntegerArray(BigInteger[] value, bool isUnsigned, int length)
             : base(value)
@@ -57,11 +58,7 @@ internal abstract partial class DynamicType<T>
             for(int i = 0; i < Value.Length; i++)
             {
                 var slot = payload.Slice(32 + (i * 32), 32);
-
-                if (!Value[i].TryWriteBytes(slot, out _, _isUnsigned, true))
-                {
-                    throw new InvalidOperationException("Failed to write bytes");
-                }
+                FixedType<object>.BigInteger.EncodeInto(Value[i], _isUnsigned, slot);
             }
         }
     }

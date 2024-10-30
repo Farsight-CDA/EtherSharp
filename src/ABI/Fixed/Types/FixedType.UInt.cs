@@ -3,7 +3,7 @@
 namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
-    public class UInt : FixedType<uint>
+    internal class UInt : FixedType<uint>
     {
         public UInt(uint value, int length) : base(value)
         {
@@ -17,15 +17,18 @@ internal abstract partial class FixedType<T>
             }
         }
 
-        public override void Encode(Span<byte> values)
+        public override void Encode(Span<byte> buffer)
+            => EncodeInto(Value, buffer);
+
+        public static void EncodeInto(uint value, Span<byte> buffer)
         {
-            if(!BitConverter.TryWriteBytes(values[(32 - 4)..], Value))
+            if(!BitConverter.TryWriteBytes(buffer[(32 - 4)..], value))
             {
                 throw new InvalidOperationException("Could Not Wryte Bytes");
             }
             if(BitConverter.IsLittleEndian)
             {
-                values[(32 - 4)..].Reverse();
+                buffer[(32 - 4)..].Reverse();
             }
         }
 

@@ -1,7 +1,7 @@
 ﻿namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
-    public class ULong : FixedType<ulong>
+    internal class ULong : FixedType<ulong>
     {
         public ULong(ulong value, int length) : base(value)
         {
@@ -15,15 +15,18 @@ internal abstract partial class FixedType<T>
             }
         }
 
-        public override void Encode(Span<byte> values)
+        public override void Encode(Span<byte> buffer)
+            => EncodeInto(Value, buffer);
+
+        public static void EncodeInto(ulong value, Span<byte> buffer)
         {
-            if(!BitConverter.TryWriteBytes(values[(32 - 8)..], Value))
+            if(!BitConverter.TryWriteBytes(buffer[(32 - 8)..], value))
             {
                 throw new InvalidOperationException("Could Not Wryte Bytes");
             }
             if(BitConverter.IsLittleEndian)
             {
-                values[(32 - 8)..].Reverse();
+                buffer[(32 - 8)..].Reverse();
             }
         }
     }

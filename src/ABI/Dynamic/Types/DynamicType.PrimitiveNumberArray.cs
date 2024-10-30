@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using EtherSharp.ABI.Fixed;
+using System.Numerics;
 
 namespace EtherSharp.ABI.Dynamic;
 internal abstract partial class DynamicType<T>
@@ -6,7 +7,7 @@ internal abstract partial class DynamicType<T>
     public class PrimitiveNumberArray<TInner> : DynamicType<TInner[]>
         where TInner : INumber<TInner>
     {
-        public override uint PayloadSize => 32 * (uint) Value.Length + 32;
+        public override uint PayloadSize => (32 * (uint) Value.Length) + 32;
 
         public PrimitiveNumberArray(TInner[] value, int length)
             : base(value)
@@ -57,52 +58,28 @@ internal abstract partial class DynamicType<T>
                 switch(Value[i])
                 {
                     case byte us8:
-                        slot[^1] = us8;
+                        FixedType<object>.Byte.EncodeInto(us8, slot);
                         break;
                     case sbyte s8:
-                        slot[^1] = (byte) s8;
+                        FixedType<object>.SByte.EncodeInto(s8, slot);
                         break;
                     case ushort us16:
-                        BitConverter.TryWriteBytes(slot[30..], us16);
-                        if(BitConverter.IsLittleEndian)
-                        {
-                            slot[30..].Reverse();
-                        }
+                        FixedType<object>.UShort.EncodeInto(us16, slot);
                         break;
                     case short s16:
-                        BitConverter.TryWriteBytes(slot[30..], s16);
-                        if(BitConverter.IsLittleEndian)
-                        {
-                            slot[30..].Reverse();
-                        }
+                        FixedType<object>.Short.EncodeInto(s16, slot);
                         break;
                     case uint us32:
-                        BitConverter.TryWriteBytes(slot[28..], us32);
-                        if(BitConverter.IsLittleEndian)
-                        {
-                            slot[28..].Reverse();
-                        }
+                        FixedType<object>.UInt.EncodeInto(us32, slot);
                         break;
                     case int s32:
-                        BitConverter.TryWriteBytes(slot[28..], s32);
-                        if(BitConverter.IsLittleEndian)
-                        {
-                            slot[28..].Reverse();
-                        }
+                        FixedType<object>.Int.EncodeInto(s32, slot);
                         break;
                     case ulong us64:
-                        BitConverter.TryWriteBytes(slot[24..], us64);
-                        if(BitConverter.IsLittleEndian)
-                        {
-                            slot[24..].Reverse();
-                        }
+                        FixedType<object>.ULong.EncodeInto(us64, slot);
                         break;
                     case long s64:
-                        BitConverter.TryWriteBytes(slot[24..], s64);
-                        if(BitConverter.IsLittleEndian)
-                        {
-                            slot[24..].Reverse();
-                        }
+                        FixedType<object>.Long.EncodeInto(s64, slot);
                         break;
                     default:
                         throw new NotImplementedException();

@@ -1,7 +1,7 @@
 ﻿namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
-    public class Long : FixedType<long>
+    internal class Long : FixedType<long>
     {
         public Long(long value, int length) : base(value)
         {
@@ -9,25 +9,28 @@ internal abstract partial class FixedType<T>
             {
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
             }
-            if (length != 64 && ((value > 0 && value >> (length - 1) != 0) || (value < 0 && value >> (length - 1) != -1)))
+            if(length != 64 && ((value > 0 && value >> (length - 1) != 0) || (value < 0 && value >> (length - 1) != -1)))
             {
                 throw new ArgumentException($"Value is too large to fit in a {length}-bit signed integer", nameof(value));
             }
         }
 
-        public override void Encode(Span<byte> values)
+        public override void Encode(Span<byte> buffer)
+            => EncodeInto(Value, buffer);
+
+        public static void EncodeInto(long value, Span<byte> buffer)
         {
-            if(!BitConverter.TryWriteBytes(values[(32 - 8)..], Value))
+            if(!BitConverter.TryWriteBytes(buffer[(32 - 8)..], value))
             {
                 throw new InvalidOperationException("Could Not Wryte Bytes");
             }
             if(BitConverter.IsLittleEndian)
             {
-                values[(32 - 8)..].Reverse();
+                buffer[(32 - 8)..].Reverse();
             }
-            if(Value < 0)
+            if(value < 0)
             {
-                values[..(32 - 8)].Fill(byte.MaxValue);
+                buffer[..(32 - 8)].Fill(byte.MaxValue);
             }
         }
     }

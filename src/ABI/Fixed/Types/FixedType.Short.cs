@@ -1,11 +1,14 @@
 ﻿namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
-    public class Short(short value) : FixedType<short>(value)
+    internal class Short(short value) : FixedType<short>(value)
     {
         public override void Encode(Span<byte> buffer)
+            => EncodeInto(Value, buffer);
+
+        public static void EncodeInto(short value, Span<byte> buffer)
         {
-            if(!BitConverter.TryWriteBytes(buffer[(32 - 2)..], Value))
+            if(!BitConverter.TryWriteBytes(buffer[(32 - 2)..], value))
             {
                 throw new InvalidOperationException("Could Not Wryte Bytes");
             }
@@ -14,7 +17,7 @@ internal abstract partial class FixedType<T>
                 buffer[(32 - 2)..].Reverse();
 
             }
-            if(Value < 0)
+            if(value < 0)
             {
                 buffer[..(32 - 2)].Fill(byte.MaxValue);
             }

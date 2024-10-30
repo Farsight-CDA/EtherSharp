@@ -1,11 +1,9 @@
 ﻿namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
-    public class BigInteger : FixedType<System.Numerics.BigInteger>
+    internal class BigInteger : FixedType<System.Numerics.BigInteger>
     {
-        private readonly int _length;
         private readonly bool _isUnsigned;
-        private readonly int _byteCount;
 
         public BigInteger(System.Numerics.BigInteger value, bool isUnsigned, int length) : base(value)
         {
@@ -18,24 +16,29 @@ internal abstract partial class FixedType<T>
                 throw new ArgumentException("Value was negative for unsigned fixed type");
             }
 
-            _length = length;
             _isUnsigned = isUnsigned;
-            _byteCount = value.GetByteCount(isUnsigned);
 
-            if(_byteCount > length / 8)
+            if(value.GetByteCount(isUnsigned) > length / 8)
             {
-                throw new ArgumentException($"Value is too large to fit in a {_length}-bit {(isUnsigned ? "un" : "")}signed integer", nameof(value));
+                throw new ArgumentException($"Value is too large to fit in a {length}-bit {(isUnsigned ? "un" : "")}signed integer", nameof(value));
             }
         }
-        public override void Encode(Span<byte> values)
+
+        public override void Encode(Span<byte> buffer)
+            => EncodeInto(Value, _isUnsigned, buffer);
+
+        public static void EncodeInto(System.Numerics.BigInteger value, bool isUnsigned, Span<byte> buffer)
         {
-            if(!Value.TryWriteBytes(values[(32 - _byteCount)..], out _, isBigEndian: true, isUnsigned: _isUnsigned))
+            if(!value.TryWriteBytes(buffer, out int bytesWritten, isBigEndian: false, isUnsigned: isUnsigned))
             {
                 throw new InvalidOperationException("Could Not Wryte Bytes");
             }
-            if(Value.Sign < 0)
+
+            buffer.Reverse();
+
+            if(value.Sign < 0)
             {
-                values[..(32 - _byteCount)].Fill(byte.MaxValue);
+                buffer[..(32 - bytesWritten)].Fill(byte.MaxValue);
             }
         }
     }
