@@ -8,5 +8,7 @@ public interface IArrayAbiEncoder
 
     public void WriteToParent(Span<byte> result, Span<byte> payload, uint payloadOffset);
 
+    public IArrayAbiEncoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func);
+
     internal void Build(Span<byte> result);
 }

@@ -69,8 +69,12 @@ public class UnitDynamicTypesAbiEncoder
     [Fact]
     public void Test_Array_with_int8()
     {
+
+        int[] arr = [1, 2, 3, 4];
+        _ = _encoder.Array(x => x.Struct(1, y => y.Int8(8)));
+
         byte[] actualOutput = new byte[_encoder.Size];
         _encoder.Build(actualOutput.AsSpan());
-        //Assert.Equal(StringByte, actualOutput);
+        Assert.Equal(new byte[2], actualOutput);
     }
 }

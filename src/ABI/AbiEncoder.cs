@@ -199,4 +199,6 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
     }
 
     public void WriteToParent(Span<byte> result, Span<byte> payload, int payloadOffset) => throw new NotImplementedException();
+    IArrayAbiEncoder IArrayAbiEncoder.Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
+        => Struct(typeId, func);
 }
