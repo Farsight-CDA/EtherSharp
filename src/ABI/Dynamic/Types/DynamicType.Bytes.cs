@@ -7,23 +7,25 @@ internal abstract partial class DynamicType<T>
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {
-            byte[] offsetBytes = new byte[32];
-            _ = BitConverter.TryWriteBytes(offsetBytes, payloadOffset);
+            if(!BitConverter.TryWriteBytes(metadata, payloadOffset))
+            {
+                throw new InvalidOperationException("Failed to write bytes");
+            }
             if(BitConverter.IsLittleEndian)
             {
-                System.Array.Reverse(offsetBytes);
+                metadata.Reverse();
             }
-            offsetBytes.CopyTo(metadata[..32]);
 
-            byte[] lengthBytes = new byte[32];
-            _ = BitConverter.TryWriteBytes(lengthBytes, Value.Length);
+            if(!BitConverter.TryWriteBytes(payload[..32], Value.Length))
+            {
+                throw new InvalidOperationException("Failed to write bytes");
+            }
             if(BitConverter.IsLittleEndian)
             {
-                System.Array.Reverse(lengthBytes);
+                payload[..32].Reverse();
             }
-            lengthBytes.CopyTo(metadata[32..]);
 
-            Value.CopyTo(payload);
+            Value.CopyTo(payload[32..]);
         }
     }
 }

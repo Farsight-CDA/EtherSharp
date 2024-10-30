@@ -17,6 +17,7 @@ internal abstract partial class DynamicType<T>
             {
                 metadata.Reverse();
             }
+
             if(!BitConverter.TryWriteBytes(payload[..32], typeId))
             {
                 throw new InvalidOperationException("Failed to write bytes");
@@ -25,6 +26,7 @@ internal abstract partial class DynamicType<T>
             {
                 payload[..32].Reverse();
             }
+
             Value.Build(payload[32..]);
         }
     }
