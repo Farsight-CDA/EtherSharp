@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace EVM.net.ABI;
+namespace EtherSharp.ABI;
 public abstract partial class FixedEncodeType<T> : IFixedEncodeType
 {
     public class GenerateInts : FixedEncodeType<int>
@@ -78,7 +78,7 @@ public abstract partial class FixedEncodeType<T> : IFixedEncodeType
             {
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
             }
-            bool posLimit = value > 0 && (value > Math.Pow(2, length));
+            bool posLimit = value > 0 && value > Math.Pow(2, length);
             bool negLimit = value < 0 && value < -Math.Pow(2, length) - 1;
             if(posLimit | negLimit)
             {
@@ -148,7 +148,7 @@ public abstract partial class FixedEncodeType<T> : IFixedEncodeType
             {
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
             }
-            if(unsigned && (value.Sign == -1))
+            if(unsigned && value.Sign == -1)
             {
                 throw new ArgumentException("Value was negative for unsigned fixed type");
             }

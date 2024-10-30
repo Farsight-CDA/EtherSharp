@@ -18,12 +18,10 @@ public class ABIEncoderBenchmarks
             .UInt8(byte.MaxValue)
             .UInt8(byte.MaxValue);
         ;
-        _buffer = new byte[32*5];
+        _buffer = new byte[32 * 5];
     }
 
     [Benchmark]
     public void AbiEncoder_Build()
-    {
-        _abiEncoder.Build(_buffer);
-    }
+        => _abiEncoder.Build(_buffer);
 }

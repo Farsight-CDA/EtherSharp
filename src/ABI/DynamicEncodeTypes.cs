@@ -18,7 +18,7 @@ internal abstract class DynamicEncodeType<T>(T value) : IDynamicEncodeType
     public class String(string value) : DynamicEncodeType<string>(value)
     {
         public override int MetadataSize => 32;
-        public override int PayloadSize => (Value.Length + 31) / 32 * 32 + 32;
+        public override int PayloadSize => ((Value.Length + 31) / 32 * 32) + 32;
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
@@ -46,7 +46,7 @@ internal abstract class DynamicEncodeType<T>(T value) : IDynamicEncodeType
     public class Bytes(byte[] value) : DynamicEncodeType<byte[]>(value)
     {
         public override int MetadataSize => 32;
-        public override int PayloadSize => (Value.Length + 31) / 32 * 32 + 32;
+        public override int PayloadSize => ((Value.Length + 31) / 32 * 32) + 32;
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {

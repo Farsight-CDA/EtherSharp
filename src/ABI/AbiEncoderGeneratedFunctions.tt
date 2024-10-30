@@ -2,9 +2,9 @@
 <#@ output extension=".cs" #>
 <#@ import namespace="System" #>
 
-using EVM.net.ABI;
 using System.Numerics;
 
+namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
 <#
