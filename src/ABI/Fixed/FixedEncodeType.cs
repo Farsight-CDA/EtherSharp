@@ -1,18 +1,14 @@
-﻿namespace EtherSharp.ABI;
+﻿using EtherSharp.ABI.Fixed;
 
-internal interface IFixedEncodeType : IEncodeType
-{
-    public void Encode(Span<byte> values);
-}
+namespace EtherSharp.ABI.Types;
 
-public abstract partial class FixedEncodeType<T>(T value) : IFixedEncodeType
+internal abstract partial class FixedEncodeType<T>(T value) : IFixedEncodeType
 {
-    public int MetadataSize => 32;
-    public int PayloadSize => 0;
+    public uint MetadataSize => 32;
 
     public T Value { get; } = value;
 
-    public abstract void Encode(Span<byte> values);
+    public abstract void Encode(Span<byte> buffer);
 
     public class Int8(sbyte value) : FixedEncodeType<sbyte>(value)
     {
@@ -36,21 +32,21 @@ public abstract partial class FixedEncodeType<T>(T value) : IFixedEncodeType
     public class Int16(short value) : FixedEncodeType<short>(value)
     {
 
-        public override void Encode(Span<byte> values)
+        public override void Encode(Span<byte> buffer)
         {
 
-            if(!BitConverter.TryWriteBytes(values[(32 - 2)..], Value))
+            if(!BitConverter.TryWriteBytes(buffer[(32 - 2)..], Value))
             {
                 throw new InvalidOperationException("Could Not Wryte Bytes");
             }
             if(BitConverter.IsLittleEndian)
             {
-                values[(32 - 2)..].Reverse();
+                buffer[(32 - 2)..].Reverse();
 
             }
             if(Value < 0)
             {
-                values[..(32 - 2)].Fill(byte.MaxValue);
+                buffer[..(32 - 2)].Fill(byte.MaxValue);
             }
         }
     }
@@ -58,16 +54,16 @@ public abstract partial class FixedEncodeType<T>(T value) : IFixedEncodeType
     public class UInt16(ushort value) : FixedEncodeType<ushort>(value)
     {
 
-        public override void Encode(Span<byte> values)
+        public override void Encode(Span<byte> buffer)
         {
 
-            if(!BitConverter.TryWriteBytes(values[(32 - 2)..], Value))
+            if(!BitConverter.TryWriteBytes(buffer[(32 - 2)..], Value))
             {
                 throw new InvalidOperationException("Could Not Wryte Bytes");
             }
             if(BitConverter.IsLittleEndian)
             {
-                values[(32 - 2)..].Reverse();
+                buffer[(32 - 2)..].Reverse();
 
             }
         }

@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.ABI;
+﻿using EtherSharp.ABI.Fixed;
+
+namespace EtherSharp.ABI;
 
 public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncoder
 {
@@ -7,22 +9,28 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
 
     private void AddElement(IEncodeType item)
     {
-        _payloadSize += item.PayloadSize;
+        if(item is IDynamicEncodeType dyn)
+        {
+            _payloadSize += dyn.PayloadSize;
+        }
+
         _metadataSize += item.MetadataSize;
         _entries.Add(item);
     }
 
-    int IArrayAbiEncoder.MetadataSize => _metadataSize;
-    int IArrayAbiEncoder.PayloadSize => _payloadSize;
+    uint IArrayAbiEncoder.MetadataSize => _metadataSize;
+    uint IArrayAbiEncoder.PayloadSize => _payloadSize;
 
-    int IStructAbiEncoder.MetadataSize => _metadataSize;
-    int IStructAbiEncoder.PayloadSize => _payloadSize;
+    private uint _payloadSize = 0;
+    private uint _metadataSize = 0;
 
-    private int _payloadSize = 0;
+    public uint Size => _payloadSize + _metadataSize;
 
-    private int _metadataSize = 0;
+    public uint MetadataSize => throw new NotImplementedException();
 
-    public int Size => _payloadSize + _metadataSize;
+    public uint PayloadSize => throw new NotImplementedException();
+
+    int IAbiEncoder.Size => throw new NotImplementedException();
 
     public AbiEncoder UInt8(byte value)
     {
@@ -64,7 +72,7 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
     public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
     {
 
-        AddElement(new DynamicEncodeType<string>.AArray(func(new AbiEncoder())));
+        AddElement(new DynamicEncodeType<string>.Array(func(new AbiEncoder())));
         return this;
     }
 
@@ -80,51 +88,74 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
 
     public void Build(Span<byte> result)
     {
-        int metadataOffset = 0;
-        int payloadOffset = _metadataSize;
+        uint metadataOffset = 0;
+        uint payloadOffset = _metadataSize;
 
-        for(int i = 0; i < _entries.Count; i++)
+        foreach(var entry in _entries)
         {
-            if(_entries[i] is IDynamicEncodeType dynamicEncodeType)
+            if(entry is IDynamicEncodeType dynamicEncodeType)
             {
-                dynamicEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize), result.Slice(payloadOffset, _entries[i].PayloadSize), payloadOffset);
-                metadataOffset += _entries[i].MetadataSize;
-                payloadOffset += _entries[i].PayloadSize;
+                dynamicEncodeType.Encode(
+                    result.Slice(
+                        (int) metadataOffset,
+                        (int) dynamicEncodeType.MetadataSize),
+                    result.Slice(
+                        (int) payloadOffset,
+                        (int) dynamicEncodeType.PayloadSize),
+                    payloadOffset
+                );
+
+                metadataOffset += dynamicEncodeType.MetadataSize;
+                payloadOffset += dynamicEncodeType.PayloadSize;
             }
-            else if(_entries[i] is IFixedEncodeType fixedEncodeType)
+            else if(entry is IFixedEncodeType fixedEncodeType)
             {
-                fixedEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize));
-                metadataOffset += _entries[i].MetadataSize;
+                fixedEncodeType.Encode(
+                    result.Slice(
+                        (int) metadataOffset,
+                        (int) entry.MetadataSize));
+                metadataOffset += entry.MetadataSize;
             }
             else
             {
-                throw new InvalidDataException(_entries[i].GetType().FullName);
+                throw new InvalidDataException(entry.GetType().FullName);
             }
         }
 
         _entries.Clear();
     }
 
-    void IArrayAbiEncoder.WriteToParent(Span<byte> result, Span<byte> payload, int payloadOffset)
+    void IArrayAbiEncoder.WriteToParent(Span<byte> result, Span<byte> payload, uint payloadOffset)
     {
-        int metadataOffset = 0;
+        uint metadataOffset = 0;
 
-        for(int i = 0; i < _entries.Count; i++)
+        foreach(var entry in _entries)
         {
-            if(_entries[i] is IDynamicEncodeType dynamicEncodeType)
+            if(entry is IDynamicEncodeType dynamicEncodeType)
             {
-                dynamicEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize), result.Slice(payloadOffset, _entries[i].PayloadSize), payloadOffset);
-                metadataOffset += _entries[i].MetadataSize;
-                payloadOffset += _entries[i].PayloadSize;
+                dynamicEncodeType.Encode(
+                    result.Slice(
+                        (int) metadataOffset,
+                        (int) dynamicEncodeType.MetadataSize),
+                    result.Slice(
+                        (int) payloadOffset,
+                        (int) dynamicEncodeType.PayloadSize),
+                    payloadOffset
+                );
+                metadataOffset += entry.MetadataSize;
+                payloadOffset += dynamicEncodeType.PayloadSize;
             }
-            else if(_entries[i] is IFixedEncodeType fixedEncodeType)
+            else if(entry is IFixedEncodeType fixedEncodeType)
             {
-                fixedEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize));
-                metadataOffset += _entries[i].MetadataSize;
+                fixedEncodeType.Encode(
+                    result.Slice(
+                        (int) metadataOffset,
+                        (int) entry.MetadataSize));
+                metadataOffset += entry.MetadataSize;
             }
             else
             {
-                throw new InvalidDataException(_entries[i].GetType().FullName);
+                throw new InvalidDataException(entry.GetType().FullName);
             }
         }
     }
@@ -132,27 +163,40 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
     IStructAbiEncoder IStructAbiEncoder.Struct(Func<IStructAbiEncoder, IStructAbiEncoder> func)
     => Struct(func);
 
-    public void WriteToParent(Span<byte> result, Span<byte> payload, int payloadOffset)
+    public void WriteToParent(Span<byte> result, Span<byte> payload, uint payloadOffset)
     {
-        int metadataOffset = 0;
+        uint metadataOffset = 0;
 
-        for(int i = 0; i < _entries.Count; i++)
+        foreach(var entry in _entries)
         {
-            if(_entries[i] is IDynamicEncodeType dynamicEncodeType)
+            if(entry is IDynamicEncodeType dynamicEncodeType)
             {
-                dynamicEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize), result.Slice(payloadOffset, _entries[i].PayloadSize), payloadOffset);
-                metadataOffset += _entries[i].MetadataSize;
-                payloadOffset += _entries[i].PayloadSize;
+                dynamicEncodeType.Encode(
+                    result.Slice(
+                        (int) metadataOffset,
+                        (int) dynamicEncodeType.MetadataSize),
+                    result.Slice(
+                        (int) payloadOffset,
+                        (int) dynamicEncodeType.PayloadSize),
+                    payloadOffset
+                );
+                metadataOffset += entry.MetadataSize;
+                payloadOffset += dynamicEncodeType.PayloadSize;
             }
-            else if(_entries[i] is IFixedEncodeType fixedEncodeType)
+            else if(entry is IFixedEncodeType fixedEncodeType)
             {
-                fixedEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize));
-                metadataOffset += _entries[i].MetadataSize;
+                fixedEncodeType.Encode(
+                    result.Slice(
+                        (int) metadataOffset,
+                        (int) entry.MetadataSize));
+                metadataOffset += entry.MetadataSize;
             }
             else
             {
-                throw new InvalidDataException(_entries[i].GetType().FullName);
+                throw new InvalidDataException(entry.GetType().FullName);
             }
         }
     }
+
+    public void WriteToParent(Span<byte> result, Span<byte> payload, int payloadOffset) => throw new NotImplementedException();
 }

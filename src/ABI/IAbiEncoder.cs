@@ -18,6 +18,4 @@ public partial interface IAbiEncoder
     public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func);
 
     public AbiEncoder Struct(Func<IStructAbiEncoder, IStructAbiEncoder> func);
-
-    public void WriteToParent(Span<byte> result, Span<byte> payload, int payloadOffset);
 }
