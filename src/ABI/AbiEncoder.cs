@@ -12,14 +12,13 @@ public partial class AbiEncoder : IArrayAbiEncoder
         _entries.Add(item);
     }
 
-    int IArrayAbiEncoder.MetadataSize => _metadataSize;
-    int IArrayAbiEncoder.PayloadSize => _payloadSize;
+    uint IArrayAbiEncoder.MetadataSize => _metadataSize;
+    uint IArrayAbiEncoder.PayloadSize => _payloadSize;
 
-    private int _payloadSize = 0;
+    private uint _payloadSize = 0;
+    private uint _metadataSize = 0;
 
-    private int _metadataSize = 0;
-
-    public int Size => _payloadSize + _metadataSize;
+    public uint Size => _payloadSize + _metadataSize;
 
     public AbiEncoder UInt8(byte value)
     {
@@ -70,20 +69,29 @@ public partial class AbiEncoder : IArrayAbiEncoder
 
     public void Build(Span<byte> result)
     {
-        int metadataOffset = 0;
-        int payloadOffset = _metadataSize;
+        uint metadataOffset = 0;
+        uint payloadOffset = _metadataSize;
 
         for(int i = 0; i < _entries.Count; i++)
         {
             if(_entries[i] is IDynamicEncodeType dynamicEncodeType)
             {
-                dynamicEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize), result.Slice(payloadOffset, _entries[i].PayloadSize), payloadOffset);
+                dynamicEncodeType.Encode(
+                    result.Slice(
+                        (int) metadataOffset, 
+                        (int) _entries[i].MetadataSize), 
+                    result.Slice(
+                        (int) payloadOffset, 
+                        (int) _entries[i].PayloadSize), payloadOffset);
                 metadataOffset += _entries[i].MetadataSize;
                 payloadOffset += _entries[i].PayloadSize;
             }
             else if(_entries[i] is IFixedEncodeType fixedEncodeType)
             {
-                fixedEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize));
+                fixedEncodeType.Encode(
+                    result.Slice(
+                        (int) metadataOffset, 
+                        (int) _entries[i].MetadataSize));
                 metadataOffset += _entries[i].MetadataSize;
             }
             else
@@ -95,21 +103,31 @@ public partial class AbiEncoder : IArrayAbiEncoder
         _entries.Clear();
     }
 
-    void IArrayAbiEncoder.WriteToParent(Span<byte> result, Span<byte> payload, int payloadOffset)
+    void IArrayAbiEncoder.WriteToParent(Span<byte> result, Span<byte> payload, uint payloadOffset)
     {
-        int metadataOffset = 0;
+        uint metadataOffset = 0;
 
         for(int i = 0; i < _entries.Count; i++)
         {
             if(_entries[i] is IDynamicEncodeType dynamicEncodeType)
             {
-                dynamicEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize), result.Slice(payloadOffset, _entries[i].PayloadSize), payloadOffset);
+                dynamicEncodeType.Encode(
+                    result.Slice(
+                        (int) metadataOffset, 
+                        (int) _entries[i].MetadataSize), 
+                    result.Slice(
+                        (int) payloadOffset,
+                        (int) _entries[i].PayloadSize), payloadOffset
+                );
                 metadataOffset += _entries[i].MetadataSize;
                 payloadOffset += _entries[i].PayloadSize;
             }
             else if(_entries[i] is IFixedEncodeType fixedEncodeType)
             {
-                fixedEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize));
+                fixedEncodeType.Encode(
+                    result.Slice(
+                        (int) metadataOffset,
+                        (int) _entries[i].MetadataSize));
                 metadataOffset += _entries[i].MetadataSize;
             }
             else

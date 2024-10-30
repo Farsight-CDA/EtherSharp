@@ -7,8 +7,8 @@ internal interface IFixedEncodeType : IEncodeType
 
 public abstract partial class FixedEncodeType<T>(T value) : IFixedEncodeType
 {
-    public int MetadataSize => 32;
-    public int PayloadSize => 0;
+    public uint MetadataSize => 32;
+    public uint PayloadSize => 0;
 
     public T Value { get; } = value;
 

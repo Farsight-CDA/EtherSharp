@@ -2,7 +2,6 @@
 
 public interface IEncodeType
 {
-    public int MetadataSize { get; }
-
-    public int PayloadSize { get; }
+    public uint MetadataSize { get; }
+    public uint PayloadSize { get; }
 }
