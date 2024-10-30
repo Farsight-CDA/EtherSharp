@@ -3,19 +3,19 @@
 namespace EtherSharp.ABI;
 public partial interface IAbiEncoder
 {
-    public AbiDecoder UInt8(byte value);
+    public AbiEncoder UInt8(byte value);
 
-    public AbiDecoder Int8(sbyte value);
+    public AbiEncoder Int8(sbyte value);
 
-    public AbiDecoder UInt16(ushort value);
+    public AbiEncoder UInt16(ushort value);
 
-    public AbiDecoder Int16(short value);
+    public AbiEncoder Int16(short value);
 
-    public AbiDecoder String(string value);
+    public AbiEncoder String(string value);
 
-    public AbiDecoder Bytes(byte[] arr);
+    public AbiEncoder Bytes(byte[] arr);
 
-    public AbiDecoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func);
+    public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func);
 
-    public AbiDecoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func);
+    public AbiEncoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func);
 }

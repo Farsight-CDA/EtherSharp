@@ -3,11 +3,11 @@
 namespace EtherSharp.Tests;
 public class AbiEncoderTests
 {
-    private readonly AbiDecoder _encoder;
+    private readonly AbiEncoder _encoder;
 
     public AbiEncoderTests()
     {
-        _encoder = new AbiDecoder();
+        _encoder = new AbiEncoder();
     }
 
     [Fact]

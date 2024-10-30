@@ -5,11 +5,11 @@ namespace EtherSharp.Tests;
 
 public class UnitMinMaxAbiEncoder
 {
-    private readonly AbiDecoder _encoder;
+    private readonly AbiEncoder _encoder;
 
     public UnitMinMaxAbiEncoder()
     {
-        _encoder = new AbiDecoder();
+        _encoder = new AbiEncoder();
     }
 
     [Fact]
