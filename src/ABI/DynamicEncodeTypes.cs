@@ -76,6 +76,6 @@ internal abstract class DynamicEncodeType<T>(T value) : IDynamicEncodeType
         public override int PayloadSize => Value.PayloadSize + Value.MetadataSize;
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
-            => Value.Build(metadata, payload, payloadOffset);
+            => Value.WriteToParent(metadata, payload, payloadOffset);
     }
 }

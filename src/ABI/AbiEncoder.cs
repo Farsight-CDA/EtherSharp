@@ -95,7 +95,7 @@ public partial class AbiEncoder : IArrayAbiEncoder
         _entries.Clear();
     }
 
-    void IArrayAbiEncoder.Build(Span<byte> result, Span<byte> payload, int payloadOffset)
+    void IArrayAbiEncoder.WriteToParent(Span<byte> result, Span<byte> payload, int payloadOffset)
     {
         int metadataOffset = 0;
 
