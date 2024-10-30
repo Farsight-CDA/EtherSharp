@@ -4,7 +4,6 @@ using System.Numerics;
 namespace EtherSharp.ABI;
 public partial interface IAbiEncoder
 {
-
     public AbiEncoder Int24(int value);
 
     public AbiEncoder UInt24(uint value);

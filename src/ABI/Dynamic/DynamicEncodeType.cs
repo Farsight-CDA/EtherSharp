@@ -2,7 +2,6 @@
 
 internal abstract partial class DynamicEncodeType<T>(T value) : IDynamicEncodeType
 {
-    public abstract uint MetadataSize { get; }
     public abstract uint PayloadSize { get; }
 
     public readonly T Value = value;

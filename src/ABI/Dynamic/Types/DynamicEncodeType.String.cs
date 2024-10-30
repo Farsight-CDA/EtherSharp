@@ -5,7 +5,6 @@ internal abstract partial class DynamicEncodeType<T>
 {
     public class String(string value) : DynamicEncodeType<string>(value)
     {
-        public override uint MetadataSize => 32;
         public override uint PayloadSize => (((uint) Value.Length + 31) / 32 * 32) + 32;
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)

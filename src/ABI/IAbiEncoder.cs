@@ -1,8 +1,6 @@
 ﻿namespace EtherSharp.ABI;
 public partial interface IAbiEncoder
 {
-    public int Size { get; }
-
     public AbiEncoder UInt8(byte value);
 
     public AbiEncoder Int8(sbyte value);

@@ -2,5 +2,4 @@
 
 public interface IEncodeType
 {
-    public uint MetadataSize { get; }
 }

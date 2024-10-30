@@ -3,7 +3,6 @@ internal abstract partial class DynamicEncodeType<T>
 {
     public class Struct(uint typeId, IStructAbiEncoder value) : DynamicEncodeType<IStructAbiEncoder>(value)
     {
-        public override uint MetadataSize => 32;
         public override uint PayloadSize => Value.PayloadSize + Value.MetadataSize + 32;
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
