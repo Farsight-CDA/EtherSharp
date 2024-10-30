@@ -1,7 +1,7 @@
 <#@ template language="C#" #>
 <#@ output extension=".cs" #>
 <#@ import namespace="System" #>
-
+using EtherSharp.ABI.Fixed;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
@@ -13,13 +13,13 @@ public partial class AbiEncoder
 #>
     public AbiEncoder Int<#=i#>(int value)
     { 
-        AddElement(new FixedEncodeType<string>.GenerateInts(value, <#=i#>));
+        AddElement(new FixedEncodeType<string>.Int(value, <#=i#>));
         return this;
     }
 
     public AbiEncoder UInt<#=i#>(uint value)
     { 
-        AddElement(new FixedEncodeType<string>.GenerateUInts(value, <#=i#>));
+        AddElement(new FixedEncodeType<string>.UInt(value, <#=i#>));
         return this;
     }
 
@@ -32,13 +32,13 @@ public partial class AbiEncoder
 #>
     public AbiEncoder Int<#=i#>(long value)
     { 
-        AddElement(new FixedEncodeType<string>.GenerateLong(value, <#=i#>));
+        AddElement(new FixedEncodeType<string>.Long(value, <#=i#>));
         return this;
     }
 
     public AbiEncoder UInt<#=i#>(ulong value)
     { 
-        AddElement(new FixedEncodeType<string>.GenerateULong(value, <#=i#>));
+        AddElement(new FixedEncodeType<string>.ULong(value, <#=i#>));
         return this;
     }
 
@@ -51,13 +51,13 @@ public partial class AbiEncoder
 #>
     public AbiEncoder Int<#=i#>(BigInteger value)
     { 
-        AddElement(new FixedEncodeType<string>.GenerateBigInteger(value, false, <#=i#>));
+        AddElement(new FixedEncodeType<string>.BigInteger(value, false, <#=i#>));
         return this;
     }
 
     public AbiEncoder UInt<#=i#>(BigInteger value)
     { 
-        AddElement(new FixedEncodeType<string>.GenerateBigInteger(value, true, <#=i#>));
+        AddElement(new FixedEncodeType<string>.BigInteger(value, true, <#=i#>));
         return this;
     }
 <#

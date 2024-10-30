@@ -1,10 +1,10 @@
-﻿using EtherSharp.ABI.Fixed;
+﻿using EtherSharp.ABI.Dynamic;
+using EtherSharp.ABI.Fixed;
 
 namespace EtherSharp.ABI;
 
 public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncoder
 {
-
     private readonly List<IEncodeType> _entries = [];
 
     private void AddElement(IEncodeType item)
@@ -21,39 +21,39 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
     uint IArrayAbiEncoder.MetadataSize => _metadataSize;
     uint IArrayAbiEncoder.PayloadSize => _payloadSize;
 
+    uint IStructAbiEncoder.MetadataSize => _metadataSize;
+
+    uint IStructAbiEncoder.PayloadSize => _payloadSize;
+
     private uint _payloadSize = 0;
     private uint _metadataSize = 0;
 
     public uint Size => _payloadSize + _metadataSize;
 
-    public uint MetadataSize => throw new NotImplementedException();
-
-    public uint PayloadSize => throw new NotImplementedException();
-
     int IAbiEncoder.Size => throw new NotImplementedException();
 
     public AbiEncoder UInt8(byte value)
     {
-        AddElement(new FixedEncodeType<string>.UInt8(value));
+        AddElement(new FixedEncodeType<string>.Byte(value));
         return this;
     }
 
     public AbiEncoder Int8(sbyte value)
     {
-        AddElement(new FixedEncodeType<string>.Int8(value));
+        AddElement(new FixedEncodeType<string>.SByte(value));
         return this;
     }
     public AbiEncoder UInt16(ushort value)
     {
 
-        AddElement(new FixedEncodeType<string>.UInt16(value));
+        AddElement(new FixedEncodeType<string>.UShort(value));
         return this;
     }
 
     public AbiEncoder Int16(short value)
     {
 
-        AddElement(new FixedEncodeType<string>.Int16(value));
+        AddElement(new FixedEncodeType<string>.Short(value));
         return this;
     }
 
