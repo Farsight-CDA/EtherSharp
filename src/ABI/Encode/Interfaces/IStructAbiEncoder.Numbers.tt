@@ -1,0 +1,33 @@
+﻿using System.Numerics;
+
+namespace EtherSharp.ABI.Encode.Interfaces;
+public partial interface IStructAbiEncoder 
+{
+<#
+    for(var i = 24; i <= 32;i=i+8)
+    {
+#>
+    public IStructAbiEncoder Int<#=i#>(int value);
+    public IStructAbiEncoder UInt<#=i#>(uint value);
+<#
+    }
+#>
+<#
+    for(var i = 40; i <= 64;i=i+8)
+    {
+#>
+    public IStructAbiEncoder Int<#=i#>(long value);
+    public IStructAbiEncoder UInt<#=i#>(ulong value);
+<#
+    }
+#>
+<#
+    for(var i = 72; i <= 256;i=i+8)
+    {
+#>
+    public IStructAbiEncoder Int<#=i#>(BigInteger value);
+    public IStructAbiEncoder UInt<#=i#>(BigInteger value);
+<#
+    }
+#>
+}

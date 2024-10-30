@@ -22,7 +22,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int8(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -36,7 +36,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int8(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -50,7 +50,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt8(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -64,7 +64,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt8(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -78,7 +78,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int16(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -92,7 +92,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int16(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -106,7 +106,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt16(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -120,7 +120,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt16(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -134,7 +134,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int32(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -148,7 +148,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int32(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -162,7 +162,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt32(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -176,7 +176,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt32(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -190,7 +190,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int64(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -204,7 +204,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int64(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -218,7 +218,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt64(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -232,7 +232,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt64(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -246,7 +246,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int128(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -260,7 +260,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int128(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -274,7 +274,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt128(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -288,7 +288,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt128(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -302,7 +302,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int256(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -316,7 +316,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.Int256(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -330,7 +330,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt256(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 
@@ -344,7 +344,7 @@ public class UnitMinMaxAbiEncoder
 
         _ = _encoder.UInt256(value);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(expectedBytes, actualOutput);
     }
 }

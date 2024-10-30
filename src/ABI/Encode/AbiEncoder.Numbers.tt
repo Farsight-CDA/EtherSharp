@@ -2,6 +2,7 @@
 <#@ output extension=".cs" #>
 <#@ import namespace="System" #>
 using EtherSharp.ABI.Fixed;
+using EtherSharp.ABI.Encode.Interfaces;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
@@ -15,13 +16,17 @@ public partial class AbiEncoder
     { 
         AddElement(new FixedType<string>.Int(value, <#=i#>));
         return this;
-    }
+    }    
+    IStructAbiEncoder IStructAbiEncoder.Int<#=i#>(int value)
+        => Int<#=i#>(value);
 
     public AbiEncoder UInt<#=i#>(uint value)
     { 
         AddElement(new FixedType<string>.UInt(value, <#=i#>));
         return this;
     }
+    IStructAbiEncoder IStructAbiEncoder.UInt<#=i#>(uint value)
+        => UInt<#=i#>(value);
 
 <#
     }
@@ -35,12 +40,16 @@ public partial class AbiEncoder
         AddElement(new FixedType<string>.Long(value, <#=i#>));
         return this;
     }
+    IStructAbiEncoder IStructAbiEncoder.Int<#=i#>(long value)
+        => Int<#=i#>(value);
 
     public AbiEncoder UInt<#=i#>(ulong value)
     { 
         AddElement(new FixedType<string>.ULong(value, <#=i#>));
         return this;
     }
+    IStructAbiEncoder IStructAbiEncoder.UInt<#=i#>(ulong value)
+        => UInt<#=i#>(value);
 
 <#
     }
@@ -54,12 +63,16 @@ public partial class AbiEncoder
         AddElement(new FixedType<string>.BigInteger(value, false, <#=i#>));
         return this;
     }
+    IStructAbiEncoder IStructAbiEncoder.Int<#=i#>(BigInteger value)
+        => Int<#=i#>(value);
 
     public AbiEncoder UInt<#=i#>(BigInteger value)
     { 
         AddElement(new FixedType<string>.BigInteger(value, true, <#=i#>));
         return this;
     }
+    IStructAbiEncoder IStructAbiEncoder.UInt<#=i#>(BigInteger value)
+        => UInt<#=i#>(value);
 <#
     }
 #>

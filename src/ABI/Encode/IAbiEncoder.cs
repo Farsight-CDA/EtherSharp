@@ -1,6 +1,6 @@
-﻿using EtherSharp.ABI.Encode;
+﻿using EtherSharp.ABI.Encode.Interfaces;
 
-namespace EtherSharp.ABI;
+namespace EtherSharp.ABI.Encode;
 public partial interface IAbiEncoder
 {
     public AbiEncoder UInt8(byte value);

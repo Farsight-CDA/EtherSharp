@@ -21,7 +21,7 @@ public class UnitDynamicTypesAbiEncoder
 
         _ = _encoder.String(bigIntValue);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);
     }
 
@@ -35,7 +35,7 @@ public class UnitDynamicTypesAbiEncoder
 
         _ = _encoder.String(bigIntValue).String(bigIntValue);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);
     }
 
@@ -48,7 +48,7 @@ public class UnitDynamicTypesAbiEncoder
 
         _ = _encoder.Int8(1);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);
     }
 
@@ -62,7 +62,7 @@ public class UnitDynamicTypesAbiEncoder
 
         _ = _encoder.Int8(1).String(bigIntValue);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);
     }
 
@@ -74,7 +74,7 @@ public class UnitDynamicTypesAbiEncoder
         _ = _encoder.Array(x => x.Struct(1, y => y.Int8(8)));
 
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.Build(actualOutput.AsSpan());
+        _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(new byte[2], actualOutput);
     }
 }

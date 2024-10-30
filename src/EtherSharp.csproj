@@ -21,13 +21,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ABI\Encode\IAbiEncoder.Generated.tt">
-      <LastGenOutput>IAbiEncoder.Generated.cs</LastGenOutput>
+    <None Update="ABI\Encode\AbiEncoder.NumberArrays.tt">
+      <LastGenOutput>AbiEncoder.NumberArrays.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
-    <None Update="ABI\Encode\AbiEncoder.Generated.tt">
+    <None Update="ABI\Encode\AbiEncoder.Numbers.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AbiEncoder.Generated.cs</LastGenOutput>
+      <LastGenOutput>AbiEncoder.Numbers.cs</LastGenOutput>
+    </None>
+    <None Update="ABI\Encode\Interfaces\IStructAbiEncoder.Numbers.tt">
+      <LastGenOutput>IStructAbiEncoder.Numbers.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="ABI\Encode\Interfaces\IStructAbiEncoder.NumberArrays.tt">
+      <LastGenOutput>IStructAbiEncoder.NumberArrays.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="ABI\Encode\Interfaces\IArrayAbiEncoder.NumberArrays.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>IArrayAbiEncoder.NumberArrays.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -36,15 +48,30 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="ABI\Encode\IAbiEncoder.Generated.cs">
-      <DependentUpon>IAbiEncoder.Generated.tt</DependentUpon>
+    <Compile Update="ABI\Encode\AbiEncoder.NumberArrays.cs">
+      <DependentUpon>AbiEncoder.NumberArrays.tt</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Update="ABI\Encode\AbiEncoder.Generated.cs">
+    <Compile Update="ABI\Encode\AbiEncoder.Numbers.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>AbiEncoder.Generated.tt</DependentUpon>
+      <DependentUpon>AbiEncoder.Numbers.tt</DependentUpon>
+    </Compile>
+    <Compile Update="ABI\Encode\Interfaces\IStructAbiEncoder.Numbers.cs">
+      <DependentUpon>IStructAbiEncoder.Numbers.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="ABI\Encode\Interfaces\IStructAbiEncoder.NumberArrays.cs">
+      <DependentUpon>IStructAbiEncoder.NumberArrays.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="ABI\Encode\Interfaces\IArrayAbiEncoder.NumberArrays.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>IArrayAbiEncoder.NumberArrays.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 

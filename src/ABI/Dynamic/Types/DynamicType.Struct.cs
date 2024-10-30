@@ -1,4 +1,4 @@
-﻿using EtherSharp.ABI.Encode;
+﻿using EtherSharp.ABI.Encode.Interfaces;
 
 namespace EtherSharp.ABI.Dynamic;
 internal abstract partial class DynamicType<T>
@@ -27,7 +27,7 @@ internal abstract partial class DynamicType<T>
                 payload[..32].Reverse();
             }
 
-            Value.Build(payload[32..]);
+            Value.WritoTo(payload[32..]);
         }
     }
 }

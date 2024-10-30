@@ -1,5 +1,6 @@
 ﻿using EtherSharp.ABI.Dynamic;
 using EtherSharp.ABI.Encode;
+using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Fixed;
 
 namespace EtherSharp.ABI;
@@ -43,7 +44,14 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
     public AbiEncoder Bytes(byte[] arr)
         => AddElement(new DynamicType<string>.Bytes(arr));
 
-    public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
+    public AbiEncoder StringArray(params string[] value)
+        => AddElement(new DynamicType<string>.PrimitiveArray<DynamicType<string>.String>(
+            value.Select(x => new DynamicType<string>.String(x)).ToArray()));
+    public AbiEncoder BytesArray(params byte[][] value)
+        => AddElement(new DynamicType<string>.PrimitiveArray<DynamicType<string>.Bytes>(
+            value.Select(x => new DynamicType<string>.Bytes(x)).ToArray()));
+
+    public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func) 
         => AddElement(new DynamicType<string>.Array(func(new AbiEncoder())));
     public AbiEncoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
         => AddElement(new DynamicType<string>.Struct(typeId, func(new AbiEncoder())));
@@ -55,7 +63,7 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
     IStructAbiEncoder IStructAbiEncoder.Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
         => Struct(typeId, func);
 
-    public void Build(Span<byte> result)
+    public void WritoTo(Span<byte> result)
     {
         uint metadataOffset = 0;
         uint payloadOffset = _metadataSize;
@@ -91,5 +99,12 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
         }
 
         _entries.Clear();
+    }
+
+    public byte[] Build()
+    {
+        byte[] buffer = new byte[Size];
+        WritoTo(buffer);
+        return buffer;
     }
 }
