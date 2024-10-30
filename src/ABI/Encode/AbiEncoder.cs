@@ -45,10 +45,10 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
         => AddElement(new DynamicType<string>.Bytes(arr));
 
     public AbiEncoder StringArray(params string[] value)
-        => AddElement(new DynamicType<string>.PrimitiveArray<DynamicType<string>.String>(
+        => AddElement(new DynamicType<string>.EncodeTypeArray<DynamicType<string>.String>(
             value.Select(x => new DynamicType<string>.String(x)).ToArray()));
     public AbiEncoder BytesArray(params byte[][] value)
-        => AddElement(new DynamicType<string>.PrimitiveArray<DynamicType<string>.Bytes>(
+        => AddElement(new DynamicType<string>.EncodeTypeArray<DynamicType<string>.Bytes>(
             value.Select(x => new DynamicType<string>.Bytes(x)).ToArray()));
 
     public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func) 

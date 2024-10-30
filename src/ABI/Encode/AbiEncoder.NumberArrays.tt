@@ -53,14 +53,14 @@ public partial class AbiEncoder
     {
 #>
     public AbiEncoder Int<#=i#>Array(params BigInteger[] value)
-        => AddElement(new DynamicType<object>.PrimitiveNumberArray<BigInteger>(value, <#=i#>));
+        => AddElement(new DynamicType<object>.BigIntegerArray(value, false, <#=i#>));
     IArrayAbiEncoder IArrayAbiEncoder.Int<#=i#>Array(params BigInteger[] value)
         => Int<#=i#>Array(value);
     IStructAbiEncoder IStructAbiEncoder.Int<#=i#>Array(params BigInteger[] value)
         => Int<#=i#>Array(value);
 
     public AbiEncoder UInt<#=i#>Array(params BigInteger[] value)
-        => AddElement(new DynamicType<object>.PrimitiveNumberArray<BigInteger>(value, <#=i#>));
+        => AddElement(new DynamicType<object>.BigIntegerArray(value, true, <#=i#>));
     IArrayAbiEncoder IArrayAbiEncoder.UInt<#=i#>Array(params BigInteger[] value)
         => UInt<#=i#>Array(value);
     IStructAbiEncoder IStructAbiEncoder.UInt<#=i#>Array(params BigInteger[] value)

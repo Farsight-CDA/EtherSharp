@@ -4,7 +4,7 @@ using EtherSharp.ABI.Fixed;
 namespace EtherSharp.ABI.Dynamic;
 internal abstract partial class DynamicType<T>
 {
-    public class PrimitiveArray<TInner>(TInner[] value) : DynamicType<TInner[]>(value)
+    public class EncodeTypeArray<TInner>(TInner[] value) : DynamicType<TInner[]>(value)
         where TInner : IEncodeType
     {
         public override uint PayloadSize => (uint) Value.Sum(x => x is IDynamicType dynType ? dynType.PayloadSize + 32 : 32) + 32;
