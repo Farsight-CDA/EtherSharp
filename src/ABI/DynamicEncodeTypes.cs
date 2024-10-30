@@ -71,6 +71,15 @@ internal abstract class DynamicEncodeType<T>(T value) : IDynamicEncodeType
         }
     }
 
+    public class Struct(IStructAbiEncoder value) : DynamicEncodeType<IStructAbiEncoder>(value)
+    {
+        public override int MetadataSize => 32;
+        public override int PayloadSize => Value.PayloadSize + Value.MetadataSize;
+
+        public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
+            => Value.WriteToParent(metadata, payload, payloadOffset);
+    }
+
     public class AArray(IArrayAbiEncoder value) : DynamicEncodeType<IArrayAbiEncoder>(value)
     {
         public override int MetadataSize => 32;

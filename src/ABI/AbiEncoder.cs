@@ -1,6 +1,6 @@
 ﻿namespace EtherSharp.ABI;
 
-public partial class AbiEncoder : IArrayAbiEncoder
+public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncoder
 {
 
     private readonly List<IEncodeType> _entries = [];
@@ -14,6 +14,9 @@ public partial class AbiEncoder : IArrayAbiEncoder
 
     int IArrayAbiEncoder.MetadataSize => _metadataSize;
     int IArrayAbiEncoder.PayloadSize => _payloadSize;
+
+    int IStructAbiEncoder.MetadataSize => _metadataSize;
+    int IStructAbiEncoder.PayloadSize => _payloadSize;
 
     private int _payloadSize = 0;
 
@@ -65,6 +68,13 @@ public partial class AbiEncoder : IArrayAbiEncoder
         return this;
     }
 
+    public AbiEncoder Struct(Func<IStructAbiEncoder, IStructAbiEncoder> func)
+    {
+
+        AddElement(new DynamicEncodeType<string>.Struct(func(new AbiEncoder())));
+        return this;
+    }
+
     IArrayAbiEncoder IArrayAbiEncoder.Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
         => Array(func);
 
@@ -96,6 +106,33 @@ public partial class AbiEncoder : IArrayAbiEncoder
     }
 
     void IArrayAbiEncoder.WriteToParent(Span<byte> result, Span<byte> payload, int payloadOffset)
+    {
+        int metadataOffset = 0;
+
+        for(int i = 0; i < _entries.Count; i++)
+        {
+            if(_entries[i] is IDynamicEncodeType dynamicEncodeType)
+            {
+                dynamicEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize), result.Slice(payloadOffset, _entries[i].PayloadSize), payloadOffset);
+                metadataOffset += _entries[i].MetadataSize;
+                payloadOffset += _entries[i].PayloadSize;
+            }
+            else if(_entries[i] is IFixedEncodeType fixedEncodeType)
+            {
+                fixedEncodeType.Encode(result.Slice(metadataOffset, _entries[i].MetadataSize));
+                metadataOffset += _entries[i].MetadataSize;
+            }
+            else
+            {
+                throw new InvalidDataException(_entries[i].GetType().FullName);
+            }
+        }
+    }
+
+    IStructAbiEncoder IStructAbiEncoder.Struct(Func<IStructAbiEncoder, IStructAbiEncoder> func)
+    => Struct(func);
+
+    public void WriteToParent(Span<byte> result, Span<byte> payload, int payloadOffset)
     {
         int metadataOffset = 0;
 

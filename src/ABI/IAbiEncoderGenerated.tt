@@ -1,0 +1,43 @@
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System" #>
+
+using System.Numerics;
+
+namespace EtherSharp.ABI;
+public partial interface IAbiEncoder
+{
+<#
+    for(var i = 24; i <= 32;i=i+8)
+    {
+#>
+
+    public AbiEncoder Int<#=i#>(int value);
+
+    public AbiEncoder UInt<#=i#>(uint value);
+<#
+    }
+#>
+<#
+    for(var i = 40; i <= 64;i=i+8)
+    {
+#>
+
+    public AbiEncoder Int<#=i#>(long value);
+
+    public AbiEncoder UInt<#=i#>(ulong value);
+<#
+    }
+#>
+<#
+    for(var i = 72; i <= 256;i=i+8)
+    {
+#>
+
+    public AbiEncoder Int<#=i#>(BigInteger value);
+
+    public AbiEncoder UInt<#=i#>(BigInteger value);
+<#
+    }
+#>
+}
