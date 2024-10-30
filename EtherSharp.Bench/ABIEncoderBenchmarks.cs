@@ -6,15 +6,24 @@ namespace EtherSharp.Bench;
 public class ABIEncoderBenchmarks
 {
     private AbiEncoder _abiEncoder = null!;
+    private byte[] _buffer = null!;
 
     [GlobalSetup]
-    public void Setup() => _abiEncoder = new AbiEncoder();
+    public void Setup()
+    {
+        _abiEncoder = new AbiEncoder()
+            .UInt8(byte.MaxValue)
+            .UInt8(byte.MaxValue)
+            .UInt8(byte.MaxValue)
+            .UInt8(byte.MaxValue)
+            .UInt8(byte.MaxValue);
+        ;
+        _buffer = new byte[32*5];
+    }
 
     [Benchmark]
-    public void AbiEncoder_Int8()
+    public void AbiEncoder_Build()
     {
-        _abiEncoder.UInt8(byte.MaxValue);
-        Span<byte> buffer = stackalloc byte[_abiEncoder.Size];
-        _abiEncoder.Build(buffer);
+        _abiEncoder.Build(_buffer);
     }
 }

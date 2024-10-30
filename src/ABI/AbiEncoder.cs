@@ -71,10 +71,9 @@ public partial class AbiEncoder : IArrayAbiEncoder
 
     public void Build(Span<byte> result)
     {
-        int metadataSize = _entries.Sum(e => e.MetadataSize);
-
         int metadataOffset = 0;
-        int payloadOffset = metadataSize;
+        int payloadOffset = _metadataSize;
+
         for(int i = 0; i < _entries.Count; i++)
         {
             if(_entries[i] is IDynamicEncodeType dynamicEncodeType)
@@ -100,6 +99,7 @@ public partial class AbiEncoder : IArrayAbiEncoder
     void IArrayAbiEncoder.Build(Span<byte> result, Span<byte> payload, int payloadOffset)
     {
         int metadataOffset = 0;
+
         for(int i = 0; i < _entries.Count; i++)
         {
             if(_entries[i] is IDynamicEncodeType dynamicEncodeType)

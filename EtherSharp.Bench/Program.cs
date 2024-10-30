@@ -1,2 +1,11 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Toolchains.InProcess.Emit;
+using EtherSharp.Bench;
+
+BenchmarkRunner.Run<ABIEncoderBenchmarks>(
+    DefaultConfig.Instance.AddJob(Job
+         .ShortRun
+         .WithLaunchCount(1)
+         .WithToolchain(InProcessEmitToolchain.Instance)));
