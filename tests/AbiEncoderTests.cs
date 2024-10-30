@@ -1,5 +1,4 @@
 ﻿using EtherSharp.ABI;
-using System.Diagnostics;
 
 namespace EtherSharp.Tests;
 public class AbiEncoderTests
@@ -68,12 +67,11 @@ public class AbiEncoderTests
     [Fact]
     public void Test_int_String()
     {
-        string bigIntValue = "hello_worldwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww";
         string @string = "0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000c468656c6c6f5f776f726c64777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777700000000000000000000000000000000000000000000000000000000";
 
         byte[] stringByte = Convert.FromHexString(@string);
 
-        _ = _encoder.Int8(1).String(bigIntValue);
+        _ = _encoder.Int8(1).String(@string);
         byte[] actualOutput = new byte[_encoder.Size];
         _encoder.Build(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);

@@ -1,7 +1,9 @@
-﻿namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicEncodeType<T>
+﻿using EtherSharp.ABI.Encode;
+
+namespace EtherSharp.ABI.Dynamic;
+internal abstract partial class DynamicType<T>
 {
-    public class Array(IArrayAbiEncoder value) : DynamicEncodeType<IArrayAbiEncoder>(value)
+    public class Array(IArrayAbiEncoder value) : DynamicType<IArrayAbiEncoder>(value)
     {
         public override uint PayloadSize => Value.PayloadSize + Value.MetadataSize + 32;
 

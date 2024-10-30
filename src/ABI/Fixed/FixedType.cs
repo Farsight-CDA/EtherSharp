@@ -1,6 +1,6 @@
 ﻿namespace EtherSharp.ABI.Fixed;
 
-internal abstract partial class FixedEncodeType<T>(T value) : IFixedEncodeType
+internal abstract partial class FixedType<T>(T value) : IFixedType
 {
     public T Value { get; } = value;
 

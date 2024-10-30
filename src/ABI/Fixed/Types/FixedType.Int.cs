@@ -1,17 +1,19 @@
 ﻿namespace EtherSharp.ABI.Fixed;
-internal abstract partial class FixedEncodeType<T>
+internal abstract partial class FixedType<T>
 {
-    public class UInt : FixedEncodeType<uint>
+    public class Int : FixedType<int>
     {
-        public UInt(uint value, int length) : base(value)
+        public Int(int value, int length) : base(value)
         {
             if(length < 24 || length > 32 || length % 8 != 0)
             {
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
             }
-            if(value >> length != 0 && length != 32)
+
+            uint unsignedValue = (uint) (value << (32 - length)) >> (32 - length);
+            if(unsignedValue >> length != 0 && length != 32)
             {
-                throw new ArgumentException($"Value is too large to fit in a {length}-bit unsigned integer", nameof(value));
+                throw new ArgumentException($"Value is too large to fit in a {length}-bit signed integer", nameof(value));
             }
         }
 
@@ -23,7 +25,11 @@ internal abstract partial class FixedEncodeType<T>
             }
             if(BitConverter.IsLittleEndian)
             {
-                values[..(32 - 4)].Reverse();
+                values[(32 - 4)..].Reverse();
+            }
+            if(Value < 0)
+            {
+                values[..(32 - 4)].Fill(byte.MaxValue);
             }
         }
     }

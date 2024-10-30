@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.ABI;
+﻿namespace EtherSharp.ABI.Encode;
 public interface IStructAbiEncoder : IAbiEncoder
 {
     public uint MetadataSize { get; }

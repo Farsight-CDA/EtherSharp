@@ -1,7 +1,7 @@
 ﻿namespace EtherSharp.ABI.Fixed;
-internal abstract partial class FixedEncodeType<T>
+internal abstract partial class FixedType<T>
 {
-    public class Long : FixedEncodeType<long>
+    public class Long : FixedType<long>
     {
         public Long(long value, int length) : base(value)
         {

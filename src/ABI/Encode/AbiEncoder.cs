@@ -1,4 +1,5 @@
 ﻿using EtherSharp.ABI.Dynamic;
+using EtherSharp.ABI.Encode;
 using EtherSharp.ABI.Fixed;
 
 namespace EtherSharp.ABI;
@@ -18,7 +19,7 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
 
     private AbiEncoder AddElement(IEncodeType item)
     {
-        if(item is IDynamicEncodeType dyn)
+        if(item is IDynamicType dyn)
         {
             _payloadSize += dyn.PayloadSize;
         }
@@ -29,23 +30,23 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
     }
 
     public AbiEncoder UInt8(byte value) 
-        => AddElement(new FixedEncodeType<string>.Byte(value));
+        => AddElement(new FixedType<string>.Byte(value));
     public AbiEncoder Int8(sbyte value) 
-        => AddElement(new FixedEncodeType<string>.SByte(value));
+        => AddElement(new FixedType<string>.SByte(value));
     public AbiEncoder UInt16(ushort value) 
-        => AddElement(new FixedEncodeType<string>.UShort(value));
+        => AddElement(new FixedType<string>.UShort(value));
     public AbiEncoder Int16(short value) 
-        => AddElement(new FixedEncodeType<string>.Short(value));
+        => AddElement(new FixedType<string>.Short(value));
 
     public AbiEncoder String(string value) 
-        => AddElement(new DynamicEncodeType<string>.String(value));
+        => AddElement(new DynamicType<string>.String(value));
     public AbiEncoder Bytes(byte[] arr) 
-        => AddElement(new DynamicEncodeType<string>.Bytes(arr));
+        => AddElement(new DynamicType<string>.Bytes(arr));
 
     public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func) 
-        => AddElement(new DynamicEncodeType<string>.Array(func(new AbiEncoder())));
+        => AddElement(new DynamicType<string>.Array(func(new AbiEncoder())));
     public AbiEncoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func) 
-        => AddElement(new DynamicEncodeType<string>.Struct(typeId, func(new AbiEncoder())));
+        => AddElement(new DynamicType<string>.Struct(typeId, func(new AbiEncoder())));
 
     IArrayAbiEncoder IArrayAbiEncoder.Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
         => Array(func); 
@@ -63,7 +64,7 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
         {
             switch(entry)
             {
-                case IDynamicEncodeType dynEncType:
+                case IDynamicType dynEncType:
                     dynEncType.Encode(
                         result.Slice(
                             (int) metadataOffset,
@@ -75,7 +76,7 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
                     );
                     payloadOffset += dynEncType.PayloadSize;
                     break;
-                case IFixedEncodeType fixEncType:
+                case IFixedType fixEncType:
                     fixEncType.Encode(
                         result.Slice(
                             (int) metadataOffset,

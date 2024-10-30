@@ -21,13 +21,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ABI\IAbiEncoderGenerated.tt">
-      <LastGenOutput>IAbiEncoderGenerated.cs</LastGenOutput>
+    <None Update="ABI\Encode\IAbiEncoder.Generated.tt">
+      <LastGenOutput>IAbiEncoder.Generated.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
-    <None Update="ABI\AbiEncoderGenerated.tt">
+    <None Update="ABI\Encode\AbiEncoder.Generated.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AbiEncoderGenerated.cs</LastGenOutput>
+      <LastGenOutput>AbiEncoder.Generated.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -36,16 +36,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="ABI\IAbiEncoderGenerated.cs">
-      <DependentUpon>IAbiEncoderGenerated.tt</DependentUpon>
+    <Compile Update="ABI\Encode\IAbiEncoder.Generated.cs">
+      <DependentUpon>IAbiEncoder.Generated.tt</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Update="ABI\AbiEncoderGenerated.cs">
+    <Compile Update="ABI\Encode\AbiEncoder.Generated.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>AbiEncoderGenerated.tt</DependentUpon>
+      <DependentUpon>AbiEncoder.Generated.tt</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ABI\Decode\" />
   </ItemGroup>
 
 </Project>

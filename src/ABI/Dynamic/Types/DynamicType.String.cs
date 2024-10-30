@@ -1,9 +1,11 @@
-﻿namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicEncodeType<T>
+﻿using System.Text;
+
+namespace EtherSharp.ABI.Dynamic;
+internal abstract partial class DynamicType<T>
 {
-    public class Struct(uint typeId, IStructAbiEncoder value) : DynamicEncodeType<IStructAbiEncoder>(value)
+    public class String(string value) : DynamicType<string>(value)
     {
-        public override uint PayloadSize => Value.PayloadSize + Value.MetadataSize + 32;
+        public override uint PayloadSize => (((uint) Value.Length + 31) / 32 * 32) + 32;
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {
@@ -15,7 +17,8 @@ internal abstract partial class DynamicEncodeType<T>
             {
                 metadata.Reverse();
             }
-            if(!BitConverter.TryWriteBytes(payload[..32], typeId))
+
+            if(!BitConverter.TryWriteBytes(payload[..32], Value.Length))
             {
                 throw new InvalidOperationException("Failed to write bytes");
             }
@@ -23,7 +26,11 @@ internal abstract partial class DynamicEncodeType<T>
             {
                 payload[..32].Reverse();
             }
-            Value.Build(payload[32..]);
+
+            if(!Encoding.UTF8.TryGetBytes(Value, payload[32..], out _))
+            {
+                throw new InvalidOperationException("Failed to write bytes");
+            }
         }
     }
 }

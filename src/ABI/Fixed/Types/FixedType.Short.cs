@@ -1,7 +1,7 @@
 ﻿namespace EtherSharp.ABI.Fixed;
-internal abstract partial class FixedEncodeType<T>
+internal abstract partial class FixedType<T>
 {
-    public class Short(short value) : FixedEncodeType<short>(value)
+    public class Short(short value) : FixedType<short>(value)
     {
         public override void Encode(Span<byte> buffer)
         {

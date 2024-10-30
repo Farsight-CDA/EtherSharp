@@ -1,7 +1,7 @@
 ﻿namespace EtherSharp.ABI.Fixed;
-internal abstract partial class FixedEncodeType<T>
+internal abstract partial class FixedType<T>
 {
-    public class SByte(sbyte value) : FixedEncodeType<sbyte>(value)
+    public class SByte(sbyte value) : FixedType<sbyte>(value)
     {
         public override void Encode(Span<byte> values)
         {

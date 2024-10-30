@@ -1,6 +1,6 @@
 ﻿namespace EtherSharp.ABI.Dynamic;
 
-internal abstract partial class DynamicEncodeType<T>(T value) : IDynamicEncodeType
+internal abstract partial class DynamicType<T>(T value) : IDynamicType
 {
     public abstract uint PayloadSize { get; }
 

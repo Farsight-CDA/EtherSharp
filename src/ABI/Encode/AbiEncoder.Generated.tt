@@ -13,13 +13,13 @@ public partial class AbiEncoder
 #>
     public AbiEncoder Int<#=i#>(int value)
     { 
-        AddElement(new FixedEncodeType<string>.Int(value, <#=i#>));
+        AddElement(new FixedType<string>.Int(value, <#=i#>));
         return this;
     }
 
     public AbiEncoder UInt<#=i#>(uint value)
     { 
-        AddElement(new FixedEncodeType<string>.UInt(value, <#=i#>));
+        AddElement(new FixedType<string>.UInt(value, <#=i#>));
         return this;
     }
 
@@ -32,13 +32,13 @@ public partial class AbiEncoder
 #>
     public AbiEncoder Int<#=i#>(long value)
     { 
-        AddElement(new FixedEncodeType<string>.Long(value, <#=i#>));
+        AddElement(new FixedType<string>.Long(value, <#=i#>));
         return this;
     }
 
     public AbiEncoder UInt<#=i#>(ulong value)
     { 
-        AddElement(new FixedEncodeType<string>.ULong(value, <#=i#>));
+        AddElement(new FixedType<string>.ULong(value, <#=i#>));
         return this;
     }
 
@@ -51,13 +51,13 @@ public partial class AbiEncoder
 #>
     public AbiEncoder Int<#=i#>(BigInteger value)
     { 
-        AddElement(new FixedEncodeType<string>.BigInteger(value, false, <#=i#>));
+        AddElement(new FixedType<string>.BigInteger(value, false, <#=i#>));
         return this;
     }
 
     public AbiEncoder UInt<#=i#>(BigInteger value)
     { 
-        AddElement(new FixedEncodeType<string>.BigInteger(value, true, <#=i#>));
+        AddElement(new FixedType<string>.BigInteger(value, true, <#=i#>));
         return this;
     }
 <#

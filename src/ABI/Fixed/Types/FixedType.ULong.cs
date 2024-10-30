@@ -1,7 +1,7 @@
 ﻿namespace EtherSharp.ABI.Fixed;
-internal abstract partial class FixedEncodeType<T>
+internal abstract partial class FixedType<T>
 {
-    public class ULong : FixedEncodeType<ulong>
+    public class ULong : FixedType<ulong>
     {
         public ULong(ulong value, int length) : base(value)
         {

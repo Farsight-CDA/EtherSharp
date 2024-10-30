@@ -1,7 +1,7 @@
 ﻿namespace EtherSharp.ABI.Fixed;
-internal abstract partial class FixedEncodeType<T>
+internal abstract partial class FixedType<T>
 {
-    public class BigInteger : FixedEncodeType<System.Numerics.BigInteger>
+    public class BigInteger : FixedType<System.Numerics.BigInteger>
     {
         private readonly int _length;
         private readonly bool _isUnsigned;
