@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35122.118
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EVM.net", "src\EVM.net.csproj", "{FC1B5563-CE33-48C6-8F12-7D5F58151098}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EVM.Net.Tests", "tests\EVM.Net.Tests.csproj", "{C32F3ABD-9983-4C8B-B145-AAEEE0FC2DCB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FC1B5563-CE33-48C6-8F12-7D5F58151098}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC1B5563-CE33-48C6-8F12-7D5F58151098}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC1B5563-CE33-48C6-8F12-7D5F58151098}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC1B5563-CE33-48C6-8F12-7D5F58151098}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C32F3ABD-9983-4C8B-B145-AAEEE0FC2DCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C32F3ABD-9983-4C8B-B145-AAEEE0FC2DCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C32F3ABD-9983-4C8B-B145-AAEEE0FC2DCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C32F3ABD-9983-4C8B-B145-AAEEE0FC2DCB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2A12D9F6-4134-4EEE-9CDE-8CDE5EEDB0F4}
+	EndGlobalSection
+EndGlobal

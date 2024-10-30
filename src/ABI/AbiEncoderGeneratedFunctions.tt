@@ -1,0 +1,66 @@
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System" #>
+
+using EVM.net.ABI;
+using System.Numerics;
+
+public partial class AbiEncoder
+{
+<#
+    for(var i = 24; i <= 32;i=i+8)
+    {
+#>
+    public AbiEncoder Int<#=i#>(int value)
+    { 
+        AddElement(new FixedEncodeType<string>.GenerateInts(value, <#=i#>));
+        return this;
+    }
+
+    public AbiEncoder UInt<#=i#>(uint value)
+    { 
+        AddElement(new FixedEncodeType<string>.GenerateUInts(value, <#=i#>));
+        return this;
+    }
+
+<#
+    }
+#>
+<#
+    for(var i = 40; i <= 64;i=i+8)
+    {
+#>
+    public AbiEncoder Int<#=i#>(long value)
+    { 
+        AddElement(new FixedEncodeType<string>.GenerateLong(value, <#=i#>));
+        return this;
+    }
+
+    public AbiEncoder UInt<#=i#>(ulong value)
+    { 
+        AddElement(new FixedEncodeType<string>.GenerateULong(value, <#=i#>));
+        return this;
+    }
+
+<#
+    }
+#>
+<#
+    for(var i = 72; i <= 256;i=i+8)
+    {
+#>
+    public AbiEncoder Int<#=i#>(BigInteger value)
+    { 
+        AddElement(new FixedEncodeType<string>.GenerateBigInteger(value, false, <#=i#>));
+        return this;
+    }
+
+    public AbiEncoder UInt<#=i#>(BigInteger value)
+    { 
+        AddElement(new FixedEncodeType<string>.GenerateBigInteger(value, true, <#=i#>));
+        return this;
+    }
+<#
+    }
+#>
+}
