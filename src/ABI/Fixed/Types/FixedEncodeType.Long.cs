@@ -20,7 +20,6 @@ internal abstract partial class FixedEncodeType<T>
 
         public override void Encode(Span<byte> values)
         {
-
             if(!BitConverter.TryWriteBytes(values[(32 - 8)..], Value))
             {
                 throw new InvalidOperationException("Could Not Wryte Bytes");
