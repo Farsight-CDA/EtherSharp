@@ -35,17 +35,15 @@ internal abstract partial class FixedType<T>
             }
         }
 
-        public static int Decode(Memory<byte> bytes, int length)
+        public static int Decode(Span<byte> bytes, int length)
         {
             if(length < 24 || length > 32 || length % 8 != 0)
             {
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
             }
 
-            if(!int.TryParse(bytes.Span[..4], out int value))
-            {
-                throw new InvalidDataException($"Could Not Read Bytes of type Int{length}");
-            }
+            int value = BitConverter.ToInt32(bytes[..4]);
+
             if(BitConverter.IsLittleEndian)
             {
                 value = BinaryPrimitives.ReverseEndianness(value);

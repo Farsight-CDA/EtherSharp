@@ -12,5 +12,7 @@ internal abstract partial class FixedType<T>
                 values[..(32 - 1)].Fill(byte.MaxValue);
             }
         }
+
+        public static sbyte Decode(Span<byte> bytes, int _) => (sbyte) bytes[31];
     }
 }

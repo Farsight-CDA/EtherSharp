@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.ABI.Fixed;
+﻿using System.Buffers.Binary;
+
+namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
     public class UInt : FixedType<uint>
@@ -25,6 +27,22 @@ internal abstract partial class FixedType<T>
             {
                 values[..(32 - 4)].Reverse();
             }
+        }
+
+        public static uint Decode(Span<byte> bytes, int length)
+        {
+            if(length < 24 || length > 32 || length % 8 != 0)
+            {
+                throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
+            }
+
+            int value = BitConverter.ToInt32(bytes[..4]);
+
+            if(BitConverter.IsLittleEndian)
+            {
+                value = BinaryPrimitives.ReverseEndianness(value);
+            }
+            return (uint) value;
         }
     }
 }
