@@ -7,4 +7,6 @@ public interface IArrayAbiEncoder
     public IArrayAbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func);
 
     public void WriteToParent(Span<byte> result, Span<byte> payload, uint payloadOffset);
+
+    internal void Build(Span<byte> result);
 }
