@@ -4,11 +4,11 @@ namespace EtherSharp.Tests;
 
 public class UnitDynamicTypesAbiEncoder
 {
-    private readonly AbiEncoder _encoder;
+    private readonly AbiDecoder _encoder;
 
     public UnitDynamicTypesAbiEncoder()
     {
-        _encoder = new AbiEncoder();
+        _encoder = new AbiDecoder();
     }
 
     [Fact]
