@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.Tests;
+﻿using EtherSharp.ABI;
+
+namespace EtherSharp.Tests;
 public class AbiEncoderTests
 {
     private readonly AbiEncoder _encoder;

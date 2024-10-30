@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using EtherSharp.ABI;
 
 namespace EtherSharp.Bench;
 

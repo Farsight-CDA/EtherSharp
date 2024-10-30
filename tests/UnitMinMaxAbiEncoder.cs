@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using EtherSharp.ABI;
+using System.Numerics;
 
 namespace EtherSharp.Tests;
 
