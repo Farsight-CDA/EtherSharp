@@ -2,18 +2,19 @@
 
 namespace EtherSharp.ABI;
 
-internal interface IDynamicEncodeType : IEncodeType;
+internal interface IDynamicEncodeType : IEncodeType
+{
+    public void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset);
+}
 
 internal abstract class DynamicEncodeType<T>(T value) : IDynamicEncodeType
 {
-    public readonly T Value = value;
-
     public abstract int MetadataSize { get; }
-
     public abstract int PayloadSize { get; }
 
+    public readonly T Value = value;
+
     public abstract void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset);
-    public void Encode(Span<byte> values) => throw new NotImplementedException();
 
     public class String(string value) : DynamicEncodeType<string>(value)
     {

@@ -1,16 +1,18 @@
 ﻿namespace EtherSharp.ABI;
 
-internal interface IFixedEncodeType : IEncodeType;
+internal interface IFixedEncodeType : IEncodeType
+{
+    public void Encode(Span<byte> values);
+}
+
 public abstract partial class FixedEncodeType<T>(T value) : IFixedEncodeType
 {
-    public T Value { get; } = value;
-
     public int MetadataSize => 32;
-
     public int PayloadSize => 0;
 
+    public T Value { get; } = value;
+
     public abstract void Encode(Span<byte> values);
-    public void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset) => throw new NotImplementedException();
 
     public class Int8(sbyte value) : FixedEncodeType<sbyte>(value)
     {
