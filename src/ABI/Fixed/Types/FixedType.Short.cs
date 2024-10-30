@@ -5,7 +5,6 @@ internal abstract partial class FixedType<T>
     {
         public override void Encode(Span<byte> buffer)
         {
-
             if(!BitConverter.TryWriteBytes(buffer[(32 - 2)..], Value))
             {
                 throw new InvalidOperationException("Could Not Wryte Bytes");

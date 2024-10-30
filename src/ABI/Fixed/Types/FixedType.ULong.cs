@@ -9,7 +9,7 @@ internal abstract partial class FixedType<T>
             {
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
             }
-            if(value >> length != 0 && length != 64)
+            if(length != 64 && value >> length != 0)
             {
                 throw new ArgumentException($"Value is too large to fit in a {length}-bit unsigned integer", nameof(value));
             }

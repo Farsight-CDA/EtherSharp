@@ -9,10 +9,7 @@ internal abstract partial class FixedType<T>
             {
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
             }
-
-            bool posLimit = value > 0 && value > Math.Pow(2, length);
-            bool negLimit = value < 0 && value < -Math.Pow(2, length) - 1;
-            if(posLimit | negLimit)
+            if (length != 64 && ((value > 0 && value >> (length - 1) != 0) || (value < 0 && value >> (length - 1) != -1)))
             {
                 throw new ArgumentException($"Value is too large to fit in a {length}-bit signed integer", nameof(value));
             }

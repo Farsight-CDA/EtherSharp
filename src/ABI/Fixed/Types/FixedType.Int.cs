@@ -11,9 +11,7 @@ internal abstract partial class FixedType<T>
             {
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
             }
-
-            uint unsignedValue = (uint) (value << (32 - length)) >> (32 - length);
-            if(unsignedValue >> length != 0 && length != 32)
+            if (length != 32 && ((value > 0 && value >> (length - 1) != 0) || (value < 0 && value >> (length - 1) != -1)))
             {
                 throw new ArgumentException($"Value is too large to fit in a {length}-bit signed integer", nameof(value));
             }

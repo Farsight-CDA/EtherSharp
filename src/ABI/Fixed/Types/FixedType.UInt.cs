@@ -11,7 +11,7 @@ internal abstract partial class FixedType<T>
             {
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
             }
-            if(value >> length != 0 && length != 32)
+            if(length != 32 && value >> length != 0)
             {
                 throw new ArgumentException($"Value is too large to fit in a {length}-bit unsigned integer", nameof(value));
             }
@@ -25,7 +25,7 @@ internal abstract partial class FixedType<T>
             }
             if(BitConverter.IsLittleEndian)
             {
-                values[..(32 - 4)].Reverse();
+                values[(32 - 4)..].Reverse();
             }
         }
 

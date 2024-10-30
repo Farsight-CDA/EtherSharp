@@ -2,6 +2,7 @@
 using EtherSharp.ABI.Encode;
 using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Fixed;
+using System.Numerics;
 
 namespace EtherSharp.ABI;
 
@@ -28,6 +29,86 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
         _metadataSize += 32;
         _entries.Add(item);
         return this;
+    }
+
+    public AbiEncoder Number<TNumber>(TNumber number, bool isUnsigned, int bitLength)
+    {
+        if (bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
+        {
+            throw new ArgumentException("Invalid bitLength", nameof(bitLength));
+        }
+        //
+        return AddElement(bitLength switch
+        {
+            8 => isUnsigned 
+                ? new FixedType<object>.Byte(
+                    number is byte us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}"))
+                : new FixedType<object>.SByte(
+                    number is sbyte s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}")),
+            16 => isUnsigned
+                ? new FixedType<object>.UShort(
+                    number is ushort us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}"))
+                : new FixedType<object>.Short(
+                    number is short s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}")),
+            > 16 and <= 32 => isUnsigned
+                ? new FixedType<object>.UInt(
+                    number is uint us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"), bitLength)
+                : new FixedType<object>.Int(
+                    number is int s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"), bitLength),
+            > 32 and <= 64 => isUnsigned
+                ? new FixedType<object>.ULong(
+                    number is ulong us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"), bitLength)
+                : new FixedType<object>.Long(
+                    number is long s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"), bitLength),
+            > 64 and <= 256 => new FixedType<object>.BigInteger(
+                number is BigInteger s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"), 
+                isUnsigned, bitLength),
+            _ => throw new NotImplementedException()
+        });
+    }
+
+    public AbiEncoder NumberArray<TNumber>(bool isUnsigned, int bitLength, params TNumber[] numbers)
+    {
+        if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
+        {
+            throw new ArgumentException("Invalid bitLength", nameof(bitLength));
+        }
+        //
+        return AddElement(bitLength switch
+        {
+            8 => isUnsigned
+                ? new DynamicType<object>.PrimitiveNumberArray<byte>(
+                    numbers is byte[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}"),
+                    bitLength)
+                : new DynamicType<object>.PrimitiveNumberArray<sbyte>(
+                    numbers is sbyte[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}"),
+                    bitLength),
+            16 => isUnsigned
+                ? new DynamicType<object>.PrimitiveNumberArray<ushort>(
+                    numbers is ushort[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}"),
+                    bitLength)
+                : new DynamicType<object>.PrimitiveNumberArray<short>(
+                    numbers is short[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}"),
+                    bitLength),
+            > 16 and <= 32 => isUnsigned
+                ? new DynamicType<object>.PrimitiveNumberArray<uint>(
+                    numbers is uint[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"), 
+                    bitLength)
+                : new DynamicType<object>.PrimitiveNumberArray<int>(
+                    numbers is int[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"), 
+                    bitLength),
+            > 32 and <= 64 => isUnsigned
+                ? new DynamicType<object>.PrimitiveNumberArray<ulong>(
+                    numbers is ulong[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"), 
+                    bitLength)
+                : new DynamicType<object>.PrimitiveNumberArray<long>(
+                    numbers is long[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"), 
+                    bitLength),
+            > 64 and <= 256 => new DynamicType<object>.BigIntegerArray(
+                numbers is BigInteger[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"),
+                isUnsigned, bitLength),
+            _ => throw new NotImplementedException()
+        });
     }
 
     public AbiEncoder UInt8(byte value)

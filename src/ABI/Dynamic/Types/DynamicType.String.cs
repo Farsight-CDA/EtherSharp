@@ -3,7 +3,7 @@
 namespace EtherSharp.ABI.Dynamic;
 internal abstract partial class DynamicType<T>
 {
-    public class String(string value) : DynamicType<string>(value)
+    public class String(string value) : DynamicType<string>(value ?? throw new ArgumentNullException(nameof(value)))
     {
         public override uint PayloadSize => (((uint) Value.Length + 31) / 32 * 32) + 32;
 

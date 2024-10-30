@@ -6,7 +6,7 @@ internal abstract partial class DynamicType<T>
     public class PrimitiveNumberArray<TInner> : DynamicType<TInner[]>
         where TInner : INumber<TInner>
     {
-        public override uint PayloadSize => 32 * (uint) Value.Length;
+        public override uint PayloadSize => 32 * (uint) Value.Length + 32;
 
         public PrimitiveNumberArray(TInner[] value, int length)
             : base(value)
@@ -20,9 +20,9 @@ internal abstract partial class DynamicType<T>
                     ushort => false,
                     short => false,
                     uint us32 => length != 32 && us32 >> length != 0,
-                    int s32 => length != 32 && (s32 == 0 || (s32 > 0 && s32 >> length == 0) || (s32 < 0 && s32 >> length == -1)),
+                    int s32 => length != 32 && ((s32 > 0 && s32 >> (length - 1) != 0) || (s32 < 0 && s32 >> (length - 1) != -1)),
                     ulong us64 => length != 64 && us64 >> length != 0,
-                    long s64 => length != 64 && (s64 == 0 || (s64 > 0 && s64 >> length == 0) || (s64 < 0 && s64 >> length == -1)),
+                    long s64 => length != 64 && ((s64 > 0 && s64 >> (length - 1) != 0) || (s64 < 0 && s64 >> (length - 1) != -1)),
                     _ => throw new ArgumentException($"Expected primitive number type, got {Value[i].GetType()}")
                 })
                 {
@@ -40,6 +40,15 @@ internal abstract partial class DynamicType<T>
             if(BitConverter.IsLittleEndian)
             {
                 metadata.Reverse();
+            }
+
+            if(!BitConverter.TryWriteBytes(payload.Slice(28, 4), (uint) Value.Length))
+            {
+                throw new InvalidOperationException("Failed to write bytes");
+            }
+            if(BitConverter.IsLittleEndian)
+            {
+                payload.Slice(28, 4).Reverse();
             }
 
             for(int i = 0; i < Value.Length; i++)

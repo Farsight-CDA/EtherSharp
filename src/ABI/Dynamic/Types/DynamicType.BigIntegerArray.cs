@@ -7,7 +7,7 @@ internal abstract partial class DynamicType<T>
     {
         private readonly bool _isUnsigned;
 
-        public override uint PayloadSize => 32 * (uint) Value.Length;
+        public override uint PayloadSize => 32 * (uint) Value.Length + 32;
 
         public BigIntegerArray(BigInteger[] value, bool isUnsigned, int length)
             : base(value)

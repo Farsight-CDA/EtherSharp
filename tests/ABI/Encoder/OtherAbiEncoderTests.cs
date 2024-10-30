@@ -1,11 +1,11 @@
 ﻿using EtherSharp.ABI;
 
-namespace EtherSharp.Tests;
-public class AbiEncoderTests
+namespace EtherSharp.Tests.ABI.Encoder;
+public class OtherAbiEncoderTests
 {
     private readonly AbiEncoder _encoder;
 
-    public AbiEncoderTests()
+    public OtherAbiEncoderTests()
     {
         _encoder = new AbiEncoder();
     }
@@ -18,19 +18,7 @@ public class AbiEncoderTests
         Assert.Equal(expected, actual);
     }
 
-    [Fact]
-    public void Test_String()
-    {
-        string bigIntValue = "hello_world";
-        string @string = "0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000b68656c6c6f5f776f726c64000000000000000000000000000000000000000000";
 
-        byte[] stringByte = Convert.FromHexString(@string);
-
-        _ = _encoder.String(bigIntValue);
-        byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.WritoTo(actualOutput.AsSpan());
-        Assert.Equal(stringByte, actualOutput);
-    }
 
     [Fact]
     public void Test_2String()
@@ -54,19 +42,6 @@ public class AbiEncoderTests
         byte[] stringByte = Convert.FromHexString(@string);
 
         _ = _encoder.Struct(8, x => x.Int8(2).Int8(8));
-        byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.WritoTo(actualOutput.AsSpan());
-        Assert.Equal(stringByte, actualOutput);
-    }
-
-    [Fact]
-    public void Test_int8()
-    {
-        string @string = "0000000000000000000000000000000000000000000000000000000000000001";
-
-        byte[] stringByte = Convert.FromHexString(@string);
-
-        _ = _encoder.Int8(1);
         byte[] actualOutput = new byte[_encoder.Size];
         _encoder.WritoTo(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);
