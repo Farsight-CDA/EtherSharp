@@ -1,12 +1,10 @@
 ﻿using EtherSharp.ABI.Dynamic;
 using EtherSharp.ABI.Fixed;
-using EtherSharp.ABI.Types;
 
 namespace EtherSharp.ABI;
 
 public partial class AbiEncoder : IArrayAbiEncoder
 {
-
     private readonly List<IEncodeType> _entries = [];
 
     private void AddElement(IEncodeType item)
@@ -30,26 +28,26 @@ public partial class AbiEncoder : IArrayAbiEncoder
 
     public AbiEncoder UInt8(byte value)
     {
-        AddElement(new FixedEncodeType<string>.UInt8(value));
+        AddElement(new FixedEncodeType<string>.Byte(value));
         return this;
     }
 
     public AbiEncoder Int8(sbyte value)
     {
-        AddElement(new FixedEncodeType<string>.Int8(value));
+        AddElement(new FixedEncodeType<string>.SByte(value));
         return this;
     }
     public AbiEncoder UInt16(ushort value)
     {
 
-        AddElement(new FixedEncodeType<string>.UInt16(value));
+        AddElement(new FixedEncodeType<string>.UShort(value));
         return this;
     }
 
     public AbiEncoder Int16(short value)
     {
 
-        AddElement(new FixedEncodeType<string>.Int16(value));
+        AddElement(new FixedEncodeType<string>.Short(value));
         return this;
     }
 
