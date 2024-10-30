@@ -2,14 +2,11 @@
 using System.Globalization;
 using System.Numerics;
 
-public class EvmRpcClient
-{
-    private readonly JsonRpcClient _jsonRpcClient;
+namespace EtherSharp;
 
-    public EvmRpcClient(JsonRpcClient jsonRpcClient)
-    {
-        _jsonRpcClient = jsonRpcClient;
-    }
+public class EvmRpcClient(JsonRpcClient jsonRpcClient)
+{
+    private readonly JsonRpcClient _jsonRpcClient = jsonRpcClient;
 
     public async Task<long> EthBlockNumberAsync()
     {

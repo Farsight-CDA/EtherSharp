@@ -1,28 +1,30 @@
-﻿using EtherSharp.Types;
-using EVM.net.converter;
+﻿using EtherSharp.Converter;
+using EtherSharp.Types;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-public class JsonRpcClient
+namespace EtherSharp;
+
+public class JsonRpcClient(string rpcUrl, HttpClient httpClient)
 {
-    private readonly HttpClient _httpClient;
-    private readonly string _rpcUrl;
+    private readonly HttpClient _httpClient = httpClient;
+    private readonly string _rpcUrl = rpcUrl;
     private int _id = 0;
-
-    public JsonRpcClient(string rpcUrl, HttpClient httpClient)
-    {
-        _rpcUrl = rpcUrl;
-        _httpClient = httpClient;
-    }
-
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Converters = { new BigIntHexConverter(), new ByteArrayHexConverter() ,new IntHexConverter()
-        ,new LongHexConverter(),new UIntHexConverter() ,new ULongHexConverter() ,new DateTimeOffsetHexConverter() }
+        Converters = {
+        new BigIntHexConverter(),
+        new ByteArrayHexConverter(),
+        new IntHexConverter(),
+        new LongHexConverter(),
+        new UIntHexConverter(),
+        new ULongHexConverter(),
+        new DateTimeOffsetHexConverter()
+    }
     };
 
     private record RpcError(int Code, string Message);
