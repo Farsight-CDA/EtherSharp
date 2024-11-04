@@ -42,7 +42,6 @@ internal abstract partial class FixedType<T>
             }
         }
 
-        public static System.Numerics.BigInteger Decode(ReadOnlySpan<byte> bytes, bool isUnsigned)
-            => new System.Numerics.BigInteger(bytes, isBigEndian: false, isUnsigned: isUnsigned);
+        public static System.Numerics.BigInteger Decode(ReadOnlySpan<byte> bytes, bool isUnsigned) => new System.Numerics.BigInteger(bytes, isBigEndian: true, isUnsigned: isUnsigned);
     }
 }

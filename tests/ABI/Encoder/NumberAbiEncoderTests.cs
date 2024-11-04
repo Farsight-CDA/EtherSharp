@@ -2,11 +2,11 @@
 using System.Numerics;
 
 namespace EtherSharp.Tests.ABI.Encoder;
-public class NumberAbiEncoderTests
+public class AbiNumberEncodingTests
 {
     private readonly AbiEncoder _encoder;
 
-    public NumberAbiEncoderTests()
+    public AbiNumberEncodingTests()
     {
         _encoder = new AbiEncoder();
     }
@@ -47,7 +47,7 @@ public class NumberAbiEncoderTests
     public void Should_Match_Int_MaxValue_Output(int bitSize)
     {
         byte[] expected = new byte[32];
-        ((BigInteger.One << (bitSize - 1)) - 1)
+        _ = ((BigInteger.One << (bitSize - 1)) - 1)
             .TryWriteBytes(expected.AsSpan()[(32 - (bitSize / 8))..], out _, false, true);
 
         byte[] actual = (bitSize switch

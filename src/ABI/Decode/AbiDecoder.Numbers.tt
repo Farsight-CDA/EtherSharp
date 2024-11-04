@@ -1,0 +1,60 @@
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System" #>
+using EtherSharp.ABI.Fixed;
+using System.Numerics;
+namespace EtherSharp.ABI.Decode;
+public partial class AbiDecoder
+{
+<#
+    for(var i = 24; i <= 32;i=i+8)
+    {
+#>
+    public AbiDecoder Int<#=i#>(out short value)
+    {
+        value = FixedType<object>.Short.Decode(Bytes);
+        return ConsumeBytes(0);
+    }
+    public AbiDecoder UInt<#=i#>(out ushort value)
+    {
+        value = FixedType<object>.UShort.Decode(Bytes);
+        return ConsumeBytes(0);
+    }
+<#
+    }
+#>
+<#
+    for(var i = 40; i <= 64;i=i+8)
+    {
+#>
+    public AbiDecoder Int<#=i#>(out long value)
+    {
+        value = FixedType<object>.Long.Decode(Bytes);
+        return ConsumeBytes(0);
+    }
+    public AbiDecoder UInt<#=i#>(out ulong value)
+    {
+        value = FixedType<object>.ULong.Decode(Bytes);
+        return ConsumeBytes(0);
+    }
+<#
+    }
+#>
+<#
+    for(var i = 72; i <= 256;i=i+8)
+    {
+#>
+    public AbiDecoder Int<#=i#>(out BigInteger value)
+    {
+        value = FixedType<object>.BigInteger.Decode(Bytes, false);
+        return ConsumeBytes(0);
+    }
+    public AbiDecoder UInt<#=i#>(out BigInteger value)
+    {
+        value = FixedType<object>.BigInteger.Decode(Bytes, true);
+        return ConsumeBytes(0);
+    }
+<#
+    }
+#>
+}

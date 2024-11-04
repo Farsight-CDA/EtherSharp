@@ -34,7 +34,7 @@ internal abstract partial class FixedType<T>
 
         public static ulong Decode(Span<byte> bytes)
         {
-            ulong value = BitConverter.ToUInt64(bytes[..8]);
+            ulong value = BitConverter.ToUInt64(bytes[(32 - 8)..]);
 
             if(BitConverter.IsLittleEndian)
             {

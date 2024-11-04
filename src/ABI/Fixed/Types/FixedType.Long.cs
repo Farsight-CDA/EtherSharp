@@ -38,7 +38,7 @@ internal abstract partial class FixedType<T>
 
         public static long Decode(ReadOnlySpan<byte> bytes)
         {
-            long value = BitConverter.ToInt64(bytes[..8]);
+            long value = BitConverter.ToInt64(bytes[(32 - 8)..]);
 
             if(BitConverter.IsLittleEndian)
             {

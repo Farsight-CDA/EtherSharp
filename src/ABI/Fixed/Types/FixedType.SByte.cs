@@ -16,6 +16,6 @@ internal abstract partial class FixedType<T>
             }
         }
 
-        public static sbyte Decode(Span<byte> bytes, int _) => (sbyte) bytes[31];
+        public static sbyte Decode(Span<byte> bytes) => (sbyte) bytes[31];
     }
 }

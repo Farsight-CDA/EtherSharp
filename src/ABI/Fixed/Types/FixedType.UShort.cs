@@ -22,7 +22,7 @@ internal abstract partial class FixedType<T>
 
         public static ushort Decode(ReadOnlySpan<byte> bytes)
         {
-            ushort value = BitConverter.ToUInt16(bytes[..2]);
+            ushort value = BitConverter.ToUInt16(bytes[(32 - 2)..]);
 
             if(BitConverter.IsLittleEndian)
             {

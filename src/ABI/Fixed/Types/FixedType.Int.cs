@@ -38,7 +38,7 @@ internal abstract partial class FixedType<T>
 
         public static int Decode(ReadOnlySpan<byte> bytes)
         {
-            int value = BitConverter.ToInt32(bytes[..4]);
+            int value = BitConverter.ToInt32(bytes[(32 - 4)..]);
 
             if(BitConverter.IsLittleEndian)
             {

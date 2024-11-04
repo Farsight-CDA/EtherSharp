@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="ABI\Decode\AbiDecoder.Numbers.tt">
+      <LastGenOutput>AbiDecoder.Numbers.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
     <None Update="ABI\Encode\AbiEncoder.NumberArrays.tt">
       <LastGenOutput>AbiEncoder.NumberArrays.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -48,6 +52,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="ABI\Decode\AbiDecoder.Numbers.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AbiDecoder.Numbers.tt</DependentUpon>
+    </Compile>
     <Compile Update="ABI\Encode\AbiEncoder.NumberArrays.cs">
       <DependentUpon>AbiEncoder.NumberArrays.tt</DependentUpon>
       <DesignTime>True</DesignTime>

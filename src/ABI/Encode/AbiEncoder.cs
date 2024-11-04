@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace EtherSharp.ABI;
 
-public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncoder
+public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
 {
     private readonly List<IEncodeType> _entries = [];
 
@@ -33,14 +33,14 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
 
     public AbiEncoder Number<TNumber>(TNumber number, bool isUnsigned, int bitLength)
     {
-        if (bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
+        if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
         {
             throw new ArgumentException("Invalid bitLength", nameof(bitLength));
         }
         //
         return AddElement(bitLength switch
         {
-            8 => isUnsigned 
+            8 => isUnsigned
                 ? new FixedType<object>.Byte(
                     number is byte us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}"))
                 : new FixedType<object>.SByte(
@@ -61,7 +61,7 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
                 : new FixedType<object>.Long(
                     number is long s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"), bitLength),
             > 64 and <= 256 => new FixedType<object>.BigInteger(
-                number is BigInteger s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"), 
+                number is BigInteger s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"),
                 isUnsigned, bitLength),
             _ => throw new NotImplementedException()
         });
@@ -92,17 +92,17 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
                     bitLength),
             > 16 and <= 32 => isUnsigned
                 ? new DynamicType<object>.PrimitiveNumberArray<uint>(
-                    numbers is uint[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"), 
+                    numbers is uint[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"),
                     bitLength)
                 : new DynamicType<object>.PrimitiveNumberArray<int>(
-                    numbers is int[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"), 
+                    numbers is int[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"),
                     bitLength),
             > 32 and <= 64 => isUnsigned
                 ? new DynamicType<object>.PrimitiveNumberArray<ulong>(
-                    numbers is ulong[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"), 
+                    numbers is ulong[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"),
                     bitLength)
                 : new DynamicType<object>.PrimitiveNumberArray<long>(
-                    numbers is long[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"), 
+                    numbers is long[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"),
                     bitLength),
             > 64 and <= 256 => new DynamicType<object>.BigIntegerArray(
                 numbers is BigInteger[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"),
@@ -132,7 +132,7 @@ public partial class AbiEncoder : IAbiEncoder, IArrayAbiEncoder, IStructAbiEncod
         => AddElement(new DynamicType<string>.EncodeTypeArray<DynamicType<string>.Bytes>(
             value.Select(x => new DynamicType<string>.Bytes(x)).ToArray()));
 
-    public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func) 
+    public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
         => AddElement(new DynamicType<string>.Array(func(new AbiEncoder())));
     public AbiEncoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
         => AddElement(new DynamicType<string>.Struct(typeId, func(new AbiEncoder())));
