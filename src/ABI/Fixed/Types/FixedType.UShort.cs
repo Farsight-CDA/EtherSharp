@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.ABI.Fixed;
+﻿using System.Buffers.Binary;
+
+namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
     internal class UShort(ushort value) : FixedType<ushort>(value)
@@ -16,6 +18,17 @@ internal abstract partial class FixedType<T>
             {
                 buffer[(32 - 2)..].Reverse();
             }
+        }
+
+        public static ushort Decode(ReadOnlySpan<byte> bytes)
+        {
+            ushort value = BitConverter.ToUInt16(bytes[..2]);
+
+            if(BitConverter.IsLittleEndian)
+            {
+                value = BinaryPrimitives.ReverseEndianness(value);
+            }
+            return value;
         }
     }
 }

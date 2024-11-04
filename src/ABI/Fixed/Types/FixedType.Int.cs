@@ -11,7 +11,7 @@ internal abstract partial class FixedType<T>
             {
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
             }
-            if (length != 32 && ((value > 0 && value >> (length - 1) != 0) || (value < 0 && value >> (length - 1) != -1)))
+            if(length != 32 && ((value > 0 && value >> (length - 1) != 0) || (value < 0 && value >> (length - 1) != -1)))
             {
                 throw new ArgumentException($"Value is too large to fit in a {length}-bit signed integer", nameof(value));
             }
@@ -36,13 +36,8 @@ internal abstract partial class FixedType<T>
             }
         }
 
-        public static int Decode(Span<byte> bytes, int length)
+        public static int Decode(ReadOnlySpan<byte> bytes)
         {
-            if(length < 24 || length > 32 || length % 8 != 0)
-            {
-                throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
-            }
-
             int value = BitConverter.ToInt32(bytes[..4]);
 
             if(BitConverter.IsLittleEndian)

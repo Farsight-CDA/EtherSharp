@@ -41,5 +41,8 @@ internal abstract partial class FixedType<T>
                 buffer[..(32 - bytesWritten)].Fill(byte.MaxValue);
             }
         }
+
+        public static System.Numerics.BigInteger Decode(ReadOnlySpan<byte> bytes, bool isUnsigned)
+            => new System.Numerics.BigInteger(bytes, isBigEndian: false, isUnsigned: isUnsigned);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.ABI.Fixed;
+﻿using System.Buffers.Binary;
+
+namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
     internal class ULong : FixedType<ulong>
@@ -28,6 +30,17 @@ internal abstract partial class FixedType<T>
             {
                 buffer[(32 - 8)..].Reverse();
             }
+        }
+
+        public static ulong Decode(Span<byte> bytes)
+        {
+            ulong value = BitConverter.ToUInt64(bytes[..8]);
+
+            if(BitConverter.IsLittleEndian)
+            {
+                value = BinaryPrimitives.ReverseEndianness(value);
+            }
+            return value;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.ABI.Fixed;
+﻿using System.Buffers.Binary;
+
+namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
     internal class Long : FixedType<long>
@@ -32,6 +34,17 @@ internal abstract partial class FixedType<T>
             {
                 buffer[..(32 - 8)].Fill(byte.MaxValue);
             }
+        }
+
+        public static long Decode(ReadOnlySpan<byte> bytes)
+        {
+            long value = BitConverter.ToInt64(bytes[..8]);
+
+            if(BitConverter.IsLittleEndian)
+            {
+                value = BinaryPrimitives.ReverseEndianness(value);
+            }
+            return value;
         }
     }
 }
