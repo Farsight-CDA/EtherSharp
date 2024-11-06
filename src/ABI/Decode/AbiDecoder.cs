@@ -35,6 +35,12 @@ public partial class AbiDecoder(Memory<byte> bytes)
         return this;
     }
 
+    public AbiDecoder String(out string str)
+    {
+        str = DynamicType<object>.String.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex);
+        return this;
+    }
+
     public AbiDecoder Struct<T>(out T value, Func<StructAbiDecoder, T> func)
     {
         value = DynamicType<T>.Struct.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, func);

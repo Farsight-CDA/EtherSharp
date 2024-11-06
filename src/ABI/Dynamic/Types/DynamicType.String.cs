@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Buffers.Binary;
+using System.Text;
 
 namespace EtherSharp.ABI.Dynamic;
 internal abstract partial class DynamicType<T>
@@ -31,6 +32,32 @@ internal abstract partial class DynamicType<T>
             {
                 throw new InvalidOperationException("Failed to write bytes");
             }
+        }
+
+        public static string Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset)
+        {
+
+            uint bytesOffset = BitConverter.ToUInt32(bytes[(32 - 4)..32].Span);
+            if(BitConverter.IsLittleEndian)
+            {
+                bytesOffset = BinaryPrimitives.ReverseEndianness(bytesOffset);
+            }
+
+            long index = bytesOffset - metaDataOffset;
+            if(index < 0 || index > int.MaxValue)
+            {
+                throw new IndexOutOfRangeException("Index out of range");
+            }
+            int validatedIndex = (int) index;
+
+            uint length = BitConverter.ToUInt32(bytes[(validatedIndex + 32 - 4)..(validatedIndex + 32)].Span);
+            if(BitConverter.IsLittleEndian)
+            {
+                length = BinaryPrimitives.ReverseEndianness(length);
+            }
+
+            var stringBytes = bytes[(validatedIndex + 32)..(validatedIndex + 32 + (int) length)];
+            return Encoding.UTF8.GetString(stringBytes.Span);
         }
     }
 }
