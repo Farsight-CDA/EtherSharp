@@ -11,14 +11,14 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>Array(out byte[] bytes)
     {
-        bytes = DynamicType<byte>.PrimitiveNumberArray<byte>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
-        return this;
+        bytes = DynamicType<byte>.PrimitiveNumberArray<byte>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex);
+        return ConsumeBytes();
     }
 
     public AbiDecoder UInt<#=i#>Array(out sbyte[] bytes)
     {
-        bytes = DynamicType<sbyte>.PrimitiveNumberArray<sbyte>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
-        return this;
+        bytes = DynamicType<sbyte>.PrimitiveNumberArray<sbyte>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex);
+        return ConsumeBytes();
     }
 <#
     }
@@ -29,14 +29,14 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>Array(out short[] shorts)
     {
-        shorts = DynamicType<short>.PrimitiveNumberArray<short>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
-        return this;
+        shorts = DynamicType<short>.PrimitiveNumberArray<short>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex);
+        return ConsumeBytes();
     }
 
     public AbiDecoder UInt<#=i#>Array(out ushort[] shorts)
     {
-        shorts = DynamicType<ushort>.PrimitiveNumberArray<ushort>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
-        return this;
+        shorts = DynamicType<ushort>.PrimitiveNumberArray<ushort>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex);
+        return ConsumeBytes();
     }
 <#
     }
@@ -47,14 +47,14 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>Array(out int[] ints)
     {
-        ints = DynamicType<int>.PrimitiveNumberArray<int>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
-        return this;
+        ints = DynamicType<int>.PrimitiveNumberArray<int>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex);
+        return ConsumeBytes();
     }
 
     public AbiDecoder UInt<#=i#>Array(out uint[] ints)
     {
-        ints = DynamicType<uint>.PrimitiveNumberArray<uint>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
-        return this;
+        ints = DynamicType<uint>.PrimitiveNumberArray<uint>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex);
+        return ConsumeBytes();
     }
 <#
     }
@@ -65,14 +65,14 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>Array(out long[] longs)
     {
-        longs = DynamicType<long>.PrimitiveNumberArray<long>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
-        return this;
+        longs = DynamicType<long>.PrimitiveNumberArray<long>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex);
+        return ConsumeBytes();
     }
 
     public AbiDecoder Int<#=i#>Array(out ulong[] longs)
     {
-        longs = DynamicType<ulong>.PrimitiveNumberArray<ulong>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
-        return this;
+        longs = DynamicType<ulong>.PrimitiveNumberArray<ulong>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex);
+        return ConsumeBytes();
     }
 <#
     }
@@ -83,13 +83,13 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>Array(out System.Numerics.BigInteger[] bytes)
     {
-        bytes = DynamicType<System.Numerics.BigInteger>.BigIntegerArray.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, <#=i#>, false, this);
-        return this;
+        bytes = DynamicType<System.Numerics.BigInteger>.BigIntegerArray.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, <#=i#>, false);
+        return ConsumeBytes();
     }
     public AbiDecoder UInt<#=i#>Array(out System.Numerics.BigInteger[] bytes)
     {
-        bytes = DynamicType<System.Numerics.BigInteger>.BigIntegerArray.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, <#=i#>, true, this);
-        return this;
+        bytes = DynamicType<System.Numerics.BigInteger>.BigIntegerArray.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, <#=i#>, true);
+        return ConsumeBytes();
     }
 <#
     }

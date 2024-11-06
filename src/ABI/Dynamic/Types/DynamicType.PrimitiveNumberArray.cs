@@ -1,5 +1,4 @@
-﻿using EtherSharp.ABI.Decode;
-using EtherSharp.ABI.Fixed;
+﻿using EtherSharp.ABI.Fixed;
 using System.Buffers.Binary;
 using System.Numerics;
 
@@ -89,7 +88,7 @@ internal abstract partial class DynamicType<T>
             }
         }
 
-        public static TInner[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, AbiDecoder abiDecoder)
+        public static TInner[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset)
         {
             uint arrayOffest = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
 
@@ -104,11 +103,11 @@ internal abstract partial class DynamicType<T>
                 throw new IndexOutOfRangeException("Index out of range");
             }
 
-            uint leng = BitConverter.ToUInt32(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
+            uint length = BitConverter.ToUInt32(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
 
             if(BitConverter.IsLittleEndian)
             {
-                leng = BinaryPrimitives.ReverseEndianness(leng);
+                length = BinaryPrimitives.ReverseEndianness(length);
             }
 
             var data = bytes[(int) (index + 32)..];
@@ -117,8 +116,8 @@ internal abstract partial class DynamicType<T>
             {
                 case Type us8 when us8 == typeof(byte):
                 {
-                    byte[] arr = new byte[leng];
-                    for(int i = 0; i < leng; i++)
+                    byte[] arr = new byte[length];
+                    for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = FixedType<object>.Byte.Decode(slot.Span);
@@ -127,8 +126,8 @@ internal abstract partial class DynamicType<T>
                 }
                 case Type s8 when s8 == typeof(sbyte):
                 {
-                    sbyte[] arr = new sbyte[leng];
-                    for(int i = 0; i < leng; i++)
+                    sbyte[] arr = new sbyte[length];
+                    for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = FixedType<object>.SByte.Decode(slot.Span);
@@ -137,8 +136,8 @@ internal abstract partial class DynamicType<T>
                 }
                 case Type us16 when us16 == typeof(ushort):
                 {
-                    ushort[] arr = new ushort[leng];
-                    for(int i = 0; i < leng; i++)
+                    ushort[] arr = new ushort[length];
+                    for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = FixedType<object>.UShort.Decode(slot.Span);
@@ -147,8 +146,8 @@ internal abstract partial class DynamicType<T>
                 }
                 case Type s16 when s16 == typeof(short):
                 {
-                    short[] arr = new short[leng];
-                    for(int i = 0; i < leng; i++)
+                    short[] arr = new short[length];
+                    for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = FixedType<object>.Short.Decode(slot.Span);
@@ -157,8 +156,8 @@ internal abstract partial class DynamicType<T>
                 }
                 case Type us32 when us32 == typeof(uint):
                 {
-                    uint[] arr = new uint[leng];
-                    for(int i = 0; i < leng; i++)
+                    uint[] arr = new uint[length];
+                    for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = FixedType<object>.UInt.Decode(slot.Span);
@@ -167,8 +166,8 @@ internal abstract partial class DynamicType<T>
                 }
                 case Type s32 when s32 == typeof(int):
                 {
-                    int[] arr = new int[leng];
-                    for(int i = 0; i < leng; i++)
+                    int[] arr = new int[length];
+                    for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = FixedType<object>.Int.Decode(slot.Span);
@@ -177,8 +176,8 @@ internal abstract partial class DynamicType<T>
                 };
                 case Type us64 when us64 == typeof(ulong):
                 {
-                    ulong[] arr = new ulong[leng];
-                    for(int i = 0; i < leng; i++)
+                    ulong[] arr = new ulong[length];
+                    for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = FixedType<object>.ULong.Decode(slot.Span);
@@ -187,8 +186,8 @@ internal abstract partial class DynamicType<T>
                 }
                 case Type s64 when s64 == typeof(long):
                 {
-                    long[] arr = new long[leng];
-                    for(int i = 0; i < leng; i++)
+                    long[] arr = new long[length];
+                    for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = FixedType<object>.Long.Decode(slot.Span);

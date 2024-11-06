@@ -4,7 +4,7 @@ using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using EtherSharp.Bench;
 
-BenchmarkRunner.Run<ABIEncoderBenchmarks>(
+BenchmarkRunner.Run<ABIDecoderBenchmarks>(
     DefaultConfig.Instance.AddJob(Job
          .ShortRun
          .WithLaunchCount(1)

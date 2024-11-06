@@ -1,5 +1,4 @@
-﻿using EtherSharp.ABI.Decode;
-using EtherSharp.ABI.Fixed;
+﻿using EtherSharp.ABI.Fixed;
 using System.Buffers.Binary;
 using System.Numerics;
 
@@ -64,7 +63,7 @@ internal abstract partial class DynamicType<T>
             }
         }
 
-        public static BigInteger[] Decode(Memory<byte> bytes, uint metaDataOffset, uint length, bool isUnsinght, AbiDecoder abiDecoder)
+        public static BigInteger[] Decode(Memory<byte> bytes, uint metaDataOffset, uint length, bool isUnsinght)
         {
             uint arrayOffest = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
 

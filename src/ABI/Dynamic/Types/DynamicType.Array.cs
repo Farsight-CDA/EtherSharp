@@ -31,7 +31,7 @@ internal abstract partial class DynamicType<T>
             Value.WritoTo(payload[32..]);
         }
 
-        public static T[] Decode(Memory<byte> bytes, uint metaDataOffset, Func<ArrayAbiDecoder, T[]> decoder)
+        public static T[] Decode(Memory<byte> bytes, uint metaDataOffset, Func<IArrayAbiDecoder, T[]> decoder)
         {
             uint structOffset = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
 
@@ -41,7 +41,7 @@ internal abstract partial class DynamicType<T>
                 throw new IndexOutOfRangeException("Index out of range");
             }
 
-            var structAbiDecoder = new ArrayAbiDecoder(bytes[(int) index..]);
+            var structAbiDecoder = new AbiDecoder(bytes[(int) index..]);
 
             var innerValue = decoder.Invoke(structAbiDecoder);
 

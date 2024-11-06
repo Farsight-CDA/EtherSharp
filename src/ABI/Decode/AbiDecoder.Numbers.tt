@@ -7,18 +7,52 @@ namespace EtherSharp.ABI.Decode;
 public partial class AbiDecoder
 {
 <#
-    for(var i = 24; i <= 32;i=i+8)
+    for(var i = 8; i <= 8;i=i+8)
+    {
+#>
+    public AbiDecoder Int<#=i#>(out sbyte value)
+    {
+        value = FixedType<object>.SByte.Decode(Next32EncodedBytes);
+        return ConsumeBytes();
+    }
+    public AbiDecoder UInt<#=i#>(out byte value)
+    {
+        value = FixedType<object>.Byte.Decode(Next32EncodedBytes);
+        return ConsumeBytes();
+    }
+<#
+    }
+#>
+<#
+    for(var i = 16; i <= 16;i=i+8)
     {
 #>
     public AbiDecoder Int<#=i#>(out short value)
     {
-        value = FixedType<object>.Short.Decode(EncodedBytes);
-        return ConsumeBytes(0);
+        value = FixedType<object>.Byte.Decode(Next32EncodedBytes);
+        return ConsumeBytes();
     }
     public AbiDecoder UInt<#=i#>(out ushort value)
     {
-        value = FixedType<object>.UShort.Decode(EncodedBytes);
-        return ConsumeBytes(0);
+        value = FixedType<object>.Byte.Decode(Next32EncodedBytes);
+        return ConsumeBytes();
+    }
+<#
+    }
+#>
+<#
+    for(var i = 24; i <= 32;i=i+8)
+    {
+#>
+    public AbiDecoder Int<#=i#>(out int value)
+    {
+        value = FixedType<object>.Int.Decode(Next32EncodedBytes);
+        return ConsumeBytes();
+    }
+    public AbiDecoder UInt<#=i#>(out uint value)
+    {
+        value = FixedType<object>.UInt.Decode(Next32EncodedBytes);
+        return ConsumeBytes();
     }
 <#
     }
@@ -29,13 +63,13 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>(out long value)
     {
-        value = FixedType<object>.Long.Decode(EncodedBytes);
-        return ConsumeBytes(0);
+        value = FixedType<object>.Long.Decode(Next32EncodedBytes);
+        return ConsumeBytes();
     }
     public AbiDecoder UInt<#=i#>(out ulong value)
     {
-        value = FixedType<object>.ULong.Decode(EncodedBytes);
-        return ConsumeBytes(0);
+        value = FixedType<object>.ULong.Decode(Next32EncodedBytes);
+        return ConsumeBytes();
     }
 <#
     }
@@ -46,13 +80,13 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>(out BigInteger value)
     {
-        value = FixedType<object>.BigInteger.Decode(EncodedBytes, false);
-        return ConsumeBytes(0);
+        value = FixedType<object>.BigInteger.Decode(Next32EncodedBytes, false);
+        return ConsumeBytes();
     }
     public AbiDecoder UInt<#=i#>(out BigInteger value)
     {
-        value = FixedType<object>.BigInteger.Decode(EncodedBytes, true);
-        return ConsumeBytes(0);
+        value = FixedType<object>.BigInteger.Decode(Next32EncodedBytes, true);
+        return ConsumeBytes();
     }
 <#
     }
