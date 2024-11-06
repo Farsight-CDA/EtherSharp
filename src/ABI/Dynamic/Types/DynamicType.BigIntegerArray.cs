@@ -1,4 +1,6 @@
-﻿using EtherSharp.ABI.Fixed;
+﻿using EtherSharp.ABI.Decode;
+using EtherSharp.ABI.Fixed;
+using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.ABI.Dynamic;
@@ -60,6 +62,39 @@ internal abstract partial class DynamicType<T>
                 var slot = payload.Slice(32 + (i * 32), 32);
                 FixedType<object>.BigInteger.EncodeInto(Value[i], _isUnsigned, slot);
             }
+        }
+
+        public static BigInteger[] Decode(Memory<byte> bytes, uint metaDataOffset, uint length, bool isUnsinght, AbiDecoder abiDecoder)
+        {
+            uint arrayOffest = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
+
+            if(BitConverter.IsLittleEndian)
+            {
+                arrayOffest = BinaryPrimitives.ReverseEndianness(arrayOffest);
+            }
+
+            long index = arrayOffest - metaDataOffset;
+            if(index < 0 || index > int.MaxValue)
+            {
+                throw new IndexOutOfRangeException("Index out of range");
+            }
+
+            uint leng = BitConverter.ToUInt32(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
+
+            if(BitConverter.IsLittleEndian)
+            {
+                leng = BinaryPrimitives.ReverseEndianness(leng);
+            }
+
+            var data = bytes[(int) (index + 32)..];
+            var arr = new BigInteger[leng];
+            for(int i = 0; i < leng; i++)
+            {
+                var slot = data[(i * 32)..((i * 32) + 32)];
+                arr[i] = FixedType<object>.BigInteger.Decode(slot.Span, isUnsinght);
+            }
+            return arr;
+
         }
     }
 }

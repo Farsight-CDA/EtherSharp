@@ -55,7 +55,7 @@ public class AbiNumberEncodingTests
             }
             default:
                 throw new NotSupportedException();
-        };
+        }
     }
     [Theory]
     [MemberData(nameof(BitSizes))]
@@ -142,7 +142,7 @@ public class AbiNumberEncodingTests
             }
             default:
                 throw new NotSupportedException();
-        };
+        }
     }
 
     [Theory]

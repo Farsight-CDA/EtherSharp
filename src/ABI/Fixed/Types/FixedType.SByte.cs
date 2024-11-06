@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.ABI.Fixed;
+﻿using System.Buffers.Binary;
+
+namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
     internal class SByte(sbyte value) : FixedType<sbyte>(value)
@@ -16,6 +18,6 @@ internal abstract partial class FixedType<T>
             }
         }
 
-        public static sbyte Decode(Span<byte> bytes) => (sbyte) bytes[31];
+        public static sbyte Decode(Span<byte> bytes) => BitConverter.IsLittleEndian ? (sbyte) BinaryPrimitives.ReverseEndianness(bytes[^1]) : (sbyte) bytes[^1];
     }
 }

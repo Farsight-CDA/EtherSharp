@@ -1,0 +1,97 @@
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System"#>
+using EtherSharp.ABI.Dynamic;
+namespace EtherSharp.ABI.Decode;
+public partial class AbiDecoder
+{
+<#
+    for(var i = 8; i <= 8;i=i+8)
+    {
+#>
+    public AbiDecoder Int<#=i#>Array(out byte[] bytes)
+    {
+        bytes = DynamicType<byte>.PrimitiveNumberArray<byte>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
+        return this;
+    }
+
+    public AbiDecoder UInt<#=i#>Array(out sbyte[] bytes)
+    {
+        bytes = DynamicType<sbyte>.PrimitiveNumberArray<sbyte>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
+        return this;
+    }
+<#
+    }
+#>
+<#
+    for(var i = 16; i <= 16;i=i+8)
+    {
+#>
+    public AbiDecoder Int<#=i#>Array(out short[] shorts)
+    {
+        shorts = DynamicType<short>.PrimitiveNumberArray<short>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
+        return this;
+    }
+
+    public AbiDecoder UInt<#=i#>Array(out ushort[] shorts)
+    {
+        shorts = DynamicType<ushort>.PrimitiveNumberArray<ushort>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
+        return this;
+    }
+<#
+    }
+#>
+<#
+    for(var i = 24; i <= 32;i=i+8)
+    {
+#>
+    public AbiDecoder Int<#=i#>Array(out int[] ints)
+    {
+        ints = DynamicType<int>.PrimitiveNumberArray<int>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
+        return this;
+    }
+
+    public AbiDecoder UInt<#=i#>Array(out uint[] ints)
+    {
+        ints = DynamicType<uint>.PrimitiveNumberArray<uint>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
+        return this;
+    }
+<#
+    }
+#>
+<#
+    for(var i = 40; i <= 64;i=i+8)
+    {
+#>
+    public AbiDecoder Int<#=i#>Array(out long[] longs)
+    {
+        longs = DynamicType<long>.PrimitiveNumberArray<long>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
+        return this;
+    }
+
+    public AbiDecoder Int<#=i#>Array(out ulong[] longs)
+    {
+        longs = DynamicType<ulong>.PrimitiveNumberArray<ulong>.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, this);
+        return this;
+    }
+<#
+    }
+#>
+<#
+    for(var i = 72; i <= 256;i=i+8)
+    {
+#>
+    public AbiDecoder Int<#=i#>Array(out System.Numerics.BigInteger[] bytes)
+    {
+        bytes = DynamicType<System.Numerics.BigInteger>.BigIntegerArray.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, <#=i#>, false, this);
+        return this;
+    }
+    public AbiDecoder UInt<#=i#>Array(out System.Numerics.BigInteger[] bytes)
+    {
+        bytes = DynamicType<System.Numerics.BigInteger>.BigIntegerArray.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex, <#=i#>, true, this);
+        return this;
+    }
+<#
+    }
+#>
+}

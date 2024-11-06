@@ -1,4 +1,6 @@
-﻿using EtherSharp.ABI.Fixed;
+﻿using EtherSharp.ABI.Decode;
+using EtherSharp.ABI.Fixed;
+using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.ABI.Dynamic;
@@ -84,6 +86,118 @@ internal abstract partial class DynamicType<T>
                     default:
                         throw new NotImplementedException();
                 }
+            }
+        }
+
+        public static TInner[] Decode(Memory<byte> bytes, uint metaDataOffset, AbiDecoder abiDecoder)
+        {
+            uint arrayOffest = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
+
+            if(BitConverter.IsLittleEndian)
+            {
+                arrayOffest = BinaryPrimitives.ReverseEndianness(arrayOffest);
+            }
+
+            long index = arrayOffest - metaDataOffset;
+            if(index < 0 || index > int.MaxValue)
+            {
+                throw new IndexOutOfRangeException("Index out of range");
+            }
+
+            uint leng = BitConverter.ToUInt32(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
+
+            if(BitConverter.IsLittleEndian)
+            {
+                leng = BinaryPrimitives.ReverseEndianness(leng);
+            }
+
+            var data = bytes[(int) (index + 32)..];
+
+            switch(typeof(TInner))
+            {
+                case Type us8 when us8 == typeof(byte):
+                {
+                    byte[] arr = new byte[leng];
+                    for(int i = 0; i < leng; i++)
+                    {
+                        var slot = data[(i * 32)..((i * 32) + 32)];
+                        arr[i] = FixedType<object>.Byte.Decode(slot.Span);
+                    }
+                    return (TInner[]) (object) arr;
+                }
+                case Type s8 when s8 == typeof(sbyte):
+                {
+                    sbyte[] arr = new sbyte[leng];
+                    for(int i = 0; i < leng; i++)
+                    {
+                        var slot = data[(i * 32)..((i * 32) + 32)];
+                        arr[i] = FixedType<object>.SByte.Decode(slot.Span);
+                    }
+                    return (TInner[]) (object) arr;
+                }
+                case Type us16 when us16 == typeof(ushort):
+                {
+                    ushort[] arr = new ushort[leng];
+                    for(int i = 0; i < leng; i++)
+                    {
+                        var slot = data[(i * 32)..((i * 32) + 32)];
+                        arr[i] = FixedType<object>.UShort.Decode(slot.Span);
+                    }
+                    return (TInner[]) (object) arr;
+                }
+                case Type s16 when s16 == typeof(short):
+                {
+                    short[] arr = new short[leng];
+                    for(int i = 0; i < leng; i++)
+                    {
+                        var slot = data[(i * 32)..((i * 32) + 32)];
+                        arr[i] = FixedType<object>.Short.Decode(slot.Span);
+                    }
+                    return (TInner[]) (object) arr;
+                }
+                case Type us32 when us32 == typeof(uint):
+                {
+                    uint[] arr = new uint[leng];
+                    for(int i = 0; i < leng; i++)
+                    {
+                        var slot = data[(i * 32)..((i * 32) + 32)];
+                        arr[i] = FixedType<object>.UInt.Decode(slot.Span);
+                    }
+                    return (TInner[]) (object) arr;
+                }
+                case Type s32 when s32 == typeof(int):
+                {
+                    int[] arr = new int[leng];
+                    for(int i = 0; i < leng; i++)
+                    {
+                        var slot = data[(i * 32)..((i * 32) + 32)];
+                        arr[i] = FixedType<object>.Int.Decode(slot.Span);
+                    }
+                    return (TInner[]) (object) arr;
+                };
+                case Type us64 when us64 == typeof(ulong):
+                {
+                    ulong[] arr = new ulong[leng];
+                    for(int i = 0; i < leng; i++)
+                    {
+                        var slot = data[(i * 32)..((i * 32) + 32)];
+                        arr[i] = FixedType<object>.ULong.Decode(slot.Span);
+                    }
+                    return (TInner[]) (object) arr;
+                }
+                case Type s64 when s64 == typeof(long):
+                {
+                    long[] arr = new long[leng];
+                    for(int i = 0; i < leng; i++)
+                    {
+                        var slot = data[(i * 32)..((i * 32) + 32)];
+                        arr[i] = FixedType<object>.Long.Decode(slot.Span);
+                    }
+                    return (TInner[]) (object) arr;
+                }
+                default:
+                    throw new ArgumentException($"Expected primitive number type, got {typeof(TInner)}");
+
             }
         }
     }
