@@ -32,7 +32,7 @@ internal abstract partial class FixedType<T>
             }
         }
 
-        public static ulong Decode(Span<byte> bytes)
+        public static ulong Decode(ReadOnlySpan<byte> bytes)
         {
             ulong value = BitConverter.ToUInt64(bytes[(32 - 8)..]);
 

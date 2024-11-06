@@ -41,8 +41,6 @@ internal abstract partial class DynamicType<T>
                 throw new IndexOutOfRangeException("Index out of range");
             }
 
-            _ = BitConverter.ToUInt32(bytes[(int) index..(int) (index + 32)].Span);
-
             var structAbiDecoder = new ArrayAbiDecoder(bytes[(int) index..]);
 
             var innerValue = decoder.Invoke(structAbiDecoder);

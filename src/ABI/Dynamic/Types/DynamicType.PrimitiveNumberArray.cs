@@ -89,7 +89,7 @@ internal abstract partial class DynamicType<T>
             }
         }
 
-        public static TInner[] Decode(Memory<byte> bytes, uint metaDataOffset, AbiDecoder abiDecoder)
+        public static TInner[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, AbiDecoder abiDecoder)
         {
             uint arrayOffest = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
 

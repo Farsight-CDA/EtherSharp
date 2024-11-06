@@ -7,7 +7,7 @@ public partial class AbiDecoder(Memory<byte> bytes)
 {
     private readonly Memory<byte> _bytes = bytes;
 
-    private Span<byte> Bytes => _bytes.Span[(int) _currentMetadataIndex..];
+    private Span<byte> EncodedBytes => _bytes.Span[(int) _currentMetadataIndex..];
 
     private uint _currentMetadataIndex = 0;
 
@@ -19,14 +19,20 @@ public partial class AbiDecoder(Memory<byte> bytes)
 
     public AbiDecoder Int8(out sbyte value)
     {
-        value = FixedType<object>.SByte.Decode(Bytes);
+        value = FixedType<object>.SByte.Decode(EncodedBytes);
         return ConsumeBytes(0);
     }
 
     public AbiDecoder UInt8(out byte value)
     {
-        value = FixedType<object>.Byte.Decode(Bytes);
+        value = FixedType<object>.Byte.Decode(EncodedBytes);
         return ConsumeBytes(0);
+    }
+
+    public AbiDecoder Bytes(out ReadOnlyMemory<byte> value)
+    {
+        value = DynamicType<object>.Bytes.Decode(_bytes[(int) _currentMetadataIndex..], _currentMetadataIndex);
+        return this;
     }
 
     public AbiDecoder Struct<T>(out T value, Func<StructAbiDecoder, T> func)
@@ -133,12 +139,12 @@ public partial class AbiDecoder(Memory<byte> bytes)
             {
                 if(isUnsigned)
                 {
-                    byte n = FixedType<object>.Byte.Decode(Bytes);
+                    byte n = FixedType<object>.Byte.Decode(EncodedBytes);
                     number = n is TNumber b ? b : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}");
                 }
                 else
                 {
-                    sbyte n = FixedType<object>.SByte.Decode(Bytes);
+                    sbyte n = FixedType<object>.SByte.Decode(EncodedBytes);
                     number = n is TNumber b ? b : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}");
                 }
                 break;
@@ -147,12 +153,12 @@ public partial class AbiDecoder(Memory<byte> bytes)
             {
                 if(isUnsigned)
                 {
-                    ushort n = FixedType<object>.UShort.Decode(Bytes);
+                    ushort n = FixedType<object>.UShort.Decode(EncodedBytes);
                     number = n is TNumber b ? b : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}");
                 }
                 else
                 {
-                    short n = FixedType<object>.Short.Decode(Bytes);
+                    short n = FixedType<object>.Short.Decode(EncodedBytes);
                     number = n is TNumber b ? b : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}");
                 }
                 break;
@@ -161,12 +167,12 @@ public partial class AbiDecoder(Memory<byte> bytes)
             {
                 if(isUnsigned)
                 {
-                    uint n = FixedType<object>.UInt.Decode(Bytes);
+                    uint n = FixedType<object>.UInt.Decode(EncodedBytes);
                     number = n is TNumber b ? b : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}");
                 }
                 else
                 {
-                    int n = FixedType<object>.Int.Decode(Bytes);
+                    int n = FixedType<object>.Int.Decode(EncodedBytes);
                     number = n is TNumber b ? b : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}");
                 }
                 break;
@@ -175,19 +181,19 @@ public partial class AbiDecoder(Memory<byte> bytes)
             {
                 if(isUnsigned)
                 {
-                    ulong n = FixedType<object>.ULong.Decode(Bytes);
+                    ulong n = FixedType<object>.ULong.Decode(EncodedBytes);
                     number = n is TNumber b ? b : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}");
                 }
                 else
                 {
-                    long n = FixedType<object>.Long.Decode(Bytes);
+                    long n = FixedType<object>.Long.Decode(EncodedBytes);
                     number = n is TNumber b ? b : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}");
                 }
                 break;
             }
             case > 64 and <= 256:
             {
-                var n = FixedType<object>.BigInteger.Decode(Bytes, isUnsigned);
+                var n = FixedType<object>.BigInteger.Decode(EncodedBytes, isUnsigned);
                 number = n is TNumber b ? b : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {(isUnsigned ? "u-" : "")} {typeof(System.Numerics.BigInteger)}");
                 break;
             }

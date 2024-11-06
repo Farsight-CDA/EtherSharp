@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.ABI.Dynamic;
+﻿using System.Buffers.Binary;
+
+namespace EtherSharp.ABI.Dynamic;
 internal abstract partial class DynamicType<T>
 {
     public class Bytes(byte[] value) : DynamicType<byte[]>(value)
@@ -26,6 +28,32 @@ internal abstract partial class DynamicType<T>
             }
 
             Value.CopyTo(payload[32..]);
+        }
+
+        public static ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset)
+        {
+            uint bytesOffset = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
+
+            if(BitConverter.IsLittleEndian)
+            {
+                bytesOffset = BinaryPrimitives.ReverseEndianness(bytesOffset);
+            }
+
+            long index = bytesOffset - metaDataOffset;
+
+            if(index < 0 || index > int.MaxValue)
+            {
+                throw new IndexOutOfRangeException("Index out of range");
+            }
+
+            uint leng = BitConverter.ToUInt32(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
+
+            if(BitConverter.IsLittleEndian)
+            {
+                leng = BinaryPrimitives.ReverseEndianness(leng);
+            }
+
+            return bytes[((int) index + 32)..(int) ((int) index + 32 + leng)];
         }
     }
 }
