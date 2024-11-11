@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\EtherSharp.csproj" />
+    <ProjectReference Include="..\src\EtherSharp\EtherSharp.csproj" />
   </ItemGroup>
 
 </Project>
