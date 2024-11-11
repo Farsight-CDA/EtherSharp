@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Converter;
+namespace EtherSharp.Common.Converter;
 internal class ByteArrayHexConverter : JsonConverter<byte[]>
 {
     public override byte[] Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
