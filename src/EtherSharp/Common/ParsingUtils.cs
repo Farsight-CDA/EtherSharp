@@ -11,13 +11,13 @@ public static class ParsingUtils
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         Converters = {
-            new BigIntHexConverter(),
+            new DateTimeOffsetHexConverter(),
             new ByteArrayHexConverter(),
             new IntHexConverter(),
-            new LongHexConverter(),
             new UIntHexConverter(),
+            new LongHexConverter(),
             new ULongHexConverter(),
-            new DateTimeOffsetHexConverter()
+            new BigIntHexConverter(),
         }
     };
 }
