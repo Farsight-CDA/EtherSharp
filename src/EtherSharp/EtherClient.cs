@@ -15,6 +15,10 @@ public class EtherClient
     public Task<BigInteger> GetBalanceAsync(string address, TargetBlockNumber targetHeight = default) 
         => _evmRPCClient.EthGetBalance(address, targetHeight);
 
+    public Task<int> GetTransactionCount(string address, TargetBlockNumber targetHeight = default)
+        => _evmRPCClient.EthGetTransactionCount(address, targetHeight);
+
+
     public TContract Contract<TContract>(string address) where TContract : IContract 
         => throw new NotImplementedException();
 }

@@ -1,4 +1,5 @@
-﻿using EtherSharp.Types;
+﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Types;
 using System.Globalization;
 using System.Numerics;
 
@@ -15,7 +16,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
-            RpcResult<string>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -27,7 +28,19 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<BigInteger>.Success result => result.Result,
-            RpcResult<BigInteger>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<BigInteger>.Error error => throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
+    }
+
+    public async Task<int> EthGetTransactionCount(string address, TargetBlockNumber blockNumber)
+    {
+        var response = await _jsonRpcClient.SendRpcRequest<string, string, int>("eth_getTransactionCount", address, blockNumber.ToString());
+
+        return response switch
+        {
+            RpcResult<int>.Success result => result.Result,
+            RpcResult<int>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -38,7 +51,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<string[]>.Success result => result.Result,
-            RpcResult<string[]>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<string[]>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -54,7 +67,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
-            RpcResult<string>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -66,7 +79,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
-            RpcResult<string>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -91,19 +104,14 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
         var response = await _jsonRpcClient.SendRpcRequest<TransactionEthCall, string, FakeAccountData, byte[]>("eth_call", transaction, blockNumber.ToString(), fakeAccountData);
 
-        switch(response)
+        return response switch
         {
-            case RpcResult<byte[]>.Success result:
-                return new ContractReturn.Success(result.Result);
-            case RpcResult<byte[]>.Error error:
-                if(error.Message == "execution reverted" && error.Code == -32000)
-                {
-                    return new ContractReturn.Reverted();
-                }
-                throw new Exception($"RPC Error: {error.Code} - {error.Message}");
-            default:
-                throw new NotImplementedException();
-        }
+            RpcResult<byte[]>.Success result => new ContractReturn.Success(result.Result),
+            RpcResult<byte[]>.Error error => error.Message == "execution reverted" && error.Code == -32000
+                ? new ContractReturn.Reverted()
+                : throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
     }
 
     private record TransactionEstimateGas(string? From, string? To, uint? Gas, BigInteger? GasPrice, int? Value, string? Input);
@@ -115,7 +123,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<uint>.Success result => result.Result,
-            RpcResult<uint>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<uint>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -134,7 +142,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<BlockData>.Success result => result.Result,
-            RpcResult<BlockData>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<BlockData>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -149,7 +157,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<BlockDataTrasactionAsString>.Success result => result.Result,
-            RpcResult<BlockDataTrasactionAsString>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<BlockDataTrasactionAsString>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -164,7 +172,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<BlockData>.Success result => result.Result,
-            RpcResult<BlockData>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<BlockData>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -179,7 +187,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<BlockDataTrasactionAsString>.Success result => result.Result,
-            RpcResult<BlockDataTrasactionAsString>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<BlockDataTrasactionAsString>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -190,7 +198,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<Transaction>.Success result => result.Result,
-            RpcResult<Transaction>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<Transaction>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -205,7 +213,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<Transaction>.Success result => result.Result,
-            RpcResult<Transaction>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<Transaction>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -216,7 +224,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<Transaction>.Success result => result.Result,
-            RpcResult<Transaction>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<Transaction>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -227,7 +235,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<TransactionReceipt>.Success result => result.Result,
-            RpcResult<TransactionReceipt>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<TransactionReceipt>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -238,7 +246,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<Uncle>.Success result => result.Result,
-            RpcResult<Uncle>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<Uncle>.Error error => throw RPCException.FromRPCError(error),
             RpcResult<Uncle>.Null _ => null,
             _ => throw new NotImplementedException(),
         };
@@ -253,7 +261,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<Uncle>.Success result => result.Result,
-            RpcResult<Uncle>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<Uncle>.Error error => throw RPCException.FromRPCError(error),
             RpcResult<Uncle>.Null _ => null,
             _ => throw new NotImplementedException(),
         };
@@ -263,14 +271,12 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<string> EthNewFilterAsync(string? fromBlock, string? toBlock, string? address, string[]? topics)
     {
-
-        NewFilterOption filterOptions = new(fromBlock, toBlock, address, topics);
-
+        var filterOptions = new NewFilterOption(fromBlock, toBlock, address, topics);
         var response = await _jsonRpcClient.SendRpcRequest<NewFilterOption, string>("eth_newFilter", filterOptions);
         return response switch
         {
             RpcResult<string>.Success result => result.Result,
-            RpcResult<string>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -281,7 +287,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<string>.Success result => result.Result,
-            RpcResult<string>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -292,7 +298,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<string>.Success result => result.Result,
-            RpcResult<string>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -303,7 +309,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<bool>.Success result => result.Result,
-            RpcResult<bool>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<bool>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -315,7 +321,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<List<string?>>.Success result => result.Result,
-            RpcResult<List<string?>>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<List<string?>>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -325,7 +331,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         return response switch
         {
             RpcResult<EventFilterChangesResult[]>.Success result => result.Result,
-            RpcResult<EventFilterChangesResult[]>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<EventFilterChangesResult[]>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
@@ -334,12 +340,12 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<Log[]> EthGetLogsAsync(TargetBlockNumber? fromBlock, TargetBlockNumber? toBlock, string address, Topics[] topics, byte[]? blockHash)
     {
-        FilterOptions filterOptions = new(fromBlock, toBlock, address, topics, blockHash);
+        var filterOptions = new FilterOptions(fromBlock, toBlock, address, topics, blockHash);
         var response = await _jsonRpcClient.SendRpcRequest<FilterOptions, Log[]>("eth_getLogs", filterOptions);
         return response switch
         {
             RpcResult<Log[]>.Success result => result.Result,
-            RpcResult<Log[]>.Error error => throw new Exception($"RPC Error: {error.Code} - {error.Message}"),
+            RpcResult<Log[]>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
