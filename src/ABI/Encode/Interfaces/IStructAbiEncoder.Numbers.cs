@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
-public partial interface IStructAbiEncoder 
+public partial interface IStructAbiEncoder
 {
     public IStructAbiEncoder Int24(int value);
     public IStructAbiEncoder UInt24(uint value);

@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace EtherSharp;
 
-public class EvmRpcClient(JsonRpcClient jsonRpcClient)
+internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 {
     private readonly JsonRpcClient _jsonRpcClient = jsonRpcClient;
 

@@ -1,31 +1,15 @@
-﻿using EtherSharp.Converter;
+﻿using EtherSharp.Common;
 using EtherSharp.Types;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp;
 
-public class JsonRpcClient(string rpcUrl, HttpClient httpClient)
+internal class JsonRpcClient(string rpcUrl, HttpClient httpClient)
 {
     private readonly HttpClient _httpClient = httpClient;
     private readonly string _rpcUrl = rpcUrl;
     private int _id = 0;
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Converters = {
-        new BigIntHexConverter(),
-        new ByteArrayHexConverter(),
-        new IntHexConverter(),
-        new LongHexConverter(),
-        new UIntHexConverter(),
-        new ULongHexConverter(),
-        new DateTimeOffsetHexConverter()
-    }
-    };
 
     private record RpcError(int Code, string Message);
     private record JsonRpcResponse<T>([property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
@@ -48,36 +32,37 @@ public class JsonRpcClient(string rpcUrl, HttpClient httpClient)
     {
         int id = Interlocked.Increment(ref _id);
 
-        HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, _rpcUrl)
+        var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, _rpcUrl)
         {
-            Content = JsonContent.Create(new JsonRpcRequest(id, method, objects), options: _jsonSerializerOptions)
+            Content = JsonContent.Create(
+                new JsonRpcRequest(id, method, objects),
+                options: ParsingUtils.EvmSerializerOptions
+            )
         };
 
         var response = await _httpClient.SendAsync(httpRequestMessage);
+
         try
         {
-
-            var jsonRpcResponse = await response.Content.ReadFromJsonAsync<JsonRpcResponse<TResult>>(_jsonSerializerOptions);
+            var jsonRpcResponse = await response.Content.ReadFromJsonAsync<JsonRpcResponse<TResult>>(ParsingUtils.EvmSerializerOptions);
 
             if(jsonRpcResponse == null)
             {
                 throw new Exception("RPC Error: Invalid response");
             }
-            //
             else if(jsonRpcResponse.Id != id)
             {
                 throw new Exception("RPC Error: Invalid response Id");
             }
-            //
             else if(jsonRpcResponse.Error != null)
             {
-                //
                 return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message);
             }
             else if(jsonRpcResponse.Result == null)
             {
                 return new RpcResult<TResult>.Null();
             }
+            //
             return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
 
         }

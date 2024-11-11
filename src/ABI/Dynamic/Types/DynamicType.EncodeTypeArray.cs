@@ -30,7 +30,7 @@ internal abstract partial class DynamicType<T>
             }
 
             uint localPayloadOffset = 32 * (uint) Value.Length;
-            for(int i = 0; i < Value.Length; i++) 
+            for(int i = 0; i < Value.Length; i++)
             {
                 int localMetadataOffset = 32 + (32 * i);
 
@@ -38,8 +38,8 @@ internal abstract partial class DynamicType<T>
                 {
                     case IDynamicType dynType:
                         dynType.Encode(
-                            payload.Slice(localMetadataOffset, 32), 
-                            payload.Slice(32 + (int) localPayloadOffset, (int) dynType.PayloadSize), 
+                            payload.Slice(localMetadataOffset, 32),
+                            payload.Slice(32 + (int) localPayloadOffset, (int) dynType.PayloadSize),
                             localPayloadOffset
                         );
                         localPayloadOffset += dynType.PayloadSize;

@@ -38,6 +38,6 @@ public class StringAbiEncoderTests
     }
 
     [Fact]
-    public void Should_Throw_On_Null() 
+    public void Should_Throw_On_Null()
         => Assert.Throws<ArgumentNullException>(() => _encoder.String(null!));
 }
