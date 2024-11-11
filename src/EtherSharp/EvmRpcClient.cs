@@ -32,9 +32,6 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         };
     }
 
-    public Task<BigInteger> EthGetBalance(string address, long blockNumber)
-        => EthGetBalance(address, TargetBlockNumber.Height(blockNumber));
-
     public async Task<string[]> EthAccountsAsync()
     {
         var response = await _jsonRpcClient.SendRpcRequest<string[]>("eth_accounts");

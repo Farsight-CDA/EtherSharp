@@ -5,10 +5,10 @@ using System.Text.Json.Serialization;
 
 namespace EtherSharp;
 
-internal class JsonRpcClient(string rpcUrl, HttpClient httpClient)
+internal class JsonRpcClient(HttpClient httpClient, Uri rpcUrl)
 {
     private readonly HttpClient _httpClient = httpClient;
-    private readonly string _rpcUrl = rpcUrl;
+    private readonly Uri _rpcUrl = rpcUrl;
     private int _id = 0;
 
     private record RpcError(int Code, string Message);

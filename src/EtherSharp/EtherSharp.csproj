@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EtherSharp.Core\EtherSharp.Core\EtherSharp.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="ABI\Decode\AbiDecoder.Arrays.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>AbiDecoder.Arrays.cs</LastGenOutput>
