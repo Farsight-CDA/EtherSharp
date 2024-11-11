@@ -3,58 +3,51 @@ using EtherSharp.Types;
 using System.Globalization;
 using System.Numerics;
 
-namespace EtherSharp;
+namespace EtherSharp.RPC;
 
 internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 {
     private readonly JsonRpcClient _jsonRpcClient = jsonRpcClient;
 
-    public async Task<long> EthBlockNumberAsync()
-    {
-        var response = await _jsonRpcClient.SendRpcRequest<string>("eth_blockNumber");
+    public async Task<ulong> EthChainId()
+        => await _jsonRpcClient.SendRpcRequest<ulong>("eth_chainId") switch
+        {
+            RpcResult<ulong>.Success result => result.Result,
+            RpcResult<ulong>.Error error => throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
 
-        return response switch
+    public async Task<long> EthBlockNumberAsync() 
+        => await _jsonRpcClient.SendRpcRequest<string>("eth_blockNumber") switch
         {
             RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
             RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
-    }
 
-    public async Task<BigInteger> EthGetBalance(string address, TargetBlockNumber blockNumber)
-    {
-        var response = await _jsonRpcClient.SendRpcRequest<string, string, BigInteger>("eth_getBalance", address, blockNumber.ToString());
-
-        return response switch
+    public async Task<BigInteger> EthGetBalance(string address, TargetBlockNumber blockNumber) 
+        => await _jsonRpcClient.SendRpcRequest<string, string, BigInteger>("eth_getBalance", address, blockNumber.ToString()) switch
         {
             RpcResult<BigInteger>.Success result => result.Result,
             RpcResult<BigInteger>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
-    }
 
-    public async Task<int> EthGetTransactionCount(string address, TargetBlockNumber blockNumber)
-    {
-        var response = await _jsonRpcClient.SendRpcRequest<string, string, int>("eth_getTransactionCount", address, blockNumber.ToString());
-
-        return response switch
+    public async Task<int> EthGetTransactionCount(string address, TargetBlockNumber blockNumber) 
+        => await _jsonRpcClient.SendRpcRequest<string, string, int>("eth_getTransactionCount", address, blockNumber.ToString()) switch
         {
             RpcResult<int>.Success result => result.Result,
             RpcResult<int>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
-    }
 
-    public async Task<string[]> EthAccountsAsync()
-    {
-        var response = await _jsonRpcClient.SendRpcRequest<string[]>("eth_accounts");
-        return response switch
+    public async Task<string[]> EthAccountsAsync() 
+        => await _jsonRpcClient.SendRpcRequest<string[]>("eth_accounts") switch
         {
             RpcResult<string[]>.Success result => result.Result,
             RpcResult<string[]>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
-    }
 
     public async Task<long> EthBlockTransactionCountByHashAsync(string blockHash)
     {

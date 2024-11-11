@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Core;
+using EtherSharp.RPC;
 using EtherSharp.Types;
 using System.Numerics;
 
@@ -12,12 +13,14 @@ public class EtherClient
         _evmRPCClient = evmRpcClient;
     }
 
+    public Task<ulong> GetChainIdAsync()
+        => _evmRPCClient.EthChainId();
+
     public Task<BigInteger> GetBalanceAsync(string address, TargetBlockNumber targetHeight = default) 
         => _evmRPCClient.EthGetBalance(address, targetHeight);
 
     public Task<int> GetTransactionCount(string address, TargetBlockNumber targetHeight = default)
         => _evmRPCClient.EthGetTransactionCount(address, targetHeight);
-
 
     public TContract Contract<TContract>(string address) where TContract : IContract 
         => throw new NotImplementedException();

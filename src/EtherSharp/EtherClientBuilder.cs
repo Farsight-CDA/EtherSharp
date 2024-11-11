@@ -1,4 +1,6 @@
-﻿namespace EtherSharp;
+﻿using EtherSharp.RPC;
+
+namespace EtherSharp;
 public class EtherClientBuilder
 {
     private Uri? _rpcUrl;
