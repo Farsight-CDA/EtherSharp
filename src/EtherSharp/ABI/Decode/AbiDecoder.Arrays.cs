@@ -2,6 +2,7 @@ using EtherSharp.ABI.Dynamic;
 namespace EtherSharp.ABI.Decode;
 public partial class AbiDecoder
 {
+
     public AbiDecoder Int8Array(out byte[] bytes)
     {
         bytes = DynamicType<byte>.PrimitiveNumberArray<byte>.Decode(_bytes, _bytesRead);
@@ -13,6 +14,7 @@ public partial class AbiDecoder
         bytes = DynamicType<sbyte>.PrimitiveNumberArray<sbyte>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
+
     public AbiDecoder Int16Array(out short[] shorts)
     {
         shorts = DynamicType<short>.PrimitiveNumberArray<short>.Decode(_bytes, _bytesRead);
@@ -24,6 +26,7 @@ public partial class AbiDecoder
         shorts = DynamicType<ushort>.PrimitiveNumberArray<ushort>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
+
     public AbiDecoder Int24Array(out int[] ints)
     {
         ints = DynamicType<int>.PrimitiveNumberArray<int>.Decode(_bytes, _bytesRead);
