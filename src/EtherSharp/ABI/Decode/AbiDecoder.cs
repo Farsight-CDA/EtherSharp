@@ -94,17 +94,17 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
         return value;
     }
 
-    public AbiDecoder Array<T>(out T[] value, Func<IArrayAbiDecoder, T[]> func)
+    public AbiDecoder Array<T>(out T[] value, Func<IArrayAbiDecoder, T> func)
     {
         value = DynamicType<T>.Array.Decode(_bytes, _bytesRead, func);
         return ConsumeBytes();
     }
-    T[] IArrayAbiDecoder.Array<T>(Func<IArrayAbiDecoder, T[]> func)
+    T[] IArrayAbiDecoder.Array<T>(Func<IArrayAbiDecoder, T> func)
     {
         _ = Array(out var value, func);
         return value;
     }
-    T[] IStructAbiDecoder.Array<T>(out T[] value, Func<IArrayAbiDecoder, T[]> func)
+    T[] IStructAbiDecoder.Array<T>(out T[] value, Func<IArrayAbiDecoder, T> func)
     {
         _ = Array(out value, func);
         return value;

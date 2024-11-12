@@ -1,6 +1,7 @@
 ﻿using EtherSharp.ABI.Decode;
 using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Encode.Interfaces;
+using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Dynamic;
 internal abstract partial class DynamicType<T>
@@ -32,21 +33,36 @@ internal abstract partial class DynamicType<T>
             Value.WritoTo(payload[32..]);
         }
 
-        public static T[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IArrayAbiDecoder, T[]> decoder)
+        public static T[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IArrayAbiDecoder, T> decoder)
         {
-            uint structOffset = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
+            uint payloadOffset = BitConverter.ToUInt32(bytes[28..32].Span);
+            if(BitConverter.IsLittleEndian)
+            {
+                payloadOffset = BinaryPrimitives.ReverseEndianness(payloadOffset);
+            }
 
-            long index = structOffset - metaDataOffset;
-            if(index < 0 || index > int.MaxValue)
+            if(payloadOffset < metaDataOffset)
             {
                 throw new IndexOutOfRangeException("Index out of range");
             }
 
-            var structAbiDecoder = new AbiDecoder(bytes[(int) index..]);
+            long relativePayloadOffset = payloadOffset - metaDataOffset;
+            var payload = bytes[(int) relativePayloadOffset..];
 
-            var innerValue = decoder.Invoke(structAbiDecoder);
+            uint arrayLength = BitConverter.ToUInt32(payload[28..32].Span);
+            if(BitConverter.IsLittleEndian)
+            {
+                arrayLength = BinaryPrimitives.ReverseEndianness(arrayLength);
+            }
 
-            return innerValue;
+            var output = new T[arrayLength];
+
+            for(uint i = 0; i < arrayLength; i++)
+            {
+                output[i] = decoder.Invoke(new AbiDecoder(payload[32..]));
+            }
+
+            return output;
         }
     }
 }
