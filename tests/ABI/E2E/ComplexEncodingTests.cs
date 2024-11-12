@@ -33,15 +33,36 @@ public class ComplexEncodingTests
     {
         int[] input = [1, 2, 3, 4, 5];
         byte[] encoded = new AbiEncoder()
-            .Array(x => 
-                x.Array(y => 
+            .Array(x =>
+                x.Array(y =>
                     y.Int32Array(input)))
             .Build();
         _ = new AbiDecoder(encoded)
-            .Array(out int[] output, x =>
+            .Array(out int[][][] output, x =>
                 x.Array(y =>
                     y.Int32Array()));
 
-        Assert.Equal(input, output);
+        Assert.Equal([[input]], output);
+    }
+
+    [Fact]
+    public void Should_RoundTrip_Multiple_DynamicTypes()
+    {
+        byte[] encoded = new AbiEncoder()
+            .Int32(16)
+            .Int8Array(sbyte.MinValue, 0, sbyte.MaxValue)
+            .String("Hello")
+            .Array(x => x.Int8Array(12))
+            .Build();
+        _ = new AbiDecoder(encoded)
+            .Int32(out int val1)
+            .Int8Array(out sbyte[] val2)
+            .String(out string val3)
+            .Array(out sbyte[][] val4, x => x.Int8Array());
+
+        Assert.Equal(16, val1);
+        Assert.Equal([sbyte.MinValue, 0, sbyte.MaxValue], val2);
+        Assert.Equal("Hello", val3);
+        Assert.Equal([[12]], val4);
     }
 }
