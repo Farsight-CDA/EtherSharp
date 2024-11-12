@@ -1,11 +1,12 @@
 ﻿using EtherSharp.ABI.Decode;
 using System.Numerics;
+
+namespace EtherSharp.Tests.ABI.Decoder;
 public class AbiNumberEncodingTests
 {
-
     public static IEnumerable<object[]> BitSizes
-    => Enumerable.Range(1, 32)
-        .Select(x => new object[] { x * 8 });
+        => Enumerable.Range(1, 32)
+            .Select(x => new object[] { x * 8 });
     public static IEnumerable<object[]> NonNativeBitSizes
         => Enumerable.Range(1, 32)
             .Select(x => x * 8)
