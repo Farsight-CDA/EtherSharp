@@ -151,13 +151,13 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
             > 16 and <= 32 when isUnsigned => FixedType<object>.UInt.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}")
                 : b,
-            > 16 and <= 32 when isUnsigned => FixedType<object>.Int.Decode(CurrentSlot) is not TNumber b
+            > 16 and <= 32 when !isUnsigned => FixedType<object>.Int.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}")
                 : b,
             > 32 and <= 64 when isUnsigned => FixedType<object>.ULong.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}")
                 : b,
-            > 32 and <= 64 when isUnsigned => FixedType<object>.Long.Decode(CurrentSlot) is not TNumber b
+            > 32 and <= 64 when !isUnsigned => FixedType<object>.Long.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}")
                 : b,
             > 64 and <= 256 => FixedType<object>.BigInteger.Decode(CurrentSlot, isUnsigned) is not TNumber b
@@ -166,7 +166,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
             _ => throw new ArgumentException("Bitlength must be between 8 and 256", nameof(bitLength))
         };
 
-        return this;
+        return ConsumeBytes();
     }
 
     ReadOnlyMemory<byte> IStructAbiDecoder.Bytes()
