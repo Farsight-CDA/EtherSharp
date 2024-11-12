@@ -8,7 +8,6 @@ internal abstract partial class DynamicType<T>
     public class BigIntegerArray : DynamicType<BigInteger[]>
     {
         private readonly bool _isUnsigned;
-
         public override uint PayloadSize => (32 * (uint) Value.Length) + 32;
 
         public BigIntegerArray(BigInteger[] value, bool isUnsigned, int length)
@@ -63,7 +62,7 @@ internal abstract partial class DynamicType<T>
             }
         }
 
-        public static BigInteger[] Decode(Memory<byte> bytes, uint metaDataOffset, uint length, bool isUnsinght)
+        public static BigInteger[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, uint length, bool isUnsinght)
         {
             uint arrayOffest = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
 

@@ -111,6 +111,8 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
         });
     }
 
+    public AbiEncoder Address(string value)
+        => AddElement(new FixedType<object>.Address(value));
     public AbiEncoder UInt8(byte value)
         => AddElement(new FixedType<object>.Byte(value));
     public AbiEncoder Int8(sbyte value)
