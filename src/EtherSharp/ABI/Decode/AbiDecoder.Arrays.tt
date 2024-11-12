@@ -5,42 +5,31 @@ using EtherSharp.ABI.Dynamic;
 namespace EtherSharp.ABI.Decode;
 public partial class AbiDecoder
 {
-<#
-    for(var i = 8; i <= 8;i=i+8)
-    {
-#>
-    public AbiDecoder Int<#=i#>Array(out byte[] bytes)
+
+    public AbiDecoder Int8Array(out byte[] bytes)
     {
         bytes = DynamicType<byte>.PrimitiveNumberArray<byte>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
 
-    public AbiDecoder UInt<#=i#>Array(out sbyte[] bytes)
+    public AbiDecoder UInt8Array(out sbyte[] bytes)
     {
         bytes = DynamicType<sbyte>.PrimitiveNumberArray<sbyte>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
-<#
-    }
-#>
-<#
-    for(var i = 16; i <= 16;i=i+8)
-    {
-#>
-    public AbiDecoder Int<#=i#>Array(out short[] shorts)
+
+    public AbiDecoder Int16Array(out short[] shorts)
     {
         shorts = DynamicType<short>.PrimitiveNumberArray<short>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
 
-    public AbiDecoder UInt<#=i#>Array(out ushort[] shorts)
+    public AbiDecoder UInt16Array(out ushort[] shorts)
     {
         shorts = DynamicType<ushort>.PrimitiveNumberArray<ushort>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
-<#
-    }
-#>
+
 <#
     for(var i = 24; i <= 32;i=i+8)
     {

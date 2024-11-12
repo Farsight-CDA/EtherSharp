@@ -9,7 +9,7 @@ public class End2EndTests
     public void Should_Encode_And_Decode_Int8_Array()
     {
         // Arrange
-        sbyte[] input = { 1, 2, 3, 4, 5 };
+        sbyte[] input = [1, 2, 3, 4, 5];
 
         // Act
         byte[] encoded = new AbiEncoder().NumberArray<sbyte>(false, 8, input).Build();
@@ -28,10 +28,14 @@ public class End2EndTests
         string str = "Hello, World!";
 
         // Act
-        byte[] encoded = new AbiEncoder().Number<ushort>(number, true, 16).String(str).Build();
-        var decoder = new AbiDecoder(encoded);
-        _ = decoder.Number<ushort>(out ushort outputNumber, true, 16);
-        _ = decoder.String(out string outputStr);
+        byte[] encoded = new AbiEncoder()
+            .Number(number, true, 16)
+            .String(str)
+            .Build();
+
+        _ = new AbiDecoder(encoded)
+            .Number(out ushort outputNumber, true, 16)
+            .String(out string outputStr);
 
         // Assert
         Assert.Equal(number, outputNumber);

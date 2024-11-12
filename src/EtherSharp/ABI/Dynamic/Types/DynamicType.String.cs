@@ -36,7 +36,6 @@ internal abstract partial class DynamicType<T>
 
         public static string Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset)
         {
-
             uint bytesOffset = BitConverter.ToUInt32(bytes[(32 - 4)..32].Span);
             if(BitConverter.IsLittleEndian)
             {

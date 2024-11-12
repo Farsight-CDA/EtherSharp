@@ -4,7 +4,6 @@ using EtherSharp.ABI.Decode;
 namespace EtherSharp.Tests.ABI.E2E;
 public class ComplexEncodingTests
 {
-
     [Fact]
     public void Multible_Numbers()
     {
