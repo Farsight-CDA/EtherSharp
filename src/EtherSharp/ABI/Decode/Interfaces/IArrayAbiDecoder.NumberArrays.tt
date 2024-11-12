@@ -1,0 +1,39 @@
+﻿using System.Numerics;
+
+namespace EtherSharp.ABI.Decode.Interfaces;
+public partial interface IArrayAbiDecoder
+{
+    public sbyte[] Int8Array();
+    public byte[] UInt8Array();    
+
+    public short[] Int16Array();
+    public ushort[] UInt16Array();
+<#
+    for(var i = 24; i <= 32;i=i+8)
+    {
+#>
+    public int[] Int<#=i#>Array();
+    public uint[] UInt<#=i#>Array();
+<#
+    }
+#>
+<#
+    for(var i = 40; i <= 64;i=i+8)
+    {
+#>
+    public long[] Int<#=i#>Array();
+    public ulong[] UInt<#=i#>Array();
+<#
+    }
+#>
+<#
+    for(var i = 72; i <= 256;i=i+8)
+    {
+#>
+    public BigInteger[] Int<#=i#>Array();
+    public BigInteger[] UInt<#=i#>Array();
+<#
+    }
+#>
+}
+

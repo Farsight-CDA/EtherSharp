@@ -8,6 +8,34 @@ using System.Numerics;
 namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
+    public AbiEncoder Int8Array(params sbyte[] value)
+        => AddElement(new DynamicType<object>.PrimitiveNumberArray<sbyte>(value, 8));
+    IArrayAbiEncoder IArrayAbiEncoder.Int8Array(params sbyte[] value)
+        => Int8Array(value);
+    IStructAbiEncoder IStructAbiEncoder.Int8Array(params sbyte[] value)
+        => Int8Array(value);
+
+    public AbiEncoder UInt8Array(params byte[] value)
+        => AddElement(new DynamicType<object>.PrimitiveNumberArray<byte>(value, 8));
+    IArrayAbiEncoder IArrayAbiEncoder.UInt8Array(params byte[] value)
+        => UInt8Array(value);
+    IStructAbiEncoder IStructAbiEncoder.UInt8Array(params byte[] value)
+        => UInt8Array(value);
+
+    public AbiEncoder Int16Array(params short[] value)
+        => AddElement(new DynamicType<object>.PrimitiveNumberArray<short>(value, 16));
+    IArrayAbiEncoder IArrayAbiEncoder.Int16Array(params short[] value)
+        => Int16Array(value);
+    IStructAbiEncoder IStructAbiEncoder.Int16Array(params short[] value)
+        => Int16Array(value);
+
+    public AbiEncoder UInt16Array(params ushort[] value)
+        => AddElement(new DynamicType<object>.PrimitiveNumberArray<ushort>(value, 16));
+    IArrayAbiEncoder IArrayAbiEncoder.UInt16Array(params ushort[] value)
+        => UInt16Array(value);
+    IStructAbiEncoder IStructAbiEncoder.UInt16Array(params ushort[] value)
+        => UInt16Array(value);
+
 <#
     for(var i = 24; i <= 32;i=i+8)
     {

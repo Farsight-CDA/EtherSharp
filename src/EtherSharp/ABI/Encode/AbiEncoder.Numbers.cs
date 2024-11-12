@@ -1,10 +1,30 @@
-using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Fixed;
+using EtherSharp.ABI.Encode.Interfaces;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
+    public AbiEncoder UInt8(byte value)
+        => AddElement(new FixedType<object>.Byte(value));
+    IStructAbiEncoder IStructAbiEncoder.UInt8(byte value)
+        => UInt8(value);
+
+    public AbiEncoder Int8(sbyte value)
+        => AddElement(new FixedType<object>.SByte(value));
+    IStructAbiEncoder IStructAbiEncoder.Int8(sbyte value)
+        => Int8(value);
+
+    public AbiEncoder UInt16(ushort value)
+        => AddElement(new FixedType<object>.UShort(value));
+    IStructAbiEncoder IStructAbiEncoder.UInt16(ushort value)
+        => UInt16(value);
+
+    public AbiEncoder Int16(short value)
+        => AddElement(new FixedType<object>.Short(value));
+    IStructAbiEncoder IStructAbiEncoder.Int16(short value)
+        => Int16(value);
+
     public AbiEncoder Int24(int value)
         => AddElement(new FixedType<object>.Int(value, 24));
     IStructAbiEncoder IStructAbiEncoder.Int24(int value)

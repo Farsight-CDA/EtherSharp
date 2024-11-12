@@ -67,6 +67,33 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
         });
     }
 
+    public AbiEncoder Address(string value)
+        => AddElement(new FixedType<object>.Address(value));
+
+    public AbiEncoder String(string value)
+        => AddElement(new DynamicType<object>.String(value));
+    public AbiEncoder Bytes(byte[] arr)
+        => AddElement(new DynamicType<object>.Bytes(arr));
+
+    public AbiEncoder StringArray(params string[] value)
+        => AddElement(new DynamicType<object>.EncodeTypeArray<DynamicType<object>.String>(
+            value.Select(x => new DynamicType<object>.String(x)).ToArray()));
+    public AbiEncoder BytesArray(params byte[][] value)
+        => AddElement(new DynamicType<object>.EncodeTypeArray<DynamicType<object>.Bytes>(
+            value.Select(x => new DynamicType<object>.Bytes(x)).ToArray()));
+
+    public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
+        => AddElement(new DynamicType<object>.Array(func(new AbiEncoder())));    
+    IArrayAbiEncoder IArrayAbiEncoder.Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
+        => Array(func);
+
+    public AbiEncoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
+        => AddElement(new DynamicType<object>.Struct(typeId, func(new AbiEncoder())));
+    IArrayAbiEncoder IArrayAbiEncoder.Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
+        => Struct(typeId, func);
+    IStructAbiEncoder IStructAbiEncoder.Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
+        => Struct(typeId, func);
+
     public AbiEncoder NumberArray<TNumber>(bool isUnsigned, int bitLength, params TNumber[] numbers)
     {
         if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
@@ -110,41 +137,6 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
             _ => throw new NotImplementedException()
         });
     }
-
-    public AbiEncoder Address(string value)
-        => AddElement(new FixedType<object>.Address(value));
-    public AbiEncoder UInt8(byte value)
-        => AddElement(new FixedType<object>.Byte(value));
-    public AbiEncoder Int8(sbyte value)
-        => AddElement(new FixedType<object>.SByte(value));
-    public AbiEncoder UInt16(ushort value)
-        => AddElement(new FixedType<object>.UShort(value));
-    public AbiEncoder Int16(short value)
-        => AddElement(new FixedType<object>.Short(value));
-
-    public AbiEncoder String(string value)
-        => AddElement(new DynamicType<object>.String(value));
-    public AbiEncoder Bytes(byte[] arr)
-        => AddElement(new DynamicType<object>.Bytes(arr));
-
-    public AbiEncoder StringArray(params string[] value)
-        => AddElement(new DynamicType<object>.EncodeTypeArray<DynamicType<object>.String>(
-            value.Select(x => new DynamicType<object>.String(x)).ToArray()));
-    public AbiEncoder BytesArray(params byte[][] value)
-        => AddElement(new DynamicType<object>.EncodeTypeArray<DynamicType<object>.Bytes>(
-            value.Select(x => new DynamicType<object>.Bytes(x)).ToArray()));
-
-    public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
-        => AddElement(new DynamicType<object>.Array(func(new AbiEncoder())));
-    public AbiEncoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
-        => AddElement(new DynamicType<object>.Struct(typeId, func(new AbiEncoder())));
-
-    IArrayAbiEncoder IArrayAbiEncoder.Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
-        => Array(func);
-    IArrayAbiEncoder IArrayAbiEncoder.Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
-        => Struct(typeId, func);
-    IStructAbiEncoder IStructAbiEncoder.Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
-        => Struct(typeId, func);
 
     public void WritoTo(Span<byte> result)
     {

@@ -3,6 +3,12 @@
 namespace EtherSharp.ABI.Encode.Interfaces;
 public partial interface IArrayAbiEncoder 
 {
+    public IArrayAbiEncoder Int8Array(params sbyte[] value);
+    public IArrayAbiEncoder UInt8Array(params byte[] value);
+
+    public IArrayAbiEncoder Int16Array(params short[] value);
+    public IArrayAbiEncoder UInt16Array(params ushort[] value);
+
 <#
     for(var i = 24; i <= 32;i=i+8)
     {

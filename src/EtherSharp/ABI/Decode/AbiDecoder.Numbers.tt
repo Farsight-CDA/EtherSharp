@@ -2,57 +2,77 @@
 <#@ output extension=".cs" #>
 <#@ import namespace="System" #>
 using EtherSharp.ABI.Fixed;
+using EtherSharp.ABI.Decode.Interfaces;
 using System.Numerics;
 namespace EtherSharp.ABI.Decode;
 public partial class AbiDecoder
 {
-<#
-    for(var i = 8; i <= 8;i=i+8)
+
+    public AbiDecoder Int8(out sbyte value)
     {
-#>
-    public AbiDecoder Int<#=i#>(out sbyte value)
-    {
-        value = FixedType<object>.SByte.Decode(Next32EncodedBytes);
+        value = FixedType<object>.SByte.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    public AbiDecoder UInt<#=i#>(out byte value)
+    sbyte IStructAbiDecoder.Int8() 
     {
-        value = FixedType<object>.Byte.Decode(Next32EncodedBytes);
+        _ = Int8(out sbyte output);
+        return output;
+    }
+    public AbiDecoder UInt8(out byte value)
+    {
+        value = FixedType<object>.Byte.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-<#
+    byte IStructAbiDecoder.UInt8() 
+    {
+        _ = UInt8(out byte output);
+        return output;
     }
-#>
-<#
-    for(var i = 16; i <= 16;i=i+8)
+
+    public AbiDecoder Int16(out short value)
     {
-#>
-    public AbiDecoder Int<#=i#>(out short value)
-    {
-        value = FixedType<object>.Byte.Decode(Next32EncodedBytes);
+        value = FixedType<object>.Short.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    public AbiDecoder UInt<#=i#>(out ushort value)
+    short IStructAbiDecoder.Int16() 
     {
-        value = FixedType<object>.Byte.Decode(Next32EncodedBytes);
+        _ = Int16(out short output);
+        return output;
+    }
+    public AbiDecoder UInt16(out ushort value)
+    {
+        value = FixedType<object>.UShort.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-<#
+    ushort IStructAbiDecoder.UInt16() 
+    {
+        _ = UInt16(out ushort output);
+        return output;
     }
-#>
+
 <#
     for(var i = 24; i <= 32;i=i+8)
     {
 #>
     public AbiDecoder Int<#=i#>(out int value)
     {
-        value = FixedType<object>.Int.Decode(Next32EncodedBytes);
+        value = FixedType<object>.Int.Decode(CurrentSlot);
         return ConsumeBytes();
+    }
+    int IStructAbiDecoder.Int<#=i#>()
+    {
+        _ = Int<#=i#>(out int output);
+        return output;
     }
     public AbiDecoder UInt<#=i#>(out uint value)
     {
-        value = FixedType<object>.UInt.Decode(Next32EncodedBytes);
+        value = FixedType<object>.UInt.Decode(CurrentSlot);
         return ConsumeBytes();
+    }
+    uint IStructAbiDecoder.UInt<#=i#>()
+    {
+        _ = UInt<#=i#>(out uint output);
+        return output;
     }
 <#
     }
@@ -63,13 +83,23 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>(out long value)
     {
-        value = FixedType<object>.Long.Decode(Next32EncodedBytes);
+        value = FixedType<object>.Long.Decode(CurrentSlot);
         return ConsumeBytes();
+    }
+    long IStructAbiDecoder.Int<#=i#>()
+    {
+        _ = Int<#=i#>(out long output);
+        return output;
     }
     public AbiDecoder UInt<#=i#>(out ulong value)
     {
-        value = FixedType<object>.ULong.Decode(Next32EncodedBytes);
+        value = FixedType<object>.ULong.Decode(CurrentSlot);
         return ConsumeBytes();
+    }
+    ulong IStructAbiDecoder.UInt<#=i#>()
+    {
+        _ = UInt<#=i#>(out ulong output);
+        return output;
     }
 <#
     }
@@ -80,13 +110,23 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>(out BigInteger value)
     {
-        value = FixedType<object>.BigInteger.Decode(Next32EncodedBytes, false);
+        value = FixedType<object>.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
+    }
+    BigInteger IStructAbiDecoder.Int<#=i#>()
+    {
+        _ = Int<#=i#>(out var output);
+        return output;
     }
     public AbiDecoder UInt<#=i#>(out BigInteger value)
     {
-        value = FixedType<object>.BigInteger.Decode(Next32EncodedBytes, true);
+        value = FixedType<object>.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
+    }
+    BigInteger IStructAbiDecoder.UInt<#=i#>()
+    {
+        _ = UInt<#=i#>(out var output);
+        return output;
     }
 <#
     }
