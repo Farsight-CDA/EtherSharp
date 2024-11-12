@@ -30,7 +30,7 @@ internal abstract partial class FixedType<T>
                     throw new InvalidOperationException("Not a hex string");
                 }
 
-                buffer[^((i / 2) - 1)] = (byte) ((highNibble << 4) | lowNibble);
+                buffer[11 + (i / 2)] = (byte) ((highNibble << 4) | lowNibble);
             }
         }
 
