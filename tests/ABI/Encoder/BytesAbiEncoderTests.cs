@@ -12,20 +12,17 @@ public class BytesAbiEncoderTests
         _encoder = new AbiEncoder();
     }
 
-    public static IEnumerable<object[]> BitSizes
-        => Enumerable.Range(1, 32)
-            .Select(x => new object[] { x * 8 });
-
-    public static IEnumerable<object[]> NonNativeBitSizes
-        => Enumerable.Range(1, 32)
+    public static TheoryData<int> BitSizes
+        => new TheoryData<int>(Enumerable.Range(1, 32).Select(x => x * 8));
+    public static TheoryData<int> NonNativeBitSizes
+        => new TheoryData<int>(Enumerable.Range(1, 32)
             .Select(x => x * 8)
             .Where(x => x != 8 && x != 16 && x != 32 && x != 64)
-            .Select(x => new object[] { x }
         );
 
     [Theory]
     [MemberData(nameof(BitSizes))]
-    public void Should_Match_Random1(uint bitSize)
+    public void Should_Match_Random1(int bitSize)
     {
         var rng = RandomNumberGenerator.Create();
 
@@ -35,13 +32,13 @@ public class BytesAbiEncoderTests
 
         byte[] actual = _encoder.Bytes(randomBytes).Build();
 
-        Assert.Equal(randomBytes, actual[64..(64 + (int) bitSize)]);
+        Assert.Equal(randomBytes, actual[64..(64 + bitSize)]);
 
     }
 
     [Theory]
     [MemberData(nameof(NonNativeBitSizes))]
-    public void Should_Match_Random2(uint nonNativeBitSizes)
+    public void Should_Match_Random2(int nonNativeBitSizes)
     {
         var rng = RandomNumberGenerator.Create();
 
@@ -51,7 +48,7 @@ public class BytesAbiEncoderTests
 
         byte[] actual = _encoder.Bytes(randomBytes).Build();
 
-        Assert.Equal(randomBytes, actual[64..(64 + (int) nonNativeBitSizes)]);
+        Assert.Equal(randomBytes, actual[64..(64 + nonNativeBitSizes)]);
 
     }
 }

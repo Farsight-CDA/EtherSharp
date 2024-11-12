@@ -4,14 +4,12 @@ using System.Numerics;
 namespace EtherSharp.Tests.ABI.Decoder;
 public class AbiNumberEncodingTests
 {
-    public static IEnumerable<object[]> BitSizes
-        => Enumerable.Range(1, 32)
-            .Select(x => new object[] { x * 8 });
-    public static IEnumerable<object[]> NonNativeBitSizes
-        => Enumerable.Range(1, 32)
+    public static TheoryData<int> BitSizes
+        => new TheoryData<int>(Enumerable.Range(1, 32).Select(x => x * 8));
+    public static TheoryData<int> NonNativeBitSizes
+        => new TheoryData<int>(Enumerable.Range(1, 32)
             .Select(x => x * 8)
             .Where(x => x != 8 && x != 16 && x != 32 && x != 64)
-            .Select(x => new object[] { x }
         );
 
     [Theory]
