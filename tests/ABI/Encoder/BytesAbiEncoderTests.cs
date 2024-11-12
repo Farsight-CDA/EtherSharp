@@ -5,7 +5,6 @@ namespace EtherSharp.Tests.ABI.Encoder;
 
 public class BytesAbiEncoderTests
 {
-
     private readonly AbiEncoder _encoder;
 
     public BytesAbiEncoderTests()
@@ -14,8 +13,8 @@ public class BytesAbiEncoderTests
     }
 
     public static IEnumerable<object[]> BitSizes
-    => Enumerable.Range(1, 32)
-        .Select(x => new object[] { x * 8 });
+        => Enumerable.Range(1, 32)
+            .Select(x => new object[] { x * 8 });
 
     public static IEnumerable<object[]> NonNativeBitSizes
         => Enumerable.Range(1, 32)
