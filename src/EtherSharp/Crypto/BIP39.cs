@@ -1,0 +1,27 @@
+﻿using System.Security.Cryptography;
+using System.Text;
+
+namespace EtherSharp.Crypto;
+public static class BIP39
+{
+    public static byte[] MnemonicToSeed(string mnemonic, string passphrase = "")
+    {
+        string normalizedMnemonic = mnemonic.Normalize(NormalizationForm.FormKD);
+        string normalizedSaltedPassword = $"mnemonic{passphrase.Normalize(NormalizationForm.FormKD)}";
+
+        int passwordSize = Encoding.UTF8.GetByteCount(normalizedMnemonic);
+        int saltBufferSize = Encoding.UTF8.GetByteCount(normalizedSaltedPassword);
+
+        Span<byte> passwordBuffer = passwordSize > 1024
+            ? new byte[passwordSize]
+            : stackalloc byte[passwordSize];
+        Span<byte> saltBuffer = saltBufferSize > 1024
+            ? new byte[saltBufferSize]
+            : stackalloc byte[saltBufferSize];
+
+        _ = Encoding.UTF8.GetBytes(normalizedMnemonic, passwordBuffer);
+        _ = Encoding.UTF8.GetBytes(normalizedSaltedPassword, saltBuffer);
+
+        return Rfc2898DeriveBytes.Pbkdf2(passwordBuffer, saltBuffer, 2048, HashAlgorithmName.SHA512, 64);
+    }
+}

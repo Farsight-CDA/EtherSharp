@@ -4,4 +4,4 @@ using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using EtherSharp.Bench;
 
-BenchmarkRunner.Run<TempBenchmarks>();
+BenchmarkRunner.Run<Keccak256Benchmarks>();

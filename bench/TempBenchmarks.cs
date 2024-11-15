@@ -9,10 +9,15 @@ namespace EtherSharp.Bench;
 [MemoryDiagnoser]
 public class TempBenchmarks
 {
+    private AbiEncoder _encoder = null!;
+
+    [GlobalSetup]
+    public void Setup() 
+        => _encoder = new AbiEncoder();
 
     [Benchmark]
     public byte[] Encode_Build() 
-        => new AbiEncoder()
+        => _encoder
             .Int32(16)
             .String("Hello")
             .Array(x => x.Int256Array(1, 353535))
@@ -21,11 +26,11 @@ public class TempBenchmarks
     [Benchmark]
     public void Encode_WriteTo()
     {
-        var encoder = new AbiEncoder()
+        var encoder = _encoder
             .Int32(16)
             .String("Hello")
             .Array(x => x.Int256Array(1, 353535));
-        Span<byte> buffer = stackalloc byte[(int) encoder.Size];
+        Span<byte> buffer = stackalloc byte[encoder.Size];
         encoder.TryWritoTo(buffer);
     }
 }
