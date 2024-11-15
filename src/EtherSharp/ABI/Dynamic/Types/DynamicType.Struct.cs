@@ -29,7 +29,10 @@ internal abstract partial class DynamicType<T>
                 payload[..32].Reverse();
             }
 
-            Value.WritoTo(payload[32..]);
+            if (!Value.TryWritoTo(payload[32..]))
+            {
+                throw new InvalidOperationException("Failed to write bytes");
+            }
         }
 
         public static T Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IStructAbiDecoder, T> decoder)

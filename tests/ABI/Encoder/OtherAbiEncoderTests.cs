@@ -1,4 +1,5 @@
 ﻿using EtherSharp.ABI;
+using EtherSharp.Contract;
 
 namespace EtherSharp.Tests.ABI.Encoder;
 public class OtherAbiEncoderTests
@@ -47,7 +48,7 @@ public class OtherAbiEncoderTests
 
         _ = _encoder.String(bigIntValue).String(bigIntValue);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.WritoTo(actualOutput.AsSpan());
+        _encoder.TryWritoTo(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);
     }
 
@@ -60,7 +61,7 @@ public class OtherAbiEncoderTests
 
         _ = _encoder.Struct(8, x => x.Int8(2).Int8(8));
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.WritoTo(actualOutput.AsSpan());
+        _encoder.TryWritoTo(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);
     }
 
@@ -75,7 +76,7 @@ public class OtherAbiEncoderTests
 
         _ = _encoder.Int8(1).String(bigIntValue);
         byte[] actualOutput = new byte[_encoder.Size];
-        _encoder.WritoTo(actualOutput.AsSpan());
+        _encoder.TryWritoTo(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);
     }
 }

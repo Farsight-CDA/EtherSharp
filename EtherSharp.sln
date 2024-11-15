@@ -13,9 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bench", "bench", "{54E6E2E7
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{DC64C388-0A1C-4D74-ACC9-942486418953}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtherSharp.Core", "src\EtherSharp.Core\EtherSharp.Core\EtherSharp.Core.csproj", "{5C5F8CA5-C803-48C5-9A96-786E09A88E1B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtherSharp.Generator", "src\EtherSharp.Generator\EtherSharp.Generator\EtherSharp.Generator.csproj", "{E3E86DD8-234F-4724-B544-F38B2D1675BA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtherSharp.Generator", "src\EtherSharp.Generator\EtherSharp.Generator.csproj", "{E3E86DD8-234F-4724-B544-F38B2D1675BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +33,6 @@ Global
 		{0F102C97-4957-4566-9C79-CFEE38B9D86C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F102C97-4957-4566-9C79-CFEE38B9D86C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F102C97-4957-4566-9C79-CFEE38B9D86C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5C5F8CA5-C803-48C5-9A96-786E09A88E1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5C5F8CA5-C803-48C5-9A96-786E09A88E1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5C5F8CA5-C803-48C5-9A96-786E09A88E1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5C5F8CA5-C803-48C5-9A96-786E09A88E1B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E3E86DD8-234F-4724-B544-F38B2D1675BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E3E86DD8-234F-4724-B544-F38B2D1675BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3E86DD8-234F-4724-B544-F38B2D1675BA}.Release|Any CPU.ActiveCfg = Release|Any CPU

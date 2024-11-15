@@ -16,9 +16,5 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\..\EtherSharp.Core\EtherSharp.Core\EtherSharp.Core.csproj" />
-	</ItemGroup>
 	
 </Project>

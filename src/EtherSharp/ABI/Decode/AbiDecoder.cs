@@ -66,6 +66,12 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
         return number;
     }
 
+    public AbiDecoder Bool(out bool value)
+    {
+        value = FixedType<object>.Bool.Decode(CurrentSlot);
+        return ConsumeBytes();
+    }
+
     public AbiDecoder Address(out string value)
     {
         value = FixedType<object>.Address.Decode(CurrentSlot);

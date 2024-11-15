@@ -13,7 +13,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
     private uint _payloadSize = 0;
     private uint _metadataSize = 0;
 
-    public uint Size => _payloadSize + _metadataSize;
+    public int Size => (int) (_payloadSize + _metadataSize);
     uint IArrayAbiEncoder.MetadataSize => _metadataSize;
     uint IArrayAbiEncoder.PayloadSize => _payloadSize;
     uint IStructAbiEncoder.MetadataSize => _metadataSize;
@@ -66,7 +66,8 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
             _ => throw new NotImplementedException()
         });
     }
-
+    public AbiEncoder Bool(bool value)
+        => AddElement(new FixedType<object>.Bool(value));
     public AbiEncoder Address(string value)
         => AddElement(new FixedType<object>.Address(value));
 
@@ -138,8 +139,13 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
         });
     }
 
-    public void WritoTo(Span<byte> result)
+    public bool TryWritoTo(Span<byte> outputBuffer)
     {
+        if (outputBuffer.Length < Size)
+        {
+            throw new ArgumentException("Output buffer too small", nameof(outputBuffer));
+        }
+
         uint metadataOffset = 0;
         uint payloadOffset = _metadataSize;
 
@@ -149,10 +155,10 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
             {
                 case IDynamicType dynEncType:
                     dynEncType.Encode(
-                        result.Slice(
+                        outputBuffer.Slice(
                             (int) metadataOffset,
                             32),
-                        result.Slice(
+                        outputBuffer.Slice(
                             (int) payloadOffset,
                             (int) dynEncType.PayloadSize),
                         payloadOffset
@@ -161,7 +167,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
                     break;
                 case IFixedType fixEncType:
                     fixEncType.Encode(
-                        result.Slice(
+                        outputBuffer.Slice(
                             (int) metadataOffset,
                             32)
                     );
@@ -174,12 +180,13 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
         }
 
         _entries.Clear();
+        return true;
     }
 
     public byte[] Build()
     {
         byte[] buffer = new byte[Size];
-        WritoTo(buffer);
+        TryWritoTo(buffer);
         return buffer;
     }
 }

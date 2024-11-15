@@ -1,5 +1,6 @@
-﻿using EtherSharp.Core;
+﻿using EtherSharp.Contract;
 using EtherSharp.RPC;
+using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Numerics;
 
@@ -24,4 +25,7 @@ public class EtherClient
 
     public TContract Contract<TContract>(string address) where TContract : IContract 
         => throw new NotImplementedException();
+
+    public T CallAsync<T>(TxInput<T> call) => throw new NotImplementedException();
+    public Task<TransactionReceipt> SendAsync<T>(TxInput<T> call) => throw new NotImplementedException();
 }

@@ -9,5 +9,5 @@ public partial interface IStructAbiEncoder
     public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func);
     public IStructAbiEncoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func);
 
-    internal void WritoTo(Span<byte> result);
+    internal bool TryWritoTo(Span<byte> outputBuffer);
 }
