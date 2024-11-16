@@ -9,7 +9,7 @@ namespace EtherSharp.Bench;
 public class Keccak256Benchmarks
 {
     private const int _seed = 123456789;
-    private static readonly int[] _inputDataLenghts = [0, 16, 128, 512, 2048, 8192, 32768];
+    private static readonly int[] _inputDataLenghts = [0, 32, 512, 4096, 32768];
     public static IEnumerable<byte[]> Values
         => _inputDataLenghts.Select(size =>
         {
