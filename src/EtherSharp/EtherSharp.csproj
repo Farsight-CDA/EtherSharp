@@ -16,9 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Keysmith.Net" Version="0.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
-    <PackageReference Include="Secp256k1.Net" Version="1.2.0" />
+    <PackageReference Include="Keysmith.Net" Version="0.2.1" />
   </ItemGroup>
 
   <ItemGroup>
