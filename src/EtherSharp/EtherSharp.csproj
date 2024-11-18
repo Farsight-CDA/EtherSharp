@@ -16,7 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Keysmith.Net" Version="0.2.1" />
+    <PackageReference Include="Keysmith.Net" Version="1.0.1" />
+    <PackageReference Include="Keysmith.Net.Secp256k1" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -117,10 +118,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>IArrayAbiEncoder.NumberArrays.tt</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Wallet\" />
   </ItemGroup>
 
 </Project>
