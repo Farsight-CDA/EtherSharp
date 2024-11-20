@@ -29,6 +29,8 @@ public class TxInput<T>
 
     public string Target { get; }
 
+    public int Value { get; }
+
     internal TxInput(string target, ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder, Func<AbiDecoder, T> decoder)
     {
         Target = target;
@@ -42,7 +44,7 @@ public class TxInput<T>
         Span<byte> buffer = stackalloc byte[_functionSignature.Length + _encoder.Size];
 
         _functionSignature.Span.CopyTo(buffer);
-        _encoder.TryWritoTo(buffer[_functionSignature.Length..]);
+        _ = _encoder.TryWritoTo(buffer[_functionSignature.Length..]);
 
         return $"0x{Convert.ToHexString(buffer)}";
     }
