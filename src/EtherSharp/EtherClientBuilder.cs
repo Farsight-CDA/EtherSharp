@@ -10,7 +10,7 @@ public class EtherClientBuilder
         _rpcUrl = rpcUrl;
         return this;
     }
-    public EtherClientBuilder WithRPCURl(string rpcURl)
+    public EtherClientBuilder WithRPCUrl(string rpcURl)
     {
         _rpcUrl = new Uri(rpcURl, UriKind.Absolute);
         return this;

@@ -17,25 +17,37 @@ public class TxInput
     {
     }
 
-    public bool TryWriteTo(Span<byte> buffer) 
+    public bool TryWriteTo(Span<byte> buffer)
         => _encoder is null || _encoder.TryWritoTo(buffer);
 }
 
 public class TxInput<T>
 {
+    private readonly ReadOnlyMemory<byte> _functionSignature;
     private readonly AbiEncoder _encoder;
     private readonly Func<AbiDecoder, T> _decoder;
 
-    internal TxInput(AbiEncoder encoder, Func<AbiDecoder, T> decoder)
+    public string Target { get; }
+
+    internal TxInput(string target, ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder, Func<AbiDecoder, T> decoder)
     {
+        Target = target;
+        _functionSignature = functionSignature;
         _encoder = encoder;
         _decoder = decoder;
     }
 
-    public bool TryWriteTo(Span<byte> buffer)
-        => _encoder is null || _encoder.TryWritoTo(buffer);
+    internal string GetCalldataHex()
+    {
+        Span<byte> buffer = stackalloc byte[_functionSignature.Length + _encoder.Size];
 
-    public T ReadResultFrom(ReadOnlyMemory<byte> buffer) 
+        _functionSignature.Span.CopyTo(buffer);
+        _encoder.TryWritoTo(buffer[_functionSignature.Length..]);
+
+        return $"0x{Convert.ToHexString(buffer)}";
+    }
+
+    internal T ReadResultFrom(ReadOnlyMemory<byte> buffer)
         => _decoder.Invoke(new AbiDecoder(buffer));
 }
 

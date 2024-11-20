@@ -89,13 +89,11 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         public record Success(byte[] Data) : ContractReturn;
     }
 
-    public async Task<ContractReturn> EthCallAsync(string? from, string to, uint? gas, BigInteger? gasPrice, int? value, string? contractMethode, TargetBlockNumber blockNumber, string? balance, string? nonce, string? code, object? state, int? stateDiff)
+    public async Task<ContractReturn> EthCallAsync(string? from, string to, uint? gas, BigInteger? gasPrice, int? value, string? data, TargetBlockNumber blockNumber)
     {
-        TransactionEthCall transaction = new(from, to, gas, gasPrice, value, contractMethode);
+        TransactionEthCall transaction = new(from, to, gas, gasPrice, value, data);
 
-        FakeAccountData fakeAccountData = new(balance, nonce, code, state, stateDiff);
-
-        var response = await _jsonRpcClient.SendRpcRequest<TransactionEthCall, string, FakeAccountData, byte[]>("eth_call", transaction, blockNumber.ToString(), fakeAccountData);
+        var response = await _jsonRpcClient.SendRpcRequest<TransactionEthCall, string, byte[]>("eth_call", transaction, blockNumber.ToString());
 
         return response switch
         {
