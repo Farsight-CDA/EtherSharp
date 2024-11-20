@@ -17,7 +17,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<long> EthBlockNumberAsync() 
+    public async Task<long> EthBlockNumberAsync()
         => await _jsonRpcClient.SendRpcRequest<string>("eth_blockNumber") switch
         {
             RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
@@ -25,7 +25,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<BigInteger> EthGetBalance(string address, TargetBlockNumber blockNumber) 
+    public async Task<BigInteger> EthGetBalance(string address, TargetBlockNumber blockNumber)
         => await _jsonRpcClient.SendRpcRequest<string, string, BigInteger>("eth_getBalance", address, blockNumber.ToString()) switch
         {
             RpcResult<BigInteger>.Success result => result.Result,
@@ -33,7 +33,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<int> EthGetTransactionCount(string address, TargetBlockNumber blockNumber) 
+    public async Task<int> EthGetTransactionCount(string address, TargetBlockNumber blockNumber)
         => await _jsonRpcClient.SendRpcRequest<string, string, int>("eth_getTransactionCount", address, blockNumber.ToString()) switch
         {
             RpcResult<int>.Success result => result.Result,
@@ -41,7 +41,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<string[]> EthAccountsAsync() 
+    public async Task<string[]> EthAccountsAsync()
         => await _jsonRpcClient.SendRpcRequest<string[]>("eth_accounts") switch
         {
             RpcResult<string[]>.Success result => result.Result,
@@ -101,6 +101,18 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
             RpcResult<byte[]>.Error error => error.Message == "execution reverted" && error.Code == -32000
                 ? new ContractReturn.Reverted()
                 : throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
+    }
+
+    public async Task<BigInteger> EthGasPriceAsync()
+    {
+        var response = await _jsonRpcClient.SendRpcRequest<BigInteger>("eth_gasPrice");
+
+        return response switch
+        {
+            RpcResult<BigInteger>.Success result => result.Result,
+            RpcResult<BigInteger>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
