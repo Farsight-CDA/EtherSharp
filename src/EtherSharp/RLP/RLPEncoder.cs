@@ -41,13 +41,13 @@ public ref struct RLPEncoder
             ? 1
             : 1 + GetSignificantByteCount((uint) byteCount);
 
-    private static int GetSignificantByteCount(uint value)
+    public static int GetSignificantByteCount(uint value)
     {
         int lengthBits = 32 - BitOperations.LeadingZeroCount(value);
         int lengthBytes = (lengthBits + 7) / 8;
         return lengthBytes;
     }
-    private static int GetSignificantByteCount(ulong value)
+    public static int GetSignificantByteCount(ulong value)
     {
         int lengthBits = 64 - BitOperations.LeadingZeroCount(value);
         int lengthBytes = (lengthBits + 7) / 8;
@@ -63,10 +63,13 @@ public ref struct RLPEncoder
 
     public RLPEncoder EncodeInt(uint value)
     {
-        if (value < 128)
+        if (value == 0)
         {
-            _destination[0] = (byte) value;
-            _destination = _destination[1..];
+            return EncodeString();
+        }
+        else if (value < 128)
+        {
+            return EncodeString((byte) value);
         }
         else
         {
@@ -79,7 +82,7 @@ public ref struct RLPEncoder
             }
 
             _destination[0] = (byte) (0x80 + significantBytes);
-            buffer[significantBytes..].CopyTo(_destination[1..]);
+            buffer[^significantBytes..].CopyTo(_destination[1..]);
             _destination = _destination[(significantBytes + 1)..];
         }
 
@@ -88,10 +91,13 @@ public ref struct RLPEncoder
 
     public RLPEncoder EncodeInt(ulong value)
     {
-        if(value < 128)
+        if(value == 0)
         {
-            _destination[0] = (byte) value;
-            _destination = _destination[1..];
+            return EncodeString();
+        }
+        else if(value < 128)
+        {
+            return EncodeString((byte) value);
         }
         else
         {
@@ -104,7 +110,7 @@ public ref struct RLPEncoder
             }
 
             _destination[0] = (byte) (0x80 + significantBytes);
-            buffer[significantBytes..].CopyTo(_destination[1..]);
+            buffer[^significantBytes..].CopyTo(_destination[1..]);
             _destination = _destination[(significantBytes + 1)..];
         }
 
@@ -118,19 +124,24 @@ public ref struct RLPEncoder
             throw new NotSupportedException();
         }
 
-        if(value < 128)
+        if(value == 0)
         {
-            _destination[0] = (byte) value;
-            _destination = _destination[1..];
+            return EncodeString();
+        }
+        else if(value < 128)
+        {
+            return EncodeString((byte) value);
         }
         else
         {
             int significantBytes = value.GetByteCount(true);
-            Span<byte> buffer = stackalloc byte[significantBytes];
-            value.TryWriteBytes(buffer, out _, true, true);
 
             _destination[0] = (byte) (0x80 + significantBytes);
-            buffer[significantBytes..].CopyTo(_destination[1..]);
+
+            value.TryWriteBytes(_destination[1..], out _, true, true);
+
+            Span<byte> buffer = stackalloc byte[significantBytes];
+
             _destination = _destination[(significantBytes + 1)..];
         }
 
@@ -143,7 +154,6 @@ public ref struct RLPEncoder
         {
             _destination[0] = data[0];
             _destination = _destination[1..];
-
         }
         else if(data.Length < 56)
         {
@@ -154,15 +164,15 @@ public ref struct RLPEncoder
         else
         {
             int significantLengthBytes = GetSignificantByteCount((uint) data.Length);
-            Span<byte> lengthBuffer = stackalloc byte[4];
-            BitConverter.TryWriteBytes(lengthBuffer, (uint) data.Length);
-            if(BitConverter.IsLittleEndian)
+
+            _destination[0] = (byte) (0xb7 + significantLengthBytes);
+
+            BitConverter.TryWriteBytes(_destination[1..5], (uint) data.Length);
+            if(BitConverter.IsLittleEndian && significantLengthBytes > 1)
             {
-                lengthBuffer.Reverse();
+                _destination[1..(1 + significantLengthBytes)].Reverse();
             }
 
-            _destination[0] = (byte) (0xc0 + significantLengthBytes);
-            lengthBuffer[significantLengthBytes..].CopyTo(_destination[1..]);
             data.CopyTo(_destination[(significantLengthBytes + 1)..]);
             _destination = _destination[(significantLengthBytes + 1 + data.Length)..];
         }
@@ -187,8 +197,8 @@ public ref struct RLPEncoder
                 lengthBuffer.Reverse();
             }
 
-            _destination[0] = (byte) (0xc0 + significantLengthBytes);
-            lengthBuffer[significantLengthBytes..].CopyTo(_destination[1..]);
+            _destination[0] = (byte) (0xf7 + significantLengthBytes);
+            lengthBuffer[^significantLengthBytes..].CopyTo(_destination[1..]);
             _destination = _destination[(1 + significantLengthBytes)..];
         }
 

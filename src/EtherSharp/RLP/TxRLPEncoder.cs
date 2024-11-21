@@ -74,7 +74,7 @@ internal static class TxRLPEncoder
             s = s[sLeadingZeroBytes..];
         }
 
-        signatureLength = r.Length + s.Length + 1;
+        signatureLength = RLPEncoder.GetStringSize(r) + RLPEncoder.GetStringSize(s) + 1;
         return encoder
             .EncodeString(r)
             .EncodeString(s)

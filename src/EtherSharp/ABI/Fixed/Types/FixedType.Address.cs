@@ -16,7 +16,7 @@ internal abstract partial class FixedType<T>
             => EncodeInto(Value, buffer);
         public static void EncodeInto(ReadOnlyMemory<char> value, Span<byte> buffer)
         {
-            for(int i = 2; i < value.Length; i += 2)
+            for(int i = 0; i < value.Length; i += 2)
             {
                 int highNibble = GetHexValue(value.Span[i]);
                 int lowNibble = GetHexValue(value.Span[i + 1]);
@@ -26,7 +26,7 @@ internal abstract partial class FixedType<T>
                     throw new InvalidOperationException("Not a hex string");
                 }
 
-                buffer[11 + (i / 2)] = (byte) ((highNibble << 4) | lowNibble);
+                buffer[12 + (i / 2)] = (byte) ((highNibble << 4) | lowNibble);
             }
         }
 

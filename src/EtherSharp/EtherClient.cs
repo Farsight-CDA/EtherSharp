@@ -69,7 +69,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
             throw new InvalidOperationException("No signer configured");
         }
 
-        var tx = new EIP1559Transaction(3000, 3000000, 30, call.Target, call.Value, 10000000000, 3534534555, []);
+        var tx = new EIP1559Transaction(137, 38154, 103, call.Target, call.Value, 45201065989, 27278237335, []);
 
         Span<int> lengthBuffer = stackalloc int[EIP1559Transaction.NestedListCount];
         Span<byte> dataBuffer = stackalloc byte[call.DataLength];
@@ -77,18 +77,30 @@ public class EtherClient : IEtherClient, IEtherTxClient
         call.WriteDataTo(dataBuffer);
         int txTemplateLength = tx.GetEncodedSize(dataBuffer, lengthBuffer);
 
-        Span<byte> txBuffer = stackalloc byte[txTemplateLength + TxRLPEncoder.MaxEncodedSignatureLength];
+        Span<byte> txBuffer = stackalloc byte[2 + txTemplateLength + TxRLPEncoder.MaxEncodedSignatureLength];
         Span<byte> hashBuffer = stackalloc byte[32];
 
-        var txTemplateBuffer = txBuffer[..txTemplateLength];
-        var signatureBuffer = txBuffer[txTemplateLength..];
+        var txTemplateBuffer = txBuffer[2..(txTemplateLength + 2)];
+        var signatureBuffer = txBuffer[^TxRLPEncoder.MaxEncodedSignatureLength..];
 
-        tx.Encode(txTemplateLength, lengthBuffer, dataBuffer, txTemplateBuffer);
+        tx.Encode(lengthBuffer, dataBuffer, txTemplateBuffer);
         Keccak256.TryHashData(txTemplateBuffer, hashBuffer);
 
         SignAndEncode(hashBuffer, signatureBuffer, out int signatureLength);
 
-        var signedTxBuffer = txBuffer[..(txTemplateLength + signatureLength)];
+        int oldLengthBytes = RLPEncoder.GetSignificantByteCount((uint) lengthBuffer[0]);
+        int newLengthBytes = RLPEncoder.GetSignificantByteCount((uint) (lengthBuffer[0] + signatureLength));
+
+        if (newLengthBytes == oldLengthBytes)
+        {
+            //Dont need the extra byte for the length increase
+            txBuffer = txBuffer[1..];
+        }
+
+        new RLPEncoder(txBuffer[1..]).EncodeList(lengthBuffer[0] + signatureLength);
+        txBuffer[0] = EIP1559Transaction.PrefixByte;
+
+        var signedTxBuffer = txBuffer[..^(TxRLPEncoder.MaxEncodedSignatureLength - signatureLength)];
 
         return await _evmRPCClient.EthSendRawTransactionAsync($"0x{Convert.ToHexString(signedTxBuffer)}");
     }
@@ -96,7 +108,10 @@ public class EtherClient : IEtherClient, IEtherTxClient
     private void SignAndEncode(Span<byte> hashBuffer, Span<byte> signatureBuffer, out int encodedSignatureLength)
     {
         Span<byte> tempBuffer = stackalloc byte[65];
-        _signer!.TrySign(hashBuffer, tempBuffer);
+        if (!_signer!.TrySignRecoverable(hashBuffer, tempBuffer))
+        {
+            throw new NotImplementedException();
+        }
         new RLPEncoder(signatureBuffer).EncodeSignature(tempBuffer, out encodedSignatureLength);
     }
 
