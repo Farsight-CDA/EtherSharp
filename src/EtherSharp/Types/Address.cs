@@ -13,7 +13,17 @@ public class Address
     }
 
     public static Address FromString(string s)
-        => new Address(s, Convert.FromHexString(s));
+    {
+        if (s.StartsWith("0x"))
+        {
+            string subStr = s[2..];
+            return new Address(subStr, Convert.FromHexString(subStr));
+        }
+        else
+        {
+            return new Address(s, Convert.FromHexString(s));
+        }
+    }
 
     public static Address FromBytes(ReadOnlySpan<byte> b)
         => new Address(Convert.ToHexString(b), b.ToArray());

@@ -49,7 +49,7 @@ public ref struct RLPEncoder
     }
     private static int GetSignificantByteCount(ulong value)
     {
-        int lengthBits = 32 - BitOperations.LeadingZeroCount(value);
+        int lengthBits = 64 - BitOperations.LeadingZeroCount(value);
         int lengthBytes = (lengthBits + 7) / 8;
         return lengthBytes;
     }
@@ -113,7 +113,7 @@ public ref struct RLPEncoder
 
     public RLPEncoder EncodeInt(BigInteger value)
     {
-        if (value< 0)
+        if (value < 0)
         {
             throw new NotSupportedException();
         }
@@ -139,7 +139,13 @@ public ref struct RLPEncoder
 
     public RLPEncoder EncodeString(params ReadOnlySpan<byte> data)
     {
-        if(data.Length < 56)
+        if (data.Length == 1 && data[0] < 128)
+        {
+            _destination[0] = data[0];
+            _destination = _destination[1..];
+
+        }
+        else if(data.Length < 56)
         {
             _destination[0] = (byte) (0x80 + data.Length);
             data.CopyTo(_destination[1..]);

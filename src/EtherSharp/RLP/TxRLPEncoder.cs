@@ -62,8 +62,17 @@ internal static class TxRLPEncoder
         var r = signature[..32];
         var s = signature[32..64];
 
-        r = r[r.IndexOfAnyExcept((byte) 0)..];
-        s = s[s.IndexOfAnyExcept((byte) 0)..];
+        int rLeadingZeroBytes = r.IndexOfAnyExcept((byte) 0);
+        int sLeadingZeroBytes = s.IndexOfAnyExcept((byte) 0);
+
+        if (rLeadingZeroBytes > 0)
+        {
+            r = r[rLeadingZeroBytes..];
+        }
+        if (sLeadingZeroBytes > 0)
+        {
+            s = s[sLeadingZeroBytes..];
+        }
 
         signatureLength = r.Length + s.Length + 1;
         return encoder

@@ -62,7 +62,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-    private async Task<string> SendAsync<T>(TxInput<T> call)
+    public async Task<string> SendAsync<T>(TxInput<T> call)
     {
         if(_signer is null)
         {
@@ -75,20 +75,20 @@ public class EtherClient : IEtherClient, IEtherTxClient
         Span<byte> dataBuffer = stackalloc byte[call.DataLength];
 
         call.WriteDataTo(dataBuffer);
-        tx.GetEncodedSize(dataBuffer, lengthBuffer);
+        int txTemplateLength = tx.GetEncodedSize(dataBuffer, lengthBuffer);
 
-        Span<byte> txBuffer = stackalloc byte[lengthBuffer[0] + TxRLPEncoder.MaxEncodedSignatureLength];
+        Span<byte> txBuffer = stackalloc byte[txTemplateLength + TxRLPEncoder.MaxEncodedSignatureLength];
         Span<byte> hashBuffer = stackalloc byte[32];
 
-        var txTemplateBuffer = txBuffer[..lengthBuffer[0]];
-        var signatureBuffer = txBuffer[lengthBuffer[0]..];
+        var txTemplateBuffer = txBuffer[..txTemplateLength];
+        var signatureBuffer = txBuffer[txTemplateLength..];
 
-        tx.Encode(lengthBuffer, dataBuffer, txTemplateBuffer);
+        tx.Encode(txTemplateLength, lengthBuffer, dataBuffer, txTemplateBuffer);
         Keccak256.TryHashData(txTemplateBuffer, hashBuffer);
 
         SignAndEncode(hashBuffer, signatureBuffer, out int signatureLength);
 
-        var signedTxBuffer = txBuffer[..(lengthBuffer[0] + signatureLength)];
+        var signedTxBuffer = txBuffer[..(txTemplateLength + signatureLength)];
 
         return await _evmRPCClient.EthSendRawTransactionAsync($"0x{Convert.ToHexString(signedTxBuffer)}");
     }

@@ -16,5 +16,6 @@ public interface IEtherClient
     public TContract Contract<TContract>(string address) where TContract : IContract;
 
     public Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default);
+    public Task<string> SendAsync<T>(TxInput<T> call);
 
 }

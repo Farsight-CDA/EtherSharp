@@ -14,13 +14,14 @@ public record EIP1559Transaction(
     StateAccess[] AccessList
 ) : ITransaction
 {
-    public static int NestedListCount => 2;
+    public static int NestedListCount => 1;
 
-    void ITransaction.GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths) => GetEncodedSize(data, listLengths);
-    internal void GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths)
+    int ITransaction.GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths) 
+        => GetEncodedSize(data, listLengths);
+    internal int GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths)
     {
         listLengths[0] = TxRLPEncoder.GetAccessListLength(AccessList);
-        listLengths[1] = RLPEncoder.GetListSize(
+        return RLPEncoder.GetListSize(
             RLPEncoder.GetIntSize(ChainId) +
             RLPEncoder.GetIntSize(Nonce) +
             RLPEncoder.GetIntSize(MaxPriorityFeePerGas) +
@@ -33,9 +34,10 @@ public record EIP1559Transaction(
         );
     }
 
-    void ITransaction.Encode(ReadOnlySpan<int> listLengths, ReadOnlySpan<byte> data, Span<byte> destination) => Encode(listLengths, data, destination);
-    internal void Encode(ReadOnlySpan<int> listLengths, ReadOnlySpan<byte> data, Span<byte> destination) 
-        => new RLPEncoder(destination).EncodeList(listLengths[1])
+    void ITransaction.Encode(int totalLength, ReadOnlySpan<int> listLengths, ReadOnlySpan<byte> data, Span<byte> destination) 
+        => Encode(totalLength, listLengths, data, destination);
+    internal void Encode(int totalLength, ReadOnlySpan<int> listLengths, ReadOnlySpan<byte> data, Span<byte> destination) 
+        => new RLPEncoder(destination).EncodeList(totalLength)
             .EncodeInt(ChainId)
             .EncodeInt(Nonce)
             .EncodeInt(MaxPriorityFeePerGas)

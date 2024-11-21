@@ -1,15 +1,11 @@
 ﻿namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
-    internal class Address : FixedType<string>
+    internal class Address : FixedType<ReadOnlyMemory<char>>
     {
         public Address(string value)
-            : base(value)
+            : base(value.StartsWith("0x") ? value.AsMemory()[2..] : value.AsMemory())
         {
-            if(!value.StartsWith("0x"))
-            {
-                throw new ArgumentException("Address must start with 0x");
-            }
             if(value.Length % 2 != 0)
             {
                 throw new ArgumentException("Bad address length");
@@ -18,12 +14,12 @@ internal abstract partial class FixedType<T>
 
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
-        public static void EncodeInto(string value, Span<byte> buffer)
+        public static void EncodeInto(ReadOnlyMemory<char> value, Span<byte> buffer)
         {
             for(int i = 2; i < value.Length; i += 2)
             {
-                int highNibble = GetHexValue(value[i]);
-                int lowNibble = GetHexValue(value[i + 1]);
+                int highNibble = GetHexValue(value.Span[i]);
+                int lowNibble = GetHexValue(value.Span[i + 1]);
 
                 if(highNibble == -1 || lowNibble == -1)
                 {
