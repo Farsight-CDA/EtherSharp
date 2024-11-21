@@ -1,142 +1,191 @@
 using System.Numerics;
 
-public static class RLPEncoder
+namespace EtherSharp.RLP;
+public ref struct RLPEncoder
 {
-    public static void EncodeSpan(ReadOnlySpan<byte> input, Span<byte> output)
+    public static int GetIntSize(uint value)
+        => value < 128
+            ? 1
+            :  GetEncodedStringLength(GetSignificantByteCount(value));
+    public static int GetIntSize(ulong value)
+        => value < 128
+            ? 1
+            : GetEncodedStringLength(GetSignificantByteCount(value));
+    public static int GetIntSize(BigInteger value)
     {
-        // [0x00, 0x7f] "string"
-        if(input.Length == 1 && input[0] <= 0x7f)
+        if(value < 0)
         {
-            input.CopyTo(output);
-            return;
+            throw new NotSupportedException();
         }
-
-        // 0-55 bytes long
-        if(input.Length <= 55)
-        {
-            output[0] = (byte) (0x80 + input.Length);
-            input.CopyTo(output[1..]);
-            return;
-        }
-
-        // more than 55 bytes long,
-        int lengthOfLength = GetLengthOfLength((uint) input.Length);
-
-        output[0] = (byte) (0xb7 + lengthOfLength);
-        WriteLength(input.Length, output.Slice(1, lengthOfLength));
-        input.CopyTo(output[(1 + lengthOfLength)..]);
+        //
+        return value < 128
+            ? 1
+            : GetEncodedStringLength(value.GetByteCount(true));
     }
 
-    public static void EncodeInt(BigInteger input, Span<byte> output)
+    private static int GetEncodedStringLength(int byteCount)
+        => byteCount < 56
+            ? byteCount + 1
+            : byteCount + GetSignificantByteCount((uint) byteCount) + 1;
+
+    public static int GetStringSize(ReadOnlySpan<byte> data)
+        => data.Length == 1 && data[0] < 128
+            ? 1
+            : GetPrefixLength(data.Length) + data.Length;
+
+    public static int GetListSize(int elementSize)
+        => GetPrefixLength(elementSize) + elementSize;
+
+    public static int GetPrefixLength(int byteCount)
+        => byteCount < 56
+            ? 1
+            : 1 + GetSignificantByteCount((uint) byteCount);
+
+    private static int GetSignificantByteCount(uint value)
     {
-        // Special case for zero
-        if(input == 0)
+        int lengthBits = 32 - BitOperations.LeadingZeroCount(value);
+        int lengthBytes = (lengthBits + 7) / 8;
+        return lengthBytes;
+    }
+    private static int GetSignificantByteCount(ulong value)
+    {
+        int lengthBits = 32 - BitOperations.LeadingZeroCount(value);
+        int lengthBytes = (lengthBits + 7) / 8;
+        return lengthBytes;
+    }
+
+    private Span<byte> _destination;
+
+    public RLPEncoder(Span<byte> destination)
+    {
+        _destination = destination;
+    }
+
+    public RLPEncoder EncodeInt(uint value)
+    {
+        if (value < 128)
         {
-            output[0] = 0x80;
-            return;
+            _destination[0] = (byte) value;
+            _destination = _destination[1..];
         }
-
-        Span<byte> intBytes = stackalloc byte[sizeof(int)];
-        int actualLength = WriteIntToSpan(input, intBytes);
-
-        ReadOnlySpan<byte> trimmedBytes = intBytes[(sizeof(int) - actualLength)..];
-
-        EncodeSpan(trimmedBytes, output);
-    }
-
-    public static void EncodeList(ReadOnlySpan<byte> payload, Span<byte> output)
-    {
-        //  0-55 bytes long
-        if(payload.Length <= 55)
+        else
         {
-            output[0] = (byte) (0xc0 + payload.Length);
-            payload.CopyTo(output[1..]);
-
-            return;
-        }
-
-        // more than 55 bytes long
-        int lengthOfLength = GetLengthOfLength((uint) payload.Length);
-
-        output[0] = (byte) (0xf7 + lengthOfLength);
-
-        WriteLength(payload.Length, output.Slice(1, lengthOfLength));
-
-        payload.CopyTo(output[(1 + lengthOfLength)..]);
-    }
-
-    private static int GetLengthOfLength(uint length)
-    {
-        int bits = System.Numerics.BitOperations.LeadingZeroCount(length);
-        return ((sizeof(int) * 8) - bits + 7) / 8;
-    }
-
-    private static void WriteLength(int length, Span<byte> output)
-    {
-        for(int i = output.Length - 1; i >= 0; i--)
-        {
-            output[i] = (byte) (length & 0xFF);
-            length >>= 8;
-        }
-    }
-
-    private static int WriteIntToSpan(BigInteger value, Span<byte> output)
-    {
-        int bytesWritten = 0;
-        for(int i = sizeof(int) - 1; i >= 0; i--)
-        {
-            byte currentByte = (byte) ((value >> (i * 8)) & 0xFF);
-            if(currentByte != 0 || bytesWritten > 0)
+            int significantBytes = GetSignificantByteCount(value);
+            Span<byte> buffer = stackalloc byte[4];
+            BitConverter.TryWriteBytes(buffer, value);
+            if(BitConverter.IsLittleEndian)
             {
-                output[sizeof(int) - 1 - bytesWritten] = currentByte;
-                bytesWritten++;
+                buffer.Reverse();
             }
+
+            _destination[0] = (byte) (0x80 + significantBytes);
+            buffer[significantBytes..].CopyTo(_destination[1..]);
+            _destination = _destination[(significantBytes + 1)..];
         }
-        return bytesWritten;
+
+        return this;
     }
 
-    private static int GetMaxEncodeSpanSize(ReadOnlySpan<byte> input)
+    public RLPEncoder EncodeInt(ulong value)
     {
-        // [0x00, 0x7f] "string"
-        if(input.Length == 1 && input[0] <= 0x7f)
+        if(value < 128)
         {
-            return 1;
+            _destination[0] = (byte) value;
+            _destination = _destination[1..];
+        }
+        else
+        {
+            int significantBytes = GetSignificantByteCount(value);
+            Span<byte> buffer = stackalloc byte[8];
+            BitConverter.TryWriteBytes(buffer, value);
+            if(BitConverter.IsLittleEndian)
+            {
+                buffer.Reverse();
+            }
+
+            _destination[0] = (byte) (0x80 + significantBytes);
+            buffer[significantBytes..].CopyTo(_destination[1..]);
+            _destination = _destination[(significantBytes + 1)..];
         }
 
-        // 0-55 bytes long
-        if(input.Length <= 55)
-        {
-            return input.Length + 1;
-        }
-
-        // Long string
-        int lengthOfLength = GetLengthOfLength((uint) input.Length);
-        return input.Length + 1 + lengthOfLength;
+        return this;
     }
 
-    public static int GetMaxEncodeIntSize(BigInteger input)
+    public RLPEncoder EncodeInt(BigInteger value)
     {
-        // Special case for zero
-        if(input == 0)
+        if (value< 0)
         {
-            return 1;
+            throw new NotSupportedException();
         }
 
-        // Calculate max bytes for int
-        int actualLength = sizeof(int) - (System.Numerics.BitOperations.LeadingZeroCount((uint) input) / 8);
-        return GetMaxEncodeSpanSize(new byte[actualLength]);
+        if(value < 128)
+        {
+            _destination[0] = (byte) value;
+            _destination = _destination[1..];
+        }
+        else
+        {
+            int significantBytes = value.GetByteCount(true);
+            Span<byte> buffer = stackalloc byte[significantBytes];
+            value.TryWriteBytes(buffer, out _, true, true);
+
+            _destination[0] = (byte) (0x80 + significantBytes);
+            buffer[significantBytes..].CopyTo(_destination[1..]);
+            _destination = _destination[(significantBytes + 1)..];
+        }
+
+        return this;
     }
 
-    public static int GetMaxEncodeListSize(ReadOnlySpan<byte> payload)
+    public RLPEncoder EncodeString(ReadOnlySpan<byte> data)
     {
-        // Short list (0-55 bytes)
-        if(payload.Length <= 55)
+        if(data.Length < 56)
         {
-            return payload.Length + 1;
+            _destination[0] = (byte) (0x80 + data.Length);
+            data.CopyTo(_destination[1..]);
+            _destination = _destination[(data.Length + 1)..];
+        }
+        else
+        {
+            int significantLengthBytes = GetSignificantByteCount((uint) data.Length);
+            Span<byte> lengthBuffer = stackalloc byte[4];
+            BitConverter.TryWriteBytes(lengthBuffer, (uint) data.Length);
+            if(BitConverter.IsLittleEndian)
+            {
+                lengthBuffer.Reverse();
+            }
+
+            _destination[0] = (byte) (0xc0 + significantLengthBytes);
+            lengthBuffer[significantLengthBytes..].CopyTo(_destination[1..]);
+            data.CopyTo(_destination[(significantLengthBytes + 1)..]);
+            _destination = _destination[(significantLengthBytes + 1 + data.Length)..];
         }
 
-        // Long list
-        int lengthOfLength = GetLengthOfLength((uint) payload.Length);
-        return payload.Length + 1 + lengthOfLength;
+        return this;
+    }
+
+    public RLPEncoder EncodeList(int listLength)
+    {
+        if (listLength < 56)
+        {
+            _destination[0] = (byte) (0xc0 + listLength);
+            _destination = _destination[1..];
+        }
+        else
+        {
+            int significantLengthBytes = GetSignificantByteCount((uint) listLength);
+            Span<byte> lengthBuffer = stackalloc byte[4];
+            BitConverter.TryWriteBytes(lengthBuffer, (uint) listLength);
+            if (BitConverter.IsLittleEndian)
+            {
+                lengthBuffer.Reverse();
+            }
+
+            _destination[0] = (byte) (0xc0 + significantLengthBytes);
+            lengthBuffer[significantLengthBytes..].CopyTo(_destination[1..]);
+            _destination = _destination[(1 + significantLengthBytes)..];
+        }
+
+        return this;
     }
 }
