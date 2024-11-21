@@ -80,10 +80,12 @@ public class EtherClient : IEtherClient, IEtherTxClient
         Span<byte> txBuffer = stackalloc byte[2 + txTemplateLength + TxRLPEncoder.MaxEncodedSignatureLength];
         Span<byte> hashBuffer = stackalloc byte[32];
 
-        var txTemplateBuffer = txBuffer[2..(txTemplateLength + 2)];
+        var txTemplateBuffer = txBuffer[1..(txTemplateLength + 2)];
         var signatureBuffer = txBuffer[^TxRLPEncoder.MaxEncodedSignatureLength..];
 
-        tx.Encode(lengthBuffer, dataBuffer, txTemplateBuffer);
+        tx.Encode(lengthBuffer, dataBuffer, txTemplateBuffer[1..]);
+        txTemplateBuffer[0] = EIP1559Transaction.PrefixByte;
+
         Keccak256.TryHashData(txTemplateBuffer, hashBuffer);
 
         SignAndEncode(hashBuffer, signatureBuffer, out int signatureLength);
