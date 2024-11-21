@@ -32,7 +32,7 @@ public class TxInput<T>
     public Address Target { get; }
     public BigInteger Value { get; }
 
-    public int DataLength => _functionSignature.Length + _encoder.Size;
+    internal int DataLength => _functionSignature.Length + _encoder.Size;
 
     internal TxInput(Address target, ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder, Func<AbiDecoder, T> decoder, BigInteger value)
     {
