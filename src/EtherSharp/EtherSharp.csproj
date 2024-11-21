@@ -16,8 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Keysmith.Net" Version="1.2.1" />
-    <PackageReference Include="Keysmith.Net.Secp256k1" Version="1.2.1" />
+    <PackageReference Include="Keysmith.Net" Version="1.2.2" />
+    <PackageReference Include="Keysmith.Net.Secp256k1" Version="1.2.2" />
   </ItemGroup>
 
   <ItemGroup>
