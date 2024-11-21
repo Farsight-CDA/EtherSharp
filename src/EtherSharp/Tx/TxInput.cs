@@ -1,5 +1,7 @@
 ﻿using EtherSharp.ABI;
 using EtherSharp.ABI.Decode;
+using EtherSharp.Types;
+using System.Numerics;
 
 namespace EtherSharp.Tx;
 
@@ -27,26 +29,24 @@ public class TxInput<T>
     private readonly AbiEncoder _encoder;
     private readonly Func<AbiDecoder, T> _decoder;
 
-    public string Target { get; }
+    public Address Target { get; }
+    public BigInteger Value { get; }
 
-    public int Value { get; }
+    public int DataLength => _functionSignature.Length + _encoder.Size;
 
-    internal TxInput(string target, ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder, Func<AbiDecoder, T> decoder)
+    internal TxInput(Address target, ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder, Func<AbiDecoder, T> decoder, BigInteger value)
     {
         Target = target;
         _functionSignature = functionSignature;
         _encoder = encoder;
         _decoder = decoder;
+        Value = value;
     }
 
-    internal string GetCalldataHex()
+    internal void WriteDataTo(Span<byte> destination)
     {
-        Span<byte> buffer = stackalloc byte[_functionSignature.Length + _encoder.Size];
-
-        _functionSignature.Span.CopyTo(buffer);
-        _ = _encoder.TryWritoTo(buffer[_functionSignature.Length..]);
-
-        return $"0x{Convert.ToHexString(buffer)}";
+        _functionSignature.Span.CopyTo(destination);
+        _ = _encoder.TryWritoTo(destination[_functionSignature.Length..]);
     }
 
     internal T ReadResultFrom(ReadOnlyMemory<byte> buffer)

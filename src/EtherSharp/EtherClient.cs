@@ -3,6 +3,7 @@ using EtherSharp.Crypto;
 using EtherSharp.RLP;
 using EtherSharp.RPC;
 using EtherSharp.Tx;
+using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Numerics;
@@ -58,50 +59,43 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-    private void BuildTx(ReadOnlySpan<byte> from, ReadOnlySpan<byte> to, ReadOnlySpan<byte> data, uint nonce, BigInteger gasPrice, ulong gas, BigInteger value)
+
+    private Task<TransactionReceipt> SendAsync<T>(TxInput<T> call)
     {
-        int bufferSize = RLPEncoder.GetListSize(
-            RLPEncoder.GetIntSize(nonce) +
-            RLPEncoder.GetIntSize(gasPrice) +
-            RLPEncoder.GetIntSize(gas) +
-            RLPEncoder.GetStringSize(to) +
-            RLPEncoder.GetIntSize(value) +
-            RLPEncoder.GetStringSize(data)
-        );
+        var tx = new EIP1559Transaction(3000, 3000000, 30, call.Target, call.Value, 10000000000, 3534534555, []);
 
-        Span<byte> rlpBuffer = bufferSize > 2048
-            ? new byte[bufferSize]
-            : stackalloc byte[bufferSize];
+        Span<int> lengthBuffer = stackalloc int[EIP1559Transaction.NestedListCount];
+        Span<byte> dataBuffer = stackalloc byte[call.DataLength];
 
-        var encoder = new RLPEncoder(rlpBuffer);
-        encoder.EncodeList(bufferSize)
-            .EncodeInt(nonce)
-            .EncodeInt(gasPrice)
-            .EncodeInt(gas)
-            .EncodeString(to)
-            .EncodeInt(value)
-            .EncodeString(data);
+        call.WriteDataTo(dataBuffer);
+        tx.GetEncodedSize(dataBuffer, lengthBuffer);
 
-        _ = Keccak256.HashData(rlpBuffer);
+        Span<byte> signatureBuffer = stackalloc byte[64];
+        EncodeTemplateAndSign(tx, lengthBuffer, dataBuffer, signatureBuffer);
+
+        throw new NotImplementedException();
     }
 
-    //private Task<TransactionReceipt> SendAsync<T>(TxInput<T> call)
-    //{
+    public void EncodeTemplateAndSign<TTransaction>(TTransaction tx, ReadOnlySpan<int> lengthBuffer, ReadOnlySpan<byte> dataBuffer, Span<byte> signatureBuffer)
+        where TTransaction : ITransaction
+    {
+        if (_signer is null)
+        {
+            throw new InvalidOperationException("No signer configured");
+        }
 
-    //    Span<byte> outBytes = stackalloc byte[32];
-    //    BuildTx();
+        Span<byte> txTemplateBuffer = stackalloc byte[lengthBuffer[0]];
+        tx.Encode(lengthBuffer, dataBuffer, txTemplateBuffer);
 
-    //    Span<byte> singedBytes = stackalloc byte[32];
-    //    _etherHdWallet.Sign(outBytes, singedBytes);
+        Span<byte> hashBuffer = stackalloc byte[32];
+        Keccak256.TryHashData(txTemplateBuffer, hashBuffer);
 
-    //    return _evmRPCClient.Eth.EthSendRawTransactionAsync(singedBytes);
-    //}
+        _signer.TrySign(hashBuffer, signatureBuffer);
+    }
 
     Task<ulong> IEtherClient.GetChainIdAsync() => GetChainIdAsync();
     Task<BigInteger> IEtherClient.GetBalanceAsync(string address, TargetBlockNumber targetHeight) => GetBalanceAsync(address, targetHeight);
     Task<int> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) => GetTransactionCount(address, targetHeight);
     TContract IEtherClient.Contract<TContract>(string address) => Contract<TContract>(address);
     Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight) => CallAsync(call, targetHeight);
-    public Task<TransactionReceipt> SendAsync<T>(TxInput<T> call) => throw new NotImplementedException();
-    //Task<TransactionReceipt> IEtherTxClient.SendAsync<T>(TxInput<T> call) => SendAsync(call);
 }

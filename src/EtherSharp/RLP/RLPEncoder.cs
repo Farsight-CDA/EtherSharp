@@ -23,7 +23,7 @@ public ref struct RLPEncoder
             : GetEncodedStringLength(value.GetByteCount(true));
     }
 
-    private static int GetEncodedStringLength(int byteCount)
+    public static int GetEncodedStringLength(int byteCount)
         => byteCount < 56
             ? byteCount + 1
             : byteCount + GetSignificantByteCount((uint) byteCount) + 1;
