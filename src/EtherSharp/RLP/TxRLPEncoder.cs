@@ -76,8 +76,8 @@ internal static class TxRLPEncoder
 
         signatureLength = RLPEncoder.GetStringSize(r) + RLPEncoder.GetStringSize(s) + 1;
         return encoder
+            .EncodeString(parityByte)
             .EncodeString(r)
-            .EncodeString(s)
-            .EncodeString(parityByte);
+            .EncodeString(s);
     }
 }
