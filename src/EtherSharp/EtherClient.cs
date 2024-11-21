@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Contract;
 using EtherSharp.Crypto;
+using EtherSharp.RLP;
 using EtherSharp.RPC;
 using EtherSharp.Tx;
 using EtherSharp.Types;
@@ -11,12 +12,18 @@ namespace EtherSharp;
 public class EtherClient : IEtherClient, IEtherTxClient
 {
     private readonly EvmRpcClient _evmRPCClient;
-    private readonly IEtherHdWallet _etherHdWallet;
+    private readonly IEtherSigner? _signer;
 
-    internal EtherClient(EvmRpcClient evmRpcClient, IEtherHdWallet etherHdWallet)
+    internal EtherClient(EvmRpcClient evmRpcClient, IEtherSigner signer)
     {
         _evmRPCClient = evmRpcClient;
-        _etherHdWallet = etherHdWallet;
+        _signer = signer;
+    }
+
+    internal EtherClient(EvmRpcClient evmRpcClient)
+    {
+        _evmRPCClient = evmRpcClient;
+        _signer = null;
     }
 
     private Task<ulong> GetChainIdAsync()
@@ -51,51 +58,50 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-    private void BuildTx(string from, string to, int value, string data, Span<byte> outBytes)
+    private void BuildTx(ReadOnlySpan<byte> from, ReadOnlySpan<byte> to, ReadOnlySpan<byte> data, uint nonce, BigInteger gasPrice, ulong gas, BigInteger value)
     {
-        int nonce = GetTransactionCount(from, TargetBlockNumber.Latest).Result;
-        ulong chainId = GetChainIdAsync().Result;
-        var gasPrice = _evmRPCClient.EthGasPriceAsync().Result;
-        uint gas = _evmRPCClient.EthEstimateGasAsync(from, to, null, gasPrice, value, data, TargetBlockNumber.Latest).Result;
+        int bufferSize = RLPEncoder.GetListSize(
+            RLPEncoder.GetIntSize(nonce) +
+            RLPEncoder.GetIntSize(gasPrice) +
+            RLPEncoder.GetIntSize(gas) +
+            RLPEncoder.GetStringSize(to) +
+            RLPEncoder.GetIntSize(value) +
+            RLPEncoder.GetStringSize(data)
+        );
 
-        int noncelenght = RLPEncoder.GetMaxEncodeIntSize(nonce);
-        int chainIdLenght = RLPEncoder.GetMaxEncodeIntSize(chainId);
-        int gasPriceLenght = RLPEncoder.GetMaxEncodeIntSize(gasPrice);
-        int gasLenght = RLPEncoder.GetMaxEncodeIntSize(gas);
+        Span<byte> rlpBuffer = bufferSize > 2048
+            ? new byte[bufferSize]
+            : stackalloc byte[bufferSize];
 
-        Span<byte> bytes = stackalloc byte[noncelenght + chainIdLenght + gasPriceLenght + gasLenght];
+        var encoder = new RLPEncoder(rlpBuffer);
+        encoder.EncodeList(bufferSize)
+            .EncodeInt(nonce)
+            .EncodeInt(gasPrice)
+            .EncodeInt(gas)
+            .EncodeString(to)
+            .EncodeInt(value)
+            .EncodeString(data);
 
-        var noncebytes = bytes[..noncelenght];
-        RLPEncoder.EncodeInt(nonce, noncebytes);
-
-        var chainIdBytes = bytes.Slice(noncelenght, chainIdLenght);
-        RLPEncoder.EncodeInt(chainId, chainIdBytes);
-
-        var gasPriceBytes = bytes.Slice(noncelenght + chainIdLenght, gasPriceLenght);
-        RLPEncoder.EncodeInt(gasPrice, gasPriceBytes);
-
-        var gasBytes = bytes.Slice(noncelenght + chainIdLenght + gasPriceLenght, gasLenght);
-        RLPEncoder.EncodeInt(gas, gasBytes);
-
-        _ = Keccak256.TryHashData(bytes, outBytes);
+        _ = Keccak256.HashData(rlpBuffer);
     }
 
-    private Task<TransactionReceipt> SendAsync<T>(TxInput<T> call)
-    {
+    //private Task<TransactionReceipt> SendAsync<T>(TxInput<T> call)
+    //{
 
-        Span<byte> outBytes = stackalloc byte[32];
-        BuildTx(_etherHdWallet.Address, call.Target, call.Value, call.GetCalldataHex(), outBytes);
+    //    Span<byte> outBytes = stackalloc byte[32];
+    //    BuildTx();
 
-        Span<byte> singedBytes = stackalloc byte[32];
-        _etherHdWallet.Sign(outBytes, singedBytes);
+    //    Span<byte> singedBytes = stackalloc byte[32];
+    //    _etherHdWallet.Sign(outBytes, singedBytes);
 
-        return _evmRPCClient.Eth.EthSendRawTransactionAsync(singedBytes);
-    }
+    //    return _evmRPCClient.Eth.EthSendRawTransactionAsync(singedBytes);
+    //}
 
     Task<ulong> IEtherClient.GetChainIdAsync() => GetChainIdAsync();
     Task<BigInteger> IEtherClient.GetBalanceAsync(string address, TargetBlockNumber targetHeight) => GetBalanceAsync(address, targetHeight);
     Task<int> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) => GetTransactionCount(address, targetHeight);
     TContract IEtherClient.Contract<TContract>(string address) => Contract<TContract>(address);
     Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight) => CallAsync(call, targetHeight);
-    Task<TransactionReceipt> IEtherTxClient.SendAsync<T>(TxInput<T> call) => SendAsync(call);
+    public Task<TransactionReceipt> SendAsync<T>(TxInput<T> call) => throw new NotImplementedException();
+    //Task<TransactionReceipt> IEtherTxClient.SendAsync<T>(TxInput<T> call) => SendAsync(call);
 }
