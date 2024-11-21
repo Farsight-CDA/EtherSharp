@@ -105,6 +105,17 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         };
     }
 
+    public async Task<string> EthSendRawTransactionAsync(string transaction)
+    {
+        var response = await _jsonRpcClient.SendRpcRequest<string, string>("eth_sendRawTransaction", transaction);
+        return response switch
+        {
+            RpcResult<string>.Success result => result.Result,
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
+    }
+
     public async Task<BigInteger> EthGasPriceAsync()
     {
         var response = await _jsonRpcClient.SendRpcRequest<BigInteger>("eth_gasPrice");

@@ -1,15 +1,7 @@
-﻿using EtherSharp.Crypto;
-using EtherSharp.RLP;
-using EtherSharp.Tx.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using EtherSharp.Tx;
 
-namespace EtherSharp.Tx;
-internal static class TxEncoder
+namespace EtherSharp.RLP;
+internal static class TxRLPEncoder
 {
     public static int GetAccessListLength(ReadOnlySpan<StateAccess> accessList)
     {
@@ -52,5 +44,31 @@ internal static class TxEncoder
         }
 
         return encoder;
+    }
+
+    public static int MaxEncodedSignatureLength => 33 + 33 + 1;
+
+    public static RLPEncoder EncodeSignature(this RLPEncoder encoder, ReadOnlySpan<byte> signature, out int signatureLength)
+    {
+        byte parityByte = signature[64] switch
+        {
+            0 => 0,
+            1 => 1,
+            27 => 0,
+            28 => 1,
+            _ => throw new NotSupportedException("Bad parity byte")
+        };
+
+        var r = signature[..32];
+        var s = signature[32..64];
+
+        r = r[r.IndexOfAnyExcept((byte) 0)..];
+        s = s[s.IndexOfAnyExcept((byte) 0)..];
+
+        signatureLength = r.Length + s.Length + 1;
+        return encoder
+            .EncodeString(r)
+            .EncodeString(s)
+            .EncodeString(parityByte);
     }
 }

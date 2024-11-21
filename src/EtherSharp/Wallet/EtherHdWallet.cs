@@ -1,20 +1,18 @@
 ﻿using EtherSharp.Crypto;
+using EtherSharp.Types;
 using Keysmith.Net.EC;
 using Keysmith.Net.SLIP;
 using Keysmith.Net.Wallet;
 
 namespace EtherSharp.Wallet;
-public class EtherHdWallet : BaseHdWallet, IEtherSigner
+public class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSigner
 {
-    private readonly byte[] _addressBytes = null!;
-    public string Address { get; } = null!;
+    public Address Address { get; } = null!;
 
     public EtherHdWallet(ReadOnlySpan<byte> privateKey)
         : base(Secp256k1.Instance, privateKey)
     {
-        _addressBytes = new byte[20];
-        InitAddress();
-        Address = $"0x{Convert.ToHexString(_addressBytes)}";
+        Address = GenerateAddress();
     }
 
     public EtherHdWallet(string mnemonic, uint accountIndex = 0, string passphrase = "")
@@ -25,24 +23,19 @@ public class EtherHdWallet : BaseHdWallet, IEtherSigner
             0,
             accountIndex)
     {
-        _addressBytes = new byte[20];
-        InitAddress();
-        Address = $"0x{Convert.ToHexString(_addressBytes)}";
+        Address = GenerateAddress();
     }
 
     public EtherHdWallet(string mnemonic, ReadOnlySpan<char> derivationPath, string passphrase = "")
         : base(Secp256k1.Instance, mnemonic, passphrase, derivationPath)
     {
-        _addressBytes = new byte[20];
-        InitAddress();
-        Address = $"0x{Convert.ToHexString(_addressBytes)}";
+        Address = GenerateAddress();
     }
 
-    private void InitAddress()
+    private Address GenerateAddress()
     {
         Span<byte> hashBuffer = stackalloc byte[32];
-        _ = Keccak256.TryHashData(_publicKey, hashBuffer);
-        hashBuffer[^20..].CopyTo(_addressBytes);
-
+        _ = Keccak256.TryHashData(_uncompressedPublicKey, hashBuffer);
+        return Address.FromBytes(hashBuffer[^20..]);
     }
 }

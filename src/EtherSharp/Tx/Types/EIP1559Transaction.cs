@@ -19,7 +19,7 @@ public record EIP1559Transaction(
     void ITransaction.GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths) => GetEncodedSize(data, listLengths);
     internal void GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths)
     {
-        listLengths[0] = TxEncoder.GetAccessListLength(AccessList);
+        listLengths[0] = TxRLPEncoder.GetAccessListLength(AccessList);
         listLengths[1] = RLPEncoder.GetListSize(
             RLPEncoder.GetIntSize(ChainId) +
             RLPEncoder.GetIntSize(Nonce) +

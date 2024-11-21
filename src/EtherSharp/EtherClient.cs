@@ -41,13 +41,16 @@ public class EtherClient : IEtherClient, IEtherTxClient
 
     private async Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default)
     {
+        Span<byte> callDataBuffer = stackalloc byte[call.DataLength];
+        call.WriteDataTo(callDataBuffer);
+
         var result = await _evmRPCClient.EthCallAsync(
             null,
-            call.Target,
+            call.Target.String,
             null,
             null,
             null,
-            call.GetCalldataHex(),
+            $"0x{Convert.ToHexString(callDataBuffer)}",
             targetHeight
         );
 
@@ -59,9 +62,13 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-
-    private Task<TransactionReceipt> SendAsync<T>(TxInput<T> call)
+    private async Task<string> SendAsync<T>(TxInput<T> call)
     {
+        if(_signer is null)
+        {
+            throw new InvalidOperationException("No signer configured");
+        }
+
         var tx = new EIP1559Transaction(3000, 3000000, 30, call.Target, call.Value, 10000000000, 3534534555, []);
 
         Span<int> lengthBuffer = stackalloc int[EIP1559Transaction.NestedListCount];
@@ -70,27 +77,27 @@ public class EtherClient : IEtherClient, IEtherTxClient
         call.WriteDataTo(dataBuffer);
         tx.GetEncodedSize(dataBuffer, lengthBuffer);
 
-        Span<byte> signatureBuffer = stackalloc byte[64];
-        EncodeTemplateAndSign(tx, lengthBuffer, dataBuffer, signatureBuffer);
-
-        throw new NotImplementedException();
-    }
-
-    public void EncodeTemplateAndSign<TTransaction>(TTransaction tx, ReadOnlySpan<int> lengthBuffer, ReadOnlySpan<byte> dataBuffer, Span<byte> signatureBuffer)
-        where TTransaction : ITransaction
-    {
-        if (_signer is null)
-        {
-            throw new InvalidOperationException("No signer configured");
-        }
-
-        Span<byte> txTemplateBuffer = stackalloc byte[lengthBuffer[0]];
-        tx.Encode(lengthBuffer, dataBuffer, txTemplateBuffer);
-
+        Span<byte> txBuffer = stackalloc byte[lengthBuffer[0] + TxRLPEncoder.MaxEncodedSignatureLength];
         Span<byte> hashBuffer = stackalloc byte[32];
+
+        var txTemplateBuffer = txBuffer[..lengthBuffer[0]];
+        var signatureBuffer = txBuffer[lengthBuffer[0]..];
+
+        tx.Encode(lengthBuffer, dataBuffer, txTemplateBuffer);
         Keccak256.TryHashData(txTemplateBuffer, hashBuffer);
 
-        _signer.TrySign(hashBuffer, signatureBuffer);
+        SignAndEncode(hashBuffer, signatureBuffer, out int signatureLength);
+
+        var signedTxBuffer = txBuffer[..(lengthBuffer[0] + signatureLength)];
+
+        return await _evmRPCClient.EthSendRawTransactionAsync($"0x{Convert.ToHexString(signedTxBuffer)}");
+    }
+
+    private void SignAndEncode(Span<byte> hashBuffer, Span<byte> signatureBuffer, out int encodedSignatureLength)
+    {
+        Span<byte> tempBuffer = stackalloc byte[65];
+        _signer!.TrySign(hashBuffer, tempBuffer);
+        new RLPEncoder(signatureBuffer).EncodeSignature(tempBuffer, out encodedSignatureLength);
     }
 
     Task<ulong> IEtherClient.GetChainIdAsync() => GetChainIdAsync();

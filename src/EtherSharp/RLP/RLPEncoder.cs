@@ -137,7 +137,7 @@ public ref struct RLPEncoder
         return this;
     }
 
-    public RLPEncoder EncodeString(ReadOnlySpan<byte> data)
+    public RLPEncoder EncodeString(params ReadOnlySpan<byte> data)
     {
         if(data.Length < 56)
         {
