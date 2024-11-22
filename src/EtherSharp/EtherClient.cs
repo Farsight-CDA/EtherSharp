@@ -62,7 +62,17 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-    public async Task<string> SendAsync<T>(TxInput<T> call)
+    internal void SignAndEncode(Span<byte> hashBuffer, Span<byte> signatureBuffer, out int encodedSignatureLength)
+    {
+        Span<byte> tempBuffer = stackalloc byte[65];
+        if(!_signer!.TrySignRecoverable(hashBuffer, tempBuffer))
+        {
+            throw new NotImplementedException();
+        }
+        _ = new RLPEncoder(signatureBuffer).EncodeSignature(tempBuffer, out encodedSignatureLength);
+    }
+
+    internal string EncodeCallData<T>(TxInput<T> call)
     {
         if(_signer is null)
         {
@@ -86,40 +96,34 @@ public class EtherClient : IEtherClient, IEtherTxClient
         tx.Encode(lengthBuffer, dataBuffer, txTemplateBuffer[1..]);
         txTemplateBuffer[0] = EIP1559Transaction.PrefixByte;
 
-        Keccak256.TryHashData(txTemplateBuffer, hashBuffer);
+        _ = Keccak256.TryHashData(txTemplateBuffer, hashBuffer);
 
         SignAndEncode(hashBuffer, signatureBuffer, out int signatureLength);
 
         int oldLengthBytes = RLPEncoder.GetSignificantByteCount((uint) lengthBuffer[0]);
         int newLengthBytes = RLPEncoder.GetSignificantByteCount((uint) (lengthBuffer[0] + signatureLength));
 
-        if (newLengthBytes == oldLengthBytes)
+        if(newLengthBytes == oldLengthBytes)
         {
             //Dont need the extra byte for the length increase
             txBuffer = txBuffer[1..];
         }
 
-        new RLPEncoder(txBuffer[1..]).EncodeList(lengthBuffer[0] + signatureLength);
+        _ = new RLPEncoder(txBuffer[1..]).EncodeList(lengthBuffer[0] + signatureLength);
         txBuffer[0] = EIP1559Transaction.PrefixByte;
 
         var signedTxBuffer = txBuffer[..^(TxRLPEncoder.MaxEncodedSignatureLength - signatureLength)];
 
-        return await _evmRPCClient.EthSendRawTransactionAsync($"0x{Convert.ToHexString(signedTxBuffer)}");
+        return $"0x{Convert.ToHexString(signedTxBuffer)}";
     }
 
-    private void SignAndEncode(Span<byte> hashBuffer, Span<byte> signatureBuffer, out int encodedSignatureLength)
-    {
-        Span<byte> tempBuffer = stackalloc byte[65];
-        if (!_signer!.TrySignRecoverable(hashBuffer, tempBuffer))
-        {
-            throw new NotImplementedException();
-        }
-        new RLPEncoder(signatureBuffer).EncodeSignature(tempBuffer, out encodedSignatureLength);
-    }
+    private async Task<string> SendAsync<T>(TxInput<T> call) => await _evmRPCClient.EthSendRawTransactionAsync(EncodeCallData(call));
 
     Task<ulong> IEtherClient.GetChainIdAsync() => GetChainIdAsync();
     Task<BigInteger> IEtherClient.GetBalanceAsync(string address, TargetBlockNumber targetHeight) => GetBalanceAsync(address, targetHeight);
     Task<int> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) => GetTransactionCount(address, targetHeight);
     TContract IEtherClient.Contract<TContract>(string address) => Contract<TContract>(address);
     Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight) => CallAsync(call, targetHeight);
+    Task<string> IEtherClient.SendAsync<T>(TxInput<T> call) => SendAsync(call);
+    string IEtherClient.EncodeCallData<T>(TxInput<T> call) => EncodeCallData(call);
 }

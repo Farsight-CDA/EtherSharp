@@ -20,6 +20,17 @@
     <PackageReference Include="Keysmith.Net.Secp256k1" Version="1.2.2" />
   </ItemGroup>
 
+<ItemGroup>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+		<_Parameter1>$(MSBuildProjectName).Test</_Parameter1>
+	</AssemblyAttribute>
+</ItemGroup>
+
+<ItemGroup>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+		<_Parameter1>$(MSBuildProjectName).Bench</_Parameter1>
+	</AssemblyAttribute>
+</ItemGroup>
   <ItemGroup>
     <None Update="ABI\Decode\AbiDecoder.NumberArrays.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

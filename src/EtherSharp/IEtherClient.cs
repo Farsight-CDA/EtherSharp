@@ -18,4 +18,5 @@ public interface IEtherClient
     public Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default);
     public Task<string> SendAsync<T>(TxInput<T> call);
 
+    internal string EncodeCallData<T>(TxInput<T> call);
 }
