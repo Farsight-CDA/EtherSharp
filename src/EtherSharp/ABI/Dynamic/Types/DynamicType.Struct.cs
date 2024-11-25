@@ -29,7 +29,7 @@ internal abstract partial class DynamicType<T>
                 payload[..32].Reverse();
             }
 
-            if (!Value.TryWritoTo(payload[32..]))
+            if(!Value.TryWritoTo(payload[32..]))
             {
                 throw new InvalidOperationException("Failed to write bytes");
             }

@@ -12,11 +12,11 @@ public class TempBenchmarks
     private AbiEncoder _encoder = null!;
 
     [GlobalSetup]
-    public void Setup() 
+    public void Setup()
         => _encoder = new AbiEncoder();
 
     [Benchmark]
-    public byte[] Encode_Build() 
+    public byte[] Encode_Build()
         => _encoder
             .Int32(16)
             .String("Hello")
@@ -31,6 +31,6 @@ public class TempBenchmarks
             .String("Hello")
             .Array(x => x.Int256Array(1, 353535));
         Span<byte> buffer = stackalloc byte[encoder.Size];
-        encoder.TryWritoTo(buffer);
+        _ = encoder.TryWritoTo(buffer);
     }
 }

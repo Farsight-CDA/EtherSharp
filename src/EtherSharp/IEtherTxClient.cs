@@ -1,7 +1,4 @@
-﻿using EtherSharp.Tx;
-using EtherSharp.Types;
-
-namespace EtherSharp;
+﻿namespace EtherSharp;
 public interface IEtherTxClient : IEtherClient
 {
 

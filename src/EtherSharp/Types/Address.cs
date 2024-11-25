@@ -14,7 +14,7 @@ public class Address
 
     public static Address FromString(string s)
     {
-        if (s.StartsWith("0x"))
+        if(s.StartsWith("0x"))
         {
             string subStr = s[2..];
             return new Address(subStr, Convert.FromHexString(subStr));

@@ -84,7 +84,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
             value.Select(x => new DynamicType<object>.Bytes(x)).ToArray()));
 
     public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
-        => AddElement(new DynamicType<object>.Array(func(new AbiEncoder())));    
+        => AddElement(new DynamicType<object>.Array(func(new AbiEncoder())));
     IArrayAbiEncoder IArrayAbiEncoder.Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
         => Array(func);
 
@@ -141,7 +141,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
 
     public bool TryWritoTo(Span<byte> outputBuffer)
     {
-        if (outputBuffer.Length < Size)
+        if(outputBuffer.Length < Size)
         {
             throw new ArgumentException("Output buffer too small", nameof(outputBuffer));
         }
@@ -186,7 +186,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
     public byte[] Build()
     {
         byte[] buffer = new byte[Size];
-        TryWritoTo(buffer);
+        _ = TryWritoTo(buffer);
         return buffer;
     }
 }

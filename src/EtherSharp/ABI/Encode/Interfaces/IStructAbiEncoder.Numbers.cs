@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
-public partial interface IStructAbiEncoder 
+public partial interface IStructAbiEncoder
 {
     public IStructAbiEncoder Int8(sbyte value);
     public IStructAbiEncoder UInt8(byte value);

@@ -65,11 +65,11 @@ internal static class TxRLPEncoder
         int rLeadingZeroBytes = r.IndexOfAnyExcept((byte) 0);
         int sLeadingZeroBytes = s.IndexOfAnyExcept((byte) 0);
 
-        if (rLeadingZeroBytes > 0)
+        if(rLeadingZeroBytes > 0)
         {
             r = r[rLeadingZeroBytes..];
         }
-        if (sLeadingZeroBytes > 0)
+        if(sLeadingZeroBytes > 0)
         {
             s = s[sLeadingZeroBytes..];
         }

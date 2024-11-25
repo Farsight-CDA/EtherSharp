@@ -9,7 +9,7 @@ internal static class Pack
         bs[3] = (byte) (n >> 24);
     }
 
-    private static uint LE_To_UInt32(ReadOnlySpan<byte> bs) 
+    private static uint LE_To_UInt32(ReadOnlySpan<byte> bs)
         => bs[0]
             | ((uint) bs[1] << 8)
             | ((uint) bs[2] << 16)

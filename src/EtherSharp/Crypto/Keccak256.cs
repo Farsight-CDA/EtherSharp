@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace EtherSharp.Crypto;
 public ref struct Keccak256
@@ -54,7 +53,7 @@ public ref struct Keccak256
     private void BlockUpdate(ReadOnlySpan<byte> input)
         => Absorb(input);
 
-    private void DoFinal(Span<byte> output) 
+    private void DoFinal(Span<byte> output)
         => Squeeze(output);
 
     private void Absorb(byte data)
@@ -155,7 +154,7 @@ public ref struct Keccak256
         if(partial > 0)
         {
             ulong mask = (1UL << partial) - 1UL;
-            _state[full] ^= BitConverter.IsLittleEndian 
+            _state[full] ^= BitConverter.IsLittleEndian
                 ? BitConverter.ToUInt64(_dataQueue[(full * 8)..]) & mask
                 : Pack.LE_To_UInt64(_dataQueue[(full * 8)..]) & mask;
         }
@@ -206,7 +205,7 @@ public ref struct Keccak256
         {
             for(int i = 0; i < _rate >> 6; ++i)
             {
-                BitConverter.TryWriteBytes(_dataQueue[(8 * i)..], _state[i]);
+                _ = BitConverter.TryWriteBytes(_dataQueue[(8 * i)..], _state[i]);
             }
         }
         else

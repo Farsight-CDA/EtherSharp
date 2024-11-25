@@ -17,13 +17,13 @@ public record EIP1559Transaction(
     public static int NestedListCount => 2;
     public static byte PrefixByte => 0x02;
 
-    int ITransaction.GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths) 
+    int ITransaction.GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths)
         => GetEncodedSize(data, listLengths);
     internal int GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths)
     {
         listLengths[1] = TxRLPEncoder.GetAccessListLength(AccessList);
 
-        int contentSize = 
+        int contentSize =
             RLPEncoder.GetIntSize(ChainId) +
             RLPEncoder.GetIntSize(Nonce) +
             RLPEncoder.GetIntSize(MaxPriorityFeePerGas) +
@@ -41,9 +41,9 @@ public record EIP1559Transaction(
         );
     }
 
-    void ITransaction.Encode(ReadOnlySpan<int> listLengths, ReadOnlySpan<byte> data, Span<byte> destination) 
+    void ITransaction.Encode(ReadOnlySpan<int> listLengths, ReadOnlySpan<byte> data, Span<byte> destination)
         => Encode(listLengths, data, destination);
-    internal void Encode(ReadOnlySpan<int> listLengths, ReadOnlySpan<byte> data, Span<byte> destination) 
+    internal void Encode(ReadOnlySpan<int> listLengths, ReadOnlySpan<byte> data, Span<byte> destination)
         => new RLPEncoder(destination)
             .EncodeList(listLengths[0])
                 .EncodeInt(ChainId)

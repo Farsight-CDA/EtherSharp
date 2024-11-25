@@ -30,7 +30,7 @@ internal abstract partial class FixedType<T>
             }
         }
 
-        public static string Decode(ReadOnlySpan<byte> bytes) 
+        public static string Decode(ReadOnlySpan<byte> bytes)
             => $"0x{Convert.ToHexString(bytes[12..])}";
 
         private static int GetHexValue(char hex)

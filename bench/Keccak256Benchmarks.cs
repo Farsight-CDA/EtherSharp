@@ -22,7 +22,7 @@ public class Keccak256Benchmarks
     public byte[] InputData = null!;
 
     [Benchmark]
-    public byte[] EtherSharp_Keccak256_Output_Heap() 
+    public byte[] EtherSharp_Keccak256_Output_Heap()
         => Keccak256.HashData(InputData);
 
     [Benchmark]
@@ -33,6 +33,6 @@ public class Keccak256Benchmarks
     }
 
     [Benchmark]
-    public byte[] NEthereum_Keccak256() 
+    public byte[] NEthereum_Keccak256()
         => Sha3Keccack.Current.CalculateHash(InputData);
 }

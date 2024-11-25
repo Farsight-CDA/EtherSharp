@@ -20,7 +20,7 @@ public class ERC20(string address) : IContract
             encoder,
             decoder =>
             {
-                decoder.UInt256(out var balance);
+                _ = decoder.UInt256(out var balance);
                 return balance;
             },
             0
@@ -40,7 +40,7 @@ public class ERC20(string address) : IContract
             encoder,
             decoder =>
             {
-                decoder.Bool(out bool success);
+                _ = decoder.Bool(out bool success);
                 return success;
             },
             0

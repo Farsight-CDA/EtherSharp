@@ -49,7 +49,7 @@ public class EtherClientBuilder
     {
         AssertReadClientConfiguration();
 
-        if (_signer is null)
+        if(_signer is null)
         {
             throw new InvalidOperationException($"No Signer configured. Call the {nameof(WithSigner)} method prior to {nameof(BuildTxClient)}");
         }

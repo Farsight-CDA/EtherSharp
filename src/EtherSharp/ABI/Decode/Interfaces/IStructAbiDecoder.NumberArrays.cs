@@ -4,7 +4,7 @@ namespace EtherSharp.ABI.Decode.Interfaces;
 public partial interface IStructAbiDecoder
 {
     public sbyte[] Int8Array();
-    public byte[] UInt8Array();    
+    public byte[] UInt8Array();
 
     public short[] Int16Array();
     public ushort[] UInt16Array();

@@ -6,7 +6,7 @@ public ref struct RLPEncoder
     public static int GetIntSize(uint value)
         => value < 128
             ? 1
-            :  GetEncodedStringLength(GetSignificantByteCount(value));
+            : GetEncodedStringLength(GetSignificantByteCount(value));
     public static int GetIntSize(ulong value)
         => value < 128
             ? 1
@@ -63,11 +63,11 @@ public ref struct RLPEncoder
 
     public RLPEncoder EncodeInt(uint value)
     {
-        if (value == 0)
+        if(value == 0)
         {
             return EncodeString();
         }
-        else if (value < 128)
+        else if(value < 128)
         {
             return EncodeString((byte) value);
         }
@@ -75,7 +75,7 @@ public ref struct RLPEncoder
         {
             int significantBytes = GetSignificantByteCount(value);
             Span<byte> buffer = stackalloc byte[4];
-            BitConverter.TryWriteBytes(buffer, value);
+            _ = BitConverter.TryWriteBytes(buffer, value);
             if(BitConverter.IsLittleEndian)
             {
                 buffer.Reverse();
@@ -103,7 +103,7 @@ public ref struct RLPEncoder
         {
             int significantBytes = GetSignificantByteCount(value);
             Span<byte> buffer = stackalloc byte[8];
-            BitConverter.TryWriteBytes(buffer, value);
+            _ = BitConverter.TryWriteBytes(buffer, value);
             if(BitConverter.IsLittleEndian)
             {
                 buffer.Reverse();
@@ -119,7 +119,7 @@ public ref struct RLPEncoder
 
     public RLPEncoder EncodeInt(BigInteger value)
     {
-        if (value < 0)
+        if(value < 0)
         {
             throw new NotSupportedException();
         }
@@ -138,7 +138,7 @@ public ref struct RLPEncoder
 
             _destination[0] = (byte) (0x80 + significantBytes);
 
-            value.TryWriteBytes(_destination[1..], out _, true, true);
+            _ = value.TryWriteBytes(_destination[1..], out _, true, true);
 
             Span<byte> buffer = stackalloc byte[significantBytes];
 
@@ -150,7 +150,7 @@ public ref struct RLPEncoder
 
     public RLPEncoder EncodeString(params ReadOnlySpan<byte> data)
     {
-        if (data.Length == 1 && data[0] < 128)
+        if(data.Length == 1 && data[0] < 128)
         {
             _destination[0] = data[0];
             _destination = _destination[1..];
@@ -167,7 +167,7 @@ public ref struct RLPEncoder
 
             _destination[0] = (byte) (0xb7 + significantLengthBytes);
 
-            BitConverter.TryWriteBytes(_destination[1..5], (uint) data.Length);
+            _ = BitConverter.TryWriteBytes(_destination[1..5], (uint) data.Length);
             if(BitConverter.IsLittleEndian && significantLengthBytes > 1)
             {
                 _destination[1..(1 + significantLengthBytes)].Reverse();
@@ -182,7 +182,7 @@ public ref struct RLPEncoder
 
     public RLPEncoder EncodeList(int listLength)
     {
-        if (listLength < 56)
+        if(listLength < 56)
         {
             _destination[0] = (byte) (0xc0 + listLength);
             _destination = _destination[1..];
@@ -191,8 +191,8 @@ public ref struct RLPEncoder
         {
             int significantLengthBytes = GetSignificantByteCount((uint) listLength);
             Span<byte> lengthBuffer = stackalloc byte[4];
-            BitConverter.TryWriteBytes(lengthBuffer, (uint) listLength);
-            if (BitConverter.IsLittleEndian)
+            _ = BitConverter.TryWriteBytes(lengthBuffer, (uint) listLength);
+            if(BitConverter.IsLittleEndian)
             {
                 lengthBuffer.Reverse();
             }

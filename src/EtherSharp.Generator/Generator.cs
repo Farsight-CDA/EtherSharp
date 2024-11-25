@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
 using System.Text.Json;
 
 namespace EtherSharp.Generator;
@@ -77,7 +76,7 @@ public class Generator : IIncrementalGenerator
 
         if(!Debugger.IsAttached)
         {
-            Debugger.Launch();
+            _ = Debugger.Launch();
         }
 
         AbiMember[] abiMembers;

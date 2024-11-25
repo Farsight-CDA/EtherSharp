@@ -43,6 +43,6 @@ public class AddressAbiEncoderTests
     }
 
     [Fact]
-    public void Should_Throw_On_Missing_0x_Prefix() 
+    public void Should_Throw_On_Missing_0x_Prefix()
         => Assert.Throws<ArgumentException>(() => _encoder.Address("0000000000000000000000000000000000000000"));
 }
