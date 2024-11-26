@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using EtherSharp.Client;
 using EtherSharp.Contract;
 using EtherSharp.Wallet;
 using Nethereum.ABI;
@@ -31,25 +32,25 @@ public class TransactionBenchmark
         _ethEcKey = new EthECKey(_privateKey);
     }
 
-    [Benchmark]
-    public string NetheriumTX()
-    {
-        var transferFunction = new TransferFunction()
-        {
-            To = _usdtAddress,
-            AmountToSend = 1000000
-        };
+    //[Benchmark]
+    //public string NetheriumTX()
+    //{
+    //    var transferFunction = new TransferFunction()
+    //    {
+    //        To = _usdtAddress,
+    //        AmountToSend = 1000000
+    //    };
 
-        byte[] data = new ABIEncode().GetABIParamsEncoded(transferFunction);
-        var tx = new Transaction1559(137, 111, 6000000, 6000000, 5000000, _usdtAddress, 0, data.ToHex(), []);
+    //    byte[] data = new ABIEncode().GetABIParamsEncoded(transferFunction);
+    //    var tx = new Transaction1559(137, 111, 6000000, 6000000, 5000000, _usdtAddress, 0, data.ToHex(), []);
 
-        return _signer.SignTransaction(_ethEcKey, tx);
-    }
+    //    return _signer.SignTransaction(_ethEcKey, tx);
+    //}
 
-    [Benchmark]
-    public string EtherSharpTX()
-    {
-        var erc20 = new ERC20("0x0d8775f648430679a709e98d2b0cb6250d2887ef");
-        return _evmRpcClient.EncodeCallData(erc20.Transfer(_targetAddress, 1000000));
-    }
+    //[Benchmark]
+    //public string EtherSharpTX()
+    //{
+    //    var erc20 = new ERC20("0x0d8775f648430679a709e98d2b0cb6250d2887ef");
+    //    return _evmRpcClient.EncodeCallData(erc20.Transfer(_targetAddress, 1000000));
+    //}
 }

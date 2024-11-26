@@ -15,7 +15,6 @@ public class ERC20(string address) : IContract
             .Address(address);
 
         return new TxInput<BigInteger>(
-            Address.FromString(address),
             _balanceOfSignature,
             encoder,
             decoder =>
@@ -23,6 +22,7 @@ public class ERC20(string address) : IContract
                 _ = decoder.UInt256(out var balance);
                 return balance;
             },
+            Address.FromString(address),
             0
         );
     }
@@ -35,7 +35,6 @@ public class ERC20(string address) : IContract
             .UInt256(amount);
 
         return new TxInput<bool>(
-            Address.FromString(ContractAddress),
             _transferSignature,
             encoder,
             decoder =>
@@ -43,6 +42,7 @@ public class ERC20(string address) : IContract
                 _ = decoder.Bool(out bool success);
                 return success;
             },
+            Address.FromString(ContractAddress),
             0
         );
     }

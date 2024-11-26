@@ -5,48 +5,62 @@ using System.Numerics;
 
 namespace EtherSharp.Tx;
 
-public class TxInput
+public class TxInput : ITxInput
 {
     private readonly AbiEncoder? _encoder;
 
-    public int Length => _encoder?.Size ?? 0;
+    public Address To { get; }
+    public BigInteger Value { get; }
 
-    internal TxInput(AbiEncoder abiEncoder)
+    int ITxInput.DataLength => _encoder?.Size ?? 0;
+
+    internal TxInput(AbiEncoder abiEncoder, Address to, BigInteger value)
     {
         _encoder = abiEncoder;
-    }
-    internal TxInput()
-    {
+        To = to;
+        Value = value;
     }
 
-    public bool TryWriteTo(Span<byte> buffer)
-        => _encoder is null || _encoder.TryWritoTo(buffer);
+    void ITxInput.WriteDataTo(Span<byte> destination)
+    {
+        if (_encoder is null)
+        {
+            return;
+        }
+        if(!_encoder.TryWritoTo(destination))
+        {
+            throw new InvalidOperationException("Failed to write TxInput");
+        }
+    }
 }
 
-public class TxInput<T>
+public class TxInput<T> : ITxInput
 {
     private readonly ReadOnlyMemory<byte> _functionSignature;
     private readonly AbiEncoder _encoder;
     private readonly Func<AbiDecoder, T> _decoder;
 
-    public Address Target { get; }
+    public Address To { get; }
     public BigInteger Value { get; }
 
-    internal int DataLength => _functionSignature.Length + _encoder.Size;
+    int ITxInput.DataLength => _functionSignature.Length + _encoder.Size;
 
-    internal TxInput(Address target, ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder, Func<AbiDecoder, T> decoder, BigInteger value)
+    internal TxInput(ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder, Func<AbiDecoder, T> decoder, Address to, BigInteger value)
     {
-        Target = target;
+        To = to;
         _functionSignature = functionSignature;
         _encoder = encoder;
         _decoder = decoder;
         Value = value;
     }
 
-    internal void WriteDataTo(Span<byte> destination)
+    void ITxInput.WriteDataTo(Span<byte> destination)
     {
         _functionSignature.Span.CopyTo(destination);
-        _ = _encoder.TryWritoTo(destination[_functionSignature.Length..]);
+        if(!_encoder.TryWritoTo(destination[_functionSignature.Length..]))
+        {
+            throw new InvalidOperationException("Failed to write TxInput");
+        }
     }
 
     internal T ReadResultFrom(ReadOnlyMemory<byte> buffer)

@@ -3,11 +3,10 @@ using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Numerics;
 
-namespace EtherSharp;
+namespace EtherSharp.Client;
 public interface IEtherClient
 {
-
-    public Task<ulong> GetChainIdAsync();
+    public ulong ChainId { get; }
 
     public Task<BigInteger> GetBalanceAsync(string address, TargetBlockNumber targetHeight = default);
 
@@ -16,7 +15,5 @@ public interface IEtherClient
     public TContract Contract<TContract>(string address) where TContract : IContract;
 
     public Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default);
-    public Task<string> SendAsync<T>(TxInput<T> call);
 
-    internal string EncodeCallData<T>(TxInput<T> call);
 }
