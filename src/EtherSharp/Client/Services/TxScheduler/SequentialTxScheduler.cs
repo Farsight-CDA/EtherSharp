@@ -6,19 +6,22 @@ using EtherSharp.Wallet;
 using System.Threading.Channels;
 
 using QueueEntry = (
-    EtherSharp.Tx.Types.TxType TxType,
+    EtherSharp.Tx.Types.ITxParams TxParams,
     EtherSharp.Tx.ITxInput TxInput,
     System.Threading.Tasks.TaskCompletionSource<string> CompletionSource
 );
 using EtherSharp.Client.Services.TxPublisher;
+using EtherSharp.Tx.EIP1559;
 
 namespace EtherSharp.Client.Services.TxScheduler;
-public class SequentialTxScheduler : ITxScheduler, IDisposable
+public class SequentialTxScheduler : ITxScheduler, IInitializableService, IDisposable
 {
     private readonly Channel<QueueEntry> _queue;
 
     private readonly IEtherSigner _signer;
     private readonly ITxPublisher _txPublisher;
+
+    private ulong _chainId;
 
     public SequentialTxScheduler(IEtherSigner signer, ITxPublisher txPublisher)
     {
@@ -33,11 +36,18 @@ public class SequentialTxScheduler : ITxScheduler, IDisposable
         _txPublisher = txPublisher;
     }
 
-    public Task<string> PublishTxAsync(TxType txType, ITxInput txInput)
+    public ValueTask InitializeAsync(ulong chainId)
+    {
+        _chainId = chainId;
+        return ValueTask.CompletedTask;
+    }
+
+    public Task<string> PublishTxAsync<TTxParams>(TTxParams txParams, ITxInput txInput)
+        where TTxParams : ITxParams
     {
         var tcs = new TaskCompletionSource<string>();
 
-        return !_queue.Writer.TryWrite((txType, txInput, tcs))
+        return !_queue.Writer.TryWrite((txParams, txInput, tcs))
             ? throw new NotImplementedException()
             : tcs.Task;
     }
@@ -61,29 +71,24 @@ public class SequentialTxScheduler : ITxScheduler, IDisposable
 
     private async Task ProcessTxAsync(QueueEntry entry)
     {
-        var (txType, txInput, tcs) = entry;
+        var (txParams, txInput, tcs) = entry;
 
-        string callData;
-
-        switch(txType)
+        string callData = txParams switch
         {
-            case TxType.EIP1559:
-            {
-                var tx = new EIP1559Transaction(137, 38154, 103, txInput.To, txInput.Value, 45201065989, 27278237335, []);
-                callData = EncodeCallData(tx, txInput);
-                break;
-            }
-            default:
-                throw new NotSupportedException($"TxType {txType} is not supported");
-        }
+            EIP1559TxParams eip1559Params => EncodeCallData<EIP1559Transaction, EIP1559TxParams>(eip1559Params, txInput, 1),
+            _ => throw new NotSupportedException($"TxParams type {txParams.GetType().Name} is not supported")
+        };
 
         string txHash = await _txPublisher.PublishTxAsync(callData);
         tcs.SetResult(txHash);
     }
 
-    internal string EncodeCallData<TTransaction>(TTransaction tx, ITxInput txInput)
-        where TTransaction : ITransaction
+    internal string EncodeCallData<TTransaction, TTxParams>(TTxParams txParams, ITxInput txInput, uint nonce)
+        where TTransaction : ITransaction<TTransaction, TTxParams>
+        where TTxParams : ITxParams
     {
+        var tx = TTransaction.Create(_chainId, txParams, txInput, nonce);
+
         Span<int> lengthBuffer = stackalloc int[TTransaction.NestedListCount];
         Span<byte> dataBuffer = txInput.DataLength > 4096
             ? new byte[txInput.DataLength]

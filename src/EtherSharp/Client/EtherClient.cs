@@ -1,8 +1,9 @@
-﻿using EtherSharp.Client.Services.TxScheduler;
+﻿using EtherSharp.Client.Services;
+using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
 using EtherSharp.RPC;
 using EtherSharp.Tx;
-using EtherSharp.Tx.Types;
+using EtherSharp.Tx.EIP1559;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,6 +67,12 @@ public class EtherClient : IEtherClient, IEtherTxClient
         }
 
         _chainId = await _evmRPCClient.EthChainId();
+
+        foreach(var initializeableService in _provider.GetServices<IInitializableService>())
+        {
+            await initializeableService.InitializeAsync(_chainId);
+        }
+
         _initialized = true;
     }
 
@@ -118,7 +125,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
     }
 
     private Task<string> SendAsync<T>(TxInput<T> call)
-        => _txScheduler.PublishTxAsync(TxType.EIP1559, call);
+        => _txScheduler.PublishTxAsync(new EIP1559TxParams(1, 1, 1, []), call);
 
     Task<BigInteger> IEtherClient.GetBalanceAsync(string address, TargetBlockNumber targetHeight) => GetBalanceAsync(address, targetHeight);
     Task<int> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) => GetTransactionCount(address, targetHeight);
