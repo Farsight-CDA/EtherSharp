@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Generator.Abi;
+using EtherSharp.Generator.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -74,15 +75,16 @@ public class Generator : IIncrementalGenerator
             return;
         }
 
-        if(!Debugger.IsAttached)
-        {
-            _ = Debugger.Launch();
-        }
+        //if(!Debugger.IsAttached)
+        //{
+        //    _ = Debugger.Launch();
+        //}
 
         AbiMember[] abiMembers;
+
         try
         {
-            abiMembers = JsonSerializer.Deserialize<AbiMember[]>(schemaText)
+            abiMembers = JsonSerializer.Deserialize<AbiMember[]>(schemaText, ParsingUtils.AbiJsonOptions)
                 ?? throw new NotSupportedException("Parsing schema file to ContractAPISchema failed");
         }
         catch(Exception ex)
@@ -91,7 +93,23 @@ public class Generator : IIncrementalGenerator
             return;
         }
 
-        throw new InvalidOperationException($"Found {abiMembers} Members");
+        try
+        {
+            var writer = new ContractSourceWriter();
+            string contractName = contractSymbol.Name;
+
+            context.AddSource(
+                $"{contractName}.generated.cs",
+                writer.WriteContractSourceCode(contractSymbol.ContainingNamespace.ToString(), contractName, abiMembers)
+            );
+        }
+        catch(Exception ex)
+        {
+            ReportDiagnostic(context, GeneratorDiagnostics.GenerationFailed, contractSymbol, ex);
+            return;
+        }
+
+        //throw new InvalidOperationException($"Found {abiMembers} Members");
     }
 
     private static void ReportDiagnostic(SourceProductionContext context, DiagnosticDescriptor descriptor, ISymbol symbol, params string[] args)
@@ -102,7 +120,7 @@ public class Generator : IIncrementalGenerator
 
     private static void ReportDiagnostic(SourceProductionContext context, DiagnosticDescriptor descriptor, ISymbol symbol, Exception e)
     {
-        var diagnostic = Diagnostic.Create(descriptor, symbol.Locations.FirstOrDefault(), e.Message);
+        var diagnostic = Diagnostic.Create(descriptor, symbol.Locations.FirstOrDefault(), e.ToString());
         context.ReportDiagnostic(diagnostic);
     }
 }

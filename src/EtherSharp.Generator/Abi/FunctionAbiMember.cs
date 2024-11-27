@@ -4,11 +4,14 @@ namespace EtherSharp.Generator.Abi;
 public class FunctionAbiMember : AbiMember
 {
     [JsonRequired]
-    public StateMutability StateMutability { get; private set; }
+    public string Name { get; set; } = null!;
 
     [JsonRequired]
-    public AbiValue[] Inputs { get; private set; } = null!;
+    public StateMutability StateMutability { get; set; }
 
     [JsonRequired]
-    public AbiValue[] Outputs { get; private set; } = null!;
+    public AbiValue[] Inputs { get; set; } = null!;
+
+    [JsonRequired]
+    public AbiValue[] Outputs { get; set; } = null!;
 }

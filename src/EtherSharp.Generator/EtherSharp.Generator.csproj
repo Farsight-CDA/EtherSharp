@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
+		<OutputType>Library</OutputType>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<Nullable>enable</Nullable>
@@ -23,8 +24,11 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		
-		<PackageReference Include="System.Text.Json" Version="9.0.0" GeneratePathProperty="true"/>
+
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" PrivateAssets="all" GeneratePathProperty="true" />
+		<PackageReference Include="Microsoft.Bcl.HashCode" Version="6.0.0" PrivateAssets="all" GeneratePathProperty="true" />
+		<PackageReference Include="System.Text.Encodings.Web" Version="9.0.0" PrivateAssets="all" GeneratePathProperty="true" />
+		<PackageReference Include="System.Text.Json" Version="9.0.0" PrivateAssets="all" GeneratePathProperty="true" />
 	</ItemGroup>
 
 	<PropertyGroup>
@@ -35,6 +39,9 @@
 		<ItemGroup>
 			<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 
+			<None Include="$(PKGMicrosoft_Bcl_AsyncInterfaces)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+			<None Include="$(PKGMicrosoft_Bcl_HashCode)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+			<None Include="$(PKGSystem_Text_Encodings_Web)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 			<None Include="$(PKGSystem_Text_Json)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		</ItemGroup>
 	</Target>
