@@ -75,11 +75,6 @@ public class Generator : IIncrementalGenerator
             return;
         }
 
-        //if(!Debugger.IsAttached)
-        //{
-        //    _ = Debugger.Launch();
-        //}
-
         AbiMember[] abiMembers;
 
         try
@@ -108,8 +103,6 @@ public class Generator : IIncrementalGenerator
             ReportDiagnostic(context, GeneratorDiagnostics.GenerationFailed, contractSymbol, ex);
             return;
         }
-
-        //throw new InvalidOperationException($"Found {abiMembers} Members");
     }
 
     private static void ReportDiagnostic(SourceProductionContext context, DiagnosticDescriptor descriptor, ISymbol symbol, params string[] args)

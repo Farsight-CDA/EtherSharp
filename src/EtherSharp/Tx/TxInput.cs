@@ -45,7 +45,7 @@ public class TxInput<T> : ITxInput
 
     int ITxInput.DataLength => _functionSignature.Length + _encoder.Size;
 
-    internal TxInput(ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder, Func<AbiDecoder, T> decoder, Address to, BigInteger value)
+    public TxInput(ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder, Func<AbiDecoder, T> decoder, Address to, BigInteger value)
     {
         To = to;
         _functionSignature = functionSignature;

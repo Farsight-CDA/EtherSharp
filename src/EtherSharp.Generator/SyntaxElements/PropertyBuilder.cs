@@ -1,4 +1,4 @@
-﻿using Cosm.Net.Generators.Common.Util;
+﻿using EtherSharp.Generator.Util;
 using System;
 using System.Text;
 
@@ -11,6 +11,7 @@ public enum PropertyVisibility
 }
 public enum SetterVisibility
 {
+    None,
     Public,
     Private,
     Init
@@ -84,9 +85,12 @@ public class PropertyBuilder : ISyntaxBuilder
         }
 
         return $$"""
-            {{headerSb}} {{_visibility.ToString().ToLower()}} {{(_isRequired ? "required" : "")}} {{Type}} {{Name}} { get; {{(_setterVisibility == SetterVisibility.Init
-                    ? "init"
-                    : $"{_setterVisibility.ToString().ToLower()} set")}}; } {{(DefaultValue is not null ? $"= {DefaultValue};" : "")}}
+            {{headerSb}} {{_visibility.ToString().ToLower()}} {{(_isRequired ? "required" : "")}} {{Type}} {{Name}} { get; {{(_setterVisibility == 
+                SetterVisibility.None
+                    ? ""
+                    : _setterVisibility == SetterVisibility.Init
+                        ? "init;"
+                        : $"{_setterVisibility.ToString().ToLower()} set;")}} } {{(DefaultValue is not null ? $"= {DefaultValue};" : "")}}
             """;
     }
 

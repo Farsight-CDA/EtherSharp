@@ -14,11 +14,12 @@ namespace EtherSharp.Client;
 public class EtherClient : IEtherClient, IEtherTxClient
 {
     private readonly IServiceProvider _provider;
-    private readonly EvmRpcClient _evmRPCClient;
-
     private readonly bool _isTxClient;
-    private readonly IEtherSigner _signer = null!;
-    private readonly ITxScheduler _txScheduler = null!;
+
+    private EvmRpcClient _evmRPCClient = null!;
+    private IEtherSigner _signer = null!;
+    private ITxScheduler _txScheduler = null!;
+    private ContractFactory _contractFactory = null!;
 
     private bool _initialized;
     private ulong _chainId;
@@ -34,14 +35,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
     internal EtherClient(IServiceProvider provider, bool isTxClient)
     {
         _provider = provider;
-        _evmRPCClient = provider.GetRequiredService<EvmRpcClient>();
         _isTxClient = isTxClient;
-
-        if (isTxClient)
-        {
-            _signer = provider.GetRequiredService<IEtherSigner>();
-            _txScheduler = provider.GetRequiredService<ITxScheduler>();
-        }
     }
 
     private void AssertTxClient()
@@ -66,6 +60,16 @@ public class EtherClient : IEtherClient, IEtherTxClient
             throw new InvalidOperationException("Client already initialized");
         }
 
+        _evmRPCClient = _provider.GetRequiredService<EvmRpcClient>();
+        _contractFactory = _provider.GetRequiredService<ContractFactory>();
+
+
+        if(_isTxClient)
+        {
+            _signer = _provider.GetRequiredService<IEtherSigner>();
+            _txScheduler = _provider.GetRequiredService<ITxScheduler>();
+        }
+
         _chainId = await _evmRPCClient.EthChainId();
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
@@ -88,10 +92,11 @@ public class EtherClient : IEtherClient, IEtherTxClient
         return _evmRPCClient.EthGetTransactionCount(address, targetHeight);
     }
 
-    private TContract Contract<TContract>(string address) where TContract : IContract
+    private TContract Contract<TContract>(string contractAddress)
+        where TContract : IContract
     {
         AssertReady();
-        throw new NotImplementedException();
+        return _contractFactory.Create<TContract>(contractAddress);
     }
 
     private async Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default)
@@ -129,6 +134,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
 
     Task<BigInteger> IEtherClient.GetBalanceAsync(string address, TargetBlockNumber targetHeight) => GetBalanceAsync(address, targetHeight);
     Task<int> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) => GetTransactionCount(address, targetHeight);
-    TContract IEtherClient.Contract<TContract>(string address) => Contract<TContract>(address);
+    TContract IEtherClient.Contract<TContract>(string address) 
+        => Contract<TContract>(address);
     Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight) => CallAsync(call, targetHeight);
 }

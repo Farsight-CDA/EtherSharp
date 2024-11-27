@@ -1,9 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
-using System;
-using System.Collections.Generic;
 using System.Text;
 
-namespace Cosm.Net.Generators.Common.Util;
+namespace EtherSharp.Generator.Util;
 public static class NameUtils
 {
     public static string ToValidVariableName(string name)

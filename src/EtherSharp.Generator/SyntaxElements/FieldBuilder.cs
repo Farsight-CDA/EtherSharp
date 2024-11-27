@@ -11,10 +11,11 @@ public class FieldBuilder : ISyntaxBuilder
 {
     public string Type { get; }
     public string Name { get; }
+    public string? DefaultValue { get; private set; }
+    public FieldVisibility Visibility { get; private set; } = FieldVisibility.Public;
 
-    private FieldVisibility _visibility = FieldVisibility.Private;
-    private bool _isReadonly = true;
-    private bool _isStatic = false;
+    public bool IsReadonly { get; private set; }
+    public bool IsStatic { get; private set; }
 
     public FieldBuilder(string type, string name)
     {
@@ -24,25 +25,31 @@ public class FieldBuilder : ISyntaxBuilder
 
     public FieldBuilder WithVisibility(FieldVisibility visibility)
     {
-        _visibility = visibility;
+        Visibility = visibility;
         return this;
     }
 
-    public FieldBuilder WithIsReadonly(bool isReadonly)
+    public FieldBuilder WithIsReadonly(bool isReadonly = true)
     {
-        _isReadonly = isReadonly;
+        IsReadonly = isReadonly;
         return this;
     }
 
     public FieldBuilder WithIsStatic(bool isStatic = true)
     {
-        _isStatic = isStatic;
+        IsStatic = isStatic;
+        return this;
+    }
+
+    public FieldBuilder WithDefaultValue(string defaultValue)
+    {
+        DefaultValue = defaultValue;
         return this;
     }
 
     public string Build()
         => $$"""
-            {{_visibility.ToString().ToLower()}}{{(_isStatic ? " static" : "")}}{{(_isReadonly ? " readonly" : "")}} {{Type}} {{Name}};
+            {{Visibility.ToString().ToLower()}}{{(IsStatic ? " static" : "")}}{{(IsReadonly ? " readonly" : "")}} {{Type}} {{Name}} {{(DefaultValue is null ? "" : $"= {DefaultValue}")}};
             """;
 
     public SyntaxId GetSyntaxId()
@@ -51,8 +58,8 @@ public class FieldBuilder : ISyntaxBuilder
             nameof(FieldBuilder),
             Type,
             Name,
-            _visibility,
-            _isReadonly
+            Visibility,
+            IsReadonly
         );
         return new SyntaxId(hashCode);
     }

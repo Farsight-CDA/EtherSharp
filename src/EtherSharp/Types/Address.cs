@@ -16,15 +16,14 @@ public class Address
     {
         if(s.StartsWith("0x"))
         {
-            string subStr = s[2..];
-            return new Address(subStr, Convert.FromHexString(subStr));
+            return new Address(s, Convert.FromHexString(s.AsSpan()[2..]));
         }
         else
         {
-            return new Address(s, Convert.FromHexString(s));
+            return new Address($"0x{s}", Convert.FromHexString(s));
         }
     }
 
     public static Address FromBytes(ReadOnlySpan<byte> b)
-        => new Address(Convert.ToHexString(b), b.ToArray());
+        => new Address($"0x{Convert.ToHexString(b)}", b.ToArray());
 }

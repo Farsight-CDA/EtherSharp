@@ -31,7 +31,7 @@ public class ConstructorBuilder : ISyntaxBuilder
 
     public ConstructorBuilder AddInitializedFields(IEnumerable<FieldBuilder> fields)
     {
-        foreach(var field in fields)
+        foreach(var field in fields.Where(x => !x.IsStatic))
         {
             _ = AddInitializedField(field);
         }

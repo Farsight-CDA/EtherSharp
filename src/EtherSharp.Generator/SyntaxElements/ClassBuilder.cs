@@ -1,4 +1,4 @@
-﻿using Cosm.Net.Generators.Common.Util;
+﻿using EtherSharp.Generator.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;

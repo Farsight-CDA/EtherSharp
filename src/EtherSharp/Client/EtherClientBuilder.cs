@@ -1,9 +1,11 @@
 ﻿using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common.Extensions;
+using EtherSharp.Contract;
 using EtherSharp.RPC;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection.Emit;
 
 namespace EtherSharp.Client;
 public class EtherClientBuilder
@@ -11,6 +13,7 @@ public class EtherClientBuilder
     private readonly IServiceCollection _services = new ServiceCollection();
 
     private Uri? _rpcUrl;
+    private Action<ContractFactory>? _contractConfigurationAction;
 
     public EtherClientBuilder WithRPCUrl(Uri rpcUrl)
     {
@@ -43,6 +46,12 @@ public class EtherClientBuilder
         return this;
     }
 
+    public EtherClientBuilder WithContractConfiguration(Action<ContractFactory> contractSetupAction)
+    {
+        _contractConfigurationAction = contractSetupAction;
+        return this;
+    }
+
     private void AssertReadClientConfiguration()
     {
         if(_rpcUrl is null)
@@ -58,16 +67,19 @@ public class EtherClientBuilder
         );
 
         _services.AddSingleton(evmRpcClient);
+        _services.AddSingleton<ContractFactory>();
     }
     public IEtherClient BuildReadClient()
     {
         AssertReadClientConfiguration();
 
+        _services.AddSingleton<IEtherClient>(provider => new EtherClient(provider, false));
+
         var provider = _services.BuildServiceProvider();
-        return new EtherClient(
-            provider,
-            false
-        );
+
+        _contractConfigurationAction?.Invoke(provider.GetRequiredService<ContractFactory>());
+
+        return provider.GetRequiredService<IEtherClient>();
     }
 
     private void AssertTxClientConfiguration()
@@ -91,10 +103,13 @@ public class EtherClientBuilder
     {
         AssertTxClientConfiguration();
 
+        _services.AddSingleton<IEtherClient>(provider => new EtherClient(provider, true));
+        _services.AddSingleton<IEtherTxClient>(provider => new EtherClient(provider, true));
+
         var provider = _services.BuildServiceProvider();
-        return new EtherClient(
-            provider,
-            true
-        );
+
+        _contractConfigurationAction?.Invoke(provider.GetRequiredService<ContractFactory>());
+
+        return provider.GetRequiredService<IEtherTxClient>();
     }
 }

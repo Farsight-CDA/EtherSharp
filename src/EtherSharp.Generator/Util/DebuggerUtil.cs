@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Cosm.Net.Generators.Common.Util;
+namespace EtherSharp.Generator.Util;
 public static class DebuggerUtils
 {
 #if DEBUG

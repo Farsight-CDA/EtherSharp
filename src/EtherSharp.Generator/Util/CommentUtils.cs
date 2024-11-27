@@ -3,14 +3,14 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-namespace Cosm.Net.Generators.Common.Util;
+namespace EtherSharp.Generator.Util;
 public static class CommentUtils
 {
     public static bool TryGetSummary(ISymbol symbol, out string? summary)
     {
         string? comment = symbol.GetDocumentationCommentXml();
 
-        if(System.String.IsNullOrWhiteSpace(comment))
+        if(string.IsNullOrWhiteSpace(comment))
         {
             summary = null;
             return false;
@@ -29,7 +29,7 @@ public static class CommentUtils
 
         string summaryText = summaryElements[0].InnerText;
 
-        if(System.String.IsNullOrWhiteSpace(summaryText))
+        if(string.IsNullOrWhiteSpace(summaryText))
         {
             summary = null;
             return false;
