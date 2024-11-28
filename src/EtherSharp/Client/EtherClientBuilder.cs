@@ -1,5 +1,7 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
+using EtherSharp.Client.Services.GasFeeProvider;
+using EtherSharp.Client.Services.TxConfirmer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common.Extensions;
@@ -39,6 +41,20 @@ public class EtherClientBuilder
         where TTxPublisher : class, ITxPublisher
     {
         _services.AddOrReplaceSingleton<ITxPublisher, TTxPublisher>();
+        return this;
+    }
+
+    public EtherClientBuilder WithTxConfirmer<TTxConfirmer>()
+        where TTxConfirmer : class, ITxConfirmer
+    {
+        _services.AddOrReplaceSingleton<ITxConfirmer, TTxConfirmer>();
+        return this;
+    }
+
+    public EtherClientBuilder WithGasFeeProvider<TGasFeeProvider>()
+        where TGasFeeProvider : class, IGasFeeProvider
+    {
+        _services.AddOrReplaceSingleton<IGasFeeProvider, TGasFeeProvider>();
         return this;
     }
 
@@ -102,12 +118,20 @@ public class EtherClientBuilder
         {
             throw new InvalidOperationException($"No {nameof(ITxPublisher)} configured. Call the {nameof(WithTxPublisher)} method prior to {nameof(BuildTxClient)}");
         }
+        if(!_services.Any(x => x.ServiceType == typeof(ITxConfirmer)))
+        {
+            throw new InvalidOperationException($"No {nameof(ITxConfirmer)} configured. Call the {nameof(WithTxConfirmer)} method prior to {nameof(BuildTxClient)}");
+        }
+        if(!_services.Any(x => x.ServiceType == typeof(IGasFeeProvider)))
+        {
+            throw new InvalidOperationException($"No {nameof(IGasFeeProvider)} configured. Call the {nameof(WithGasFeeProvider)} method prior to {nameof(BuildTxClient)}");
+        }
     }
     public IEtherTxClient BuildTxClient()
     {
         AssertTxClientConfiguration();
 
-        _services.AddSingleton<IEtherClient>(provider => new EtherClient(provider, true));
+        _services.AddSingleton<IEtherClient>(provider => provider.GetRequiredService<IEtherTxClient>());
         _services.AddSingleton<IEtherTxClient>(provider => new EtherClient(provider, true));
 
         var provider = _services.BuildServiceProvider();

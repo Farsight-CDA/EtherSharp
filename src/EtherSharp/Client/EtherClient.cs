@@ -64,7 +64,6 @@ public class EtherClient : IEtherClient, IEtherTxClient
         _evmRPCClient = _provider.GetRequiredService<EvmRpcClient>();
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
 
-
         if(_isTxClient)
         {
             _signer = _provider.GetRequiredService<IEtherSigner>();
@@ -130,12 +129,26 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-    public Task<string> SendAsync<T>(ITxInput call, ulong gas, BigInteger maxFeePerGas, BigInteger maxPriorityFeePerGas)
-        => _txScheduler.PublishTxAsync(new EIP1559TxParams(gas, maxFeePerGas, maxPriorityFeePerGas, []), call);
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call,
+        Func<ValueTask<TxTimeoutAction>> onTxTimeout)
+    {
+        AssertTxClient();
+        AssertReady();
+        return _txScheduler.PublishTxAsync(new EIP1559TxParams([]), call, onTxTimeout);
+    }
+
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call,
+        Func<TxTimeoutAction> onTxTimeout)
+    {
+        AssertTxClient();
+        AssertReady();
+        return _txScheduler.PublishTxAsync(new EIP1559TxParams([]), call, () => ValueTask.FromResult(onTxTimeout()));
+    }
 
     Task<BigInteger> IEtherClient.GetBalanceAsync(string address, TargetBlockNumber targetHeight) => GetBalanceAsync(address, targetHeight);
     Task<uint> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) => GetTransactionCount(address, targetHeight);
     TContract IEtherClient.Contract<TContract>(string address) 
         => Contract<TContract>(address);
     Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight) => CallAsync(call, targetHeight);
+
 }

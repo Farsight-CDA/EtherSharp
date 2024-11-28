@@ -13,24 +13,24 @@ public record EIP1559Transaction(
     BigInteger MaxFeePerGas,
     BigInteger MaxPriorityFeePerGas,
     StateAccess[] AccessList
-) : ITransaction<EIP1559Transaction, EIP1559TxParams>
+) : ITransaction<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>
 {
     public static int NestedListCount => 2;
     public static byte PrefixByte => 0x02;
 
-    public static EIP1559Transaction Create(ulong chainId, EIP1559TxParams txParams, ITxInput txInput, uint nonce) 
+    public static EIP1559Transaction Create(ulong chainId, EIP1559TxParams txParams, EIP1559GasParams txGasParams, ITxInput txInput, uint nonce, ulong gas) 
         => new EIP1559Transaction(
             chainId,
-            txParams.Gas,
+            gas,
             nonce,
             txInput.To,
             txInput.Value,
-            txParams.MaxFeePerGas,
-            txParams.MaxPriorityFeePerGas,
+            txGasParams.MaxFeePerGas,
+            txGasParams.MaxPriorityFeePerGas,
             txParams.AccessList
         );
 
-    int ITransaction<EIP1559Transaction, EIP1559TxParams>.GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths)
+    int ITransaction<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>.GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths)
         => GetEncodedSize(data, listLengths);
     internal int GetEncodedSize(ReadOnlySpan<byte> data, Span<int> listLengths)
     {
@@ -54,7 +54,7 @@ public record EIP1559Transaction(
         );
     }
 
-    void ITransaction<EIP1559Transaction, EIP1559TxParams>.Encode(ReadOnlySpan<int> listLengths, ReadOnlySpan<byte> data, Span<byte> destination)
+    void ITransaction<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>.Encode(ReadOnlySpan<int> listLengths, ReadOnlySpan<byte> data, Span<byte> destination)
         => Encode(listLengths, data, destination);
     internal void Encode(ReadOnlySpan<int> listLengths, ReadOnlySpan<byte> data, Span<byte> destination)
         => new RLPEncoder(destination)

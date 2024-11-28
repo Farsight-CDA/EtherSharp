@@ -119,32 +119,49 @@ public class EvmRpcClient(IRPCTransport transport)
 
     public async Task<BigInteger> EthGasPriceAsync()
     {
-        var response = await _transport.SendRpcRequest<BigInteger>("eth_gasPrice");
-
-        return response switch
+        var response = await _transport.SendRpcRequest<string>("eth_gasPrice");
+        switch(response)
         {
-            RpcResult<BigInteger>.Success result => result.Result,
-            RpcResult<BigInteger>.Error error => throw RPCException.FromRPCError(error),
-            _ => throw new NotImplementedException(),
-        };
+            case RpcResult<string>.Success result:
+                Span<byte> buffer = stackalloc byte[(result.Result.Length / 2) - 1];
+                Convert.FromHexString(result.Result.AsSpan()[2..], buffer, out _, out _);
+                return new BigInteger(buffer, true, true);
+            case RpcResult<string>.Error error:
+                throw RPCException.FromRPCError(error);
+            default:
+                throw new NotImplementedException();
+        }
     }
 
-    private record TransactionEstimateGas(string? From, string? To, uint? Gas, BigInteger? GasPrice, int? Value, string? Input);
-    public async Task<uint> EthEstimateGasAsync(string? from, string? to, uint? gas, BigInteger? gasPrice, int? value, string? input, TargetBlockNumber? blockNumber)
+    public async Task<BigInteger> EthMaxPriorityFeePerGas()
     {
-        TransactionEstimateGas transaction = new(from, to, gas, gasPrice, value, input);
-        var response = await _transport.SendRpcRequest<TransactionEstimateGas, string?, uint>("eth_estimateGas", transaction, blockNumber?.ToString());
+        var response = await _transport.SendRpcRequest<string>("eth_maxPriorityFeePerGas");
+        switch(response)
+        {
+            case RpcResult<string>.Success result:
+                Span<byte> buffer = stackalloc byte[(result.Result.Length / 2) - 1];
+                Convert.FromHexString(result.Result.AsSpan()[2..], buffer, out _, out _);
+                return new BigInteger(buffer, true, true);
+            case RpcResult<string>.Error error:
+                throw RPCException.FromRPCError(error);
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    private record TransactionEstimateGas(string From, string To, BigInteger Value, string Data);
+    public async Task<ulong> EthEstimateGasAsync(string from, string to, BigInteger value, string data)
+    {
+        TransactionEstimateGas transaction = new(from, to, value, data);
+        var response = await _transport.SendRpcRequest<TransactionEstimateGas, ulong>("eth_estimateGas", transaction);
 
         return response switch
         {
-            RpcResult<uint>.Success result => result.Result,
-            RpcResult<uint>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<ulong>.Success result => result.Result,
+            RpcResult<ulong>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
-
-    public Task<uint> EthEstimateGasAsync(string? from, string? to, uint? gas, BigInteger? gasPrice, int? value, string? input, long blockNumber)
-        => EthEstimateGasAsync(from, to, gas, gasPrice, value, input, TargetBlockNumber.Height(blockNumber));
 
     public async Task<BlockData?> EthGetFullBlockByHashAsync(string blockHash)
     {
@@ -244,13 +261,14 @@ public class EvmRpcClient(IRPCTransport transport)
         };
     }
 
-    public async Task<TransactionReceipt> EthGetTransactionReceiptAsync(string transactionHash)
+    public async Task<TransactionReceipt?> EthGetTransactionReceiptAsync(string transactionHash)
     {
         var response = await _transport.SendRpcRequest<string, TransactionReceipt>("eth_getTransactionReceipt", transactionHash);
         return response switch
         {
             RpcResult<TransactionReceipt>.Success result => result.Result,
             RpcResult<TransactionReceipt>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<TransactionReceipt>.Null => null,
             _ => throw new NotImplementedException(),
         };
     }

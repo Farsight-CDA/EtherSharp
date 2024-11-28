@@ -1,4 +1,7 @@
-﻿using EtherSharp.Client.Services.TxPublisher;
+﻿using EtherSharp.Client.Services.GasFeeProvider;
+using EtherSharp.Client.Services.TxConfirmer;
+using EtherSharp.Client.Services.TxPublisher;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Crypto;
 using EtherSharp.RLP;
 using EtherSharp.RPC;
@@ -12,22 +15,28 @@ using System.Threading.Channels;
 using QueueEntry = (
     EtherSharp.Tx.Types.ITxParams TxParams,
     EtherSharp.Tx.ITxInput TxInput,
-    System.Threading.Tasks.TaskCompletionSource<string> CompletionSource
+    System.Func<System.Threading.Tasks.ValueTask<EtherSharp.Tx.TxTimeoutAction>> OnTxTimeout,
+    System.Threading.Tasks.TaskCompletionSource<EtherSharp.Types.TransactionReceipt> CompletionSource
 );
 
 namespace EtherSharp.Client.Services.TxScheduler;
-public class BlockingSequentialTxScheduler : ITxScheduler
+public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService, IDisposable
 {
     private readonly Channel<QueueEntry> _queue;
 
     private readonly EvmRpcClient _rpcClient;
     private readonly IEtherSigner _signer;
     private readonly ITxPublisher _txPublisher;
+    private readonly ITxConfirmer _txConfirmer;
+    private readonly IGasFeeProvider _gasFeeProvider;
+
+    private readonly TimeSpan _txTimeout = TimeSpan.FromSeconds(30);
 
     private ulong _chainId;
-    private uint _nonce;
+    private uint _nonceCounter;
 
-    public BlockingSequentialTxScheduler(EvmRpcClient rpcClient, IEtherSigner signer, ITxPublisher txPublisher)
+    public BlockingSequentialTxScheduler(EvmRpcClient rpcClient, IEtherSigner signer, 
+        ITxPublisher txPublisher, ITxConfirmer txConfirmer, IGasFeeProvider gasFeeProvider)
     {
         _queue = Channel.CreateUnbounded<QueueEntry>(new UnboundedChannelOptions()
         {
@@ -39,22 +48,24 @@ public class BlockingSequentialTxScheduler : ITxScheduler
         _rpcClient = rpcClient;
         _signer = signer;
         _txPublisher = txPublisher;
+        _txConfirmer = txConfirmer;
+        _gasFeeProvider = gasFeeProvider;
     }
 
     public async ValueTask InitializeAsync(ulong chainId)
     {
         _chainId = chainId;
-        _nonce = await _rpcClient.EthGetTransactionCount(_signer.Address.String, TargetBlockNumber.Latest);
+        _nonceCounter = await _rpcClient.EthGetTransactionCount(_signer.Address.String, TargetBlockNumber.Latest) - 1;
 
         _ = Task.Run(BackgroundTxProcessor);
     }
 
-    public Task<string> PublishTxAsync<TTxParams>(TTxParams txParams, ITxInput txInput)
+    public Task<TransactionReceipt> PublishTxAsync<TTxParams>(TTxParams txParams, ITxInput txInput, Func<ValueTask<TxTimeoutAction>> onTxTimeout)
         where TTxParams : ITxParams
     {
-        var tcs = new TaskCompletionSource<string>();
+        var tcs = new TaskCompletionSource<TransactionReceipt>();
 
-        return !_queue.Writer.TryWrite((txParams, txInput, tcs))
+        return !_queue.Writer.TryWrite((txParams, txInput, onTxTimeout, tcs))
             ? throw new NotImplementedException()
             : tcs.Task;
     }
@@ -78,31 +89,72 @@ public class BlockingSequentialTxScheduler : ITxScheduler
 
     private async Task ProcessTxAsync(QueueEntry entry)
     {
-        var (txParams, txInput, tcs) = entry;
-        uint nextNonce = Interlocked.Increment(ref _nonce);
+        var (txParams, txInput, onTxTimeout, tcs) = entry;
+        uint nonce = Interlocked.Increment(ref _nonceCounter);
 
-        string callData = txParams switch
+        string txHash = txParams switch
         {
-            EIP1559TxParams eip1559Params => EncodeCallData<EIP1559Transaction, EIP1559TxParams>(eip1559Params, txInput, nextNonce),
+            EIP1559TxParams eip1559Params 
+                => await EncodeAndPublishTransactionAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(eip1559Params, txInput, nonce),
             _ => throw new NotSupportedException($"TxParams type {txParams.GetType().Name} is not supported")
         };
 
-        string txHash = await _txPublisher.PublishTxAsync(callData);
-        tcs.SetResult(txHash);
+        var txResult = await _txConfirmer.WaitForTxConfirmationAsync(txHash, _txTimeout);
+
+        while(true)
+        {
+            if(txResult is TxConfirmationResult.Confirmed confirmedResult)
+            {
+                tcs.SetResult(confirmedResult.Receipt);
+                return;
+            }
+            if(txResult is not TxConfirmationResult.TimedOut timeoutResult)
+            {
+                throw new ImpossibleException();
+            }
+
+            var action = await onTxTimeout();
+
+            txResult = action switch
+            {
+                TxTimeoutAction.ContinueWaiting waitAction => await _txConfirmer.WaitForTxConfirmationAsync(txHash, waitAction.Duration),
+                _ => throw new ImpossibleException(),
+            };
+        }
     }
 
-    internal string EncodeCallData<TTransaction, TTxParams>(TTxParams txParams, ITxInput txInput, uint nonce)
-        where TTransaction : ITransaction<TTransaction, TTxParams>
+    private async Task<string> EncodeAndPublishTransactionAsync<TTransaction, TTxParams, TTxGasParams>(
+        TTxParams txParams, ITxInput txInput, uint nonce
+    )
         where TTxParams : ITxParams
+        where TTxGasParams : ITxGasParams
+        where TTransaction : ITransaction<TTransaction, TTxParams, TTxGasParams>
     {
-        var tx = TTransaction.Create(_chainId, txParams, txInput, nonce);
+        //ToDo: Consider avoiding this allocation
+        byte[] dataBuffer = new byte[txInput.DataLength];
+        txInput.WriteDataTo(dataBuffer);
+
+        ulong gasEstimation = await _gasFeeProvider.EstimateGasAsync(txInput, dataBuffer);
+        var gasParams = (TTxGasParams) await _gasFeeProvider.CalculateGasParamsAsync(txInput, txParams, gasEstimation);
+
+        string calldata = EncodeCallData<TTransaction, TTxParams, TTxGasParams>(txInput, txParams, gasParams, dataBuffer, nonce, gasEstimation);
+
+        return await _txPublisher.PublishTxAsync(calldata);
+    }
+
+    private string EncodeCallData<TTransaction, TTxParams, TTxGasParams>(
+        ITxInput txInput, TTxParams txParams, TTxGasParams txGasParams, 
+        ReadOnlySpan<byte> dataBuffer,
+        uint nonce, ulong gas
+    )
+        where TTransaction : ITransaction<TTransaction, TTxParams, TTxGasParams>
+        where TTxParams : ITxParams
+        where TTxGasParams : ITxGasParams
+    {
+        var tx = TTransaction.Create(_chainId, txParams, txGasParams, txInput, nonce, gas);
 
         Span<int> lengthBuffer = stackalloc int[TTransaction.NestedListCount];
-        Span<byte> dataBuffer = txInput.DataLength > 4096
-            ? new byte[txInput.DataLength]
-            : stackalloc byte[txInput.DataLength];
 
-        txInput.WriteDataTo(dataBuffer);
         int txTemplateLength = tx.GetEncodedSize(dataBuffer, lengthBuffer);
 
         int txBufferLength = 2 + txTemplateLength + TxRLPEncoder.MaxEncodedSignatureLength;

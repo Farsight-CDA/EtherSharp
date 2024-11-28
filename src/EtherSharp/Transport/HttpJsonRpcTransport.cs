@@ -56,7 +56,7 @@ public class HttpJsonRpcTransport : IRPCTransport
         {
             var jsonRpcResponse = await response.Content.ReadFromJsonAsync<JsonRpcResponse<TResult>>(ParsingUtils.EvmSerializerOptions);
 
-            if(jsonRpcResponse == null)
+            if(jsonRpcResponse is null)
             {
                 throw new Exception("RPC Error: Invalid response");
             }
@@ -68,7 +68,7 @@ public class HttpJsonRpcTransport : IRPCTransport
             {
                 return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message);
             }
-            else if(jsonRpcResponse.Result == null)
+            else if(jsonRpcResponse.Result is null)
             {
                 return new RpcResult<TResult>.Null();
             }
