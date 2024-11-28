@@ -1,16 +1,17 @@
 ﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Transport;
 using EtherSharp.Types;
 using System.Globalization;
 using System.Numerics;
 
 namespace EtherSharp.RPC;
 
-internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
+internal class EvmRpcClient(IRPCTransport transport)
 {
-    private readonly JsonRpcClient _jsonRpcClient = jsonRpcClient;
+    private readonly IRPCTransport _transport = transport;
 
     public async Task<ulong> EthChainId()
-        => await _jsonRpcClient.SendRpcRequest<ulong>("eth_chainId") switch
+        => await _transport.SendRpcRequest<ulong>("eth_chainId") switch
         {
             RpcResult<ulong>.Success result => result.Result,
             RpcResult<ulong>.Error error => throw RPCException.FromRPCError(error),
@@ -18,7 +19,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         };
 
     public async Task<long> EthBlockNumberAsync()
-        => await _jsonRpcClient.SendRpcRequest<string>("eth_blockNumber") switch
+        => await _transport.SendRpcRequest<string>("eth_blockNumber") switch
         {
             RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
             RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
@@ -26,7 +27,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         };
 
     public async Task<BigInteger> EthGetBalance(string address, TargetBlockNumber blockNumber)
-        => await _jsonRpcClient.SendRpcRequest<string, string, BigInteger>("eth_getBalance", address, blockNumber.ToString()) switch
+        => await _transport.SendRpcRequest<string, string, BigInteger>("eth_getBalance", address, blockNumber.ToString()) switch
         {
             RpcResult<BigInteger>.Success result => result.Result,
             RpcResult<BigInteger>.Error error => throw RPCException.FromRPCError(error),
@@ -34,7 +35,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         };
 
     public async Task<int> EthGetTransactionCount(string address, TargetBlockNumber blockNumber)
-        => await _jsonRpcClient.SendRpcRequest<string, string, int>("eth_getTransactionCount", address, blockNumber.ToString()) switch
+        => await _transport.SendRpcRequest<string, string, int>("eth_getTransactionCount", address, blockNumber.ToString()) switch
         {
             RpcResult<int>.Success result => result.Result,
             RpcResult<int>.Error error => throw RPCException.FromRPCError(error),
@@ -42,7 +43,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         };
 
     public async Task<string[]> EthAccountsAsync()
-        => await _jsonRpcClient.SendRpcRequest<string[]>("eth_accounts") switch
+        => await _transport.SendRpcRequest<string[]>("eth_accounts") switch
         {
             RpcResult<string[]>.Success result => result.Result,
             RpcResult<string[]>.Error error => throw RPCException.FromRPCError(error),
@@ -56,7 +57,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
             throw new InvalidOperationException("Blockhash string must be 32 Bytes");
         }
 
-        var response = await _jsonRpcClient.SendRpcRequest<string, string>("eth_getBlockTransactionCountByHash", blockHash);
+        var response = await _transport.SendRpcRequest<string, string>("eth_getBlockTransactionCountByHash", blockHash);
         return response switch
         {
             RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
@@ -67,7 +68,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<long> EthBlockTransactionCountByNumberAsync(TargetBlockNumber targetBlockNumber)
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string, string>("eth_getBlockTransactionCountByNumber", targetBlockNumber.ToString());
+        var response = await _transport.SendRpcRequest<string, string>("eth_getBlockTransactionCountByNumber", targetBlockNumber.ToString());
 
         return response switch
         {
@@ -93,7 +94,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
     {
         TransactionEthCall transaction = new(from, to, gas, gasPrice, value, data);
 
-        var response = await _jsonRpcClient.SendRpcRequest<TransactionEthCall, string, byte[]>("eth_call", transaction, blockNumber.ToString());
+        var response = await _transport.SendRpcRequest<TransactionEthCall, string, byte[]>("eth_call", transaction, blockNumber.ToString());
 
         return response switch
         {
@@ -107,7 +108,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<string> EthSendRawTransactionAsync(string transaction)
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string, string>("eth_sendRawTransaction", transaction);
+        var response = await _transport.SendRpcRequest<string, string>("eth_sendRawTransaction", transaction);
         return response switch
         {
             RpcResult<string>.Success result => result.Result,
@@ -118,7 +119,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<BigInteger> EthGasPriceAsync()
     {
-        var response = await _jsonRpcClient.SendRpcRequest<BigInteger>("eth_gasPrice");
+        var response = await _transport.SendRpcRequest<BigInteger>("eth_gasPrice");
 
         return response switch
         {
@@ -132,7 +133,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
     public async Task<uint> EthEstimateGasAsync(string? from, string? to, uint? gas, BigInteger? gasPrice, int? value, string? input, TargetBlockNumber? blockNumber)
     {
         TransactionEstimateGas transaction = new(from, to, gas, gasPrice, value, input);
-        var response = await _jsonRpcClient.SendRpcRequest<TransactionEstimateGas, string?, uint>("eth_estimateGas", transaction, blockNumber?.ToString());
+        var response = await _transport.SendRpcRequest<TransactionEstimateGas, string?, uint>("eth_estimateGas", transaction, blockNumber?.ToString());
 
         return response switch
         {
@@ -151,7 +152,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         {
             throw new InvalidOperationException("Blockhash string must be 32 Bytes");
         }
-        var response = await _jsonRpcClient.SendRpcRequest<string, bool, BlockData?>("eth_getBlockByHash", blockHash, true);
+        var response = await _transport.SendRpcRequest<string, bool, BlockData?>("eth_getBlockByHash", blockHash, true);
 
         return response switch
         {
@@ -167,7 +168,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         {
             throw new InvalidOperationException("Blockhash string must be 32 Bytes");
         }
-        var response = await _jsonRpcClient.SendRpcRequest<string, bool, BlockDataTrasactionAsString>("eth_getBlockByHash", blockHash, false);
+        var response = await _transport.SendRpcRequest<string, bool, BlockDataTrasactionAsString>("eth_getBlockByHash", blockHash, false);
         return response switch
         {
             RpcResult<BlockDataTrasactionAsString>.Success result => result.Result,
@@ -182,7 +183,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
     public async Task<BlockData?> EthGetFullBlockByNumberAsync(TargetBlockNumber targetBlockNumber)
     {
 
-        var response = await _jsonRpcClient.SendRpcRequest<string, bool, BlockData>("eth_getBlockByNumber", targetBlockNumber.ToString(), true);
+        var response = await _transport.SendRpcRequest<string, bool, BlockData>("eth_getBlockByNumber", targetBlockNumber.ToString(), true);
         return response switch
         {
             RpcResult<BlockData>.Success result => result.Result,
@@ -197,7 +198,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
     public async Task<BlockDataTrasactionAsString?> EthGetBlockByNumberAsync(TargetBlockNumber targetBlockNumber)
     {
 
-        var response = await _jsonRpcClient.SendRpcRequest<string, bool, BlockDataTrasactionAsString>("eth_getBlockByNumber", targetBlockNumber.ToString(), false);
+        var response = await _transport.SendRpcRequest<string, bool, BlockDataTrasactionAsString>("eth_getBlockByNumber", targetBlockNumber.ToString(), false);
         return response switch
         {
             RpcResult<BlockDataTrasactionAsString>.Success result => result.Result,
@@ -208,7 +209,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<Transaction> EthTransactionByHash(string hash)
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string, Transaction>("eth_getTransactionByHash", hash);
+        var response = await _transport.SendRpcRequest<string, Transaction>("eth_getTransactionByHash", hash);
         return response switch
         {
             RpcResult<Transaction>.Success result => result.Result,
@@ -223,7 +224,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         {
             throw new InvalidOperationException("Blockhash string must be 32 Bytes");
         }
-        var response = await _jsonRpcClient.SendRpcRequest<string, int, Transaction>("eth_getTransactionByBlockHashAndIndex", blockHash, index);
+        var response = await _transport.SendRpcRequest<string, int, Transaction>("eth_getTransactionByBlockHashAndIndex", blockHash, index);
         return response switch
         {
             RpcResult<Transaction>.Success result => result.Result,
@@ -234,7 +235,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<Transaction> EthGetTransactionByBlockNumberAndIndexAsync(string blockNumber, int index)
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string, int, Transaction>("eth_getTransactionByBlockNumberAndIndex", blockNumber, index);
+        var response = await _transport.SendRpcRequest<string, int, Transaction>("eth_getTransactionByBlockNumberAndIndex", blockNumber, index);
         return response switch
         {
             RpcResult<Transaction>.Success result => result.Result,
@@ -245,7 +246,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<TransactionReceipt> EthGetTransactionReceiptAsync(string transactionHash)
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string, TransactionReceipt>("eth_getTransactionReceipt", transactionHash);
+        var response = await _transport.SendRpcRequest<string, TransactionReceipt>("eth_getTransactionReceipt", transactionHash);
         return response switch
         {
             RpcResult<TransactionReceipt>.Success result => result.Result,
@@ -256,7 +257,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<Uncle?> EthGetUncleByBlockHashAndIndexAsync(string blockHash, int uncleIndex)
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string, int, Uncle>("eth_getUncleByBlockHashAndIndex", blockHash, uncleIndex);
+        var response = await _transport.SendRpcRequest<string, int, Uncle>("eth_getUncleByBlockHashAndIndex", blockHash, uncleIndex);
         return response switch
         {
             RpcResult<Uncle>.Success result => result.Result,
@@ -265,13 +266,9 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
             _ => throw new NotImplementedException(),
         };
     }
-
-    public Task<Uncle?> EthGetUncleByBlockNumberAndIndexAsync(BigInteger height, uint uncleIndex)
-     => EthGetUncleByBlockNumberAndIndexAsync(TargetBlockNumber.Height(height), uncleIndex);
-
     public async Task<Uncle?> EthGetUncleByBlockNumberAndIndexAsync(TargetBlockNumber targetBlockNumber, uint uncleIndex)
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string, uint, Uncle>("eth_getUncleByBlockNumberAndIndex", targetBlockNumber.ToString(), uncleIndex);
+        var response = await _transport.SendRpcRequest<string, uint, Uncle>("eth_getUncleByBlockNumberAndIndex", targetBlockNumber.ToString(), uncleIndex);
         return response switch
         {
             RpcResult<Uncle>.Success result => result.Result,
@@ -286,7 +283,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
     public async Task<string> EthNewFilterAsync(string? fromBlock, string? toBlock, string? address, string[]? topics)
     {
         var filterOptions = new NewFilterOption(fromBlock, toBlock, address, topics);
-        var response = await _jsonRpcClient.SendRpcRequest<NewFilterOption, string>("eth_newFilter", filterOptions);
+        var response = await _transport.SendRpcRequest<NewFilterOption, string>("eth_newFilter", filterOptions);
         return response switch
         {
             RpcResult<string>.Success result => result.Result,
@@ -297,7 +294,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<string> EthNewBlockFilterAsync()
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string>("eth_newBlockFilter");
+        var response = await _transport.SendRpcRequest<string>("eth_newBlockFilter");
         return response switch
         {
             RpcResult<string>.Success result => result.Result,
@@ -308,7 +305,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<string> EthNewPendingTransactionFilterAsync()
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string>("eth_newPendingTransactionFilter");
+        var response = await _transport.SendRpcRequest<string>("eth_newPendingTransactionFilter");
         return response switch
         {
             RpcResult<string>.Success result => result.Result,
@@ -319,7 +316,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
 
     public async Task<bool> EthUninstallFilterAsync(string filterIDString)
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string, bool>("eth_uninstallFilter", filterIDString);
+        var response = await _transport.SendRpcRequest<string, bool>("eth_uninstallFilter", filterIDString);
         return response switch
         {
             RpcResult<bool>.Success result => result.Result,
@@ -331,7 +328,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
         => EthGetPendingTransactionFilterChangesAsync(filterID);
     public async Task<List<string?>> EthGetPendingTransactionFilterChangesAsync(string filterID)
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string, List<string?>>("eth_getFilterChanges", filterID);
+        var response = await _transport.SendRpcRequest<string, List<string?>>("eth_getFilterChanges", filterID);
         return response switch
         {
             RpcResult<List<string?>>.Success result => result.Result,
@@ -341,7 +338,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
     }
     public async Task<EventFilterChangesResult[]> EthGetEventFilterChangesAsync(string filterID)
     {
-        var response = await _jsonRpcClient.SendRpcRequest<string, EventFilterChangesResult[]>("eth_getFilterChanges", filterID);
+        var response = await _transport.SendRpcRequest<string, EventFilterChangesResult[]>("eth_getFilterChanges", filterID);
         return response switch
         {
             RpcResult<EventFilterChangesResult[]>.Success result => result.Result,
@@ -355,7 +352,7 @@ internal class EvmRpcClient(JsonRpcClient jsonRpcClient)
     public async Task<Log[]> EthGetLogsAsync(TargetBlockNumber? fromBlock, TargetBlockNumber? toBlock, string address, Topics[] topics, byte[]? blockHash)
     {
         var filterOptions = new FilterOptions(fromBlock, toBlock, address, topics, blockHash);
-        var response = await _jsonRpcClient.SendRpcRequest<FilterOptions, Log[]>("eth_getLogs", filterOptions);
+        var response = await _transport.SendRpcRequest<FilterOptions, Log[]>("eth_getLogs", filterOptions);
         return response switch
         {
             RpcResult<Log[]>.Success result => result.Result,

@@ -1,6 +1,8 @@
 ﻿using BenchmarkDotNet.Attributes;
 using EtherSharp.Client;
 using EtherSharp.Contract;
+using EtherSharp.Transport;
+using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Nethereum.ABI;
 using Nethereum.Contracts.Standards.ERC20.ContractDefinition;
@@ -22,15 +24,15 @@ public class TransactionBenchmark
     private readonly Transaction1559Signer _signer;
     private readonly EthECKey _ethEcKey;
 
-    public TransactionBenchmark()
-    {
-        _signer = new Transaction1559Signer();
-        _evmRpcClient = new EtherClientBuilder()
-            .WithRPCUrl(_mockRpc)
-            .WithSigner(new EtherHdWallet(_privateKey))
-            .BuildTxClient();
-        _ethEcKey = new EthECKey(_privateKey);
-    }
+    //public TransactionBenchmark()
+    //{
+    //    _signer = new Transaction1559Signer();
+    //    _evmRpcClient = new EtherClientBuilder()
+    //        .WithRPCTransport()
+    //        .WithSigner(new EtherHdWallet(_privateKey))
+    //        .BuildTxClient();
+    //    _ethEcKey = new EthECKey(_privateKey);
+    //}
 
     //[Benchmark]
     //public string NetheriumTX()

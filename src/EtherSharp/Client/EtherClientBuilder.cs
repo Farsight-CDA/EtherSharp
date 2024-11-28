@@ -3,26 +3,21 @@ using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Contract;
 using EtherSharp.RPC;
+using EtherSharp.Transport;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection.Emit;
 
 namespace EtherSharp.Client;
 public class EtherClientBuilder
 {
     private readonly IServiceCollection _services = new ServiceCollection();
 
-    private Uri? _rpcUrl;
+    private IRPCTransport? _transport;
     private Action<ContractFactory>? _contractConfigurationAction;
 
-    public EtherClientBuilder WithRPCUrl(Uri rpcUrl)
+    public EtherClientBuilder WithRPCTransport(IRPCTransport transport)
     {
-        _rpcUrl = rpcUrl;
-        return this;
-    }
-    public EtherClientBuilder WithRPCUrl(string rpcURl)
-    {
-        _rpcUrl = new Uri(rpcURl, UriKind.Absolute);
+        _transport = transport;
         return this;
     }
 
@@ -54,19 +49,13 @@ public class EtherClientBuilder
 
     private void AssertReadClientConfiguration()
     {
-        if(_rpcUrl is null)
+        if(_transport is null)
         {
-            throw new InvalidOperationException($"No RPCUrl configured. Call the {nameof(WithRPCUrl)} method prior to {nameof(BuildReadClient)}.");
+            throw new InvalidOperationException($"No RPCTransport configured. Call the {nameof(WithRPCTransport)} method prior to {nameof(BuildReadClient)}.");
         }
 
-        var evmRpcClient = new EvmRpcClient(
-            new JsonRpcClient(
-                new HttpClient(),
-                _rpcUrl!
-            )
-        );
-
-        _services.AddSingleton(evmRpcClient);
+        _services.AddSingleton(_transport);
+        _services.AddSingleton<EvmRpcClient>();
         _services.AddSingleton<ContractFactory>();
     }
     public IEtherClient BuildReadClient()
