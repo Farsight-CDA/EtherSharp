@@ -17,6 +17,11 @@ public class HttpJsonRpcTransport : IRPCTransport
         };
     }
 
+    public HttpJsonRpcTransport(string rpcUrl)
+        : this(new Uri(rpcUrl, UriKind.Absolute))
+    {
+    }
+
     private record RpcError(int Code, string Message);
     private record JsonRpcResponse<T>([property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
 

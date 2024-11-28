@@ -39,14 +39,11 @@ public class ContractSourceWriter
             var func = isQuery switch
             {
                 true => GenerateQueryFunction(member),
-                _ => null
+                false => GenerateMessageFunction(member)
             };
 
-            if (func is not null)
-            {
-                contractInterface.AddFunction(func);
-                contractImplementation.AddFunction(func);
-            }
+            contractInterface.AddFunction(func);
+            contractImplementation.AddFunction(func);
         }
 
         return
@@ -74,7 +71,7 @@ public class ContractSourceWriter
 
         func.AddStatement(
         $"""
-        var encoder = new EtherSharp.ABI.AbiEncoder();
+        var encoder = new EtherSharp.ABI.AbiEncoder()
         """);
 
         foreach(var input in queryFunction.Inputs)
@@ -99,8 +96,68 @@ public class ContractSourceWriter
             },
             EtherSharp.Types.Address.FromString(ContractAddress),
             0
-        ));
+        ))
         """);
+
+        return func;
+    }
+
+    private FunctionBuilder GenerateMessageFunction(FunctionAbiMember messageFunction)
+    {
+        string functionName = NameUtils.ToValidFunctionName($"{messageFunction.Name}");
+
+        var func = new FunctionBuilder(functionName)
+            .WithVisibility(FunctionVisibility.Public);
+
+        func.AddStatement(
+        $"""
+        var encoder = new EtherSharp.ABI.AbiEncoder()
+        """);
+
+        foreach(var input in messageFunction.Inputs)
+        {
+            func.AddArgument(
+                GetCSharpEquivalentType(input),
+                input.Name
+            );
+
+            func.AddStatement($"encoder.{GetABIEncodingMethodName(input)}({input.Name})");
+        }
+
+        switch(messageFunction.Outputs.Length)
+        {
+            case 0:
+                func.WithReturnTypeRaw("EtherSharp.Tx.TxInput");
+                func.AddStatement(
+                $$"""
+                return EtherSharp.Tx.TxInput.ForContractCall(
+                    EtherSharp.Types.Address.FromString(ContractAddress),
+                    0,
+                    {{GetFunctionSignatureFieldName(messageFunction)}},
+                    encoder
+                )
+                """);
+                break;
+            case 1:
+                func.WithReturnTypeRaw($"EtherSharp.Tx.TxInput<{GetCSharpEquivalentType(messageFunction.Outputs[0])}>");
+                func.AddStatement(
+                $$"""
+                return new EtherSharp.Tx.TxInput<{{GetCSharpEquivalentType(messageFunction.Outputs[0])}}>(
+                    {{GetFunctionSignatureFieldName(messageFunction)}},
+                    encoder,
+                    decoder =>
+                    {
+                        _ = decoder.{{GetABIEncodingMethodName(messageFunction.Outputs[0])}}(out var val);
+                        return val;
+                    },
+                    EtherSharp.Types.Address.FromString(ContractAddress),
+                    0
+                )a
+                """);
+                break;
+            default:
+                throw new NotSupportedException();
+        }
 
         return func;
     }
@@ -109,6 +166,8 @@ public class ContractSourceWriter
         => abiMember.Type switch
         {
             "address" => typeof(string).FullName,
+            "string" => typeof(string).FullName,
+            "bool" => typeof(bool).FullName,
             string s when s.StartsWith("uint") && int.TryParse(s.Substring(4), out int bitSize) 
                 => bitSize % 8 != 0
                     ? throw new NotSupportedException("uint bitsize must be multiple of 8")
@@ -133,7 +192,6 @@ public class ContractSourceWriter
                         <= 64 => typeof(long).FullName,
                         _ => typeof(BigInteger).FullName,
                     },
-            "string" => "string",
             _ => throw new NotSupportedException($"Solidity type {abiMember.Type} is not supported")
         };
 

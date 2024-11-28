@@ -129,8 +129,10 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-    private Task<string> SendAsync<T>(TxInput<T> call)
-        => _txScheduler.PublishTxAsync(new EIP1559TxParams(1, 1, 1, []), call);
+    public Task<string> SendAsync<T>(TxInput<T> call)
+        => _txScheduler.PublishTxAsync(new EIP1559TxParams(100000, 10000000000, 10000000000, []), call);
+    public Task<string> SendAsync(TxInput call)
+        => _txScheduler.PublishTxAsync(new EIP1559TxParams(100000, 10000000000, 10000000000, []), call);
 
     Task<BigInteger> IEtherClient.GetBalanceAsync(string address, TargetBlockNumber targetHeight) => GetBalanceAsync(address, targetHeight);
     Task<int> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) => GetTransactionCount(address, targetHeight);

@@ -1,4 +1,5 @@
-﻿using EtherSharp.Client.Services.TxPublisher;
+﻿using EtherSharp.Client.Services;
+using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Contract;
@@ -57,6 +58,20 @@ public class EtherClientBuilder
         _services.AddSingleton(_transport);
         _services.AddSingleton<EvmRpcClient>();
         _services.AddSingleton<ContractFactory>();
+
+        foreach(var service in _services.ToArray())
+        {
+            var serviceType = service.ImplementationType
+                ?? service.ImplementationInstance?.GetType()
+                ?? service.ServiceType;
+
+            if (serviceType.GetInterface(nameof(IInitializableService)) is null)
+            {
+                continue;
+            }
+
+            _services.AddSingleton(typeof(IInitializableService), provider => provider.GetRequiredService(service.ServiceType));
+        }
     }
     public IEtherClient BuildReadClient()
     {

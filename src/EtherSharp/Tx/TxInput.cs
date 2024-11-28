@@ -7,27 +7,41 @@ namespace EtherSharp.Tx;
 
 public class TxInput : ITxInput
 {
+    private readonly ReadOnlyMemory<byte>? _functionSignature;
     private readonly AbiEncoder? _encoder;
 
     public Address To { get; }
     public BigInteger Value { get; }
 
-    int ITxInput.DataLength => _encoder?.Size ?? 0;
+    int ITxInput.DataLength 
+        => _functionSignature.HasValue ? _functionSignature.Value.Length : 0 
+            + _encoder?.Size ?? 0;
 
-    internal TxInput(AbiEncoder abiEncoder, Address to, BigInteger value)
+    private TxInput(Address to, BigInteger value, ReadOnlyMemory<byte> functionSignature, AbiEncoder? abiEncoder)
     {
-        _encoder = abiEncoder;
         To = to;
         Value = value;
+        _functionSignature = functionSignature;
+        _encoder = abiEncoder;
     }
+
+    public static TxInput ForContractCall(Address contractAddress, ReadOnlyMemory<byte> functionSignature, BigInteger value, AbiEncoder? abiEncoder) 
+        => new TxInput(contractAddress, value, functionSignature, abiEncoder);
 
     void ITxInput.WriteDataTo(Span<byte> destination)
     {
+        if (!_functionSignature.HasValue)
+        {
+            return;
+        }
+
+        _functionSignature.Value.Span.CopyTo(destination);
+        
         if (_encoder is null)
         {
             return;
         }
-        if(!_encoder.TryWritoTo(destination))
+        if(!_encoder.TryWritoTo(destination[_functionSignature.Value.Span.Length..]))
         {
             throw new InvalidOperationException("Failed to write TxInput");
         }

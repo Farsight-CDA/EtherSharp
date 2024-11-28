@@ -1,6 +1,10 @@
-﻿namespace EtherSharp.Client.Services.TxPublisher;
-public class BasicTxPublisher : ITxPublisher
+﻿using EtherSharp.RPC;
+
+namespace EtherSharp.Client.Services.TxPublisher;
+public class BasicTxPublisher(EvmRpcClient rpcClient) : ITxPublisher
 {
+    private readonly EvmRpcClient _rpcClient = rpcClient;
+
     public Task<string> PublishTxAsync(string transactionHex)
-        => throw new NotImplementedException();
+        => _rpcClient.EthSendRawTransactionAsync(transactionHex);
 }

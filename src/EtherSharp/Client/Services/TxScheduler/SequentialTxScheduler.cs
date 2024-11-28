@@ -39,6 +39,7 @@ public class SequentialTxScheduler : ITxScheduler, IInitializableService, IDispo
     public ValueTask InitializeAsync(ulong chainId)
     {
         _chainId = chainId;
+        _ = Task.Run(BackgroundTxProcessor);
         return ValueTask.CompletedTask;
     }
 
@@ -125,7 +126,7 @@ public class SequentialTxScheduler : ITxScheduler, IInitializableService, IDispo
 
         var signedTxBuffer = txBuffer[..^(TxRLPEncoder.MaxEncodedSignatureLength - signatureLength)];
 
-        return Convert.ToHexString(signedTxBuffer);
+        return $"0x{Convert.ToHexString(signedTxBuffer)}";
     }
 
     internal void SignAndEncode(Span<byte> txTemplateBuffer, Span<byte> signatureBuffer, out int encodedSignatureLength)

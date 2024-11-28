@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace EtherSharp.RPC;
 
-internal class EvmRpcClient(IRPCTransport transport)
+public class EvmRpcClient(IRPCTransport transport)
 {
     private readonly IRPCTransport _transport = transport;
 
