@@ -1,8 +1,8 @@
 ﻿using EtherSharp.Client.Services;
+using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common.Extensions;
-using EtherSharp.Contract;
 using EtherSharp.RPC;
 using EtherSharp.Transport;
 using EtherSharp.Wallet;
@@ -14,7 +14,7 @@ public class EtherClientBuilder
     private readonly IServiceCollection _services = new ServiceCollection();
 
     private IRPCTransport? _transport;
-    private Action<ContractFactory>? _contractConfigurationAction;
+    private Action<IContractFactory>? _contractConfigurationAction;
 
     public EtherClientBuilder WithRPCTransport(IRPCTransport transport)
     {
@@ -42,7 +42,7 @@ public class EtherClientBuilder
         return this;
     }
 
-    public EtherClientBuilder WithContractConfiguration(Action<ContractFactory> contractSetupAction)
+    public EtherClientBuilder WithContractConfiguration(Action<IContractFactory> contractSetupAction)
     {
         _contractConfigurationAction = contractSetupAction;
         return this;

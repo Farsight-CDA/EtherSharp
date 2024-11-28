@@ -1,10 +1,10 @@
-﻿using EtherSharp.Client;
+﻿using EtherSharp.Contract;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace EtherSharp.Contract;
-public class ContractFactory(IEtherClient etherClient)
+namespace EtherSharp.Client.Services.ContractFactory;
+internal class ContractFactory(IEtherClient etherClient) : IContractFactory
 {
     private readonly Lock _lock = new Lock();
     private readonly IEtherClient _etherClient = etherClient;
@@ -12,7 +12,7 @@ public class ContractFactory(IEtherClient etherClient)
 
     public TContract Create<TContract>(string contractAddress)
     {
-        if (!_factoryDelegates.TryGetValue(typeof(TContract), out var factoryDelegate))
+        if(!_factoryDelegates.TryGetValue(typeof(TContract), out var factoryDelegate))
         {
             factoryDelegate = GetContractFactoryDelegate(typeof(TContract));
             lock(_lock)

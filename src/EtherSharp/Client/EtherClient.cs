@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Services;
+using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
 using EtherSharp.RPC;
