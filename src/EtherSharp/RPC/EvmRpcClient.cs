@@ -34,11 +34,11 @@ public class EvmRpcClient(IRPCTransport transport)
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<int> EthGetTransactionCount(string address, TargetBlockNumber blockNumber)
-        => await _transport.SendRpcRequest<string, string, int>("eth_getTransactionCount", address, blockNumber.ToString()) switch
+    public async Task<uint> EthGetTransactionCount(string address, TargetBlockNumber blockNumber)
+        => await _transport.SendRpcRequest<string, string, uint>("eth_getTransactionCount", address, blockNumber.ToString()) switch
         {
-            RpcResult<int>.Success result => result.Result,
-            RpcResult<int>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<uint>.Success result => result.Result,
+            RpcResult<uint>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
 
