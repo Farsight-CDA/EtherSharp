@@ -79,7 +79,6 @@ public class BlockingSequentialTxScheduler : ITxScheduler
     private async Task ProcessTxAsync(QueueEntry entry)
     {
         var (txParams, txInput, tcs) = entry;
-
         uint nextNonce = Interlocked.Increment(ref _nonce);
 
         string callData = txParams switch

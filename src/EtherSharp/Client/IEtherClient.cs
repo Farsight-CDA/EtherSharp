@@ -12,7 +12,7 @@ public interface IEtherClient
 
     public Task<BigInteger> GetBalanceAsync(string address, TargetBlockNumber targetHeight = default);
 
-    public Task<int> GetTransactionCount(string address, TargetBlockNumber targetHeight = default);
+    public Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default);
 
     public TContract Contract<TContract>(string address)
         where TContract : IContract;

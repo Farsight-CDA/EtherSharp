@@ -87,7 +87,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
         return _evmRPCClient.EthGetBalance(address, targetHeight);
     }
 
-    private Task<int> GetTransactionCount(string address, TargetBlockNumber targetHeight = default)
+    private Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default)
     {
         AssertReady();
         return _evmRPCClient.EthGetTransactionCount(address, targetHeight);
@@ -130,13 +130,11 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-    public Task<string> SendAsync<T>(TxInput<T> call)
-        => _txScheduler.PublishTxAsync(new EIP1559TxParams(100000, 10000000000, 10000000000, []), call);
-    public Task<string> SendAsync(TxInput call)
-        => _txScheduler.PublishTxAsync(new EIP1559TxParams(100000, 10000000000, 10000000000, []), call);
+    public Task<string> SendAsync<T>(ITxInput call, ulong gas, BigInteger maxFeePerGas, BigInteger maxPriorityFeePerGas)
+        => _txScheduler.PublishTxAsync(new EIP1559TxParams(gas, maxFeePerGas, maxPriorityFeePerGas, []), call);
 
     Task<BigInteger> IEtherClient.GetBalanceAsync(string address, TargetBlockNumber targetHeight) => GetBalanceAsync(address, targetHeight);
-    Task<int> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) => GetTransactionCount(address, targetHeight);
+    Task<uint> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) => GetTransactionCount(address, targetHeight);
     TContract IEtherClient.Contract<TContract>(string address) 
         => Contract<TContract>(address);
     Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight) => CallAsync(call, targetHeight);
