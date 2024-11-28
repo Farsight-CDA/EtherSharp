@@ -179,7 +179,6 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
             metadataOffset += 32;
         }
 
-        _entries.Clear();
         return true;
     }
 
