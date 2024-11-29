@@ -17,7 +17,7 @@ internal class EtherApi(EvmRpcClient rpcClient, IServiceProvider provider) : IEt
         => _rpcClient.EthGetBalance(address.String, blockNumber);
     public Task<BigInteger> GetMyBalanceAsync(TargetBlockNumber blockNumber)
         => _rpcClient.EthGetBalance(
-            _provider.GetService<IEtherSigner>()?.Address?.String ?? throw new InvalidOperationException("Client is not a tx client")
+            _provider.GetService<IEtherSigner>()?.Address?.String ?? throw new InvalidOperationException("Client is not a tx client"),
             blockNumber
         );
     public TxInput Transfer(string receiver, BigInteger amount)
