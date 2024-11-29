@@ -35,7 +35,7 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
     private ulong _chainId;
     private uint _nonceCounter;
 
-    public BlockingSequentialTxScheduler(IRpcClient rpcClient, IEtherSigner signer, 
+    public BlockingSequentialTxScheduler(IRpcClient rpcClient, IEtherSigner signer,
         ITxPublisher txPublisher, ITxConfirmer txConfirmer, IGasFeeProvider gasFeeProvider)
     {
         _queue = Channel.CreateUnbounded<QueueEntry>(new UnboundedChannelOptions()
@@ -184,7 +184,7 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
     }
 
     private string EncodeCallData<TTransaction, TTxParams, TTxGasParams>(
-        ITxInput txInput, TTxParams txParams, TTxGasParams txGasParams, 
+        ITxInput txInput, TTxParams txParams, TTxGasParams txGasParams,
         ReadOnlySpan<byte> dataBuffer,
         uint nonce, ulong gas
     )

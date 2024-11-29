@@ -6,7 +6,7 @@ namespace EtherSharp.Client.Services.TxScheduler;
 public interface ITxScheduler
 {
     public Task<TransactionReceipt> PublishTxAsync<TTxParams>(
-        TTxParams txParams, ITxInput txInput, 
+        TTxParams txParams, ITxInput txInput,
         Func<ValueTask<TxTimeoutAction>> onTxTimeout
     ) where TTxParams : ITxParams;
 }

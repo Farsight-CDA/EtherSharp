@@ -10,7 +10,6 @@ using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
-using static EtherSharp.Client.Services.RPC.EvmRpcClient;
 
 namespace EtherSharp.Client;
 public class EtherClient : IEtherClient, IEtherTxClient
@@ -167,12 +166,12 @@ public class EtherClient : IEtherClient, IEtherTxClient
         return _txScheduler.PublishTxAsync(new EIP1559TxParams([]), call, () => ValueTask.FromResult(onTxTimeout()));
     }
 
-    TContract IEtherClient.Contract<TContract>(string address) 
+    TContract IEtherClient.Contract<TContract>(string address)
         => Contract<TContract>(address);
-    Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight) 
+    Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight)
         => CallAsync(call, targetHeight);
-    
-    Task<uint> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) 
+
+    Task<uint> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight)
         => GetTransactionCount(address, targetHeight);
 
 }

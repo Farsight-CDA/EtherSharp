@@ -83,7 +83,7 @@ public class EtherClientBuilder
                 ?? service.ImplementationInstance?.GetType()
                 ?? service.ServiceType;
 
-            if (serviceType.GetInterface(nameof(IInitializableService)) is null)
+            if(serviceType.GetInterface(nameof(IInitializableService)) is null)
             {
                 continue;
             }

@@ -13,8 +13,8 @@ public class TxInput : ITxInput
     public Address To { get; }
     public BigInteger Value { get; }
 
-    int ITxInput.DataLength 
-        => _functionSignature.HasValue ? _functionSignature.Value.Length : 0 
+    int ITxInput.DataLength
+        => _functionSignature.HasValue ? _functionSignature.Value.Length : 0
             + _encoder?.Size ?? 0;
 
     private TxInput(Address to, BigInteger value, ReadOnlyMemory<byte>? functionSignature, AbiEncoder? abiEncoder)
@@ -25,7 +25,7 @@ public class TxInput : ITxInput
         _encoder = abiEncoder;
     }
 
-    public static TxInput ForContractCall(Address contractAddress, ReadOnlyMemory<byte> functionSignature, BigInteger value, AbiEncoder? abiEncoder) 
+    public static TxInput ForContractCall(Address contractAddress, ReadOnlyMemory<byte> functionSignature, BigInteger value, AbiEncoder? abiEncoder)
         => new TxInput(contractAddress, value, functionSignature, abiEncoder);
 
     public static TxInput ForEthTransfer(Address receiver, BigInteger amount)
@@ -33,14 +33,14 @@ public class TxInput : ITxInput
 
     void ITxInput.WriteDataTo(Span<byte> destination)
     {
-        if (!_functionSignature.HasValue)
+        if(!_functionSignature.HasValue)
         {
             return;
         }
 
         _functionSignature.Value.Span.CopyTo(destination);
-        
-        if (_encoder is null)
+
+        if(_encoder is null)
         {
             return;
         }

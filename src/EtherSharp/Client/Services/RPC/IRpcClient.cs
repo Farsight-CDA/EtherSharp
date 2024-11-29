@@ -1,6 +1,5 @@
 ﻿using EtherSharp.Types;
 using System.Numerics;
-using static EtherSharp.Client.Services.RPC.EvmRpcClient;
 
 namespace EtherSharp.Client.Services.RPC;
 public interface IRpcClient

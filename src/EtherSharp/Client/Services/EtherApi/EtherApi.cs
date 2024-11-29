@@ -12,7 +12,7 @@ internal class EtherApi(IRpcClient rpcClient, IServiceProvider provider) : IEthe
     private readonly IServiceProvider _provider = provider;
 
     public Task<BigInteger> GetBalanceAsync(string address, TargetBlockNumber blockNumber)
-        => _rpcClient.EthGetBalance(address, blockNumber); 
+        => _rpcClient.EthGetBalance(address, blockNumber);
     public Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber blockNumber)
         => _rpcClient.EthGetBalance(address.String, blockNumber);
     public Task<BigInteger> GetMyBalanceAsync(TargetBlockNumber blockNumber)

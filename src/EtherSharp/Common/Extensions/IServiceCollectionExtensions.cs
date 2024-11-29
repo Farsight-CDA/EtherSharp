@@ -7,8 +7,8 @@ internal static class IServiceCollectionExtensions
         where TImplementation : class, TService
         where TService : class
     {
-        var descriptor = services.FirstOrDefault(x => x.ServiceType == typeof(TService)); 
-        if (descriptor is not null)
+        var descriptor = services.FirstOrDefault(x => x.ServiceType == typeof(TService));
+        if(descriptor is not null)
         {
             services.Remove(descriptor);
         }

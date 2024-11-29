@@ -26,7 +26,7 @@ public class PollingTxConfirmer : ITxConfirmer
 
             var receipt = await _rpcClient.EthGetTransactionReceiptAsync(txHash);
 
-            if (receipt is null)
+            if(receipt is null)
             {
                 continue;
             }
