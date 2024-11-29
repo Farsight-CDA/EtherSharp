@@ -1,16 +1,16 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.EtherApi;
+using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
-using EtherSharp.RPC;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
-using static EtherSharp.RPC.EvmRpcClient;
+using static EtherSharp.Client.Services.RPC.EvmRpcClient;
 
 namespace EtherSharp.Client;
 public class EtherClient : IEtherClient, IEtherTxClient
@@ -19,7 +19,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
     private readonly bool _isTxClient;
 
     private EtherApi _etherApi = null!;
-    private EvmRpcClient _evmRPCClient = null!;
+    private IRpcClient _rpcClient = null!;
     private IEtherSigner _signer = null!;
     private ITxScheduler _txScheduler = null!;
     private ContractFactory _contractFactory = null!;
@@ -83,7 +83,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
         }
 
         _etherApi = _provider.GetRequiredService<EtherApi>();
-        _evmRPCClient = _provider.GetRequiredService<EvmRpcClient>();
+        _rpcClient = _provider.GetRequiredService<IRpcClient>();
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
 
         if(_isTxClient)
@@ -92,7 +92,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
             _txScheduler = _provider.GetRequiredService<ITxScheduler>();
         }
 
-        _chainId = await _evmRPCClient.EthChainId();
+        _chainId = await _rpcClient.EthChainId();
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
         {
@@ -105,13 +105,13 @@ public class EtherClient : IEtherClient, IEtherTxClient
     private Task<BigInteger> GetBalanceAsync(string address, TargetBlockNumber targetHeight = default)
     {
         AssertReady();
-        return _evmRPCClient.EthGetBalance(address, targetHeight);
+        return _rpcClient.EthGetBalance(address, targetHeight);
     }
 
     private Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default)
     {
         AssertReady();
-        return _evmRPCClient.EthGetTransactionCount(address, targetHeight);
+        return _rpcClient.EthGetTransactionCount(address, targetHeight);
     }
 
     private TContract Contract<TContract>(string contractAddress)
@@ -133,7 +133,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
             ? _signer.Address.String
             : null;
 
-        var result = await _evmRPCClient.EthCallAsync(
+        var result = await _rpcClient.EthCallAsync(
             sender,
             call.To.String,
             null,
@@ -145,8 +145,8 @@ public class EtherClient : IEtherClient, IEtherTxClient
 
         return result switch
         {
-            ContractReturn.Success s => call.ReadResultFrom(s.Data),
-            ContractReturn.Reverted => throw new Exception("Call reverted"),
+            TxCallResult.Success s => call.ReadResultFrom(s.Data),
+            TxCallResult.Reverted => throw new Exception("Call reverted"),
             _ => throw new NotImplementedException()
         };
     }

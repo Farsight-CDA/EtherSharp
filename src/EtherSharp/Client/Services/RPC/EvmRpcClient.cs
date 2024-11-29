@@ -3,10 +3,11 @@ using EtherSharp.Transport;
 using EtherSharp.Types;
 using System.Globalization;
 using System.Numerics;
+using System.Text.RegularExpressions;
 
-namespace EtherSharp.RPC;
+namespace EtherSharp.Client.Services.RPC;
 
-public class EvmRpcClient(IRPCTransport transport)
+internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
 {
     private readonly IRPCTransport _transport = transport;
 
@@ -84,13 +85,8 @@ public class EvmRpcClient(IRPCTransport transport)
     private record TransactionEthCall(string? From, string To, uint? Gas, BigInteger? GasPrice, int? Value, string? Data);
     private record FakeAccountData(string? Balance, string? Nonce, string? Code, object? State, int? StateDiff);
 
-    public record ContractReturn
-    {
-        public record Reverted : ContractReturn;
-        public record Success(byte[] Data) : ContractReturn;
-    }
-
-    public async Task<ContractReturn> EthCallAsync(string? from, string to, uint? gas, BigInteger? gasPrice, int? value, string? data, TargetBlockNumber blockNumber)
+    public async Task<TxCallResult> EthCallAsync(
+        string? from, string to, uint? gas, BigInteger? gasPrice, int? value, string? data, TargetBlockNumber blockNumber)
     {
         TransactionEthCall transaction = new(from, to, gas, gasPrice, value, data);
 
@@ -98,23 +94,53 @@ public class EvmRpcClient(IRPCTransport transport)
 
         return response switch
         {
-            RpcResult<byte[]>.Success result => new ContractReturn.Success(result.Result),
+            RpcResult<byte[]>.Success result => new TxCallResult.Success(result.Result),
             RpcResult<byte[]>.Error error => error.Message == "execution reverted" && error.Code == -32000
-                ? new ContractReturn.Reverted()
+                ? new TxCallResult.Reverted()
                 : throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }
 
-    public async Task<string> EthSendRawTransactionAsync(string transaction)
+    public async Task<TxSubmissionResult> EthSendRawTransactionAsync(string transaction)
     {
         var response = await _transport.SendRpcRequest<string, string>("eth_sendRawTransaction", transaction);
         return response switch
         {
-            RpcResult<string>.Success result => result.Result,
-            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<string>.Success result => new TxSubmissionResult.Success(result.Result),
+            RpcResult<string>.Error error => error.Code != -32000
+                ? throw RPCException.FromRPCError(error)
+                : ParseTxSubmissionError(error.Message),
             _ => throw new NotImplementedException(),
         };
+    }
+    private TxSubmissionResult ParseTxSubmissionError(string message)
+    {
+        if(TryParseNonceTooLow(message, out var result))
+        {
+            return result;
+        }
+        //
+        return new TxSubmissionResult.Failure(message);
+    }
+
+    [GeneratedRegex("nonce too low: next nonce (\\d+), tx nonce (\\d+)")]
+    private partial Regex NonceTooLowRegex { get; }
+    private bool TryParseNonceTooLow(string message, out TxSubmissionResult.NonceTooLow result)
+    {
+        var match = NonceTooLowRegex.Match(message);
+
+        if(!match.Success)
+        {
+            result = null!;
+            return false;
+        }
+
+        result = new TxSubmissionResult.NonceTooLow(
+            uint.Parse(match.Groups[2].ValueSpan),
+            uint.Parse(match.Groups[1].ValueSpan)
+        );
+        return true;
     }
 
     public async Task<BigInteger> EthGasPriceAsync()
@@ -123,7 +149,7 @@ public class EvmRpcClient(IRPCTransport transport)
         switch(response)
         {
             case RpcResult<string>.Success result:
-                Span<byte> buffer = stackalloc byte[(result.Result.Length / 2) - 1];
+                Span<byte> buffer = stackalloc byte[result.Result.Length / 2 - 1];
                 Convert.FromHexString(result.Result.AsSpan()[2..], buffer, out _, out _);
                 return new BigInteger(buffer, true, true);
             case RpcResult<string>.Error error:
@@ -139,7 +165,7 @@ public class EvmRpcClient(IRPCTransport transport)
         switch(response)
         {
             case RpcResult<string>.Success result:
-                Span<byte> buffer = stackalloc byte[(result.Result.Length / 2) - 1];
+                Span<byte> buffer = stackalloc byte[result.Result.Length / 2 - 1];
                 Convert.FromHexString(result.Result.AsSpan()[2..], buffer, out _, out _);
                 return new BigInteger(buffer, true, true);
             case RpcResult<string>.Error error:

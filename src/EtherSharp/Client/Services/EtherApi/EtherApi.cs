@@ -1,4 +1,4 @@
-﻿using EtherSharp.RPC;
+﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
@@ -6,9 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
 
 namespace EtherSharp.Client.Services.EtherApi;
-internal class EtherApi(EvmRpcClient rpcClient, IServiceProvider provider) : IEtherTxApi
+internal class EtherApi(IRpcClient rpcClient, IServiceProvider provider) : IEtherTxApi
 {
-    private readonly EvmRpcClient _rpcClient = rpcClient;
+    private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IServiceProvider _provider = provider;
 
     public Task<BigInteger> GetBalanceAsync(string address, TargetBlockNumber blockNumber)

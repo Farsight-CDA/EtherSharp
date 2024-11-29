@@ -1,13 +1,13 @@
-﻿using EtherSharp.RPC;
+﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
 
 namespace EtherSharp.Client.Services.GasFeeProvider;
-public class BasicGasFeeProvider(EvmRpcClient rpcClient, IEtherSigner signer) : IGasFeeProvider
+public class BasicGasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : IGasFeeProvider
 {
-    private readonly EvmRpcClient _rpcClient = rpcClient;
+    private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IEtherSigner _signer = signer;
 
     public Task<ulong> EstimateGasAsync(ITxInput txInput, ReadOnlySpan<byte> data) 

@@ -1,10 +1,10 @@
 ﻿using EtherSharp.Client.Services.GasFeeProvider;
+using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxConfirmer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Crypto;
 using EtherSharp.RLP;
-using EtherSharp.RPC;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Types;
@@ -24,7 +24,7 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
 {
     private readonly Channel<QueueEntry> _queue;
 
-    private readonly EvmRpcClient _rpcClient;
+    private readonly IRpcClient _rpcClient;
     private readonly IEtherSigner _signer;
     private readonly ITxPublisher _txPublisher;
     private readonly ITxConfirmer _txConfirmer;
@@ -35,7 +35,7 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
     private ulong _chainId;
     private uint _nonceCounter;
 
-    public BlockingSequentialTxScheduler(EvmRpcClient rpcClient, IEtherSigner signer, 
+    public BlockingSequentialTxScheduler(IRpcClient rpcClient, IEtherSigner signer, 
         ITxPublisher txPublisher, ITxConfirmer txConfirmer, IGasFeeProvider gasFeeProvider)
     {
         _queue = Channel.CreateUnbounded<QueueEntry>(new UnboundedChannelOptions()
@@ -55,7 +55,7 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
     public async ValueTask InitializeAsync(ulong chainId)
     {
         _chainId = chainId;
-        _nonceCounter = await _rpcClient.EthGetTransactionCount(_signer.Address.String, TargetBlockNumber.Latest) - 10;
+        _nonceCounter = await _rpcClient.EthGetTransactionCount(_signer.Address.String, TargetBlockNumber.Latest) - 1;
 
         _ = Task.Run(BackgroundTxProcessor);
     }
@@ -89,15 +89,43 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
 
     private async Task ProcessTxAsync(QueueEntry entry)
     {
-        var (txParams, txInput, onTxTimeout, tcs) = entry;
+        var (txParams, txInput, _, _) = entry;
         uint nonce = Interlocked.Increment(ref _nonceCounter);
 
-        string txHash = txParams switch
+        while(true)
         {
-            EIP1559TxParams eip1559Params 
-                => await EncodeAndPublishTransactionAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(eip1559Params, txInput, nonce),
-            _ => throw new NotSupportedException($"TxParams type {txParams.GetType().Name} is not supported")
-        };
+            var submissionResult = txParams switch
+            {
+                EIP1559TxParams eip1559Params
+                    => await EncodeAndPublishTransactionAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(eip1559Params, txInput, nonce),
+                _ => throw new NotSupportedException($"TxParams type {txParams.GetType().Name} is not supported")
+            };
+
+            switch(submissionResult)
+            {
+                case TxSubmissionResult.Success successResult:
+                    await EnsureTransactionGetsConfirmedAsync(successResult.TxHash, entry);
+                    return;
+                case TxSubmissionResult.NonceTooLow nonceTooLowResult:
+                    if(nonceTooLowResult.TxNonce > nonceTooLowResult.NextNonce)
+                    {
+                        throw new NotSupportedException("Resubmitting of transactions is not supported for this TxScheduler");
+                    }
+
+                    _nonceCounter = nonceTooLowResult.NextNonce;
+                    nonce = nonceTooLowResult.NextNonce;
+                    break;
+                case TxSubmissionResult.Failure failureResult:
+                    throw new TxPublishException(failureResult.Message);
+                default:
+                    throw new NotSupportedException($"TxSubmissionResult of type {submissionResult.GetType()} is not supported for this TxScheduler");
+            }
+        }
+    }
+
+    private async Task EnsureTransactionGetsConfirmedAsync(string txHash, QueueEntry entry)
+    {
+        var (_, _, onTxTimeout, tcs) = entry;
 
         var txResult = await _txConfirmer.WaitForTxConfirmationAsync(txHash, _txTimeout);
 
@@ -130,13 +158,13 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
             txResult = action switch
             {
                 TxTimeoutAction.ContinueWaiting waitAction => await _txConfirmer.WaitForTxConfirmationAsync(txHash, waitAction.Duration),
-                
+
                 _ => throw new ImpossibleException(),
             };
         }
     }
 
-    private async Task<string> EncodeAndPublishTransactionAsync<TTransaction, TTxParams, TTxGasParams>(
+    private async Task<TxSubmissionResult> EncodeAndPublishTransactionAsync<TTransaction, TTxParams, TTxGasParams>(
         TTxParams txParams, ITxInput txInput, uint nonce
     )
         where TTxParams : ITxParams

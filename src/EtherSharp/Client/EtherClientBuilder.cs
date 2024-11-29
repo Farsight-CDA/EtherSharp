@@ -2,11 +2,11 @@
 using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.GasFeeProvider;
+using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxConfirmer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common.Extensions;
-using EtherSharp.RPC;
 using EtherSharp.Transport;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
@@ -74,7 +74,7 @@ public class EtherClientBuilder
 
         _services.AddSingleton(_transport);
         _services.AddSingleton<EtherApi>();
-        _services.AddSingleton<EvmRpcClient>();
+        _services.AddSingleton<IRpcClient, EvmRpcClient>();
         _services.AddSingleton<ContractFactory>();
 
         foreach(var service in _services.ToArray())

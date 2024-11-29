@@ -1,6 +1,8 @@
-﻿namespace EtherSharp.Client.Services.TxPublisher;
+﻿using EtherSharp.Client.Services.RPC;
+
+namespace EtherSharp.Client.Services.TxPublisher;
 public interface ITxPublisher
 {
-    public Task<string> PublishTxAsync(string transactionHex);
+    public Task<TxSubmissionResult> PublishTxAsync(string transactionHex);
 
 }
