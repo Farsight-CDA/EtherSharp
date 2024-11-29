@@ -3,11 +3,18 @@ using EtherSharp.Types;
 using Keysmith.Net.EC;
 using Keysmith.Net.SLIP;
 using Keysmith.Net.Wallet;
+using System.Security.Cryptography;
 
 namespace EtherSharp.Wallet;
 public class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSigner
 {
     public Address Address { get; } = null!;
+
+    public static EtherHdWallet Create()
+    {
+        byte[] key = RandomNumberGenerator.GetBytes(32);
+        return new EtherHdWallet(key);
+    }
 
     public EtherHdWallet(ReadOnlySpan<byte> privateKey)
         : base(Secp256k1.Instance, privateKey)
