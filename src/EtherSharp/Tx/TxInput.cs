@@ -17,7 +17,7 @@ public class TxInput : ITxInput
         => _functionSignature.HasValue ? _functionSignature.Value.Length : 0 
             + _encoder?.Size ?? 0;
 
-    private TxInput(Address to, BigInteger value, ReadOnlyMemory<byte> functionSignature, AbiEncoder? abiEncoder)
+    private TxInput(Address to, BigInteger value, ReadOnlyMemory<byte>? functionSignature, AbiEncoder? abiEncoder)
     {
         To = to;
         Value = value;
@@ -27,6 +27,9 @@ public class TxInput : ITxInput
 
     public static TxInput ForContractCall(Address contractAddress, ReadOnlyMemory<byte> functionSignature, BigInteger value, AbiEncoder? abiEncoder) 
         => new TxInput(contractAddress, value, functionSignature, abiEncoder);
+
+    public static TxInput ForEthTransfer(Address receiver, BigInteger amount)
+        => new TxInput(receiver, amount, null, null);
 
     void ITxInput.WriteDataTo(Span<byte> destination)
     {

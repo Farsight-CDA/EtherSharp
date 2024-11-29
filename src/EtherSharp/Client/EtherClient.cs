@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
+using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
 using EtherSharp.RPC;
@@ -17,6 +18,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
     private readonly IServiceProvider _provider;
     private readonly bool _isTxClient;
 
+    private EtherApi _etherApi = null!;
     private EvmRpcClient _evmRPCClient = null!;
     private IEtherSigner _signer = null!;
     private ITxScheduler _txScheduler = null!;
@@ -30,6 +32,25 @@ public class EtherClient : IEtherClient, IEtherTxClient
         {
             AssertReady();
             return _chainId;
+        }
+    }
+
+    IEtherTxApi IEtherTxClient.ETH
+    {
+        get
+        {
+            AssertReady();
+            AssertTxClient();
+            return _etherApi;
+        }
+    }
+
+    IEtherApi IEtherClient.ETH
+    {
+        get
+        {
+            AssertReady();
+            return _etherApi;
         }
     }
 
@@ -61,6 +82,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
             throw new InvalidOperationException("Client already initialized");
         }
 
+        _etherApi = _provider.GetRequiredService<EtherApi>();
         _evmRPCClient = _provider.GetRequiredService<EvmRpcClient>();
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
 
@@ -145,10 +167,12 @@ public class EtherClient : IEtherClient, IEtherTxClient
         return _txScheduler.PublishTxAsync(new EIP1559TxParams([]), call, () => ValueTask.FromResult(onTxTimeout()));
     }
 
-    Task<BigInteger> IEtherClient.GetBalanceAsync(string address, TargetBlockNumber targetHeight) => GetBalanceAsync(address, targetHeight);
-    Task<uint> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) => GetTransactionCount(address, targetHeight);
     TContract IEtherClient.Contract<TContract>(string address) 
         => Contract<TContract>(address);
-    Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight) => CallAsync(call, targetHeight);
+    Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight) 
+        => CallAsync(call, targetHeight);
+    
+    Task<uint> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight) 
+        => GetTransactionCount(address, targetHeight);
 
 }

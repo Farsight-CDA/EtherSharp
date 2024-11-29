@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
+using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.TxConfirmer;
 using EtherSharp.Client.Services.TxPublisher;
@@ -72,6 +73,7 @@ public class EtherClientBuilder
         }
 
         _services.AddSingleton(_transport);
+        _services.AddSingleton<EtherApi>();
         _services.AddSingleton<EvmRpcClient>();
         _services.AddSingleton<ContractFactory>();
 
