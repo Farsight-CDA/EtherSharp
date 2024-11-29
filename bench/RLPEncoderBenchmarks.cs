@@ -1,64 +1,96 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
 using EtherSharp.RLP;
 using System.Numerics;
 using System.Text;
 
 namespace EtherSharp.Bench;
 
-[MemoryDiagnoser, ShortRunJob]
+[MemoryDiagnoser]
+[ShortRunJob]
 public class RLPEncoderBenchmarks
 {
+    private readonly int _nonce = 0;
+    private readonly BigInteger _gasPrice = BigInteger.Zero;
+    private readonly ulong _gas = 0;
+    private readonly byte[] _to = Encoding.UTF8.GetBytes("D7B9798cE43Ca0A6aa8Be304a5EC5f88225f8bBA");
+    private readonly BigInteger _value = BigInteger.Zero;
+    private readonly byte[] _data = new byte[200];
 
-    private readonly int nonce = 0;
-    private readonly byte[] nonceBytes = Encoding.UTF8.GetBytes("0x00000");
-
-    private readonly BigInteger gasPrice = BigInteger.Zero;
-    private readonly byte[] gasPriceBytes = Encoding.UTF8.GetBytes("0x0000000");
-
-    private readonly ulong gas = 0;
-    private readonly byte[] gasBytes = Encoding.UTF8.GetBytes("0xFF");
-
-    private readonly byte[] to = Encoding.UTF8.GetBytes("D7B9798cE43Ca0A6aa8Be304a5EC5f88225f8bBA");
-
-    private readonly BigInteger value = BigInteger.Zero;
-    private readonly byte[] valueBytes = Encoding.UTF8.GetBytes("0x0");
-
-    private readonly byte[] data = new byte[200];
-
-    [GlobalSetup]
-    public void Setup()
-    {
-
-    }
+    private readonly Consumer _consumer = new Consumer();
 
     [Benchmark]
-    public void RLPEncod()
+    public byte[] EtherSharp_RLPEncode_Heap()
     {
         int bufferSize = RLPEncoder.GetListSize(
-            RLPEncoder.GetIntSize(nonce) +
-            RLPEncoder.GetIntSize(gasPrice) +
-            RLPEncoder.GetIntSize(gas) +
-            RLPEncoder.GetStringSize(to) +
-            RLPEncoder.GetIntSize(value) +
-            RLPEncoder.GetStringSize(data)
+            RLPEncoder.GetIntSize(_nonce) +
+            RLPEncoder.GetIntSize(_gasPrice) +
+            RLPEncoder.GetIntSize(_gas) +
+            RLPEncoder.GetStringSize(_to) +
+            RLPEncoder.GetIntSize(_value) +
+            RLPEncoder.GetStringSize(_data)
         );
 
-        Span<byte> rlpBuffer = bufferSize > 2048
-            ? new byte[bufferSize]
-            : stackalloc byte[bufferSize];
+        byte[] rlpBuffer = new byte[bufferSize];
 
         var encoder = new RLPEncoder(rlpBuffer);
         _ = encoder.EncodeList(bufferSize)
-            .EncodeInt(nonce)
-        .EncodeInt(gasPrice)
-        .EncodeInt(gas)
-            .EncodeString(to)
-            .EncodeInt(value)
-            .EncodeString(data);
+            .EncodeInt(_nonce)
+            .EncodeInt(_gasPrice)
+            .EncodeInt(_gas)
+            .EncodeString(_to)
+            .EncodeInt(_value)
+            .EncodeString(_data);
+
+        return rlpBuffer;
     }
 
     [Benchmark]
-    public void RLPEncod_Nethereum() => _ = Nethereum.RLP.RLP.EncodeDataItemsAsElementOrListAndCombineAsList(
-            [nonceBytes, gasBytes, gasPriceBytes, to, valueBytes, data]
-            );
+    public void EtherSharp_RLPEncode_Stack()
+    {
+        int bufferSize = RLPEncoder.GetListSize(
+            RLPEncoder.GetIntSize(_nonce) +
+            RLPEncoder.GetIntSize(_gasPrice) +
+            RLPEncoder.GetIntSize(_gas) +
+            RLPEncoder.GetStringSize(_to) +
+            RLPEncoder.GetIntSize(_value) +
+            RLPEncoder.GetStringSize(_data)
+        );
+
+        Span<byte> rlpBuffer = stackalloc byte[bufferSize];
+
+        var encoder = new RLPEncoder(rlpBuffer);
+        _ = encoder.EncodeList(bufferSize)
+            .EncodeInt(_nonce)
+            .EncodeInt(_gasPrice)
+            .EncodeInt(_gas)
+            .EncodeString(_to)
+            .EncodeInt(_value)
+            .EncodeString(_data);
+
+        byte dummy = rlpBuffer[0];
+        GC.KeepAlive(dummy);
+    }
+
+    [Benchmark]
+    public byte[] NEthereum_RLPEncode()
+    {
+        byte[] nonceBytes = BitConverter.GetBytes(_nonce);
+        byte[] gasBytes = BitConverter.GetBytes(_gas);
+
+        if(BitConverter.IsLittleEndian)
+        {
+            nonceBytes.AsSpan().Reverse();
+            gasBytes.AsSpan().Reverse();
+        }
+
+        return _ = Nethereum.RLP.RLP.EncodeList(
+            Nethereum.RLP.RLP.EncodeElement(nonceBytes),
+            Nethereum.RLP.RLP.EncodeElement(_gasPrice.ToByteArray(true, true)),
+            Nethereum.RLP.RLP.EncodeElement(gasBytes),
+            Nethereum.RLP.RLP.EncodeElement(_to),
+            Nethereum.RLP.RLP.EncodeElement(_value.ToByteArray(true, true)),
+            Nethereum.RLP.RLP.EncodeElement(_data)
+        );
+    }
 }

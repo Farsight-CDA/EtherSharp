@@ -17,7 +17,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Common\erc20-abi.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AdditionalFiles Include="Common\erc20-abi.json" />
+	</ItemGroup>
+
+	<ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Include="EtherSharp.Generator" Version="1.0.0" />
     <PackageReference Include="Nethereum.HdWallet" Version="4.26.0" />
     <PackageReference Include="Nethereum.RLP" Version="4.26.0" />
     <PackageReference Include="Nethereum.Util" Version="4.26.0" />

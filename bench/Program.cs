@@ -1,4 +1,4 @@
 ﻿using BenchmarkDotNet.Running;
-using EtherSharp.Bench;
+using System.Reflection;
 
-//BenchmarkRunner.Run<TransactionBenchmark>();
+BenchmarkRunner.Run(Assembly.GetExecutingAssembly());
