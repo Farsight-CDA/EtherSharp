@@ -74,15 +74,14 @@ public ref struct RLPEncoder
         else
         {
             int significantBytes = GetSignificantByteCount(value);
-            Span<byte> buffer = stackalloc byte[4];
-            _ = BitConverter.TryWriteBytes(buffer, value);
-            if(BitConverter.IsLittleEndian)
+            _destination[0] = (byte) (0x80 + significantBytes);
+
+            _ = BitConverter.TryWriteBytes(_destination[1..5], value);
+            if(BitConverter.IsLittleEndian && significantBytes > 1)
             {
-                buffer.Reverse();
+                _destination[1..(1 + significantBytes)].Reverse();
             }
 
-            _destination[0] = (byte) (0x80 + significantBytes);
-            buffer[^significantBytes..].CopyTo(_destination[1..]);
             _destination = _destination[(significantBytes + 1)..];
         }
 
@@ -102,15 +101,15 @@ public ref struct RLPEncoder
         else
         {
             int significantBytes = GetSignificantByteCount(value);
-            Span<byte> buffer = stackalloc byte[8];
-            _ = BitConverter.TryWriteBytes(buffer, value);
-            if(BitConverter.IsLittleEndian)
-            {
-                buffer.Reverse();
-            }
 
             _destination[0] = (byte) (0x80 + significantBytes);
-            buffer[^significantBytes..].CopyTo(_destination[1..]);
+
+            _ = BitConverter.TryWriteBytes(_destination[1..9], value);
+            if(BitConverter.IsLittleEndian && significantBytes > 1)
+            {
+                _destination[1..(1 + significantBytes)].Reverse();
+            }
+
             _destination = _destination[(significantBytes + 1)..];
         }
 
@@ -139,8 +138,6 @@ public ref struct RLPEncoder
             _destination[0] = (byte) (0x80 + significantBytes);
 
             _ = value.TryWriteBytes(_destination[1..], out _, true, true);
-
-            Span<byte> buffer = stackalloc byte[significantBytes];
 
             _destination = _destination[(significantBytes + 1)..];
         }
@@ -190,15 +187,15 @@ public ref struct RLPEncoder
         else
         {
             int significantLengthBytes = GetSignificantByteCount((uint) listLength);
-            Span<byte> lengthBuffer = stackalloc byte[4];
-            _ = BitConverter.TryWriteBytes(lengthBuffer, (uint) listLength);
-            if(BitConverter.IsLittleEndian)
-            {
-                lengthBuffer.Reverse();
-            }
 
             _destination[0] = (byte) (0xf7 + significantLengthBytes);
-            lengthBuffer[^significantLengthBytes..].CopyTo(_destination[1..]);
+
+            _ = BitConverter.TryWriteBytes(_destination[1..5], (uint) listLength);
+            if(BitConverter.IsLittleEndian && significantLengthBytes > 1)
+            {
+                _destination[1..(1 + significantLengthBytes)].Reverse();
+            }
+
             _destination = _destination[(1 + significantLengthBytes)..];
         }
 
