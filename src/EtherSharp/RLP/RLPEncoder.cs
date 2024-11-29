@@ -190,11 +190,14 @@ public ref struct RLPEncoder
 
             _destination[0] = (byte) (0xf7 + significantLengthBytes);
 
-            _ = BitConverter.TryWriteBytes(_destination[1..5], (uint) listLength);
-            if(BitConverter.IsLittleEndian && significantLengthBytes > 1)
+            Span<byte> buffer = stackalloc byte[4];
+            _ = BitConverter.TryWriteBytes(buffer, (uint) listLength);
+            if(BitConverter.IsLittleEndian)
             {
-                _destination[1..(1 + significantLengthBytes)].Reverse();
+                buffer.Reverse();
             }
+
+            buffer[^significantLengthBytes..].CopyTo(_destination[1..(1 + significantLengthBytes)]);
 
             _destination = _destination[(1 + significantLengthBytes)..];
         }

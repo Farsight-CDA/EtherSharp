@@ -55,7 +55,7 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
     public async ValueTask InitializeAsync(ulong chainId)
     {
         _chainId = chainId;
-        _nonceCounter = await _rpcClient.EthGetTransactionCount(_signer.Address.String, TargetBlockNumber.Latest) - 1;
+        _nonceCounter = await _rpcClient.EthGetTransactionCount(_signer.Address.String, TargetBlockNumber.Latest) - 10;
 
         _ = Task.Run(BackgroundTxProcessor);
     }
@@ -113,11 +113,24 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
                 throw new ImpossibleException();
             }
 
-            var action = await onTxTimeout();
+            TxTimeoutAction action;
+
+            while(true)
+            {
+                try
+                {
+                    action = await onTxTimeout();
+                    break;
+                }
+                catch
+                {
+                }
+            }
 
             txResult = action switch
             {
                 TxTimeoutAction.ContinueWaiting waitAction => await _txConfirmer.WaitForTxConfirmationAsync(txHash, waitAction.Duration),
+                
                 _ => throw new ImpossibleException(),
             };
         }
@@ -171,8 +184,8 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
 
         SignAndEncode(txTemplateBuffer, signatureBuffer, out int signatureLength);
 
-        int oldLengthBytes = RLPEncoder.GetSignificantByteCount((uint) lengthBuffer[0]);
-        int newLengthBytes = RLPEncoder.GetSignificantByteCount((uint) (lengthBuffer[0] + signatureLength));
+        int oldLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0]);
+        int newLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0] + signatureLength);
 
         if(newLengthBytes == oldLengthBytes)
         {
@@ -180,8 +193,8 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
             txBuffer = txBuffer[1..];
         }
 
-        _ = new RLPEncoder(txBuffer[1..]).EncodeList(lengthBuffer[0] + signatureLength);
         txBuffer[0] = TTransaction.PrefixByte;
+        _ = new RLPEncoder(txBuffer[1..]).EncodeList(lengthBuffer[0] + signatureLength);
 
         var signedTxBuffer = txBuffer[..^(TxRLPEncoder.MaxEncodedSignatureLength - signatureLength)];
 
