@@ -12,7 +12,7 @@ public interface IEtherClient
     public Task InitializeAsync();
 
     public TContract Contract<TContract>(string address)
-        where TContract : IContract;
+        where TContract : IEVMContract;
     public Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default);
 
     public Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default);

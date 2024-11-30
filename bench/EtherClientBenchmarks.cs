@@ -32,7 +32,7 @@ public class EtherClientBenchmarks
     }
 
     [Benchmark]
-    public IContract CreateContractInstance() 
+    public IEVMContract CreateContractInstance() 
         => _client.Contract<IERC20>("0x94b008aa00579c1307b0ef2c499ad98a8ce58e58");
 
 }

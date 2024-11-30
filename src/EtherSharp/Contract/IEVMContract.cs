@@ -1,5 +1,5 @@
 ﻿namespace EtherSharp.Contract;
-public interface IContract
+public interface IEVMContract
 {
     public string ContractAddress { get; }
 }

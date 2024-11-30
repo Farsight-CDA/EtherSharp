@@ -114,7 +114,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
     }
 
     private TContract Contract<TContract>(string contractAddress)
-        where TContract : IContract
+        where TContract : IEVMContract
     {
         AssertReady();
         return _contractFactory.Create<TContract>(contractAddress);

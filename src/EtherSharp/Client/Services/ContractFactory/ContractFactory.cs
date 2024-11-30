@@ -8,7 +8,7 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
 {
     private readonly Lock _lock = new Lock();
     private readonly IEtherClient _etherClient = etherClient;
-    private readonly Dictionary<Type, Func<string, IContract>> _factoryDelegates = [];
+    private readonly Dictionary<Type, Func<string, IEVMContract>> _factoryDelegates = [];
 
     public TContract Create<TContract>(string contractAddress)
     {
@@ -27,7 +27,7 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
     public void AddContractTypesFromAssembly(Assembly assembly)
     {
         var factoryDelegates = assembly.GetTypes()
-            .Where(x => x.GetInterface(nameof(IContract)) is not null)
+            .Where(x => x.GetInterface(nameof(IEVMContract)) is not null)
             .Where(x => x.IsInterface)
             .Select(x => (x, GetContractFactoryDelegate(x)));
 
@@ -40,7 +40,7 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
         }
     }
 
-    private Func<string, IContract> GetContractFactoryDelegate(Type contractInterfaceType)
+    private Func<string, IEVMContract> GetContractFactoryDelegate(Type contractInterfaceType)
     {
         var assembly = contractInterfaceType.Assembly;
         var contractType = assembly.GetTypes()
@@ -60,11 +60,11 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
                 contractAddressParam
             );
 
-            return Expression.Lambda<Func<string, IContract>>(newExpr, contractAddressParam).Compile();
+            return Expression.Lambda<Func<string, IEVMContract>>(newExpr, contractAddressParam).Compile();
         }
         else
         {
-            return contractAddress => (IContract) (Activator.CreateInstance(contractType, _etherClient, contractAddress)
+            return contractAddress => (IEVMContract) (Activator.CreateInstance(contractType, _etherClient, contractAddress)
                 ?? throw new NotSupportedException());
         }
     }

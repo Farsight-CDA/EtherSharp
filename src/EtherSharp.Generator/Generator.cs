@@ -24,7 +24,10 @@ public class Generator : IIncrementalGenerator
             )
             .Where(ctx =>
                 ctx.Symbol is not null &&
-                ctx.Symbol.AllInterfaces.Any(static x => x.Name == "IContract")
+                ctx.Symbol.AllInterfaces.Any(x => 
+                    x.Name == "IEVMContract" &&
+                    x.ContainingNamespace.ToDisplayString() == "EtherSharp.Contract"
+                )
             )
             .Select((ctx, _) =>
             {
