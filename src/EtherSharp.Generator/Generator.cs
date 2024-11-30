@@ -18,7 +18,7 @@ public class Generator : IIncrementalGenerator
             .CreateSyntaxProvider(
                 IsCandidateNode,
                 (ctx, _) => (
-                    IsPartial: ((InterfaceDeclarationSyntax) ctx.Node).Modifiers.Any(SyntaxKind.PartialKeyword),
+                    Node: (InterfaceDeclarationSyntax) ctx.Node,
                     Symbol: ctx.SemanticModel.GetDeclaredSymbol((InterfaceDeclarationSyntax) ctx.Node)
                 )
             )
@@ -28,7 +28,7 @@ public class Generator : IIncrementalGenerator
             )
             .Select((ctx, _) => (
                 ctx.Symbol!,
-                ctx.IsPartial
+                ctx.Node
             ));
 
         var additionalFilesProvider = context.AdditionalTextsProvider
@@ -41,16 +41,21 @@ public class Generator : IIncrementalGenerator
 
     private static bool IsCandidateNode(SyntaxNode node, CancellationToken _)
         => node is InterfaceDeclarationSyntax cd &&
-            cd.AttributeLists.Count != 0 &&
-            cd.BaseList is not null;
+            cd.BaseList is not null && 
+            cd.BaseList.Types.Any(baseType => 
+                baseType.Type is IdentifierNameSyntax identifier && 
+                identifier.Identifier.Text == "IEVMContract"
+            );
 
     private static void GenerateSource(SourceProductionContext context,
-        ((INamedTypeSymbol, bool), ImmutableArray<AdditionalText> additionalFiles) combined)
+        ((INamedTypeSymbol, InterfaceDeclarationSyntax), ImmutableArray<AdditionalText> additionalFiles) combined)
     {
-        var ((contractSymbol, isPartial), additionalFiles) = combined;
+        var ((contractSymbol, contractNode), additionalFiles) = combined;
 
         try
         {
+            bool isPartial = contractNode.Modifiers.Any(SyntaxKind.PartialKeyword);
+
             if(!isPartial)
             {
                 ReportDiagnostic(context, GeneratorDiagnostics.InterfaceMustBePartial, contractSymbol, contractSymbol.Name);
@@ -61,9 +66,14 @@ public class Generator : IIncrementalGenerator
                 .Where(x => x.AttributeClass is not null && TypeIdentificationUtils.IsAbiFileAttribute(x.AttributeClass))
                 .ToArray();
 
-            if(attributes.Length != 1)
+            if(attributes.Length == 0)
             {
-                ReportDiagnostic(context, GeneratorDiagnostics.AbiFileAttributeMissing, contractSymbol, contractSymbol.Name);
+                ReportDiagnostic(context, GeneratorDiagnostics.AbiFileAttributeNotFound, contractSymbol, contractSymbol.Name);
+                return;
+            }
+            if(attributes.Length > 1)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFileAttributeFound, contractSymbol, contractSymbol.Name);
                 return;
             }
 
