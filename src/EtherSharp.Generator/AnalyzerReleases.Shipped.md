@@ -8,7 +8,8 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 EVMG0000 | Unknown | Error | GeneratorDiagnostics
-EVMG0001 | Usage | Warning | GeneratorDiagnostics
-EVMG0002 | Usage | Warning | GeneratorDiagnostics
-EVMG0003 | Usage | Warning | GeneratorDiagnostics
+EVMG0001 | Usage | Error | GeneratorDiagnostics
+EVMG0002 | Usage | Error | GeneratorDiagnostics
+EVMG0003 | Usage | Error | GeneratorDiagnostics
 EVMG0004 | Usage | Error | GeneratorDiagnostics
+EVMG0005 | Usage | Error | GeneratorDiagnostics

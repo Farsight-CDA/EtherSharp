@@ -23,7 +23,7 @@ public static class GeneratorDiagnostics
         "Schema file not found",
         "Schema file {0} not found. Ensure the build action is set to \"C# Analyzer additional file\".",
         DiagnosticCategory.Usage,
-        DiagnosticSeverity.Warning,
+        DiagnosticSeverity.Error,
         true
     );
 
@@ -32,7 +32,7 @@ public static class GeneratorDiagnostics
         "Schema file could not be parsed",
         "Schema file could not be parsed. An exception occured: {0}.",
         DiagnosticCategory.Usage,
-        DiagnosticSeverity.Warning,
+        DiagnosticSeverity.Error,
         true
     );
 
@@ -41,7 +41,7 @@ public static class GeneratorDiagnostics
         "Schema not specified",
         "Schema file not specified. Ensure your contract interface {0} has exactly one attribute of type AbiFileAttribute.",
         DiagnosticCategory.Usage,
-        DiagnosticSeverity.Warning,
+        DiagnosticSeverity.Error,
         true
     );
 
