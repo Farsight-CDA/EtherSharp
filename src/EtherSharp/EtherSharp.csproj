@@ -70,8 +70,8 @@
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>AbiEncoder.SizedNumbers.cs</LastGenOutput>
 		</None>
-		<None Update="ABI\Encode\Interfaces\IStructAbiEncoder.Numbers.tt">
-			<LastGenOutput>IStructAbiEncoder.Numbers.cs</LastGenOutput>
+		<None Update="ABI\Encode\Interfaces\IStructAbiEncoder.SizedNumbers.tt">
+			<LastGenOutput>IStructAbiEncoder.SizedNumbers.cs</LastGenOutput>
 			<Generator>TextTemplatingFileGenerator</Generator>
 		</None>
 		<None Update="ABI\Encode\Interfaces\IStructAbiEncoder.NumberArrays.tt">
@@ -134,8 +134,8 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>AbiEncoder.SizedNumbers.tt</DependentUpon>
 		</Compile>
-		<Compile Update="ABI\Encode\Interfaces\IStructAbiEncoder.Numbers.cs">
-			<DependentUpon>IStructAbiEncoder.Numbers.tt</DependentUpon>
+		<Compile Update="ABI\Encode\Interfaces\IStructAbiEncoder.SizedNumbers.cs">
+			<DependentUpon>IStructAbiEncoder.SizedNumbers.tt</DependentUpon>
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 		</Compile>
