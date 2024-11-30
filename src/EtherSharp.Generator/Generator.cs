@@ -17,7 +17,7 @@ public class Generator : IIncrementalGenerator
         var contractTypesProvider = context.SyntaxProvider
             .CreateSyntaxProvider(
                 IsCandidateNode,
-                (ctx, _) => (
+                (ctx, _) => ( 
                     Node: (InterfaceDeclarationSyntax) ctx.Node,
                     Symbol: ctx.SemanticModel.GetDeclaredSymbol((InterfaceDeclarationSyntax) ctx.Node)
                 )
@@ -77,10 +77,20 @@ public class Generator : IIncrementalGenerator
                 return;
             }
 
-            string schemaFileName = attributes.Single().ConstructorArguments[0].Value?.ToString() ?? "";
+            string? schemaFileName = attributes.Single().ConstructorArguments[0].Value?.ToString();
+
+            if (string.IsNullOrEmpty(schemaFileName))
+            {
+                string fileDisplayName = schemaFileName is null
+                    ? "null"
+                    : $"\"{schemaFileName ?? "null"}\"";
+                ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileNotFound, contractSymbol, fileDisplayName);
+                return;
+            }
+
             var schemaFiles = additionalFiles
-                .Where(file => file.Path.EndsWith(schemaFileName))
-                .ToArray();
+                    .Where(file => file.Path.EndsWith(schemaFileName))
+                    .ToArray();
 
             if(schemaFiles.Length == 0)
             {
