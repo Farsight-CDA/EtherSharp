@@ -1,135 +1,136 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <WarningsAsErrors>$(WarningsAsErrors);NU1605;CS8604</WarningsAsErrors>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<WarningsAsErrors>$(WarningsAsErrors);NU1605;CS8604</WarningsAsErrors>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <WarningsAsErrors>$(WarningsAsErrors);NU1605;CS8604</WarningsAsErrors>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<WarningsAsErrors>$(WarningsAsErrors);NU1605;CS8604</WarningsAsErrors>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Keysmith.Net" Version="1.2.2" />
-    <PackageReference Include="Keysmith.Net.Secp256k1" Version="1.2.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Keysmith.Net" Version="1.2.2" />
+		<PackageReference Include="Keysmith.Net.Secp256k1" Version="1.2.2" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+	</ItemGroup>
 
-<ItemGroup>
-	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-		<_Parameter1>$(MSBuildProjectName).Test</_Parameter1>
-	</AssemblyAttribute>
-</ItemGroup>
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>$(MSBuildProjectName).Test</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
 
-<ItemGroup>
-	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-		<_Parameter1>$(MSBuildProjectName).Bench</_Parameter1>
-	</AssemblyAttribute>
-</ItemGroup>
-  <ItemGroup>
-    <None Update="ABI\Decode\AbiDecoder.NumberArrays.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AbiDecoder.NumberArrays.cs</LastGenOutput>
-    </None>
-    <None Update="ABI\Decode\AbiDecoder.Numbers.tt">
-      <LastGenOutput>AbiDecoder.Numbers.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ABI\Decode\Interfaces\IArrayAbiDecoder.NumberArrays.tt">
-      <LastGenOutput>IArrayAbiDecoder.NumberArrays.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ABI\Decode\Interfaces\IStructAbiDecoder.NumberArrays.tt">
-      <LastGenOutput>IStructAbiDecoder.NumberArrays.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ABI\Decode\Interfaces\IStructAbiDecoder.Numbers.tt">
-      <LastGenOutput>IStructAbiDecoder.Numbers.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ABI\Encode\AbiEncoder.NumberArrays.tt">
-      <LastGenOutput>AbiEncoder.NumberArrays.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ABI\Encode\AbiEncoder.Numbers.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AbiEncoder.Numbers.cs</LastGenOutput>
-    </None>
-    <None Update="ABI\Encode\Interfaces\IStructAbiEncoder.Numbers.tt">
-      <LastGenOutput>IStructAbiEncoder.Numbers.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ABI\Encode\Interfaces\IStructAbiEncoder.NumberArrays.tt">
-      <LastGenOutput>IStructAbiEncoder.NumberArrays.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ABI\Encode\Interfaces\IArrayAbiEncoder.NumberArrays.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>IArrayAbiEncoder.NumberArrays.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>$(MSBuildProjectName).Bench</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="ABI\Decode\AbiDecoder.NumberArrays.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>AbiDecoder.NumberArrays.cs</LastGenOutput>
+		</None>
+		<None Update="ABI\Decode\AbiDecoder.Numbers.tt">
+			<LastGenOutput>AbiDecoder.Numbers.cs</LastGenOutput>
+			<Generator>TextTemplatingFileGenerator</Generator>
+		</None>
+		<None Update="ABI\Decode\Interfaces\IArrayAbiDecoder.NumberArrays.tt">
+			<LastGenOutput>IArrayAbiDecoder.NumberArrays.cs</LastGenOutput>
+			<Generator>TextTemplatingFileGenerator</Generator>
+		</None>
+		<None Update="ABI\Decode\Interfaces\IStructAbiDecoder.NumberArrays.tt">
+			<LastGenOutput>IStructAbiDecoder.NumberArrays.cs</LastGenOutput>
+			<Generator>TextTemplatingFileGenerator</Generator>
+		</None>
+		<None Update="ABI\Decode\Interfaces\IStructAbiDecoder.Numbers.tt">
+			<LastGenOutput>IStructAbiDecoder.Numbers.cs</LastGenOutput>
+			<Generator>TextTemplatingFileGenerator</Generator>
+		</None>
+		<None Update="ABI\Encode\AbiEncoder.NumberArrays.tt">
+			<LastGenOutput>AbiEncoder.NumberArrays.cs</LastGenOutput>
+			<Generator>TextTemplatingFileGenerator</Generator>
+		</None>
+		<None Update="ABI\Encode\AbiEncoder.Numbers.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>AbiEncoder.Numbers.cs</LastGenOutput>
+		</None>
+		<None Update="ABI\Encode\Interfaces\IStructAbiEncoder.Numbers.tt">
+			<LastGenOutput>IStructAbiEncoder.Numbers.cs</LastGenOutput>
+			<Generator>TextTemplatingFileGenerator</Generator>
+		</None>
+		<None Update="ABI\Encode\Interfaces\IStructAbiEncoder.NumberArrays.tt">
+			<LastGenOutput>IStructAbiEncoder.NumberArrays.cs</LastGenOutput>
+			<Generator>TextTemplatingFileGenerator</Generator>
+		</None>
+		<None Update="ABI\Encode\Interfaces\IArrayAbiEncoder.NumberArrays.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>IArrayAbiEncoder.NumberArrays.cs</LastGenOutput>
+		</None>
+	</ItemGroup>
 
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
+	<ItemGroup>
+		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="ABI\Decode\AbiDecoder.NumberArrays.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AbiDecoder.NumberArrays.tt</DependentUpon>
-    </Compile>
-    <Compile Update="ABI\Decode\AbiDecoder.Numbers.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AbiDecoder.Numbers.tt</DependentUpon>
-    </Compile>
-    <Compile Update="ABI\Decode\Interfaces\IArrayAbiDecoder.NumberArrays.cs">
-      <DependentUpon>IArrayAbiDecoder.NumberArrays.tt</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-    <Compile Update="ABI\Decode\Interfaces\IStructAbiDecoder.NumberArrays.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>IStructAbiDecoder.NumberArrays.tt</DependentUpon>
-    </Compile>
-    <Compile Update="ABI\Decode\Interfaces\IStructAbiDecoder.Numbers.cs">
-      <DependentUpon>IStructAbiDecoder.Numbers.tt</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-    <Compile Update="ABI\Encode\AbiEncoder.NumberArrays.cs">
-      <DependentUpon>AbiEncoder.NumberArrays.tt</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-    <Compile Update="ABI\Encode\AbiEncoder.Numbers.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AbiEncoder.Numbers.tt</DependentUpon>
-    </Compile>
-    <Compile Update="ABI\Encode\Interfaces\IStructAbiEncoder.Numbers.cs">
-      <DependentUpon>IStructAbiEncoder.Numbers.tt</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-    <Compile Update="ABI\Encode\Interfaces\IStructAbiEncoder.NumberArrays.cs">
-      <DependentUpon>IStructAbiEncoder.NumberArrays.tt</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-    <Compile Update="ABI\Encode\Interfaces\IArrayAbiEncoder.NumberArrays.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>IArrayAbiEncoder.NumberArrays.tt</DependentUpon>
-    </Compile>
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Update="ABI\Decode\AbiDecoder.NumberArrays.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>AbiDecoder.NumberArrays.tt</DependentUpon>
+		</Compile>
+		<Compile Update="ABI\Decode\AbiDecoder.Numbers.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>AbiDecoder.Numbers.tt</DependentUpon>
+		</Compile>
+		<Compile Update="ABI\Decode\Interfaces\IArrayAbiDecoder.NumberArrays.cs">
+			<DependentUpon>IArrayAbiDecoder.NumberArrays.tt</DependentUpon>
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+		</Compile>
+		<Compile Update="ABI\Decode\Interfaces\IStructAbiDecoder.NumberArrays.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>IStructAbiDecoder.NumberArrays.tt</DependentUpon>
+		</Compile>
+		<Compile Update="ABI\Decode\Interfaces\IStructAbiDecoder.Numbers.cs">
+			<DependentUpon>IStructAbiDecoder.Numbers.tt</DependentUpon>
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+		</Compile>
+		<Compile Update="ABI\Encode\AbiEncoder.NumberArrays.cs">
+			<DependentUpon>AbiEncoder.NumberArrays.tt</DependentUpon>
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+		</Compile>
+		<Compile Update="ABI\Encode\AbiEncoder.Numbers.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>AbiEncoder.Numbers.tt</DependentUpon>
+		</Compile>
+		<Compile Update="ABI\Encode\Interfaces\IStructAbiEncoder.Numbers.cs">
+			<DependentUpon>IStructAbiEncoder.Numbers.tt</DependentUpon>
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+		</Compile>
+		<Compile Update="ABI\Encode\Interfaces\IStructAbiEncoder.NumberArrays.cs">
+			<DependentUpon>IStructAbiEncoder.NumberArrays.tt</DependentUpon>
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+		</Compile>
+		<Compile Update="ABI\Encode\Interfaces\IArrayAbiEncoder.NumberArrays.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>IArrayAbiEncoder.NumberArrays.tt</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
 </Project>
