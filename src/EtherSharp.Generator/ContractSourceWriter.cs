@@ -79,12 +79,14 @@ public class ContractSourceWriter
 
         foreach(var input in queryFunction.Inputs)
         {
+            string paramName = NameUtils.ToValidParameterName(input.Name);
+
             func.AddArgument(
                 GetCSharpEquivalentType(input),
-                input.Name
+                paramName
             );
 
-            func.AddStatement($"encoder.{GetABIEncodingMethodName(input)}({input.Name})");
+            func.AddStatement($"encoder.{GetABIEncodingMethodName(input)}({paramName})");
         }
 
         func.AddStatement(
@@ -125,10 +127,10 @@ public class ContractSourceWriter
 
             func.AddArgument(
                 GetCSharpEquivalentType(input),
-                input.Name
+                paramName
             );
 
-            func.AddStatement($"encoder.{GetABIEncodingMethodName(input)}({input.Name})");
+            func.AddStatement($"encoder.{GetABIEncodingMethodName(input)}({paramName})");
         }
 
         string ethParamName = paramNames.Contains("ethValue")
