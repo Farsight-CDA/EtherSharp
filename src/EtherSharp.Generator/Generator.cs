@@ -17,19 +17,23 @@ public class Generator : IIncrementalGenerator
         var contractTypesProvider = context.SyntaxProvider
             .CreateSyntaxProvider(
                 IsCandidateNode,
-                (ctx, _) => ctx.SemanticModel.GetDeclaredSymbol((InterfaceDeclarationSyntax) ctx.Node)
+                (ctx, _) => (
+                    IsPartial: ((InterfaceDeclarationSyntax) ctx.Node).Modifiers.Any(SyntaxKind.PartialKeyword),
+                    Symbol: ctx.SemanticModel.GetDeclaredSymbol((InterfaceDeclarationSyntax) ctx.Node)
+                )
             )
-            .Where(contractType =>
-                contractType is not null &&
-                contractType.AllInterfaces.Any(static x => x.Name == "IContract")
+            .Where(ctx =>
+                ctx.Symbol is not null &&
+                ctx.Symbol.AllInterfaces.Any(static x => x.Name == "IContract")
             )
-            .Select((contractType, _) =>
+            .Select((ctx, _) =>
             {
-                var attribute = contractType!.GetAttributes()
+                var attribute = ctx.Symbol!.GetAttributes()
                     .FirstOrDefault(x => x.AttributeClass?.Name == "AbiFileAttribute");
 
                 return (
-                    contractType!,
+                    ctx.Symbol!,
+                    ctx.IsPartial,
                     attribute?.ConstructorArguments.Length == 1
                         ? attribute.ConstructorArguments[0].Value?.ToString()
                         : null
@@ -47,13 +51,18 @@ public class Generator : IIncrementalGenerator
     private static bool IsCandidateNode(SyntaxNode node, CancellationToken _)
         => node is InterfaceDeclarationSyntax cd &&
             cd.AttributeLists.Count != 0 &&
-            cd.BaseList is not null &&
-            cd.Modifiers.Any(SyntaxKind.PartialKeyword);
+            cd.BaseList is not null;
 
     private static void GenerateSource(SourceProductionContext context,
-        ((INamedTypeSymbol, string?), ImmutableArray<AdditionalText> additionalFiles) combined)
+        ((INamedTypeSymbol, bool, string?), ImmutableArray<AdditionalText> additionalFiles) combined)
     {
-        var ((contractSymbol, schemaFileName), additionalFiles) = combined;
+        var ((contractSymbol, isPartial, schemaFileName), additionalFiles) = combined;
+
+        if (!isPartial)
+        {
+            ReportDiagnostic(context, GeneratorDiagnostics.InterfaceMustBePartial, contractSymbol, contractSymbol.Name);
+            return;
+        }
 
         if(schemaFileName is null)
         {

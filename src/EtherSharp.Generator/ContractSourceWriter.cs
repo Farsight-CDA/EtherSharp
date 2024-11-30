@@ -34,7 +34,7 @@ public class ContractSourceWriter
 
             contractImplementation.AddField(signatureBytesField);
 
-            bool isQuery = member.StateMutability == StateMutability.Payable || member.StateMutability == StateMutability.View;
+            bool isQuery = member.StateMutability == StateMutability.Pure || member.StateMutability == StateMutability.View;
 
             var func = isQuery switch
             {
@@ -62,9 +62,12 @@ public class ContractSourceWriter
         var func = new FunctionBuilder(functionName)
             .WithVisibility(FunctionVisibility.Public);
 
-        if(queryFunction.Outputs.Length != 1)
+        switch(queryFunction.Outputs.Length)
         {
-            throw new NotSupportedException("Query function must have exactly one output parameter");
+            case 0:
+                throw new NotSupportedException($"Query function {queryFunction.Name} does not have any output parameters");
+            case > 1:
+                throw new NotSupportedException($"Query function {queryFunction.Name} has too many output parameters");
         }
 
         func.WithReturnTypeRaw($"{typeof(Task).FullName}<{GetCSharpEquivalentType(queryFunction.Outputs[0])}>");
@@ -168,6 +171,7 @@ public class ContractSourceWriter
             "address" => typeof(string).FullName,
             "string" => typeof(string).FullName,
             "bool" => typeof(bool).FullName,
+            "bytes" => typeof(byte[]).FullName,
             string s when s.StartsWith("uint") && int.TryParse(s.Substring(4), out int bitSize) 
                 => bitSize % 8 != 0
                     ? throw new NotSupportedException("uint bitsize must be multiple of 8")
