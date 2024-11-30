@@ -6,7 +6,9 @@ namespace EtherSharp.Generator.Abi;
 [JsonDerivedType(typeof(FunctionAbiMember), "function")]
 [JsonDerivedType(typeof(EventAbiMember), "event")]
 [JsonDerivedType(typeof(FallbackAbiMember), "fallback")]
+[JsonDerivedType(typeof(ReceiveAbiMember), "receive")]
 [JsonDerivedType(typeof(ConstructorAbiMember), "constructor")]
+[JsonDerivedType(typeof(ErrorAbiMember), "error")]
 public abstract class AbiMember
 {
 }
