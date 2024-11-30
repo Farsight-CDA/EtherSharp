@@ -1,7 +1,8 @@
-using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Fixed;
+using EtherSharp.ABI.Decode.Interfaces;
 using System.Numerics;
-namespace EtherSharp.ABI.Decode;
+
+namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
 
@@ -10,7 +11,7 @@ public partial class AbiDecoder
         value = FixedType<object>.SByte.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    sbyte IStructAbiDecoder.Int8()
+    sbyte IStructAbiDecoder.Int8() 
     {
         _ = Int8(out sbyte output);
         return output;
@@ -20,7 +21,7 @@ public partial class AbiDecoder
         value = FixedType<object>.Byte.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    byte IStructAbiDecoder.UInt8()
+    byte IStructAbiDecoder.UInt8() 
     {
         _ = UInt8(out byte output);
         return output;
@@ -31,7 +32,7 @@ public partial class AbiDecoder
         value = FixedType<object>.Short.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    short IStructAbiDecoder.Int16()
+    short IStructAbiDecoder.Int16() 
     {
         _ = Int16(out short output);
         return output;
@@ -41,7 +42,7 @@ public partial class AbiDecoder
         value = FixedType<object>.UShort.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    ushort IStructAbiDecoder.UInt16()
+    ushort IStructAbiDecoder.UInt16() 
     {
         _ = UInt16(out ushort output);
         return output;

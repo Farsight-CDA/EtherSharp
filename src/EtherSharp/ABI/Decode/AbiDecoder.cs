@@ -3,8 +3,7 @@ using EtherSharp.ABI.Dynamic;
 using EtherSharp.ABI.Fixed;
 using System.Numerics;
 
-namespace EtherSharp.ABI.Decode;
-
+namespace EtherSharp.ABI;
 public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder, IArrayAbiDecoder
 {
     private ReadOnlyMemory<byte> _bytes = bytes;

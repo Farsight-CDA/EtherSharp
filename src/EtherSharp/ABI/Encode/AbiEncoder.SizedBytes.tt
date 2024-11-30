@@ -1,0 +1,21 @@
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System" #>
+using EtherSharp.ABI.Fixed;
+
+namespace EtherSharp.ABI;
+public partial class AbiEncoder
+{
+    public AbiEncoder Bytes8(byte value)
+        => AddElement(new FixedType<object>.Byte(value));
+<#
+    for(var i = 2; i <= 32;i=i+1)
+    {
+#>
+    public AbiEncoder Bytes<#=i#>(params byte[] value)
+        => AddElement(new FixedType<object>.Bytes(value, <#=i#>));
+<#
+    }
+#>
+
+}

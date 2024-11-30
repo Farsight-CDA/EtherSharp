@@ -1,5 +1,5 @@
-using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Fixed;
+using EtherSharp.ABI.Encode.Interfaces;
 using System.Numerics;
 
 namespace EtherSharp.ABI;

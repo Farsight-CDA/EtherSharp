@@ -152,7 +152,7 @@ public class ContractSourceWriter
                     },
                     EtherSharp.Types.Address.FromString(ContractAddress),
                     0
-                )a
+                )
                 """);
                 break;
             default:
@@ -180,17 +180,24 @@ public class ContractSourceWriter
                         <= 64 => typeof(ulong).FullName,
                         _ => typeof(BigInteger).FullName,
                     },
-            string s when s.StartsWith("int") && int.TryParse(s.Substring(4), out int bitSize)
+            string s when s.StartsWith("int") && int.TryParse(s.Substring(3), out int bitSize)
                 => bitSize % 8 != 0
-                    ? throw new NotSupportedException("uint bitsize must be multiple of 8")
+                    ? throw new NotSupportedException("int bitsize must be multiple of 8")
                     : bitSize switch
                     {
-                        < 8 or > 256 => throw new NotSupportedException("uint bitsize must be between 8 and 256"),
+                        < 8 or > 256 => throw new NotSupportedException("int bitsize must be between 8 and 256"),
                         8 => typeof(sbyte).FullName,
                         <= 16 => typeof(short).FullName,
                         <= 32 => typeof(int).FullName,
                         <= 64 => typeof(long).FullName,
                         _ => typeof(BigInteger).FullName,
+                    },
+            string s when s.StartsWith("bytes") && int.TryParse(s.Substring(5), out int bitSize)
+                =>  bitSize switch
+                    {
+                        < 1 or > 32 => throw new NotSupportedException("bytes bitsize must be between 8 and 256"),
+                        1 => typeof(byte).FullName,
+                        _ => typeof(byte[]).FullName,
                     },
             _ => throw new NotSupportedException($"Solidity type {abiMember.Type} is not supported")
         };

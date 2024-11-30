@@ -38,9 +38,13 @@
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>AbiDecoder.NumberArrays.cs</LastGenOutput>
 		</None>
-		<None Update="ABI\Decode\AbiDecoder.Numbers.tt">
-			<LastGenOutput>AbiDecoder.Numbers.cs</LastGenOutput>
+		<None Update="ABI\Decode\AbiDecoder.SizedNumbers.tt">
+			<LastGenOutput>AbiDecoder.SizedNumbers.cs</LastGenOutput>
 			<Generator>TextTemplatingFileGenerator</Generator>
+		</None>
+		<None Update="ABI\Decode\AbiDecoder.SizedBytes.tt">
+		  <LastGenOutput>AbiDecoder.SizedBytes.cs</LastGenOutput>
+		  <Generator>TextTemplatingFileGenerator</Generator>
 		</None>
 		<None Update="ABI\Decode\Interfaces\IArrayAbiDecoder.NumberArrays.tt">
 			<LastGenOutput>IArrayAbiDecoder.NumberArrays.cs</LastGenOutput>
@@ -50,17 +54,21 @@
 			<LastGenOutput>IStructAbiDecoder.NumberArrays.cs</LastGenOutput>
 			<Generator>TextTemplatingFileGenerator</Generator>
 		</None>
-		<None Update="ABI\Decode\Interfaces\IStructAbiDecoder.Numbers.tt">
-			<LastGenOutput>IStructAbiDecoder.Numbers.cs</LastGenOutput>
+		<None Update="ABI\Decode\Interfaces\IStructAbiDecoder.SizedNumbers.tt">
+			<LastGenOutput>IStructAbiDecoder.sIZEDNumbers.cs</LastGenOutput>
 			<Generator>TextTemplatingFileGenerator</Generator>
+		</None>
+		<None Update="ABI\Encode\AbiEncoder.SizedBytes.tt">
+		  <LastGenOutput>AbiEncoder.SizedBytes.cs</LastGenOutput>
+		  <Generator>TextTemplatingFileGenerator</Generator>
 		</None>
 		<None Update="ABI\Encode\AbiEncoder.NumberArrays.tt">
 			<LastGenOutput>AbiEncoder.NumberArrays.cs</LastGenOutput>
 			<Generator>TextTemplatingFileGenerator</Generator>
 		</None>
-		<None Update="ABI\Encode\AbiEncoder.Numbers.tt">
+		<None Update="ABI\Encode\AbiEncoder.SizedNumbers.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>AbiEncoder.Numbers.cs</LastGenOutput>
+			<LastGenOutput>AbiEncoder.SizedNumbers.cs</LastGenOutput>
 		</None>
 		<None Update="ABI\Encode\Interfaces\IStructAbiEncoder.Numbers.tt">
 			<LastGenOutput>IStructAbiEncoder.Numbers.cs</LastGenOutput>
@@ -86,10 +94,15 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>AbiDecoder.NumberArrays.tt</DependentUpon>
 		</Compile>
-		<Compile Update="ABI\Decode\AbiDecoder.Numbers.cs">
+		<Compile Update="ABI\Decode\AbiDecoder.SizedNumbers.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
-			<DependentUpon>AbiDecoder.Numbers.tt</DependentUpon>
+			<DependentUpon>AbiDecoder.SizedNumbers.tt</DependentUpon>
+		</Compile>
+		<Compile Update="ABI\Decode\AbiDecoder.SizedBytes.cs">
+		  <DependentUpon>AbiDecoder.SizedBytes.tt</DependentUpon>
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
 		</Compile>
 		<Compile Update="ABI\Decode\Interfaces\IArrayAbiDecoder.NumberArrays.cs">
 			<DependentUpon>IArrayAbiDecoder.NumberArrays.tt</DependentUpon>
@@ -101,20 +114,25 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>IStructAbiDecoder.NumberArrays.tt</DependentUpon>
 		</Compile>
-		<Compile Update="ABI\Decode\Interfaces\IStructAbiDecoder.Numbers.cs">
-			<DependentUpon>IStructAbiDecoder.Numbers.tt</DependentUpon>
+		<Compile Update="ABI\Decode\Interfaces\IStructAbiDecoder.sIZEDNumbers.cs">
+			<DependentUpon>IStructAbiDecoder.SizedNumbers.tt</DependentUpon>
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
+		</Compile>
+		<Compile Update="ABI\Encode\AbiEncoder.SizedBytes.cs">
+		  <DependentUpon>AbiEncoder.SizedBytes.tt</DependentUpon>
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
 		</Compile>
 		<Compile Update="ABI\Encode\AbiEncoder.NumberArrays.cs">
 			<DependentUpon>AbiEncoder.NumberArrays.tt</DependentUpon>
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 		</Compile>
-		<Compile Update="ABI\Encode\AbiEncoder.Numbers.cs">
+		<Compile Update="ABI\Encode\AbiEncoder.SizedNumbers.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
-			<DependentUpon>AbiEncoder.Numbers.tt</DependentUpon>
+			<DependentUpon>AbiEncoder.SizedNumbers.tt</DependentUpon>
 		</Compile>
 		<Compile Update="ABI\Encode\Interfaces\IStructAbiEncoder.Numbers.cs">
 			<DependentUpon>IStructAbiEncoder.Numbers.tt</DependentUpon>

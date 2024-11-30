@@ -1,4 +1,5 @@
-﻿using EtherSharp.ABI.Decode;
+﻿using EtherSharp.ABI;
+using EtherSharp.ABI.Decode;
 using System.Numerics;
 namespace EtherSharp.Tests.ABI.Decoder;
 
