@@ -117,14 +117,33 @@ public class ContractSourceWriter
         var encoder = new EtherSharp.ABI.AbiEncoder()
         """);
 
+        var paramNames = new List<string>();
         foreach(var input in messageFunction.Inputs)
         {
+            string paramName = NameUtils.ToValidParameterName(input.Name);
+            paramNames.Add(paramName);
+
             func.AddArgument(
                 GetCSharpEquivalentType(input),
                 input.Name
             );
 
             func.AddStatement($"encoder.{GetABIEncodingMethodName(input)}({input.Name})");
+        }
+
+        string ethParamName = paramNames.Contains("ethValue")
+            ? "_ethValue"
+            : "ethValue";
+        
+        if(messageFunction.StateMutability == StateMutability.Payable)
+        {
+            func.AddArgument(
+                typeof(BigInteger).FullName, ethParamName
+            );
+        }
+        else
+        {
+            func.AddStatement($"{typeof(BigInteger).FullName} {ethParamName} = 0");
         }
 
         switch(messageFunction.Outputs.Length)
@@ -135,7 +154,7 @@ public class ContractSourceWriter
                 $$"""
                 return EtherSharp.Tx.TxInput.ForContractCall(
                     EtherSharp.Types.Address.FromString(ContractAddress),
-                    0,
+                    {{ethParamName}},
                     {{GetFunctionSignatureFieldName(messageFunction)}},
                     encoder
                 )
@@ -154,7 +173,7 @@ public class ContractSourceWriter
                         return val;
                     },
                     EtherSharp.Types.Address.FromString(ContractAddress),
-                    0
+                    {{ethParamName}}
                 )
                 """);
                 break;
