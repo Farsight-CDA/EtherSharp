@@ -214,5 +214,5 @@ public class ContractSourceWriter
         };
 
     private static string GetFunctionSignatureFieldName(FunctionAbiMember abiFunction) 
-        => $"_{abiFunction.Name}Signature";
+        => $"_{abiFunction.Name}{HexUtils.ToHexString(abiFunction.GetSignatureBytes())}Signature";
 }

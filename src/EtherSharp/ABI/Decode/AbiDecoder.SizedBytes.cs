@@ -163,5 +163,4 @@ public partial class AbiDecoder
         value = FixedType<object>.Bytes.Decode(CurrentSlot, 32);
         return this;
     }
-
 }

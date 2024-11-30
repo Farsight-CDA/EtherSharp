@@ -25,7 +25,7 @@ public class TxInput : ITxInput
         _encoder = abiEncoder;
     }
 
-    public static TxInput ForContractCall(Address contractAddress, ReadOnlyMemory<byte> functionSignature, BigInteger value, AbiEncoder? abiEncoder)
+    public static TxInput ForContractCall(Address contractAddress, BigInteger value, ReadOnlyMemory<byte> functionSignature, AbiEncoder? abiEncoder)
         => new TxInput(contractAddress, value, functionSignature, abiEncoder);
 
     public static TxInput ForEthTransfer(Address receiver, BigInteger amount)

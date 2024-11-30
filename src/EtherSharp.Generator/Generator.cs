@@ -1,10 +1,10 @@
 ﻿using EtherSharp.Generator.Abi;
+using EtherSharp.Generator.Util;
 using EtherSharp.Generator.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text.Json;
 
 namespace EtherSharp.Generator;
@@ -24,24 +24,12 @@ public class Generator : IIncrementalGenerator
             )
             .Where(ctx =>
                 ctx.Symbol is not null &&
-                ctx.Symbol.AllInterfaces.Any(x => 
-                    x.Name == "IEVMContract" &&
-                    x.ContainingNamespace.ToDisplayString() == "EtherSharp.Contract"
-                )
+                ctx.Symbol.AllInterfaces.Any(TypeIdentificationUtils.IsIEVMContract)
             )
-            .Select((ctx, _) =>
-            {
-                var attribute = ctx.Symbol!.GetAttributes()
-                    .FirstOrDefault(x => x.AttributeClass?.Name == "AbiFileAttribute");
-
-                return (
-                    ctx.Symbol!,
-                    ctx.IsPartial,
-                    attribute?.ConstructorArguments.Length == 1
-                        ? attribute.ConstructorArguments[0].Value?.ToString()
-                        : null
-                );
-            });
+            .Select((ctx, _) => (
+                ctx.Symbol!,
+                ctx.IsPartial
+            ));
 
         var additionalFilesProvider = context.AdditionalTextsProvider
             .Where(file => file.Path.EndsWith(".json"));
@@ -57,51 +45,64 @@ public class Generator : IIncrementalGenerator
             cd.BaseList is not null;
 
     private static void GenerateSource(SourceProductionContext context,
-        ((INamedTypeSymbol, bool, string?), ImmutableArray<AdditionalText> additionalFiles) combined)
+        ((INamedTypeSymbol, bool), ImmutableArray<AdditionalText> additionalFiles) combined)
     {
-        var ((contractSymbol, isPartial, schemaFileName), additionalFiles) = combined;
-
-        if (!isPartial)
-        {
-            ReportDiagnostic(context, GeneratorDiagnostics.InterfaceMustBePartial, contractSymbol, contractSymbol.Name);
-            return;
-        }
-
-        if(schemaFileName is null)
-        {
-            ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileNotSpecified, contractSymbol, contractSymbol.Name);
-            return;
-        }
-
-        var schemaFile = additionalFiles.FirstOrDefault(file => file.Path.EndsWith(schemaFileName));
-        if(schemaFile is null)
-        {
-            ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileNotFound, contractSymbol, schemaFileName);
-            return;
-        }
-
-        string? schemaText = schemaFile.GetText()?.ToString();
-        if(string.IsNullOrEmpty(schemaText) || schemaText is null)
-        {
-            ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileMalformed, contractSymbol);
-            return;
-        }
-
-        AbiMember[] abiMembers;
+        var ((contractSymbol, isPartial), additionalFiles) = combined;
 
         try
         {
-            abiMembers = JsonSerializer.Deserialize<AbiMember[]>(schemaText, ParsingUtils.AbiJsonOptions)
-                ?? throw new NotSupportedException("Parsing schema file to ContractAPISchema failed");
-        }
-        catch(Exception ex)
-        {
-            ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileMalformed, contractSymbol, ex);
-            return;
-        }
+            if(!isPartial)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.InterfaceMustBePartial, contractSymbol, contractSymbol.Name);
+                return;
+            }
 
-        try
-        {
+            var attributes = contractSymbol.GetAttributes()
+                .Where(x => x.AttributeClass is not null && TypeIdentificationUtils.IsAbiFileAttribute(x.AttributeClass))
+                .ToArray();
+
+            if(attributes.Length != 1)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.AbiFileAttributeMissing, contractSymbol, contractSymbol.Name);
+                return;
+            }
+
+            string schemaFileName = attributes.Single().ConstructorArguments[0].Value?.ToString() ?? "";
+            var schemaFiles = additionalFiles
+                .Where(file => file.Path.EndsWith(schemaFileName))
+                .ToArray();
+
+            if(schemaFiles.Length == 0)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileNotFound, contractSymbol, schemaFileName);
+                return;
+            }
+            if (schemaFiles.Length > 1)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.MultipleSchemaFilesWithNameFound, contractSymbol, schemaFileName);
+                return;
+            }
+
+            string? schemaText = schemaFiles.Single().GetText()?.ToString();
+            if(string.IsNullOrEmpty(schemaText) || schemaText is null)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileMalformed, contractSymbol);
+                return;
+            }
+
+            AbiMember[] abiMembers;
+
+            try
+            {
+                abiMembers = JsonSerializer.Deserialize<AbiMember[]>(schemaText, ParsingUtils.AbiJsonOptions)
+                    ?? throw new NotSupportedException("Parsing schema file to ContractAPISchema failed");
+            }
+            catch(Exception ex)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileMalformed, contractSymbol, ex);
+                return;
+            }
+
             var writer = new ContractSourceWriter();
             string contractName = contractSymbol.Name;
 
@@ -112,7 +113,7 @@ public class Generator : IIncrementalGenerator
         }
         catch(Exception ex)
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.GenerationFailed, contractSymbol, ex);
+            ReportDiagnostic(context, GeneratorDiagnostics.ExecutionFailed, contractSymbol, ex);
             return;
         }
     }
