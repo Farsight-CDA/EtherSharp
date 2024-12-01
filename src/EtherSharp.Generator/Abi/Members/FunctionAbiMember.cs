@@ -18,7 +18,7 @@ public class FunctionAbiMember : AbiMember
     [JsonRequired]
     public AbiOutputParameter[] Outputs { get; set; } = null!;
 
-    public byte[] GetSignatureBytes()
+    public byte[] GetSignatureBytes(out string functionSignature)
     {
         var sb = new StringBuilder();
         sb.Append(Name);
@@ -29,7 +29,7 @@ public class FunctionAbiMember : AbiMember
             var input = Inputs[i];
             bool isLastInput = i == Inputs.Length - 1;
 
-            sb.Append(input.Type);
+            sb.Append(input.GetFunctionSignatureTypeString());
 
             if(!isLastInput)
             {
@@ -39,8 +39,8 @@ public class FunctionAbiMember : AbiMember
 
         sb.Append(")");
 
-        string signature = sb.ToString();
-        byte[] hash = Keccak256.ComputeHash(signature);
+        functionSignature = sb.ToString();
+        byte[] hash = Keccak256.ComputeHash(functionSignature);
 
         byte[] selector = new byte[4];
         hash.AsSpan().Slice(0, 4).CopyTo(selector);

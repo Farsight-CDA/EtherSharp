@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http.Headers;
 
 namespace EtherSharp.Generator.SyntaxElements;
 public enum FieldVisibility
@@ -16,6 +17,8 @@ public class FieldBuilder : ISyntaxBuilder
 
     public bool IsReadonly { get; private set; }
     public bool IsStatic { get; private set; }
+
+    public string? XmlSummaryContent { get; private set; }
 
     public FieldBuilder(string type, string name)
     {
@@ -47,9 +50,24 @@ public class FieldBuilder : ISyntaxBuilder
         return this;
     }
 
+    public FieldBuilder WithXmlSummaryContent(string? xmlSummaryContent)
+    {
+        XmlSummaryContent = xmlSummaryContent;
+        return this;
+    }
+
     public string Build()
         => $$"""
-            {{Visibility.ToString().ToLower()}}{{(IsStatic ? " static" : "")}}{{(IsReadonly ? " readonly" : "")}} {{Type}} {{Name}} {{(DefaultValue is null ? "" : $"= {DefaultValue}")}};
+            {{BuildXmlComment()}}{{Visibility.ToString().ToLower()}}{{(IsStatic ? " static" : "")}}{{(IsReadonly ? " readonly" : "")}} {{Type}} {{Name}} {{(DefaultValue is null ? "" : $"= {DefaultValue}")}};
+            """;
+
+    private string BuildXmlComment() 
+        => XmlSummaryContent is null ? "" :
+            $"""
+            /// <summary>
+            /// {XmlSummaryContent}
+            /// </summary>
+            
             """;
 
     public SyntaxId GetSyntaxId()

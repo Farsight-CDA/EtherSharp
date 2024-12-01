@@ -31,12 +31,13 @@ public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter 
 
         foreach(var member in members.Where(x => x is FunctionAbiMember).Cast<FunctionAbiMember>())
         {
-            byte[] signatureBytes = member.GetSignatureBytes();
+            byte[] signatureBytes = member.GetSignatureBytes(out string functionSignature);
             var signatureBytesField = new FieldBuilder("byte[]", GetFunctionSignatureFieldName(member))
                 .WithIsStatic(true)
                 .WithIsReadonly(true)
                 .WithVisibility(FieldVisibility.Private)
-                .WithDefaultValue($"[ {signatureBytes[0]}, {signatureBytes[1]}, {signatureBytes[2]}, {signatureBytes[3]} ]");
+                .WithDefaultValue($"[ {signatureBytes[0]}, {signatureBytes[1]}, {signatureBytes[2]}, {signatureBytes[3]} ]")
+                .WithXmlSummaryContent(functionSignature);
 
             contractImplementation.AddField(signatureBytesField);
 
@@ -179,5 +180,5 @@ public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter 
     }
 
     private static string GetFunctionSignatureFieldName(FunctionAbiMember abiFunction)
-        => $"_{abiFunction.Name}{HexUtils.ToHexString(abiFunction.GetSignatureBytes())}Signature";
+        => $"_{abiFunction.Name}{HexUtils.ToHexString(abiFunction.GetSignatureBytes(out _))}Signature";
 }
