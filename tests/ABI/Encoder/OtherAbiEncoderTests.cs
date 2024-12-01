@@ -60,7 +60,7 @@ public class OtherAbiEncoderTests
 
         byte[] stringByte = Convert.FromHexString(@string);
 
-        _ = _encoder.Struct(8, x => x.Int8(2).Int8(8));
+        _ = _encoder.FixedTuple(x => x.Int8(2).Int8(8));
         byte[] actualOutput = new byte[_encoder.Size];
         _ = _encoder.TryWritoTo(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);

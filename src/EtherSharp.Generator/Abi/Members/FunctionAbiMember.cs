@@ -1,9 +1,9 @@
 ﻿using Epoche;
-using System.Reflection.Metadata.Ecma335;
+using EtherSharp.Generator.Abi.Parameters;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Generator.Abi;
+namespace EtherSharp.Generator.Abi.Members;
 public class FunctionAbiMember : AbiMember
 {
     [JsonRequired]
@@ -13,10 +13,10 @@ public class FunctionAbiMember : AbiMember
     public StateMutability StateMutability { get; set; }
 
     [JsonRequired]
-    public AbiValue[] Inputs { get; set; } = null!;
+    public AbiInputParameter[] Inputs { get; set; } = null!;
 
     [JsonRequired]
-    public AbiValue[] Outputs { get; set; } = null!;
+    public AbiOutputParameter[] Outputs { get; set; } = null!;
 
     public byte[] GetSignatureBytes()
     {
@@ -31,7 +31,7 @@ public class FunctionAbiMember : AbiMember
 
             sb.Append(input.Type);
 
-            if (!isLastInput)
+            if(!isLastInput)
             {
                 sb.Append(",");
             }

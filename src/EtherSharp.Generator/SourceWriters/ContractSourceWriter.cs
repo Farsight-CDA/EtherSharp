@@ -1,11 +1,17 @@
 ﻿using EtherSharp.Generator.Abi;
+using EtherSharp.Generator.Abi.Members;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
 using System.Numerics;
+using System.Text;
 
-namespace EtherSharp.Generator;
-public class ContractSourceWriter
+namespace EtherSharp.Generator.SourceWriters;
+public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter paramEncodingWriter, ParamDecodingWriter paramDecodingWriter)
 {
+    private readonly AbiTypeWriter _typeWriter = typeWriter;
+    private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
+    private readonly ParamDecodingWriter _paramDecodingWriter = paramDecodingWriter;
+
     public string WriteContractSourceCode(string @namespace, string contractName, IEnumerable<AbiMember> members)
     {
         var contractInterface = new InterfaceBuilder(contractName)
@@ -46,13 +52,23 @@ public class ContractSourceWriter
             contractImplementation.AddFunction(func);
         }
 
-        return
-        $$"""
-        namespace {{@namespace}};
+        var output = new StringBuilder();
 
-        {{contractInterface.Build()}}
-        {{contractImplementation.Build(generateFieldConstructor: true)}}
-        """;
+        output.AppendLine(
+            $$"""
+            namespace {{@namespace}};
+
+            {{contractInterface.Build()}}
+            {{contractImplementation.Build(generateFieldConstructor: true)}}
+            """
+        );
+
+        foreach(var typeBuilder in _typeWriter.GetTypeBuilders())
+        {
+            output.AppendLine(typeBuilder.Build());
+        }
+
+        return output.ToString();
     }
 
     private FunctionBuilder GenerateQueryFunction(FunctionAbiMember queryFunction)
@@ -62,16 +78,6 @@ public class ContractSourceWriter
         var func = new FunctionBuilder(functionName)
             .WithVisibility(FunctionVisibility.Public);
 
-        switch(queryFunction.Outputs.Length)
-        {
-            case 0:
-                throw new NotSupportedException($"Query function {queryFunction.Name} does not have any output parameters");
-            case > 1:
-                throw new NotSupportedException($"Query function {queryFunction.Name} has too many output parameters");
-        }
-
-        func.WithReturnTypeRaw($"{typeof(Task).FullName}<{GetCSharpEquivalentType(queryFunction.Outputs[0])}>");
-
         func.AddStatement(
         $"""
         var encoder = new EtherSharp.ABI.AbiEncoder()
@@ -79,25 +85,18 @@ public class ContractSourceWriter
 
         foreach(var input in queryFunction.Inputs)
         {
-            string paramName = NameUtils.ToValidParameterName(input.Name);
-
-            func.AddArgument(
-                GetCSharpEquivalentType(input),
-                paramName
-            );
-
-            func.AddStatement($"encoder.{GetABIEncodingMethodName(input)}({paramName})");
+            _paramEncodingWriter.AddParameterEncoding(func, input);
         }
+
+        var (returnType, decoderFunction) = _paramDecodingWriter.SetQueryOutputDecoding(queryFunction.Name, func, queryFunction.Outputs);
 
         func.AddStatement(
         $$"""
-        return _client.CallAsync(new EtherSharp.Tx.TxInput<{{GetCSharpEquivalentType(queryFunction.Outputs[0])}}>(
+        return _client.CallAsync(new EtherSharp.Tx.TxInput<{{returnType}}>(
             {{GetFunctionSignatureFieldName(queryFunction)}},
             encoder,
-            decoder =>
-            {
-                _ = decoder.{{GetABIEncodingMethodName(queryFunction.Outputs[0])}}(out var val);
-                return val;
+            decoder => {
+            {{decoderFunction}}
             },
             EtherSharp.Types.Address.FromString(ContractAddress),
             0
@@ -122,21 +121,15 @@ public class ContractSourceWriter
         var paramNames = new List<string>();
         foreach(var input in messageFunction.Inputs)
         {
-            string paramName = NameUtils.ToValidParameterName(input.Name);
-            paramNames.Add(paramName);
-
-            func.AddArgument(
-                GetCSharpEquivalentType(input),
-                paramName
+            paramNames.Add(
+                _paramEncodingWriter.AddParameterEncoding(func, input)
             );
-
-            func.AddStatement($"encoder.{GetABIEncodingMethodName(input)}({paramName})");
         }
 
         string ethParamName = paramNames.Contains("ethValue")
             ? "_ethValue"
             : "ethValue";
-        
+
         if(messageFunction.StateMutability == StateMutability.Payable)
         {
             func.AddArgument(
@@ -163,16 +156,15 @@ public class ContractSourceWriter
                 """);
                 break;
             case 1:
-                func.WithReturnTypeRaw($"EtherSharp.Tx.TxInput<{GetCSharpEquivalentType(messageFunction.Outputs[0])}>");
+                var (returnType, decoderFunction) = _paramDecodingWriter.SetMessageOutputDecoding(messageFunction.Name, func, messageFunction.Outputs);
                 func.AddStatement(
                 $$"""
-                return new EtherSharp.Tx.TxInput<{{GetCSharpEquivalentType(messageFunction.Outputs[0])}}>(
+                return new EtherSharp.Tx.TxInput<{{returnType}}>(
                     {{GetFunctionSignatureFieldName(messageFunction)}},
                     encoder,
                     decoder =>
                     {
-                        _ = decoder.{{GetABIEncodingMethodName(messageFunction.Outputs[0])}}(out var val);
-                        return val;
+                    {{decoderFunction}}
                     },
                     EtherSharp.Types.Address.FromString(ContractAddress),
                     {{ethParamName}}
@@ -186,54 +178,6 @@ public class ContractSourceWriter
         return func;
     }
 
-    private static string GetCSharpEquivalentType(AbiValue abiMember) 
-        => abiMember.Type switch
-        {
-            "address" => typeof(string).FullName,
-            "string" => typeof(string).FullName,
-            "bool" => typeof(bool).FullName,
-            "bytes" => typeof(byte[]).FullName,
-            string s when s.StartsWith("uint") && int.TryParse(s.Substring(4), out int bitSize) 
-                => bitSize % 8 != 0
-                    ? throw new NotSupportedException("uint bitsize must be multiple of 8")
-                    : bitSize switch
-                    {
-                        < 8 or > 256 => throw new NotSupportedException("uint bitsize must be between 8 and 256"),
-                        8 => typeof(byte).FullName,
-                        <= 16 => typeof(ushort).FullName,
-                        <= 32 => typeof(uint).FullName,
-                        <= 64 => typeof(ulong).FullName,
-                        _ => typeof(BigInteger).FullName,
-                    },
-            string s when s.StartsWith("int") && int.TryParse(s.Substring(3), out int bitSize)
-                => bitSize % 8 != 0
-                    ? throw new NotSupportedException("int bitsize must be multiple of 8")
-                    : bitSize switch
-                    {
-                        < 8 or > 256 => throw new NotSupportedException("int bitsize must be between 8 and 256"),
-                        8 => typeof(sbyte).FullName,
-                        <= 16 => typeof(short).FullName,
-                        <= 32 => typeof(int).FullName,
-                        <= 64 => typeof(long).FullName,
-                        _ => typeof(BigInteger).FullName,
-                    },
-            string s when s.StartsWith("bytes") && int.TryParse(s.Substring(5), out int bitSize)
-                =>  bitSize switch
-                    {
-                        < 1 or > 32 => throw new NotSupportedException("bytes bitsize must be between 8 and 256"),
-                        1 => typeof(byte).FullName,
-                        _ => typeof(byte[]).FullName,
-                    },
-            _ => throw new NotSupportedException($"Solidity type {abiMember.Type} is not supported")
-        };
-
-    private static string GetABIEncodingMethodName(AbiValue abiMember)
-        => abiMember.Type switch
-        {
-            string s when s.StartsWith("uint") => s.Substring(0, 2).ToUpper() + s.Substring(2),
-            _ => NameUtils.ToValidFunctionName(abiMember.Type),
-        };
-
-    private static string GetFunctionSignatureFieldName(FunctionAbiMember abiFunction) 
+    private static string GetFunctionSignatureFieldName(FunctionAbiMember abiFunction)
         => $"_{abiFunction.Name}{HexUtils.ToHexString(abiFunction.GetSignatureBytes())}Signature";
 }

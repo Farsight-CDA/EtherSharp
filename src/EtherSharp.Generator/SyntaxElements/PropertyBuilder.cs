@@ -85,14 +85,25 @@ public class PropertyBuilder : ISyntaxBuilder
         }
 
         return $$"""
-            {{headerSb}} {{_visibility.ToString().ToLower()}} {{(_isRequired ? "required" : "")}} {{Type}} {{Name}} { get; {{(_setterVisibility == 
-                SetterVisibility.None
-                    ? ""
-                    : _setterVisibility == SetterVisibility.Init
-                        ? "init;"
-                        : $"{_setterVisibility.ToString().ToLower()} set;")}} } {{(DefaultValue is not null ? $"= {DefaultValue};" : "")}}
+            {{headerSb}} {{_visibility.ToString().ToLower()}} {{(_isRequired ? "required" : "")}} {{Type}} {{Name}} { get; {{GetSetter()}} } {{(DefaultValue is not null ? $"= {DefaultValue};" : "")}}
             """;
     }
+
+    private string GetSetter() 
+        => _setterVisibility switch
+        {
+            SetterVisibility.None => "",
+            SetterVisibility.Init => "init;",
+            SetterVisibility.Public =>
+                _visibility == PropertyVisibility.Public
+                    ? "set;"
+                    : throw new NotSupportedException("Setter visibility must be more restrictive than property visibility"),
+            SetterVisibility.Private =>
+                _visibility == PropertyVisibility.Private
+                    ? "set;"
+                    : "private set;",
+            _ => throw new NotSupportedException()
+        };
 
     public override int GetHashCode()
         => System.HashCode.Combine(

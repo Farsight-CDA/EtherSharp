@@ -1,0 +1,72 @@
+﻿using System.Numerics;
+
+namespace EtherSharp.ABI.Encode.Interfaces;
+public partial interface IDynamicTupleEncoder 
+{
+    public IDynamicTupleEncoder Int8(sbyte value);
+    public IDynamicTupleEncoder UInt8(byte value);
+
+    public IDynamicTupleEncoder Int16(short value);
+    public IDynamicTupleEncoder UInt16(ushort value);
+
+    public IDynamicTupleEncoder Int24(int value);
+    public IDynamicTupleEncoder UInt24(uint value);
+    public IDynamicTupleEncoder Int32(int value);
+    public IDynamicTupleEncoder UInt32(uint value);
+    public IDynamicTupleEncoder Int40(long value);
+    public IDynamicTupleEncoder UInt40(ulong value);
+    public IDynamicTupleEncoder Int48(long value);
+    public IDynamicTupleEncoder UInt48(ulong value);
+    public IDynamicTupleEncoder Int56(long value);
+    public IDynamicTupleEncoder UInt56(ulong value);
+    public IDynamicTupleEncoder Int64(long value);
+    public IDynamicTupleEncoder UInt64(ulong value);
+    public IDynamicTupleEncoder Int72(BigInteger value);
+    public IDynamicTupleEncoder UInt72(BigInteger value);
+    public IDynamicTupleEncoder Int80(BigInteger value);
+    public IDynamicTupleEncoder UInt80(BigInteger value);
+    public IDynamicTupleEncoder Int88(BigInteger value);
+    public IDynamicTupleEncoder UInt88(BigInteger value);
+    public IDynamicTupleEncoder Int96(BigInteger value);
+    public IDynamicTupleEncoder UInt96(BigInteger value);
+    public IDynamicTupleEncoder Int104(BigInteger value);
+    public IDynamicTupleEncoder UInt104(BigInteger value);
+    public IDynamicTupleEncoder Int112(BigInteger value);
+    public IDynamicTupleEncoder UInt112(BigInteger value);
+    public IDynamicTupleEncoder Int120(BigInteger value);
+    public IDynamicTupleEncoder UInt120(BigInteger value);
+    public IDynamicTupleEncoder Int128(BigInteger value);
+    public IDynamicTupleEncoder UInt128(BigInteger value);
+    public IDynamicTupleEncoder Int136(BigInteger value);
+    public IDynamicTupleEncoder UInt136(BigInteger value);
+    public IDynamicTupleEncoder Int144(BigInteger value);
+    public IDynamicTupleEncoder UInt144(BigInteger value);
+    public IDynamicTupleEncoder Int152(BigInteger value);
+    public IDynamicTupleEncoder UInt152(BigInteger value);
+    public IDynamicTupleEncoder Int160(BigInteger value);
+    public IDynamicTupleEncoder UInt160(BigInteger value);
+    public IDynamicTupleEncoder Int168(BigInteger value);
+    public IDynamicTupleEncoder UInt168(BigInteger value);
+    public IDynamicTupleEncoder Int176(BigInteger value);
+    public IDynamicTupleEncoder UInt176(BigInteger value);
+    public IDynamicTupleEncoder Int184(BigInteger value);
+    public IDynamicTupleEncoder UInt184(BigInteger value);
+    public IDynamicTupleEncoder Int192(BigInteger value);
+    public IDynamicTupleEncoder UInt192(BigInteger value);
+    public IDynamicTupleEncoder Int200(BigInteger value);
+    public IDynamicTupleEncoder UInt200(BigInteger value);
+    public IDynamicTupleEncoder Int208(BigInteger value);
+    public IDynamicTupleEncoder UInt208(BigInteger value);
+    public IDynamicTupleEncoder Int216(BigInteger value);
+    public IDynamicTupleEncoder UInt216(BigInteger value);
+    public IDynamicTupleEncoder Int224(BigInteger value);
+    public IDynamicTupleEncoder UInt224(BigInteger value);
+    public IDynamicTupleEncoder Int232(BigInteger value);
+    public IDynamicTupleEncoder UInt232(BigInteger value);
+    public IDynamicTupleEncoder Int240(BigInteger value);
+    public IDynamicTupleEncoder UInt240(BigInteger value);
+    public IDynamicTupleEncoder Int248(BigInteger value);
+    public IDynamicTupleEncoder UInt248(BigInteger value);
+    public IDynamicTupleEncoder Int256(BigInteger value);
+    public IDynamicTupleEncoder UInt256(BigInteger value);
+}

@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Generator.Abi;
+using EtherSharp.Generator.SourceWriters;
 using EtherSharp.Generator.Util;
 using EtherSharp.Generator.Utils;
 using Microsoft.CodeAnalysis;
@@ -79,7 +80,7 @@ public class Generator : IIncrementalGenerator
 
             string? schemaFileName = attributes.Single().ConstructorArguments[0].Value?.ToString();
 
-            if (string.IsNullOrEmpty(schemaFileName))
+            if (schemaFileName is null || string.IsNullOrEmpty(schemaFileName))
             {
                 string fileDisplayName = schemaFileName is null
                     ? "null"
@@ -89,8 +90,8 @@ public class Generator : IIncrementalGenerator
             }
 
             var schemaFiles = additionalFiles
-                    .Where(file => file.Path.EndsWith(schemaFileName))
-                    .ToArray();
+                .Where(file => file.Path.EndsWith(schemaFileName))
+                .ToArray();
 
             if(schemaFiles.Length == 0)
             {
@@ -123,7 +124,7 @@ public class Generator : IIncrementalGenerator
                 return;
             }
 
-            var writer = new ContractSourceWriter();
+            var writer = CreateSourceWriter();
             string contractName = contractSymbol.Name;
 
             context.AddSource(
@@ -148,5 +149,15 @@ public class Generator : IIncrementalGenerator
     {
         var diagnostic = Diagnostic.Create(descriptor, symbol.Locations.FirstOrDefault(), e.ToString());
         context.ReportDiagnostic(diagnostic);
+    }
+
+    private static ContractSourceWriter CreateSourceWriter()
+    {
+        var abiTypeWriter = new AbiTypeWriter();
+        return new ContractSourceWriter(
+            abiTypeWriter,
+            new ParamEncodingWriter(abiTypeWriter),
+            new ParamDecodingWriter(abiTypeWriter)
+        );
     }
 }

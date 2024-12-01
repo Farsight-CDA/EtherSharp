@@ -1,16 +1,20 @@
-﻿using EtherSharp.ABI.Decode;
-using EtherSharp.ABI.Decode.Interfaces;
+﻿using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Encode.Interfaces;
 
 namespace EtherSharp.ABI.Dynamic;
 internal abstract partial class DynamicType<T>
 {
-    public class Struct(uint typeId, IStructAbiEncoder value) : DynamicType<IStructAbiEncoder>(value)
+    public class Tuple(IDynamicTupleEncoder value) : DynamicType<IDynamicTupleEncoder>(value)
     {
-        public override uint PayloadSize => Value.PayloadSize + Value.MetadataSize + 32;
+        public override uint PayloadSize => Value.MetadataSize + Value.PayloadSize;
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {
+            if (Value.PayloadSize == 0)
+            {
+                throw new InvalidOperationException("Tried to encode a fixed value as a dynamic tuple");
+            }
+
             if(!BitConverter.TryWriteBytes(metadata, payloadOffset))
             {
                 throw new InvalidOperationException("Failed to write bytes");
@@ -20,16 +24,7 @@ internal abstract partial class DynamicType<T>
                 metadata.Reverse();
             }
 
-            if(!BitConverter.TryWriteBytes(payload[..32], typeId))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                payload[..32].Reverse();
-            }
-
-            if(!Value.TryWritoTo(payload[32..]))
+            if(!Value.TryWritoTo(payload))
             {
                 throw new InvalidOperationException("Failed to write bytes");
             }

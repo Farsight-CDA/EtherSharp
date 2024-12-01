@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace EtherSharp.ABI;
 
-public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
+public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamicTupleEncoder
 {
     private readonly List<IEncodeType> _entries = [];
 
@@ -15,18 +15,28 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
 
     public int Size => (int) (_payloadSize + _metadataSize);
     uint IArrayAbiEncoder.MetadataSize => _metadataSize;
-    uint IArrayAbiEncoder.PayloadSize => _payloadSize;
-    uint IStructAbiEncoder.MetadataSize => _metadataSize;
-    uint IStructAbiEncoder.PayloadSize => _payloadSize;
+    uint IArrayAbiEncoder.PayloadSize => _payloadSize; 
+    uint IFixedTupleEncoder.MetadataSize => _metadataSize;
+    uint IFixedTupleEncoder.PayloadSize => _payloadSize;
+    uint IDynamicTupleEncoder.MetadataSize => _metadataSize;
+    uint IDynamicTupleEncoder.PayloadSize => _payloadSize;
 
     private AbiEncoder AddElement(IEncodeType item)
     {
         if(item is IDynamicType dyn)
         {
             _payloadSize += dyn.PayloadSize;
+            _metadataSize += 32;
+        }
+        else if (item is IFixedType fix)
+        {
+            _metadataSize += fix.MetadataSize;
+        }
+        else
+        {
+            throw new NotSupportedException();
         }
 
-        _metadataSize += 32;
         _entries.Add(item);
         return this;
     }
@@ -83,17 +93,40 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
         => AddElement(new DynamicType<object>.EncodeTypeArray<DynamicType<object>.Bytes>(
             value.Select(x => new DynamicType<object>.Bytes(x)).ToArray()));
 
-    public AbiEncoder Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
-        => AddElement(new DynamicType<object>.Array(func(new AbiEncoder())));
-    IArrayAbiEncoder IArrayAbiEncoder.Array(Func<IArrayAbiEncoder, IArrayAbiEncoder> func)
+    public AbiEncoder Array(Action<IArrayAbiEncoder> func)
+    {
+        var encoder = new AbiEncoder();
+        func(encoder);
+        return AddElement(new DynamicType<object>.Array(encoder));
+    }
+
+    IArrayAbiEncoder IArrayAbiEncoder.Array(Action<IArrayAbiEncoder> func)
         => Array(func);
 
-    public AbiEncoder Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
-        => AddElement(new DynamicType<object>.Struct(typeId, func(new AbiEncoder())));
-    IArrayAbiEncoder IArrayAbiEncoder.Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
-        => Struct(typeId, func);
-    IStructAbiEncoder IStructAbiEncoder.Struct(uint typeId, Func<IStructAbiEncoder, IStructAbiEncoder> func)
-        => Struct(typeId, func);
+    public AbiEncoder DynamicTuple(Action<IDynamicTupleEncoder> func)
+    {
+        var encoder = new AbiEncoder();
+        func(encoder);
+        return AddElement(new DynamicType<object>.Tuple(encoder));
+    }
+    public AbiEncoder FixedTuple(Action<IFixedTupleEncoder> func)
+    {
+        var encoder = new AbiEncoder();
+        func(encoder);
+        return AddElement(new FixedType<object>.Tuple(encoder));
+    }
+
+    IArrayAbiEncoder IArrayAbiEncoder.DynamicTuple(Action<IDynamicTupleEncoder> func)
+        => DynamicTuple(func);
+    IArrayAbiEncoder IArrayAbiEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
+        => FixedTuple(func);
+
+    IDynamicTupleEncoder IDynamicTupleEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
+        => FixedTuple(func);
+    IDynamicTupleEncoder IDynamicTupleEncoder.DynamicTuple(Action<IDynamicTupleEncoder> func)
+        => DynamicTuple(func);
+    IFixedTupleEncoder IFixedTupleEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
+        => FixedTuple(func);
 
     public AbiEncoder NumberArray<TNumber>(bool isUnsigned, int bitLength, params TNumber[] numbers)
     {
@@ -169,8 +202,8 @@ public partial class AbiEncoder : IArrayAbiEncoder, IStructAbiEncoder
                     fixEncType.Encode(
                         outputBuffer.Slice(
                             (int) metadataOffset,
-                            32)
-                    );
+                            (int) fixEncType.MetadataSize
+                    ));
                     break;
                 default:
                     throw new NotImplementedException(entry.GetType().FullName);

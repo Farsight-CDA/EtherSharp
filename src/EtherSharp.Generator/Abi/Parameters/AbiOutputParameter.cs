@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace EtherSharp.Generator.Abi;
-public class AbiValue
+namespace EtherSharp.Generator.Abi.Parameters;
+public class AbiOutputParameter
 {
     [JsonRequired]
     public string Name { get; set; } = null!;

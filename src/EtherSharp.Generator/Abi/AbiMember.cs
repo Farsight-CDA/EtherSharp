@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using EtherSharp.Generator.Abi.Members;
+using System.Text.Json.Serialization;
 
 namespace EtherSharp.Generator.Abi;
 

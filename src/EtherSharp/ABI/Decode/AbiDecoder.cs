@@ -117,7 +117,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
 
     public AbiDecoder Struct<T>(out T value, Func<IStructAbiDecoder, T> func)
     {
-        value = DynamicType<T>.Struct.Decode(_bytes, _bytesRead, func);
+        value = DynamicType<T>.Tuple.Decode(_bytes, _bytesRead, func);
         return ConsumeBytes();
     }
     T IStructAbiDecoder.Struct<T>(Func<IStructAbiDecoder, T> func)

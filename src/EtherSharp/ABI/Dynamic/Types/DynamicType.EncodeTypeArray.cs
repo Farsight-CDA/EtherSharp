@@ -45,7 +45,7 @@ internal abstract partial class DynamicType<T>
                         localPayloadOffset += dynType.PayloadSize;
                         break;
                     case IFixedType fixType:
-                        fixType.Encode(payload.Slice(localMetadataOffset, 32));
+                        fixType.Encode(payload.Slice(localMetadataOffset, (int) fixType.MetadataSize));
                         break;
                 }
             }

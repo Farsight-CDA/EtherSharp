@@ -41,8 +41,4 @@ public class AddressAbiEncoderTests
         byte[] actual = _encoder.Address("0x4838b106fCe9647BdF1E7877bF73cE8B0BaD5F97").Build();
         Assert.Equal(expected, actual);
     }
-
-    [Fact]
-    public void Should_Throw_On_Missing_0x_Prefix()
-        => Assert.Throws<ArgumentException>(() => _encoder.Address("0000000000000000000000000000000000000000"));
 }

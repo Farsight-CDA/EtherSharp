@@ -1,7 +1,7 @@
 ﻿namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
-    public class Bool(bool value) : FixedType<bool>(value)
+    internal class Bool(bool value) : FixedType<bool>(value)
     {
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
