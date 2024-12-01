@@ -14,7 +14,7 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
     public string AddParameterEncoding(FunctionBuilder function, AbiInputParameter parameter)
     {
         string paramName = NameUtils.ToValidParameterName(parameter.Name);
-        var (paramType, encoderFunction) = GetParameterEncoding(parameter, paramName);
+        var (paramType, encoderFunction, _) = GetParameterEncoding(parameter, paramName);
 
         function.AddArgument(paramType, paramName);
         function.AddStatement(encoderFunction);
@@ -22,16 +22,16 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
         return paramName;
     }
 
-    private (string ParamType, string EncoderFunction) GetParameterEncoding(AbiInputParameter parameter, string paramName)
+    private (string ParamType, string EncoderFunction, bool IsDynamicType) GetParameterEncoding(AbiInputParameter parameter, string paramName)
     {
-        if(TryGetPrimitiveEquivalentType(parameter.Type, out string primitiveType))
+        if(TryGetPrimitiveEquivalentType(parameter.Type, out string primitiveType, out bool isDynamicType))
         {
             string encoderFunction =
                 $"""
                 encoder.{GetPrimitiveABIEncodingMethodName(parameter.Type)}({paramName});
                 """;
 
-            return (primitiveType, encoderFunction);
+            return (primitiveType, encoderFunction, isDynamicType);
         }
 
         switch(parameter.Type)
@@ -40,12 +40,11 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
                 throw new NotSupportedException($"Parameters of type {parameter.Type} are not supported in this version.");
             case "tuple":
             {
-                var (typeName, encodingMethod) = GenerateTupleType(parameter, paramName);
-                return (typeName, encodingMethod);
+                return GenerateTupleType(parameter, paramName);
             }
             case "tuple[]":
             {
-                var (typeName, encodingMethod) = GenerateTupleType(parameter, "value");
+                var (typeName, encodingMethod, isTupleDynamicType) = GenerateTupleType(parameter, "value");
                 string encoderFunction =
                     $$"""
                     encoder.Array(encoder => 
@@ -57,12 +56,12 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
                     });
                     """;
 
-                return ($"{typeName}[]", encoderFunction);
+                return ($"{typeName}[]", encoderFunction, isTupleDynamicType);
             }
         }
     }
 
-    private (string TupleTypeName, string EncodingMethod) GenerateTupleType(AbiInputParameter tupleParameter, string paramName)
+    private (string TupleTypeName, string EncodingMethod, bool IsDynamicType) GenerateTupleType(AbiInputParameter tupleParameter, string paramName)
     {
         if(tupleParameter.Components is null || tupleParameter.Components.Length == 0)
         {
@@ -80,12 +79,19 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
         var classBuilder = new ClassBuilder(className)
             .WithVisibility(ClassVisibility.Public);
 
+        bool isDynamicType = false;
+
         foreach(var component in tupleParameter.Components)
         {
             string propertyName = NameUtils.ToValidPropertyName(component.Name);
-            var (componentType, componentEncodingFunction) = GetParameterEncoding(component, $"{paramName}.{propertyName}");
+            var (componentType, componentEncodingFunction, isInnerDynamicType) = GetParameterEncoding(component, $"{paramName}.{propertyName}");
 
-            classBuilder.AddProperty(new PropertyBuilder(componentType, propertyName));
+            if (isInnerDynamicType && !isDynamicType)
+            {
+                isDynamicType = true;
+            }
+
+            classBuilder.AddProperty(new PropertyBuilder(componentType, propertyName).WithIsRequired());
             encodingFunctionBuilder.AppendLine(componentEncodingFunction);
         }
 
@@ -93,27 +99,27 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
 
         string encodingFunction =
             $$"""
-            encoder.Struct(encoder => 
+            encoder.{{(isDynamicType ? "DynamicTuple" : "FixedTuple")}}(encoder => 
             {
             {{encodingFunctionBuilder}}
             });
             """;
 
-        return (className, encodingFunction);
+        return (className, encodingFunction, isDynamicType);
     }
 
-    private bool TryGetPrimitiveEquivalentType(string solidityType, out string type)
+    private bool TryGetPrimitiveEquivalentType(string solidityType, out string type, out bool isDynamicType)
     {
-        type = (solidityType switch
+        var (pt, idt) = solidityType switch
         {
-            "address" => typeof(string).FullName,
-            "string" => typeof(string).FullName,
-            "bool" => typeof(bool).FullName,
-            "bytes" => typeof(byte[]).FullName,
+            "address" => (typeof(string).FullName, false),
+            "string" => (typeof(string).FullName, true),
+            "bool" => (typeof(bool).FullName, false),
+            "bytes" => (typeof(byte[]).FullName, true),
             string s when s.StartsWith("uint") && int.TryParse(s.Substring(4), out int bitSize)
                 => bitSize % 8 != 0
                     ? throw new NotSupportedException("uint bitsize must be multiple of 8")
-                    : bitSize switch
+                    : (bitSize switch
                     {
                         < 8 or > 256 => throw new NotSupportedException("uint bitsize must be between 8 and 256"),
                         8 => typeof(byte).FullName,
@@ -121,11 +127,11 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
                         <= 32 => typeof(uint).FullName,
                         <= 64 => typeof(ulong).FullName,
                         _ => typeof(BigInteger).FullName,
-                    },
+                    }, false),
             string s when s.StartsWith("int") && int.TryParse(s.Substring(3), out int bitSize)
                     => bitSize % 8 != 0
                     ? throw new NotSupportedException("int bitsize must be multiple of 8")
-                    : bitSize switch
+                    : (bitSize switch
                     {
                         < 8 or > 256 => throw new NotSupportedException("int bitsize must be between 8 and 256"),
                         8 => typeof(sbyte).FullName,
@@ -133,16 +139,20 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
                         <= 32 => typeof(int).FullName,
                         <= 64 => typeof(long).FullName,
                         _ => typeof(BigInteger).FullName,
-                    },
+                    }, false),
             string s when s.StartsWith("bytes") && int.TryParse(s.Substring(5), out int bitSize)
-                => bitSize switch
+                => (bitSize switch
                 {
                     < 1 or > 32 => throw new NotSupportedException("bytes bitsize must be between 8 and 256"),
                     1 => typeof(byte).FullName,
                     _ => typeof(byte[]).FullName,
-                },
-            _ => null
-        })!;
+                }, false),
+            _ => (null, false)
+        };
+
+        type = pt!;
+        isDynamicType = idt;
+
         return type is not null;
     }
 
