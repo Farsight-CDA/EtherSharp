@@ -1,0 +1,19 @@
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System" #>
+using EtherSharp.ABI.Fixed;
+
+namespace EtherSharp.ABI.Encode.Interfaces;
+public partial interface IFixedTupleEncoder 
+{
+    public IFixedTupleEncoder Bytes1(byte value);
+<#
+    for(var i = 2; i <= 32;i=i+1)
+    {
+#>
+    public IFixedTupleEncoder Bytes<#=i#>(params byte[] value);
+<#
+    }
+#>
+
+}

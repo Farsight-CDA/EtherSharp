@@ -70,6 +70,14 @@
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>AbiEncoder.SizedNumbers.cs</LastGenOutput>
 		</None>
+		<None Update="ABI\Encode\Interfaces\IDynamicTupleEncoder.SizedBytes.tt">
+		  <LastGenOutput>IDynamicTupleEncoder.SizedBytes.cs</LastGenOutput>
+		  <Generator>TextTemplatingFileGenerator</Generator>
+		</None>
+		<None Update="ABI\Encode\Interfaces\IFixedTupleEncoder.SizedBytes.tt">
+		  <LastGenOutput>IFixedTupleEncoder.SizedBytes.cs</LastGenOutput>
+		  <Generator>TextTemplatingFileGenerator</Generator>
+		</None>
 		<None Update="ABI\Encode\Interfaces\IDynamicTupleEncoder.NumberArrays.tt">
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		  <LastGenOutput>IDynamicTupleEncoder.NumberArrays.cs</LastGenOutput>
@@ -146,6 +154,16 @@
 		  <DesignTime>True</DesignTime>
 		  <AutoGen>True</AutoGen>
 		  <DependentUpon>IDynamicTupleEncoder.NumberArrays.tt</DependentUpon>
+		</Compile>
+		<Compile Update="ABI\Encode\Interfaces\IDynamicTupleEncoder.SizedBytes.cs">
+		  <DependentUpon>IDynamicTupleEncoder.SizedBytes.tt</DependentUpon>
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
+		</Compile>
+		<Compile Update="ABI\Encode\Interfaces\IFixedTupleEncoder.SizedBytes.cs">
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>IFixedTupleEncoder.SizedBytes.tt</DependentUpon>
 		</Compile>
 		<Compile Update="ABI\Encode\Interfaces\IFixedTupleEncoder.SizedNumbers.cs">
 		  <DependentUpon>IFixedTupleEncoder.SizedNumbers.tt</DependentUpon>
