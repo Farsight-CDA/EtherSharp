@@ -196,6 +196,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
                             (int) dynEncType.PayloadSize),
                         payloadOffset
                     );
+                    metadataOffset += 32;
                     payloadOffset += dynEncType.PayloadSize;
                     break;
                 case IFixedType fixEncType:
@@ -204,12 +205,11 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
                             (int) metadataOffset,
                             (int) fixEncType.MetadataSize
                     ));
+                    metadataOffset += fixEncType.MetadataSize;
                     break;
                 default:
                     throw new NotImplementedException(entry.GetType().FullName);
             }
-
-            metadataOffset += 32;
         }
 
         return true;

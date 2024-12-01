@@ -8,7 +8,7 @@ internal abstract partial class DynamicType<T>
 {
     public class Array(IArrayAbiEncoder value) : DynamicType<IArrayAbiEncoder>(value)
     {
-        public override uint PayloadSize => Value.PayloadSize + Value.MetadataSize + 32;
+        public override uint PayloadSize => Value.MetadataSize + Value.PayloadSize + 32;
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {

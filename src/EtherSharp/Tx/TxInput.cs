@@ -14,7 +14,7 @@ public class TxInput : ITxInput
     public BigInteger Value { get; }
 
     int ITxInput.DataLength
-        => _functionSignature.HasValue ? _functionSignature.Value.Length : 0
+        => (_functionSignature.HasValue ? _functionSignature.Value.Length : 0)
             + _encoder?.Size ?? 0;
 
     private TxInput(Address to, BigInteger value, ReadOnlyMemory<byte>? functionSignature, AbiEncoder? abiEncoder)
