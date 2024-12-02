@@ -91,7 +91,10 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
                 isDynamicType = true;
             }
 
-            classBuilder.AddProperty(new PropertyBuilder(componentType, propertyName).WithIsRequired());
+            classBuilder.AddProperty(new PropertyBuilder(componentType, propertyName)
+                .WithIsRequired()
+                .WithSetterVisibility(SetterVisibility.Init)
+            );
             encodingFunctionBuilder.AppendLine(componentEncodingFunction);
         }
 
