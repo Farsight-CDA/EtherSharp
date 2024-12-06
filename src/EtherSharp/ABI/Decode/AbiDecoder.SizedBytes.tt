@@ -6,7 +6,7 @@ using EtherSharp.ABI.Fixed;
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
-    public AbiDecoder Bytes8(out byte value)
+    public AbiDecoder Bytes1(out byte value)
     {
         value = FixedType<object>.Byte.Decode(CurrentSlot);
         return this;
@@ -15,7 +15,7 @@ public partial class AbiDecoder
     for(var i = 2; i <= 32;i=i+1)
     {
 #>
-    public AbiDecoder Bytes<#=i#>(out byte[] value)
+    public AbiDecoder Bytes<#=i#>(out ReadOnlySpan<byte> value)
     {
         value = FixedType<object>.Bytes.Decode(CurrentSlot, <#=i#>);
         return this;

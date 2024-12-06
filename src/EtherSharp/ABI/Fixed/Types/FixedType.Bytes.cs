@@ -10,7 +10,7 @@ internal abstract partial class FixedType<T>
 
         public static void EncodeInto(byte[] value, int byteCount, Span<byte> buffer)
             => value.CopyTo(buffer[(32 - byteCount)..]);
-        public static byte[] Decode(ReadOnlySpan<byte> bytes, int byteCount)
-            => bytes[(32 - byteCount)..].ToArray();
+        public static ReadOnlySpan<byte> Decode(ReadOnlySpan<byte> bytes, int byteCount)
+            => bytes[(32 - byteCount)..];
     }
 }

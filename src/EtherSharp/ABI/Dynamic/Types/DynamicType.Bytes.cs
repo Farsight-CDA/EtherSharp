@@ -30,9 +30,9 @@ internal abstract partial class DynamicType<T>
             Value.CopyTo(payload[32..]);
         }
 
-        public static ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset)
+        public static ReadOnlySpan<byte> Decode(ReadOnlySpan<byte> bytes, uint metaDataOffset)
         {
-            uint bytesOffset = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
+            uint bytesOffset = BitConverter.ToUInt32(bytes[(32 - 4)..]);
 
             if(BitConverter.IsLittleEndian)
             {
@@ -46,7 +46,7 @@ internal abstract partial class DynamicType<T>
                 throw new IndexOutOfRangeException("Index out of range");
             }
 
-            uint leng = BitConverter.ToUInt32(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
+            uint leng = BitConverter.ToUInt32(bytes[(int) (index + 32 - 4)..(int) (index + 32)]);
 
             if(BitConverter.IsLittleEndian)
             {

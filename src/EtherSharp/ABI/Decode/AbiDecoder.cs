@@ -88,12 +88,12 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
         return str;
     }
 
-    public AbiDecoder Bytes(out ReadOnlyMemory<byte> value)
+    public AbiDecoder Bytes(out ReadOnlySpan<byte> value)
     {
-        value = DynamicType<object>.Bytes.Decode(_bytes, _bytesRead);
+        value = DynamicType<object>.Bytes.Decode(_bytes.Span, _bytesRead);
         return ConsumeBytes();
     }
-    ReadOnlyMemory<byte> IStructAbiDecoder.Bytes()
+    ReadOnlySpan<byte> IStructAbiDecoder.Bytes()
     {
         _ = Bytes(out var value);
         return value;

@@ -2,7 +2,7 @@
 public partial interface IStructAbiDecoder
 {
     public TNumber Number<TNumber>(bool isUnsigned, int bitLength);
-    public ReadOnlyMemory<byte> Bytes();
+    public ReadOnlySpan<byte> Bytes();
     public string String();
 
     public T Struct<T>(Func<IStructAbiDecoder, T> func);
