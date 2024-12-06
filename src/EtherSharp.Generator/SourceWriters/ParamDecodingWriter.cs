@@ -21,7 +21,7 @@ public class ParamDecodingWriter
         string decoderFunction =
             $"""
             decoder.{GetPrimitiveABIDecodingMethodName(outputParameters[0].Type)}(out var val);
-            return val;
+            return {(outputParameters[0].Type.Contains("bytes") ? "val.ToArray()" : "val")};
             """;
 
         return (primitiveType, decoderFunction);
@@ -41,7 +41,7 @@ public class ParamDecodingWriter
         string decoderFunction =
             $"""
             decoder.{GetPrimitiveABIDecodingMethodName(outputParameters[0].Type)}(out var val);
-            return val;
+            return {(outputParameters[0].Type.Contains("bytes") ? "val.ToArray()" : "val")};
             """;
 
         return (primitiveType, decoderFunction);
@@ -102,7 +102,7 @@ public class ParamDecodingWriter
         return type is not null;
     }
 
-    public static string GetPrimitiveABIDecodingMethodName(string solidityType)
+    public string GetPrimitiveABIDecodingMethodName(string solidityType)
         => solidityType switch
         {
             string s when s.StartsWith("uint", StringComparison.Ordinal) => s.Substring(0, 2).ToUpper(CultureInfo.InvariantCulture) + s.Substring(2),

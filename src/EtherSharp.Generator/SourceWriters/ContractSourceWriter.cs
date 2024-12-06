@@ -221,8 +221,7 @@ public class ContractSourceWriter(
     {
         string propertyName = NameUtils.ToValidFunctionName($"{eventMember.Name}");
         string eventTypeName = NameUtils.ToValidClassName($"{eventMember.Name}Event");
-
-        string topicString = "";
+        string topicString = HexUtils.ToHexString(eventMember.GetEventTopic(out _));
 
         return
         $"""
@@ -230,7 +229,7 @@ public class ContractSourceWriter(
             => contract.GetClient()
                 .Logs<{contractInterfaceFullName}.{eventTypeName}>()
                 .HasContract(contract)
-                .HasTopic("{topicString}");
+                .HasTopic("0x{topicString}");
         """;
     }
 

@@ -13,6 +13,7 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
         string eventTypeName = NameUtils.ToValidClassName($"{eventMember.Name}Event");
         var classBuilder = new ClassBuilder(eventTypeName)
             .AddBaseType($"EtherSharp.Events.ITxEvent<{eventTypeName}>", true)
+            .AddProperty(new PropertyBuilder("EtherSharp.Types.Log", "Log"))
             .WithAutoConstructor();
 
         var decodeMethod = new FunctionBuilder("Decode")
@@ -20,14 +21,27 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
             .WithIsStatic(true)
             .AddArgument("EtherSharp.Types.Log", "log");
 
-        var constructorCall = new ConstructorCallBuilder(eventTypeName);
+        if(eventMember.Inputs.Any(x => !x.IsIndexed))
+        {
+            decodeMethod.AddStatement("EtherSharp.ABI.AbiDecoder dataDecoder = new EtherSharp.ABI.AbiDecoder(log.Data)");
+        }
+        if(eventMember.Inputs.Any(x => x.IsIndexed))
+        {
+            decodeMethod.AddStatement("EtherSharp.ABI.AbiDecoder decoder");
+        }
 
+        var constructorCall = new ConstructorCallBuilder(eventTypeName)
+            .AddArgument("log");
+
+        int topicIndex = 1;
+        int totalIndex = 1;
         foreach(var parameter in eventMember.Inputs)
         {
             if(!_paramDecodingWriter.TryGetPrimitiveEquivalentType(parameter.Type, out string primitiveType))
             {
                 throw new NotSupportedException();
             }
+            string decodeMethodName = _paramDecodingWriter.GetPrimitiveABIDecodingMethodName(parameter.Type);
 
             classBuilder.AddProperty(
                 new PropertyBuilder(primitiveType, NameUtils.ToValidPropertyName(parameter.Name))
@@ -35,7 +49,31 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
                     .WithSetterVisibility(SetterVisibility.None)
             );
 
-            constructorCall.AddArgument("default");
+            string tempVarName;
+            if(parameter.IsIndexed)
+            {
+                tempVarName = $"topic{topicIndex}";
+                decodeMethod.AddStatement($"decoder = new EtherSharp.ABI.AbiDecoder(log.Topics[{topicIndex}])");
+                decodeMethod.AddStatement($"decoder.{decodeMethodName}(out var {tempVarName})");
+
+                topicIndex++;
+            }
+            else
+            {
+                tempVarName = $"param{totalIndex}";
+                decodeMethod.AddStatement($"dataDecoder.{decodeMethodName}(out var param{totalIndex})");
+            }
+
+            if(parameter.Type.Contains("bytes"))
+            {
+                constructorCall.AddArgument($"{tempVarName}.ToArray()");
+            }
+            else
+            {
+                constructorCall.AddArgument(tempVarName);
+            }
+
+            totalIndex++;
         }
 
         decodeMethod.AddStatement($"return {constructorCall.ToInlineCall()}");
