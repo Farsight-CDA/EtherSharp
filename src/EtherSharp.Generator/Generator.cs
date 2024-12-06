@@ -154,10 +154,13 @@ public class Generator : IIncrementalGenerator
     private static ContractSourceWriter CreateSourceWriter()
     {
         var abiTypeWriter = new AbiTypeWriter();
+        var paramDecodingWriter = new ParamDecodingWriter();
+
         return new ContractSourceWriter(
             abiTypeWriter,
             new ParamEncodingWriter(abiTypeWriter),
-            new ParamDecodingWriter(abiTypeWriter)
+            paramDecodingWriter,
+            new EventTypeWriter(abiTypeWriter, paramDecodingWriter)
         );
     }
 }

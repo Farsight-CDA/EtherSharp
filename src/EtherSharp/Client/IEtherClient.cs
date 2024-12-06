@@ -1,16 +1,18 @@
 ﻿using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Contract;
+using EtherSharp.Events;
 using EtherSharp.Tx;
 using EtherSharp.Types;
-using System.Numerics;
 
 namespace EtherSharp.Client;
 public interface IEtherClient
 {
     public ulong ChainId { get; }
     public IEtherApi ETH { get; }
-    public ILogsApi Logs { get; }
+
+    public ILogsApi<TEvent> Logs<TEvent>() where TEvent : ITxEvent<TEvent>;
+    public ILogsApi<Log> Logs() => Logs<Log>();
 
     public Task InitializeAsync();
 

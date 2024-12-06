@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using EtherSharp.Events;
+using System.Numerics;
 namespace EtherSharp.Types;
 
 public record EventFilterChangesResult(
@@ -8,6 +9,7 @@ public record EventFilterChangesResult(
     string TransactionHash,
     string BlockHash,
     BigInteger BlockNumber,
-    byte[] Address,
-    byte[] Data,
-    IReadOnlyList<string> Topics);
+    string Address,
+    byte[][] Topics,
+    byte[] Data
+) : IEventData;

@@ -5,6 +5,7 @@ using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
+using EtherSharp.Events;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Types;
@@ -54,7 +55,11 @@ public class EtherClient : IEtherClient, IEtherTxClient
         }
     }
 
-    ILogsApi IEtherClient.Logs => new LogsApi(_rpcClient);
+    ILogsApi<TEvent> IEtherClient.Logs<TEvent>()
+    {
+        AssertReady();
+        return new LogsApi<TEvent>(_rpcClient);
+    }
 
     internal EtherClient(IServiceProvider provider, bool isTxClient)
     {
@@ -181,6 +186,4 @@ public class EtherClient : IEtherClient, IEtherTxClient
         => Contract<TContract>(address);
     Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight)
         => CallAsync(call, targetHeight);
-
-
 }

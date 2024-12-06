@@ -25,5 +25,5 @@ public interface IRpcClient
         string[]? address, string[]? topics
     );
 
-    public Task<EventFilterChangesResult[]> EthGetEventFilterChangesAsync(string filterId);
+    public Task<Log[]> EthGetEventFilterChangesAsync(string filterId);
 }

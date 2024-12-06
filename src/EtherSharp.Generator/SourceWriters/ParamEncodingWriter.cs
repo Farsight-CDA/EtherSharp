@@ -11,9 +11,11 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
 {
     private readonly AbiTypeWriter _typeWriter = typeWriter;
 
-    public string AddParameterEncoding(FunctionBuilder function, AbiInputParameter parameter)
+    public string AddParameterEncoding(FunctionBuilder function, AbiInputParameter parameter, int paramIndex)
     {
-        string paramName = NameUtils.ToValidParameterName(parameter.Name);
+        string paramName = string.IsNullOrWhiteSpace(parameter.Name)
+            ? $"param{paramIndex}"
+            : NameUtils.ToValidParameterName(parameter.Name);
         var (paramType, encoderFunction, _) = GetParameterEncoding(parameter, paramName);
 
         function.AddArgument(paramType, paramName);

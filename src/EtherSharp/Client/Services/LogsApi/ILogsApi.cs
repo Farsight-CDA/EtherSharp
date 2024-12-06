@@ -1,18 +1,20 @@
 ﻿using EtherSharp.Contract;
+using EtherSharp.Events;
 using EtherSharp.Filters;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Services.LogsApi;
-public interface ILogsApi
-{    
-    public ILogsApi HasTopic(string topic);
-    public ILogsApi HasTopics(params ReadOnlySpan<string> topics);
-    
-    public ILogsApi HasContractAddress(string contractAddress);
-    public ILogsApi HasContract(IEVMContract contract);
-    public ILogsApi HasContractAddresses(params ReadOnlySpan<string> contractAddresses);
-    public ILogsApi HasContracts(params ReadOnlySpan<IEVMContract> contracts);
+public interface ILogsApi<TEvent>
+    where TEvent : ITxEvent<TEvent>
+{
+    public ILogsApi<TEvent> HasTopic(string topic);
+    public ILogsApi<TEvent> HasTopics(params ReadOnlySpan<string> topics);
 
-    public Task<Log[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, byte[]? blockHash = null);
-    public Task<IEventFilter> ToFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default);
+    public ILogsApi<TEvent> HasContractAddress(string contractAddress);
+    public ILogsApi<TEvent> HasContract(IEVMContract contract);
+    public ILogsApi<TEvent> HasContractAddresses(params ReadOnlySpan<string> contractAddresses);
+    public ILogsApi<TEvent> HasContracts(params ReadOnlySpan<IEVMContract> contracts);
+
+    public Task<TEvent[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, byte[]? blockHash = null);
+    public Task<IEventFilter<TEvent>> ToFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default);
 }

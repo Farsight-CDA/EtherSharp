@@ -35,6 +35,7 @@ public class ClassBuilder : ITypeBuilder
     private readonly List<FieldBuilder> _fields;
     private readonly List<BaseType> _baseTypes;
     private readonly List<ITypeBuilder> _innerTypes;
+    private readonly List<string> _rawContents;
 
     private string _name;
     private ClassVisibility _visibility = ClassVisibility.Public;
@@ -43,6 +44,8 @@ public class ClassBuilder : ITypeBuilder
 
     private string? _jsonConverterType;
     private string? _summaryComment;
+
+    private bool _containsAutoConstructor;
 
     string ITypeBuilder.TypeName => _name;
 
@@ -53,6 +56,7 @@ public class ClassBuilder : ITypeBuilder
         _fields = [];
         _baseTypes = [];
         _innerTypes = [];
+        _rawContents = [];
         _name = name;
     }
 
@@ -65,6 +69,13 @@ public class ClassBuilder : ITypeBuilder
         _name = name;
         return this;
     }
+
+    public ClassBuilder AddRawContent(string content)
+    {
+        _rawContents.Add(content);
+        return this;
+    }
+
     public ClassBuilder AddFunction(FunctionBuilder function)
     {
         _functions.Add(function);
@@ -131,7 +142,13 @@ public class ClassBuilder : ITypeBuilder
         return this;
     }
 
-    public string Build(bool generateFieldConstructor = false, bool generateInterface = false, string? interfaceName = null)
+    public ClassBuilder WithAutoConstructor(bool containsAutoConstructor = true)
+    {
+        _containsAutoConstructor = containsAutoConstructor;
+        return this;
+    }
+
+    public string Build(bool generateInterface = false, string? interfaceName = null)
     {
         var bodySb = new StringBuilder();
         var baseTypeSb = new StringBuilder();
@@ -151,6 +168,10 @@ public class ClassBuilder : ITypeBuilder
         foreach(var type in _innerTypes)
         {
             _ = bodySb.AppendLine(type.Build());
+        }
+        foreach(string content in _rawContents)
+        {
+            _ = bodySb.AppendLine(content);
         }
 
         var orderedBaseTypes = _baseTypes.OrderBy(x => !x.IsInterface).ToList();
@@ -213,7 +234,7 @@ public class ClassBuilder : ITypeBuilder
         outputSb.AppendLine($" class {_name} {baseTypeSb}");
         outputSb.AppendLine("{");
 
-        if(generateFieldConstructor)
+        if(_containsAutoConstructor)
         {
             outputSb.AppendLine(
                 new ConstructorBuilder(_name)
@@ -262,6 +283,10 @@ public class ClassBuilder : ITypeBuilder
         foreach(var syntaxId in _innerTypes.Select(x => x.GetSyntaxId()))
         {
             innerSyntaxId = innerSyntaxId.Combine(syntaxId);
+        }
+        foreach(int syntaxId in _rawContents.Select(x => x.GetHashCode()))
+        {
+            innerSyntaxId = innerSyntaxId.Combine(new SyntaxId(syntaxId));
         }
 
         return innerSyntaxId;

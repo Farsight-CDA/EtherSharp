@@ -3,7 +3,7 @@
 namespace EtherSharp.Generator.SourceWriters;
 public class AbiTypeWriter
 {
-    private Dictionary<SyntaxId, ITypeBuilder> _typeBuilders = [];
+    private readonly Dictionary<SyntaxId, ITypeBuilder> _typeBuilders = [];
 
     public void RegisterTypeBuilder(ITypeBuilder typeBuilder)
     {
@@ -17,5 +17,6 @@ public class AbiTypeWriter
         _typeBuilders.Add(syntaxId, typeBuilder);
     }
 
-    public IEnumerable<ITypeBuilder> GetTypeBuilders() => _typeBuilders.Values;
+    public IEnumerable<ITypeBuilder> GetTypeBuilders() 
+        => _typeBuilders.Values;
 }

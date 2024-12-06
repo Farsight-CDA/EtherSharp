@@ -378,13 +378,13 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
             _ => throw new NotImplementedException(),
         };
     }
-    public async Task<EventFilterChangesResult[]> EthGetEventFilterChangesAsync(string filterID)
+    public async Task<Log[]> EthGetEventFilterChangesAsync(string filterID)
     {
-        var response = await _transport.SendRpcRequest<string, EventFilterChangesResult[]>("eth_getFilterChanges", filterID);
+        var response = await _transport.SendRpcRequest<string, Log[]>("eth_getFilterChanges", filterID);
         return response switch
         {
-            RpcResult<EventFilterChangesResult[]>.Success result => result.Result,
-            RpcResult<EventFilterChangesResult[]>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<Log[]>.Success result => result.Result,
+            RpcResult<Log[]>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }

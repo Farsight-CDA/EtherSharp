@@ -1,15 +1,17 @@
 ﻿using EtherSharp.Client.Services.RPC;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
+using EtherSharp.Events;
 using EtherSharp.Filters;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Services.LogsApi;
-internal class LogsApi(IRpcClient rpcClient) : ILogsApi
+internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
+    where TEvent : ITxEvent<TEvent>
 {
-    private readonly IRpcClient _rpcClient = rpcClient;
-
-    private string[]? _topics = null;
-    private string[]? _contractAddresses = null;
+    protected readonly IRpcClient _rpcClient = rpcClient;
+    protected string[]? _topics = null;
+    protected string[]? _contractAddresses = null;
 
     private void AssertNoTopics()
     {
@@ -30,31 +32,31 @@ internal class LogsApi(IRpcClient rpcClient) : ILogsApi
         throw new InvalidOperationException("Contract address filter already configured");
     }
 
-    public ILogsApi HasContract(IEVMContract contract)
+    public ILogsApi<TEvent> HasContract(IEVMContract contract)
     {
         AssertNoContractAddresses();
         _contractAddresses = [contract.ContractAddress];
         return this;
     }
-    public ILogsApi HasContractAddress(string contractAddress)
+    public ILogsApi<TEvent> HasContractAddress(string contractAddress)
     {
         AssertNoContractAddresses();
         _contractAddresses = [contractAddress];
         return this;
     }
-    public ILogsApi HasContractAddresses(params ReadOnlySpan<string> contractAddresses)
+    public ILogsApi<TEvent> HasContractAddresses(params ReadOnlySpan<string> contractAddresses)
     {
         AssertNoContractAddresses();
         _contractAddresses = contractAddresses.ToArray();
         return this;
     }
-    public ILogsApi HasContracts(params ReadOnlySpan<IEVMContract> contracts)
+    public ILogsApi<TEvent> HasContracts(params ReadOnlySpan<IEVMContract> contracts)
     {
         AssertNoContractAddresses();
 
         _contractAddresses = new string[contracts.Length];
 
-        for (int i = 0; i < _contractAddresses.Length; i++) 
+        for(int i = 0; i < _contractAddresses.Length; i++)
         {
             _contractAddresses[i] = contracts[i].ContractAddress;
         }
@@ -62,32 +64,40 @@ internal class LogsApi(IRpcClient rpcClient) : ILogsApi
         return this;
     }
 
-    public ILogsApi HasTopic(string topic)
+    public ILogsApi<TEvent> HasTopic(string topic)
     {
         AssertNoTopics();
         _topics = [topic];
         return this;
     }
-    public ILogsApi HasTopics(params ReadOnlySpan<string> topics)
+    public ILogsApi<TEvent> HasTopics(params ReadOnlySpan<string> topics)
     {
         AssertNoTopics();
         _topics = topics.ToArray();
         return this;
     }
 
-    public async Task<Log[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, byte[]? blockHash = null)
+    public async Task<TEvent[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, byte[]? blockHash = null)
     {
-        if (fromBlock == default)
+        if(fromBlock == default)
         {
             fromBlock = TargetBlockNumber.Earliest;
         }
 
-        return await _rpcClient.EthGetLogsAsync(fromBlock, toBlock, _contractAddresses, _topics, blockHash);
+        var rawResults = await _rpcClient.EthGetLogsAsync(fromBlock, toBlock, _contractAddresses, _topics, blockHash);
+
+        if (typeof(TEvent) == typeof(Log))
+        {
+            return (rawResults as TEvent[]) 
+                ?? throw new ImpossibleException();
+        }
+        //
+        return rawResults.Select(TEvent.Decode).ToArray();
     }
 
-    public async Task<IEventFilter> ToFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default)
+    public async Task<IEventFilter<TEvent>> ToFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default)
     {
         string filterId = await _rpcClient.EthNewFilterAsync(fromBlock, toBlock, _contractAddresses, _topics);
-        return new EventFilter(_rpcClient, filterId);
+        return new EventFilter<TEvent>(_rpcClient, filterId);
     }
 }

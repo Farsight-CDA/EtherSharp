@@ -4,10 +4,8 @@ using EtherSharp.Generator.Util;
 using System.Numerics;
 
 namespace EtherSharp.Generator.SourceWriters;
-public class ParamDecodingWriter(AbiTypeWriter typeWriter)
+public class ParamDecodingWriter
 {
-    private readonly AbiTypeWriter _typeWriter = typeWriter;
-
     public (string, string) SetQueryOutputDecoding(string functionName, FunctionBuilder function, AbiOutputParameter[] outputParameters)
     {
         ValidateParameters(functionName, outputParameters);
@@ -59,7 +57,7 @@ public class ParamDecodingWriter(AbiTypeWriter typeWriter)
         }
     }
 
-    private bool TryGetPrimitiveEquivalentType(string solidityType, out string type)
+    public bool TryGetPrimitiveEquivalentType(string solidityType, out string type)
     {
         type = (solidityType switch
         {
@@ -103,7 +101,7 @@ public class ParamDecodingWriter(AbiTypeWriter typeWriter)
         return type is not null;
     }
 
-    private static string GetPrimitiveABIDecodingMethodName(string solidityType)
+    public static string GetPrimitiveABIDecodingMethodName(string solidityType)
         => solidityType switch
         {
             string s when s.StartsWith("uint") => s.Substring(0, 2).ToUpper() + s.Substring(2),

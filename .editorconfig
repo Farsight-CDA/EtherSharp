@@ -244,7 +244,7 @@ dotnet_naming_symbols.public_or_protected_field.applicable_accessibilities = pub
 dotnet_naming_symbols.public_or_protected_field.required_modifiers = 
 
 dotnet_naming_symbols.private_or_internal_field.applicable_kinds = field
-dotnet_naming_symbols.private_or_internal_field.applicable_accessibilities = internal, private, private_protected
+dotnet_naming_symbols.private_or_internal_field.applicable_accessibilities = internal, private, private_protected, protected
 dotnet_naming_symbols.private_or_internal_field.required_modifiers = 
 
 dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum

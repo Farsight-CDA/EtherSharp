@@ -6,19 +6,26 @@ using System.Numerics;
 using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
-public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter paramEncodingWriter, ParamDecodingWriter paramDecodingWriter)
+public class ContractSourceWriter(
+    AbiTypeWriter typeWriter, 
+    ParamEncodingWriter paramEncodingWriter, ParamDecodingWriter paramDecodingWriter, 
+    EventTypeWriter eventTypeWriter
+)
 {
     private readonly AbiTypeWriter _typeWriter = typeWriter;
     private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
     private readonly ParamDecodingWriter _paramDecodingWriter = paramDecodingWriter;
+    private readonly EventTypeWriter _eventTypeWriter = eventTypeWriter;
 
     public string WriteContractSourceCode(string @namespace, string contractName, IEnumerable<AbiMember> members)
     {
         var contractInterface = new InterfaceBuilder(contractName)
             .WithIsPartial(true)
-            .WithVisibility(InterfaceVisibility.Public);
+            .WithVisibility(InterfaceVisibility.Public)
+            .AddRawContent($"public LogsApi Events => new LogsApi(this);");
 
-        var contractImplementation = new ClassBuilder($"{contractName}_Generated_Implementation")
+        string implementationName = $"{contractName}_Generated_Implementation";
+        var contractImplementation = new ClassBuilder(implementationName)
             .AddBaseType(contractName, true)
             .WithVisibility(ClassVisibility.Internal)
             .AddField(new FieldBuilder("EtherSharp.Client.IEtherClient", "_client")
@@ -27,6 +34,9 @@ public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter 
             ).AddProperty(new PropertyBuilder("System.String", "ContractAddress")
                 .WithVisibility(PropertyVisibility.Public)
                 .WithSetterVisibility(SetterVisibility.None)
+            ).AddFunction(new FunctionBuilder("GetClient")
+                .WithReturnTypeRaw("EtherSharp.Client.IEtherClient")
+                .AddStatement("return _client")
             );
 
         foreach(var member in members.Where(x => x is FunctionAbiMember).Cast<FunctionAbiMember>())
@@ -53,6 +63,36 @@ public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter 
             contractImplementation.AddFunction(func);
         }
 
+        var eventsStructBuilder = new StringBuilder();
+        eventsStructBuilder.AppendLine(
+            $$"""
+            public readonly ref struct LogsApi
+            {
+                private readonly {{@namespace}}.{{contractName}} contract;
+
+                public LogsApi({{@namespace}}.{{contractName}} contract)
+                {
+                    this.contract = contract;
+                }
+                public LogsApi()
+                {
+                    throw new NotSupportedException();
+                }
+            """);
+
+        foreach(var memer in members.Where(x => x is EventAbiMember).Cast<EventAbiMember>())
+        {
+            string eventProperty = GenerateEventProperty($"{@namespace}.{contractName}", memer);
+            eventsStructBuilder.AppendLine(eventProperty);
+
+            contractInterface.AddInnerType(
+                _eventTypeWriter.GenerateEventType(memer)
+            );
+        }
+
+        eventsStructBuilder.AppendLine("}");
+        contractInterface.AddRawContent(eventsStructBuilder.ToString());
+
         var output = new StringBuilder();
 
         output.AppendLine(
@@ -60,7 +100,7 @@ public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter 
             namespace {{@namespace}};
 
             {{contractInterface.Build()}}
-            {{contractImplementation.Build(generateFieldConstructor: true)}}
+            {{contractImplementation.WithAutoConstructor().Build()}}
             """
         );
 
@@ -75,7 +115,6 @@ public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter 
     private FunctionBuilder GenerateQueryFunction(FunctionAbiMember queryFunction)
     {
         string functionName = NameUtils.ToValidFunctionName($"{queryFunction.Name}Async");
-
         var func = new FunctionBuilder(functionName)
             .WithVisibility(FunctionVisibility.Public);
 
@@ -84,9 +123,9 @@ public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter 
         var encoder = new EtherSharp.ABI.AbiEncoder()
         """);
 
-        foreach(var input in queryFunction.Inputs)
+        foreach(var (input, index) in queryFunction.Inputs.Select((x, i) => (x, i)))
         {
-            _paramEncodingWriter.AddParameterEncoding(func, input);
+            _paramEncodingWriter.AddParameterEncoding(func, input, index);
         }
 
         var (returnType, decoderFunction) = _paramDecodingWriter.SetQueryOutputDecoding(queryFunction.Name, func, queryFunction.Outputs);
@@ -110,7 +149,6 @@ public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter 
     private FunctionBuilder GenerateMessageFunction(FunctionAbiMember messageFunction)
     {
         string functionName = NameUtils.ToValidFunctionName($"{messageFunction.Name}");
-
         var func = new FunctionBuilder(functionName)
             .WithVisibility(FunctionVisibility.Public);
 
@@ -120,10 +158,10 @@ public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter 
         """);
 
         var paramNames = new List<string>();
-        foreach(var input in messageFunction.Inputs)
+        foreach(var (input, index) in messageFunction.Inputs.Select((x, i) => (x, i)))
         {
             paramNames.Add(
-                _paramEncodingWriter.AddParameterEncoding(func, input)
+                _paramEncodingWriter.AddParameterEncoding(func, input, index)
             );
         }
 
@@ -177,6 +215,23 @@ public class ContractSourceWriter(AbiTypeWriter typeWriter, ParamEncodingWriter 
         }
 
         return func;
+    }
+
+    private string GenerateEventProperty(string contractInterfaceFullName, EventAbiMember eventMember)
+    {
+        string propertyName = NameUtils.ToValidFunctionName($"{eventMember.Name}");
+        string eventTypeName = NameUtils.ToValidClassName($"{eventMember.Name}Event");
+
+        string topicString = "";
+
+        return 
+        $"""
+        public readonly EtherSharp.Client.Services.LogsApi.ILogsApi<{contractInterfaceFullName}.{eventTypeName}> {propertyName}
+            => contract.GetClient()
+                .Logs<{contractInterfaceFullName}.{eventTypeName}>()
+                .HasContract(contract)
+                .HasTopic("{topicString}");
+        """;
     }
 
     private static string GetFunctionSignatureFieldName(FunctionAbiMember abiFunction)
