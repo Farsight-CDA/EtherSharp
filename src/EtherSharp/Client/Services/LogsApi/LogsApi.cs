@@ -86,9 +86,9 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
 
         var rawResults = await _rpcClient.EthGetLogsAsync(fromBlock, toBlock, _contractAddresses, _topics, blockHash);
 
-        if (typeof(TEvent) == typeof(Log))
+        if(typeof(TEvent) == typeof(Log))
         {
-            return (rawResults as TEvent[]) 
+            return (rawResults as TEvent[])
                 ?? throw new ImpossibleException();
         }
         //

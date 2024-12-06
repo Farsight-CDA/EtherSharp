@@ -1,23 +1,14 @@
 ﻿using Microsoft.CodeAnalysis;
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
 
-public class InitializerArgument
+public class InitializerArgument(string targetPropertyName, string sourceExpression, bool isReadonlyList)
 {
-    public string TargetPropertyName { get; }
-    public string SourceExpression { get; }
+    public string TargetPropertyName { get; } = targetPropertyName;
+    public string SourceExpression { get; } = sourceExpression;
 
-    public bool IsReadonlyList { get; }
-
-    public InitializerArgument(string targetPropertyName, string sourceExpression, bool isReadonlyList)
-    {
-        TargetPropertyName = targetPropertyName;
-        SourceExpression = sourceExpression;
-        IsReadonlyList = isReadonlyList;
-    }
+    public bool IsReadonlyList { get; } = isReadonlyList;
 }
 public class ObjectInitializerBuilder
 {

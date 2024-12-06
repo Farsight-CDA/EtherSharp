@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.Http.Headers;
+﻿using System.Globalization;
 
 namespace EtherSharp.Generator.SyntaxElements;
 public enum FieldVisibility
@@ -8,10 +7,10 @@ public enum FieldVisibility
     Private,
     Internal
 }
-public class FieldBuilder : ISyntaxBuilder
+public class FieldBuilder(string type, string name) : ISyntaxBuilder
 {
-    public string Type { get; }
-    public string Name { get; }
+    public string Type { get; } = type;
+    public string Name { get; } = name;
     public string? DefaultValue { get; private set; }
     public FieldVisibility Visibility { get; private set; } = FieldVisibility.Public;
 
@@ -19,12 +18,6 @@ public class FieldBuilder : ISyntaxBuilder
     public bool IsStatic { get; private set; }
 
     public string? XmlSummaryContent { get; private set; }
-
-    public FieldBuilder(string type, string name)
-    {
-        Type = type;
-        Name = name;
-    }
 
     public FieldBuilder WithVisibility(FieldVisibility visibility)
     {
@@ -58,10 +51,10 @@ public class FieldBuilder : ISyntaxBuilder
 
     public string Build()
         => $$"""
-            {{BuildXmlComment()}}{{Visibility.ToString().ToLower()}}{{(IsStatic ? " static" : "")}}{{(IsReadonly ? " readonly" : "")}} {{Type}} {{Name}} {{(DefaultValue is null ? "" : $"= {DefaultValue}")}};
+            {{BuildXmlComment()}}{{Visibility.ToString().ToLower(CultureInfo.InvariantCulture)}}{{(IsStatic ? " static" : "")}}{{(IsReadonly ? " readonly" : "")}} {{Type}} {{Name}} {{(DefaultValue is null ? "" : $"= {DefaultValue}")}};
             """;
 
-    private string BuildXmlComment() 
+    private string BuildXmlComment()
         => XmlSummaryContent is null ? "" :
             $"""
             /// <summary>

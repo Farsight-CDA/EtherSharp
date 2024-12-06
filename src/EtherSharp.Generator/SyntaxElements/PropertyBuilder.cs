@@ -1,5 +1,5 @@
 ﻿using EtherSharp.Generator.Util;
-using System;
+using System.Globalization;
 using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
@@ -16,24 +16,18 @@ public enum SetterVisibility
     Private,
     Init
 }
-public class PropertyBuilder : ISyntaxBuilder
+public class PropertyBuilder(string type, string name) : ISyntaxBuilder
 {
-    public string Type { get; private set; }
-    public string Name { get; private set; }
+    public string Type { get; private set; } = type;
+    public string Name { get; private set; } = name;
     public string? DefaultValue { get; private set; }
 
     private PropertyVisibility _visibility = PropertyVisibility.Public;
     private SetterVisibility _setterVisibility = SetterVisibility.Public;
-    private bool _isRequired = false;
+    private bool _isRequired;
 
     private string? _jsonPropertyName;
     private string? _summaryComment;
-
-    public PropertyBuilder(string type, string name)
-    {
-        Type = type;
-        Name = name;
-    }
 
     public PropertyBuilder WithVisibility(PropertyVisibility visibility)
     {
@@ -85,11 +79,11 @@ public class PropertyBuilder : ISyntaxBuilder
         }
 
         return $$"""
-            {{headerSb}} {{_visibility.ToString().ToLower()}} {{(_isRequired ? "required" : "")}} {{Type}} {{Name}} { get; {{GetSetter()}} } {{(DefaultValue is not null ? $"= {DefaultValue};" : "")}}
+            {{headerSb}} {{_visibility.ToString().ToLower(CultureInfo.InvariantCulture)}} {{(_isRequired ? "required" : "")}} {{Type}} {{Name}} { get; {{GetSetter()}} } {{(DefaultValue is not null ? $"= {DefaultValue};" : "")}}
             """;
     }
 
-    private string GetSetter() 
+    private string GetSetter()
         => _setterVisibility switch
         {
             SetterVisibility.None => "",

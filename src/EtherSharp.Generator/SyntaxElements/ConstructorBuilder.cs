@@ -1,21 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
-public class ConstructorBuilder : ISyntaxBuilder
+public class ConstructorBuilder(string className) : ISyntaxBuilder
 {
-    private readonly List<FieldBuilder> _fields;
-    private readonly List<PropertyBuilder> _properties;
-    private readonly string _className;
-
-    public ConstructorBuilder(string className)
-    {
-        _fields = [];
-        _properties = [];
-        _className = className;
-    }
+    private readonly List<FieldBuilder> _fields = [];
+    private readonly List<PropertyBuilder> _properties = [];
+    private readonly string _className = className;
 
     public ConstructorBuilder AddInitializedField(FieldBuilder field)
     {
@@ -56,7 +46,7 @@ public class ConstructorBuilder : ISyntaxBuilder
 
         foreach(var field in _fields)
         {
-            if(field.Name.StartsWith("_"))
+            if(field.Name.StartsWith("_", StringComparison.Ordinal))
             {
                 _ = assignmentSb.AppendLine($"{field.Name} = {field.Name.Substring(1)};");
                 _ = argumentBuilder.AddArgument(field.Type, field.Name.Substring(1));
@@ -69,7 +59,7 @@ public class ConstructorBuilder : ISyntaxBuilder
         }
         foreach(var property in _properties)
         {
-            if(property.Name.StartsWith("_"))
+            if(property.Name.StartsWith("_", StringComparison.Ordinal))
             {
                 _ = assignmentSb.AppendLine($"{property.Name} = {property.Name.Substring(1)};");
                 _ = argumentBuilder.AddArgument(property.Type, property.Name.Substring(1));

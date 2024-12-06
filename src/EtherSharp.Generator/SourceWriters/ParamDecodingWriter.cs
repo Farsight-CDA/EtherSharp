@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Generator.Abi.Parameters;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
+using System.Globalization;
 using System.Numerics;
 
 namespace EtherSharp.Generator.SourceWriters;
@@ -65,7 +66,7 @@ public class ParamDecodingWriter
             "string" => typeof(string).FullName,
             "bool" => typeof(bool).FullName,
             "bytes" => typeof(byte[]).FullName,
-            string s when s.StartsWith("uint") && int.TryParse(s.Substring(4), out int bitSize)
+            string s when s.StartsWith("uint", StringComparison.Ordinal) && int.TryParse(s.Substring(4), out int bitSize)
                 => bitSize % 8 != 0
                     ? throw new NotSupportedException("uint bitsize must be multiple of 8")
                     : bitSize switch
@@ -77,7 +78,7 @@ public class ParamDecodingWriter
                         <= 64 => typeof(ulong).FullName,
                         _ => typeof(BigInteger).FullName,
                     },
-            string s when s.StartsWith("int") && int.TryParse(s.Substring(3), out int bitSize)
+            string s when s.StartsWith("int", StringComparison.Ordinal) && int.TryParse(s.Substring(3), out int bitSize)
                     => bitSize % 8 != 0
                     ? throw new NotSupportedException("int bitsize must be multiple of 8")
                     : bitSize switch
@@ -89,7 +90,7 @@ public class ParamDecodingWriter
                         <= 64 => typeof(long).FullName,
                         _ => typeof(BigInteger).FullName,
                     },
-            string s when s.StartsWith("bytes") && int.TryParse(s.Substring(5), out int bitSize)
+            string s when s.StartsWith("bytes", StringComparison.Ordinal) && int.TryParse(s.Substring(5), out int bitSize)
                 => bitSize switch
                 {
                     < 1 or > 32 => throw new NotSupportedException("bytes bitsize must be between 8 and 256"),
@@ -104,7 +105,7 @@ public class ParamDecodingWriter
     public static string GetPrimitiveABIDecodingMethodName(string solidityType)
         => solidityType switch
         {
-            string s when s.StartsWith("uint") => s.Substring(0, 2).ToUpper() + s.Substring(2),
+            string s when s.StartsWith("uint", StringComparison.Ordinal) => s.Substring(0, 2).ToUpper(CultureInfo.InvariantCulture) + s.Substring(2),
             _ => NameUtils.ToValidFunctionName(solidityType),
         };
 }

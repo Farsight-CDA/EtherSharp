@@ -9,7 +9,7 @@ public readonly struct TargetBlockNumber
     {
         _value = value;
     }
-    public static TargetBlockNumber Latest { get; } = new (null!);
+    public static TargetBlockNumber Latest { get; } = new(null!);
     public static TargetBlockNumber Earliest { get; } = new("earliest");
     public static TargetBlockNumber Safe { get; } = new("safe");
     public static TargetBlockNumber Finalized { get; } = new("finalized");
@@ -20,9 +20,9 @@ public readonly struct TargetBlockNumber
     public override bool Equals([NotNullWhen(true)] object? obj)
         => obj is TargetBlockNumber tbn && _value == tbn._value;
 
-    public static bool operator ==(TargetBlockNumber left, TargetBlockNumber right) 
-        => left.Equals(right); 
-    public static bool operator !=(TargetBlockNumber left, TargetBlockNumber right) 
+    public static bool operator ==(TargetBlockNumber left, TargetBlockNumber right)
+        => left.Equals(right);
+    public static bool operator !=(TargetBlockNumber left, TargetBlockNumber right)
         => !(left == right);
 
     public override int GetHashCode()

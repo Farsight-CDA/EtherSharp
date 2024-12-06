@@ -4,7 +4,7 @@ namespace EtherSharp.Generator.Util;
 public static class DebuggerUtils
 {
 #if DEBUG
-    private static bool LaunchedBefore = false;
+    private static bool LaunchedBefore;
 
     public static void Attach()
     {
@@ -14,6 +14,6 @@ public static class DebuggerUtils
             LaunchedBefore = true;
             Debugger.Launch();
         }
-}
+    }
 #endif
 }

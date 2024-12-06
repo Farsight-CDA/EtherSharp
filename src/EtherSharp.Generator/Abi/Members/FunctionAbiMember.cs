@@ -33,17 +33,14 @@ public class FunctionAbiMember : AbiMember
 
             if(!isLastInput)
             {
-                sb.Append(",");
+                sb.Append(',');
             }
         }
 
-        sb.Append(")");
+        sb.Append(')');
 
         functionSignature = sb.ToString();
         byte[] hash = Keccak256.ComputeHash(functionSignature);
-
-        byte[] selector = new byte[4];
-        hash.AsSpan().Slice(0, 4).CopyTo(selector);
-        return selector;
+        return hash.AsSpan().Slice(0, 4).ToArray();
     }
 }

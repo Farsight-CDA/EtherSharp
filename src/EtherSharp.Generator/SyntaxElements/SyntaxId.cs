@@ -1,14 +1,7 @@
-﻿using System;
-
-namespace EtherSharp.Generator.SyntaxElements;
-public readonly struct SyntaxId
+﻿namespace EtherSharp.Generator.SyntaxElements;
+public readonly struct SyntaxId(int id)
 {
-    private readonly int Id;
-
-    public SyntaxId(int id)
-    {
-        Id = id;
-    }
+    private readonly int Id = id;
 
     public override bool Equals(object obj)
         => obj is SyntaxId i && i.Id == Id;

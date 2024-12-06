@@ -1,8 +1,6 @@
 ﻿using EtherSharp.Generator.Util;
 using Microsoft.CodeAnalysis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Globalization;
 using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
@@ -13,27 +11,19 @@ public enum FunctionVisibility
     Private,
 }
 
-public class FunctionBuilder : ISyntaxBuilder
+public class FunctionBuilder(string name) : ISyntaxBuilder
 {
-    private readonly List<string> _statements;
-    private TypedArgumentsBuilder _argumentBuilder;
-    private readonly Dictionary<string, string> _argumentComments;
+    private readonly List<string> _statements = [];
+    private TypedArgumentsBuilder _argumentBuilder = new TypedArgumentsBuilder();
+    private readonly Dictionary<string, string> _argumentComments = [];
 
-    private readonly string _name;
+    private readonly string _name = name;
 
     private FunctionVisibility _visibility = FunctionVisibility.Public;
-    private string? _returnType = null;
-    private string? _summaryComment = null;
-    private bool _isAsync = false;
-    private bool _isStatic = false;
-
-    public FunctionBuilder(string name)
-    {
-        _argumentBuilder = new TypedArgumentsBuilder();
-        _statements = [];
-        _argumentComments = [];
-        _name = name;
-    }
+    private string? _returnType;
+    private string? _summaryComment;
+    private bool _isAsync;
+    private bool _isStatic;
 
     public FunctionBuilder WithReturnType(INamedTypeSymbol returnType)
     {
@@ -125,7 +115,7 @@ public class FunctionBuilder : ISyntaxBuilder
             _ = sb.AppendLine(CommentUtils.MakeSummaryComment(_summaryComment));
         }
 
-        sb.Append($"{_visibility.ToString().ToLower()} ");
+        sb.Append($"{_visibility.ToString().ToLower(CultureInfo.InvariantCulture)} ");
         _ = sb.Append($"{(_returnType is null ? "void" : _returnType)} {_name}({_argumentBuilder.Build()});");
 
         return sb.ToString();
@@ -147,7 +137,7 @@ public class FunctionBuilder : ISyntaxBuilder
 
         if(_visibility != FunctionVisibility.Omit)
         {
-            _ = sb.Append($"{_visibility.ToString().ToLower()} ");
+            _ = sb.Append($"{_visibility.ToString().ToLower(CultureInfo.InvariantCulture)} ");
         }
         if(_isStatic)
         {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using System.Globalization;
 using System.Text;
 
 namespace EtherSharp.Generator.Util;
@@ -36,12 +37,12 @@ public static class NameUtils
     public static string Uncapitalize(string name)
         => name.Length == 0
             ? ""
-            : name[0].ToString().ToLower() + name.Substring(1);
+            : name[0].ToString().ToLower(CultureInfo.InvariantCulture) + name.Substring(1);
 
     public static string Capitalize(string name)
-        => name.Length == 0 
+        => name.Length == 0
             ? ""
-            : name[0].ToString().ToUpper() + name.Substring(1);
+            : name[0].ToString().ToUpper(CultureInfo.InvariantCulture) + name.Substring(1);
 
     public static string ReplaceAll(string name, char replacement, params char[] oldChars)
     {

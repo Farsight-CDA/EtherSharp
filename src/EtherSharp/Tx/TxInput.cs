@@ -1,5 +1,4 @@
 ﻿using EtherSharp.ABI;
-using EtherSharp.ABI.Decode;
 using EtherSharp.Types;
 using System.Numerics;
 

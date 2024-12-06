@@ -3,19 +3,13 @@ using Microsoft.CodeAnalysis;
 using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
-public class ConstructorCallBuilder
+public class ConstructorCallBuilder(string constructedType)
 {
-    private readonly CallArgumentsBuilder _argumentsBuilder;
-    private readonly ObjectInitializerBuilder _objectInitializerBuilder;
+    private readonly CallArgumentsBuilder _argumentsBuilder = new CallArgumentsBuilder();
+    private readonly ObjectInitializerBuilder _objectInitializerBuilder = new ObjectInitializerBuilder();
 
-    private readonly string _constructedType;
+    private readonly string _constructedType = constructedType;
 
-    public ConstructorCallBuilder(string constructedType)
-    {
-        _argumentsBuilder = new CallArgumentsBuilder();
-        _objectInitializerBuilder = new ObjectInitializerBuilder();
-        _constructedType = constructedType;
-    }
     public ConstructorCallBuilder(INamedTypeSymbol constructedType)
         : this(NameUtils.FullyQualifiedTypeName(constructedType))
     {

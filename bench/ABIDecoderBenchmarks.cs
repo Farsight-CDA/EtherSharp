@@ -1,6 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
 using EtherSharp.ABI;
-using EtherSharp.ABI.Decode;
 
 namespace EtherSharp.Bench;
 public class ABIDecoderBenchmarks

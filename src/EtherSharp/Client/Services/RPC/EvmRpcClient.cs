@@ -323,7 +323,7 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         string[]? Topics
     );
     public async Task<string> EthNewFilterAsync(
-        TargetBlockNumber fromBlock, TargetBlockNumber toBlock, 
+        TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
         string[]? address, string[]? topics)
     {
         var filterOptions = new EthNewFilterRequest(fromBlock.ToString(), toBlock.ToString(), address, topics);
@@ -397,7 +397,7 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         byte[]? BlockHash
     );
     public async Task<Log[]> EthGetLogsAsync(
-        TargetBlockNumber fromBlock, TargetBlockNumber toBlock, 
+        TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
         string[]? addresses, string[]? topics, byte[]? blockHash)
     {
         var filterOptions = new EthGetLogsRequest(fromBlock.ToString(), toBlock.ToString(), addresses, topics, blockHash);

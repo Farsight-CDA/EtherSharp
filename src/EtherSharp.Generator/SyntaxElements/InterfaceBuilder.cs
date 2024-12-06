@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Globalization;
 using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
@@ -8,25 +8,16 @@ public enum InterfaceVisibility
     Public,
     Internal
 }
-public class InterfaceBuilder
+public class InterfaceBuilder(string name)
 {
-    private readonly List<FunctionBuilder> _functions;
-    private readonly List<string> _baseInterfaces;
-    private readonly List<ITypeBuilder> _innerTypes;
-    private readonly List<string> _rawContents;
+    private readonly List<FunctionBuilder> _functions = [];
+    private readonly List<string> _baseInterfaces = [];
+    private readonly List<ITypeBuilder> _innerTypes = [];
+    private readonly List<string> _rawContents = [];
 
-    private readonly string _name;
+    private readonly string _name = name;
     private InterfaceVisibility _visibility = InterfaceVisibility.Public;
-    private bool _isPartial = false;
-
-    public InterfaceBuilder(string name)
-    {
-        _functions = [];
-        _baseInterfaces = [];
-        _innerTypes = [];
-        _rawContents = [];
-        _name = name;
-    }
+    private bool _isPartial;
 
     public InterfaceBuilder AddFunction(FunctionBuilder function)
     {
@@ -120,7 +111,7 @@ public class InterfaceBuilder
 
         return
             $$"""
-            {{_visibility.ToString().ToLower()}}{{(_isPartial ? " partial" : "")}} interface {{_name}} {{baseInterfacesSb}} 
+            {{_visibility.ToString().ToLower(CultureInfo.InvariantCulture)}}{{(_isPartial ? " partial" : "")}} interface {{_name}} {{baseInterfacesSb}} 
             {
                 {{bodySb}}
             }

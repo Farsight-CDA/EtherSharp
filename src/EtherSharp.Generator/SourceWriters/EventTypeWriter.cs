@@ -24,7 +24,7 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
 
         foreach(var parameter in eventMember.Inputs)
         {
-            if (!_paramDecodingWriter.TryGetPrimitiveEquivalentType(parameter.Type, out string primitiveType))
+            if(!_paramDecodingWriter.TryGetPrimitiveEquivalentType(parameter.Type, out string primitiveType))
             {
                 throw new NotSupportedException();
             }
@@ -32,7 +32,7 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
             classBuilder.AddProperty(
                 new PropertyBuilder(primitiveType, NameUtils.ToValidPropertyName(parameter.Name))
                     .WithVisibility(PropertyVisibility.Public)
-                    .WithSetterVisibility(SetterVisibility.None)                
+                    .WithSetterVisibility(SetterVisibility.None)
             );
 
             constructorCall.AddArgument("default");

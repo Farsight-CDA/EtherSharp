@@ -1,7 +1,6 @@
 ﻿using EtherSharp.Generator.Abi;
 using EtherSharp.Generator.SourceWriters;
 using EtherSharp.Generator.Util;
-using EtherSharp.Generator.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,9 +17,9 @@ public class Generator : IIncrementalGenerator
         var contractTypesProvider = context.SyntaxProvider
             .CreateSyntaxProvider(
                 IsCandidateNode,
-                (ctx, _) => ( 
+                (ctx, cancellationToken) => (
                     Node: (InterfaceDeclarationSyntax) ctx.Node,
-                    Symbol: ctx.SemanticModel.GetDeclaredSymbol((InterfaceDeclarationSyntax) ctx.Node)
+                    Symbol: ctx.SemanticModel.GetDeclaredSymbol((InterfaceDeclarationSyntax) ctx.Node, cancellationToken: cancellationToken)
                 )
             )
             .Where(ctx =>
@@ -33,7 +32,7 @@ public class Generator : IIncrementalGenerator
             ));
 
         var additionalFilesProvider = context.AdditionalTextsProvider
-            .Where(file => file.Path.EndsWith(".json"));
+            .Where(file => file.Path.EndsWith(".json", StringComparison.OrdinalIgnoreCase));
 
         var combined = contractTypesProvider.Combine(additionalFilesProvider.Collect());
 
@@ -42,9 +41,9 @@ public class Generator : IIncrementalGenerator
 
     private static bool IsCandidateNode(SyntaxNode node, CancellationToken _)
         => node is InterfaceDeclarationSyntax cd &&
-            cd.BaseList is not null && 
-            cd.BaseList.Types.Any(baseType => 
-                baseType.Type is IdentifierNameSyntax identifier && 
+            cd.BaseList is not null &&
+            cd.BaseList.Types.Any(baseType =>
+                baseType.Type is IdentifierNameSyntax identifier &&
                 identifier.Identifier.Text == "IEVMContract"
             );
 
@@ -80,7 +79,7 @@ public class Generator : IIncrementalGenerator
 
             string? schemaFileName = attributes.Single().ConstructorArguments[0].Value?.ToString();
 
-            if (schemaFileName is null || string.IsNullOrEmpty(schemaFileName))
+            if(schemaFileName is null || string.IsNullOrEmpty(schemaFileName))
             {
                 string fileDisplayName = schemaFileName is null
                     ? "null"
@@ -90,7 +89,7 @@ public class Generator : IIncrementalGenerator
             }
 
             var schemaFiles = additionalFiles
-                .Where(file => file.Path.EndsWith(schemaFileName))
+                .Where(file => file.Path.EndsWith(schemaFileName, StringComparison.OrdinalIgnoreCase))
                 .ToArray();
 
             if(schemaFiles.Length == 0)
@@ -98,7 +97,7 @@ public class Generator : IIncrementalGenerator
                 ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileNotFound, contractSymbol, schemaFileName);
                 return;
             }
-            if (schemaFiles.Length > 1)
+            if(schemaFiles.Length > 1)
             {
                 ReportDiagnostic(context, GeneratorDiagnostics.MultipleSchemaFilesWithNameFound, contractSymbol, schemaFileName);
                 return;

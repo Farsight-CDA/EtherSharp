@@ -1,9 +1,4 @@
 ﻿using EtherSharp.ABI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EtherSharp.Tests.ABI.Encoder;
 public class DynamicTupleEncoderTests
@@ -30,11 +25,11 @@ public class DynamicTupleEncoderTests
     }
 
     [Fact]
-    public void Should_Throw_When_PassingOnlyFixedValues() 
+    public void Should_Throw_When_PassingOnlyFixedValues()
         => Assert.Throws<InvalidOperationException>(() => _encoder.DynamicTuple(x =>
         {
             x.Int16(3463);
             x.Int72(43666575);
-        }).Build()); 
-   
+        }).Build());
+
 }

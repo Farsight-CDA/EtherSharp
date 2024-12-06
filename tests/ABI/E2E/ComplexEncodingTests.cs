@@ -1,5 +1,4 @@
 ﻿using EtherSharp.ABI;
-using EtherSharp.ABI.Decode;
 
 namespace EtherSharp.Tests.ABI.E2E;
 public class ComplexEncodingTests

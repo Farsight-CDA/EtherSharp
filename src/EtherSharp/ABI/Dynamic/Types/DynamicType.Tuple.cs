@@ -10,7 +10,7 @@ internal abstract partial class DynamicType<T>
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {
-            if (Value.PayloadSize == 0)
+            if(Value.PayloadSize == 0)
             {
                 throw new InvalidOperationException("Tried to encode a fixed value as a dynamic tuple");
             }

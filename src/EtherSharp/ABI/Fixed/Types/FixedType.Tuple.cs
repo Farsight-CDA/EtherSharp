@@ -5,7 +5,7 @@ internal abstract partial class FixedType<T>
 {
     internal class Tuple(IFixedTupleEncoder value) : FixedType<IFixedTupleEncoder>(value)
     {
-        public override uint MetadataSize => Value.MetadataSize; 
+        public override uint MetadataSize => Value.MetadataSize;
 
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);

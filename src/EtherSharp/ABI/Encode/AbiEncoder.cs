@@ -15,7 +15,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
 
     public int Size => (int) (_payloadSize + _metadataSize);
     uint IArrayAbiEncoder.MetadataSize => _metadataSize;
-    uint IArrayAbiEncoder.PayloadSize => _payloadSize; 
+    uint IArrayAbiEncoder.PayloadSize => _payloadSize;
     uint IFixedTupleEncoder.MetadataSize => _metadataSize;
     uint IFixedTupleEncoder.PayloadSize => _payloadSize;
     uint IDynamicTupleEncoder.MetadataSize => _metadataSize;
@@ -28,7 +28,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
             _payloadSize += dyn.PayloadSize;
             _metadataSize += 32;
         }
-        else if (item is IFixedType fix)
+        else if(item is IFixedType fix)
         {
             _metadataSize += fix.MetadataSize;
         }

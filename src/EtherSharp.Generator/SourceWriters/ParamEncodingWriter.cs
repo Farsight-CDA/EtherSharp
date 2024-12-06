@@ -1,9 +1,8 @@
 ﻿using EtherSharp.Generator.Abi.Parameters;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
-using System.Data.Common;
+using System.Globalization;
 using System.Numerics;
-using System.Reflection.Metadata;
 using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
@@ -88,7 +87,7 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
             string propertyName = NameUtils.ToValidPropertyName(component.Name);
             var (componentType, componentEncodingFunction, isInnerDynamicType) = GetParameterEncoding(component, $"{paramName}.{propertyName}");
 
-            if (isInnerDynamicType && !isDynamicType)
+            if(isInnerDynamicType && !isDynamicType)
             {
                 isDynamicType = true;
             }
@@ -121,7 +120,7 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
             "string" => (typeof(string).FullName, true),
             "bool" => (typeof(bool).FullName, false),
             "bytes" => (typeof(byte[]).FullName, true),
-            string s when s.StartsWith("uint") && int.TryParse(s.Substring(4), out int bitSize)
+            string s when s.StartsWith("uint", StringComparison.Ordinal) && int.TryParse(s.Substring(4), out int bitSize)
                 => bitSize % 8 != 0
                     ? throw new NotSupportedException("uint bitsize must be multiple of 8")
                     : (bitSize switch
@@ -133,7 +132,7 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
                         <= 64 => typeof(ulong).FullName,
                         _ => typeof(BigInteger).FullName,
                     }, false),
-            string s when s.StartsWith("int") && int.TryParse(s.Substring(3), out int bitSize)
+            string s when s.StartsWith("int", StringComparison.Ordinal) && int.TryParse(s.Substring(3), out int bitSize)
                     => bitSize % 8 != 0
                     ? throw new NotSupportedException("int bitsize must be multiple of 8")
                     : (bitSize switch
@@ -145,7 +144,7 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
                         <= 64 => typeof(long).FullName,
                         _ => typeof(BigInteger).FullName,
                     }, false),
-            string s when s.StartsWith("bytes") && int.TryParse(s.Substring(5), out int bitSize)
+            string s when s.StartsWith("bytes", StringComparison.Ordinal) && int.TryParse(s.Substring(5), out int bitSize)
                 => (bitSize switch
                 {
                     < 1 or > 32 => throw new NotSupportedException("bytes bitsize must be between 8 and 256"),
@@ -164,7 +163,7 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
     private static string GetPrimitiveABIEncodingMethodName(string solidityType)
         => solidityType switch
         {
-            string s when s.StartsWith("uint") => s.Substring(0, 2).ToUpper() + s.Substring(2),
+            string s when s.StartsWith("uint", StringComparison.Ordinal) => s.Substring(0, 2).ToUpper(CultureInfo.InvariantCulture) + s.Substring(2),
             _ => NameUtils.ToValidFunctionName(solidityType),
         };
 }

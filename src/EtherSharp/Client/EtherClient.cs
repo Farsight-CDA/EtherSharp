@@ -5,7 +5,6 @@ using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
-using EtherSharp.Events;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Types;

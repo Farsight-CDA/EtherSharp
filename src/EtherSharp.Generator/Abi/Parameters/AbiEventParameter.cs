@@ -10,4 +10,9 @@ public class AbiEventParameter
     [JsonRequired]
     [JsonPropertyName("indexed")]
     public bool IsIndexed { get; set; }
+
+    public string GetTopicTypeString()
+        => !Type.Contains("tuple")
+            ? Type
+            : throw new NotSupportedException();
 }

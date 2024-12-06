@@ -1,7 +1,5 @@
 ﻿using EtherSharp.Generator.Util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Globalization;
 using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
@@ -11,16 +9,10 @@ public enum ClassVisibility
     Public,
     Internal
 }
-public class BaseType : ISyntaxBuilder
+public class BaseType(string name, bool isInterface) : ISyntaxBuilder
 {
-    public string Name { get; }
-    public bool IsInterface { get; }
-
-    public BaseType(string name, bool isInterface)
-    {
-        Name = name;
-        IsInterface = isInterface;
-    }
+    public string Name { get; } = name;
+    public bool IsInterface { get; } = isInterface;
 
     public SyntaxId GetSyntaxId()
         => new SyntaxId(HashCode.Combine(
@@ -28,19 +20,19 @@ public class BaseType : ISyntaxBuilder
             IsInterface
         ));
 }
-public class ClassBuilder : ITypeBuilder
+public class ClassBuilder(string name) : ITypeBuilder
 {
-    private readonly List<FunctionBuilder> _functions;
-    private readonly List<PropertyBuilder> _properties;
-    private readonly List<FieldBuilder> _fields;
-    private readonly List<BaseType> _baseTypes;
-    private readonly List<ITypeBuilder> _innerTypes;
-    private readonly List<string> _rawContents;
+    private readonly List<FunctionBuilder> _functions = [];
+    private readonly List<PropertyBuilder> _properties = [];
+    private readonly List<FieldBuilder> _fields = [];
+    private readonly List<BaseType> _baseTypes = [];
+    private readonly List<ITypeBuilder> _innerTypes = [];
+    private readonly List<string> _rawContents = [];
 
-    private string _name;
+    private string _name = name;
     private ClassVisibility _visibility = ClassVisibility.Public;
-    private bool _isPartial = false;
-    private bool _isAbstract = false;
+    private bool _isPartial;
+    private bool _isAbstract;
 
     private string? _jsonConverterType;
     private string? _summaryComment;
@@ -48,17 +40,6 @@ public class ClassBuilder : ITypeBuilder
     private bool _containsAutoConstructor;
 
     string ITypeBuilder.TypeName => _name;
-
-    public ClassBuilder(string name)
-    {
-        _functions = [];
-        _properties = [];
-        _fields = [];
-        _baseTypes = [];
-        _innerTypes = [];
-        _rawContents = [];
-        _name = name;
-    }
 
     public IReadOnlyList<FieldBuilder> GetFields() => _fields;
     public IReadOnlyList<PropertyBuilder> GetProperties() => _properties;
@@ -221,7 +202,7 @@ public class ClassBuilder : ITypeBuilder
             outputSb.AppendLine($"[global::System.Text.Json.Serialization.JsonConverter(typeof({_jsonConverterType}))]");
         }
 
-        outputSb.Append(_visibility.ToString().ToLower());
+        outputSb.Append(_visibility.ToString().ToLower(CultureInfo.InvariantCulture));
 
         if(_isPartial)
         {

@@ -7,8 +7,8 @@ using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
 public class ContractSourceWriter(
-    AbiTypeWriter typeWriter, 
-    ParamEncodingWriter paramEncodingWriter, ParamDecodingWriter paramDecodingWriter, 
+    AbiTypeWriter typeWriter,
+    ParamEncodingWriter paramEncodingWriter, ParamDecodingWriter paramDecodingWriter,
     EventTypeWriter eventTypeWriter
 )
 {
@@ -224,7 +224,7 @@ public class ContractSourceWriter(
 
         string topicString = "";
 
-        return 
+        return
         $"""
         public readonly EtherSharp.Client.Services.LogsApi.ILogsApi<{contractInterfaceFullName}.{eventTypeName}> {propertyName}
             => contract.GetClient()

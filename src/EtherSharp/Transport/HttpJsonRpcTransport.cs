@@ -1,7 +1,6 @@
 ﻿using EtherSharp.Common;
 using EtherSharp.Types;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Transport;

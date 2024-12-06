@@ -29,9 +29,9 @@ public class AbiInputParameter
 
             sb.Append(component.GetFunctionSignatureTypeString());
 
-            if (!isLastComponent)
+            if(!isLastComponent)
             {
-                sb.Append(",");
+                sb.Append(',');
             }
         }
 

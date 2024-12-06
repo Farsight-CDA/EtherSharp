@@ -1,13 +1,13 @@
-using EtherSharp.ABI.Fixed;
 using EtherSharp.ABI.Encode.Interfaces;
+using EtherSharp.ABI.Fixed;
 
 namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
     public AbiEncoder Bytes1(byte value)
-        => AddElement(new FixedType<object>.Byte(value));    
+        => AddElement(new FixedType<object>.Byte(value));
     IFixedTupleEncoder IFixedTupleEncoder.Bytes1(byte value)
-        => Bytes1(value);    
+        => Bytes1(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes1(byte value)
         => Bytes1(value);
     public AbiEncoder Bytes2(params byte[] value)

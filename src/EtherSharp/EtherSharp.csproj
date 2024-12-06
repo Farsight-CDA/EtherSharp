@@ -187,8 +187,4 @@
 		</Compile>
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Client\Services\LogsApi\Typed\" />
-	</ItemGroup>
-
 </Project>

@@ -1,5 +1,4 @@
-﻿using EtherSharp.ABI.Decode;
-using EtherSharp.ABI.Decode.Interfaces;
+﻿using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Encode.Interfaces;
 using System.Buffers.Binary;
 

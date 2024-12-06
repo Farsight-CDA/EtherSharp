@@ -1,7 +1,5 @@
-using EtherSharp.ABI.Fixed;
-
 namespace EtherSharp.ABI.Encode.Interfaces;
-public partial interface IDynamicTupleEncoder 
+public partial interface IDynamicTupleEncoder
 {
     public IDynamicTupleEncoder Bytes1(byte value);
     public IDynamicTupleEncoder Bytes2(params byte[] value);

@@ -1,20 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿namespace EtherSharp.Generator.SyntaxElements;
 
-namespace EtherSharp.Generator.SyntaxElements;
-
-public class TupleElement : ISyntaxBuilder
+public class TupleElement(string type, string? name) : ISyntaxBuilder
 {
-    public string Type { get; }
-    public string? Name { get; }
-
-    public TupleElement(string type, string? name)
-    {
-        Type = type;
-        Name = name;
-    }
+    public string Type { get; } = type;
+    public string? Name { get; } = name;
 
     public SyntaxId GetSyntaxId()
         => new SyntaxId(HashCode.Combine(

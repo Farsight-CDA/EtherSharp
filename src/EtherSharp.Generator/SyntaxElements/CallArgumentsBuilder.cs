@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
-public class UntypedArgument
+public class UntypedArgument(string sourceExpression)
 {
-    public string SourceExpression { get; }
-
-    public UntypedArgument(string sourceExpression)
-    {
-        SourceExpression = sourceExpression;
-    }
+    public string SourceExpression { get; } = sourceExpression;
 }
 public class CallArgumentsBuilder : ISyntaxBuilder
 {

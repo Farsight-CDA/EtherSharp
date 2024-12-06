@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
-public partial interface IFixedTupleEncoder 
+public partial interface IFixedTupleEncoder
 {
     public IFixedTupleEncoder Int8(sbyte value);
     public IFixedTupleEncoder UInt8(byte value);

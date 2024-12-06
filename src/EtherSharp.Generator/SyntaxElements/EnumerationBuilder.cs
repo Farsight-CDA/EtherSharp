@@ -1,36 +1,21 @@
 ﻿using EtherSharp.Generator.Util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
-public class EnumerationEntry
+public class EnumerationEntry(string value, string? summaryComment)
 {
-    public string Value { get; }
-    public string? SummaryComment { get; }
-
-    public EnumerationEntry(string value, string? summaryComment)
-    {
-        Value = value;
-        SummaryComment = summaryComment;
-    }
+    public string Value { get; } = value;
+    public string? SummaryComment { get; } = summaryComment;
 }
-public class EnumerationBuilder : ITypeBuilder
+public class EnumerationBuilder(string name) : ITypeBuilder
 {
-    private readonly List<EnumerationEntry> _enumerationValues;
-    private string _name;
+    private readonly List<EnumerationEntry> _enumerationValues = [];
+    private string _name = name;
 
     private string? _summaryComment;
     private string? _jsonConverter;
 
     string ITypeBuilder.TypeName => _name;
-
-    public EnumerationBuilder(string name)
-    {
-        _enumerationValues = [];
-        _name = name;
-    }
 
     public EnumerationBuilder WithName(string name)
     {

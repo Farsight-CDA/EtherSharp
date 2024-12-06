@@ -9,7 +9,7 @@ public class AbiTypeWriter
     {
         var syntaxId = typeBuilder.GetSyntaxId();
 
-        if (_typeBuilders.TryGetValue(syntaxId, out _))
+        if(_typeBuilders.TryGetValue(syntaxId, out _))
         {
             return;
         }
@@ -17,6 +17,6 @@ public class AbiTypeWriter
         _typeBuilders.Add(syntaxId, typeBuilder);
     }
 
-    public IEnumerable<ITypeBuilder> GetTypeBuilders() 
+    public IEnumerable<ITypeBuilder> GetTypeBuilders()
         => _typeBuilders.Values;
 }

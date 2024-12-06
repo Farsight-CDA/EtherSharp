@@ -8,7 +8,7 @@ public partial class AbiEncoder
     public AbiEncoder Int8Array(params sbyte[] value)
         => AddElement(new DynamicType<object>.PrimitiveNumberArray<sbyte>(value, 8));
     IArrayAbiEncoder IArrayAbiEncoder.Int8Array(params sbyte[] value)
-        => Int8Array(value); 
+        => Int8Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int8Array(params sbyte[] value)
         => Int8Array(value);
 
