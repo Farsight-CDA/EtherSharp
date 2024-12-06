@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.EtherApi;
+using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
@@ -53,6 +54,8 @@ public class EtherClient : IEtherClient, IEtherTxClient
         }
     }
 
+    ILogsApi IEtherClient.Logs => new LogsApi(_rpcClient);
+
     internal EtherClient(IServiceProvider provider, bool isTxClient)
     {
         _provider = provider;
@@ -101,6 +104,12 @@ public class EtherClient : IEtherClient, IEtherTxClient
         _initialized = true;
     }
 
+    public Task<long> GetPeakHeightAsync()
+    {
+        AssertReady();
+        return _rpcClient.EthBlockNumberAsync();
+    }
+
     private Task<BigInteger> GetBalanceAsync(string address, TargetBlockNumber targetHeight = default)
     {
         AssertReady();
@@ -112,6 +121,8 @@ public class EtherClient : IEtherClient, IEtherTxClient
         AssertReady();
         return _rpcClient.EthGetTransactionCount(address, targetHeight);
     }
+    Task<uint> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight)
+        => GetTransactionCount(address, targetHeight);
 
     private TContract Contract<TContract>(string contractAddress)
         where TContract : IEVMContract
@@ -171,7 +182,5 @@ public class EtherClient : IEtherClient, IEtherTxClient
     Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight)
         => CallAsync(call, targetHeight);
 
-    Task<uint> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight)
-        => GetTransactionCount(address, targetHeight);
 
 }

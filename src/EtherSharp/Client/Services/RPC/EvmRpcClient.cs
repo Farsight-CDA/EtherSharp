@@ -175,11 +175,11 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         }
     }
 
-    private record TransactionEstimateGas(string From, string To, BigInteger Value, string Data);
+    private record EthEstimateGasRequest(string From, string To, BigInteger Value, string Data);
     public async Task<ulong> EthEstimateGasAsync(string from, string to, BigInteger value, string data)
     {
-        TransactionEstimateGas transaction = new(from, to, value, data);
-        var response = await _transport.SendRpcRequest<TransactionEstimateGas, ulong>("eth_estimateGas", transaction);
+        var transaction = new EthEstimateGasRequest(from, to, value, data);
+        var response = await _transport.SendRpcRequest<EthEstimateGasRequest, ulong>("eth_estimateGas", transaction);
 
         return response switch
         {
@@ -220,9 +220,6 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         };
     }
 
-    public Task<BlockData?> EthGetFullBlockByNumberAsync(long targetBlockNumber)
-    => EthGetFullBlockByNumberAsync(TargetBlockNumber.Height(targetBlockNumber));
-
     public async Task<BlockData?> EthGetFullBlockByNumberAsync(TargetBlockNumber targetBlockNumber)
     {
 
@@ -234,9 +231,6 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
             _ => throw new NotImplementedException(),
         };
     }
-
-    public Task<BlockDataTrasactionAsString?> EthGetBlockByNumberAsync(long targetBlockNumber)
-        => EthGetBlockByNumberAsync(TargetBlockNumber.Height(targetBlockNumber));
 
     public async Task<BlockDataTrasactionAsString?> EthGetBlockByNumberAsync(TargetBlockNumber targetBlockNumber)
     {
@@ -322,12 +316,18 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         };
     }
 
-    private record NewFilterOption(string? FromBlock, string? ToBlock, string? Address, string[]? Topics);
-
-    public async Task<string> EthNewFilterAsync(string? fromBlock, string? toBlock, string? address, string[]? topics)
+    private record EthNewFilterRequest(
+        string FromBlock,
+        string ToBlock,
+        string[]? Address,
+        string[]? Topics
+    );
+    public async Task<string> EthNewFilterAsync(
+        TargetBlockNumber fromBlock, TargetBlockNumber toBlock, 
+        string[]? address, string[]? topics)
     {
-        var filterOptions = new NewFilterOption(fromBlock, toBlock, address, topics);
-        var response = await _transport.SendRpcRequest<NewFilterOption, string>("eth_newFilter", filterOptions);
+        var filterOptions = new EthNewFilterRequest(fromBlock.ToString(), toBlock.ToString(), address, topics);
+        var response = await _transport.SendRpcRequest<EthNewFilterRequest, string>("eth_newFilter", filterOptions);
         return response switch
         {
             RpcResult<string>.Success result => result.Result,
@@ -368,8 +368,6 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
             _ => throw new NotImplementedException(),
         };
     }
-    public Task<List<string?>> GetBlockFilterChangesAsync(string filterID)
-        => EthGetPendingTransactionFilterChangesAsync(filterID);
     public async Task<List<string?>> EthGetPendingTransactionFilterChangesAsync(string filterID)
     {
         var response = await _transport.SendRpcRequest<string, List<string?>>("eth_getFilterChanges", filterID);
@@ -391,12 +389,19 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         };
     }
 
-    private record FilterOptions(TargetBlockNumber? FromBlock, TargetBlockNumber? ToBlock, string Address, Topics[] Topics, byte[]? BlockHash);
-
-    public async Task<Log[]> EthGetLogsAsync(TargetBlockNumber? fromBlock, TargetBlockNumber? toBlock, string address, Topics[] topics, byte[]? blockHash)
+    private record EthGetLogsRequest(
+        string FromBlock,
+        string ToBlock,
+        string[]? Address,
+        string[]? Topics,
+        byte[]? BlockHash
+    );
+    public async Task<Log[]> EthGetLogsAsync(
+        TargetBlockNumber fromBlock, TargetBlockNumber toBlock, 
+        string[]? addresses, string[]? topics, byte[]? blockHash)
     {
-        var filterOptions = new FilterOptions(fromBlock, toBlock, address, topics, blockHash);
-        var response = await _transport.SendRpcRequest<FilterOptions, Log[]>("eth_getLogs", filterOptions);
+        var filterOptions = new EthGetLogsRequest(fromBlock.ToString(), toBlock.ToString(), addresses, topics, blockHash);
+        var response = await _transport.SendRpcRequest<EthGetLogsRequest, Log[]>("eth_getLogs", filterOptions);
         return response switch
         {
             RpcResult<Log[]>.Success result => result.Result,
