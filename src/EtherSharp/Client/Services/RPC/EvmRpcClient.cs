@@ -358,9 +358,9 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         };
     }
 
-    public async Task<bool> EthUninstallFilterAsync(string filterIDString)
+    public async Task<bool> EthUninstallFilterAsync(string filterIdString)
     {
-        var response = await _transport.SendRpcRequest<string, bool>("eth_uninstallFilter", filterIDString);
+        var response = await _transport.SendRpcRequest<string, bool>("eth_uninstallFilter", filterIdString);
         return response switch
         {
             RpcResult<bool>.Success result => result.Result,
@@ -368,9 +368,9 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
             _ => throw new NotImplementedException(),
         };
     }
-    public async Task<List<string?>> EthGetPendingTransactionFilterChangesAsync(string filterID)
+    public async Task<List<string?>> EthGetPendingTransactionFilterChangesAsync(string filterId)
     {
-        var response = await _transport.SendRpcRequest<string, List<string?>>("eth_getFilterChanges", filterID);
+        var response = await _transport.SendRpcRequest<string, List<string?>>("eth_getFilterChanges", filterId);
         return response switch
         {
             RpcResult<List<string?>>.Success result => result.Result,
@@ -378,9 +378,9 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
             _ => throw new NotImplementedException(),
         };
     }
-    public async Task<Log[]> EthGetEventFilterChangesAsync(string filterID)
+    public async Task<Log[]> EthGetEventFilterChangesAsync(string filterId)
     {
-        var response = await _transport.SendRpcRequest<string, Log[]>("eth_getFilterChanges", filterID);
+        var response = await _transport.SendRpcRequest<string, Log[]>("eth_getFilterChanges", filterId);
         return response switch
         {
             RpcResult<Log[]>.Success result => result.Result,
