@@ -40,18 +40,8 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
 
                 if(eventCallback is not null)
                 {
-                    try
-                    {
-
-
-                        var p = JsonSerializer.Deserialize<LogParams>(payload, ParsingUtils.EvmSerializerOptions)!;
-                        eventCallback.HandlePayload(p.Params.Result);
-                    }
-                    catch(Exception ex)
-                    {
-                        string s = Encoding.UTF8.GetString(payload);
-                        throw;
-                    }
+                    var p = JsonSerializer.Deserialize<LogParams>(payload, ParsingUtils.EvmSerializerOptions)!;
+                    eventCallback.HandlePayload(p.Params.Result);
                 }
             };
         }
