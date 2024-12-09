@@ -10,6 +10,7 @@ using EtherSharp.Common.Extensions;
 using EtherSharp.Transport;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
+using Secp256k1Net;
 
 namespace EtherSharp.Client;
 public class EtherClientBuilder
@@ -73,6 +74,7 @@ public class EtherClientBuilder
         }
 
         _services.AddSingleton(_transport);
+
         _services.AddSingleton<EtherApi>();
         _services.AddSingleton<IRpcClient, EvmRpcClient>();
         _services.AddSingleton<ContractFactory>();
