@@ -1,5 +1,5 @@
 ﻿namespace EtherSharp.Events.Filter;
-public interface IEventFilter<TEvent>
+public interface IEventFilter<TEvent> : IAsyncDisposable
     where TEvent : ITxEvent<TEvent>
 {
     public Task<TEvent[]> GetChangesAsync();

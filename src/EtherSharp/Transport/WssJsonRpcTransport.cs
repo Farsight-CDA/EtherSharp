@@ -77,14 +77,10 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
                             tcs.SetResult(response);
                             break;
                         case PayloadType.Subscription:
-
-
-
                             OnSubscriptionMessage?.Invoke(subscriptionId, msBuffer);
                             break;
                         default:
                             break;
-
                     }
 
                     ms.Seek(0, SeekOrigin.Begin);

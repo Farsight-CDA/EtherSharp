@@ -104,7 +104,7 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
 
     public async Task<IEventSubscription<TEvent>> CreateSubscriptionAsync()
     {
-        var handler = new EventSubscription<TEvent>(_contractAddresses, _topics);
+        var handler = new EventSubscription<TEvent>(_rpcClient, _contractAddresses, _topics);
         await _rpcClient.RegisterSubscriptionAsync(handler);
         return handler;
     }

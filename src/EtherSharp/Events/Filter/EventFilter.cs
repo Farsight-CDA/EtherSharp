@@ -13,4 +13,7 @@ internal class EventFilter<TEvent>(IRpcClient client, string filterId) : IEventF
         var rawResults = await _client.EthGetEventFilterChangesAsync(_filterId);
         return rawResults.Select(TEvent.Decode).ToArray();
     }
+
+    public async ValueTask DisposeAsync() 
+        => await _client.EthUninstallFilterAsync(_filterId);
 }

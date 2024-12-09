@@ -398,9 +398,9 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         };
     }
 
-    public async Task<bool> EthUninstallFilterAsync(string filterIdString)
+    public async Task<bool> EthUninstallFilterAsync(string filterId)
     {
-        var response = await _transport.SendRpcRequest<string, bool>("eth_uninstallFilter", filterIdString);
+        var response = await _transport.SendRpcRequest<string, bool>("eth_uninstallFilter", filterId);
         return response switch
         {
             RpcResult<bool>.Success result => result.Result,
@@ -459,7 +459,7 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
 
         SetupSubscriptions();
 
-        string subscriptionId = await handler.InstallAsync(this);
+        string subscriptionId = await handler.InstallAsync();
         _eventSubscriptions!.Add((subscriptionId, handler));
     }
 
@@ -473,6 +473,17 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         {
             RpcResult<string>.Success result => result.Result,
             RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
+    }
+
+    public async Task<bool> EthUnsubscribeAsync(string subscriptionId)
+    {
+        var response = await _transport.SendRpcRequest<string, bool>("eth_unsubscribe", subscriptionId);
+        return response switch
+        {
+            RpcResult<bool>.Success result => result.Result,
+            RpcResult<bool>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }

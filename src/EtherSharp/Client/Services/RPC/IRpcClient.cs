@@ -24,8 +24,10 @@ public interface IRpcClient
         TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
         string[]? address, string[]? topics
     );
+    public Task<Log[]> EthGetEventFilterChangesAsync(string filterId);
+    public Task<bool> EthUninstallFilterAsync(string filterId);
 
     public Task RegisterSubscriptionAsync(ISubscriptionHandler<Log> handler);
-    public Task<string> EthSubscribeLogsAsync(string[]? contracts, string[]? topics);
-    public Task<Log[]> EthGetEventFilterChangesAsync(string filterId);
+    public Task<string> EthSubscribeLogsAsync(string[]? contracts, string[]? topics); 
+    public Task<bool> EthUnsubscribeAsync(string subscriptionId);
 }

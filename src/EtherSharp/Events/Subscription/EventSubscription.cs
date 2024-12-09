@@ -4,12 +4,16 @@ using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
 namespace EtherSharp.Events.Subscription;
-internal class EventSubscription<TEvent>(string[]? contractAddresses, string[]? topics)
+internal class EventSubscription<TEvent>(IRpcClient client, string[]? contractAddresses, string[]? topics)
     : IEventSubscription<TEvent>, ISubscriptionHandler<Log>
     where TEvent : ITxEvent<TEvent>
 {
+    private readonly IRpcClient _client = client;
+
     private readonly string[]? _contractAddresses = contractAddresses;
     private readonly string[]? _topics = topics;
+
+    public string Id { get; private set; } = null!;
 
     private readonly Channel<Log> _channel = Channel.CreateUnbounded<Log>(new UnboundedChannelOptions()
     {
@@ -17,8 +21,8 @@ internal class EventSubscription<TEvent>(string[]? contractAddresses, string[]? 
         SingleWriter = true,
     });
 
-    public Task<string> InstallAsync(IRpcClient client)
-        => client.EthSubscribeLogsAsync(_contractAddresses, _topics);
+    public async Task<string> InstallAsync()
+        => Id = await _client.EthSubscribeLogsAsync(_contractAddresses, _topics);
 
     public void HandlePayload(Log payload)
         => _channel.Writer.TryWrite(payload);
@@ -31,4 +35,7 @@ internal class EventSubscription<TEvent>(string[]? contractAddresses, string[]? 
             yield return TEvent.Decode(log);
         }
     }
+
+    public async ValueTask DisposeAsync()
+        => await _client.EthUninstallFilterAsync(Id);
 }
