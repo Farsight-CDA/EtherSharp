@@ -9,16 +9,20 @@ public class HttpJsonRpcTransport : IRPCTransport
     private readonly HttpClient _client;
     private int _id = 0;
 
-    public HttpJsonRpcTransport(Uri rpcUri)
+    public bool SupportsFilters { get; set; }
+    public bool SupportsSubscriptions => false;
+
+    public HttpJsonRpcTransport(Uri rpcUri, bool allowFilters = true)
     {
         _client = new HttpClient()
         {
             BaseAddress = rpcUri
         };
+        SupportsFilters = allowFilters;
     }
 
-    public HttpJsonRpcTransport(string rpcUrl)
-        : this(new Uri(rpcUrl, UriKind.Absolute))
+    public HttpJsonRpcTransport(string rpcUrl, bool allowFilters = true)
+        : this(new Uri(rpcUrl, UriKind.Absolute), allowFilters)
     {
     }
 

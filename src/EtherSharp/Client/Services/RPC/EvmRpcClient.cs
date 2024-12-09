@@ -326,6 +326,11 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
         string[]? address, string[]? topics)
     {
+        if (!_transport.SupportsFilters)
+        {
+            throw new InvalidOperationException("The underlying transport does not support filters");
+        }
+
         var filterOptions = new EthNewFilterRequest(fromBlock.ToString(), toBlock.ToString(), address, topics);
         var response = await _transport.SendRpcRequest<EthNewFilterRequest, string>("eth_newFilter", filterOptions);
         return response switch
