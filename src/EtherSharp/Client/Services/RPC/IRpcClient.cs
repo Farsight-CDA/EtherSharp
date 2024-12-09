@@ -25,5 +25,7 @@ public interface IRpcClient
         string[]? address, string[]? topics
     );
 
+    public Task RegisterSubscriptionAsync(ISubscriptionHandler<Log> handler);
+    public Task<string> EthSubscribeLogsAsync(string[]? contracts, string[]? topics);
     public Task<Log[]> EthGetEventFilterChangesAsync(string filterId);
 }

@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Contract;
 using EtherSharp.Events;
 using EtherSharp.Events.Filter;
+using EtherSharp.Events.Subscription;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Services.LogsApi;
@@ -16,5 +17,7 @@ public interface ILogsApi<TEvent>
     public ILogsApi<TEvent> HasContracts(params ReadOnlySpan<IEVMContract> contracts);
 
     public Task<TEvent[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, byte[]? blockHash = null);
-    public Task<IEventFilter<TEvent>> ToFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default);
+    public Task<IEventFilter<TEvent>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default);
+
+    public Task<IEventSubscription<TEvent>> CreateSubscriptionAsync();
 }

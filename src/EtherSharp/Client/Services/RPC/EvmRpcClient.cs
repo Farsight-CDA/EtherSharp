@@ -1,8 +1,11 @@
-﻿using EtherSharp.Common.Exceptions;
+﻿using EtherSharp.Common;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Transport;
 using EtherSharp.Types;
 using System.Globalization;
 using System.Numerics;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace EtherSharp.Client.Services.RPC;
@@ -10,6 +13,49 @@ namespace EtherSharp.Client.Services.RPC;
 internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
 {
     private readonly IRPCTransport _transport = transport;
+
+    private readonly Lock _subscriptionsLock = new Lock();
+    private List<(string SubscriptionId, ISubscriptionHandler<Log> Callback)>? _eventSubscriptions;
+
+    private record LogParams(LogResponse Params);
+    private record LogResponse(Log Result);
+    private void SetupSubscriptions()
+    {
+        if(_eventSubscriptions is not null)
+        {
+            return;
+        }
+
+        lock(_subscriptionsLock)
+        {
+            if(_eventSubscriptions is not null)
+            {
+                return;
+            }
+
+            _eventSubscriptions = [];
+            _transport.OnSubscriptionMessage += (subscriptionId, payload) =>
+            {
+                var (_, eventCallback) = _eventSubscriptions.FirstOrDefault(x => x.SubscriptionId == subscriptionId);
+
+                if(eventCallback is not null)
+                {
+                    try
+                    {
+
+
+                        var p = JsonSerializer.Deserialize<LogParams>(payload, ParsingUtils.EvmSerializerOptions)!;
+                        eventCallback.HandlePayload(p.Params.Result);
+                    }
+                    catch(Exception ex)
+                    {
+                        string s = Encoding.UTF8.GetString(payload);
+                        throw;
+                    }
+                }
+            };
+        }
+    }
 
     public async Task<ulong> EthChainId()
         => await _transport.SendRpcRequest<ulong>("eth_chainId") switch
@@ -326,7 +372,7 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
         string[]? address, string[]? topics)
     {
-        if (!_transport.SupportsFilters)
+        if(!_transport.SupportsFilters)
         {
             throw new InvalidOperationException("The underlying transport does not support filters");
         }
@@ -411,6 +457,33 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         {
             RpcResult<Log[]>.Success result => result.Result,
             RpcResult<Log[]>.Error error => throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
+    }
+
+    public async Task RegisterSubscriptionAsync(ISubscriptionHandler<Log> handler)
+    {
+        if(!_transport.SupportsSubscriptions)
+        {
+            throw new InvalidOperationException("The underlying transport does not support subscriptions");
+        }
+
+        SetupSubscriptions();
+
+        string subscriptionId = await handler.InstallAsync(this);
+        _eventSubscriptions!.Add((subscriptionId, handler));
+    }
+
+    private record EthSubscribeLogsRequest(string[]? Address, string[]? Topics);
+    public async Task<string> EthSubscribeLogsAsync(string[]? contracts, string[]? topics)
+    {
+        var request = new EthSubscribeLogsRequest(contracts, topics);
+        var response = await _transport.SendRpcRequest<string, EthSubscribeLogsRequest, string>(
+            "eth_subscribe", "logs", request);
+        return response switch
+        {
+            RpcResult<string>.Success result => result.Result,
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
     }

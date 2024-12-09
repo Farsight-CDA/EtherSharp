@@ -8,10 +8,14 @@ namespace EtherSharp.Transport;
 public class WssJsonRpcTransport(Uri uri) : IRPCTransport
 {
     private int _id = 0;
+    private bool _isDead;
+
     private readonly Uri _uri = uri;
     private readonly ClientWebSocket _socket = new ClientWebSocket();
 
     private readonly List<(int RequestId, Type RpcResponseType, TaskCompletionSource<object> Tcs)> _pendingRequests = [];
+
+    public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
     public bool SupportsFilters => true;
     public bool SupportsSubscriptions => true;
@@ -41,62 +45,130 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
 
         try
         {
-
-            while(_socket.State == WebSocketState.Open)
+            while(true)
             {
-                WebSocketReceiveResult receiveResult;
-
-                do
+                while(_socket.State == WebSocketState.Open)
                 {
-                    receiveResult = await _socket.ReceiveAsync(buffer, default);
-
-                    if(receiveResult.Count != 0)
+                    WebSocketReceiveResult receiveResult;
+                    int totalLength = 0;
+                    do
                     {
-                        ms.Write(buffer.AsSpan()[0..receiveResult.Count]);
+                        receiveResult = await _socket.ReceiveAsync(buffer, default);
+
+                        if(receiveResult.Count != 0)
+                        {
+                            ms.Write(buffer.AsSpan()[0..receiveResult.Count]);
+                        }
+
+                        totalLength += receiveResult.Count;
                     }
+                    while(!receiveResult.EndOfMessage);
+
+
+                    var msBuffer = ms.GetBuffer().AsSpan()[0..(int) ms.Position];
+
+                    switch(IdentifyPayload(msBuffer, out int requestId, out string subscriptionId))
+                    {
+                        case PayloadType.Response:
+                            var (_, responseType, tcs) = _pendingRequests.First(x => x.RequestId == requestId);
+                            object? response = JsonSerializer.Deserialize(
+                                msBuffer, responseType,
+                                options: ParsingUtils.EvmSerializerOptions
+                            )!;
+                            tcs.SetResult(response);
+                            break;
+                        case PayloadType.Subscription:
+
+                            
+
+                            OnSubscriptionMessage?.Invoke(subscriptionId, msBuffer);
+                            break;
+                        default:
+                            break;
+
+                    }
+
+                    ms.Seek(0, SeekOrigin.Begin);
+                    ms.Position = 0;
                 }
-                while(!receiveResult.EndOfMessage);
 
-                var msBuffer = ms.GetBuffer().AsSpan()[0..(int) ms.Length];
-                int requestId = ExtractRequestIdFromJson(msBuffer);
-
-                var (_, responseType, tcs) = _pendingRequests.First(x => x.RequestId == requestId);
-                object? response = JsonSerializer.Deserialize(
-                    msBuffer, responseType, 
-                    options: ParsingUtils.EvmSerializerOptions
-                )!;
-                tcs.SetResult(response);
-
-                ms.Seek(0, SeekOrigin.Begin);
-                ms.Position = 0;
+                await _socket.ConnectAsync(_uri, default);
             }
         }
         catch(Exception ex)
         {
+            _isDead = true;
             foreach(var (_, _, tcs) in _pendingRequests)
             {
                 tcs.SetException(ex);
             }
         }
     }
-    private static int ExtractRequestIdFromJson(ReadOnlySpan<byte> jsonSpan)
+    private static PayloadType IdentifyPayload(ReadOnlySpan<byte> jsonSpan, 
+        out int requestId, out string subscriptionId)
     {
         var reader = new Utf8JsonReader(jsonSpan);
-        while(reader.Read())
+
+        reader.Read();
+        reader.Read();
+        reader.Read();
+        reader.Read();
+
+        if (reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("id"))
         {
-            if(reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("id"))
-            {
-                reader.Read();
-                return int.Parse(reader.GetString()!.AsSpan()[2..], System.Globalization.NumberStyles.HexNumber);
-            }
+            reader.Read();
+            requestId = int.Parse(reader.GetString()!.AsSpan()[2..], System.Globalization.NumberStyles.HexNumber);
+            subscriptionId = null!;
+            return PayloadType.Response;
         }
-        throw new InvalidOperationException("Id property not found");
+
+        if(reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("method"))
+        {
+            reader.Read();
+            string? method = reader.GetString();
+
+            if (method != "eth_subscription")
+            {
+                goto unknown_payload_type;
+            }
+
+            reader.Read();
+            reader.Read();
+            reader.Read();
+
+            if(reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("subscriptionId"))
+            {
+                goto unknown_payload_type;
+            }
+
+            reader.Read();
+            requestId = -1;
+            subscriptionId = reader.GetString()!;
+            return PayloadType.Subscription;
+        }
+
+        unknown_payload_type:
+        requestId = -1;
+        subscriptionId = null!;
+        return PayloadType.Unknown;
+    }
+
+    private enum PayloadType
+    {
+        Response,
+        Subscription,
+        Unknown
     }
 
     private record JsonRpcRequest(int Id, string Method, object?[] Params, string Jsonrpc = "2.0");
     private async Task<RpcResult<TResult>> InnerSendAsync<TResult>(
         string method, object?[] args, CancellationToken cancellationToken = default)
     {
+        if (_isDead)
+        {
+            throw new InvalidOperationException("Transport is dead");
+        }
+
         int requestId = Interlocked.Increment(ref _id);
 
         byte[] payload = JsonSerializer.SerializeToUtf8Bytes(

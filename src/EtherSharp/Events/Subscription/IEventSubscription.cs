@@ -2,5 +2,5 @@
 public interface IEventSubscription<TEvent>
     where TEvent : ITxEvent<TEvent>
 {
-    public IAsyncEnumerable<TEvent> ListenAsync();
+    public IAsyncEnumerable<TEvent> ListenAsync(CancellationToken cancellationToken = default);
 }

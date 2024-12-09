@@ -1,10 +1,12 @@
 ﻿using EtherSharp.Types;
+using System.Text.Json.Nodes;
 
 namespace EtherSharp.Transport;
 public interface IRPCTransport
 {
     public bool SupportsFilters { get; }
     public bool SupportsSubscriptions { get; }
+    public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
     public Task<RpcResult<TResult>> SendRpcRequest<TResult>(string method);
     public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(string method, T1 t1);

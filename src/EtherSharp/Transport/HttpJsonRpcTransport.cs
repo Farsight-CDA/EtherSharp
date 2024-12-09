@@ -9,6 +9,8 @@ public class HttpJsonRpcTransport : IRPCTransport
     private readonly HttpClient _client;
     private int _id = 0;
 
+    public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
+
     public bool SupportsFilters { get; set; }
     public bool SupportsSubscriptions => false;
 

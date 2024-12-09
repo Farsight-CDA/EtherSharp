@@ -3,6 +3,7 @@ using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.Events;
 using EtherSharp.Events.Filter;
+using EtherSharp.Events.Subscription;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Services.LogsApi;
@@ -95,9 +96,16 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
         return rawResults.Select(TEvent.Decode).ToArray();
     }
 
-    public async Task<IEventFilter<TEvent>> ToFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default)
+    public async Task<IEventFilter<TEvent>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default)
     {
         string filterId = await _rpcClient.EthNewFilterAsync(fromBlock, toBlock, _contractAddresses, _topics);
         return new EventFilter<TEvent>(_rpcClient, filterId);
+    }
+
+    public async Task<IEventSubscription<TEvent>> CreateSubscriptionAsync()
+    {
+        var handler = new EventSubscription<TEvent>(_contractAddresses, _topics);
+        await _rpcClient.RegisterSubscriptionAsync(handler);
+        return handler;
     }
 }
