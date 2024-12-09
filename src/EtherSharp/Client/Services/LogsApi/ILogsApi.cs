@@ -1,6 +1,6 @@
 ﻿using EtherSharp.Contract;
 using EtherSharp.Events;
-using EtherSharp.Filters;
+using EtherSharp.Events.Filter;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Services.LogsApi;
