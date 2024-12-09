@@ -64,7 +64,6 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
                     }
                     while(!receiveResult.EndOfMessage);
 
-
                     var msBuffer = ms.GetBuffer().AsSpan()[0..(int) ms.Position];
 
                     switch(IdentifyPayload(msBuffer, out int requestId, out string subscriptionId))
@@ -79,7 +78,7 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
                             break;
                         case PayloadType.Subscription:
 
-                            
+
 
                             OnSubscriptionMessage?.Invoke(subscriptionId, msBuffer);
                             break;
@@ -104,7 +103,7 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
             }
         }
     }
-    private static PayloadType IdentifyPayload(ReadOnlySpan<byte> jsonSpan, 
+    private static PayloadType IdentifyPayload(ReadOnlySpan<byte> jsonSpan,
         out int requestId, out string subscriptionId)
     {
         var reader = new Utf8JsonReader(jsonSpan);
@@ -114,7 +113,7 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
         reader.Read();
         reader.Read();
 
-        if (reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("id"))
+        if(reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("id"))
         {
             reader.Read();
             requestId = int.Parse(reader.GetString()!.AsSpan()[2..], System.Globalization.NumberStyles.HexNumber);
@@ -127,7 +126,7 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
             reader.Read();
             string? method = reader.GetString();
 
-            if (method != "eth_subscription")
+            if(method != "eth_subscription")
             {
                 goto unknown_payload_type;
             }
@@ -147,7 +146,7 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
             return PayloadType.Subscription;
         }
 
-        unknown_payload_type:
+    unknown_payload_type:
         requestId = -1;
         subscriptionId = null!;
         return PayloadType.Unknown;
@@ -164,7 +163,7 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
     private async Task<RpcResult<TResult>> InnerSendAsync<TResult>(
         string method, object?[] args, CancellationToken cancellationToken = default)
     {
-        if (_isDead)
+        if(_isDead)
         {
             throw new InvalidOperationException("Transport is dead");
         }

@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
 namespace EtherSharp.Events.Subscription;
-internal class EventSubscription<TEvent>(string[]? contractAddresses, string[]? topics) 
+internal class EventSubscription<TEvent>(string[]? contractAddresses, string[]? topics)
     : IEventSubscription<TEvent>, ISubscriptionHandler<Log>
     where TEvent : ITxEvent<TEvent>
 {
@@ -17,10 +17,10 @@ internal class EventSubscription<TEvent>(string[]? contractAddresses, string[]? 
         SingleWriter = true,
     });
 
-    public Task<string> InstallAsync(IRpcClient client) 
+    public Task<string> InstallAsync(IRpcClient client)
         => client.EthSubscribeLogsAsync(_contractAddresses, _topics);
 
-    public void HandlePayload(Log payload) 
+    public void HandlePayload(Log payload)
         => _channel.Writer.TryWrite(payload);
 
     public async IAsyncEnumerable<TEvent> ListenAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)

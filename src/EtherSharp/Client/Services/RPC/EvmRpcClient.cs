@@ -4,7 +4,6 @@ using EtherSharp.Transport;
 using EtherSharp.Types;
 using System.Globalization;
 using System.Numerics;
-using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 

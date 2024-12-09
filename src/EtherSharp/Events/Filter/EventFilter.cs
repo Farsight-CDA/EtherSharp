@@ -1,5 +1,4 @@
 ﻿using EtherSharp.Client.Services.RPC;
-using EtherSharp.Events;
 
 namespace EtherSharp.Events.Filter;
 

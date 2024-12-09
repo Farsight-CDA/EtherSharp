@@ -1,5 +1,4 @@
 ﻿using EtherSharp.Types;
-using System.Text.Json.Nodes;
 
 namespace EtherSharp.Transport;
 public interface IRPCTransport
