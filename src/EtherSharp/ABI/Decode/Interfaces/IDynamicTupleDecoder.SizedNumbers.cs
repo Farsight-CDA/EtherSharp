@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 
 namespace EtherSharp.ABI.Decode.Interfaces;
-public partial interface IStructAbiDecoder
+public partial interface IDynamicTupleDecoder
 {
     public sbyte Int8();
     public byte UInt8();

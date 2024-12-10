@@ -1,0 +1,13 @@
+namespace EtherSharp.ABI.Decode.Interfaces;
+public partial interface IDynamicTupleDecoder
+{
+    public byte Bytes1();
+<#
+    for(var i = 2; i <= 32;i=i+1)
+    {
+#>
+    public ReadOnlySpan<byte> Bytes<#=i#>();
+<#
+    }
+#>
+}

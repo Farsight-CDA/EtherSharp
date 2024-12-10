@@ -1,0 +1,39 @@
+﻿using System.Numerics;
+
+namespace EtherSharp.ABI.Decode.Interfaces;
+public partial interface IDynamicTupleDecoder
+{
+    public sbyte Int8();
+    public byte UInt8();
+
+    public short Int16();
+    public ushort UInt16();
+
+<#
+    for(var i = 24; i <= 32;i=i+8)
+    {
+#>
+    public int Int<#=i#>();
+    public uint UInt<#=i#>();
+<#
+    }
+#>
+<#
+    for(var i = 40; i <= 64;i=i+8)
+    {
+#>
+    public long Int<#=i#>();
+    public ulong UInt<#=i#>();
+<#
+    }
+#>
+<#
+    for(var i = 72; i <= 256;i=i+8)
+    {
+#>
+    public BigInteger Int<#=i#>();
+    public BigInteger UInt<#=i#>();
+<#
+    }
+#>
+}

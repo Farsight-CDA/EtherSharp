@@ -1,5 +1,5 @@
-using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Dynamic;
+using EtherSharp.ABI.Decode.Interfaces;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
@@ -16,7 +16,7 @@ public partial class AbiDecoder
         _ = Int8Array(out sbyte[] output);
         return output;
     }
-    sbyte[] IStructAbiDecoder.Int8Array()
+    sbyte[] IDynamicTupleDecoder.Int8Array()
     {
         _ = Int8Array(out sbyte[] output);
         return output;
@@ -31,7 +31,7 @@ public partial class AbiDecoder
         _ = UInt8Array(out byte[] output);
         return output;
     }
-    byte[] IStructAbiDecoder.UInt8Array()
+    byte[] IDynamicTupleDecoder.UInt8Array()
     {
         _ = UInt8Array(out byte[] output);
         return output;
@@ -47,7 +47,7 @@ public partial class AbiDecoder
         _ = Int16Array(out short[] output);
         return output;
     }
-    short[] IStructAbiDecoder.Int16Array()
+    short[] IDynamicTupleDecoder.Int16Array()
     {
         _ = Int16Array(out short[] output);
         return output;
@@ -62,7 +62,7 @@ public partial class AbiDecoder
         _ = UInt16Array(out ushort[] output);
         return output;
     }
-    ushort[] IStructAbiDecoder.UInt16Array()
+    ushort[] IDynamicTupleDecoder.UInt16Array()
     {
         _ = UInt16Array(out ushort[] output);
         return output;
@@ -78,7 +78,7 @@ public partial class AbiDecoder
         _ = Int24Array(out int[] output);
         return output;
     }
-    int[] IStructAbiDecoder.Int24Array()
+    int[] IDynamicTupleDecoder.Int24Array()
     {
         _ = Int24Array(out int[] output);
         return output;
@@ -93,7 +93,7 @@ public partial class AbiDecoder
         _ = UInt24Array(out uint[] output);
         return output;
     }
-    uint[] IStructAbiDecoder.UInt24Array()
+    uint[] IDynamicTupleDecoder.UInt24Array()
     {
         _ = UInt24Array(out uint[] output);
         return output;
@@ -108,7 +108,7 @@ public partial class AbiDecoder
         _ = Int32Array(out int[] output);
         return output;
     }
-    int[] IStructAbiDecoder.Int32Array()
+    int[] IDynamicTupleDecoder.Int32Array()
     {
         _ = Int32Array(out int[] output);
         return output;
@@ -123,7 +123,7 @@ public partial class AbiDecoder
         _ = UInt32Array(out uint[] output);
         return output;
     }
-    uint[] IStructAbiDecoder.UInt32Array()
+    uint[] IDynamicTupleDecoder.UInt32Array()
     {
         _ = UInt32Array(out uint[] output);
         return output;
@@ -138,7 +138,7 @@ public partial class AbiDecoder
         _ = Int40Array(out long[] output);
         return output;
     }
-    long[] IStructAbiDecoder.Int40Array()
+    long[] IDynamicTupleDecoder.Int40Array()
     {
         _ = Int40Array(out long[] output);
         return output;
@@ -153,7 +153,7 @@ public partial class AbiDecoder
         _ = UInt40Array(out ulong[] output);
         return output;
     }
-    ulong[] IStructAbiDecoder.UInt40Array()
+    ulong[] IDynamicTupleDecoder.UInt40Array()
     {
         _ = UInt40Array(out ulong[] output);
         return output;
@@ -168,7 +168,7 @@ public partial class AbiDecoder
         _ = Int48Array(out long[] output);
         return output;
     }
-    long[] IStructAbiDecoder.Int48Array()
+    long[] IDynamicTupleDecoder.Int48Array()
     {
         _ = Int48Array(out long[] output);
         return output;
@@ -183,7 +183,7 @@ public partial class AbiDecoder
         _ = UInt48Array(out ulong[] output);
         return output;
     }
-    ulong[] IStructAbiDecoder.UInt48Array()
+    ulong[] IDynamicTupleDecoder.UInt48Array()
     {
         _ = UInt48Array(out ulong[] output);
         return output;
@@ -198,7 +198,7 @@ public partial class AbiDecoder
         _ = Int56Array(out long[] output);
         return output;
     }
-    long[] IStructAbiDecoder.Int56Array()
+    long[] IDynamicTupleDecoder.Int56Array()
     {
         _ = Int56Array(out long[] output);
         return output;
@@ -213,7 +213,7 @@ public partial class AbiDecoder
         _ = UInt56Array(out ulong[] output);
         return output;
     }
-    ulong[] IStructAbiDecoder.UInt56Array()
+    ulong[] IDynamicTupleDecoder.UInt56Array()
     {
         _ = UInt56Array(out ulong[] output);
         return output;
@@ -228,7 +228,7 @@ public partial class AbiDecoder
         _ = Int64Array(out long[] output);
         return output;
     }
-    long[] IStructAbiDecoder.Int64Array()
+    long[] IDynamicTupleDecoder.Int64Array()
     {
         _ = Int64Array(out long[] output);
         return output;
@@ -243,7 +243,7 @@ public partial class AbiDecoder
         _ = UInt64Array(out ulong[] output);
         return output;
     }
-    ulong[] IStructAbiDecoder.UInt64Array()
+    ulong[] IDynamicTupleDecoder.UInt64Array()
     {
         _ = UInt64Array(out ulong[] output);
         return output;
@@ -258,7 +258,7 @@ public partial class AbiDecoder
         _ = UInt72Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int72Array()
+    BigInteger[] IDynamicTupleDecoder.Int72Array()
     {
         _ = UInt72Array(out var output);
         return output;
@@ -273,7 +273,7 @@ public partial class AbiDecoder
         _ = UInt72Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt72Array()
+    BigInteger[] IDynamicTupleDecoder.UInt72Array()
     {
         _ = UInt72Array(out var output);
         return output;
@@ -288,7 +288,7 @@ public partial class AbiDecoder
         _ = UInt80Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int80Array()
+    BigInteger[] IDynamicTupleDecoder.Int80Array()
     {
         _ = UInt80Array(out var output);
         return output;
@@ -303,7 +303,7 @@ public partial class AbiDecoder
         _ = UInt80Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt80Array()
+    BigInteger[] IDynamicTupleDecoder.UInt80Array()
     {
         _ = UInt80Array(out var output);
         return output;
@@ -318,7 +318,7 @@ public partial class AbiDecoder
         _ = UInt88Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int88Array()
+    BigInteger[] IDynamicTupleDecoder.Int88Array()
     {
         _ = UInt88Array(out var output);
         return output;
@@ -333,7 +333,7 @@ public partial class AbiDecoder
         _ = UInt88Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt88Array()
+    BigInteger[] IDynamicTupleDecoder.UInt88Array()
     {
         _ = UInt88Array(out var output);
         return output;
@@ -348,7 +348,7 @@ public partial class AbiDecoder
         _ = UInt96Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int96Array()
+    BigInteger[] IDynamicTupleDecoder.Int96Array()
     {
         _ = UInt96Array(out var output);
         return output;
@@ -363,7 +363,7 @@ public partial class AbiDecoder
         _ = UInt96Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt96Array()
+    BigInteger[] IDynamicTupleDecoder.UInt96Array()
     {
         _ = UInt96Array(out var output);
         return output;
@@ -378,7 +378,7 @@ public partial class AbiDecoder
         _ = UInt104Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int104Array()
+    BigInteger[] IDynamicTupleDecoder.Int104Array()
     {
         _ = UInt104Array(out var output);
         return output;
@@ -393,7 +393,7 @@ public partial class AbiDecoder
         _ = UInt104Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt104Array()
+    BigInteger[] IDynamicTupleDecoder.UInt104Array()
     {
         _ = UInt104Array(out var output);
         return output;
@@ -408,7 +408,7 @@ public partial class AbiDecoder
         _ = UInt112Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int112Array()
+    BigInteger[] IDynamicTupleDecoder.Int112Array()
     {
         _ = UInt112Array(out var output);
         return output;
@@ -423,7 +423,7 @@ public partial class AbiDecoder
         _ = UInt112Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt112Array()
+    BigInteger[] IDynamicTupleDecoder.UInt112Array()
     {
         _ = UInt112Array(out var output);
         return output;
@@ -438,7 +438,7 @@ public partial class AbiDecoder
         _ = UInt120Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int120Array()
+    BigInteger[] IDynamicTupleDecoder.Int120Array()
     {
         _ = UInt120Array(out var output);
         return output;
@@ -453,7 +453,7 @@ public partial class AbiDecoder
         _ = UInt120Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt120Array()
+    BigInteger[] IDynamicTupleDecoder.UInt120Array()
     {
         _ = UInt120Array(out var output);
         return output;
@@ -468,7 +468,7 @@ public partial class AbiDecoder
         _ = UInt128Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int128Array()
+    BigInteger[] IDynamicTupleDecoder.Int128Array()
     {
         _ = UInt128Array(out var output);
         return output;
@@ -483,7 +483,7 @@ public partial class AbiDecoder
         _ = UInt128Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt128Array()
+    BigInteger[] IDynamicTupleDecoder.UInt128Array()
     {
         _ = UInt128Array(out var output);
         return output;
@@ -498,7 +498,7 @@ public partial class AbiDecoder
         _ = UInt136Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int136Array()
+    BigInteger[] IDynamicTupleDecoder.Int136Array()
     {
         _ = UInt136Array(out var output);
         return output;
@@ -513,7 +513,7 @@ public partial class AbiDecoder
         _ = UInt136Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt136Array()
+    BigInteger[] IDynamicTupleDecoder.UInt136Array()
     {
         _ = UInt136Array(out var output);
         return output;
@@ -528,7 +528,7 @@ public partial class AbiDecoder
         _ = UInt144Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int144Array()
+    BigInteger[] IDynamicTupleDecoder.Int144Array()
     {
         _ = UInt144Array(out var output);
         return output;
@@ -543,7 +543,7 @@ public partial class AbiDecoder
         _ = UInt144Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt144Array()
+    BigInteger[] IDynamicTupleDecoder.UInt144Array()
     {
         _ = UInt144Array(out var output);
         return output;
@@ -558,7 +558,7 @@ public partial class AbiDecoder
         _ = UInt152Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int152Array()
+    BigInteger[] IDynamicTupleDecoder.Int152Array()
     {
         _ = UInt152Array(out var output);
         return output;
@@ -573,7 +573,7 @@ public partial class AbiDecoder
         _ = UInt152Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt152Array()
+    BigInteger[] IDynamicTupleDecoder.UInt152Array()
     {
         _ = UInt152Array(out var output);
         return output;
@@ -588,7 +588,7 @@ public partial class AbiDecoder
         _ = UInt160Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int160Array()
+    BigInteger[] IDynamicTupleDecoder.Int160Array()
     {
         _ = UInt160Array(out var output);
         return output;
@@ -603,7 +603,7 @@ public partial class AbiDecoder
         _ = UInt160Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt160Array()
+    BigInteger[] IDynamicTupleDecoder.UInt160Array()
     {
         _ = UInt160Array(out var output);
         return output;
@@ -618,7 +618,7 @@ public partial class AbiDecoder
         _ = UInt168Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int168Array()
+    BigInteger[] IDynamicTupleDecoder.Int168Array()
     {
         _ = UInt168Array(out var output);
         return output;
@@ -633,7 +633,7 @@ public partial class AbiDecoder
         _ = UInt168Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt168Array()
+    BigInteger[] IDynamicTupleDecoder.UInt168Array()
     {
         _ = UInt168Array(out var output);
         return output;
@@ -648,7 +648,7 @@ public partial class AbiDecoder
         _ = UInt176Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int176Array()
+    BigInteger[] IDynamicTupleDecoder.Int176Array()
     {
         _ = UInt176Array(out var output);
         return output;
@@ -663,7 +663,7 @@ public partial class AbiDecoder
         _ = UInt176Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt176Array()
+    BigInteger[] IDynamicTupleDecoder.UInt176Array()
     {
         _ = UInt176Array(out var output);
         return output;
@@ -678,7 +678,7 @@ public partial class AbiDecoder
         _ = UInt184Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int184Array()
+    BigInteger[] IDynamicTupleDecoder.Int184Array()
     {
         _ = UInt184Array(out var output);
         return output;
@@ -693,7 +693,7 @@ public partial class AbiDecoder
         _ = UInt184Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt184Array()
+    BigInteger[] IDynamicTupleDecoder.UInt184Array()
     {
         _ = UInt184Array(out var output);
         return output;
@@ -708,7 +708,7 @@ public partial class AbiDecoder
         _ = UInt192Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int192Array()
+    BigInteger[] IDynamicTupleDecoder.Int192Array()
     {
         _ = UInt192Array(out var output);
         return output;
@@ -723,7 +723,7 @@ public partial class AbiDecoder
         _ = UInt192Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt192Array()
+    BigInteger[] IDynamicTupleDecoder.UInt192Array()
     {
         _ = UInt192Array(out var output);
         return output;
@@ -738,7 +738,7 @@ public partial class AbiDecoder
         _ = UInt200Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int200Array()
+    BigInteger[] IDynamicTupleDecoder.Int200Array()
     {
         _ = UInt200Array(out var output);
         return output;
@@ -753,7 +753,7 @@ public partial class AbiDecoder
         _ = UInt200Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt200Array()
+    BigInteger[] IDynamicTupleDecoder.UInt200Array()
     {
         _ = UInt200Array(out var output);
         return output;
@@ -768,7 +768,7 @@ public partial class AbiDecoder
         _ = UInt208Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int208Array()
+    BigInteger[] IDynamicTupleDecoder.Int208Array()
     {
         _ = UInt208Array(out var output);
         return output;
@@ -783,7 +783,7 @@ public partial class AbiDecoder
         _ = UInt208Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt208Array()
+    BigInteger[] IDynamicTupleDecoder.UInt208Array()
     {
         _ = UInt208Array(out var output);
         return output;
@@ -798,7 +798,7 @@ public partial class AbiDecoder
         _ = UInt216Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int216Array()
+    BigInteger[] IDynamicTupleDecoder.Int216Array()
     {
         _ = UInt216Array(out var output);
         return output;
@@ -813,7 +813,7 @@ public partial class AbiDecoder
         _ = UInt216Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt216Array()
+    BigInteger[] IDynamicTupleDecoder.UInt216Array()
     {
         _ = UInt216Array(out var output);
         return output;
@@ -828,7 +828,7 @@ public partial class AbiDecoder
         _ = UInt224Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int224Array()
+    BigInteger[] IDynamicTupleDecoder.Int224Array()
     {
         _ = UInt224Array(out var output);
         return output;
@@ -843,7 +843,7 @@ public partial class AbiDecoder
         _ = UInt224Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt224Array()
+    BigInteger[] IDynamicTupleDecoder.UInt224Array()
     {
         _ = UInt224Array(out var output);
         return output;
@@ -858,7 +858,7 @@ public partial class AbiDecoder
         _ = UInt232Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int232Array()
+    BigInteger[] IDynamicTupleDecoder.Int232Array()
     {
         _ = UInt232Array(out var output);
         return output;
@@ -873,7 +873,7 @@ public partial class AbiDecoder
         _ = UInt232Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt232Array()
+    BigInteger[] IDynamicTupleDecoder.UInt232Array()
     {
         _ = UInt232Array(out var output);
         return output;
@@ -888,7 +888,7 @@ public partial class AbiDecoder
         _ = UInt240Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int240Array()
+    BigInteger[] IDynamicTupleDecoder.Int240Array()
     {
         _ = UInt240Array(out var output);
         return output;
@@ -903,7 +903,7 @@ public partial class AbiDecoder
         _ = UInt240Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt240Array()
+    BigInteger[] IDynamicTupleDecoder.UInt240Array()
     {
         _ = UInt240Array(out var output);
         return output;
@@ -918,7 +918,7 @@ public partial class AbiDecoder
         _ = UInt248Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int248Array()
+    BigInteger[] IDynamicTupleDecoder.Int248Array()
     {
         _ = UInt248Array(out var output);
         return output;
@@ -933,7 +933,7 @@ public partial class AbiDecoder
         _ = UInt248Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt248Array()
+    BigInteger[] IDynamicTupleDecoder.UInt248Array()
     {
         _ = UInt248Array(out var output);
         return output;
@@ -948,7 +948,7 @@ public partial class AbiDecoder
         _ = UInt256Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.Int256Array()
+    BigInteger[] IDynamicTupleDecoder.Int256Array()
     {
         _ = UInt256Array(out var output);
         return output;
@@ -963,7 +963,7 @@ public partial class AbiDecoder
         _ = UInt256Array(out var output);
         return output;
     }
-    BigInteger[] IStructAbiDecoder.UInt256Array()
+    BigInteger[] IDynamicTupleDecoder.UInt256Array()
     {
         _ = UInt256Array(out var output);
         return output;

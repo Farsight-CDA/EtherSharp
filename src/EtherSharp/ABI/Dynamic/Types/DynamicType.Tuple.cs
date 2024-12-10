@@ -30,7 +30,7 @@ internal abstract partial class DynamicType<T>
             }
         }
 
-        public static T Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IStructAbiDecoder, T> decoder)
+        public static T Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IDynamicTupleDecoder, T> decoder)
         {
             uint structOffset = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
 

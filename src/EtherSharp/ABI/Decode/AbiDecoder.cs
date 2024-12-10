@@ -4,7 +4,7 @@ using EtherSharp.ABI.Fixed;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
-public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder, IArrayAbiDecoder
+public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder, IDynamicTupleDecoder, IArrayAbiDecoder
 {
     private ReadOnlyMemory<byte> _bytes = bytes;
     private uint _bytesRead = 0;
@@ -59,7 +59,12 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
 
         return ConsumeBytes();
     }
-    TNumber IStructAbiDecoder.Number<TNumber>(bool isUnsigned, int bitLength)
+    TNumber IFixedTupleDecoder.Number<TNumber>(bool isUnsigned, int bitLength)
+    {
+        _ = Number<TNumber>(out var number, isUnsigned, bitLength);
+        return number;
+    }
+    TNumber IDynamicTupleDecoder.Number<TNumber>(bool isUnsigned, int bitLength)
     {
         _ = Number<TNumber>(out var number, isUnsigned, bitLength);
         return number;
@@ -69,6 +74,16 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
     {
         value = FixedType<object>.Bool.Decode(CurrentSlot);
         return ConsumeBytes();
+    }
+    bool IFixedTupleDecoder.Bool()
+    {
+        _ = Bool(out bool value);
+        return value;
+    }
+    bool IDynamicTupleDecoder.Bool()
+    {
+        _ = Bool(out bool value);
+        return value;
     }
 
     public AbiDecoder Address(out string value)
@@ -82,7 +97,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
         str = DynamicType<object>.String.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
-    string IStructAbiDecoder.String()
+    string IDynamicTupleDecoder.String()
     {
         _ = String(out string? str);
         return str;
@@ -93,7 +108,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
         value = DynamicType<object>.Bytes.Decode(_bytes.Span, _bytesRead);
         return ConsumeBytes();
     }
-    ReadOnlySpan<byte> IStructAbiDecoder.Bytes()
+    ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes()
     {
         _ = Bytes(out var value);
         return value;
@@ -109,25 +124,36 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
         _ = Array(out var value, func);
         return value;
     }
-    T[] IStructAbiDecoder.Array<T>(out T[] value, Func<IArrayAbiDecoder, T> func)
+    T[] IDynamicTupleDecoder.Array<T>(out T[] value, Func<IArrayAbiDecoder, T> func)
     {
         _ = Array(out value, func);
         return value;
     }
 
-    public AbiDecoder Struct<T>(out T value, Func<IStructAbiDecoder, T> func)
+    public AbiDecoder FixedTuple<T>(out T value, Func<IFixedTupleDecoder, T> func)
+    {
+        value = FixedType<T>.Tuple.Decode(this, func);
+        return ConsumeBytes();
+    }
+    T IFixedTupleDecoder.FixedTuple<T>(Func<IFixedTupleDecoder, T> func)
+    {
+        _ = FixedTuple(out var value, func);
+        return value;
+    }
+    T IDynamicTupleDecoder.FixedTuple<T>(Func<IFixedTupleDecoder, T> func)
+    {
+        _ = FixedTuple(out var value, func);
+        return value;
+    }
+
+    public AbiDecoder DynamicTuple<T>(out T value, Func<IDynamicTupleDecoder, T> func)
     {
         value = DynamicType<T>.Tuple.Decode(_bytes, _bytesRead, func);
         return ConsumeBytes();
     }
-    T IStructAbiDecoder.Struct<T>(Func<IStructAbiDecoder, T> func)
+    T IDynamicTupleDecoder.DynamicTuple<T>(Func<IDynamicTupleDecoder, T> func)
     {
-        _ = Struct(out var value, func);
-        return value;
-    }
-    T IArrayAbiDecoder.Struct<T>(Func<IStructAbiDecoder, T> func)
-    {
-        _ = Struct(out var value, func);
+        _ = DynamicTuple(out var value, func);
         return value;
     }
 
@@ -177,7 +203,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IStructAbiDecoder,
         _ = NumberArray<TNumber>(isUnsigned, bitLength, out var numbers);
         return numbers;
     }
-    TNumber[] IStructAbiDecoder.NumberArray<TNumber>(bool isUnsigned, uint bitLength)
+    TNumber[] IDynamicTupleDecoder.NumberArray<TNumber>(bool isUnsigned, uint bitLength)
     {
         _ = NumberArray<TNumber>(isUnsigned, bitLength, out var numbers);
         return numbers;

@@ -1,4 +1,5 @@
-﻿using EtherSharp.ABI.Encode.Interfaces;
+﻿using EtherSharp.ABI.Decode.Interfaces;
+using EtherSharp.ABI.Encode.Interfaces;
 
 namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
@@ -19,7 +20,7 @@ internal abstract partial class FixedType<T>
             value.TryWritoTo(buffer);
         }
 
-        public static bool Decode(ReadOnlySpan<byte> bytes)
-            => bytes[^1] == 1;
+        public static T Decode(AbiDecoder decoder, Func<IFixedTupleDecoder, T> subDecoder) 
+            => subDecoder.Invoke(decoder);
     }
 }
