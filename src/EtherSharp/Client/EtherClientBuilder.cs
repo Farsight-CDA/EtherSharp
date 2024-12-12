@@ -10,6 +10,7 @@ using EtherSharp.Common.Extensions;
 using EtherSharp.Transport;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection.Metadata.Ecma335;
 
 namespace EtherSharp.Client;
 public class EtherClientBuilder
@@ -18,6 +19,44 @@ public class EtherClientBuilder
 
     private IRPCTransport? _transport;
     private Action<IContractFactory>? _contractConfigurationAction;
+
+    private EtherClientBuilder() { }
+
+    public static EtherClientBuilder CreateEmpty() => new EtherClientBuilder();
+    public static EtherClientBuilder CreateForWebsocket(string websocketUrl, IEtherSigner? signer = null)
+    {
+        var builder = new EtherClientBuilder()
+            .WithRPCTransport(new WssJsonRpcTransport(new Uri(websocketUrl, UriKind.Absolute)));
+
+        if (signer is null)
+        {
+            return builder;
+        }
+        //
+        return builder
+            .WithSigner(signer)
+            .WithGasFeeProvider<BasicGasFeeProvider>()
+            .WithTxPublisher<BasicTxPublisher>()
+            .WithTxConfirmer<PollingTxConfirmer>()
+            .WithTxScheduler<BlockingSequentialTxScheduler>();
+    }
+    public static EtherClientBuilder CreateForHttpRpc(string websocketUrl, IEtherSigner? signer = null)
+    {
+        var builder = new EtherClientBuilder()
+            .WithRPCTransport(new HttpJsonRpcTransport(new Uri(websocketUrl, UriKind.Absolute)));
+
+        if(signer is null)
+        {
+            return builder;
+        }
+        //
+        return builder
+            .WithSigner(signer)
+            .WithGasFeeProvider<BasicGasFeeProvider>()
+            .WithTxPublisher<BasicTxPublisher>()
+            .WithTxConfirmer<PollingTxConfirmer>()
+            .WithTxScheduler<BlockingSequentialTxScheduler>();
+    }
 
     public EtherClientBuilder WithRPCTransport(IRPCTransport transport)
     {

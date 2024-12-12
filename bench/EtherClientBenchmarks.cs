@@ -19,13 +19,8 @@ public class EtherClientBenchmarks
     public EtherClientBenchmarks()
     {
         var wallet = EtherHdWallet.Create();
-        _client = new EtherClientBuilder()
-            .WithRPCTransport(new HttpJsonRpcTransport("https://optimism.llamarpc.com"))
-            .WithSigner(wallet)
-            .WithTxScheduler<BlockingSequentialTxScheduler>()
-            .WithTxPublisher<BasicTxPublisher>()
-            .WithTxConfirmer<PollingTxConfirmer>()
-            .WithGasFeeProvider<BasicGasFeeProvider>()
+        _client = EtherClientBuilder
+            .CreateForHttpRpc("https://optimism.llamarpc.com", wallet)
             .BuildTxClient();
 
         _client.InitializeAsync().GetAwaiter().GetResult();
