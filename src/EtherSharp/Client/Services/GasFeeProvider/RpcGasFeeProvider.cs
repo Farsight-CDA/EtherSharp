@@ -5,13 +5,18 @@ using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
 
 namespace EtherSharp.Client.Services.GasFeeProvider;
-public class BasicGasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : IGasFeeProvider
+public class RpcGasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : IGasFeeProvider
 {
     private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IEtherSigner _signer = signer;
 
     public Task<ulong> EstimateGasAsync(ITxInput txInput, ReadOnlySpan<byte> data)
-        => _rpcClient.EthEstimateGasAsync(_signer.Address.String, txInput.To.String, txInput.Value, $"0x{Convert.ToHexString(data)}");
+        => _rpcClient.EthEstimateGasAsync(
+                _signer.Address.String, 
+                txInput.To.String, 
+                txInput.Value, 
+                $"0x{Convert.ToHexString(data)}"
+        );
 
     public async Task<ITxGasParams> CalculateGasParamsAsync<TTxParams>(ITxInput txInput, TTxParams txParams, ulong gas)
         where TTxParams : ITxParams

@@ -10,7 +10,6 @@ using EtherSharp.Common.Extensions;
 using EtherSharp.Transport;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection.Metadata.Ecma335;
 
 namespace EtherSharp.Client;
 public class EtherClientBuilder
@@ -18,7 +17,12 @@ public class EtherClientBuilder
     private readonly IServiceCollection _services = new ServiceCollection();
 
     private IRPCTransport? _transport;
+
     private Action<IContractFactory>? _contractConfigurationAction;
+    private Action<IGasFeeProvider>? _gasFeeProviderConfigureAction;
+    private Action<ITxConfirmer>? _txConfirmerConfigureAction;
+    private Action<ITxPublisher>? _txPublisherConfigureAction;
+    private Action<ITxScheduler>? _txSchedulerConfigureAction;
 
     private EtherClientBuilder() { }
 
@@ -35,7 +39,7 @@ public class EtherClientBuilder
         //
         return builder
             .WithSigner(signer)
-            .WithGasFeeProvider<BasicGasFeeProvider>()
+            .WithGasFeeProvider<RpcGasFeeProvider>()
             .WithTxPublisher<BasicTxPublisher>()
             .WithTxConfirmer<PollingTxConfirmer>()
             .WithTxScheduler<BlockingSequentialTxScheduler>();
@@ -52,7 +56,7 @@ public class EtherClientBuilder
         //
         return builder
             .WithSigner(signer)
-            .WithGasFeeProvider<BasicGasFeeProvider>()
+            .WithGasFeeProvider<RpcGasFeeProvider>()
             .WithTxPublisher<BasicTxPublisher>()
             .WithTxConfirmer<PollingTxConfirmer>()
             .WithTxScheduler<BlockingSequentialTxScheduler>();
@@ -70,31 +74,35 @@ public class EtherClientBuilder
         return this;
     }
 
-    public EtherClientBuilder WithTxScheduler<TTxScheduler>()
+    public EtherClientBuilder WithTxScheduler<TTxScheduler>(Action<ITxScheduler>? configureAction = null)
         where TTxScheduler : class, ITxScheduler
     {
         _services.AddOrReplaceSingleton<ITxScheduler, TTxScheduler>();
+        _txSchedulerConfigureAction = configureAction;
         return this;
     }
 
-    public EtherClientBuilder WithTxPublisher<TTxPublisher>()
+    public EtherClientBuilder WithTxPublisher<TTxPublisher>(Action<ITxPublisher>? configureAction = null)
         where TTxPublisher : class, ITxPublisher
     {
         _services.AddOrReplaceSingleton<ITxPublisher, TTxPublisher>();
+        _txPublisherConfigureAction = configureAction;
         return this;
     }
 
-    public EtherClientBuilder WithTxConfirmer<TTxConfirmer>()
+    public EtherClientBuilder WithTxConfirmer<TTxConfirmer>(Action<ITxConfirmer>? configureAction = null)
         where TTxConfirmer : class, ITxConfirmer
     {
         _services.AddOrReplaceSingleton<ITxConfirmer, TTxConfirmer>();
+        _txConfirmerConfigureAction = configureAction;
         return this;
     }
 
-    public EtherClientBuilder WithGasFeeProvider<TGasFeeProvider>()
+    public EtherClientBuilder WithGasFeeProvider<TGasFeeProvider>(Action<IGasFeeProvider>? configureAction = null)
         where TGasFeeProvider : class, IGasFeeProvider
     {
         _services.AddOrReplaceSingleton<IGasFeeProvider, TGasFeeProvider>();
+        _gasFeeProviderConfigureAction = configureAction;
         return this;
     }
 
@@ -179,6 +187,10 @@ public class EtherClientBuilder
         var provider = _services.BuildServiceProvider();
 
         _contractConfigurationAction?.Invoke(provider.GetRequiredService<ContractFactory>());
+        _gasFeeProviderConfigureAction?.Invoke(provider.GetRequiredService<IGasFeeProvider>());
+        _txConfirmerConfigureAction?.Invoke(provider.GetRequiredService<ITxConfirmer>());
+        _txPublisherConfigureAction?.Invoke(provider.GetRequiredService<ITxPublisher>());
+        _txSchedulerConfigureAction?.Invoke(provider.GetRequiredService<ITxScheduler>());
 
         return provider.GetRequiredService<IEtherTxClient>();
     }
