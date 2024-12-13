@@ -3,6 +3,7 @@ using EtherSharp.Common;
 using System.Net.WebSockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 
 namespace EtherSharp.Transport;
 public class WssJsonRpcTransport(Uri uri) : IRPCTransport
@@ -29,7 +30,7 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
     public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, T3, TResult>(string method, T1 t1, T2 t2, T3 t3)
         => InnerSendAsync<TResult>(method, [t1, t2, t3], default);
 
-    public async Task ConnectAsync(CancellationToken cancellationToken = default)
+    public async ValueTask InitializeAsync(CancellationToken cancellationToken)
     {
         await _socket.ConnectAsync(_uri, cancellationToken);
         _ = MessageHandler();

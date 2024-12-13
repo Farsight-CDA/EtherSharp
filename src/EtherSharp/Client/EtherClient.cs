@@ -5,6 +5,7 @@ using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
+using EtherSharp.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Types;
@@ -81,12 +82,15 @@ public class EtherClient : IEtherClient, IEtherTxClient
         }
     }
 
-    public async Task InitializeAsync()
+    public async Task InitializeAsync(CancellationToken cancellationToken)
     {
         if(_initialized)
         {
             throw new InvalidOperationException("Client already initialized");
         }
+
+        await _provider.GetRequiredService<IRPCTransport>()
+            .InitializeAsync(cancellationToken);
 
         _etherApi = _provider.GetRequiredService<EtherApi>();
         _rpcClient = _provider.GetRequiredService<IRpcClient>();

@@ -14,7 +14,7 @@ public interface IEtherClient
     public ILogsApi<TEvent> Logs<TEvent>() where TEvent : ITxEvent<TEvent>;
     public ILogsApi<Log> Logs() => Logs<Log>();
 
-    public Task InitializeAsync();
+    public Task InitializeAsync(CancellationToken cancellationToken = default);
 
     public Task<long> GetPeakHeightAsync();
 

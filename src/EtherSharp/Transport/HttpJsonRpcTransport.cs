@@ -28,6 +28,9 @@ public class HttpJsonRpcTransport : IRPCTransport
     {
     }
 
+    public ValueTask InitializeAsync(CancellationToken cancellationToken = default) 
+        => ValueTask.CompletedTask;
+
     private record RpcError(int Code, string Message);
     private record JsonRpcResponse<T>([property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
 

@@ -7,6 +7,8 @@ public interface IRPCTransport
     public bool SupportsSubscriptions { get; }
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
+    public ValueTask InitializeAsync(CancellationToken cancellationToken = default);
+
     public Task<RpcResult<TResult>> SendRpcRequest<TResult>(string method);
     public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(string method, T1 t1);
     public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, TResult>(string method, T1 t1, T2 t2);
