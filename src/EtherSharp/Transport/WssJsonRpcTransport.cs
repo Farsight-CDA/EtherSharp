@@ -9,6 +9,8 @@ namespace EtherSharp.Transport;
 public class WssJsonRpcTransport(Uri uri) : IRPCTransport
 {
     private int _id = 0;
+    private Lock _initLock = new Lock();
+    private bool _isInitialized;
     private bool _isDead;
 
     private readonly Uri _uri = uri;
@@ -32,6 +34,21 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
 
     public async ValueTask InitializeAsync(CancellationToken cancellationToken)
     {
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        lock (_initLock)
+        {
+            if(_isInitialized)
+            {
+                return;
+            }
+
+            _isInitialized = true;
+        }
+
         await _socket.ConnectAsync(_uri, cancellationToken);
         _ = MessageHandler();
     }
