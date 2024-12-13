@@ -20,6 +20,9 @@ public interface IEtherClient
 
     public TContract Contract<TContract>(string address)
         where TContract : IEVMContract;
+    public TContract Contract<TContract>(Address address)
+        where TContract : IEVMContract;
+
     public Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default);
 
     public Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default);

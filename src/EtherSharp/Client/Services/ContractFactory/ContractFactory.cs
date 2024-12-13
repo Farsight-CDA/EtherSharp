@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Contract;
+using EtherSharp.Types;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -8,9 +9,9 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
 {
     private readonly Lock _lock = new Lock();
     private readonly IEtherClient _etherClient = etherClient;
-    private readonly Dictionary<Type, Func<string, IEVMContract>> _factoryDelegates = [];
+    private readonly Dictionary<Type, Func<Address, IEVMContract>> _factoryDelegates = [];
 
-    public TContract Create<TContract>(string contractAddress)
+    public TContract Create<TContract>(Address address)
     {
         if(!_factoryDelegates.TryGetValue(typeof(TContract), out var factoryDelegate))
         {
@@ -21,7 +22,7 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
             }
         }
 
-        return (TContract) factoryDelegate(contractAddress);
+        return (TContract) factoryDelegate(address);
     }
 
     public void AddContractTypesFromAssembly(Assembly assembly)
@@ -40,7 +41,7 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
         }
     }
 
-    private Func<string, IEVMContract> GetContractFactoryDelegate(Type contractInterfaceType)
+    private Func<Address, IEVMContract> GetContractFactoryDelegate(Type contractInterfaceType)
     {
         var assembly = contractInterfaceType.Assembly;
         var contractType = assembly.GetTypes()
@@ -49,10 +50,10 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
 
         if(RuntimeFeature.IsDynamicCodeCompiled)
         {
-            var ctor = contractType.GetConstructor([typeof(IEtherClient), typeof(string)])
+            var ctor = contractType.GetConstructor([typeof(IEtherClient), typeof(Address)])
                 ?? throw new NotSupportedException("Constructor not found.");
 
-            var contractAddressParam = Expression.Parameter(typeof(string), "contractAddress");
+            var contractAddressParam = Expression.Parameter(typeof(Address), "address");
 
             var newExpr = Expression.New(
                 ctor,
@@ -60,7 +61,7 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
                 contractAddressParam
             );
 
-            return Expression.Lambda<Func<string, IEVMContract>>(newExpr, contractAddressParam).Compile();
+            return Expression.Lambda<Func<Address, IEVMContract>>(newExpr, contractAddressParam).Compile();
         }
         else
         {

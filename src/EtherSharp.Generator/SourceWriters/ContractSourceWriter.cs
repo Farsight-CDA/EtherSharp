@@ -24,6 +24,13 @@ public class ContractSourceWriter(
             .WithVisibility(InterfaceVisibility.Public)
             .AddRawContent($"public LogsApi Events => new LogsApi(this);");
 
+        if(members.Any(
+            x => (x is FallbackAbiMember fallbackMember && fallbackMember.StateMutability == StateMutability.Payable)
+              || (x is ReceiveAbiMember receiveMember && receiveMember.StateMutability == StateMutability.Payable))) 
+        {
+            contractInterface.AddBaseInterface("EtherSharp.Contract.IPayableContract");
+        }
+
         string implementationName = $"{contractName}_Generated_Implementation";
         var contractImplementation = new ClassBuilder(implementationName)
             .AddBaseType(contractName, true)
@@ -31,7 +38,7 @@ public class ContractSourceWriter(
             .AddField(new FieldBuilder("EtherSharp.Client.IEtherClient", "_client")
                 .WithIsReadonly(true)
                 .WithVisibility(FieldVisibility.Private)
-            ).AddProperty(new PropertyBuilder("System.String", "ContractAddress")
+            ).AddProperty(new PropertyBuilder("EtherSharp.Types.Address", "Address")
                 .WithVisibility(PropertyVisibility.Public)
                 .WithSetterVisibility(SetterVisibility.None)
             ).AddFunction(new FunctionBuilder("GetClient")
@@ -138,7 +145,7 @@ public class ContractSourceWriter(
             decoder => {
             {{decoderFunction}}
             },
-            EtherSharp.Types.Address.FromString(ContractAddress),
+            Address,
             0
         ))
         """);
@@ -187,7 +194,7 @@ public class ContractSourceWriter(
                 func.AddStatement(
                 $$"""
                 return EtherSharp.Tx.TxInput.ForContractCall(
-                    EtherSharp.Types.Address.FromString(ContractAddress),
+                    Address,
                     {{ethParamName}},
                     {{GetFunctionSignatureFieldName(messageFunction)}},
                     encoder
@@ -205,7 +212,7 @@ public class ContractSourceWriter(
                     {
                     {{decoderFunction}}
                     },
-                    EtherSharp.Types.Address.FromString(ContractAddress),
+                    Address,
                     {{ethParamName}}
                 )
                 """);

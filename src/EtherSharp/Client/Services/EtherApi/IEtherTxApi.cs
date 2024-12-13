@@ -1,4 +1,5 @@
-﻿using EtherSharp.Tx;
+﻿using EtherSharp.Contract;
+using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Numerics;
 
@@ -7,6 +8,7 @@ public interface IEtherTxApi : IEtherApi
 {
     public Task<BigInteger> GetMyBalanceAsync(TargetBlockNumber blockNumber = default);
 
-    public TxInput Transfer(string receiver, BigInteger amount);
     public TxInput Transfer(Address receiver, BigInteger amount);
+    public TxInput Transfer(string receiver, BigInteger amount);
+    public TxInput Transfer(IPayableContract contract, BigInteger amount);
 }

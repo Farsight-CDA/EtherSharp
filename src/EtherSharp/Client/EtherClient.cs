@@ -132,7 +132,13 @@ public class EtherClient : IEtherClient, IEtherTxClient
         where TContract : IEVMContract
     {
         AssertReady();
-        return _contractFactory.Create<TContract>(contractAddress);
+        return _contractFactory.Create<TContract>(Address.FromString(contractAddress));
+    }
+    private TContract Contract<TContract>(Address address)
+        where TContract : IEVMContract
+    {
+        AssertReady();
+        return _contractFactory.Create<TContract>(address);
     }
 
     private async Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default)
@@ -182,6 +188,8 @@ public class EtherClient : IEtherClient, IEtherTxClient
     }
 
     TContract IEtherClient.Contract<TContract>(string address)
+        => Contract<TContract>(address); 
+    TContract IEtherClient.Contract<TContract>(Address address)
         => Contract<TContract>(address);
     Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight)
         => CallAsync(call, targetHeight);
