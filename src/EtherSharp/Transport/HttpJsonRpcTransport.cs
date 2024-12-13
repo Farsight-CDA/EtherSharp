@@ -1,5 +1,5 @@
-﻿using EtherSharp.Common;
-using EtherSharp.Types;
+﻿using EtherSharp.Client.Services.RPC;
+using EtherSharp.Common;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 

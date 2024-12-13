@@ -1,4 +1,4 @@
-﻿using EtherSharp.Types;
+﻿using EtherSharp.Client.Services.RPC;
 
 namespace EtherSharp.Common.Exceptions;
 public class RPCException(int code, string message)

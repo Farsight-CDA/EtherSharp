@@ -1,4 +1,4 @@
-﻿using EtherSharp.Types;
+﻿using EtherSharp.Client.Services.RPC;
 
 namespace EtherSharp.Transport;
 public interface IRPCTransport

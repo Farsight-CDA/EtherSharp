@@ -1,6 +1,6 @@
-﻿namespace EtherSharp.Types;
+﻿namespace EtherSharp.Client.Services.RPC;
 
-public record RpcResult<T>
+public abstract record RpcResult<T>
 {
     public record Null() : RpcResult<T>;
     public record Success(T Result) : RpcResult<T>;

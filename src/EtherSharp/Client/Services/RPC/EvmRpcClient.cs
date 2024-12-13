@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Events.Subscription;
 using EtherSharp.Transport;
 using EtherSharp.Types;
 using System.Globalization;
