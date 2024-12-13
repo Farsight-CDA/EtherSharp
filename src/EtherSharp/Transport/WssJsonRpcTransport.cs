@@ -3,7 +3,6 @@ using EtherSharp.Common;
 using System.Net.WebSockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
 
 namespace EtherSharp.Transport;
 public class WssJsonRpcTransport(Uri uri) : IRPCTransport
@@ -23,14 +22,18 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
     public bool SupportsFilters => true;
     public bool SupportsSubscriptions => true;
 
-    public Task<RpcResult<TResult>> SendRpcRequest<TResult>(string method)
-        => InnerSendAsync<TResult>(method, [], default);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(string method, T1 t1)
-        => InnerSendAsync<TResult>(method, [t1], default);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, TResult>(string method, T1 t1, T2 t2)
-        => InnerSendAsync<TResult>(method, [t1, t2], default);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, T3, TResult>(string method, T1 t1, T2 t2, T3 t3)
-        => InnerSendAsync<TResult>(method, [t1, t2, t3], default);
+    public Task<RpcResult<TResult>> SendRpcRequest<TResult>(
+        string method, CancellationToken cancellationToken)
+        => InnerSendAsync<TResult>(method, [], cancellationToken);
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(
+        string method, T1 t1, CancellationToken cancellationToken)
+        => InnerSendAsync<TResult>(method, [t1], cancellationToken);
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, TResult>(
+        string method, T1 t1, T2 t2, CancellationToken cancellationToken)
+        => InnerSendAsync<TResult>(method, [t1, t2], cancellationToken);
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, T3, TResult>(
+        string method, T1 t1, T2 t2, T3 t3, CancellationToken cancellationToken)
+        => InnerSendAsync<TResult>(method, [t1, t2, t3], cancellationToken);
 
     public async ValueTask InitializeAsync(CancellationToken cancellationToken)
     {

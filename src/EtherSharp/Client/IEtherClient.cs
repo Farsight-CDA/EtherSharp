@@ -4,6 +4,7 @@ using EtherSharp.Contract;
 using EtherSharp.Events;
 using EtherSharp.Tx;
 using EtherSharp.Types;
+using System.Threading;
 
 namespace EtherSharp.Client;
 public interface IEtherClient
@@ -16,14 +17,14 @@ public interface IEtherClient
 
     public Task InitializeAsync(CancellationToken cancellationToken = default);
 
-    public Task<long> GetPeakHeightAsync();
+    public Task<long> GetPeakHeightAsync(CancellationToken cancellationToken = default);
 
     public TContract Contract<TContract>(string address)
         where TContract : IEVMContract;
     public TContract Contract<TContract>(Address address)
         where TContract : IEVMContract;
 
-    public Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default);
+    public Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 
-    public Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default);
+    public Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 }

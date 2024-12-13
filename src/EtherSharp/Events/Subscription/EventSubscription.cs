@@ -21,7 +21,7 @@ internal class EventSubscription<TEvent>(IRpcClient client, string[]? contractAd
         SingleWriter = true,
     });
 
-    public async Task<string> InstallAsync()
+    public async Task<string> InstallAsync(CancellationToken cancellationToken)
         => Id = await _client.EthSubscribeLogsAsync(_contractAddresses, _topics);
 
     public void HandlePayload(Log payload)

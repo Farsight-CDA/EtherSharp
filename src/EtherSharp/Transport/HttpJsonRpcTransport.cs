@@ -34,20 +34,25 @@ public class HttpJsonRpcTransport : IRPCTransport
     private record RpcError(int Code, string Message);
     private record JsonRpcResponse<T>([property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
 
-    public Task<RpcResult<TResult>> SendRpcRequest<TResult>(string method)
-        => InnerSendRpcRequest<TResult>(method, []);
+    public Task<RpcResult<TResult>> SendRpcRequest<TResult>(
+        string method, CancellationToken cancellationToken)
+        => InnerSendRpcRequest<TResult>(method, [], cancellationToken);
 
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(string method, T1 t1)
-        => InnerSendRpcRequest<TResult>(method, [t1]);
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(
+        string method, T1 t1, CancellationToken cancellationToken)
+        => InnerSendRpcRequest<TResult>(method, [t1], cancellationToken);
 
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, TResult>(string method, T1 t1, T2 t2)
-        => InnerSendRpcRequest<TResult>(method, [t1, t2]);
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, TResult>(
+        string method, T1 t1, T2 t2, CancellationToken cancellationToken)
+        => InnerSendRpcRequest<TResult>(method, [t1, t2], cancellationToken);
 
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, T3, TResult>(string method, T1 t1, T2 t2, T3 t3)
-        => InnerSendRpcRequest<TResult>(method, [t1, t2, t3]);
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, T3, TResult>(
+        string method, T1 t1, T2 t2, T3 t3, CancellationToken cancellationToken)
+        => InnerSendRpcRequest<TResult>(method, [t1, t2, t3], cancellationToken);
 
     private record JsonRpcRequest(int Id, string Method, object?[] Params, string Jsonrpc = "2.0");
-    private async Task<RpcResult<TResult>> InnerSendRpcRequest<TResult>(string method, object?[] objects)
+    private async Task<RpcResult<TResult>> InnerSendRpcRequest<TResult>(
+        string method, object?[] objects, CancellationToken cancellationToken)
     {
         int id = Interlocked.Increment(ref _id);
 
@@ -59,11 +64,11 @@ public class HttpJsonRpcTransport : IRPCTransport
             )
         };
 
-        var response = await _client.SendAsync(httpRequestMessage);
+        var response = await _client.SendAsync(httpRequestMessage, cancellationToken);
 
         try
         {
-            var jsonRpcResponse = await response.Content.ReadFromJsonAsync<JsonRpcResponse<TResult>>(ParsingUtils.EvmSerializerOptions);
+            var jsonRpcResponse = await response.Content.ReadFromJsonAsync<JsonRpcResponse<TResult>>(ParsingUtils.EvmSerializerOptions, cancellationToken);
 
             if(jsonRpcResponse is null)
             {
@@ -87,7 +92,7 @@ public class HttpJsonRpcTransport : IRPCTransport
         }
         catch(Exception e)
         {
-            string s = await response.Content.ReadAsStringAsync();
+            string s = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new Exception($"Error: {s}", e);
         }
     }

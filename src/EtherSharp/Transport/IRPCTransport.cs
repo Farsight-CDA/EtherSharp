@@ -9,8 +9,16 @@ public interface IRPCTransport
 
     public ValueTask InitializeAsync(CancellationToken cancellationToken = default);
 
-    public Task<RpcResult<TResult>> SendRpcRequest<TResult>(string method);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(string method, T1 t1);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, TResult>(string method, T1 t1, T2 t2);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, T3, TResult>(string method, T1 t1, T2 t2, T3 t3);
+    public Task<RpcResult<TResult>> SendRpcRequest<TResult>(
+        string method, CancellationToken cancellationToken = default
+    );
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(
+        string method, T1 t1, CancellationToken cancellationToken = default
+    );
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, TResult>(
+        string method, T1 t1, T2 t2, CancellationToken cancellationToken = default
+    );
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, T3, TResult>(
+        string method, T1 t1, T2 t2, T3 t3, CancellationToken cancellationToken = default
+    );
 }

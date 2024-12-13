@@ -52,12 +52,13 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
         _gasFeeProvider = gasFeeProvider;
     }
 
-    public async ValueTask InitializeAsync(ulong chainId)
+    public async ValueTask InitializeAsync(ulong chainId, CancellationToken cancellationToken)
     {
         _chainId = chainId;
-        _nonceCounter = await _rpcClient.EthGetTransactionCount(_signer.Address.String, TargetBlockNumber.Latest) - 1;
+        _nonceCounter = await _rpcClient.EthGetTransactionCount(
+            _signer.Address.String, TargetBlockNumber.Latest, cancellationToken) - 1;
 
-        _ = Task.Run(BackgroundTxProcessor);
+        _ = Task.Run(BackgroundTxProcessor, CancellationToken.None);
     }
 
     public Task<TransactionReceipt> PublishTxAsync<TTxParams>(TTxParams txParams, ITxInput txInput, Func<ValueTask<TxTimeoutAction>> onTxTimeout)

@@ -102,35 +102,37 @@ public class EtherClient : IEtherClient, IEtherTxClient
             _txScheduler = _provider.GetRequiredService<ITxScheduler>();
         }
 
-        _chainId = await _rpcClient.EthChainId();
+        _chainId = await _rpcClient.EthChainIdAsync(cancellationToken);
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
         {
-            await initializeableService.InitializeAsync(_chainId);
+            await initializeableService.InitializeAsync(_chainId, cancellationToken);
         }
 
         _initialized = true;
     }
 
-    public Task<long> GetPeakHeightAsync()
+    public Task<long> GetPeakHeightAsync(CancellationToken cancellationToken)
     {
         AssertReady();
-        return _rpcClient.EthBlockNumberAsync();
+        return _rpcClient.EthBlockNumberAsync(cancellationToken);
     }
 
-    private Task<BigInteger> GetBalanceAsync(string address, TargetBlockNumber targetHeight = default)
+    private Task<BigInteger> GetBalanceAsync(
+        string address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return _rpcClient.EthGetBalance(address, targetHeight);
+        return _rpcClient.EthGetBalance(address, targetHeight, cancellationToken);
     }
 
-    private Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default)
+    private Task<uint> GetTransactionCount(
+        string address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return _rpcClient.EthGetTransactionCount(address, targetHeight);
+        return _rpcClient.EthGetTransactionCount(address, targetHeight, cancellationToken);
     }
-    Task<uint> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight)
-        => GetTransactionCount(address, targetHeight);
+    Task<uint> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        => GetTransactionCount(address, targetHeight, cancellationToken);
 
     private TContract Contract<TContract>(string contractAddress)
         where TContract : IEVMContract
@@ -145,7 +147,8 @@ public class EtherClient : IEtherClient, IEtherTxClient
         return _contractFactory.Create<TContract>(address);
     }
 
-    private async Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default)
+    private async Task<T> CallAsync<T>(
+        TxInput<T> call, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
     {
         AssertReady();
         ITxInput icall = call;
@@ -164,7 +167,8 @@ public class EtherClient : IEtherClient, IEtherTxClient
             null,
             null,
             $"0x{Convert.ToHexString(callDataBuffer)}",
-            targetHeight
+            targetHeight,
+            cancellationToken
         );
 
         return result switch
@@ -195,6 +199,6 @@ public class EtherClient : IEtherClient, IEtherTxClient
         => Contract<TContract>(address); 
     TContract IEtherClient.Contract<TContract>(Address address)
         => Contract<TContract>(address);
-    Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight)
-        => CallAsync(call, targetHeight);
+    Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        => CallAsync(call, targetHeight, cancellationToken);
 }
