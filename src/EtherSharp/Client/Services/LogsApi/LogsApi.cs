@@ -36,7 +36,7 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
     public ILogsApi<TEvent> HasContract(IEVMContract contract)
     {
         AssertNoContractAddresses();
-        _contractAddresses = [contract.Address];
+        _contractAddresses = [contract.Address.String];
         return this;
     }
     public ILogsApi<TEvent> HasContractAddress(string contractAddress)
@@ -59,7 +59,7 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
 
         for(int i = 0; i < _contractAddresses.Length; i++)
         {
-            _contractAddresses[i] = contracts[i].Address;
+            _contractAddresses[i] = contracts[i].Address.String;
         }
 
         return this;

@@ -26,7 +26,7 @@ public class ContractSourceWriter(
 
         if(members.Any(
             x => (x is FallbackAbiMember fallbackMember && fallbackMember.StateMutability == StateMutability.Payable)
-              || (x is ReceiveAbiMember receiveMember && receiveMember.StateMutability == StateMutability.Payable))) 
+              || (x is ReceiveAbiMember receiveMember && receiveMember.StateMutability == StateMutability.Payable)))
         {
             contractInterface.AddBaseInterface("EtherSharp.Contract.IPayableContract");
         }
