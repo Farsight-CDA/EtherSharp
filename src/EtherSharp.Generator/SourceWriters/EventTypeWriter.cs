@@ -16,6 +16,15 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
             .AddProperty(new PropertyBuilder("EtherSharp.Types.Log", "Log"))
             .WithAutoConstructor();
 
+        byte[] topic = eventMember.GetEventTopic(out string eventSignature);
+        classBuilder.AddRawContent(
+            $"""
+            /// <summary>
+            /// Event topic based on signature: {eventSignature}
+            /// </summary>
+            public static System.String Topic => "0x{HexUtils.ToHexString(topic)}";
+            """);
+
         var decodeMethod = new FunctionBuilder("Decode")
             .WithReturnTypeRaw(eventTypeName)
             .WithIsStatic(true)

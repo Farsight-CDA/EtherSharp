@@ -19,11 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="EtherSharp.Generator" Version="1.0.0" />-->
+    <PackageReference Include="EtherSharp.Generator" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\EtherSharp.Generator\EtherSharp.Generator.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="..\..\EtherSharp\EtherSharp.csproj" />
   </ItemGroup>
 

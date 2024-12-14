@@ -24,6 +24,7 @@ public class PropertyBuilder(string type, string name) : ISyntaxBuilder
 
     private PropertyVisibility _visibility = PropertyVisibility.Public;
     private SetterVisibility _setterVisibility = SetterVisibility.Public;
+
     private bool _isRequired;
 
     private string? _jsonPropertyName;

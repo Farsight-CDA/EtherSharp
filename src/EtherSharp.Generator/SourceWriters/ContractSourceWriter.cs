@@ -228,15 +228,14 @@ public class ContractSourceWriter(
     {
         string propertyName = NameUtils.ToValidFunctionName($"{eventMember.Name}");
         string eventTypeName = NameUtils.ToValidClassName($"{eventMember.Name}Event");
-        string topicString = HexUtils.ToHexString(eventMember.GetEventTopic(out _));
 
         return
         $"""
-        public readonly EtherSharp.Client.Services.LogsApi.ILogsApi<{contractInterfaceFullName}.{eventTypeName}> {propertyName}
+        public readonly EtherSharp.Client.Services.LogsApi.IConfiguredLogsApi<{contractInterfaceFullName}.{eventTypeName}> {propertyName}
             => contract.GetClient()
                 .Logs<{contractInterfaceFullName}.{eventTypeName}>()
                 .HasContract(contract)
-                .HasTopic("0x{topicString}");
+                .HasTopic({contractInterfaceFullName}.{eventTypeName}.Topic);
         """;
     }
 
