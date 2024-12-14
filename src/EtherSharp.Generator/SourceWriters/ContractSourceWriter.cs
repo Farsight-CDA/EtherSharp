@@ -87,13 +87,13 @@ public class ContractSourceWriter(
                 }
             """);
 
-        foreach(var memer in members.Where(x => x is EventAbiMember).Cast<EventAbiMember>())
+        foreach(var member in members.Where(x => x is EventAbiMember).Cast<EventAbiMember>())
         {
-            string eventProperty = GenerateEventProperty($"{@namespace}.{contractName}", memer);
+            string eventProperty = GenerateEventProperty($"{@namespace}.{contractName}", member);
             eventsStructBuilder.AppendLine(eventProperty);
 
             contractInterface.AddInnerType(
-                _eventTypeWriter.GenerateEventType(memer)
+                _eventTypeWriter.GenerateEventType(member)
             );
         }
 
