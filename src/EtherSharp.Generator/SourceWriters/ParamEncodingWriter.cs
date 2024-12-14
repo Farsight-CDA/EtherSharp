@@ -37,8 +37,6 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
 
         switch(parameter.Type)
         {
-            default:
-                throw new NotSupportedException($"Parameters of type {parameter.Type} are not supported in this version.");
             case "tuple":
             {
                 return GenerateTupleType(parameter, paramName);
@@ -59,6 +57,8 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
 
                 return ($"{typeName}[]", encoderFunction, isTupleDynamicType);
             }
+            default:
+                throw new NotSupportedException($"Parameters of type {parameter.Type} are not supported in this version");
         }
     }
 
@@ -114,15 +114,28 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
 
     private bool TryGetPrimitiveEquivalentType(string solidityType, out string type, out bool isDynamicType)
     {
+        if(solidityType.EndsWith("[]", StringComparison.OrdinalIgnoreCase))
+        {
+            bool isValid = TryGetPrimitiveEquivalentType(
+                solidityType.Substring(0, solidityType.Length - 2), out type, out isDynamicType
+            );
+
+            if(!isValid)
+            {
+                return false;
+            }
+
+            isDynamicType = true;
+            type = $"{type}[]";
+            return isValid;
+        }
+
         var (pt, idt) = solidityType switch
         {
             "address" => (typeof(string).FullName, false),
-            "address[]" => (typeof(string[]).FullName, false),
             "string" => (typeof(string).FullName, true),
-            "string[]" => (typeof(string[]).FullName, true),
             "bool" => (typeof(bool).FullName, false),
             "bytes" => (typeof(byte[]).FullName, true),
-            "bytes[]" => (typeof(byte[][]).FullName, true),
             string s when s.StartsWith("uint", StringComparison.Ordinal) && int.TryParse(s.Substring(4), out int bitSize)
                 => bitSize % 8 != 0
                     ? throw new NotSupportedException("uint bitsize must be multiple of 8")

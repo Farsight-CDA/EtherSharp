@@ -13,7 +13,7 @@ public class ParamDecodingWriter
 
         if(!TryGetPrimitiveEquivalentType(outputParameters[0].Type, out string primitiveType))
         {
-            throw new NotSupportedException();
+            throw new NotSupportedException($"Output parameter of type {outputParameters[0].Type} is not supported by this version");
         }
 
         function.WithReturnTypeRaw($"{typeof(Task).FullName}<{primitiveType}>");
@@ -60,6 +60,21 @@ public class ParamDecodingWriter
 
     public bool TryGetPrimitiveEquivalentType(string solidityType, out string type)
     {
+        if(solidityType.EndsWith("[]", StringComparison.OrdinalIgnoreCase))
+        {
+            bool isValid = TryGetPrimitiveEquivalentType(
+                solidityType.Substring(0, solidityType.Length - 2), out type
+            );
+
+            if(!isValid)
+            {
+                return false;
+            }
+
+            type = $"{type}[]";
+            return isValid;
+        }
+
         type = (solidityType switch
         {
             "address" => typeof(string).FullName,
@@ -105,6 +120,8 @@ public class ParamDecodingWriter
     public string GetPrimitiveABIDecodingMethodName(string solidityType)
         => solidityType switch
         {
+            string s when s.EndsWith("[]", StringComparison.OrdinalIgnoreCase)
+                => $"{GetPrimitiveABIDecodingMethodName(s.Substring(0, s.Length - 2))}Array",
             string s when s.StartsWith("uint", StringComparison.Ordinal) => s.Substring(0, 2).ToUpper(CultureInfo.InvariantCulture) + s.Substring(2),
             _ => NameUtils.ToValidFunctionName(solidityType),
         };
