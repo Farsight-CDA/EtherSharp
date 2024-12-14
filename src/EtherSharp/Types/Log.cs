@@ -11,7 +11,7 @@ public record Log(
     uint TransactionIndex,
     byte[][] Topics,
     byte[] Data
-) : IEventData, ITxEvent<Log>
+) : ITxEvent<Log>
 {
     public static Log Decode(Log data) => data;
 }
