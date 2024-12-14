@@ -15,6 +15,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{DC64C388
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtherSharp.Generator", "src\EtherSharp.Generator\EtherSharp.Generator.csproj", "{E3E86DD8-234F-4724-B544-F38B2D1675BA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contracts", "contracts", "{00028E10-2C30-49E0-969F-660056BB172C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtherSharp.ERC", "src\contracts\EtherSharp.ERC\EtherSharp.ERC.csproj", "{ED133A6D-2703-44BD-9383-492842A03450}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +41,10 @@ Global
 		{E3E86DD8-234F-4724-B544-F38B2D1675BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3E86DD8-234F-4724-B544-F38B2D1675BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3E86DD8-234F-4724-B544-F38B2D1675BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED133A6D-2703-44BD-9383-492842A03450}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED133A6D-2703-44BD-9383-492842A03450}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED133A6D-2703-44BD-9383-492842A03450}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED133A6D-2703-44BD-9383-492842A03450}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -44,6 +52,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C32F3ABD-9983-4C8B-B145-AAEEE0FC2DCB} = {DC64C388-0A1C-4D74-ACC9-942486418953}
 		{0F102C97-4957-4566-9C79-CFEE38B9D86C} = {54E6E2E7-3D09-4846-B0DF-DE22EA0AF516}
+		{ED133A6D-2703-44BD-9383-492842A03450} = {00028E10-2C30-49E0-969F-660056BB172C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2A12D9F6-4134-4EEE-9CDE-8CDE5EEDB0F4}

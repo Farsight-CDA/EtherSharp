@@ -117,9 +117,12 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
         var (pt, idt) = solidityType switch
         {
             "address" => (typeof(string).FullName, false),
+            "address[]" => (typeof(string[]).FullName, false),
             "string" => (typeof(string).FullName, true),
+            "string[]" => (typeof(string[]).FullName, true),
             "bool" => (typeof(bool).FullName, false),
             "bytes" => (typeof(byte[]).FullName, true),
+            "bytes[]" => (typeof(byte[][]).FullName, true),
             string s when s.StartsWith("uint", StringComparison.Ordinal) && int.TryParse(s.Substring(4), out int bitSize)
                 => bitSize % 8 != 0
                     ? throw new NotSupportedException("uint bitsize must be multiple of 8")
@@ -163,7 +166,10 @@ public class ParamEncodingWriter(AbiTypeWriter typeWriter)
     private static string GetPrimitiveABIEncodingMethodName(string solidityType)
         => solidityType switch
         {
-            string s when s.StartsWith("uint", StringComparison.Ordinal) => s.Substring(0, 2).ToUpper(CultureInfo.InvariantCulture) + s.Substring(2),
+            string s when s.EndsWith("[]", StringComparison.OrdinalIgnoreCase)
+                => $"{GetPrimitiveABIEncodingMethodName(s.Substring(0, s.Length - 2))}Array",
+            string s when s.StartsWith("uint", StringComparison.Ordinal)
+                => s.Substring(0, 2).ToUpper(CultureInfo.InvariantCulture) + s.Substring(2),
             _ => NameUtils.ToValidFunctionName(solidityType),
         };
 }

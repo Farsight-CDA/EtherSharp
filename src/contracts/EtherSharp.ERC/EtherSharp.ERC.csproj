@@ -15,9 +15,6 @@
   <ItemGroup>
     <AdditionalFiles Include="ERC20\erc20.abi.json" />
     <AdditionalFiles Include="ERC721\erc721.abi.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <AdditionalFiles Include="ERC1155\erc1155.abi.json" />
   </ItemGroup>
 
