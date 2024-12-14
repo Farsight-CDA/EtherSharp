@@ -22,7 +22,7 @@ internal class EventSubscription<TEvent>(IRpcClient client, string[]? contractAd
     });
 
     public async Task<string> InstallAsync(CancellationToken cancellationToken)
-        => Id = await _client.EthSubscribeLogsAsync(_contractAddresses, _topics);
+        => Id = await _client.EthSubscribeLogsAsync(_contractAddresses, _topics, cancellationToken);
 
     public void HandlePayload(Log payload)
         => _channel.Writer.TryWrite(payload);
