@@ -2,6 +2,7 @@
 using EtherSharp.ABI.Encode;
 using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Fixed;
+using EtherSharp.Types;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
@@ -86,6 +87,12 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     public AbiEncoder Bytes(byte[] arr)
         => AddElement(new DynamicType<object>.Bytes(arr));
 
+    public AbiEncoder AddressArray(params string[] addresses)
+        => AddElement(new DynamicType<object>.EncodeTypeArray<FixedType<object>.Address>(
+            addresses.Select(x => new FixedType<object>.Address(x)).ToArray()));
+    public AbiEncoder AddressArray(params Address[] addresses)
+        => AddElement(new DynamicType<object>.EncodeTypeArray<FixedType<object>.Address>(
+            addresses.Select(x => new FixedType<object>.Address(x.String)).ToArray()));
     public AbiEncoder StringArray(params string[] value)
         => AddElement(new DynamicType<object>.EncodeTypeArray<DynamicType<object>.String>(
             value.Select(x => new DynamicType<object>.String(x)).ToArray()));
@@ -127,6 +134,19 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         => DynamicTuple(func);
     IFixedTupleEncoder IFixedTupleEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
         => FixedTuple(func);
+
+    IDynamicTupleEncoder IDynamicTupleEncoder.String(string value)
+        => String(value);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(byte[] arr)
+        => Bytes(arr);
+    IDynamicTupleEncoder IDynamicTupleEncoder.AddressArray(params string[] addresses)
+        => AddressArray(addresses);
+    IDynamicTupleEncoder IDynamicTupleEncoder.StringArray(params string[] values)
+        => StringArray(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.BytesArray(params byte[][] values)
+        => BytesArray(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Array(Action<IArrayAbiEncoder> func)
+        => Array(func);
 
     public AbiEncoder NumberArray<TNumber>(bool isUnsigned, int bitLength, params TNumber[] numbers)
     {

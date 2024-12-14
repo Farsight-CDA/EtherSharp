@@ -6,9 +6,14 @@ public partial interface IDynamicTupleEncoder
 
     internal bool TryWritoTo(Span<byte> outputBuffer);
 
-    public AbiEncoder String(string value);
-    public AbiEncoder Bytes(byte[] arr);
-    public AbiEncoder Array(Action<IArrayAbiEncoder> func);
+    public IDynamicTupleEncoder String(string value);
+    public IDynamicTupleEncoder Bytes(byte[] value);
+
+    public IDynamicTupleEncoder AddressArray(params string[] addresses);
+    public IDynamicTupleEncoder StringArray(params string[] values);
+    public IDynamicTupleEncoder BytesArray(params byte[][] values);
+
+    public IDynamicTupleEncoder Array(Action<IArrayAbiEncoder> func);
 
     public IDynamicTupleEncoder FixedTuple(Action<IFixedTupleEncoder> func);
     public IDynamicTupleEncoder DynamicTuple(Action<IDynamicTupleEncoder> func);
