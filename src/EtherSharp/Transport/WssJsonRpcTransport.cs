@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Common;
 using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -37,12 +38,12 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
 
     public async ValueTask InitializeAsync(CancellationToken cancellationToken)
     {
-        if (_isInitialized)
+        if(_isInitialized)
         {
             return;
         }
 
-        lock (_initLock)
+        lock(_initLock)
         {
             if(_isInitialized)
             {
@@ -105,7 +106,6 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
                     }
 
                     ms.Seek(0, SeekOrigin.Begin);
-                    ms.Position = 0;
                 }
 
                 await _socket.ConnectAsync(_uri, default);
@@ -127,43 +127,60 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
 
         reader.Read();
         reader.Read();
-        reader.Read();
-        reader.Read();
 
-        if(reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("id"))
+        while(reader.TokenType != JsonTokenType.EndObject)
         {
-            reader.Read();
-            requestId = int.Parse(reader.GetString()!.AsSpan()[2..], System.Globalization.NumberStyles.HexNumber);
-            subscriptionId = null!;
-            return PayloadType.Response;
+            switch(reader.TokenType)
+            {
+                case JsonTokenType.PropertyName:
+                    if(reader.ValueTextEquals("id"))
+                    {
+                        reader.Read();
+                        requestId = int.Parse(reader.GetString()!.AsSpan()[2..], System.Globalization.NumberStyles.HexNumber);
+                        subscriptionId = null!;
+                        return PayloadType.Response;
+                    }
+                    else if(reader.ValueTextEquals("method"))
+                    {
+                        reader.Read();
+                        string? method = reader.GetString();
+
+                        if(method != "eth_subscription")
+                        {
+                            requestId = -1;
+                            subscriptionId = null!;
+                            return PayloadType.Unknown;
+                        }
+
+                        reader.Read();
+                        reader.Read();
+                        reader.Read();
+
+                        if(reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("subscriptionId"))
+                        {
+                            requestId = -1;
+                            subscriptionId = null!;
+                            return PayloadType.Unknown;
+                        }
+
+                        reader.Read();
+                        requestId = -1;
+                        subscriptionId = reader.GetString()!;
+                        return PayloadType.Subscription;
+                    }
+
+                    reader.Skip();
+                    break;
+
+                case JsonTokenType.StartObject or JsonTokenType.StartArray:
+                    reader.Skip();
+                    break;
+                default:
+                    reader.Read();
+                    break;
+            }
         }
 
-        if(reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("method"))
-        {
-            reader.Read();
-            string? method = reader.GetString();
-
-            if(method != "eth_subscription")
-            {
-                goto unknown_payload_type;
-            }
-
-            reader.Read();
-            reader.Read();
-            reader.Read();
-
-            if(reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("subscriptionId"))
-            {
-                goto unknown_payload_type;
-            }
-
-            reader.Read();
-            requestId = -1;
-            subscriptionId = reader.GetString()!;
-            return PayloadType.Subscription;
-        }
-
-    unknown_payload_type:
         requestId = -1;
         subscriptionId = null!;
         return PayloadType.Unknown;
