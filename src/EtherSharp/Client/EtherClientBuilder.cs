@@ -28,9 +28,11 @@ public class EtherClientBuilder
 
     public static EtherClientBuilder CreateEmpty() => new EtherClientBuilder();
     public static EtherClientBuilder CreateForWebsocket(string websocketUrl, IEtherSigner? signer = null)
+        => CreateForWebsocket(new Uri(websocketUrl, UriKind.Absolute), signer);
+    public static EtherClientBuilder CreateForWebsocket(Uri websocketUri, IEtherSigner? signer = null)
     {
         var builder = new EtherClientBuilder()
-            .WithRPCTransport(new WssJsonRpcTransport(new Uri(websocketUrl, UriKind.Absolute)));
+            .WithRPCTransport(new WssJsonRpcTransport(websocketUri));
 
         if (signer is null)
         {
