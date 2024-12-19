@@ -77,7 +77,9 @@ public ref struct RLPEncoder
             int significantBytes = GetSignificantByteCount(value);
             _destination[0] = (byte) (0x80 + significantBytes);
 
-            BinaryPrimitives.WriteUInt32BigEndian(_destination[1..5], value);
+            Span<byte> buffer = stackalloc byte[4];
+            BinaryPrimitives.WriteUInt32BigEndian(buffer, value);
+            buffer[^significantBytes..].CopyTo(_destination[1..]);
 
             _destination = _destination[(significantBytes + 1)..];
         }
@@ -101,7 +103,9 @@ public ref struct RLPEncoder
 
             _destination[0] = (byte) (0x80 + significantBytes);
 
-            BinaryPrimitives.WriteUInt64BigEndian(_destination[1..9], value);
+            Span<byte> buffer = stackalloc byte[8];
+            BinaryPrimitives.WriteUInt64BigEndian(buffer, value);
+            buffer[^significantBytes..].CopyTo(_destination[1..]);
 
             _destination = _destination[(significantBytes + 1)..];
         }
@@ -157,7 +161,9 @@ public ref struct RLPEncoder
 
             _destination[0] = (byte) (0xb7 + significantLengthBytes);
 
-            BinaryPrimitives.WriteUInt32BigEndian(_destination[1..5], (uint) data.Length);
+            Span<byte> buffer = stackalloc byte[4];
+            BinaryPrimitives.WriteUInt32BigEndian(buffer, (uint) data.Length);
+            buffer[^significantLengthBytes..].CopyTo(_destination[1..]);
 
             data.CopyTo(_destination[(significantLengthBytes + 1)..]);
             _destination = _destination[(significantLengthBytes + 1 + data.Length)..];
@@ -182,7 +188,7 @@ public ref struct RLPEncoder
             Span<byte> buffer = stackalloc byte[4];
             BinaryPrimitives.WriteUInt32BigEndian(buffer, (uint) listLength);
 
-            buffer[^significantLengthBytes..].CopyTo(_destination[1..(1 + significantLengthBytes)]);
+            buffer[^significantLengthBytes..].CopyTo(_destination[1..]);
 
             _destination = _destination[(1 + significantLengthBytes)..];
         }
