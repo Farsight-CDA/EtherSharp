@@ -8,27 +8,10 @@ internal abstract partial class FixedType<T>
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 
-        public static void EncodeInto(ushort value, Span<byte> buffer)
-        {
-            if(!BitConverter.TryWriteBytes(buffer[(32 - 2)..], value))
-            {
-                throw new InvalidOperationException("Could Not Wryte Bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                buffer[(32 - 2)..].Reverse();
-            }
-        }
+        public static void EncodeInto(ushort value, Span<byte> buffer) 
+            => BinaryPrimitives.WriteUInt16BigEndian(buffer[(32 - 2)..], value);
 
-        public static ushort Decode(ReadOnlySpan<byte> bytes)
-        {
-            ushort value = BitConverter.ToUInt16(bytes[(32 - 2)..]);
-
-            if(BitConverter.IsLittleEndian)
-            {
-                value = BinaryPrimitives.ReverseEndianness(value);
-            }
-            return value;
-        }
+        public static ushort Decode(ReadOnlySpan<byte> bytes) 
+            => BinaryPrimitives.ReadUInt16BigEndian(bytes[(32 - 2)..]);
     }
 }

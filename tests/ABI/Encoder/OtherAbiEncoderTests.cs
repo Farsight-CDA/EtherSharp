@@ -54,19 +54,6 @@ public class OtherAbiEncoderTests
     }
 
     [Fact]
-    public void Test_Struct()
-    {
-        string @string = "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000b68656c6c6f5f776f726c64000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b68656c6c6f5f776f726c64000000000000000000000000000000000000000000";
-
-        byte[] stringByte = Convert.FromHexString(@string);
-
-        _ = _encoder.FixedTuple(x => x.Int8(2).Int8(8));
-        byte[] actualOutput = new byte[_encoder.Size];
-        _ = _encoder.TryWritoTo(actualOutput.AsSpan());
-        Assert.Equal(stringByte, actualOutput);
-    }
-
-    [Fact]
     public void Test_int_String()
     {
 

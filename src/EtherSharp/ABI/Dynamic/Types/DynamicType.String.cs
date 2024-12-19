@@ -10,23 +10,8 @@ internal abstract partial class DynamicType<T>
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {
-            if(!BitConverter.TryWriteBytes(metadata, payloadOffset))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                metadata.Reverse();
-            }
-
-            if(!BitConverter.TryWriteBytes(payload[..32], Value.Length))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                payload[..32].Reverse();
-            }
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
+            BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
 
             if(!Encoding.UTF8.TryGetBytes(Value, payload[32..], out _))
             {
@@ -36,11 +21,7 @@ internal abstract partial class DynamicType<T>
 
         public static string Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset)
         {
-            uint bytesOffset = BitConverter.ToUInt32(bytes[(32 - 4)..32].Span);
-            if(BitConverter.IsLittleEndian)
-            {
-                bytesOffset = BinaryPrimitives.ReverseEndianness(bytesOffset);
-            }
+            uint bytesOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..32].Span);
 
             long index = bytesOffset - metaDataOffset;
             if(index < 0 || index > int.MaxValue)
@@ -49,13 +30,9 @@ internal abstract partial class DynamicType<T>
             }
             int validatedIndex = (int) index;
 
-            uint length = BitConverter.ToUInt32(bytes[(validatedIndex + 32 - 4)..(validatedIndex + 32)].Span);
-            if(BitConverter.IsLittleEndian)
-            {
-                length = BinaryPrimitives.ReverseEndianness(length);
-            }
+            uint stringLength = BinaryPrimitives.ReadUInt32BigEndian(bytes[(validatedIndex + 32 - 4)..(validatedIndex + 32)].Span);
+            var stringBytes = bytes[(validatedIndex + 32)..(validatedIndex + 32 + (int) stringLength)];
 
-            var stringBytes = bytes[(validatedIndex + 32)..(validatedIndex + 32 + (int) length)];
             return Encoding.UTF8.GetString(stringBytes.Span);
         }
     }

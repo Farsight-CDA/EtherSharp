@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using EtherSharp.RLP;
+using System.Buffers.Binary;
 using System.Numerics;
 using System.Text;
 
@@ -10,7 +11,7 @@ namespace EtherSharp.Bench;
 [ShortRunJob]
 public class RLPEncoderBenchmarks
 {
-    private readonly int _nonce = 0;
+    private readonly uint _nonce = 0;
     private readonly BigInteger _gasPrice = BigInteger.Zero;
     private readonly ulong _gas = 0;
     private readonly byte[] _to = Encoding.UTF8.GetBytes("D7B9798cE43Ca0A6aa8Be304a5EC5f88225f8bBA");
@@ -75,8 +76,11 @@ public class RLPEncoderBenchmarks
     [Benchmark]
     public byte[] NEthereum_RLPEncode()
     {
-        byte[] nonceBytes = BitConverter.GetBytes(_nonce);
-        byte[] gasBytes = BitConverter.GetBytes(_gas);
+        byte[] nonceBytes = new byte[4];
+        byte[] gasBytes = new byte[8];
+
+        BinaryPrimitives.WriteUInt32BigEndian(nonceBytes, _nonce);
+        BinaryPrimitives.WriteUInt64BigEndian(gasBytes, _gas);
 
         if(BitConverter.IsLittleEndian)
         {

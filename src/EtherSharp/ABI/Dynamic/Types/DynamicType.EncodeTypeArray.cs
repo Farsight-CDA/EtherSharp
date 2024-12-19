@@ -1,5 +1,6 @@
 ﻿using EtherSharp.ABI.Encode;
 using EtherSharp.ABI.Fixed;
+using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Dynamic;
 internal abstract partial class DynamicType<T>
@@ -11,23 +12,8 @@ internal abstract partial class DynamicType<T>
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {
-            if(!BitConverter.TryWriteBytes(metadata, payloadOffset))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                metadata.Reverse();
-            }
-
-            if(!BitConverter.TryWriteBytes(payload.Slice(28, 4), (uint) Value.Length))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                payload.Slice(28, 4).Reverse();
-            }
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
+            BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
 
             uint localPayloadOffset = 32 * (uint) Value.Length;
             for(int i = 0; i < Value.Length; i++)

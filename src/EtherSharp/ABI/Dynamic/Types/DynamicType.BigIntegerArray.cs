@@ -10,12 +10,12 @@ internal abstract partial class DynamicType<T>
         private readonly bool _isUnsigned;
         public override uint PayloadSize => (32 * (uint) Value.Length) + 32;
 
-        public BigIntegerArray(BigInteger[] value, bool isUnsigned, int length)
+        public BigIntegerArray(BigInteger[] value, bool isUnsigned, int bitSize)
             : base(value)
         {
-            if(length < 64 || length > 256 || length % 8 != 0)
+            if(bitSize < 64 || bitSize > 256 || bitSize % 8 != 0)
             {
-                throw new ArgumentException("Invalid bit size for fixed type", nameof(length));
+                throw new ArgumentException("Invalid bit size for fixed type", nameof(bitSize));
             }
 
             for(int i = 0; i < Value.Length; i++)
@@ -26,9 +26,9 @@ internal abstract partial class DynamicType<T>
                 {
                     throw new ArgumentException("Value was negative for unsigned fixed type");
                 }
-                if(entry.GetByteCount(isUnsigned) > length / 8)
+                if(entry.GetByteCount(isUnsigned) > bitSize / 8)
                 {
-                    throw new ArgumentException($"Value is too large to fit in a {length}-bit {(isUnsigned ? "un" : "")}signed integer", nameof(value));
+                    throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit {(isUnsigned ? "un" : "")}signed integer", nameof(value));
                 }
             }
 
@@ -37,23 +37,8 @@ internal abstract partial class DynamicType<T>
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {
-            if(!BitConverter.TryWriteBytes(metadata, payloadOffset))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                metadata.Reverse();
-            }
-
-            if(!BitConverter.TryWriteBytes(payload.Slice(28, 4), (uint) Value.Length))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                payload.Slice(28, 4).Reverse();
-            }
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
+            BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
 
             for(int i = 0; i < Value.Length; i++)
             {
@@ -62,14 +47,9 @@ internal abstract partial class DynamicType<T>
             }
         }
 
-        public static BigInteger[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, uint length, bool isUnsinght)
+        public static BigInteger[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, uint bitSize, bool isUnsinght)
         {
-            uint arrayOffest = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
-
-            if(BitConverter.IsLittleEndian)
-            {
-                arrayOffest = BinaryPrimitives.ReverseEndianness(arrayOffest);
-            }
+            uint arrayOffest = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..].Span); 
 
             long index = arrayOffest - metaDataOffset;
             if(index < 0 || index > int.MaxValue)
@@ -77,16 +57,12 @@ internal abstract partial class DynamicType<T>
                 throw new IndexOutOfRangeException("Index out of range");
             }
 
-            uint leng = BitConverter.ToUInt32(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
-
-            if(BitConverter.IsLittleEndian)
-            {
-                leng = BinaryPrimitives.ReverseEndianness(leng);
-            }
+            uint arrLength = BinaryPrimitives.ReadUInt32BigEndian(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
 
             var data = bytes[(int) (index + 32)..];
-            var arr = new BigInteger[leng];
-            for(int i = 0; i < leng; i++)
+            var arr = new BigInteger[arrLength];
+
+            for(int i = 0; i < arrLength; i++)
             {
                 var slot = data[(i * 32)..((i * 32) + 32)];
                 arr[i] = FixedType<object>.BigInteger.Decode(slot.Span, isUnsinght);

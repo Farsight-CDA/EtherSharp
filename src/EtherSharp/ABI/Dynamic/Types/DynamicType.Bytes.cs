@@ -9,51 +9,25 @@ internal abstract partial class DynamicType<T>
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {
-            if(!BitConverter.TryWriteBytes(metadata, payloadOffset))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                metadata.Reverse();
-            }
-
-            if(!BitConverter.TryWriteBytes(payload[..32], Value.Length))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                payload[..32].Reverse();
-            }
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
+            BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
 
             Value.CopyTo(payload[32..]);
         }
 
         public static ReadOnlySpan<byte> Decode(ReadOnlySpan<byte> bytes, uint metaDataOffset)
         {
-            uint bytesOffset = BitConverter.ToUInt32(bytes[(32 - 4)..]);
-
-            if(BitConverter.IsLittleEndian)
-            {
-                bytesOffset = BinaryPrimitives.ReverseEndianness(bytesOffset);
-            }
+            uint bytesOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..]);
 
             long index = bytesOffset - metaDataOffset;
 
-            if(index < 0 || index > int.MaxValue)
+            if(index < 0 || index > bytes.Length)
             {
                 throw new IndexOutOfRangeException("Index out of range");
             }
 
-            uint leng = BitConverter.ToUInt32(bytes[(int) (index + 32 - 4)..(int) (index + 32)]);
-
-            if(BitConverter.IsLittleEndian)
-            {
-                leng = BinaryPrimitives.ReverseEndianness(leng);
-            }
-
-            return bytes[((int) index + 32)..(int) ((int) index + 32 + leng)];
+            uint valueLength = BinaryPrimitives.ReadUInt32BigEndian(bytes[(int) (index + 32 - 4)..(int) (index + 32)]);
+            return bytes[((int) index + 32)..(int) ((int) index + 32 + valueLength)];
         }
     }
 }

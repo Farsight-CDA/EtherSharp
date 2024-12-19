@@ -10,30 +10,15 @@ internal abstract partial class FixedType<T>
 
         public static void EncodeInto(short value, Span<byte> buffer)
         {
-            if(!BitConverter.TryWriteBytes(buffer[(32 - 2)..], value))
-            {
-                throw new InvalidOperationException("Could Not Wryte Bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                buffer[(32 - 2)..].Reverse();
+            BinaryPrimitives.WriteInt16BigEndian(buffer[(32 - 2)..], value);
 
-            }
             if(value < 0)
             {
                 buffer[..(32 - 2)].Fill(byte.MaxValue);
             }
         }
 
-        public static short Decode(ReadOnlySpan<byte> bytes)
-        {
-            short value = BitConverter.ToInt16(bytes[(32 - 2)..]);
-
-            if(BitConverter.IsLittleEndian)
-            {
-                value = BinaryPrimitives.ReverseEndianness(value);
-            }
-            return value;
-        }
+        public static short Decode(ReadOnlySpan<byte> bytes) 
+            => BinaryPrimitives.ReadInt16BigEndian(bytes[(32 - 2)..]);
     }
 }

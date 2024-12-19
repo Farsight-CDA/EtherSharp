@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.RLP;
@@ -76,11 +77,7 @@ public ref struct RLPEncoder
             int significantBytes = GetSignificantByteCount(value);
             _destination[0] = (byte) (0x80 + significantBytes);
 
-            _ = BitConverter.TryWriteBytes(_destination[1..5], value);
-            if(BitConverter.IsLittleEndian && significantBytes > 1)
-            {
-                _destination[1..(1 + significantBytes)].Reverse();
-            }
+            BinaryPrimitives.WriteUInt32BigEndian(_destination[1..5], value);
 
             _destination = _destination[(significantBytes + 1)..];
         }
@@ -104,11 +101,7 @@ public ref struct RLPEncoder
 
             _destination[0] = (byte) (0x80 + significantBytes);
 
-            _ = BitConverter.TryWriteBytes(_destination[1..9], value);
-            if(BitConverter.IsLittleEndian && significantBytes > 1)
-            {
-                _destination[1..(1 + significantBytes)].Reverse();
-            }
+            BinaryPrimitives.WriteUInt64BigEndian(_destination[1..9], value);
 
             _destination = _destination[(significantBytes + 1)..];
         }
@@ -164,11 +157,7 @@ public ref struct RLPEncoder
 
             _destination[0] = (byte) (0xb7 + significantLengthBytes);
 
-            _ = BitConverter.TryWriteBytes(_destination[1..5], (uint) data.Length);
-            if(BitConverter.IsLittleEndian && significantLengthBytes > 1)
-            {
-                _destination[1..(1 + significantLengthBytes)].Reverse();
-            }
+            BinaryPrimitives.WriteUInt32BigEndian(_destination[1..5], (uint) data.Length);
 
             data.CopyTo(_destination[(significantLengthBytes + 1)..]);
             _destination = _destination[(significantLengthBytes + 1 + data.Length)..];
@@ -191,11 +180,7 @@ public ref struct RLPEncoder
             _destination[0] = (byte) (0xf7 + significantLengthBytes);
 
             Span<byte> buffer = stackalloc byte[4];
-            _ = BitConverter.TryWriteBytes(buffer, (uint) listLength);
-            if(BitConverter.IsLittleEndian)
-            {
-                buffer.Reverse();
-            }
+            BinaryPrimitives.WriteUInt32BigEndian(buffer, (uint) listLength);
 
             buffer[^significantLengthBytes..].CopyTo(_destination[1..(1 + significantLengthBytes)]);
 

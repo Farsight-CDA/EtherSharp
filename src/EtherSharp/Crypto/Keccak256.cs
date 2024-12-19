@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers.Binary;
+using System.Diagnostics;
 
 namespace EtherSharp.Crypto;
 public ref struct Keccak256
@@ -146,17 +147,13 @@ public ref struct Keccak256
 
         for(int i = 0; i < full; i++)
         {
-            _state[i] ^= BitConverter.IsLittleEndian
-                ? BitConverter.ToUInt64(_dataQueue[(i * 8)..])
-                : Pack.LE_To_UInt64(_dataQueue[(i * 8)..]);
+            _state[i] ^= BinaryPrimitives.ReadUInt64LittleEndian(_dataQueue[(i * 8)..]);
         }
 
         if(partial > 0)
         {
             ulong mask = (1UL << partial) - 1UL;
-            _state[full] ^= BitConverter.IsLittleEndian
-                ? BitConverter.ToUInt64(_dataQueue[(full * 8)..]) & mask
-                : Pack.LE_To_UInt64(_dataQueue[(full * 8)..]) & mask;
+            _state[full] ^= BinaryPrimitives.ReadUInt64LittleEndian(_dataQueue[(full * 8)..]) & mask;
         }
 
         _state[(_rate - 1) >> 6] ^= 1UL << 63;
@@ -189,9 +186,7 @@ public ref struct Keccak256
         int count = _rate >> 6;
         for(int i = 0; i < count; ++i)
         {
-            _state[i] ^= BitConverter.IsLittleEndian
-                ? BitConverter.ToUInt64(data[(i * 8)..])
-                : Pack.LE_To_UInt64(data[(i * 8)..]);
+            _state[i] ^= BinaryPrimitives.ReadUInt64LittleEndian(data[(i * 8)..]);
         }
 
         KeccakPermutation();
@@ -201,19 +196,9 @@ public ref struct Keccak256
     {
         KeccakPermutation();
 
-        if(BitConverter.IsLittleEndian)
+        for(int i = 0; i < _rate >> 6; ++i)
         {
-            for(int i = 0; i < _rate >> 6; ++i)
-            {
-                _ = BitConverter.TryWriteBytes(_dataQueue[(8 * i)..], _state[i]);
-            }
-        }
-        else
-        {
-            for(int i = 0; i < _rate >> 6; ++i)
-            {
-                Pack.UInt64_To_LE(_state, _rate >> 6, _dataQueue);
-            }
+            BinaryPrimitives.WriteUInt64LittleEndian(_dataQueue[(8 * i)..], _state[i]);
         }
 
         _bitsInQueue = _rate;

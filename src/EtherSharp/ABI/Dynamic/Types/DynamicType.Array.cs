@@ -11,23 +11,8 @@ internal abstract partial class DynamicType<T>
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {
-            if(!BitConverter.TryWriteBytes(metadata, payloadOffset))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                metadata.Reverse();
-            }
-
-            if(!BitConverter.TryWriteBytes(payload[..32], Value.MetadataSize / 32))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                payload[..32].Reverse();
-            }
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
+            BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], Value.MetadataSize / 32);
 
             if(!Value.TryWritoTo(payload[32..]))
             {
@@ -37,11 +22,7 @@ internal abstract partial class DynamicType<T>
 
         public static T[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IArrayAbiDecoder, T> decoder)
         {
-            uint payloadOffset = BitConverter.ToUInt32(bytes[28..32].Span);
-            if(BitConverter.IsLittleEndian)
-            {
-                payloadOffset = BinaryPrimitives.ReverseEndianness(payloadOffset);
-            }
+            uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[28..32].Span); 
 
             if(payloadOffset < metaDataOffset)
             {
@@ -51,11 +32,7 @@ internal abstract partial class DynamicType<T>
             long relativePayloadOffset = payloadOffset - metaDataOffset;
             var payload = bytes[(int) relativePayloadOffset..];
 
-            uint arrayLength = BitConverter.ToUInt32(payload[28..32].Span);
-            if(BitConverter.IsLittleEndian)
-            {
-                arrayLength = BinaryPrimitives.ReverseEndianness(arrayLength);
-            }
+            uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32].Span);
 
             var output = new T[arrayLength];
 

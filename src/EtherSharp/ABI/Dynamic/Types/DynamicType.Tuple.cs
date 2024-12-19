@@ -1,5 +1,6 @@
 ﻿using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Encode.Interfaces;
+using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Dynamic;
 internal abstract partial class DynamicType<T>
@@ -15,14 +16,7 @@ internal abstract partial class DynamicType<T>
                 throw new InvalidOperationException("Tried to encode a fixed value as a dynamic tuple");
             }
 
-            if(!BitConverter.TryWriteBytes(metadata, payloadOffset))
-            {
-                throw new InvalidOperationException("Failed to write bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                metadata.Reverse();
-            }
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
 
             if(!Value.TryWritoTo(payload))
             {
@@ -32,15 +26,13 @@ internal abstract partial class DynamicType<T>
 
         public static T Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IDynamicTupleDecoder, T> decoder)
         {
-            uint structOffset = BitConverter.ToUInt32(bytes[(32 - 4)..].Span);
+            uint structOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..].Span);
 
             long index = structOffset - metaDataOffset;
             if(index < 0 || index > int.MaxValue)
             {
                 throw new IndexOutOfRangeException("Index out of range");
             }
-
-            _ = BitConverter.ToUInt32(bytes[(int) index..(int) (index + 32)].Span);
 
             var structAbiDecoder = new AbiDecoder(bytes[(int) index..]);
 

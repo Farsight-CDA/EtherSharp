@@ -22,29 +22,15 @@ internal abstract partial class FixedType<T>
 
         public static void EncodeInto(long value, Span<byte> buffer)
         {
-            if(!BitConverter.TryWriteBytes(buffer[(32 - 8)..], value))
-            {
-                throw new InvalidOperationException("Could Not Wryte Bytes");
-            }
-            if(BitConverter.IsLittleEndian)
-            {
-                buffer[(32 - 8)..].Reverse();
-            }
+            BinaryPrimitives.WriteInt64BigEndian(buffer[(32 - 8)..], value);
+
             if(value < 0)
             {
                 buffer[..(32 - 8)].Fill(byte.MaxValue);
             }
         }
 
-        public static long Decode(ReadOnlySpan<byte> bytes)
-        {
-            long value = BitConverter.ToInt64(bytes[(32 - 8)..]);
-
-            if(BitConverter.IsLittleEndian)
-            {
-                value = BinaryPrimitives.ReverseEndianness(value);
-            }
-            return value;
-        }
+        public static long Decode(ReadOnlySpan<byte> bytes) 
+            => BinaryPrimitives.ReadInt64BigEndian(bytes[(32 - 8)..]);
     }
 }
