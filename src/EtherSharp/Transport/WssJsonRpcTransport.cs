@@ -128,7 +128,7 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
         reader.Read();
         reader.Read();
 
-        while(reader.TokenType != JsonTokenType.EndObject)
+        while(reader.TokenType != JsonTokenType.None)
         {
             switch(reader.TokenType)
             {
