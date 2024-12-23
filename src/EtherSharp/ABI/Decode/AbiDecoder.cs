@@ -1,6 +1,7 @@
 ﻿using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Dynamic;
 using EtherSharp.ABI.Fixed;
+using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
@@ -112,6 +113,32 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     {
         _ = Bytes(out var value);
         return value;
+    }
+
+    public AbiDecoder AddressArray(out string[] addresses)
+    {
+        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
+
+        if(payloadOffset < _bytesRead)
+        {
+            throw new IndexOutOfRangeException("Index out of range");
+        }
+
+        long relativePayloadOffset = payloadOffset - _bytesRead;
+        var payload = _bytes[(int) relativePayloadOffset..].Span;
+
+        uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32]);
+
+        addresses = new string[arrayLength];
+
+        int offset = 32;
+        for(uint i = 0; i < arrayLength; i++)
+        {
+            FixedType<object>.Address.Decode(payload[offset..(offset + 32)]);
+            offset += 32;
+        }
+
+        return this;
     }
 
     public AbiDecoder Array<T>(out T[] value, Func<IArrayAbiDecoder, T> func)
