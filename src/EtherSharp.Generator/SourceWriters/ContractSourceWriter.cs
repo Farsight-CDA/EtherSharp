@@ -135,7 +135,7 @@ public class ContractSourceWriter(
             _paramEncodingWriter.AddParameterEncoding(func, input, index);
         }
 
-        var (returnType, decoderFunction) = _paramDecodingWriter.SetQueryOutputDecoding(queryFunction.Name, func, queryFunction.Outputs);
+        var (returnType, decoderFunction) = _paramDecodingWriter.SetQueryOutputDecoding(func, queryFunction.Outputs);
 
         func.AddStatement(
         $$"""
@@ -202,7 +202,7 @@ public class ContractSourceWriter(
                 """);
                 break;
             case 1:
-                var (returnType, decoderFunction) = _paramDecodingWriter.SetMessageOutputDecoding(messageFunction.Name, func, messageFunction.Outputs);
+                var (returnType, decoderFunction) = _paramDecodingWriter.SetMessageOutputDecoding(func, messageFunction.Outputs);
                 func.AddStatement(
                 $$"""
                 return new EtherSharp.Tx.TxInput<{{returnType}}>(

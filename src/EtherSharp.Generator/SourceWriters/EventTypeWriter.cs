@@ -46,7 +46,7 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
         int totalIndex = 1;
         foreach(var parameter in eventMember.Inputs)
         {
-            if(!_paramDecodingWriter.TryGetPrimitiveEquivalentType(parameter.Type, out string primitiveType))
+            if(!_paramDecodingWriter.TryGetPrimitiveEquivalentType(parameter.Type, out string primitiveType, out _))
             {
                 throw new NotSupportedException();
             }
