@@ -41,8 +41,40 @@ public class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSigner
 
     private Address GenerateAddress()
     {
+        var pkSpan = _uncompressedPublicKey.AsSpan();
+
+        pkSpan[..32].Reverse();
+        pkSpan[32..64].Reverse();
+
         Span<byte> hashBuffer = stackalloc byte[32];
         _ = Keccak256.TryHashData(_uncompressedPublicKey, hashBuffer);
         return Address.FromBytes(hashBuffer[^20..]);
+    }
+
+    bool IEtherSigner.TrySign(ReadOnlySpan<byte> data, Span<byte> destination)
+    {
+        bool success = TrySign(data, destination);
+
+        if (!success)
+        {
+            return false;
+        }
+
+        destination[..32].Reverse();
+        destination[32..64].Reverse();
+        return true;
+    }
+    bool IEtherSigner.TrySignRecoverable(ReadOnlySpan<byte> data, Span<byte> destination)
+    {
+        bool success = TrySignRecoverable(data, destination);
+
+        if(!success)
+        {
+            return false;
+        }
+
+        destination[..32].Reverse();
+        destination[32..64].Reverse();
+        return true;
     }
 }
