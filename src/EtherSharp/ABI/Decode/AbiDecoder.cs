@@ -134,7 +134,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         int offset = 32;
         for(uint i = 0; i < arrayLength; i++)
         {
-            FixedType<object>.Address.Decode(payload[offset..(offset + 32)]);
+            addresses[i] = FixedType<object>.Address.Decode(payload[offset..(offset + 32)]);
             offset += 32;
         }
 
