@@ -6,7 +6,7 @@ internal abstract partial class FixedType<T>
         public Address(string value)
             : base(value.StartsWith("0x") ? value.AsMemory()[2..] : value.AsMemory())
         {
-            if(value.Length % 2 != 0)
+            if(Value.Length != 40)
             {
                 throw new ArgumentException("Bad address length");
             }
