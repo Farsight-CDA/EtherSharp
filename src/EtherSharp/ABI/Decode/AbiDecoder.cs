@@ -140,6 +140,11 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
         return this;
     }
+    string[] IDynamicTupleDecoder.AddressArray()
+    {
+        _ = AddressArray(out string[]? addresses);
+        return addresses;
+    }
 
     public AbiDecoder Array<T>(out T[] value, Func<IArrayAbiDecoder, T> func)
     {

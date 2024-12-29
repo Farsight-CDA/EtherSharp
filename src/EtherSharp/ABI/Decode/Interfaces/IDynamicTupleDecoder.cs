@@ -4,8 +4,10 @@ public partial interface IDynamicTupleDecoder
     public bool Bool();
 
     public TNumber Number<TNumber>(bool isUnsigned, int bitLength);
-    public ReadOnlySpan<byte> Bytes();
     public string String();
+    public ReadOnlySpan<byte> Bytes();
+
+    public string[] AddressArray();
 
     public T FixedTuple<T>(Func<IFixedTupleDecoder, T> func);
     public T DynamicTuple<T>(Func<IDynamicTupleDecoder, T> func);
