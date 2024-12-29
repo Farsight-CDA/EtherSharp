@@ -138,7 +138,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
             offset += 32;
         }
 
-        return this;
+        return ConsumeBytes();
     }
     string[] IDynamicTupleDecoder.AddressArray()
     {
