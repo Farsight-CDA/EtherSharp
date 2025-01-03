@@ -55,6 +55,8 @@ public class EtherClient : IEtherClient, IEtherTxClient
         }
     }
 
+    ulong IEtherClient.ChainId => throw new NotImplementedException();
+
     ILogsApi<TEvent> IEtherClient.Logs<TEvent>()
     {
         AssertReady();
@@ -179,12 +181,16 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
+
+
     Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call,
         Func<ValueTask<TxTimeoutAction>> onTxTimeout)
     {
         AssertTxClient();
         AssertReady();
-        return _txScheduler.PublishTxAsync(new EIP1559TxParams([]), call, onTxTimeout);
+        return _txScheduler.PublishTxAsync<EIP1559TxTypeHandler, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
+            call, new EIP1559TxParams([]), null, onTxTimeout
+        );
     }
 
     Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call,
@@ -192,7 +198,28 @@ public class EtherClient : IEtherClient, IEtherTxClient
     {
         AssertTxClient();
         AssertReady();
-        return _txScheduler.PublishTxAsync(new EIP1559TxParams([]), call, () => ValueTask.FromResult(onTxTimeout()));
+        return _txScheduler.PublishTxAsync<EIP1559TxTypeHandler, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
+            call, new EIP1559TxParams([]), null, () => ValueTask.FromResult(onTxTimeout())
+        );
+    }
+
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
+        ITxInput call, TTxParams txParams, TTxGasParams gasParams, Func<TxTimeoutAction> onTxTimeout)
+    {
+        AssertTxClient();
+        AssertReady();
+        return _txScheduler.PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
+            call, txParams, gasParams, () => ValueTask.FromResult(onTxTimeout())
+        );
+    }
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
+        ITxInput call, TTxParams txParams, Func<TxTimeoutAction> onTxTimeout)
+    {
+        AssertTxClient();
+        AssertReady();
+        return _txScheduler.PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
+            call, txParams, null, () => ValueTask.FromResult(onTxTimeout())
+        );
     }
 
     TContract IEtherClient.Contract<TContract>(string address)

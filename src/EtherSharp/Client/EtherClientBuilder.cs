@@ -1,13 +1,14 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.EtherApi;
-using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxConfirmer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
+using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Transport;
+using EtherSharp.Tx.EIP1559;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,7 +20,6 @@ public class EtherClientBuilder
     private IRPCTransport? _transport;
 
     private Action<IContractFactory>? _contractConfigurationAction;
-    private Action<IGasFeeProvider>? _gasFeeProviderConfigureAction;
     private Action<ITxConfirmer>? _txConfirmerConfigureAction;
     private Action<ITxPublisher>? _txPublisherConfigureAction;
     private Action<ITxScheduler>? _txSchedulerConfigureAction;
@@ -41,10 +41,10 @@ public class EtherClientBuilder
         //
         return builder
             .WithSigner(signer)
-            .WithGasFeeProvider<RpcGasFeeProvider>()
             .WithTxPublisher<BasicTxPublisher>()
             .WithTxConfirmer<PollingTxConfirmer>()
-            .WithTxScheduler<BlockingSequentialTxScheduler>();
+            .WithTxScheduler<BlockingSequentialTxScheduler>()
+            .AddTxTypeHandler<EIP1559TxTypeHandler>();
     }
     public static EtherClientBuilder CreateForHttpRpc(string websocketUrl, IEtherSigner? signer = null)
     {
@@ -58,10 +58,10 @@ public class EtherClientBuilder
         //
         return builder
             .WithSigner(signer)
-            .WithGasFeeProvider<RpcGasFeeProvider>()
             .WithTxPublisher<BasicTxPublisher>()
             .WithTxConfirmer<PollingTxConfirmer>()
-            .WithTxScheduler<BlockingSequentialTxScheduler>();
+            .WithTxScheduler<BlockingSequentialTxScheduler>()
+            .AddTxTypeHandler<EIP1559TxTypeHandler>();
     }
 
     public EtherClientBuilder WithRPCTransport(IRPCTransport transport)
@@ -100,11 +100,10 @@ public class EtherClientBuilder
         return this;
     }
 
-    public EtherClientBuilder WithGasFeeProvider<TGasFeeProvider>(Action<IGasFeeProvider>? configureAction = null)
-        where TGasFeeProvider : class, IGasFeeProvider
+    public EtherClientBuilder AddTxTypeHandler<TTxTypeHandler>()
+        where TTxTypeHandler : class, ITxTypeHandler
     {
-        _services.AddOrReplaceSingleton<IGasFeeProvider, TGasFeeProvider>();
-        _gasFeeProviderConfigureAction = configureAction;
+        _services.AddOrReplaceSingleton<TTxTypeHandler, TTxTypeHandler>();
         return this;
     }
 
@@ -174,10 +173,6 @@ public class EtherClientBuilder
         {
             throw new InvalidOperationException($"No {nameof(ITxConfirmer)} configured. Call the {nameof(WithTxConfirmer)} method prior to {nameof(BuildTxClient)}");
         }
-        if(!_services.Any(x => x.ServiceType == typeof(IGasFeeProvider)))
-        {
-            throw new InvalidOperationException($"No {nameof(IGasFeeProvider)} configured. Call the {nameof(WithGasFeeProvider)} method prior to {nameof(BuildTxClient)}");
-        }
     }
     public IEtherTxClient BuildTxClient()
     {
@@ -189,7 +184,6 @@ public class EtherClientBuilder
         var provider = _services.BuildServiceProvider();
 
         _contractConfigurationAction?.Invoke(provider.GetRequiredService<ContractFactory>());
-        _gasFeeProviderConfigureAction?.Invoke(provider.GetRequiredService<IGasFeeProvider>());
         _txConfirmerConfigureAction?.Invoke(provider.GetRequiredService<ITxConfirmer>());
         _txPublisherConfigureAction?.Invoke(provider.GetRequiredService<ITxPublisher>());
         _txSchedulerConfigureAction?.Invoke(provider.GetRequiredService<ITxScheduler>());
