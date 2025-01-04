@@ -181,8 +181,6 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-
-
     Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call,
         Func<ValueTask<TxTimeoutAction>> onTxTimeout)
     {
@@ -204,14 +202,24 @@ public class EtherClient : IEtherClient, IEtherTxClient
     }
 
     Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams txParams, TTxGasParams gasParams, Func<TxTimeoutAction> onTxTimeout)
+        ITxInput call, TTxParams txParams, TTxGasParams txGasParams, Func<TxTimeoutAction> onTxTimeout)
     {
         AssertTxClient();
         AssertReady();
         return _txScheduler.PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
-            call, txParams, gasParams, () => ValueTask.FromResult(onTxTimeout())
+            call, txParams, txGasParams, () => ValueTask.FromResult(onTxTimeout())
         );
     }
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
+        ITxInput call, TTxParams txParams, TTxGasParams txGasParams, Func<ValueTask<TxTimeoutAction>> onTxTimeout)
+    {
+        AssertTxClient();
+        AssertReady();
+        return _txScheduler.PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
+            call, txParams, txGasParams, onTxTimeout
+        );
+    }
+
     Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
         ITxInput call, TTxParams txParams, Func<TxTimeoutAction> onTxTimeout)
     {
@@ -219,6 +227,15 @@ public class EtherClient : IEtherClient, IEtherTxClient
         AssertReady();
         return _txScheduler.PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
             call, txParams, null, () => ValueTask.FromResult(onTxTimeout())
+        );
+    }
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
+        ITxInput call, TTxParams txParams, Func<ValueTask<TxTimeoutAction>> onTxTimeout)
+    {
+        AssertTxClient();
+        AssertReady();
+        return _txScheduler.PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
+            call, txParams, null, onTxTimeout
         );
     }
 

@@ -19,6 +19,15 @@ public interface IEtherTxClient : IEtherClient
 
     public Task<TransactionReceipt> ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
         ITxInput call, TTxParams txParams, TTxGasParams gasParams,
+        Func<ValueTask<TxTimeoutAction>> onTxTimeout
+    )
+        where TTxTypeHandler : class, ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
+        where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
+        where TTxParams : ITxParams
+        where TTxGasParams : ITxGasParams;
+
+    public Task<TransactionReceipt> ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
+        ITxInput call, TTxParams txParams, TTxGasParams gasParams,
         Func<TxTimeoutAction> onTxTimeout
     )
         where TTxTypeHandler : class, ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
@@ -29,6 +38,15 @@ public interface IEtherTxClient : IEtherClient
     public Task<TransactionReceipt> ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
         ITxInput call, TTxParams txParams,
         Func<TxTimeoutAction> onTxTimeout
+    )
+        where TTxTypeHandler : class, ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
+        where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
+        where TTxParams : ITxParams
+        where TTxGasParams : ITxGasParams;
+
+    public Task<TransactionReceipt> ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
+        ITxInput call, TTxParams txParams,
+        Func<ValueTask<TxTimeoutAction>> onTxTimeout
     )
         where TTxTypeHandler : class, ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
