@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.EtherApi;
+using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxScheduler;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
 
 namespace EtherSharp.Client;
-public class EtherClient : IEtherClient, IEtherTxClient
+public class EtherClient : IEtherClient, IEtherTxClient 
 {
     private readonly IServiceProvider _provider;
     private readonly bool _isTxClient;
@@ -181,61 +182,61 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call,
-        Func<ValueTask<TxTimeoutAction>> onTxTimeout)
+    async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
+        ITxInput call, TTxParams? txParams, CancellationToken cancellationToken)
+        where TTxParams : class
     {
-        AssertTxClient();
         AssertReady();
-        return _txScheduler.PublishTxAsync<EIP1559TxTypeHandler, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
-            call, new EIP1559TxParams([]), null, onTxTimeout
-        );
+        var gasFeeProvider = _provider.GetService<IGasFeeProvider<TTxParams, TTxGasParams>>()
+            ?? throw new InvalidOperationException(
+                $"No GasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
+
+        Span<byte> inputData = stackalloc byte[call.DataLength];
+        call.WriteDataTo(inputData);
+        return await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, inputData, txParams ?? TTxParams.Default,  cancellationToken);
     }
 
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call,
-        Func<TxTimeoutAction> onTxTimeout)
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call, Func<ValueTask<TxTimeoutAction>> onTxTimeout,
+        EIP1559TxParams? txParams, EIP1559GasParams? txGasParams)
     {
         AssertTxClient();
         AssertReady();
-        return _txScheduler.PublishTxAsync<EIP1559TxTypeHandler, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
-            call, new EIP1559TxParams([]), null, () => ValueTask.FromResult(onTxTimeout())
-        );
-    }
-
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams txParams, TTxGasParams txGasParams, Func<TxTimeoutAction> onTxTimeout)
-    {
-        AssertTxClient();
-        AssertReady();
-        return _txScheduler.PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
-            call, txParams, txGasParams, () => ValueTask.FromResult(onTxTimeout())
-        );
-    }
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams txParams, TTxGasParams txGasParams, Func<ValueTask<TxTimeoutAction>> onTxTimeout)
-    {
-        AssertTxClient();
-        AssertReady();
-        return _txScheduler.PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
+        return _txScheduler.PublishTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
             call, txParams, txGasParams, onTxTimeout
         );
     }
-
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams txParams, Func<TxTimeoutAction> onTxTimeout)
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call, Func<TxTimeoutAction> onTxTimeout,
+        EIP1559TxParams? txParams, EIP1559GasParams? txGasParams)
     {
         AssertTxClient();
         AssertReady();
-        return _txScheduler.PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
-            call, txParams, null, () => ValueTask.FromResult(onTxTimeout())
+        return _txScheduler.PublishTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
+            call, txParams, txGasParams, () => ValueTask.FromResult(onTxTimeout())
         );
     }
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams txParams, Func<ValueTask<TxTimeoutAction>> onTxTimeout)
+
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        ITxInput call, Func<TxTimeoutAction> onTxTimeout,
+        TTxParams? txParams, TTxGasParams? txGasParams)
+        where TTxParams : class
+        where TTxGasParams : class
     {
         AssertTxClient();
         AssertReady();
-        return _txScheduler.PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
-            call, txParams, null, onTxTimeout
+        return _txScheduler.PublishTxAsync<TTransaction, TTxParams, TTxGasParams>(
+            call, txParams, txGasParams, () => ValueTask.FromResult(onTxTimeout())
+        );
+    }
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        ITxInput call, Func<ValueTask<TxTimeoutAction>> onTxTimeout,
+        TTxParams? txParams, TTxGasParams? txGasParams)
+        where TTxParams : class
+        where TTxGasParams : class
+    {
+        AssertTxClient();
+        AssertReady();
+        return _txScheduler.PublishTxAsync<TTransaction, TTxParams, TTxGasParams>(
+            call, txParams, txGasParams, onTxTimeout
         );
     }
 

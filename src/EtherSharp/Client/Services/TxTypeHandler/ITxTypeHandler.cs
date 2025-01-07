@@ -2,23 +2,13 @@
 using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Client.Services.TxTypeHandler;
-public interface ITxTypeHandler
-{
-    public Task<ITxGasParams> CalculateGasParamsAsync(
-        ITxInput txInput, ITxParams txParams, 
-        ReadOnlySpan<byte> inputData, CancellationToken cancellationToken = default
-    );
-
-    public string EncodeTxToBytes(
-        ITxInput txInput, ITxParams txParams, ITxGasParams gasParams,
-        ReadOnlySpan<byte> inputData, uint nonce
-    );
-}
-
-public interface ITxTypeHandler<TTransaction, TTxParams, TTxGasParams> : ITxTypeHandler
+public interface ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
     where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
-    where TTxParams : ITxParams
+    where TTxParams : ITxParams<TTxParams>
     where TTxGasParams : ITxGasParams
 {
-    
+    public string EncodeTxToBytes(
+        ITxInput txInput, TTxParams txParams, TTxGasParams txGasParams,
+        ReadOnlySpan<byte> inputData, uint nonce
+    );
 }

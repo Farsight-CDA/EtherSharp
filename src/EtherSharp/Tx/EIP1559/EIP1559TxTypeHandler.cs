@@ -7,35 +7,31 @@ using EtherSharp.Wallet;
 
 namespace EtherSharp.Tx.EIP1559;
 public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClient) 
-    : BaseTxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(signer), IInitializableService
+    : IInitializableService, ITxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>
 {
     private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly IEtherSigner _signer = signer;
 
-    protected override async Task<EIP1559GasParams> CalculateGasParamsAsync(
-        ITxInput txInput, EIP1559TxParams txParams, 
-        string inputDataHex, CancellationToken cancellationToken)
+    private bool _isInitialized;
+    private ulong _chainId;
+
+    public ValueTask InitializeAsync(ulong chainId, CancellationToken cancellationToken = default)
     {
-        ulong gasEstimation = await _rpcClient.EthEstimateGasAsync(
-            _signer.Address.String, txInput.To.String, txInput.Value, inputDataHex, cancellationToken);
-
-        var gasPriceTask = _rpcClient.EthGasPriceAsync(cancellationToken);
-        var priorityFeeTask = _rpcClient.EthMaxPriorityFeePerGas(cancellationToken);
-
-        var gasPrice = await gasPriceTask;
-        var priorityFee = await priorityFeeTask;
-
-        return new EIP1559GasParams(
-            gasEstimation,
-            gasPrice,
-            priorityFee
-        );
+        _chainId = chainId;
+        _isInitialized = true;
+        return ValueTask.CompletedTask;
     }
 
-    protected override string EncodeTxToBytes(
+    string ITxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>.EncodeTxToBytes(
         ITxInput txInput, EIP1559TxParams txParams, EIP1559GasParams txGasParams, 
         ReadOnlySpan<byte> inputData, uint nonce)
     {
-        var tx = EIP1559Transaction.Create(_chainId, txParams, txGasParams, txInput, nonce);
+        if (!_isInitialized)
+        {
+            throw new InvalidOperationException("Not initialized");
+        }
+
+        var tx = EIP1559Transaction.Create(_chainId, txParams, txGasParams, txInput.To, txInput.Value, nonce);
 
         Span<int> lengthBuffer = stackalloc int[EIP1559Transaction.NestedListCount];
 

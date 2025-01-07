@@ -6,12 +6,11 @@ using EtherSharp.Types;
 namespace EtherSharp.Client.Services.TxScheduler;
 public interface ITxScheduler
 {
-    public Task<TransactionReceipt> PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
-        ITxInput txInput, ITxParams txParams, ITxGasParams? txGasParams,
+    public Task<TransactionReceipt> PublishTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        ITxInput txInput, TTxParams? txParams, TTxGasParams? txGasParams,
         Func<ValueTask<TxTimeoutAction>> onTxTimeout
     )
-        where TTxTypeHandler : class, ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
-        where TTxParams : ITxParams
-        where TTxGasParams : ITxGasParams;
+        where TTxParams : class, ITxParams<TTxParams>
+        where TTxGasParams : class, ITxGasParams;
 }

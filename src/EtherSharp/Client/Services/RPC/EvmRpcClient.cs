@@ -184,8 +184,19 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         switch(response)
         {
             case RpcResult<string>.Success result:
-                Span<byte> buffer = stackalloc byte[result.Result.Length / 2 - 1];
-                Convert.FromHexString(result.Result.AsSpan()[2..], buffer, out _, out _);
+                int hexChars = result.Result.Length - 2;
+
+                Span<char> rawHex = stackalloc char[((hexChars - 1) / 2 * 2) + 2];
+                rawHex.Fill('0');
+                result.Result.AsSpan(2).CopyTo(rawHex[(rawHex.Length - hexChars)..]);
+                Span<byte> buffer = stackalloc byte[rawHex.Length / 2];
+
+                var res = Convert.FromHexString(rawHex, buffer, out _, out _);
+                if (res != System.Buffers.OperationStatus.Done)
+                {
+                    throw new InvalidOperationException("Failed to parse resulting hex");
+                }
+
                 return new BigInteger(buffer, true, true);
             case RpcResult<string>.Error error:
                 throw RPCException.FromRPCError(error);

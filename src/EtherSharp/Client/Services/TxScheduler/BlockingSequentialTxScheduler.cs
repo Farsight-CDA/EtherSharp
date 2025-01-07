@@ -1,4 +1,5 @@
-﻿using EtherSharp.Client.Services.RPC;
+﻿using EtherSharp.Client.Services.GasFeeProvider;
+using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxConfirmer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxTypeHandler;
@@ -11,10 +12,12 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Channels;
 
 using QueueEntry = (
-    EtherSharp.Client.Services.TxTypeHandler.ITxTypeHandler TxTypeHandler,
+    System.Func<
+        uint,
+        byte[],
+        System.Threading.Tasks.Task<string>
+    > EncodeTransaction,
     EtherSharp.Tx.ITxInput TxInput,
-    EtherSharp.Tx.Types.ITxParams TxParams,
-    EtherSharp.Tx.Types.ITxGasParams? TxGasParams,
     System.Func<System.Threading.Tasks.ValueTask<EtherSharp.Tx.TxTimeoutAction>> OnTxTimeout,
     System.Threading.Tasks.TaskCompletionSource<EtherSharp.Types.TransactionReceipt> CompletionSource
 );
@@ -61,25 +64,6 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
         _ = Task.Run(BackgroundTxProcessor, CancellationToken.None);
     }
 
-    //Only generic for type safety
-    public Task<TransactionReceipt> PublishTxAsync<TTxTypeHandler, TTransaction, TTxParams, TTxGasParams>(
-        ITxInput txInput, ITxParams txParams, ITxGasParams? txGasParams,
-        Func<ValueTask<TxTimeoutAction>> onTxTimeout
-    )
-        where TTxTypeHandler : class, ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
-        where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
-        where TTxParams : ITxParams
-        where TTxGasParams : ITxGasParams
-    {
-        var tcs = new TaskCompletionSource<TransactionReceipt>();
-        var handler = _provider.GetService<TTxTypeHandler>()
-            ?? throw new InvalidOperationException($"TxTypeHandler {typeof(TTxTypeHandler).FullName} is not registered");
-
-        return !_queue.Writer.TryWrite((handler, txInput, txParams, txGasParams, onTxTimeout, tcs))
-            ? throw new NotImplementedException()
-            : tcs.Task;
-    }
-
     private async Task BackgroundTxProcessor()
     {
         while(await _queue.Reader.WaitToReadAsync())
@@ -97,19 +81,44 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
         }
     }
 
+    Task<TransactionReceipt> ITxScheduler.PublishTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        ITxInput txInput, TTxParams? txParams, TTxGasParams? txGasParams, Func<ValueTask<TxTimeoutAction>> onTxTimeout)
+        where TTxParams : class
+        where TTxGasParams : class
+    {
+        var tcs = new TaskCompletionSource<TransactionReceipt>();
+
+        var handler = _provider.GetService<ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>>()
+            ?? throw new InvalidOperationException(
+                $"No ITxTypeHandler found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
+        var gasFeeProvider = _provider.GetService<IGasFeeProvider<TTxParams, TTxGasParams>>()
+            ?? throw new InvalidOperationException(
+                $"No IGasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
+
+        return !_queue.Writer.TryWrite((EncodeFunc, txInput, onTxTimeout, tcs))
+            ? throw new NotImplementedException()
+            : tcs.Task;
+
+        async Task<string> EncodeFunc(uint nonce, byte[] inputData)
+        {
+            txParams ??= TTxParams.Default;
+            txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(txInput.To, txInput.Value, inputData, txParams, default);
+            return handler.EncodeTxToBytes(txInput, txParams, txGasParams, inputData, nonce);
+        }
+    }
+
     private async Task ProcessTxAsync(QueueEntry entry)
     {
-        var (handler, txInput, txParams, txGasParams, _, _) = entry;
+        var (encodeFunc, txInput, _, _) = entry;
         uint nonce = Interlocked.Increment(ref _nonceCounter);
 
         //ToDo: Consider avoiding this allocation
         byte[] inputData = new byte[txInput.DataLength];
         txInput.WriteDataTo(inputData);
-        
+
         while(true)
         {
-            txGasParams ??= await handler.CalculateGasParamsAsync(txInput, txParams, inputData);
-            string txBytes = handler.EncodeTxToBytes(txInput, txParams, txGasParams, inputData, nonce);
+            string txBytes = await encodeFunc(nonce, inputData);
             var submissionResult = await _txPublisher.PublishTxAsync(txBytes);
 
             switch(submissionResult)
@@ -136,7 +145,7 @@ public class BlockingSequentialTxScheduler : ITxScheduler, IInitializableService
 
     private async Task EnsureTransactionGetsConfirmedAsync(string txHash, QueueEntry entry)
     {
-        var (_, _, _, _, onTxTimeout, tcs) = entry;
+        var (_, _, onTxTimeout, tcs) = entry;
 
         var txResult = await _txConfirmer.WaitForTxConfirmationAsync(txHash, _txTimeout);
 

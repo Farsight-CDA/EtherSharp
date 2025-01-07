@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.EtherApi;
+using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxConfirmer;
 using EtherSharp.Client.Services.TxPublisher;
@@ -9,6 +10,7 @@ using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Transport;
 using EtherSharp.Tx.EIP1559;
+using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -44,7 +46,7 @@ public class EtherClientBuilder
             .WithTxPublisher<BasicTxPublisher>()
             .WithTxConfirmer<PollingTxConfirmer>()
             .WithTxScheduler<BlockingSequentialTxScheduler>()
-            .AddTxTypeHandler<EIP1559TxTypeHandler>();
+            .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
     }
     public static EtherClientBuilder CreateForHttpRpc(string websocketUrl, IEtherSigner? signer = null)
     {
@@ -61,8 +63,11 @@ public class EtherClientBuilder
             .WithTxPublisher<BasicTxPublisher>()
             .WithTxConfirmer<PollingTxConfirmer>()
             .WithTxScheduler<BlockingSequentialTxScheduler>()
-            .AddTxTypeHandler<EIP1559TxTypeHandler>();
+            .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
     }
+
+    public EtherClientBuilder WithOPStackConfiguration() 
+        => AddTxTypeHandler<EIP1559TxTypeHandler, OpStackEIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
 
     public EtherClientBuilder WithRPCTransport(IRPCTransport transport)
     {
@@ -100,10 +105,15 @@ public class EtherClientBuilder
         return this;
     }
 
-    public EtherClientBuilder AddTxTypeHandler<TTxTypeHandler>()
-        where TTxTypeHandler : class, ITxTypeHandler
+    public EtherClientBuilder AddTxTypeHandler<TTxTypeHandler, TGasFeeProvider, TTransaction, TTxParams, TTxGasParams>()
+        where TTxTypeHandler : class, ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
+        where TGasFeeProvider : class, IGasFeeProvider<TTxParams, TTxGasParams>
+        where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
+        where TTxParams : class, ITxParams<TTxParams>
+        where TTxGasParams : class, ITxGasParams
     {
-        _services.AddOrReplaceSingleton<TTxTypeHandler, TTxTypeHandler>();
+        _services.AddOrReplaceSingleton<ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>, TTxTypeHandler>();
+        _services.AddOrReplaceSingleton<IGasFeeProvider<TTxParams, TTxGasParams>, TGasFeeProvider>();
         return this;
     }
 
