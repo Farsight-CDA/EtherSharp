@@ -29,12 +29,14 @@ public class EtherClientBuilder
     private EtherClientBuilder() { }
 
     public static EtherClientBuilder CreateEmpty() => new EtherClientBuilder();
-    public static EtherClientBuilder CreateForWebsocket(string websocketUrl, IEtherSigner? signer = null)
-        => CreateForWebsocket(new Uri(websocketUrl, UriKind.Absolute), signer);
-    public static EtherClientBuilder CreateForWebsocket(Uri websocketUri, IEtherSigner? signer = null)
+    public static EtherClientBuilder CreateForWebsocket(string websocketUrl, TimeSpan? requestTimeout = null, IEtherSigner? signer = null)
+        => CreateForWebsocket(new Uri(websocketUrl, UriKind.Absolute), requestTimeout, signer);
+    public static EtherClientBuilder CreateForWebsocket(Uri websocketUri, TimeSpan? requestTimeout = null, IEtherSigner? signer = null)
     {
+        requestTimeout ??= TimeSpan.FromSeconds(30);
+
         var builder = new EtherClientBuilder()
-            .WithRPCTransport(new WssJsonRpcTransport(websocketUri));
+            .WithRPCTransport(new WssJsonRpcTransport(websocketUri, requestTimeout.Value));
 
         if (signer is null)
         {

@@ -10,6 +10,10 @@ public interface IRpcClient
     public Task<ulong> EthEstimateGasAsync(
         string from, string to, BigInteger value, string data, CancellationToken cancellationToken = default
     );
+
+    public Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(
+        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken);
+
     public Task<BigInteger> EthGasPriceAsync(CancellationToken cancellationToken = default);
     public Task<BigInteger> EthMaxPriorityFeePerGas(CancellationToken cancellationToken = default);
     public Task<BigInteger> EthGetBalance(

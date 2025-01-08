@@ -17,7 +17,7 @@ public static class ParsingUtils
             new UIntHexConverter(),
             new LongHexConverter(),
             new ULongHexConverter(),
-            new BigIntHexConverter(),
+            new UnsignedBigIntHexConverter()
         }
     };
 }

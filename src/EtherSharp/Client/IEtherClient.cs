@@ -18,7 +18,9 @@ public interface IEtherClient
 
     public Task InitializeAsync(CancellationToken cancellationToken = default);
 
+    public Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken = default);
     public Task<long> GetPeakHeightAsync(CancellationToken cancellationToken = default);
+    public Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 
     public TContract Contract<TContract>(string address)
         where TContract : IEVMContract;
@@ -26,8 +28,6 @@ public interface IEtherClient
         where TContract : IEVMContract;
 
     public Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
-
-    public Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 
     public Task<EIP1559GasParams> EstimateTxGasParamsAsync(ITxInput call, EIP1559TxParams? txParams = default, CancellationToken cancellationToken = default)
         => EstimateTxGasParamsAsync< EIP1559TxParams, EIP1559GasParams>(call, txParams, cancellationToken);

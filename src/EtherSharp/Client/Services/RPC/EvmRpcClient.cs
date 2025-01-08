@@ -185,10 +185,10 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
         {
             case RpcResult<string>.Success result:
                 int hexChars = result.Result.Length - 2;
-
                 Span<char> rawHex = stackalloc char[((hexChars - 1) / 2 * 2) + 2];
-                rawHex.Fill('0');
-                result.Result.AsSpan(2).CopyTo(rawHex[(rawHex.Length - hexChars)..]);
+                int missingChars = rawHex.Length - hexChars;
+                rawHex[..missingChars].Fill('0');
+                result.Result.AsSpan(2).CopyTo(rawHex[missingChars..]);
                 Span<byte> buffer = stackalloc byte[rawHex.Length / 2];
 
                 var res = Convert.FromHexString(rawHex, buffer, out _, out _);
@@ -271,14 +271,14 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
     public async Task<BlockData?> EthGetFullBlockByNumberAsync(
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
         => await _transport.SendRpcRequest<string, bool, BlockData>(
-            "eth_getBlockByNumber", targetBlockNumber.ToString(), true, cancellationToken) switch
+            "eth_getBlockByNumber", targetBlockNumber.ToString(), false, cancellationToken) switch
         {
             RpcResult<BlockData>.Success result => result.Result,
             RpcResult<BlockData>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<BlockDataTrasactionAsString?> EthGetBlockByNumberAsync(
+    public async Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
         => await _transport.SendRpcRequest<string, bool, BlockDataTrasactionAsString>(
             "eth_getBlockByNumber", targetBlockNumber.ToString(), false, cancellationToken) switch

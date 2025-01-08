@@ -115,10 +115,21 @@ public class EtherClient : IEtherClient, IEtherTxClient
         _initialized = true;
     }
 
+    public Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
+    {
+        AssertReady();
+        return _rpcClient.EthGetBlockByNumberAsync(targetBlockNumber, cancellationToken);
+    }
     public Task<long> GetPeakHeightAsync(CancellationToken cancellationToken)
     {
         AssertReady();
         return _rpcClient.EthBlockNumberAsync(cancellationToken);
+    }
+    public Task<uint> GetTransactionCount(
+        string address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
+    {
+        AssertReady();
+        return _rpcClient.EthGetTransactionCount(address, targetHeight, cancellationToken);
     }
 
     private Task<BigInteger> GetBalanceAsync(
@@ -127,15 +138,6 @@ public class EtherClient : IEtherClient, IEtherTxClient
         AssertReady();
         return _rpcClient.EthGetBalance(address, targetHeight, cancellationToken);
     }
-
-    private Task<uint> GetTransactionCount(
-        string address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return _rpcClient.EthGetTransactionCount(address, targetHeight, cancellationToken);
-    }
-    Task<uint> IEtherClient.GetTransactionCount(string address, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
-        => GetTransactionCount(address, targetHeight, cancellationToken);
 
     private TContract Contract<TContract>(string contractAddress)
         where TContract : IEVMContract

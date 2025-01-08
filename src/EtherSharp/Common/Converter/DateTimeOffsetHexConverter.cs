@@ -6,7 +6,11 @@ namespace EtherSharp.Common.Converter;
 internal class DateTimeOffsetHexConverter : JsonConverter<DateTimeOffset>
 {
     public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        => new DateTimeOffset(long.Parse((reader.GetString() ?? throw new InvalidOperationException("Null is not a DateTimeOffset")).AsSpan()[2..], NumberStyles.HexNumber), TimeSpan.Zero);
+    {
+        string hexTimestamp = reader.GetString() ?? throw new InvalidOperationException("Null is not a DateTimeOffset");
+        long utcTimestamp = long.Parse(hexTimestamp.AsSpan()[2..], NumberStyles.HexNumber);
+        return DateTimeOffset.FromUnixTimeSeconds(utcTimestamp);
+    }
 
     public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
         => writer.WriteStringValue($"0x{value:X}");
