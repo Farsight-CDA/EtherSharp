@@ -1,22 +1,24 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Common;
+using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Transport;
-public class WssJsonRpcTransport(Uri uri) : IRPCTransport
+public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTransport
 {
     private int _id = 0;
-    private Lock _initLock = new Lock();
+    private readonly Lock _initLock = new Lock();
     private bool _isInitialized;
     private bool _isDead;
 
     private readonly Uri _uri = uri;
+    private readonly TimeSpan _requestTimeout = requestTimeout;
     private readonly ClientWebSocket _socket = new ClientWebSocket();
 
-    private readonly List<(int RequestId, Type RpcResponseType, TaskCompletionSource<object> Tcs)> _pendingRequests = [];
+    private readonly ConcurrentDictionary<int, (Type RpcResponseType, TaskCompletionSource<object> Tcs)> _pendingRequests = [];
 
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
@@ -71,8 +73,10 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
             {
                 while(_socket.State == WebSocketState.Open)
                 {
+                    ms.Seek(0, SeekOrigin.Begin);
                     WebSocketReceiveResult receiveResult;
                     int totalLength = 0;
+
                     do
                     {
                         receiveResult = await _socket.ReceiveAsync(buffer, default);
@@ -88,10 +92,20 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
 
                     var msBuffer = ms.GetBuffer().AsSpan()[0..(int) ms.Position];
 
-                    switch(IdentifyPayload(msBuffer, out int requestId, out string subscriptionId))
+                    if (!TryIdentifyPayload(msBuffer, out var payloadType, out int requestId, out string subscriptionId))
+                    {
+                        continue;
+                    }
+
+                    switch(payloadType)
                     {
                         case PayloadType.Response:
-                            var (_, responseType, tcs) = _pendingRequests.First(x => x.RequestId == requestId);
+                            if(!_pendingRequests.TryRemove(requestId, out var value))
+                            {
+                                break;
+                            }
+
+                            var (responseType, tcs) = value;
                             object? response = JsonSerializer.Deserialize(
                                 msBuffer, responseType,
                                 options: ParsingUtils.EvmSerializerOptions
@@ -104,86 +118,103 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
                         default:
                             break;
                     }
-
-                    ms.Seek(0, SeekOrigin.Begin);
                 }
 
-                await _socket.ConnectAsync(_uri, default);
+                throw new Exception("WSS Closed");
+                //await _socket.ConnectAsync(_uri, default);
             }
         }
         catch(Exception ex)
         {
             _isDead = true;
-            foreach(var (_, _, tcs) in _pendingRequests)
+
+            foreach(var (key, value) in _pendingRequests)
             {
-                tcs.SetException(ex);
+                value.Tcs.SetException(ex);
             }
+
+            _pendingRequests.Clear();
         }
     }
-    private static PayloadType IdentifyPayload(ReadOnlySpan<byte> jsonSpan,
-        out int requestId, out string subscriptionId)
+    private static bool TryIdentifyPayload(ReadOnlySpan<byte> jsonSpan,
+        out PayloadType payloadType, out int requestId, out string subscriptionId)
     {
-        var reader = new Utf8JsonReader(jsonSpan);
-
-        reader.Read();
-        reader.Read();
-
-        while(reader.TokenType != JsonTokenType.None)
+        try
         {
-            switch(reader.TokenType)
+            var reader = new Utf8JsonReader(jsonSpan);
+
+            reader.Read();
+            reader.Read();
+
+            while(reader.TokenType != JsonTokenType.None)
             {
-                case JsonTokenType.PropertyName:
-                    if(reader.ValueTextEquals("id"))
-                    {
-                        reader.Read();
-                        requestId = int.Parse(reader.GetString()!.AsSpan()[2..], System.Globalization.NumberStyles.HexNumber);
-                        subscriptionId = null!;
-                        return PayloadType.Response;
-                    }
-                    else if(reader.ValueTextEquals("method"))
-                    {
-                        reader.Read();
-                        string? method = reader.GetString();
-
-                        if(method != "eth_subscription")
+                switch(reader.TokenType)
+                {
+                    case JsonTokenType.PropertyName:
+                        if(reader.ValueTextEquals("id"))
                         {
-                            requestId = -1;
+                            reader.Read();
+                            requestId = int.Parse(reader.GetString()!.AsSpan()[2..], System.Globalization.NumberStyles.HexNumber);
                             subscriptionId = null!;
-                            return PayloadType.Unknown;
+                            payloadType = PayloadType.Response;
+                            return true;
+                        }
+                        else if(reader.ValueTextEquals("method"))
+                        {
+                            reader.Read();
+                            string? method = reader.GetString();
+
+                            if(method != "eth_subscription")
+                            {
+                                requestId = -1;
+                                subscriptionId = null!;
+                                payloadType = PayloadType.Unknown;
+                                return true;
+                            }
+
+                            reader.Read();
+                            reader.Read();
+                            reader.Read();
+
+                            if(reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("subscriptionId"))
+                            {
+                                requestId = -1;
+                                subscriptionId = null!;
+                                payloadType = PayloadType.Unknown;
+                                return true;
+                            }
+
+                            reader.Read();
+                            requestId = -1;
+                            subscriptionId = reader.GetString()!;
+                            payloadType = PayloadType.Subscription;
+                            return true;
                         }
 
-                        reader.Read();
-                        reader.Read();
-                        reader.Read();
+                        reader.Skip();
+                        break;
 
-                        if(reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("subscriptionId"))
-                        {
-                            requestId = -1;
-                            subscriptionId = null!;
-                            return PayloadType.Unknown;
-                        }
-
+                    case JsonTokenType.StartObject or JsonTokenType.StartArray:
+                        reader.Skip();
+                        break;
+                    default:
                         reader.Read();
-                        requestId = -1;
-                        subscriptionId = reader.GetString()!;
-                        return PayloadType.Subscription;
-                    }
-
-                    reader.Skip();
-                    break;
-
-                case JsonTokenType.StartObject or JsonTokenType.StartArray:
-                    reader.Skip();
-                    break;
-                default:
-                    reader.Read();
-                    break;
+                        break;
+                }
             }
-        }
 
-        requestId = -1;
-        subscriptionId = null!;
-        return PayloadType.Unknown;
+            payloadType = PayloadType.Unknown;
+            requestId = -1;
+            subscriptionId = null!;
+            return true;
+        }
+        catch(Exception)
+        {
+            payloadType = PayloadType.Unknown;
+            requestId = -1;
+            subscriptionId = null!;
+            return false;
+        }
     }
 
     private enum PayloadType
@@ -210,9 +241,19 @@ public class WssJsonRpcTransport(Uri uri) : IRPCTransport
         );
 
         var tcs = new TaskCompletionSource<object>();
-        _pendingRequests.Add((requestId, typeof(JsonRpcResponse<TResult>), tcs));
+        var timeoutTask = Task.Delay(_requestTimeout, cancellationToken);
+
+        _pendingRequests.TryAdd(requestId, (typeof(JsonRpcResponse<TResult>), tcs));
+
 
         await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
+
+        var resultTask = await Task.WhenAny(tcs.Task, timeoutTask);
+        if(resultTask == timeoutTask)
+        {
+            _pendingRequests.TryRemove(requestId, out _);
+            throw new TimeoutException($"No response received from server within {_requestTimeout} timeout");
+        }
 
         var jsonRpcResponse = (JsonRpcResponse<TResult>) await tcs.Task;
 
