@@ -115,10 +115,11 @@ public class EtherClient : IEtherClient, IEtherTxClient
         _initialized = true;
     }
 
-    public Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
+    public async Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
     {
         AssertReady();
-        return _rpcClient.EthGetBlockByNumberAsync(targetBlockNumber, cancellationToken);
+        await Task.Delay(250);
+        return await _rpcClient.EthGetBlockByNumberAsync(targetBlockNumber, cancellationToken);
     }
     public Task<long> GetPeakHeightAsync(CancellationToken cancellationToken)
     {
@@ -184,6 +185,11 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
+    Task<BigInteger> IEtherClient.GetGasPriceAsync(CancellationToken cancellationToken)
+    {
+        AssertReady();
+        return _rpcClient.EthGasPriceAsync(cancellationToken);
+    }
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
         ITxInput call, TTxParams? txParams, CancellationToken cancellationToken)
         where TTxParams : class

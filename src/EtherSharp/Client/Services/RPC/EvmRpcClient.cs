@@ -10,41 +10,21 @@ using System.Text.RegularExpressions;
 
 namespace EtherSharp.Client.Services.RPC;
 
-internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
+internal partial class EvmRpcClient : IRpcClient
 {
-    private readonly IRPCTransport _transport = transport;
+    private readonly IRPCTransport _transport;
 
-    private readonly Lock _subscriptionsLock = new Lock();
-    private List<(string SubscriptionId, ISubscriptionHandler<Log> Callback)>? _eventSubscriptions;
+    public event Action? OnConnectionEstablished;
+    public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
     private record LogParams(LogResponse Params);
     private record LogResponse(Log Result);
-    private void SetupSubscriptions()
+
+    public EvmRpcClient(IRPCTransport transport)
     {
-        if(_eventSubscriptions is not null)
-        {
-            return;
-        }
-
-        lock(_subscriptionsLock)
-        {
-            if(_eventSubscriptions is not null)
-            {
-                return;
-            }
-
-            _eventSubscriptions = [];
-            _transport.OnSubscriptionMessage += (subscriptionId, payload) =>
-            {
-                var (_, eventCallback) = _eventSubscriptions.FirstOrDefault(x => x.SubscriptionId == subscriptionId);
-
-                if(eventCallback is not null)
-                {
-                    var p = JsonSerializer.Deserialize<LogParams>(payload, ParsingUtils.EvmSerializerOptions)!;
-                    eventCallback.HandlePayload(p.Params.Result);
-                }
-            };
-        }
+        _transport = transport;
+        _transport.OnConnectionEstablished += OnConnectionEstablished;
+        _transport.OnSubscriptionMessage += OnSubscriptionMessage;
     }
 
     public async Task<ulong> EthChainIdAsync(CancellationToken cancellationToken)
@@ -445,19 +425,6 @@ internal partial class EvmRpcClient(IRPCTransport transport) : IRpcClient
             RpcResult<Log[]>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
-    }
-
-    public async Task RegisterSubscriptionAsync(ISubscriptionHandler<Log> handler, CancellationToken cancellationToken)
-    {
-        if(!_transport.SupportsSubscriptions)
-        {
-            throw new InvalidOperationException("The underlying transport does not support subscriptions");
-        }
-
-        SetupSubscriptions();
-
-        string subscriptionId = await handler.InstallAsync(cancellationToken);
-        _eventSubscriptions!.Add((subscriptionId, handler));
     }
 
     private record EthSubscribeLogsRequest(string[]? Address, string[]? Topics);

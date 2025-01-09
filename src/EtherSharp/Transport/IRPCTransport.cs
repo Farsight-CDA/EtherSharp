@@ -5,6 +5,8 @@ public interface IRPCTransport
 {
     public bool SupportsFilters { get; }
     public bool SupportsSubscriptions { get; }
+
+    public event Action? OnConnectionEstablished;
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
     public ValueTask InitializeAsync(CancellationToken cancellationToken = default);

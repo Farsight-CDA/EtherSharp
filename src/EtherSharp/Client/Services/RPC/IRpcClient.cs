@@ -5,6 +5,9 @@ using System.Numerics;
 namespace EtherSharp.Client.Services.RPC;
 public interface IRpcClient
 {
+    public event Action? OnConnectionEstablished;
+    public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
+
     public Task<ulong> EthChainIdAsync(CancellationToken cancellationToken = default);
     public Task<long> EthBlockNumberAsync(CancellationToken cancellationToken = default);
     public Task<ulong> EthEstimateGasAsync(
@@ -45,7 +48,6 @@ public interface IRpcClient
     public Task<Log[]> EthGetEventFilterChangesAsync(string filterId, CancellationToken cancellationToken = default);
     public Task<bool> EthUninstallFilterAsync(string filterId, CancellationToken cancellationToken = default);
 
-    public Task RegisterSubscriptionAsync(ISubscriptionHandler<Log> handler, CancellationToken cancellationToken = default);
     public Task<string> EthSubscribeLogsAsync(
         string[]? contracts, string[]? topics, CancellationToken cancellationToken = default
     ); 

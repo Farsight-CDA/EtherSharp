@@ -126,9 +126,10 @@ public class ContractSourceWriter(
             .WithVisibility(FunctionVisibility.Public);
 
         func.AddStatement(
-        $"""
-        var encoder = new EtherSharp.ABI.AbiEncoder()
-        """);
+            $"""
+            var encoder = new EtherSharp.ABI.AbiEncoder()
+            """
+        );
 
         foreach(var (input, index) in queryFunction.Inputs.Select((x, i) => (x, i)))
         {
@@ -137,19 +138,22 @@ public class ContractSourceWriter(
 
         var (returnType, decoderFunction) = _paramDecodingWriter.SetQueryOutputDecoding(func, queryFunction.Outputs);
 
-        func.AddStatement(
-        $$"""
-        return _client.CallAsync(new EtherSharp.Tx.TxInput<{{returnType}}>(
-            {{GetFunctionSignatureFieldName(queryFunction)}},
-            encoder,
-            decoder => {
-            {{decoderFunction}}
-            },
-            Address,
-            0
-        ))
-        """);
+        func.AddArgument("EtherSharp.Types.TargetBlockNumber", "targetBlockNumber", true, "default");
+        func.AddArgument("System.Threading.CancellationToken", "cancellationToken", true, "default");
 
+        func.AddStatement(
+            $$"""
+            return _client.CallAsync(new EtherSharp.Tx.TxInput<{{returnType}}>(
+                {{GetFunctionSignatureFieldName(queryFunction)}},
+                encoder,
+                decoder => {
+                {{decoderFunction}}
+                },
+                Address,
+                0
+            ), targetBlockNumber, cancellationToken)
+            """
+        );
         return func;
     }
 

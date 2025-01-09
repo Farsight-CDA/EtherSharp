@@ -33,7 +33,7 @@ public record BlockData(
 );
 
 public record BlockDataTrasactionAsString(
-    BigInteger Number,
+    ulong Number,
     DateTimeOffset Timestamp,
     BigInteger? BaseFeePerGas
 );

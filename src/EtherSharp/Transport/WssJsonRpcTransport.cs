@@ -2,61 +2,92 @@
 using EtherSharp.Common;
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Transport;
-public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTransport
+public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTransport, IDisposable
 {
-    private int _id = 0;
-    private readonly Lock _initLock = new Lock();
+    public bool SupportsFilters => true;
+    public bool SupportsSubscriptions => true;
+
+    private readonly Lock _statusLock = new Lock();
     private bool _isInitialized;
-    private bool _isDead;
+    private bool _isDisposed;
 
     private readonly Uri _uri = uri;
     private readonly TimeSpan _requestTimeout = requestTimeout;
     private readonly ClientWebSocket _socket = new ClientWebSocket();
 
+    private readonly CancellationTokenSource _connectionHandlerCts = new CancellationTokenSource();
+
+    private int _requestIdCounter = 0;
     private readonly ConcurrentDictionary<int, (Type RpcResponseType, TaskCompletionSource<object> Tcs)> _pendingRequests = [];
 
+    public event Action? OnConnectionEstablished;
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
-    public bool SupportsFilters => true;
-    public bool SupportsSubscriptions => true;
-
-    public Task<RpcResult<TResult>> SendRpcRequest<TResult>(
-        string method, CancellationToken cancellationToken)
-        => InnerSendAsync<TResult>(method, [], cancellationToken);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(
-        string method, T1 t1, CancellationToken cancellationToken)
-        => InnerSendAsync<TResult>(method, [t1], cancellationToken);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, TResult>(
-        string method, T1 t1, T2 t2, CancellationToken cancellationToken)
-        => InnerSendAsync<TResult>(method, [t1, t2], cancellationToken);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, T3, TResult>(
-        string method, T1 t1, T2 t2, T3 t3, CancellationToken cancellationToken)
-        => InnerSendAsync<TResult>(method, [t1, t2, t3], cancellationToken);
-
-    public async ValueTask InitializeAsync(CancellationToken cancellationToken)
+    public ValueTask InitializeAsync(CancellationToken cancellationToken)
     {
-        if(_isInitialized)
-        {
-            return;
-        }
-
-        lock(_initLock)
+        lock(_statusLock)
         {
             if(_isInitialized)
             {
-                return;
+                return ValueTask.CompletedTask;
             }
 
             _isInitialized = true;
         }
 
-        await _socket.ConnectAsync(_uri, cancellationToken);
-        _ = MessageHandler();
+        _ = ConnectionHandler();
+        return ValueTask.CompletedTask;
+    }
+
+    private async Task ConnectionHandler()
+    {
+        while(!_connectionHandlerCts.IsCancellationRequested)
+        {
+            await ConnectSocketAsync(_connectionHandlerCts.Token);
+            _requestIdCounter = 0;
+            _ = Task.Run(() => OnConnectionEstablished?.Invoke());
+
+            try
+            {
+                await MessageHandler();
+            }
+            catch(Exception ex)
+            {
+                foreach(var r in _pendingRequests)
+                {
+                    r.Value.Tcs.SetException(ex);
+                }
+                _pendingRequests.Clear();
+            }
+
+            var wssClosedException = new Exception("WSS closed");
+            foreach(var r in _pendingRequests)
+            {
+                r.Value.Tcs.SetException(wssClosedException);
+            }
+            _pendingRequests.Clear();
+        }
+    }
+
+    //Returns on successful connection. Will retry infinitly
+    private async Task ConnectSocketAsync(CancellationToken cancellationToken)
+    {
+        while(true)
+        {
+            try
+            {
+                await _socket.ConnectAsync(_uri, cancellationToken);
+                return;
+            }
+            catch(Exception)
+            {
+                await Task.Delay(1000, cancellationToken);
+            }
+        }
     }
 
     private record RpcError(int Code, string Message);
@@ -67,75 +98,56 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
         using var ms = new MemoryStream();
         byte[] buffer = new byte[8192];
 
-        try
+        while(_socket.State == WebSocketState.Open)
         {
-            while(true)
+            ms.Seek(0, SeekOrigin.Begin);
+            WebSocketReceiveResult receiveResult;
+            int totalLength = 0;
+
+            do
             {
-                while(_socket.State == WebSocketState.Open)
+                receiveResult = await _socket.ReceiveAsync(buffer, default);
+
+                if(receiveResult.Count != 0)
                 {
-                    ms.Seek(0, SeekOrigin.Begin);
-                    WebSocketReceiveResult receiveResult;
-                    int totalLength = 0;
-
-                    do
-                    {
-                        receiveResult = await _socket.ReceiveAsync(buffer, default);
-
-                        if(receiveResult.Count != 0)
-                        {
-                            ms.Write(buffer.AsSpan()[0..receiveResult.Count]);
-                        }
-
-                        totalLength += receiveResult.Count;
-                    }
-                    while(!receiveResult.EndOfMessage);
-
-                    var msBuffer = ms.GetBuffer().AsSpan()[0..(int) ms.Position];
-
-                    if (!TryIdentifyPayload(msBuffer, out var payloadType, out int requestId, out string subscriptionId))
-                    {
-                        continue;
-                    }
-
-                    switch(payloadType)
-                    {
-                        case PayloadType.Response:
-                            if(!_pendingRequests.TryRemove(requestId, out var value))
-                            {
-                                break;
-                            }
-
-                            var (responseType, tcs) = value;
-                            object? response = JsonSerializer.Deserialize(
-                                msBuffer, responseType,
-                                options: ParsingUtils.EvmSerializerOptions
-                            )!;
-                            tcs.SetResult(response);
-                            break;
-                        case PayloadType.Subscription:
-                            OnSubscriptionMessage?.Invoke(subscriptionId, msBuffer);
-                            break;
-                        default:
-                            break;
-                    }
+                    ms.Write(buffer.AsSpan()[0..receiveResult.Count]);
                 }
 
-                throw new Exception("WSS Closed");
-                //await _socket.ConnectAsync(_uri, default);
+                totalLength += receiveResult.Count;
             }
-        }
-        catch(Exception ex)
-        {
-            _isDead = true;
+            while(!receiveResult.EndOfMessage);
 
-            foreach(var (key, value) in _pendingRequests)
+            var msBuffer = ms.GetBuffer().AsSpan()[0..(int) ms.Position];
+
+            if(!TryIdentifyPayload(msBuffer, out var payloadType, out int requestId, out string subscriptionId))
             {
-                value.Tcs.SetException(ex);
+                continue;
             }
 
-            _pendingRequests.Clear();
+            switch(payloadType)
+            {
+                case PayloadType.Response:
+                    if(!_pendingRequests.TryRemove(requestId, out var value))
+                    {
+                        break;
+                    }
+
+                    var (responseType, tcs) = value;
+                    object? response = JsonSerializer.Deserialize(
+                        msBuffer, responseType,
+                        options: ParsingUtils.EvmSerializerOptions
+                    )!;
+                    tcs.SetResult(response);
+                    break;
+                case PayloadType.Subscription:
+                    OnSubscriptionMessage?.Invoke(subscriptionId, msBuffer);
+                    break;
+                default:
+                    break;
+            }
         }
     }
+
     private static bool TryIdentifyPayload(ReadOnlySpan<byte> jsonSpan,
         out PayloadType payloadType, out int requestId, out string subscriptionId)
     {
@@ -228,12 +240,9 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
     private async Task<RpcResult<TResult>> InnerSendAsync<TResult>(
         string method, object?[] args, CancellationToken cancellationToken = default)
     {
-        if(_isDead)
-        {
-            throw new InvalidOperationException("Transport is dead");
-        }
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        int requestId = Interlocked.Increment(ref _id);
+        int requestId = Interlocked.Increment(ref _requestIdCounter);
 
         byte[] payload = JsonSerializer.SerializeToUtf8Bytes(
             new JsonRpcRequest(requestId, method, args),
@@ -244,7 +253,6 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
         var timeoutTask = Task.Delay(_requestTimeout, cancellationToken);
 
         _pendingRequests.TryAdd(requestId, (typeof(JsonRpcResponse<TResult>), tcs));
-
 
         await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
 
@@ -275,5 +283,34 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
         }
         //
         return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
+    }
+
+    public Task<RpcResult<TResult>> SendRpcRequest<TResult>(
+        string method, CancellationToken cancellationToken)
+        => InnerSendAsync<TResult>(method, [], cancellationToken);
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(
+        string method, T1 t1, CancellationToken cancellationToken)
+        => InnerSendAsync<TResult>(method, [t1], cancellationToken);
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, TResult>(
+        string method, T1 t1, T2 t2, CancellationToken cancellationToken)
+        => InnerSendAsync<TResult>(method, [t1, t2], cancellationToken);
+    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, T3, TResult>(
+        string method, T1 t1, T2 t2, T3 t3, CancellationToken cancellationToken)
+        => InnerSendAsync<TResult>(method, [t1, t2, t3], cancellationToken);
+
+    public void Dispose()
+    {
+        lock(_statusLock)
+        {
+            if(_isDisposed)
+            {
+                return;
+            }
+
+            _connectionHandlerCts.Cancel();
+            _connectionHandlerCts.Dispose();
+            _isDisposed = true;
+            GC.SuppressFinalize(this);
+        }
     }
 }

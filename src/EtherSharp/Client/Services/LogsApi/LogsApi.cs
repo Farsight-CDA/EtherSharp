@@ -98,14 +98,15 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
 
     public async Task<IEventFilter<TEvent>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default)
     {
-        string filterId = await _rpcClient.EthNewFilterAsync(fromBlock, toBlock, _contractAddresses, _topics);
-        return new EventFilter<TEvent>(_rpcClient, filterId);
+        var filter = new EventFilter<TEvent>(_rpcClient, fromBlock, toBlock, _contractAddresses, _topics);
+        await filter.InitializeAsync(default);
+        return filter;
     }
 
     public async Task<IEventSubscription<TEvent>> CreateSubscriptionAsync()
     {
-        var handler = new EventSubscription<TEvent>(_rpcClient, _contractAddresses, _topics);
-        await _rpcClient.RegisterSubscriptionAsync(handler);
-        return handler;
+        var subscription = new EventSubscription<TEvent>(_rpcClient, _contractAddresses, _topics);
+        await subscription.InitializeAsync(default);
+        return subscription;
     }
 }
