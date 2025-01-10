@@ -1,15 +1,19 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Common;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Transport;
-public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTransport, IDisposable
+public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logger = null) : IRPCTransport, IDisposable
 {
     public bool SupportsFilters => true;
     public bool SupportsSubscriptions => true;
+
+    private readonly ILogger? _logger = logger;
 
     private readonly Lock _statusLock = new Lock();
     private bool _isInitialized;
@@ -17,7 +21,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
 
     private readonly Uri _uri = uri;
     private readonly TimeSpan _requestTimeout = requestTimeout;
-    private readonly ClientWebSocket _socket = new ClientWebSocket();
+    private ClientWebSocket? _socket = null!;
 
     private readonly CancellationTokenSource _connectionHandlerCts = new CancellationTokenSource();
 
@@ -27,36 +31,44 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
     public event Action? OnConnectionEstablished;
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
-    public ValueTask InitializeAsync(CancellationToken cancellationToken)
+    public async ValueTask InitializeAsync(CancellationToken cancellationToken)
     {
         lock(_statusLock)
         {
             if(_isInitialized)
             {
-                return ValueTask.CompletedTask;
+                return;
             }
 
             _isInitialized = true;
         }
 
+        await ConnectSocketAsync(cancellationToken);
         _ = ConnectionHandler();
-        return ValueTask.CompletedTask;
     }
 
     private async Task ConnectionHandler()
     {
         while(!_connectionHandlerCts.IsCancellationRequested)
         {
-            await ConnectSocketAsync(_connectionHandlerCts.Token);
             _requestIdCounter = 0;
             _ = Task.Run(() => OnConnectionEstablished?.Invoke());
 
             try
             {
                 await MessageHandler();
+                _logger?.LogWarning("Websocket connection lost, killing {requestCount} pending requests...", _pendingRequests.Count);
+
+                var wssClosedException = new Exception("WSS closed");
+                foreach(var r in _pendingRequests)
+                {
+                    r.Value.Tcs.SetException(wssClosedException);
+                }
+                _pendingRequests.Clear();
             }
             catch(Exception ex)
             {
+                _logger?.LogWarning(ex, "Websocket connection lost, killing {requestCount} pending requests...", _pendingRequests.Count);
                 foreach(var r in _pendingRequests)
                 {
                     r.Value.Tcs.SetException(ex);
@@ -64,30 +76,44 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
                 _pendingRequests.Clear();
             }
 
-            var wssClosedException = new Exception("WSS closed");
-            foreach(var r in _pendingRequests)
+            try
             {
-                r.Value.Tcs.SetException(wssClosedException);
+                _socket?.Dispose();
+                await ConnectSocketAsync(_connectionHandlerCts.Token);
             }
-            _pendingRequests.Clear();
+            catch(Exception ex)
+            {
+                _logger?.LogCritical(ex, "ConnectionHandler crashed");
+            }
         }
     }
 
     //Returns on successful connection. Will retry infinitly
     private async Task ConnectSocketAsync(CancellationToken cancellationToken)
     {
-        while(true)
+        _logger?.LogDebug("Initiating websocket connection...");
+
+        while(_socket is null || _socket.State != WebSocketState.Open)
         {
+            if (_socket is not null)
+            {
+                _socket.Abort();
+                _socket.Dispose();
+            }
+
             try
             {
+                _socket = new ClientWebSocket();
                 await _socket.ConnectAsync(_uri, cancellationToken);
-                return;
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-                await Task.Delay(1000, cancellationToken);
+                _logger?.LogDebug(ex, "Connection attempt failed, retrying in 3s...");
+                await Task.Delay(3000, cancellationToken);
             }
         }
+
+        _logger?.LogInformation("Websocket connection established...");
     }
 
     private record RpcError(int Code, string Message);
@@ -98,7 +124,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
         using var ms = new MemoryStream();
         byte[] buffer = new byte[8192];
 
-        while(_socket.State == WebSocketState.Open)
+        while(_socket is not null && _socket.State == WebSocketState.Open)
         {
             ms.Seek(0, SeekOrigin.Begin);
             WebSocketReceiveResult receiveResult;
@@ -129,6 +155,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
                 case PayloadType.Response:
                     if(!_pendingRequests.TryRemove(requestId, out var value))
                     {
+                        _logger?.LogWarning("Received response to request id that is not pending");
                         break;
                     }
 
@@ -143,6 +170,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
                     OnSubscriptionMessage?.Invoke(subscriptionId, msBuffer);
                     break;
                 default:
+                    _logger?.LogWarning("Received unidentified websocket payload");
                     break;
             }
         }
@@ -254,7 +282,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
 
         _pendingRequests.TryAdd(requestId, (typeof(JsonRpcResponse<TResult>), tcs));
 
-        await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
+        await _socket!.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
 
         var resultTask = await Task.WhenAny(tcs.Task, timeoutTask);
         if(resultTask == timeoutTask)
@@ -309,6 +337,8 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout) : IRPCTranspo
 
             _connectionHandlerCts.Cancel();
             _connectionHandlerCts.Dispose();
+            _socket?.Abort();
+            _socket?.Dispose();
             _isDisposed = true;
             GC.SuppressFinalize(this);
         }

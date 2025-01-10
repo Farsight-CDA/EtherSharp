@@ -9,7 +9,7 @@ public interface IRpcClient
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
     public Task<ulong> EthChainIdAsync(CancellationToken cancellationToken = default);
-    public Task<long> EthBlockNumberAsync(CancellationToken cancellationToken = default);
+    public Task<ulong> EthBlockNumberAsync(CancellationToken cancellationToken = default);
     public Task<ulong> EthEstimateGasAsync(
         string from, string to, BigInteger value, string data, CancellationToken cancellationToken = default
     );
@@ -17,6 +17,8 @@ public interface IRpcClient
     public Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken);
 
+    public Task<FeeHistory> EthGetFeeHistory(int blockCount, TargetBlockNumber newestBlock,
+        double[] rewardPercentiles, CancellationToken cancellationToken);
     public Task<BigInteger> EthGasPriceAsync(CancellationToken cancellationToken = default);
     public Task<BigInteger> EthMaxPriorityFeePerGas(CancellationToken cancellationToken = default);
     public Task<BigInteger> EthGetBalance(

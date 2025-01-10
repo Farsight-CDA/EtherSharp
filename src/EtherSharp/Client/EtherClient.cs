@@ -24,6 +24,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
     private IRpcClient _rpcClient = null!;
     private IEtherSigner _signer = null!;
     private ITxScheduler _txScheduler = null!;
+    
     private ContractFactory _contractFactory = null!;
 
     private bool _initialized;
@@ -118,10 +119,9 @@ public class EtherClient : IEtherClient, IEtherTxClient
     public async Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
     {
         AssertReady();
-        await Task.Delay(250);
         return await _rpcClient.EthGetBlockByNumberAsync(targetBlockNumber, cancellationToken);
     }
-    public Task<long> GetPeakHeightAsync(CancellationToken cancellationToken)
+    public Task<ulong> GetPeakHeightAsync(CancellationToken cancellationToken)
     {
         AssertReady();
         return _rpcClient.EthBlockNumberAsync(cancellationToken);
@@ -185,6 +185,12 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
+    Task<FeeHistory> IEtherClient.GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
+        double[] rewardPercentiles, CancellationToken cancellationToken)
+    {
+        AssertReady();
+        return _rpcClient.EthGetFeeHistory(blockCount, newestBlock, rewardPercentiles, cancellationToken);
+    }
     Task<BigInteger> IEtherClient.GetGasPriceAsync(CancellationToken cancellationToken)
     {
         AssertReady();

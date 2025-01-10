@@ -13,6 +13,7 @@ using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EtherSharp.Client;
 public class EtherClientBuilder
@@ -31,13 +32,18 @@ public class EtherClientBuilder
     public static EtherClientBuilder CreateEmpty() => new EtherClientBuilder();
     public static EtherClientBuilder CreateForWebsocket(string websocketUrl, TimeSpan? requestTimeout = null, IEtherSigner? signer = null)
         => CreateForWebsocket(new Uri(websocketUrl, UriKind.Absolute), requestTimeout, signer);
-    public static EtherClientBuilder CreateForWebsocket(Uri websocketUri, TimeSpan? requestTimeout = null, IEtherSigner? signer = null)
+    public static EtherClientBuilder CreateForWebsocket(Uri websocketUri, TimeSpan? requestTimeout = null, 
+        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null)
     {
         requestTimeout ??= TimeSpan.FromSeconds(30);
 
         var builder = new EtherClientBuilder()
-            .WithRPCTransport(new WssJsonRpcTransport(websocketUri, requestTimeout.Value));
+            .WithRPCTransport(new WssJsonRpcTransport(websocketUri, requestTimeout.Value, loggerFactory?.CreateLogger<WssJsonRpcTransport>()));
 
+        if(loggerFactory is not null)
+        {
+            builder.WithLoggerFactory(loggerFactory);
+        }
         if (signer is null)
         {
             return builder;
@@ -50,11 +56,15 @@ public class EtherClientBuilder
             .WithTxScheduler<BlockingSequentialTxScheduler>()
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
     }
-    public static EtherClientBuilder CreateForHttpRpc(string websocketUrl, IEtherSigner? signer = null)
+    public static EtherClientBuilder CreateForHttpRpc(string websocketUrl, IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null)
     {
         var builder = new EtherClientBuilder()
             .WithRPCTransport(new HttpJsonRpcTransport(new Uri(websocketUrl, UriKind.Absolute)));
 
+        if(loggerFactory is not null)
+        {
+            builder.WithLoggerFactory(loggerFactory);
+        }
         if(signer is null)
         {
             return builder;
@@ -80,6 +90,12 @@ public class EtherClientBuilder
     public EtherClientBuilder WithSigner(IEtherSigner signer)
     {
         _services.AddOrReplaceSingleton<IEtherSigner, IEtherSigner>(signer);
+        return this;
+    }
+
+    public EtherClientBuilder WithLoggerFactory(ILoggerFactory loggerFactory)
+    {
+        _services.AddOrReplaceSingleton(loggerFactory);
         return this;
     }
 

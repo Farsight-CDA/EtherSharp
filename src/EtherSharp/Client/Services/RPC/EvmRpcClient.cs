@@ -23,8 +23,8 @@ internal partial class EvmRpcClient : IRpcClient
     public EvmRpcClient(IRPCTransport transport)
     {
         _transport = transport;
-        _transport.OnConnectionEstablished += OnConnectionEstablished;
-        _transport.OnSubscriptionMessage += OnSubscriptionMessage;
+        _transport.OnConnectionEstablished += () => OnConnectionEstablished?.Invoke();
+        _transport.OnSubscriptionMessage += (subscriptionId, payload) => OnSubscriptionMessage?.Invoke(subscriptionId, payload);
     }
 
     public async Task<ulong> EthChainIdAsync(CancellationToken cancellationToken)
@@ -35,10 +35,10 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<long> EthBlockNumberAsync(CancellationToken cancellationToken)
+    public async Task<ulong> EthBlockNumberAsync(CancellationToken cancellationToken)
         => await _transport.SendRpcRequest<string>("eth_blockNumber", cancellationToken) switch
         {
-            RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
+            RpcResult<string>.Success result => ulong.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
             RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
@@ -95,7 +95,7 @@ internal partial class EvmRpcClient : IRpcClient
                 _ => throw new NotImplementedException(),
             };
 
-    public async Task<long> EthBlockTransactionCountByNumberAsync(long blockNumber, CancellationToken cancellationToken)
+    public async Task<long> EthBlockTransactionCountByNumberAsync(ulong blockNumber, CancellationToken cancellationToken)
         => await EthBlockTransactionCountByNumberAsync(TargetBlockNumber.Height(blockNumber), cancellationToken);
 
     private record TransactionEthCall(string? From, string To, uint? Gas, BigInteger? GasPrice, int? Value, string? Data);
@@ -200,6 +200,16 @@ internal partial class EvmRpcClient : IRpcClient
                 throw new NotImplementedException();
         }
     }
+
+    public async Task<FeeHistory> EthGetFeeHistory(int blockCount, TargetBlockNumber newestBlock,
+        double[] rewardPercentiles, CancellationToken cancellationToken) 
+        => await _transport.SendRpcRequest<int, string, double[], FeeHistory>(
+            "eth_feeHistory", blockCount, newestBlock.ToString(), rewardPercentiles, cancellationToken) switch
+        {
+            RpcResult<FeeHistory>.Success result => result.Result,
+            RpcResult<FeeHistory>.Error error => throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
 
     private record EthEstimateGasRequest(string From, string To, BigInteger Value, string Data);
     public async Task<ulong> EthEstimateGasAsync(
