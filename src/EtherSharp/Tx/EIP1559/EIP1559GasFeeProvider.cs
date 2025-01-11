@@ -10,6 +10,11 @@ public class EIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : 
     private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IEtherSigner _signer = signer;
 
+    public int FeeHistoryRange { get; set; } = 5;
+    public double PriorityFeePercentile { get; set; } = 25;
+    public int BaseFeeOffsetPercentage { get; set; } = 20;
+    public int PriorityFeeOffsetPercentage { get; set; } = 20;
+
     public Task<EIP1559GasParams> EstimateGasParamsAsync(
         Address to, BigInteger value, ReadOnlySpan<byte> inputData,
         EIP1559TxParams txParams, CancellationToken cancellationToken) 
@@ -26,16 +31,35 @@ public class EIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : 
         ulong gasEstimation = await _rpcClient.EthEstimateGasAsync(
             _signer.Address.String, to.String, value, inputDataHex, cancellationToken);
 
-        var gasPriceTask = _rpcClient.EthGasPriceAsync(cancellationToken);
-        var priorityFeeTask = _rpcClient.EthMaxPriorityFeePerGas(cancellationToken);
+        var feeHistory = await _rpcClient.EthGetFeeHistory(FeeHistoryRange, TargetBlockNumber.Latest, [PriorityFeePercentile], default);
 
-        var gasPrice = await gasPriceTask;
-        var priorityFee = await priorityFeeTask;
+        BigInteger baseFee;
+        BigInteger priorityFee;
+
+        if (feeHistory.BaseFeePerGas.Length == 0)
+        {
+            baseFee = await _rpcClient.EthGasPriceAsync(cancellationToken);
+        }
+        else
+        {
+            var summedBaseFees = feeHistory.BaseFeePerGas.Aggregate(BigInteger.Zero, (prev, curr) => prev + curr);
+            baseFee = summedBaseFees / feeHistory.BaseFeePerGas.Length; 
+        }
+
+        if (feeHistory.Reward.Length == 0)
+        {
+            priorityFee = await _rpcClient.EthMaxPriorityFeePerGas(cancellationToken);
+        }
+        else
+        {
+            var summedPriorityFees = feeHistory.Reward.Aggregate(BigInteger.Zero, (prev, curr) => prev + curr[0]);
+            priorityFee = summedPriorityFees / feeHistory.Reward.Length;
+        }
 
         return new EIP1559GasParams(
             gasEstimation,
-            gasPrice * 12 / 10,
-            priorityFee * 12 / 10
+            baseFee * (100 + BaseFeeOffsetPercentage) / 100,
+            priorityFee * (100 + PriorityFeeOffsetPercentage) / 100
         );
     }
 }

@@ -22,18 +22,34 @@ public class EtherClientBuilder
 
     private IRPCTransport? _transport;
 
-    private Action<IContractFactory>? _contractConfigurationAction;
-    private Action<ITxConfirmer>? _txConfirmerConfigureAction;
-    private Action<ITxPublisher>? _txPublisherConfigureAction;
-    private Action<ITxScheduler>? _txSchedulerConfigureAction;
+    private readonly List<(Type ServiceType, Type ActionType, Action<object> Action)> _configureActions = [];
+    private Action<IContractFactory>? _contractConfigurationAction = null;
 
     private EtherClientBuilder() { }
 
-    public static EtherClientBuilder CreateEmpty() => new EtherClientBuilder();
-    public static EtherClientBuilder CreateForWebsocket(string websocketUrl, TimeSpan? requestTimeout = null, IEtherSigner? signer = null)
-        => CreateForWebsocket(new Uri(websocketUrl, UriKind.Absolute), requestTimeout, signer);
-    public static EtherClientBuilder CreateForWebsocket(Uri websocketUri, TimeSpan? requestTimeout = null, 
-        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null)
+    private void AddConfigureAction<TService, TActionParam>(Action<TActionParam>? configureAction)
+    {
+        if(configureAction is null)
+        {
+            return;
+        }
+
+        _configureActions.RemoveAll(x => x.ServiceType == typeof(TService));
+        _configureActions.Add((typeof(TService), typeof(TActionParam), value => configureAction((TActionParam) value)));
+    }
+
+    public static EtherClientBuilder CreateEmpty() 
+        => new EtherClientBuilder();
+    public static EtherClientBuilder CreateForWebsocket(
+        string websocketUrl, TimeSpan? requestTimeout = null, 
+        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
+        Action<EIP1559GasFeeProvider>? configureGasProvider = null
+    )
+        => CreateForWebsocket(new Uri(websocketUrl, UriKind.Absolute), requestTimeout, signer, loggerFactory, configureGasProvider);
+    public static EtherClientBuilder CreateForWebsocket(Uri websocketUri, TimeSpan? requestTimeout = null,
+        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null, 
+        Action<EIP1559GasFeeProvider>? configureGasProvider = null
+    )
     {
         requestTimeout ??= TimeSpan.FromSeconds(30);
 
@@ -44,7 +60,7 @@ public class EtherClientBuilder
         {
             builder.WithLoggerFactory(loggerFactory);
         }
-        if (signer is null)
+        if(signer is null)
         {
             return builder;
         }
@@ -54,7 +70,9 @@ public class EtherClientBuilder
             .WithTxPublisher<BasicTxPublisher>()
             .WithTxConfirmer<PollingTxConfirmer>()
             .WithTxScheduler<BlockingSequentialTxScheduler>()
-            .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
+            .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
+                gasFeeProviderConfigureAction: configureGasProvider
+            );
     }
     public static EtherClientBuilder CreateForHttpRpc(string websocketUrl, IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null)
     {
@@ -78,7 +96,7 @@ public class EtherClientBuilder
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
     }
 
-    public EtherClientBuilder WithOPStackConfiguration() 
+    public EtherClientBuilder WithOPStackConfiguration()
         => AddTxTypeHandler<EIP1559TxTypeHandler, OpStackEIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
 
     public EtherClientBuilder WithRPCTransport(IRPCTransport transport)
@@ -103,7 +121,7 @@ public class EtherClientBuilder
         where TTxScheduler : class, ITxScheduler
     {
         _services.AddOrReplaceSingleton<ITxScheduler, TTxScheduler>();
-        _txSchedulerConfigureAction = configureAction;
+        AddConfigureAction<ITxScheduler, TTxScheduler>(configureAction);
         return this;
     }
 
@@ -111,7 +129,7 @@ public class EtherClientBuilder
         where TTxPublisher : class, ITxPublisher
     {
         _services.AddOrReplaceSingleton<ITxPublisher, TTxPublisher>();
-        _txPublisherConfigureAction = configureAction;
+        AddConfigureAction<ITxPublisher, TTxPublisher>(configureAction);
         return this;
     }
 
@@ -119,11 +137,14 @@ public class EtherClientBuilder
         where TTxConfirmer : class, ITxConfirmer
     {
         _services.AddOrReplaceSingleton<ITxConfirmer, TTxConfirmer>();
-        _txConfirmerConfigureAction = configureAction;
+        AddConfigureAction<ITxConfirmer, TTxConfirmer>(configureAction);
         return this;
     }
 
-    public EtherClientBuilder AddTxTypeHandler<TTxTypeHandler, TGasFeeProvider, TTransaction, TTxParams, TTxGasParams>()
+    public EtherClientBuilder AddTxTypeHandler<TTxTypeHandler, TGasFeeProvider, TTransaction, TTxParams, TTxGasParams>(
+        Action<TTxTypeHandler>? handlerConfigureAction = null,
+        Action<TGasFeeProvider>? gasFeeProviderConfigureAction = null
+    )
         where TTxTypeHandler : class, ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
         where TGasFeeProvider : class, IGasFeeProvider<TTxParams, TTxGasParams>
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
@@ -132,6 +153,9 @@ public class EtherClientBuilder
     {
         _services.AddOrReplaceSingleton<ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>, TTxTypeHandler>();
         _services.AddOrReplaceSingleton<IGasFeeProvider<TTxParams, TTxGasParams>, TGasFeeProvider>();
+
+        AddConfigureAction<ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>, TTxTypeHandler>(handlerConfigureAction);
+        AddConfigureAction<IGasFeeProvider<TTxParams, TTxGasParams>, TGasFeeProvider>(gasFeeProviderConfigureAction);
         return this;
     }
 
@@ -139,6 +163,14 @@ public class EtherClientBuilder
     {
         _contractConfigurationAction = contractSetupAction;
         return this;
+    }
+
+    public void RunConfigureActions(IServiceProvider provider)
+    {
+        foreach(var (serviceType, _, action) in _configureActions)
+        {
+            action(provider.GetRequiredService(serviceType));
+        }
     }
 
     private void AssertReadClientConfiguration()
@@ -177,6 +209,7 @@ public class EtherClientBuilder
         var provider = _services.BuildServiceProvider();
 
         _contractConfigurationAction?.Invoke(provider.GetRequiredService<ContractFactory>());
+        RunConfigureActions(provider);
 
         return provider.GetRequiredService<IEtherClient>();
     }
@@ -212,9 +245,7 @@ public class EtherClientBuilder
         var provider = _services.BuildServiceProvider();
 
         _contractConfigurationAction?.Invoke(provider.GetRequiredService<ContractFactory>());
-        _txConfirmerConfigureAction?.Invoke(provider.GetRequiredService<ITxConfirmer>());
-        _txPublisherConfigureAction?.Invoke(provider.GetRequiredService<ITxPublisher>());
-        _txSchedulerConfigureAction?.Invoke(provider.GetRequiredService<ITxScheduler>());
+        RunConfigureActions(provider);
 
         return provider.GetRequiredService<IEtherTxClient>();
     }
