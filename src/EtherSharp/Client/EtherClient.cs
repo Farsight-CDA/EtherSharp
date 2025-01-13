@@ -116,10 +116,15 @@ public class EtherClient : IEtherClient, IEtherTxClient
         _initialized = true;
     }
 
-    public async Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
+    public Task<BlockDataTrasactionAsString> GetBlockAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
     {
         AssertReady();
-        return await _rpcClient.EthGetBlockByNumberAsync(targetBlockNumber, cancellationToken);
+        return _rpcClient.EthGetBlockByNumberAsync(targetBlockNumber, cancellationToken);
+    }
+    public Task<Transaction> GetTransactionAsync(string hash, CancellationToken cancellationToken)
+    {
+        AssertReady();
+        return _rpcClient.EthTransactionByHash(hash, cancellationToken);
     }
     public Task<ulong> GetPeakHeightAsync(CancellationToken cancellationToken)
     {

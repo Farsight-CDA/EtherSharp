@@ -4,7 +4,7 @@ namespace EtherSharp.Types;
 
 public record Transaction(
     string BlockHash,
-    BigInteger BlockNumber,
+    ulong BlockNumber,
     string From,
     uint Gas,
     BigInteger GasPrice,

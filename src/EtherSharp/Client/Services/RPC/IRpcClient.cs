@@ -15,10 +15,15 @@ public interface IRpcClient
     );
 
     public Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken);
+        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken
+    );
+    public Task<Transaction> EthTransactionByHash(
+        string hash, CancellationToken cancellationToken
+    );
 
     public Task<FeeHistory> EthGetFeeHistory(int blockCount, TargetBlockNumber newestBlock,
-        double[] rewardPercentiles, CancellationToken cancellationToken);
+        double[] rewardPercentiles, CancellationToken cancellationToken
+    );
     public Task<BigInteger> EthGasPriceAsync(CancellationToken cancellationToken = default);
     public Task<BigInteger> EthMaxPriorityFeePerGas(CancellationToken cancellationToken = default);
     public Task<BigInteger> EthGetBalance(
