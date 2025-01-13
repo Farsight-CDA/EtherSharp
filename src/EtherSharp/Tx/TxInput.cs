@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace EtherSharp.Tx;
 
-public class TxInput : ITxInput
+public sealed class TxInput : ITxInput
 {
     private readonly ReadOnlyMemory<byte>? _functionSignature;
     private readonly AbiEncoder? _encoder;
