@@ -96,9 +96,6 @@ public class EtherClientBuilder
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
     }
 
-    public EtherClientBuilder WithOPStackConfiguration()
-        => AddTxTypeHandler<EIP1559TxTypeHandler, OpStackEIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
-
     public EtherClientBuilder WithRPCTransport(IRPCTransport transport)
     {
         _transport = transport;

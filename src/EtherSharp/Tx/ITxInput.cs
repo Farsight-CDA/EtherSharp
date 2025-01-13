@@ -7,6 +7,6 @@ public interface ITxInput
     public Address To { get; }
     public BigInteger Value { get; }
 
-    internal int DataLength { get; }
-    internal void WriteDataTo(Span<byte> destination);
+    public int DataLength { get; }
+    public void WriteDataTo(Span<byte> destination);
 }

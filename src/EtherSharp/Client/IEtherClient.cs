@@ -20,7 +20,9 @@ public interface IEtherClient
 
     public Task InitializeAsync(CancellationToken cancellationToken = default);
 
-    public Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken = default);
+    public Task<BlockDataTrasactionAsString> GetBlockAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken = default);
+    public Task<Transaction> GetTransactionAsync(string hash, CancellationToken cancellationToken = default);
+
     public Task<ulong> GetPeakHeightAsync(CancellationToken cancellationToken = default);
     public Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 

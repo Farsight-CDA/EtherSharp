@@ -46,20 +46,24 @@ public class EIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : 
             baseFee = summedBaseFees / feeHistory.BaseFeePerGas.Length; 
         }
 
-        if (feeHistory.Reward.Length == 0)
+        var nonZeroRewards = feeHistory.Reward.Where(x => x[0] != 0).ToArray();
+        if (nonZeroRewards.Length == 0)
         {
             priorityFee = await _rpcClient.EthMaxPriorityFeePerGas(cancellationToken);
         }
         else
         {
-            var summedPriorityFees = feeHistory.Reward.Aggregate(BigInteger.Zero, (prev, curr) => prev + curr[0]);
-            priorityFee = summedPriorityFees / feeHistory.Reward.Length;
+            var summedPriorityFees = nonZeroRewards.Aggregate(BigInteger.Zero, (prev, curr) => prev + curr[0]);
+            priorityFee = summedPriorityFees / nonZeroRewards.Length;
         }
+
+        var adjustedBaseFee = baseFee * (100 + BaseFeeOffsetPercentage) / 100;
+        var adjustedPriorityFee = priorityFee * (100 + PriorityFeeOffsetPercentage) / 100;
 
         return new EIP1559GasParams(
             gasEstimation,
-            baseFee * (100 + BaseFeeOffsetPercentage) / 100,
-            priorityFee * (100 + PriorityFeeOffsetPercentage) / 100
+            adjustedBaseFee + adjustedPriorityFee,
+            adjustedPriorityFee
         );
     }
 }
