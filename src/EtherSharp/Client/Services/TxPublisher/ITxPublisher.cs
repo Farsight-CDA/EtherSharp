@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client.Services.RPC;
+﻿using EtherSharp.Types;
 
 namespace EtherSharp.Client.Services.TxPublisher;
 public interface ITxPublisher

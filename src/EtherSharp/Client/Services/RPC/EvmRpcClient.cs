@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.StateOverride;
 using EtherSharp.Transport;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -115,14 +116,14 @@ internal partial class EvmRpcClient : IRpcClient
         };
     }
 
-    public async Task<long> EthBlockTransactionCountByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
+    public async Task<long> EthBlockTransactionCountByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
         => await SendRpcRequest<string, string>(
             "eth_getBlockTransactionCountByNumber", targetBlockNumber.ToString(), cancellationToken) switch
-            {
-                RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
-                RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
-                _ => throw new NotImplementedException(),
-            };
+        {
+            RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
 
     public async Task<long> EthBlockTransactionCountByNumberAsync(ulong blockNumber, CancellationToken cancellationToken)
         => await EthBlockTransactionCountByNumberAsync(TargetBlockNumber.Height(blockNumber), cancellationToken);
@@ -131,13 +132,13 @@ internal partial class EvmRpcClient : IRpcClient
     private record FakeAccountData(string? Balance, string? Nonce, string? Code, object? State, int? StateDiff);
 
     public async Task<TxCallResult> EthCallAsync(
-        string? from, string to, uint? gas, BigInteger? gasPrice, int? value, string? data, TargetBlockNumber blockNumber,
-        CancellationToken cancellationToken)
+        string? from, string to, uint? gas, BigInteger? gasPrice, int? value, string? data,
+        TargetBlockNumber blockNumber, TxStateOverride? stateOverride, CancellationToken cancellationToken)
     {
         TransactionEthCall transaction = new(from, to, gas, gasPrice, value, data);
 
-        return await SendRpcRequest<TransactionEthCall, string, byte[]>(
-            "eth_call", transaction, blockNumber.ToString(), cancellationToken) switch
+        return await SendRpcRequest<TransactionEthCall, string, Dictionary<string, OverrideAccount>?, byte[]>(
+            "eth_call", transaction, blockNumber.ToString(), stateOverride?._accountOverrides, cancellationToken) switch
         {
             RpcResult<byte[]>.Success result => new TxCallResult.Success(result.Result),
             RpcResult<byte[]>.Error error => error.Message == "execution reverted" && error.Code == -32000
@@ -147,7 +148,7 @@ internal partial class EvmRpcClient : IRpcClient
         };
     }
 
-    public async Task<TxSubmissionResult> EthSendRawTransactionAsync(string transaction, CancellationToken cancellationToken) 
+    public async Task<TxSubmissionResult> EthSendRawTransactionAsync(string transaction, CancellationToken cancellationToken)
         => await SendRpcRequest<string, string>("eth_sendRawTransaction", transaction, cancellationToken) switch
         {
             RpcResult<string>.Success result => new TxSubmissionResult.Success(result.Result),
@@ -201,7 +202,7 @@ internal partial class EvmRpcClient : IRpcClient
                 Span<byte> buffer = stackalloc byte[rawHex.Length / 2];
 
                 var res = Convert.FromHexString(rawHex, buffer, out _, out _);
-                if (res != System.Buffers.OperationStatus.Done)
+                if(res != System.Buffers.OperationStatus.Done)
                 {
                     throw new InvalidOperationException("Failed to parse resulting hex");
                 }
@@ -242,7 +243,7 @@ internal partial class EvmRpcClient : IRpcClient
     }
 
     public async Task<FeeHistory> EthGetFeeHistory(int blockCount, TargetBlockNumber newestBlock,
-        double[] rewardPercentiles, CancellationToken cancellationToken) 
+        double[] rewardPercentiles, CancellationToken cancellationToken)
         => await SendRpcRequest<int, string, double[], FeeHistory>(
             "eth_feeHistory", blockCount, newestBlock.ToString(), rewardPercentiles, cancellationToken) switch
         {
@@ -299,7 +300,7 @@ internal partial class EvmRpcClient : IRpcClient
     }
 
     public async Task<BlockData?> EthGetFullBlockByNumberAsync(
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
+        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
         => await SendRpcRequest<string, bool, BlockData>(
             "eth_getBlockByNumber", targetBlockNumber.ToString(), false, cancellationToken) switch
         {
@@ -309,7 +310,7 @@ internal partial class EvmRpcClient : IRpcClient
         };
 
     public async Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
+        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
         => await SendRpcRequest<string, bool, BlockDataTrasactionAsString>(
             "eth_getBlockByNumber", targetBlockNumber.ToString(), false, cancellationToken) switch
         {
@@ -318,7 +319,7 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<Transaction> EthTransactionByHash(string hash, CancellationToken cancellationToken) 
+    public async Task<Transaction> EthTransactionByHash(string hash, CancellationToken cancellationToken)
         => await SendRpcRequest<string, Transaction>(
             "eth_getTransactionByHash", hash, cancellationToken) switch
         {
@@ -345,7 +346,7 @@ internal partial class EvmRpcClient : IRpcClient
     }
 
     public async Task<Transaction> EthGetTransactionByBlockNumberAndIndexAsync(
-        string blockNumber, int index, CancellationToken cancellationToken) 
+        string blockNumber, int index, CancellationToken cancellationToken)
         => await SendRpcRequest<string, int, Transaction>(
             "eth_getTransactionByBlockNumberAndIndex", blockNumber, index, cancellationToken) switch
         {
@@ -354,7 +355,7 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<TransactionReceipt?> EthGetTransactionReceiptAsync(string transactionHash, CancellationToken cancellationToken)   
+    public async Task<TransactionReceipt?> EthGetTransactionReceiptAsync(string transactionHash, CancellationToken cancellationToken)
         => await SendRpcRequest<string, TransactionReceipt>(
             "eth_getTransactionReceipt", transactionHash, cancellationToken) switch
         {
@@ -365,7 +366,7 @@ internal partial class EvmRpcClient : IRpcClient
         };
 
     public async Task<Uncle?> EthGetUncleByBlockHashAndIndexAsync(
-        string blockHash, int uncleIndex, CancellationToken cancellationToken) 
+        string blockHash, int uncleIndex, CancellationToken cancellationToken)
         => await SendRpcRequest<string, int, Uncle>(
             "eth_getUncleByBlockHashAndIndex", blockHash, uncleIndex, cancellationToken) switch
         {
@@ -376,7 +377,7 @@ internal partial class EvmRpcClient : IRpcClient
         };
 
     public async Task<Uncle?> EthGetUncleByBlockNumberAndIndexAsync(
-        TargetBlockNumber targetBlockNumber, uint uncleIndex, CancellationToken cancellationToken) 
+        TargetBlockNumber targetBlockNumber, uint uncleIndex, CancellationToken cancellationToken)
         => await SendRpcRequest<string, uint, Uncle>(
             "eth_getUncleByBlockNumberAndIndex", targetBlockNumber.ToString(), uncleIndex, cancellationToken) switch
         {
@@ -412,7 +413,7 @@ internal partial class EvmRpcClient : IRpcClient
         };
     }
 
-    public async Task<string> EthNewBlockFilterAsync(CancellationToken cancellationToken) 
+    public async Task<string> EthNewBlockFilterAsync(CancellationToken cancellationToken)
         => await SendRpcRequest<string>(
             "eth_newBlockFilter", cancellationToken) switch
         {
@@ -421,7 +422,7 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<string> EthNewPendingTransactionFilterAsync(CancellationToken cancellationToken) 
+    public async Task<string> EthNewPendingTransactionFilterAsync(CancellationToken cancellationToken)
         => await SendRpcRequest<string>(
             "eth_newPendingTransactionFilter", cancellationToken) switch
         {
@@ -430,7 +431,7 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<bool> EthUninstallFilterAsync(string filterId, CancellationToken cancellationToken) 
+    public async Task<bool> EthUninstallFilterAsync(string filterId, CancellationToken cancellationToken)
         => await SendRpcRequest<string, bool>(
             "eth_uninstallFilter", filterId, cancellationToken) switch
         {
@@ -439,7 +440,7 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<List<string?>> EthGetPendingTransactionFilterChangesAsync(string filterId, CancellationToken cancellationToken)   
+    public async Task<List<string?>> EthGetPendingTransactionFilterChangesAsync(string filterId, CancellationToken cancellationToken)
         => await SendRpcRequest<string, List<string?>>(
             "eth_getFilterChanges", filterId, cancellationToken) switch
         {
@@ -448,7 +449,7 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<Log[]> EthGetEventFilterChangesAsync(string filterId, CancellationToken cancellationToken) 
+    public async Task<Log[]> EthGetEventFilterChangesAsync(string filterId, CancellationToken cancellationToken)
         => await SendRpcRequest<string, Log[]>(
             "eth_getFilterChanges", filterId, cancellationToken) switch
         {
@@ -492,7 +493,7 @@ internal partial class EvmRpcClient : IRpcClient
         };
     }
 
-    public async Task<bool> EthUnsubscribeAsync(string subscriptionId, CancellationToken cancellationToken) 
+    public async Task<bool> EthUnsubscribeAsync(string subscriptionId, CancellationToken cancellationToken)
         => await SendRpcRequest<string, bool>(
             "eth_unsubscribe", subscriptionId, cancellationToken) switch
         {

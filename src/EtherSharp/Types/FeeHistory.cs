@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace EtherSharp.Client.Services.RPC;
+namespace EtherSharp.Types;
 public record FeeHistory(
     ulong OldestBlockHeight,
     BigInteger[] BaseFeePerGas,

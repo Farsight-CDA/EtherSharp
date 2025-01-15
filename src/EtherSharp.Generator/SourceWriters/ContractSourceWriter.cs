@@ -139,6 +139,7 @@ public class ContractSourceWriter(
         var (returnType, decoderFunction) = _paramDecodingWriter.SetQueryOutputDecoding(func, queryFunction.Outputs);
 
         func.AddArgument("EtherSharp.Types.TargetBlockNumber", "targetBlockNumber", true, "default");
+        func.AddArgument("EtherSharp.StateOverride.TxStateOverride", "stateOverride", true, "default");
         func.AddArgument("System.Threading.CancellationToken", "cancellationToken", true, "default");
 
         func.AddStatement(
@@ -151,7 +152,7 @@ public class ContractSourceWriter(
                 },
                 Address,
                 0
-            ), targetBlockNumber, cancellationToken)
+            ), targetBlockNumber, stateOverride: stateOverride, cancellationToken: cancellationToken)
             """
         );
         return func;

@@ -2,6 +2,7 @@
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.RPC;
+using EtherSharp.StateOverride;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Buffers.Binary;
@@ -58,10 +59,6 @@ public class OpStackEIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner sig
         simulationPayloadBuffer[68] = EIP1559Transaction.PrefixByte;
         mockTx.Encode(listSizes, inputData, simulationPayloadBuffer[69..]);
 
-        var test = new byte[txByteSize];
-        mockTx.Encode(listSizes, inputData, test);
-        var info = Convert.ToHexString(test);
-
         return SendEstimationRequestsAsync(
             to,
             value,
@@ -77,7 +74,7 @@ public class OpStackEIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner sig
         var gasEstimationTask = _rpcClient.EthEstimateGasAsync(
             _signer.Address.String, to.String, value, inputDataHex, cancellationToken);
         var l1FeeTask = _rpcClient.EthCallAsync(
-            null, "0x420000000000000000000000000000000000000F", null, null, null, getL1FeePayloadHex, TargetBlockNumber.Pending, cancellationToken);
+            null, "0x420000000000000000000000000000000000000F", null, null, null, getL1FeePayloadHex, TargetBlockNumber.Pending, default, cancellationToken);
 
         ulong gasEstimation = await gasEstimationTask;
 

@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Types;
 using System.Numerics;
+using EtherSharp.StateOverride;
 
 namespace EtherSharp.Client.Services.RPC;
 public interface IRpcClient
@@ -10,7 +11,8 @@ public interface IRpcClient
     public Task<ulong> EthChainIdAsync(CancellationToken cancellationToken = default);
     public Task<ulong> EthBlockNumberAsync(CancellationToken cancellationToken = default);
     public Task<ulong> EthEstimateGasAsync(
-        string from, string to, BigInteger value, string data, CancellationToken cancellationToken = default
+        string from, string to, BigInteger value, string data,
+        CancellationToken cancellationToken = default
     );
 
     public Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(
@@ -29,8 +31,8 @@ public interface IRpcClient
         string address, TargetBlockNumber blockNumber, CancellationToken cancellationToken = default
     );
     public Task<TxCallResult> EthCallAsync(
-        string? from, string to, uint? gas, BigInteger? gasPrice, int? value, string? data, TargetBlockNumber blockNumber, 
-        CancellationToken cancellationToken = default);
+        string? from, string to, uint? gas, BigInteger? gasPrice, int? value, string? data, 
+        TargetBlockNumber blockNumber, TxStateOverride? stateOverride, CancellationToken cancellationToken = default);
     public Task<uint> EthGetTransactionCount(
         string address, TargetBlockNumber blockNumber, CancellationToken cancellationToken = default
     );

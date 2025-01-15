@@ -6,6 +6,7 @@ using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
+using EtherSharp.StateOverride;
 using EtherSharp.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
@@ -159,7 +160,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
     }
 
     private async Task<T> CallAsync<T>(
-        TxInput<T> call, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
+        TxInput<T> call, TargetBlockNumber targetHeight = default, TxStateOverride? stateOverride = default, CancellationToken cancellationToken = default)
     {
         AssertReady();
         ITxInput icall = call;
@@ -179,6 +180,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
             null,
             $"0x{Convert.ToHexString(callDataBuffer)}",
             targetHeight,
+            stateOverride,
             cancellationToken
         );
 
@@ -202,7 +204,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
         return _rpcClient.EthGasPriceAsync(cancellationToken);
     }
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams, CancellationToken cancellationToken)
+        ITxInput call, TTxParams? txParams, TxStateOverride? stateOverride, CancellationToken cancellationToken)
         where TTxParams : class
     {
         AssertReady();
@@ -212,7 +214,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
 
         Span<byte> inputData = stackalloc byte[call.DataLength];
         call.WriteDataTo(inputData);
-        return await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, inputData, txParams ?? TTxParams.Default,  cancellationToken);
+        return await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, inputData, txParams ?? TTxParams.Default, cancellationToken);
     }
 
     Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call, Func<ValueTask<TxTimeoutAction>> onTxTimeout,
@@ -263,6 +265,6 @@ public class EtherClient : IEtherClient, IEtherTxClient
         => Contract<TContract>(address); 
     TContract IEtherClient.Contract<TContract>(Address address)
         => Contract<TContract>(address);
-    Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
-        => CallAsync(call, targetHeight, cancellationToken);
+    Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight, TxStateOverride? stateOverride, CancellationToken cancellationToken)
+        => CallAsync(call, targetHeight, stateOverride, cancellationToken);
 }

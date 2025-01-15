@@ -1,8 +1,8 @@
 ﻿using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.LogsApi;
-using EtherSharp.Client.Services.RPC;
 using EtherSharp.Contract;
 using EtherSharp.Events;
+using EtherSharp.StateOverride;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Types;
@@ -31,15 +31,16 @@ public interface IEtherClient
     public TContract Contract<TContract>(Address address)
         where TContract : IEVMContract;
 
-    public Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default, TxStateOverride? stateOverride = default, CancellationToken cancellationToken = default);
 
     public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
         double[] rewardPercentiles, CancellationToken cancellationToken = default);
     public Task<BigInteger> GetGasPriceAsync(CancellationToken cancellationToken = default);
-    public Task<EIP1559GasParams> EstimateTxGasParamsAsync(ITxInput call, EIP1559TxParams? txParams = default, CancellationToken cancellationToken = default)
-        => EstimateTxGasParamsAsync<EIP1559TxParams, EIP1559GasParams>(call, txParams, cancellationToken);
+    public Task<EIP1559GasParams> EstimateTxGasParamsAsync(ITxInput call, EIP1559TxParams? txParams = default, 
+        TxStateOverride? stateOverride = default, CancellationToken cancellationToken = default)
+        => EstimateTxGasParamsAsync<EIP1559TxParams, EIP1559GasParams>(call, txParams, stateOverride, cancellationToken);
     public Task<TTxGasParams> EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams = default, CancellationToken cancellationToken = default
+        ITxInput call, TTxParams? txParams = default, TxStateOverride? stateOverride = default, CancellationToken cancellationToken = default
     )
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams;

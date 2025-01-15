@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Client.Services.RPC;
+﻿namespace EtherSharp.Types;
 public abstract record TxSubmissionResult
 {
     public record Success(string TxHash) : TxSubmissionResult;

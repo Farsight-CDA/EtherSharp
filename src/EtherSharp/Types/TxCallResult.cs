@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Client.Services.RPC;
+﻿namespace EtherSharp.Types;
 public abstract record TxCallResult
 {
     public record Success(byte[] Data) : TxCallResult;
