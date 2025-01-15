@@ -35,32 +35,15 @@ public class HttpJsonRpcTransport : IRPCTransport
     private record RpcError(int Code, string Message);
     private record JsonRpcResponse<T>([property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
 
-    public Task<RpcResult<TResult>> SendRpcRequest<TResult>(
-        string method, CancellationToken cancellationToken)
-        => InnerSendRpcRequest<TResult>(method, [], cancellationToken);
-
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(
-        string method, T1 t1, CancellationToken cancellationToken)
-        => InnerSendRpcRequest<TResult>(method, [t1], cancellationToken);
-
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, TResult>(
-        string method, T1 t1, T2 t2, CancellationToken cancellationToken)
-        => InnerSendRpcRequest<TResult>(method, [t1, t2], cancellationToken);
-
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, T3, TResult>(
-        string method, T1 t1, T2 t2, T3 t3, CancellationToken cancellationToken)
-        => InnerSendRpcRequest<TResult>(method, [t1, t2, t3], cancellationToken);
-
     private record JsonRpcRequest(int Id, string Method, object?[] Params, string Jsonrpc = "2.0");
-    private async Task<RpcResult<TResult>> InnerSendRpcRequest<TResult>(
-        string method, object?[] objects, CancellationToken cancellationToken)
+    public async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, CancellationToken cancellationToken = default)
     {
         int id = Interlocked.Increment(ref _id);
 
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, (string?) null)
         {
             Content = JsonContent.Create(
-                new JsonRpcRequest(id, method, objects),
+                new JsonRpcRequest(id, method, parameters),
                 options: ParsingUtils.EvmSerializerOptions
             )
         };

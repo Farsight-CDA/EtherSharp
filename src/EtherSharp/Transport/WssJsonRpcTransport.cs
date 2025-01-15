@@ -265,15 +265,14 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
     }
 
     private record JsonRpcRequest(int Id, string Method, object?[] Params, string Jsonrpc = "2.0");
-    private async Task<RpcResult<TResult>> InnerSendAsync<TResult>(
-        string method, object?[] args, CancellationToken cancellationToken = default)
+    public async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         int requestId = Interlocked.Increment(ref _requestIdCounter);
 
         byte[] payload = JsonSerializer.SerializeToUtf8Bytes(
-            new JsonRpcRequest(requestId, method, args),
+            new JsonRpcRequest(requestId, method, parameters),
             options: ParsingUtils.EvmSerializerOptions
         );
 
@@ -312,19 +311,6 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
         //
         return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
     }
-
-    public Task<RpcResult<TResult>> SendRpcRequest<TResult>(
-        string method, CancellationToken cancellationToken)
-        => InnerSendAsync<TResult>(method, [], cancellationToken);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, TResult>(
-        string method, T1 t1, CancellationToken cancellationToken)
-        => InnerSendAsync<TResult>(method, [t1], cancellationToken);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, TResult>(
-        string method, T1 t1, T2 t2, CancellationToken cancellationToken)
-        => InnerSendAsync<TResult>(method, [t1, t2], cancellationToken);
-    public Task<RpcResult<TResult>> SendRpcRequest<T1, T2, T3, TResult>(
-        string method, T1 t1, T2 t2, T3 t3, CancellationToken cancellationToken)
-        => InnerSendAsync<TResult>(method, [t1, t2, t3], cancellationToken);
 
     public void Dispose()
     {

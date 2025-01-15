@@ -17,9 +17,13 @@ public class RatelimitMiddleware : IRpcMiddleware, IDisposable
         {
             using var timer = new PeriodicTimer(_windowSize);
 
-            while (await timer.WaitForNextTickAsync(_disposeCts.Token))
+            while(await timer.WaitForNextTickAsync(_disposeCts.Token))
             {
-                _requestSemaphore.Release(_requestsPerWindow - _requestSemaphore.CurrentCount);
+                int releaseCount = _requestsPerWindow - _requestSemaphore.CurrentCount;
+                if(releaseCount > 0)
+                {
+                    _requestSemaphore.Release(releaseCount);
+                }
             }
         });
     }
