@@ -14,6 +14,7 @@ using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Secp256k1Net;
 
 namespace EtherSharp.Client;
 public class EtherClientBuilder
@@ -99,6 +100,19 @@ public class EtherClientBuilder
     public EtherClientBuilder WithRPCTransport(IRPCTransport transport)
     {
         _transport = transport;
+        return this;
+    }
+
+    public EtherClientBuilder WithRPCMiddleware(IRpcMiddleware middleware)
+    {
+        _services.AddSingleton<IRpcMiddleware>(middleware);
+        return this;
+    }
+
+    public EtherClientBuilder WithRPCMiddleware<TRpcMiddleware>()
+        where TRpcMiddleware : class, IRpcMiddleware
+    {
+        _services.AddSingleton<IRpcMiddleware, TRpcMiddleware>();
         return this;
     }
 

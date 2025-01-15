@@ -1,5 +1,4 @@
-﻿using EtherSharp.Events.Subscription;
-using EtherSharp.Types;
+﻿using EtherSharp.Types;
 using System.Numerics;
 
 namespace EtherSharp.Client.Services.RPC;
