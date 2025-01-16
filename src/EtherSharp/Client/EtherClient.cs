@@ -204,6 +204,11 @@ public class EtherClient : IEtherClient, IEtherTxClient
         return _rpcClient.EthGasPriceAsync(cancellationToken);
     }
 
+    public Task<BigInteger> GetMaxPriorityFeePerGasAsync(CancellationToken cancellationToken = default)
+    {
+        AssertReady();
+        return _rpcClient.EthMaxPriorityFeePerGas(cancellationToken);
+    }
 
     public Task<ulong> EstimateGasLimitAsync(ITxInput call, string? from = null, CancellationToken cancellationToken = default)
     {
