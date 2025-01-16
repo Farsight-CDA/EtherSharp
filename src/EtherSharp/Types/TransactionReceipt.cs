@@ -2,6 +2,8 @@
 
 namespace EtherSharp.Types;
 public record TransactionReceipt(
+    string TransactionHash,
+    int Status,
     string BlockHash,
     uint BlockNumber,
     string From,
@@ -11,9 +13,7 @@ public record TransactionReceipt(
     BigInteger EffectiveGasPrice,
     List<TransactionRecievedLog>? Logs,
     string? LogsBloom,
-    string? Status,
     string? To,
-    string? TransactionHash,
     int? TransactionIndex,
     int? Type  //todo: enum ?
 );
