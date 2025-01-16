@@ -36,6 +36,9 @@ public interface IEtherClient
     public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
         double[] rewardPercentiles, CancellationToken cancellationToken = default);
     public Task<BigInteger> GetGasPriceAsync(CancellationToken cancellationToken = default);
+
+    public Task<ulong> EstimateGasLimitAsync(ITxInput call, string? from = null, CancellationToken cancellationToken = default);
+
     public Task<EIP1559GasParams> EstimateTxGasParamsAsync(ITxInput call, EIP1559TxParams? txParams = default, 
         TxStateOverride? stateOverride = default, CancellationToken cancellationToken = default)
         => EstimateTxGasParamsAsync<EIP1559TxParams, EIP1559GasParams>(call, txParams, stateOverride, cancellationToken);

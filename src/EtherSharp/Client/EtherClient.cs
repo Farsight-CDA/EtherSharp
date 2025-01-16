@@ -16,7 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
 
 namespace EtherSharp.Client;
-public class EtherClient : IEtherClient, IEtherTxClient 
+public class EtherClient : IEtherClient, IEtherTxClient
 {
     private readonly IServiceProvider _provider;
     private readonly bool _isTxClient;
@@ -192,17 +192,34 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-    Task<FeeHistory> IEtherClient.GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
+    public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
         double[] rewardPercentiles, CancellationToken cancellationToken)
     {
         AssertReady();
         return _rpcClient.EthGetFeeHistory(blockCount, newestBlock, rewardPercentiles, cancellationToken);
     }
-    Task<BigInteger> IEtherClient.GetGasPriceAsync(CancellationToken cancellationToken)
+    public Task<BigInteger> GetGasPriceAsync(CancellationToken cancellationToken)
     {
         AssertReady();
         return _rpcClient.EthGasPriceAsync(cancellationToken);
     }
+
+
+    public Task<ulong> EstimateGasLimitAsync(ITxInput call, string? from = null, CancellationToken cancellationToken = default)
+    {
+        AssertReady();
+
+        if (from is null && _isTxClient)
+        {
+            from = _signer.Address.String;
+        }
+
+        Span<byte> buffer = stackalloc byte[call.DataLength];
+        call.WriteDataTo(buffer);
+        string data = $"0x{Convert.ToHexString(buffer)}";
+        return _rpcClient.EthEstimateGasAsync(from, call.To.String, call.Value, data, cancellationToken);
+    }
+
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
         ITxInput call, TTxParams? txParams, TxStateOverride? stateOverride, CancellationToken cancellationToken)
         where TTxParams : class

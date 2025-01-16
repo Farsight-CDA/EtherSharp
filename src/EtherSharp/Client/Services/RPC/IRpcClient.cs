@@ -11,7 +11,7 @@ public interface IRpcClient
     public Task<ulong> EthChainIdAsync(CancellationToken cancellationToken = default);
     public Task<ulong> EthBlockNumberAsync(CancellationToken cancellationToken = default);
     public Task<ulong> EthEstimateGasAsync(
-        string from, string to, BigInteger value, string data,
+        string? from, string to, BigInteger value, string data,
         CancellationToken cancellationToken = default
     );
 

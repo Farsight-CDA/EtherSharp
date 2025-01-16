@@ -252,9 +252,9 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
 
-    private record EthEstimateGasRequest(string From, string To, BigInteger Value, string Data);
+    private record EthEstimateGasRequest(string? From, string To, BigInteger Value, string Data);
     public async Task<ulong> EthEstimateGasAsync(
-        string from, string to, BigInteger value, string data, CancellationToken cancellationToken)
+        string? from, string to, BigInteger value, string data, CancellationToken cancellationToken)
     {
         var transaction = new EthEstimateGasRequest(from, to, value, data);
         return await SendRpcRequest<EthEstimateGasRequest, ulong>(
