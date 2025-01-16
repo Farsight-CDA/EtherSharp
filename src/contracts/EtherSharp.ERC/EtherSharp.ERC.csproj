@@ -1,29 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<FileVersion>0.9.0-beta</FileVersion>
+		<Version>0.9.0-beta</Version>
+		<Title>EtherSharp.ERC</Title>
+		<Company>Farsight CDA Crypto Development &amp; Analytics UG</Company>
+		<Authors>Playwo</Authors>
+		<RepositoryUrl>https://github.com/farsight-CDA/EtherSharp</RepositoryUrl>
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="ERC1155\erc1155.abi.json" />
-    <None Remove="ERC20\erc20.abi.json" />
-    <None Remove="ERC721\erc721.abi.json" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="ERC1155\erc1155.abi.json" />
+		<None Remove="ERC20\erc20.abi.json" />
+		<None Remove="ERC721\erc721.abi.json" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <AdditionalFiles Include="ERC20\erc20.abi.json" />
-    <AdditionalFiles Include="ERC721\erc721.abi.json" />
-    <AdditionalFiles Include="ERC1155\erc1155.abi.json" />
-  </ItemGroup>
+	<ItemGroup>
+		<AdditionalFiles Include="ERC20\erc20.abi.json" />
+		<AdditionalFiles Include="ERC721\erc721.abi.json" />
+		<AdditionalFiles Include="ERC1155\erc1155.abi.json" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="EtherSharp.Generator" Version="1.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="EtherSharp.Generator" Version="0.9.0-beta" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\EtherSharp\EtherSharp.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\EtherSharp\EtherSharp.csproj" />
+	</ItemGroup>
 
 </Project>

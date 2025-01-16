@@ -9,13 +9,17 @@
 		<IsRoslynComponent>true</IsRoslynComponent>
 		<LangVersion>latest</LangVersion>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Title>EtherSharp.Generator</Title>
-		<Authors>Playwo</Authors>
-		<Company></Company>
 		<PackageProjectUrl>https://github.com/PoolPirate/Cosm.Net</PackageProjectUrl>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<RootNamespace>EtherSharp.Generator</RootNamespace>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<FileVersion>0.9.0-beta</FileVersion>
+		<Version>0.9.0-beta</Version>
+		<Title>EtherSharp.Generator</Title>
+		<Company>Farsight CDA Crypto Development &amp; Analytics UG</Company>
+		<Authors>Playwo</Authors>
+		<RepositoryUrl>https://github.com/farsight-CDA/EtherSharp</RepositoryUrl>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
