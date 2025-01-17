@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Generator.Abi.Members;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
+using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
 public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter paramDecodingWriter)
@@ -18,12 +19,16 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
 
         byte[] topic = eventMember.GetEventTopic(out string eventSignature);
         classBuilder.AddRawContent(
-            $"""
+            $""""
             /// <summary>
             /// Event topic based on signature: {eventSignature}
             /// </summary>
             public static System.String Topic => "0x{HexUtils.ToHexString(topic)}";
-            """);
+            /// <summary>
+            /// Event topic bytes based on signature: {eventSignature}
+            /// </summary>
+            public static System.ReadOnlySpan<byte> TopicBytes => """{Encoding.UTF8.GetString(topic)}"""u8;
+            """");
 
         var decodeMethod = new FunctionBuilder("Decode")
             .WithReturnTypeRaw(eventTypeName)
