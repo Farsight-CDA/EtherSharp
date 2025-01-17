@@ -11,7 +11,7 @@ public record TransactionReceipt(
     uint GasUsed,
     uint CumulativeGasUsed,
     BigInteger EffectiveGasPrice,
-    List<TransactionRecievedLog>? Logs,
+    Log[] Logs,
     string? LogsBloom,
     string? To,
     int? TransactionIndex,
