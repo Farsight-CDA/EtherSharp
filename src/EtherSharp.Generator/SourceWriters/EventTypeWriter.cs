@@ -19,7 +19,7 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
 
         byte[] topic = eventMember.GetEventTopic(out string eventSignature);
         classBuilder.AddRawContent(
-            $""""
+            $"""
             /// <summary>
             /// Event topic based on signature: {eventSignature}
             /// </summary>
@@ -27,8 +27,9 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
             /// <summary>
             /// Event topic bytes based on signature: {eventSignature}
             /// </summary>
-            public static System.ReadOnlySpan<byte> TopicBytes => """{Encoding.UTF8.GetString(topic)}"""u8;
-            """");
+            public static System.ReadOnlySpan<byte> TopicBytes => [{string.Join(", ", topic)}];
+            """
+        );
 
         var decodeMethod = new FunctionBuilder("Decode")
             .WithReturnTypeRaw(eventTypeName)
