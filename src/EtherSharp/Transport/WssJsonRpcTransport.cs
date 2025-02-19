@@ -2,7 +2,6 @@
 using EtherSharp.Common;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -145,10 +144,12 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
 
             var msBuffer = ms.GetBuffer().AsSpan()[0..(int) ms.Position];
 
-            if(!TryIdentifyPayload(msBuffer, out var payloadType, out int requestId, out string subscriptionId))
+            if (msBuffer.Length == 0)
             {
                 continue;
             }
+
+            IdentifyPayload(msBuffer, out var payloadType, out int requestId, out string subscriptionId);
 
             switch(payloadType)
             {
@@ -176,9 +177,13 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
         }
     }
 
-    private static bool TryIdentifyPayload(ReadOnlySpan<byte> jsonSpan,
+    private void IdentifyPayload(ReadOnlySpan<byte> jsonSpan,
         out PayloadType payloadType, out int requestId, out string subscriptionId)
     {
+        requestId = -1;
+        subscriptionId = null!;
+        payloadType = PayloadType.Unknown;
+
         try
         {
             var reader = new Utf8JsonReader(jsonSpan);
@@ -195,9 +200,8 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
                         {
                             reader.Read();
                             requestId = int.Parse(reader.GetString()!.AsSpan()[2..], System.Globalization.NumberStyles.HexNumber);
-                            subscriptionId = null!;
                             payloadType = PayloadType.Response;
-                            return true;
+                            return;
                         }
                         else if(reader.ValueTextEquals("method"))
                         {
@@ -206,29 +210,46 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
 
                             if(method != "eth_subscription")
                             {
-                                requestId = -1;
-                                subscriptionId = null!;
-                                payloadType = PayloadType.Unknown;
-                                return true;
+                                _logger?.LogWarning("Failed to identify payload with method {method}", method);
+                                return;
                             }
 
-                            reader.Read();
-                            reader.Read();
-                            reader.Read();
+                            reader.Read(); //eth_subscription string
 
-                            if(reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals("subscriptionId"))
+                            if (reader.TokenType != JsonTokenType.PropertyName || !reader.ValueTextEquals("params"))
                             {
-                                requestId = -1;
-                                subscriptionId = null!;
-                                payloadType = PayloadType.Unknown;
-                                return true;
+                                _logger?.LogWarning("Failed to identify payload, eth_subscription not followed by params property");
+                                return;
                             }
 
-                            reader.Read();
-                            requestId = -1;
-                            subscriptionId = reader.GetString()!;
-                            payloadType = PayloadType.Subscription;
-                            return true;
+                            reader.Read(); //params property name
+
+                            if (reader.TokenType != JsonTokenType.StartObject)
+                            {
+                                _logger?.LogWarning("Failed to identify payload, eth_subscription not followed by params object");
+                                return;
+                            }
+
+                            reader.Read(); //start params object
+
+                            while (reader.TokenType == JsonTokenType.PropertyName)
+                            {
+                                if(reader.ValueTextEquals("result"))
+                                {
+                                    reader.Skip();
+                                    reader.Read();
+                                }
+                                else if(reader.ValueTextEquals("subscription"))
+                                {
+                                    reader.Read();
+                                    subscriptionId = reader.GetString()!;
+                                    payloadType = PayloadType.Subscription;
+                                    return;
+                                }
+                            }
+
+                            _logger?.LogWarning("Failed to identify payload, eth_subscription params not containing subscription id");
+                            return;
                         }
 
                         reader.Skip();
@@ -243,17 +264,13 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
                 }
             }
 
-            payloadType = PayloadType.Unknown;
-            requestId = -1;
-            subscriptionId = null!;
-            return true;
+            _logger?.LogWarning("Failed to identify payload, no marker found till end of payload");
+            return;
         }
-        catch(Exception)
+        catch(Exception ex)
         {
-            payloadType = PayloadType.Unknown;
-            requestId = -1;
-            subscriptionId = null!;
-            return false;
+            _logger?.LogWarning(ex, "Exception while trying to identify payload");
+            return;
         }
     }
 
