@@ -19,6 +19,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contracts", "contracts", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtherSharp.ERC", "src\contracts\EtherSharp.ERC\EtherSharp.ERC.csproj", "{ED133A6D-2703-44BD-9383-492842A03450}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B1CB3A47-B3F3-4333-B92F-7DE503A94BB0}"
+	ProjectSection(SolutionItems) = preProject
+		version.props = version.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

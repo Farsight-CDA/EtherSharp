@@ -1,6 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\..\version.props" />
 
 	<PropertyGroup>
+		<FileVersion>$(AssemblyVersion)</FileVersion>
+		<Version>$(AssemblyVersion)</Version>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<OutputType>Library</OutputType>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -12,7 +15,6 @@
 		<PackageProjectUrl>https://github.com/PoolPirate/Cosm.Net</PackageProjectUrl>
 		<RootNamespace>EtherSharp.Generator</RootNamespace>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
-		<Version>0.9.2-beta</Version>
 		<Title>EtherSharp.Generator</Title>
 		<Company>Farsight CDA Crypto Development &amp; Analytics UG</Company>
 		<Authors>Playwo</Authors>
