@@ -301,10 +301,20 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
         await _socket!.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
 
         var resultTask = await Task.WhenAny(tcs.Task, timeoutTask);
+
         if(resultTask == timeoutTask)
         {
             _pendingRequests.TryRemove(requestId, out _);
-            throw new TimeoutException($"No response received from server within {_requestTimeout} timeout");
+
+            if(resultTask.IsCompleted)
+            {
+                throw new TimeoutException($"No response received from server within {_requestTimeout} timeout");
+            }
+        }
+
+        if(resultTask.IsCanceled)
+        {
+            await resultTask;
         }
 
         var jsonRpcResponse = (JsonRpcResponse<TResult>) await tcs.Task;
