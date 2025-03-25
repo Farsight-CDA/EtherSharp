@@ -320,7 +320,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
         {
             _pendingRequests.TryRemove(requestId, out _);
 
-            if(resultTask.IsCompleted)
+            if(resultTask.IsCompletedSuccessfully)
             {
                 throw new TimeoutException($"No response received from server within {_requestTimeout} timeout");
             }
