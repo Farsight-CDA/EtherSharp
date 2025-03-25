@@ -1,19 +1,24 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Common;
+using EtherSharp.Common.Exceptions;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Transport;
-public class HttpJsonRpcTransport : IRPCTransport
+public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 {
     private readonly HttpClient _client;
-    private int _id = 0;
+    private int _id;
 
-    public event Action? OnConnectionEstablished;
-    public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
-
+    /// <inheritdoc />
     public bool SupportsFilters { get; set; }
+    /// <inheritdoc />
     public bool SupportsSubscriptions => false;
+
+    /// <inheritdoc />
+    public event Action? OnConnectionEstablished;    
+    /// <inheritdoc />
+    public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
     public HttpJsonRpcTransport(Uri rpcUri, bool allowFilters = true)
     {
@@ -29,6 +34,7 @@ public class HttpJsonRpcTransport : IRPCTransport
     {
     }
 
+    /// <inheritdoc />
     public ValueTask InitializeAsync(CancellationToken cancellationToken = default) 
         => ValueTask.CompletedTask;
 
@@ -36,11 +42,12 @@ public class HttpJsonRpcTransport : IRPCTransport
     private record JsonRpcResponse<T>([property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
 
     private record JsonRpcRequest(int Id, string Method, object?[] Params, string Jsonrpc = "2.0");
+    /// <inheritdoc />
     public async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, CancellationToken cancellationToken = default)
     {
         int id = Interlocked.Increment(ref _id);
 
-        var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, (string?) null)
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, (string?) null)
         {
             Content = JsonContent.Create(
                 new JsonRpcRequest(id, method, parameters),
@@ -48,19 +55,21 @@ public class HttpJsonRpcTransport : IRPCTransport
             )
         };
 
-        var response = await _client.SendAsync(httpRequestMessage, cancellationToken);
+        var response = await _client.SendAsync(httpRequestMessage, cancellationToken).ConfigureAwait(false);
 
         try
         {
-            var jsonRpcResponse = await response.Content.ReadFromJsonAsync<JsonRpcResponse<TResult>>(ParsingUtils.EvmSerializerOptions, cancellationToken);
+            var jsonRpcResponse = await response.Content.ReadFromJsonAsync<JsonRpcResponse<TResult>>(
+                ParsingUtils.EvmSerializerOptions, cancellationToken
+            ).ConfigureAwait(false);
 
             if(jsonRpcResponse is null)
             {
-                throw new Exception("RPC Error: Invalid response");
+                throw new RPCTransportException("RPC Error: Invalid response");
             }
             else if(jsonRpcResponse.Id != id)
             {
-                throw new Exception("RPC Error: Invalid response Id");
+                throw new RPCTransportException("RPC Error: Invalid response Id");
             }
             else if(jsonRpcResponse.Error != null)
             {
@@ -76,8 +85,14 @@ public class HttpJsonRpcTransport : IRPCTransport
         }
         catch(Exception e)
         {
-            string s = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new Exception($"Error: {s}", e);
+            string s = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            throw new RPCTransportException($"Error: {s}", e);
         }
+    }
+
+    public void Dispose()
+    {
+        _client?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

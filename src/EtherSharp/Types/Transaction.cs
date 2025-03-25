@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 
 namespace EtherSharp.Types;
-
 public record Transaction(
     string BlockHash,
     ulong BlockNumber,
