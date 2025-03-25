@@ -1,6 +1,9 @@
 ﻿using EtherSharp.Client.Services.RPC;
 
 namespace EtherSharp.Transport;
+/// <summary>
+/// Common interface for all RPC Transports to implement.
+/// </summary>
 public interface IRPCTransport
 {
     /// <summary>
@@ -22,7 +25,20 @@ public interface IRPCTransport
     /// </summary>
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
+    /// <summary>
+    /// Initializes this RPCTransport.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public ValueTask InitializeAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Sends a request to this RPCTransport and returns its response.
+    /// </summary>
+    /// <typeparam name="TResult">Expected result type.</typeparam>
+    /// <param name="method">Rpc method name.</param>
+    /// <param name="parameters">List of parameters for this call.</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, CancellationToken cancellationToken = default);
 }

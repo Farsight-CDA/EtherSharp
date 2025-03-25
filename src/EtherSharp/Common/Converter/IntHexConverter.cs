@@ -15,11 +15,11 @@ internal class IntHexConverter : JsonConverter<int>
             case JsonTokenType.String:
 
                 string s = reader.GetString() ?? throw new InvalidOperationException("Null is not an int");
-                if(!s.StartsWith("0x"))
+                if(!s.StartsWith("0x", false, CultureInfo.InvariantCulture))
                 {
                     throw new InvalidOperationException("Hex String Dos not star");
                 }
-                return int.Parse(s.AsSpan()[2..], NumberStyles.HexNumber);
+                return int.Parse(s.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
             default:
                 throw new NotImplementedException();
         }

@@ -24,7 +24,7 @@ public class PollingTxConfirmer : ITxConfirmer
                 return new TxConfirmationResult.TimedOut();
             }
 
-            var receipt = await _rpcClient.EthGetTransactionReceiptAsync(txHash);
+            var receipt = await _rpcClient.EthGetTransactionReceiptAsync(txHash, cancellationToken);
 
             if(receipt is null)
             {

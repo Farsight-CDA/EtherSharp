@@ -11,8 +11,8 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
 {
     private readonly List<IEncodeType> _entries = [];
 
-    private uint _payloadSize = 0;
-    private uint _metadataSize = 0;
+    private uint _payloadSize;
+    private uint _metadataSize;
 
     public int Size => (int) (_payloadSize + _metadataSize);
     uint IArrayAbiEncoder.MetadataSize => _metadataSize;

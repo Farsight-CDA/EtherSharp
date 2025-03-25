@@ -11,8 +11,8 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
     where TEvent : ITxEvent<TEvent>
 {
     protected readonly IRpcClient _rpcClient = rpcClient;
-    protected string[]? _topics = null;
-    protected string[]? _contractAddresses = null;
+    protected string[]? _topics;
+    protected string[]? _contractAddresses;
 
     private void AssertNoTopics()
     {

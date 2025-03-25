@@ -52,10 +52,9 @@ internal abstract partial class DynamicType<T>
             uint arrayOffest = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..].Span); 
 
             long index = arrayOffest - metaDataOffset;
-            if(index < 0 || index > int.MaxValue)
-            {
-                throw new IndexOutOfRangeException("Index out of range");
-            }
+
+            ArgumentOutOfRangeException.ThrowIfLessThan(index, 0, nameof(metaDataOffset));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(index, int.MaxValue, nameof(metaDataOffset));
 
             uint arrLength = BinaryPrimitives.ReadUInt32BigEndian(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
 

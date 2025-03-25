@@ -21,10 +21,8 @@ internal abstract partial class DynamicType<T>
 
             long index = bytesOffset - metaDataOffset;
 
-            if(index < 0 || index > bytes.Length)
-            {
-                throw new IndexOutOfRangeException("Index out of range");
-            }
+            ArgumentOutOfRangeException.ThrowIfLessThan(index, 0, nameof(metaDataOffset));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(index, bytes.Length, nameof(metaDataOffset));
 
             uint valueLength = BinaryPrimitives.ReadUInt32BigEndian(bytes[(int) (index + 32 - 4)..(int) (index + 32)]);
             return bytes[((int) index + 32)..(int) ((int) index + 32 + valueLength)];

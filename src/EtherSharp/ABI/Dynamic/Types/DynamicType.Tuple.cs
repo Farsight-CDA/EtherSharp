@@ -29,10 +29,9 @@ internal abstract partial class DynamicType<T>
             uint structOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..].Span);
 
             long index = structOffset - metaDataOffset;
-            if(index < 0 || index > int.MaxValue)
-            {
-                throw new IndexOutOfRangeException("Index out of range");
-            }
+
+            ArgumentOutOfRangeException.ThrowIfLessThan(index, 0, nameof(metaDataOffset));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(index, int.MaxValue, nameof(metaDataOffset));
 
             var structAbiDecoder = new AbiDecoder(bytes[(int) index..]);
 

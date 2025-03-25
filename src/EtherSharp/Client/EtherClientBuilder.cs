@@ -24,7 +24,7 @@ public class EtherClientBuilder
     private IRPCTransport? _transport;
 
     private readonly List<(Type ServiceType, Type ActionType, Action<object> Action)> _configureActions = [];
-    private Action<IContractFactory>? _contractConfigurationAction = null;
+    private Action<IContractFactory>? _contractConfigurationAction;
 
     private EtherClientBuilder() { }
 

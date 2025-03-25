@@ -1,10 +1,12 @@
-﻿namespace EtherSharp.ABI.Fixed;
+﻿using System.Globalization;
+
+namespace EtherSharp.ABI.Fixed;
 internal abstract partial class FixedType<T>
 {
     internal class Address : FixedType<ReadOnlyMemory<char>>
     {
         public Address(string value)
-            : base(value.StartsWith("0x") ? value.AsMemory()[2..] : value.AsMemory())
+            : base(value.StartsWith("0x", false, CultureInfo.InvariantCulture) ? value.AsMemory()[2..] : value.AsMemory())
         {
             if(Value.Length != 40)
             {

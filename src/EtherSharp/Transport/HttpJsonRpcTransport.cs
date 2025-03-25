@@ -5,6 +5,9 @@ using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Transport;
+/// <summary>
+/// Transport for EVM Http RPC
+/// </summary>
 public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 {
     private readonly HttpClient _client;
@@ -55,13 +58,13 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             )
         };
 
-        var response = await _client.SendAsync(httpRequestMessage, cancellationToken).ConfigureAwait(false);
+        var response = await _client.SendAsync(httpRequestMessage, cancellationToken);
 
         try
         {
             var jsonRpcResponse = await response.Content.ReadFromJsonAsync<JsonRpcResponse<TResult>>(
                 ParsingUtils.EvmSerializerOptions, cancellationToken
-            ).ConfigureAwait(false);
+            );
 
             if(jsonRpcResponse is null)
             {
@@ -85,7 +88,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         }
         catch(Exception e)
         {
-            string s = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            string s = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new RPCTransportException($"Error: {s}", e);
         }
     }

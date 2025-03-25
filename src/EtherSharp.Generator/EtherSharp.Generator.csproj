@@ -32,7 +32,7 @@
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<AnalysisLevel>latest-recommended</AnalysisLevel>
+		<AnalysisLevel>latest</AnalysisLevel>
 		<PackageIcon>logo.png</PackageIcon>
 	</PropertyGroup>
 

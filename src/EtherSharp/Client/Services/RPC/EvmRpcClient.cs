@@ -68,14 +68,13 @@ internal partial class EvmRpcClient : IRpcClient
     public async Task<ulong> EthBlockNumberAsync(CancellationToken cancellationToken)
         => await SendRpcRequest<string>("eth_blockNumber", cancellationToken) switch
         {
-            RpcResult<string>.Success result => ulong.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
+            RpcResult<string>.Success result => ulong.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
             RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
 
     public async Task<BigInteger> EthGetBalance(string address, TargetBlockNumber blockNumber, CancellationToken cancellationToken)
-        => await SendRpcRequest<string, string, BigInteger>(
-            "eth_getBalance", address, blockNumber.ToString(), cancellationToken) switch
+        => await SendRpcRequest<string, string, BigInteger>("eth_getBalance", address, blockNumber.ToString(), cancellationToken) switch
         {
             RpcResult<BigInteger>.Success result => result.Result,
             RpcResult<BigInteger>.Error error => throw RPCException.FromRPCError(error),
@@ -110,7 +109,7 @@ internal partial class EvmRpcClient : IRpcClient
             "eth_getBlockTransactionCountByHash", blockHash, cancellationToken
         ) switch
         {
-            RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
+            RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
             RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
@@ -120,7 +119,7 @@ internal partial class EvmRpcClient : IRpcClient
         => await SendRpcRequest<string, string>(
             "eth_getBlockTransactionCountByNumber", targetBlockNumber.ToString(), cancellationToken) switch
         {
-            RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber),
+            RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
             RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
@@ -181,8 +180,8 @@ internal partial class EvmRpcClient : IRpcClient
         }
 
         result = new TxSubmissionResult.NonceTooLow(
-            uint.Parse(match.Groups[2].ValueSpan),
-            uint.Parse(match.Groups[1].ValueSpan)
+            uint.Parse(match.Groups[2].ValueSpan, CultureInfo.InvariantCulture),
+            uint.Parse(match.Groups[1].ValueSpan, CultureInfo.InvariantCulture)
         );
 
         return true;

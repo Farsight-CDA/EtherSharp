@@ -8,6 +8,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Transport;
+/// <summary>
+/// Transport for EVM Websocket RPC
+/// </summary>
 public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logger = null) : IRPCTransport, IDisposable
 {
     /// <inheritdoc />
@@ -48,7 +51,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
             _isInitialized = true;
         }
 
-        await ConnectSocketAsync(cancellationToken).ConfigureAwait(false);
+        await ConnectSocketAsync(cancellationToken);
         _ = ConnectionHandler();
     }
 
@@ -61,7 +64,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
 
             try
             {
-                await MessageHandler().ConfigureAwait(false);
+                await MessageHandler();
                 _logger?.LogWarning("Websocket connection lost, killing {RequestCount} pending requests...", _pendingRequests.Count);
 
                 var wssClosedException = new RPCTransportException("WSS closed");
@@ -109,12 +112,12 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
             try
             {
                 _socket = new ClientWebSocket();
-                await _socket.ConnectAsync(_uri, cancellationToken).ConfigureAwait(false);
+                await _socket.ConnectAsync(_uri, cancellationToken);
             }
             catch(Exception ex)
             {
                 _logger?.LogDebug(ex, "Connection attempt failed, retrying in 3s...");
-                await Task.Delay(3000, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(3000, cancellationToken);
             }
         }
 
@@ -137,7 +140,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
 
             do
             {
-                receiveResult = await _socket.ReceiveAsync(buffer, default).ConfigureAwait(false);
+                receiveResult = await _socket.ReceiveAsync(buffer, default);
 
                 if(receiveResult.Count != 0)
                 {
@@ -309,9 +312,9 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
 
         _pendingRequests.TryAdd(requestId, (typeof(JsonRpcResponse<TResult>), tcs));
 
-        await _socket!.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken).ConfigureAwait(false);
+        await _socket!.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
 
-        var resultTask = await Task.WhenAny(tcs.Task, timeoutTask).ConfigureAwait(false);
+        var resultTask = await Task.WhenAny(tcs.Task, timeoutTask);
 
         if(resultTask == timeoutTask)
         {
@@ -325,10 +328,10 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
 
         if(resultTask.IsCanceled)
         {
-            await resultTask.ConfigureAwait(false);
+            await resultTask;
         }
 
-        var jsonRpcResponse = (JsonRpcResponse<TResult>) await tcs.Task.ConfigureAwait(false);
+        var jsonRpcResponse = (JsonRpcResponse<TResult>) await tcs.Task;
 
         if(jsonRpcResponse is null)
         {

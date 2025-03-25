@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.Types;
+﻿using System.Globalization;
+
+namespace EtherSharp.Types;
 public class Address
 {
     private readonly byte[] _addressBytes;
@@ -14,8 +16,9 @@ public class Address
 
     public static Address FromString(string s)
     {
-        if(s.StartsWith("0x"))
+        if(s.StartsWith("0x", false, CultureInfo.InvariantCulture))
         {
+            //
             return new Address(s, Convert.FromHexString(s.AsSpan()[2..]));
         }
         else

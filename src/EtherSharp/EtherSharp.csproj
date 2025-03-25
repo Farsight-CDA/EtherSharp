@@ -14,19 +14,16 @@
 		<Authors>Playwo</Authors>
 		<RepositoryUrl>https://github.com/farsight-CDA/EtherSharp</RepositoryUrl>
 		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
-		<AnalysisLevel>latest-all</AnalysisLevel>
+		<AnalysisLevel>latest</AnalysisLevel>
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageIcon>logo.png</PackageIcon>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	<PropertyGroup>
 		<WarningsAsErrors>$(WarningsAsErrors);NU1605;CS8604</WarningsAsErrors>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<WarningsAsErrors>$(WarningsAsErrors);NU1605;CS8604</WarningsAsErrors>
+		<NoWarn>1701;1702;CA1720;CA1716</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
