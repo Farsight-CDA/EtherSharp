@@ -18,6 +18,7 @@
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageIcon>logo.png</PackageIcon>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -36,6 +37,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Include="../../resources/logo.png" Pack="true" PackagePath="" />
+	</ItemGroup>
+	
+	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
 			<_Parameter1>$(MSBuildProjectName).Test</_Parameter1>
 		</AssemblyAttribute>
@@ -46,6 +51,7 @@
 			<_Parameter1>$(MSBuildProjectName).Bench</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
+	
 	<ItemGroup>
 		<None Update="ABI\Decode\AbiDecoder.NumberArrays.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
@@ -123,10 +129,6 @@
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>IArrayAbiEncoder.NumberArrays.cs</LastGenOutput>
 		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
 	</ItemGroup>
 
 	<ItemGroup>

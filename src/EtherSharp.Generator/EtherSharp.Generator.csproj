@@ -2,25 +2,38 @@
 	<Import Project="..\..\version.props" />
 
 	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		
 		<FileVersion>$(AssemblyVersion)</FileVersion>
 		<Version>$(AssemblyVersion)</Version>
-		<TargetFramework>netstandard2.0</TargetFramework>
+		
 		<OutputType>Library</OutputType>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<Nullable>enable</Nullable>
+		<IsPackable>true</IsPackable>
+		
 		<IsRoslynComponent>true</IsRoslynComponent>
-		<LangVersion>latest</LangVersion>
-		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<PackageProjectUrl>https://github.com/PoolPirate/Cosm.Net</PackageProjectUrl>
-		<RootNamespace>EtherSharp.Generator</RootNamespace>
-		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+		<IncludeBuildOutput>False</IncludeBuildOutput>
+		
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
 		<Title>EtherSharp.Generator</Title>
 		<Company>Farsight CDA Crypto Development &amp; Analytics UG</Company>
 		<Authors>Playwo</Authors>
-		<RepositoryUrl>https://github.com/farsight-CDA/EtherSharp</RepositoryUrl>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageProjectUrl>https://github.com/Farsight-CDA/EtherSharp</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Farsight-CDA/EtherSharp</RepositoryUrl>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>EtherSharp.Generator</RootNamespace>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<AnalysisLevel>latest-recommended</AnalysisLevel>
+		<PackageIcon>logo.png</PackageIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -37,11 +50,6 @@
 		<PackageReference Include="System.Text.Json" Version="9.0.0" PrivateAssets="all" GeneratePathProperty="true" />
 	</ItemGroup>
 
-	<PropertyGroup>
-		<GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
-		<AnalysisLevel>latest-recommended</AnalysisLevel>
-	</PropertyGroup>
-
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 	  <NoWarn>NU5128;CA1822</NoWarn>
 	</PropertyGroup>
@@ -50,15 +58,15 @@
 	  <NoWarn>NU5128;CA1822</NoWarn>
 	</PropertyGroup>
 
-	<Target Name="GetDependencyTargetPaths">
-		<ItemGroup>
-			<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+	<ItemGroup>
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 
-			<None Include="$(PKGKeccak256)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-			<None Include="$(PKGMicrosoft_Bcl_AsyncInterfaces)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-			<None Include="$(PKGMicrosoft_Bcl_HashCode)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-			<None Include="$(PKGSystem_Text_Encodings_Web)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-			<None Include="$(PKGSystem_Text_Json)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		</ItemGroup>
-	</Target>
+		<None Include="$(PKGKeccak256)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="$(PKGMicrosoft_Bcl_AsyncInterfaces)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="$(PKGMicrosoft_Bcl_HashCode)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="$(PKGSystem_Text_Encodings_Web)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="$(PKGSystem_Text_Json)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+
+		<None Include="../../resources/logo.png" Pack="true" PackagePath="" />
+	</ItemGroup>
 </Project>

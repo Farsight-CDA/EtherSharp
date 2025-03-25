@@ -1,11 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFrameworks>net9.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFrameworks>net9.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+	</PropertyGroup>
 
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -17,24 +19,24 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="Common\erc20-abi.json" />
+		<None Remove="Common\erc20-abi.json" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <AdditionalFiles Include="Common\erc20-abi.json" />
+		<AdditionalFiles Include="Common\erc20-abi.json" />
 	</ItemGroup>
 
 	<ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
-    <PackageReference Include="EtherSharp.Generator" Version="0.9.0-beta" />
-    <PackageReference Include="Nethereum.HdWallet" Version="4.26.0" />
-    <PackageReference Include="Nethereum.RLP" Version="4.26.0" />
-    <PackageReference Include="Nethereum.Util" Version="4.26.0" />
-    <PackageReference Include="Secp256k1.Native" Version="0.1.23" />
-  </ItemGroup>
+		<PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+		<PackageReference Include="EtherSharp.Generator" Version="0.9.0-beta" />
+		<PackageReference Include="Nethereum.HdWallet" Version="4.26.0" />
+		<PackageReference Include="Nethereum.RLP" Version="4.26.0" />
+		<PackageReference Include="Nethereum.Util" Version="4.26.0" />
+		<PackageReference Include="Secp256k1.Native" Version="0.1.23" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\src\EtherSharp\EtherSharp.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\src\EtherSharp\EtherSharp.csproj" />
+	</ItemGroup>
 
 </Project>
