@@ -1,8 +1,12 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Tx;
+using EtherSharp.Tx.EIP1559;
+using EtherSharp.Types;
 using System.Diagnostics;
 
 namespace EtherSharp.Client.Services.TxConfirmer;
+
 public class PollingTxConfirmer : ITxConfirmer
 {
     private readonly IRpcClient _rpcClient;

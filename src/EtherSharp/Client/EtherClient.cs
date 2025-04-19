@@ -163,10 +163,6 @@ public class EtherClient : IEtherClient, IEtherTxClient
         TxInput<T> call, TargetBlockNumber targetHeight = default, TxStateOverride? stateOverride = default, CancellationToken cancellationToken = default)
     {
         AssertReady();
-        ITxInput icall = call;
-
-        Span<byte> callDataBuffer = stackalloc byte[icall.DataLength];
-        icall.WriteDataTo(callDataBuffer);
 
         string? sender = _isTxClient
             ? _signer.Address.String
@@ -178,7 +174,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
             null,
             null,
             null,
-            $"0x{Convert.ToHexString(callDataBuffer)}",
+            $"0x{Convert.ToHexString(call.Data)}",
             targetHeight,
             stateOverride,
             cancellationToken
@@ -219,9 +215,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
             from = _signer.Address.String;
         }
 
-        Span<byte> buffer = stackalloc byte[call.DataLength];
-        call.WriteDataTo(buffer);
-        string data = $"0x{Convert.ToHexString(buffer)}";
+        string data = $"0x{Convert.ToHexString(call.Data)}";
         return _rpcClient.EthEstimateGasAsync(from, call.To.String, call.Value, data, cancellationToken);
     }
 
@@ -234,12 +228,10 @@ public class EtherClient : IEtherClient, IEtherTxClient
             ?? throw new InvalidOperationException(
                 $"No GasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
 
-        Span<byte> inputData = stackalloc byte[call.DataLength];
-        call.WriteDataTo(inputData);
-        return await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, inputData, txParams ?? TTxParams.Default, cancellationToken);
+        return await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, call.Data, txParams ?? TTxParams.Default, cancellationToken);
     }
 
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call, Func<ValueTask<TxTimeoutAction>> onTxTimeout,
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call, Func<ValueTask<TxConfirmationAction>> onTxTimeout,
         EIP1559TxParams? txParams, EIP1559GasParams? txGasParams)
     {
         AssertTxClient();
@@ -248,7 +240,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
             call, txParams, txGasParams, onTxTimeout
         );
     }
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call, Func<TxTimeoutAction> onTxTimeout,
+    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call, Func<TxConfirmationAction> onTxTimeout,
         EIP1559TxParams? txParams, EIP1559GasParams? txGasParams)
     {
         AssertTxClient();
@@ -259,7 +251,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
     }
 
     Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, Func<TxTimeoutAction> onTxTimeout,
+        ITxInput call, Func<TxConfirmationAction> onTxTimeout,
         TTxParams? txParams, TTxGasParams? txGasParams)
         where TTxParams : class
         where TTxGasParams : class
@@ -271,7 +263,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
         );
     }
     Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, Func<ValueTask<TxTimeoutAction>> onTxTimeout,
+        ITxInput call, Func<ValueTask<TxConfirmationAction>> onTxTimeout,
         TTxParams? txParams, TTxGasParams? txGasParams)
         where TTxParams : class
         where TTxGasParams : class

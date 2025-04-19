@@ -18,7 +18,7 @@ public class ParamDecodingWriter
     public (string, string) SetMessageOutputDecoding(FunctionBuilder function, AbiOutputParameter[] outputParameters)
     {
         var (type, decoderFunction) = GenerateOutputEncoding(outputParameters);
-        function.WithReturnTypeRaw($"EtherSharp.Tx.TxInput<{type}>");
+        function.WithReturnTypeRaw($"EtherSharp.Tx.ITxInput<{type}>");
         return (type, decoderFunction);
     }
 

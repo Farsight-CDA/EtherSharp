@@ -7,8 +7,5 @@ public interface ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
     where TTxParams : ITxParams<TTxParams>
     where TTxGasParams : ITxGasParams
 {
-    public string EncodeTxToBytes(
-        ITxInput txInput, TTxParams txParams, TTxGasParams txGasParams,
-        ReadOnlySpan<byte> inputData, uint nonce
-    );
+    public string EncodeTxToBytes(ITxInput txInput, TTxParams txParams, TTxGasParams txGasParams, uint nonce, out string txHash);
 }

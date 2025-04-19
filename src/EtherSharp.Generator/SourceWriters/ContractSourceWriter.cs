@@ -144,14 +144,14 @@ public class ContractSourceWriter(
 
         func.AddStatement(
             $$"""
-            return _client.CallAsync(new EtherSharp.Tx.TxInput<{{returnType}}>(
+            return _client.CallAsync(EtherSharp.Tx.ITxInput.ForContractCall<{{returnType}}>(
+                Address,
+                0,
                 {{GetFunctionSignatureFieldName(queryFunction)}},
                 encoder,
                 decoder => {
                 {{decoderFunction}}
-                },
-                Address,
-                0
+                }
             ), targetBlockNumber, stateOverride: stateOverride, cancellationToken: cancellationToken)
             """
         );
@@ -195,10 +195,10 @@ public class ContractSourceWriter(
         switch(messageFunction.Outputs.Length)
         {
             case 0:
-                func.WithReturnTypeRaw("EtherSharp.Tx.TxInput");
+                func.WithReturnTypeRaw("EtherSharp.Tx.ITxInput");
                 func.AddStatement(
                 $$"""
-                return EtherSharp.Tx.TxInput.ForContractCall(
+                return EtherSharp.Tx.ITxInput.ForContractCall(
                     Address,
                     {{ethParamName}},
                     {{GetFunctionSignatureFieldName(messageFunction)}},
@@ -210,15 +210,15 @@ public class ContractSourceWriter(
                 var (returnType, decoderFunction) = _paramDecodingWriter.SetMessageOutputDecoding(func, messageFunction.Outputs);
                 func.AddStatement(
                 $$"""
-                return new EtherSharp.Tx.TxInput<{{returnType}}>(
+                return EtherSharp.Tx.ITxInput.ForContractCall<{{returnType}}>(
+                    Address,
+                    {{ethParamName}},
                     {{GetFunctionSignatureFieldName(messageFunction)}},
                     encoder,
                     decoder =>
                     {
                     {{decoderFunction}}
-                    },
-                    Address,
-                    {{ethParamName}}
+                    }
                 )
                 """);
                 break;
