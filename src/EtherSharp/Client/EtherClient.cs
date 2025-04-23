@@ -9,14 +9,14 @@ using EtherSharp.Contract;
 using EtherSharp.StateOverride;
 using EtherSharp.Transport;
 using EtherSharp.Tx;
-using EtherSharp.Tx.EIP1559;
+using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
 
 namespace EtherSharp.Client;
-public class EtherClient : IEtherClient, IEtherTxClient
+internal class EtherClient : IEtherClient, IEtherTxClient
 {
     private readonly IServiceProvider _provider;
     private readonly bool _isTxClient;
@@ -30,7 +30,8 @@ public class EtherClient : IEtherClient, IEtherTxClient
 
     private bool _initialized;
     private ulong _chainId;
-    public ulong ChainId
+
+    ulong IEtherClient.ChainId
     {
         get
         {
@@ -57,8 +58,6 @@ public class EtherClient : IEtherClient, IEtherTxClient
             return _etherApi;
         }
     }
-
-    ulong IEtherClient.ChainId => throw new NotImplementedException();
 
     ILogsApi<TEvent> IEtherClient.Logs<TEvent>()
     {
@@ -87,7 +86,7 @@ public class EtherClient : IEtherClient, IEtherTxClient
         }
     }
 
-    public async Task InitializeAsync(CancellationToken cancellationToken)
+    async Task IEtherClient.InitializeAsync(CancellationToken cancellationToken)
     {
         if(_initialized)
         {
@@ -117,33 +116,26 @@ public class EtherClient : IEtherClient, IEtherTxClient
         _initialized = true;
     }
 
-    public Task<BlockDataTrasactionAsString> GetBlockAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
+    Task<BlockDataTrasactionAsString> IEtherClient.GetBlockAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
     {
         AssertReady();
         return _rpcClient.EthGetBlockByNumberAsync(targetBlockNumber, cancellationToken);
     }
-    public Task<Transaction> GetTransactionAsync(string hash, CancellationToken cancellationToken)
+    Task<Transaction> IEtherClient.GetTransactionAsync(string hash, CancellationToken cancellationToken)
     {
         AssertReady();
         return _rpcClient.EthTransactionByHash(hash, cancellationToken);
     }
-    public Task<ulong> GetPeakHeightAsync(CancellationToken cancellationToken)
+    Task<ulong> IEtherClient.GetPeakHeightAsync(CancellationToken cancellationToken)
     {
         AssertReady();
         return _rpcClient.EthBlockNumberAsync(cancellationToken);
     }
-    public Task<uint> GetTransactionCount(
-        string address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
+    Task<uint> IEtherClient.GetTransactionCount(
+        string address, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return _rpcClient.EthGetTransactionCount(address, targetHeight, cancellationToken);
-    }
-
-    private Task<BigInteger> GetBalanceAsync(
-        string address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return _rpcClient.EthGetBalance(address, targetHeight, cancellationToken);
     }
 
     private TContract Contract<TContract>(string contractAddress)
@@ -159,8 +151,55 @@ public class EtherClient : IEtherClient, IEtherTxClient
         return _contractFactory.Create<TContract>(address);
     }
 
-    private async Task<T> CallAsync<T>(
-        TxInput<T> call, TargetBlockNumber targetHeight = default, TxStateOverride? stateOverride = default, CancellationToken cancellationToken = default)
+    Task<FeeHistory> IEtherClient.GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
+        double[] rewardPercentiles, CancellationToken cancellationToken)
+    {
+        AssertReady();
+        return _rpcClient.EthGetFeeHistory(blockCount, newestBlock, rewardPercentiles, cancellationToken);
+    }
+    Task<BigInteger> IEtherClient.GetGasPriceAsync(CancellationToken cancellationToken)
+    {
+        AssertReady();
+        return _rpcClient.EthGasPriceAsync(cancellationToken);
+    }
+
+    Task<BigInteger> IEtherClient.GetMaxPriorityFeePerGasAsync(CancellationToken cancellationToken)
+    {
+        AssertReady();
+        return _rpcClient.EthMaxPriorityFeePerGas(cancellationToken);
+    }
+
+    Task<ulong> IEtherClient.EstimateGasLimitAsync(ITxInput call, string? from, CancellationToken cancellationToken)
+    {
+        AssertReady();
+
+        if (from is null && _isTxClient)
+        {
+            from = _signer.Address.String;
+        }
+
+        string data = $"0x{Convert.ToHexString(call.Data)}";
+        return _rpcClient.EthEstimateGasAsync(from, call.To.String, call.Value, data, cancellationToken);
+    }
+
+    async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
+        ITxInput call, TTxParams? txParams, TxStateOverride? stateOverride, CancellationToken cancellationToken)
+        where TTxParams : class
+    {
+        AssertReady();
+        var gasFeeProvider = _provider.GetService<IGasFeeProvider<TTxParams, TTxGasParams>>()
+            ?? throw new InvalidOperationException(
+                $"No GasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
+
+        return await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, call.Data, txParams ?? TTxParams.Default, cancellationToken);
+    }
+
+    TContract IEtherClient.Contract<TContract>(string address)
+        => Contract<TContract>(address); 
+    TContract IEtherClient.Contract<TContract>(Address address)
+        => Contract<TContract>(address);
+
+    async Task<T> IEtherClient.CallAsync<T>(ITxInput<T> call, TargetBlockNumber targetHeight, TxStateOverride? stateOverride, CancellationToken cancellationToken)
     {
         AssertReady();
 
@@ -188,97 +227,13 @@ public class EtherClient : IEtherClient, IEtherTxClient
         };
     }
 
-    public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
-        double[] rewardPercentiles, CancellationToken cancellationToken)
-    {
-        AssertReady();
-        return _rpcClient.EthGetFeeHistory(blockCount, newestBlock, rewardPercentiles, cancellationToken);
-    }
-    public Task<BigInteger> GetGasPriceAsync(CancellationToken cancellationToken)
-    {
-        AssertReady();
-        return _rpcClient.EthGasPriceAsync(cancellationToken);
-    }
-
-    public Task<BigInteger> GetMaxPriorityFeePerGasAsync(CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return _rpcClient.EthMaxPriorityFeePerGas(cancellationToken);
-    }
-
-    public Task<ulong> EstimateGasLimitAsync(ITxInput call, string? from = null, CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-
-        if (from is null && _isTxClient)
-        {
-            from = _signer.Address.String;
-        }
-
-        string data = $"0x{Convert.ToHexString(call.Data)}";
-        return _rpcClient.EthEstimateGasAsync(from, call.To.String, call.Value, data, cancellationToken);
-    }
-
-    async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams, TxStateOverride? stateOverride, CancellationToken cancellationToken)
-        where TTxParams : class
-    {
-        AssertReady();
-        var gasFeeProvider = _provider.GetService<IGasFeeProvider<TTxParams, TTxGasParams>>()
-            ?? throw new InvalidOperationException(
-                $"No GasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
-
-        return await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, call.Data, txParams ?? TTxParams.Default, cancellationToken);
-    }
-
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call, Func<ValueTask<TxConfirmationAction>> onTxTimeout,
-        EIP1559TxParams? txParams, EIP1559GasParams? txGasParams)
-    {
-        AssertTxClient();
-        AssertReady();
-        return _txScheduler.PublishTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
-            call, txParams, txGasParams, onTxTimeout
-        );
-    }
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync(ITxInput call, Func<TxConfirmationAction> onTxTimeout,
-        EIP1559TxParams? txParams, EIP1559GasParams? txGasParams)
-    {
-        AssertTxClient();
-        AssertReady();
-        return _txScheduler.PublishTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
-            call, txParams, txGasParams, () => ValueTask.FromResult(onTxTimeout())
-        );
-    }
-
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, Func<TxConfirmationAction> onTxTimeout,
-        TTxParams? txParams, TTxGasParams? txGasParams)
+    async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams
+    )
         where TTxParams : class
         where TTxGasParams : class
-    {
-        AssertTxClient();
-        AssertReady();
-        return _txScheduler.PublishTxAsync<TTransaction, TTxParams, TTxGasParams>(
-            call, txParams, txGasParams, () => ValueTask.FromResult(onTxTimeout())
-        );
-    }
-    Task<TransactionReceipt> IEtherTxClient.ExecuteTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, Func<ValueTask<TxConfirmationAction>> onTxTimeout,
-        TTxParams? txParams, TTxGasParams? txGasParams)
-        where TTxParams : class
-        where TTxGasParams : class
-    {
-        AssertTxClient();
-        AssertReady();
-        return _txScheduler.PublishTxAsync<TTransaction, TTxParams, TTxGasParams>(
-            call, txParams, txGasParams, onTxTimeout
-        );
-    }
+        => await _txScheduler.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(call, txParams, txGasParams);
 
-    TContract IEtherClient.Contract<TContract>(string address)
-        => Contract<TContract>(address); 
-    TContract IEtherClient.Contract<TContract>(Address address)
-        => Contract<TContract>(address);
-    Task<T> IEtherClient.CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight, TxStateOverride? stateOverride, CancellationToken cancellationToken)
-        => CallAsync(call, targetHeight, stateOverride, cancellationToken);
+    async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(uint nonce)
+        => await _txScheduler.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(nonce);
 }

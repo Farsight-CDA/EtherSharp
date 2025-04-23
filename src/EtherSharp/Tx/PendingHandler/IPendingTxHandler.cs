@@ -1,5 +1,4 @@
-﻿using EtherSharp.Client.Services.ResiliencyLayer;
-using EtherSharp.Tx.Types;
+﻿using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 
 namespace EtherSharp.Tx.PendingHandler;

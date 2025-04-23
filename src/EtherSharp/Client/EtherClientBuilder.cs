@@ -3,7 +3,6 @@ using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.RPC;
-using EtherSharp.Client.Services.TxConfirmer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Client.Services.TxTypeHandler;
@@ -69,8 +68,7 @@ public class EtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithTxConfirmer<PollingTxConfirmer>()
-            .WithTxScheduler<BlockingSequentialTxScheduler>()
+            .WithTxScheduler<BlockingSequentialResumableTxScheduler>()
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
                 gasFeeProviderConfigureAction: configureGasProvider
             );
@@ -92,8 +90,7 @@ public class EtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithTxConfirmer<PollingTxConfirmer>()
-            .WithTxScheduler<BlockingSequentialTxScheduler>()
+            .WithTxScheduler<BlockingSequentialResumableTxScheduler>()
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
     }
 
@@ -141,14 +138,6 @@ public class EtherClientBuilder
     {
         _services.AddOrReplaceSingleton<ITxPublisher, TTxPublisher>();
         AddConfigureAction<ITxPublisher, TTxPublisher>(configureAction);
-        return this;
-    }
-
-    public EtherClientBuilder WithTxConfirmer<TTxConfirmer>(Action<ITxConfirmer>? configureAction = null)
-        where TTxConfirmer : class, ITxConfirmer
-    {
-        _services.AddOrReplaceSingleton<ITxConfirmer, TTxConfirmer>();
-        AddConfigureAction<ITxConfirmer, TTxConfirmer>(configureAction);
         return this;
     }
 
@@ -240,10 +229,6 @@ public class EtherClientBuilder
         if(!_services.Any(x => x.ServiceType == typeof(ITxPublisher)))
         {
             throw new InvalidOperationException($"No {nameof(ITxPublisher)} configured. Call the {nameof(WithTxPublisher)} method prior to {nameof(BuildTxClient)}");
-        }
-        if(!_services.Any(x => x.ServiceType == typeof(ITxConfirmer)))
-        {
-            throw new InvalidOperationException($"No {nameof(ITxConfirmer)} configured. Call the {nameof(WithTxConfirmer)} method prior to {nameof(BuildTxClient)}");
         }
     }
     public IEtherTxClient BuildTxClient()

@@ -1,7 +1,6 @@
-﻿using EtherSharp.Tx;
-using EtherSharp.Tx.Types;
+﻿using EtherSharp.Tx.Types;
 
-namespace EtherSharp.Client.Services.ResiliencyLayer;
+namespace EtherSharp.Tx;
 public record TxSubmission<TTxParams, TTxGasParams>(
     string TxHash, 
     string SignedTx,

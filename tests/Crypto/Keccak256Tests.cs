@@ -1,6 +1,4 @@
-﻿using EtherSharp.Client;
-using EtherSharp.Crypto;
-using EtherSharp.Tx;
+﻿using EtherSharp.Crypto;
 using System.Text;
 
 namespace EtherSharp.Tests.Crypto;
@@ -15,17 +13,6 @@ public class Keccak256Tests
         string actual = Convert.ToHexString(
             Keccak256.HashData(Encoding.UTF8.GetBytes(input))
         );
-
-        IEtherTxClient d = null!;
-        ITxInput e = null!;
-
-        var handler = d.PrepareTx(e);
-
-        handler.PublishAndConfirmAsync((error, txParams, txGasParams) =>
-        {
-
-            return new TxConfirmationAction.ContinueWaiting();
-        })
 
         Assert.Equal(expected, actual, ignoreCase: true);
     }
