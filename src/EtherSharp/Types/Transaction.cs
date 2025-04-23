@@ -7,6 +7,5 @@ public record Transaction(
     string? ContractAddress,
     BigInteger EffectiveGasPrice,
     string From,
-    ulong GasUsed,
-    BigInteger? L1Fee    
+    ulong GasUsed
 );

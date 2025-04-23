@@ -15,6 +15,5 @@ public record TransactionReceipt(
     string? LogsBloom,
     string? To,
     int? TransactionIndex,
-    BigInteger? L1Fee,
     int? Type  //todo: enum ?
 );
