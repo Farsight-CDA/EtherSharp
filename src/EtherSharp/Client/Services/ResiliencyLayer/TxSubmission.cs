@@ -1,12 +1,13 @@
-﻿using EtherSharp.Types;
-using System.Numerics;
+﻿using EtherSharp.Tx;
+using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Client.Services.ResiliencyLayer;
-public record TxSubmission(
+public record TxSubmission<TTxParams, TTxGasParams>(
     string TxHash, 
-    Address To,
-    BigInteger Value,
-    byte[] Calldata,
-    byte[] TxParams,
-    byte[] TxGasParams
-);
+    string SignedTx,
+    ITxInput Call,
+    TTxParams Params,
+    TTxGasParams GasParams
+) 
+    where TTxParams : class, ITxParams<TTxParams>
+    where TTxGasParams : class, ITxGasParams<TTxGasParams>;

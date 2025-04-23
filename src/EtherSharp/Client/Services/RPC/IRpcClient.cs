@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Types;
 using System.Numerics;
 using EtherSharp.StateOverride;
+using EtherSharp.Client.Services.TxPublisher;
 
 namespace EtherSharp.Client.Services.RPC;
 public interface IRpcClient

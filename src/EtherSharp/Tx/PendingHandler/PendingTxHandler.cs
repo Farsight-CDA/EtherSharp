@@ -8,19 +8,27 @@ namespace EtherSharp.Tx.PendingHandler;
 /// </summary>
 public class PendingTxHandler<TTxParams, TTxGasParams>(
     uint nonce, 
-    IEnumerable<TxSubmission> txSubmissions, 
-    Func<ITxParams, ITxGasParams, Task<TxSubmissionResult>> publishFunc
+    IEnumerable<TxSubmission<TTxParams, TTxGasParams>> txSubmissions,
+    Func<
+        PendingTxHandler<TTxParams, TTxGasParams>,
+        Func<TxConfirmationError, ITxInput, TTxParams, TTxGasParams, TxConfirmationAction>,
+        Task<TxConfirmationResult>
+    > processFunc
 ) : IPendingTxHandler<TTxParams, TTxGasParams>, IInternalPendingTxHandler
     where TTxParams : class, ITxParams<TTxParams>
     where TTxGasParams : class, ITxGasParams<TTxGasParams>
 {
-    private readonly List<TxSubmission> _txSubmissions = [.. txSubmissions];
+    private readonly List<TxSubmission<TTxParams, TTxGasParams>> _txSubmissions = [.. txSubmissions];
+    private readonly Func<
+        PendingTxHandler<TTxParams, TTxGasParams>,
+        Func<TxConfirmationError, ITxInput, TTxParams, TTxGasParams, TxConfirmationAction>,
+        Task<TxConfirmationResult>
+    > _processFunc = processFunc;
 
-    private readonly TaskCompletionSource<TransactionReceipt> _confirmReturnCts = new TaskCompletionSource<TransactionReceipt>();
-    private readonly TaskCompletionSource<(
-        TaskCompletionSource<TransactionReceipt>,
-        Func<TxConfirmationError, ITxInput, ITxParams, ITxGasParams, TxConfirmationAction>
-        )> _confirmCallCts = new ();
+    private readonly Lock _isConfirmCalledLock = new Lock();
+    private bool _isConfirmCalled;
+    private readonly TaskCompletionSource<TxConfirmationResult> _completionCts 
+        = new TaskCompletionSource<TxConfirmationResult>();
 
     /// <summary>
     /// The nonce allocated to this pending tx.
@@ -30,29 +38,33 @@ public class PendingTxHandler<TTxParams, TTxGasParams>(
     /// <summary>
     /// Set of parameters that was used to submit this transaction to the mempool.
     /// </summary>
-    public IReadOnlyList<TxSubmission> TxSubmissions => [.. _txSubmissions];
+    public IReadOnlyList<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions => [.. _txSubmissions];
 
-    /// <summary>
-    /// Function to encode and send the transaction to the mempool.
-    /// </summary>
-    public Func<ITxParams, ITxGasParams, Task<TxSubmissionResult>> PublishFunc { get; } = publishFunc;
-
-    void IInternalPendingTxHandler.AddTxSubmission(TxSubmission txSubmission) 
-        => _txSubmissions.Add(txSubmission);
-
-    Task<(TaskCompletionSource<TransactionReceipt>, Func<TxConfirmationError, ITxInput, ITxParams, ITxGasParams, TxConfirmationAction>)>         IInternalPendingTxHandler.WaitForConfirmCallAsync()
-        => _confirmCallCts.Task;
-
-    /// <summary>
-    /// Waits for the transaction to be confirmed on-chain and performs necessary changes based on a given callback to ensure it does.
-    /// </summary>
-    /// <returns></returns>
-    public Task<TransactionReceipt> PublishAndConfirmAsync(Func<TxConfirmationError, ITxInput, TTxParams, TTxGasParams, TxConfirmationAction> onError)
+    Task IInternalPendingTxHandler.WaitForCompletionAsync() 
+        => _completionCts.Task;
+    async Task<TxConfirmationResult> IPendingTxHandler<TTxParams, TTxGasParams>.PublishAndConfirmAsync(
+        Func<TxConfirmationError, ITxInput, TTxParams, TTxGasParams, TxConfirmationAction> onError)
     {
+        Task<TxConfirmationResult> resultTask;
 
+        lock(_isConfirmCalledLock)
+        {
+            if(_isConfirmCalled)
+            {
+                resultTask = _completionCts.Task;
+            }
+            else
+            {
+                resultTask = _processFunc(this, onError)
+                    .ContinueWith(prev =>
+                    {
+                        _completionCts.SetResult(prev.Result);
+                        return prev.Result;
+                    });
+                _isConfirmCalled = true;
+            }
+        }
 
-        return !_confirmCallCts.TrySetResult((_confirmReturnCts, (error, txInput, txParams, txGasParams) => onError(error, txInput, (TTxParams) txParams, (TTxGasParams) txGasParams)))
-                ? throw new InvalidOperationException($"{nameof(PublishAndConfirmAsync)} already called")
-                : _confirmReturnCts.Task;
+        return await resultTask;
     }
 }

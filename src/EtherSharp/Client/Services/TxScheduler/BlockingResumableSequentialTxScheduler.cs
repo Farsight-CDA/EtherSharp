@@ -1,11 +1,9 @@
 ﻿using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.RPC;
-using EtherSharp.Client.Services.TxConfirmer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common.Exceptions;
-using EtherSharp.Crypto;
 using EtherSharp.Tx;
 using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Tx.Types;
@@ -17,18 +15,23 @@ namespace EtherSharp.Client.Services.TxScheduler;
 
 public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializableService
 {
+    private abstract record QueueEntry
+    {
+        public record ExistingHandler(IInternalPendingTxHandler TxHandler) : QueueEntry;
+        public record PendingHandler(TaskCompletionSource<IInternalPendingTxHandler> TxHandlerCts) : QueueEntry;
+    }
+
     private readonly IServiceProvider _provider;
     private readonly IRpcClient _rpcClient;
     private readonly IEtherSigner _signer;
     private readonly ITxPublisher _txPublisher;
-    private readonly ITxConfirmer _txConfirmer;
 
     private readonly IResiliencyLayer? _resiliencyLayer;
 
     private readonly TimeSpan _txTimeout = TimeSpan.FromSeconds(30);
 
     private readonly Lock _pendingTxHandlersLock = new Lock();
-    private readonly Dictionary<uint, IInternalPendingTxHandler> _pendingTxHandlers = [];
+    private readonly Dictionary<uint, QueueEntry> _pendingEntries = [];
 
     private ulong _chainId;
 
@@ -44,13 +47,12 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
     private uint _peakNonce;
 
     public BlockingSequentialResumableTxScheduler(IServiceProvider provider, IRpcClient rpcClient, IEtherSigner signer,
-        ITxPublisher txPublisher, ITxConfirmer txConfirmer)
+        ITxPublisher txPublisher)
     {
         _provider = provider;
         _rpcClient = rpcClient;
         _signer = signer;
         _txPublisher = txPublisher;
-        _txConfirmer = txConfirmer;
 
         _resiliencyLayer = _provider.GetService<IResiliencyLayer>();
     }
@@ -78,7 +80,8 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
             for(uint nonce = _activeNonce; nonce < _peakNonce; nonce++)
             {
                 var txSubmissions = await _resiliencyLayer.FetchTxSubmissionsAsync(nonce);
-                _pendingTxHandlers.Add(nonce, new PendingTxHandler(nonce, txSubmissions));
+                var entry = new QueueEntry.PendingHandler(new TaskCompletionSource<IInternalPendingTxHandler>());
+                _pendingEntries.Add(nonce, entry);
             }
         }
 
@@ -92,93 +95,171 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
             //Wait for _peakNonce + 1 > _activeNonce
             await _pendingNoncesSemaphore.WaitAsync();
 
-            IInternalPendingTxHandler? txHandler;
+            QueueEntry? entry;
             lock(_pendingTxHandlersLock)
             {
-                _pendingTxHandlers.Remove(_activeNonce, out txHandler);
+                _pendingEntries.Remove(_activeNonce, out entry);
             }
 
-            if(txHandler is null)
+            if(entry is null)
             {
                 throw new ImpossibleException();
             }
 
-            var returnCts = await txHandler.WaitForConfirmCallAsync();
+            switch(entry)
+            {
+                case QueueEntry.ExistingHandler existingHandlerEntry:
+                {
+                    await existingHandlerEntry.TxHandler.WaitForCompletionAsync();
+                    break;
+                }
+                case QueueEntry.PendingHandler pendingHandlerEntry:
+                {
+                    var handlerTask = pendingHandlerEntry.TxHandlerCts.Task;
 
-            var submissionResult = await txHandler.PublishFunc.Invoke();
+                    var noncePollTask = WaitForNonceAsync(x => x > _activeNonce);
 
-            //var confirmCall = txHandler.WaitForConfirmCallAsync();
-            //var scanCall = StartScanningForTx();
+                    //Do this in parallel:
+                    //- Poll nonce, if it increments increment nonce by 1 and continue the loop
+                    //- Wait for handlerTask, once it completes abort the task above and call WaitForCompletionAsync
 
-            //var completedTask = Task.WhenAny(confirmCall, scanCall);
-
-            //Start Scan Task
-
-
-
-            //Wait for confirm call 
-
-            //Confirm Call Received -> Wait for Scan Task Completed -> Send result to confirm call -> Done
-            //Scan Task Completed -> Done
-
-
+                    throw new NotSupportedException();
+                    break;
+                }    
+                default:
+                    throw new NotSupportedException();
+            }
 
             _activeNonce++;
         }
     }
 
-    ValueTask<IPendingTxHandler<TTxParams, TTxGasParams>> ITxScheduler.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
+    async ValueTask<IPendingTxHandler<TTxParams, TTxGasParams>> ITxScheduler.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
         ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams
     )
         where TTxParams : class
         where TTxGasParams : class
     {
+        var handler = _provider.GetService<ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>>()
+            ?? throw new InvalidOperationException(
+                $"No ITxTypeHandler found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
+        var gasFeeProvider = _provider.GetService<IGasFeeProvider<TTxParams, TTxGasParams>>()
+            ?? throw new InvalidOperationException(
+                $"No IGasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
+
         uint nextNonce = Interlocked.Increment(ref _peakNonce) - 1;
-        var handler = new PendingTxHandler<TTxParams, TTxGasParams>(nextNonce, []);
+
+        txParams ??= TTxParams.Default;
+        txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, call.Data, txParams, default);
+
+        string txBytes = handler.EncodeTxToBytes(call, txParams, txGasParams, nextNonce, out string txHash);
+        var submission = new TxSubmission<TTxParams, TTxGasParams>(txHash, txBytes, call, txParams, txGasParams);
+
+        var pendingTxHandler = new PendingTxHandler<TTxParams, TTxGasParams>(nextNonce, [submission], ProcessPendingTxAsync);
 
         lock(_pendingTxHandlersLock)
         {
-            _pendingTxHandlers.Add(nextNonce, handler);
+            _pendingEntries.Add(nextNonce, new QueueEntry.ExistingHandler(pendingTxHandler));
         }
 
         _pendingNoncesSemaphore.Release();
-        return handler;
+        return pendingTxHandler;
     }
 
-    private async Task<TxSubmissionResult> PublishTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        IInternalPendingTxHandler txHandler, ITxInput txInput, TTxParams txParams, TTxGasParams txGasParams
+    private async Task<TxConfirmationResult> ProcessPendingTxAsync<TTxParams, TTxGasParams>(
+        PendingTxHandler<TTxParams, TTxGasParams> txHandler,
+        Func<TxConfirmationError, ITxInput, TTxParams, TTxGasParams, TxConfirmationAction> onError
     )
-        where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
-        try
+        using var cts = new CancellationTokenSource();
+        var noncePollTask = WaitForNonceAsync(x => x > txHandler.Nonce);
+        var errorHandlingTask = Task.Run(async () =>
         {
-            var handler = _provider.GetService<ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>>()
-                ?? throw new InvalidOperationException(
-                    $"No ITxTypeHandler found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
-            var gasFeeProvider = _provider.GetService<IGasFeeProvider<TTxParams, TTxGasParams>>()
-                ?? throw new InvalidOperationException(
-                    $"No IGasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
+            bool requirePublish = true;
+            TxSubmissionResult publishResult = null!;
+            var latestSubmission = txHandler.TxSubmissions[0];
 
-            txParams ??= TTxParams.Default;
-            txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(txInput.To, txInput.Value, txInput.Data, txParams, default);
-
-            string txBytes = handler.EncodeTxToBytes(txInput, txParams, txGasParams, txHandler.Nonce, out string txHash);
-
-            var submission = new TxSubmission(txHash, txInput.To, txInput.Value, txInput.Data, txParams.Encode(), txGasParams.Encode());
-            txHandler.AddTxSubmission(submission);
-
-            if(_resiliencyLayer is not null)
+            for(int attempt = 0; ; attempt++)
             {
-                await _resiliencyLayer.StoreTxSubmissionAsync(txHandler.Nonce, submission);
+                if(cts.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if(requirePublish)
+                {
+                    latestSubmission = txHandler.TxSubmissions[0];
+                    publishResult = await _txPublisher.PublishTxAsync(latestSubmission.SignedTx, cts.Token);
+                }
+
+                if (publishResult is TxSubmissionResult.Success && attempt == 0)
+                {
+                    await Task.Delay(_txTimeout, cts.Token);
+                }
+
+                TxConfirmationError error = publishResult switch
+                {
+                    TxSubmissionResult.Success => new TxConfirmationError.Timeout(),
+                    TxSubmissionResult.UnhandledException ex => new TxConfirmationError.UnhandledException(ex.Exception),
+                    _ => throw new ImpossibleException()
+                };
+
+                requirePublish = false;
+
+                var actions = onError.Invoke(error, latestSubmission.Call, latestSubmission.Params, latestSubmission.GasParams);
+
+                switch(actions)
+                {
+                    case TxConfirmationAction.ContinueWaiting waitAction:
+                        await Task.Delay(waitAction.Duration, cts.Token);
+                        break;
+                    
+                    default:
+                        throw new ImpossibleException();
+                }
             }
 
-            return await _txPublisher.PublishTxAsync(txBytes);
-        }
-        catch(Exception ex)
+        });
+
+        await noncePollTask;
+
+        foreach(var txSubmission in txHandler.TxSubmissions)
         {
-            return new TxSubmissionResult.UnhandledException(ex);
+            var txReceipt = await _rpcClient.EthGetTransactionReceiptAsync(txSubmission.TxHash);
+
+            if (txReceipt is not null)
+            {
+                return new TxConfirmationResult.Success(txReceipt);
+            }
         }
+
+        return new TxConfirmationResult.NonceAlreadyUsed();
+    }
+
+    private async Task WaitForNonceAsync(Predicate<uint> predicate)
+    {
+        //ToDo: Consider configurable polling interval
+
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(2));
+
+        while (await timer.WaitForNextTickAsync())
+        {
+            try
+            {
+                uint txCount = await _rpcClient.EthGetTransactionCount(_signer.Address.String, TargetBlockNumber.Latest);
+                if(predicate(txCount))
+                {
+                    return;
+                }
+            }
+            catch
+            {
+                //ToDo: Consider how to handle exceptions here
+            }
+        }
+
+        throw new ImpossibleException();
     }
 }

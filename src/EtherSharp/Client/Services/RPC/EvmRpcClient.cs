@@ -1,4 +1,5 @@
-﻿using EtherSharp.Common.Exceptions;
+﻿using EtherSharp.Client.Services.TxPublisher;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.StateOverride;
 using EtherSharp.Transport;
 using EtherSharp.Types;
@@ -151,41 +152,9 @@ internal partial class EvmRpcClient : IRpcClient
         => await SendRpcRequest<string, string>("eth_sendRawTransaction", transaction, cancellationToken) switch
         {
             RpcResult<string>.Success result => new TxSubmissionResult.Success(result.Result),
-            RpcResult<string>.Error error => error.Code != -32000
-                ? throw RPCException.FromRPCError(error)
-                : ParseTxSubmissionError(error.Message),
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
-
-    private TxSubmissionResult ParseTxSubmissionError(string message)
-    {
-        if(TryParseNonceTooLow(message, out var result))
-        {
-            return result;
-        }
-        //
-        return new TxSubmissionResult.Failure(message);
-    }
-
-    [GeneratedRegex("nonce too low: next nonce (\\d+), tx nonce (\\d+)")]
-    private partial Regex NonceTooLowRegex { get; }
-    private bool TryParseNonceTooLow(string message, out TxSubmissionResult.NonceTooLow result)
-    {
-        var match = NonceTooLowRegex.Match(message);
-
-        if(!match.Success)
-        {
-            result = null!;
-            return false;
-        }
-
-        result = new TxSubmissionResult.NonceTooLow(
-            uint.Parse(match.Groups[2].ValueSpan, CultureInfo.InvariantCulture),
-            uint.Parse(match.Groups[1].ValueSpan, CultureInfo.InvariantCulture)
-        );
-
-        return true;
-    }
 
     public async Task<BigInteger> EthGasPriceAsync(CancellationToken cancellationToken)
     {

@@ -21,7 +21,7 @@ public interface IPendingTxHandler<TTxParams, TTxGasParams>
     /// <summary>
     /// Collection of parameters that the transaction with this nonce was submitted with.
     /// </summary>
-    public IReadOnlyList<TxSubmission> TxSubmissions { get; }
+    public IReadOnlyList<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions { get; }
 
     /// <summary>
     /// Publishes the most recent tx submission to the mempool and waits for it to be confirmed on the blockchain.
@@ -29,5 +29,5 @@ public interface IPendingTxHandler<TTxParams, TTxGasParams>
     /// </summary>
     /// <param name="onError"></param>
     /// <returns></returns>
-    public Task<TransactionReceipt> PublishAndConfirmAsync(Func<TxConfirmationError, ITxInput, TTxParams, TTxGasParams, TxConfirmationAction> onError);
+    public Task<TxConfirmationResult> PublishAndConfirmAsync(Func<TxConfirmationError, ITxInput, TTxParams, TTxGasParams, TxConfirmationAction> onError);
 }

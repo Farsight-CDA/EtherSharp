@@ -1,8 +1,5 @@
-﻿using EtherSharp.Types;
-
-namespace EtherSharp.Client.Services.TxPublisher;
+﻿namespace EtherSharp.Client.Services.TxPublisher;
 public interface ITxPublisher
 {
-    public Task<TxSubmissionResult> PublishTxAsync(string transactionHex);
-
+    public Task<TxSubmissionResult> PublishTxAsync(string transactionHex, CancellationToken cancellationToken);
 }
