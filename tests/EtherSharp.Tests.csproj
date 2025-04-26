@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\version.props" />
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -11,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+	  <ProjectReference Include="..\src\EtherSharp\EtherSharp.csproj" />
     <PackageReference Include="coverlet.collector" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
