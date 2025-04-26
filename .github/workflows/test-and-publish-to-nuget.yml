@@ -26,7 +26,7 @@ jobs:
         run: dotnet nuget add source ${{ github.workspace }}/local-nuget --name LocalNuGetSource
 
       - name: Build EtherSharp.Generator
-        run: cd src/EtherSharp.Generator && dotnet publish --configuration Release --output ../../local-nuget
+        run: cd src/EtherSharp.Generator && dotnet publish --configuration Release --output ${{ github.workspace }}/local-nuget
 
       - name: Restore dependencies
         run: dotnet restore
