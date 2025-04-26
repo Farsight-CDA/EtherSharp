@@ -12,6 +12,15 @@ public record TxSubmission<TTxParams, TTxGasParams>(
     where TTxParams : class, ITxParams<TTxParams>
     where TTxGasParams : class, ITxGasParams<TTxGasParams>
 {
-    public TxSubmissionStorage ToStorageType() 
-        => new TxSubmissionStorage(TxHash, SignedTx, Call.To, Call.Value, Call.Data.ToArray(), Params.Encode(), GasParams.Encode());
+    public TxSubmissionStorage ToStorageType(uint nonce) 
+        => new TxSubmissionStorage(
+            nonce, 
+            TxHash, 
+            SignedTx, 
+            Call.To.String, 
+            Call.Value, 
+            Call.Data.ToArray(), 
+            Params.Encode(), 
+            GasParams.Encode()
+        );
 }

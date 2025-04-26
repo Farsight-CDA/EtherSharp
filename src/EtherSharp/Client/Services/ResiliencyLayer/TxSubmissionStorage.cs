@@ -5,6 +5,7 @@ using System.Numerics;
 
 namespace EtherSharp.Client.Services.ResiliencyLayer;
 public record TxSubmissionStorage(
+    uint Nonce,
     string TxHash,
     string SignedTx,
     string To,

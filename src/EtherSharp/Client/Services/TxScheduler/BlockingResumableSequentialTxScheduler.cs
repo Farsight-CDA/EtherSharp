@@ -219,7 +219,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
 
         if(entry is QueueEntry.ExistingHandler && _resiliencyLayer is not null)
         {
-            await _resiliencyLayer.StoreTxSubmissionAsync(txHandler.Nonce, txHandler.TxSubmissions.Single().ToStorageType());
+            await _resiliencyLayer.StoreTxSubmissionAsync(txHandler.Nonce, txHandler.TxSubmissions.Single().ToStorageType(txHandler.Nonce));
         }
 
         using var cts = new CancellationTokenSource();
@@ -306,7 +306,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
 
                     if(_resiliencyLayer is not null)
                     {
-                        await _resiliencyLayer.StoreTxSubmissionAsync(txHandler.Nonce, newSubmission.ToStorageType());
+                        await _resiliencyLayer.StoreTxSubmissionAsync(txHandler.Nonce, newSubmission.ToStorageType(txHandler.Nonce));
                     }
 
                     requirePublish = true;
