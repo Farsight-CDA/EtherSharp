@@ -7,7 +7,7 @@ namespace EtherSharp.Client.Services.ResiliencyLayer;
 public record TxSubmissionStorage(
     string TxHash,
     string SignedTx,
-    Address To,
+    string To,
     BigInteger Value,
     byte[] CallData,
     byte[] TxParams,
@@ -20,7 +20,7 @@ public record TxSubmissionStorage(
         => new TxSubmission<TTxParams, TTxGasParams>(
             TxHash,
             SignedTx,
-            new TxInput(To, Value, CallData),
+            new TxInput(Address.FromString(To), Value, CallData),
             TTxParams.Decode(TxParams),
             TTxGasParams.Decode(TxGasParams)
         );
