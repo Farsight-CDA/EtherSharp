@@ -11,7 +11,7 @@ public interface IResiliencyLayer
     /// <param name="nonce"></param>
     /// <param name="txSubmission"></param>
     /// <returns></returns>
-    public Task StoreTxSubmissionAsync(uint nonce, TxSubmissionStorage txSubmission);
+    public Task StoreTxSubmissionAsync(TxSubmissionStorage txSubmission);
 
     /// <summary>
     /// Fetches the highest nonce that was stored previously.
