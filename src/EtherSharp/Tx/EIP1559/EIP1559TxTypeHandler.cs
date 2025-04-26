@@ -6,7 +6,7 @@ using EtherSharp.RLP;
 using EtherSharp.Wallet;
 
 namespace EtherSharp.Tx.EIP1559;
-public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClient) 
+public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
     : IInitializableService, ITxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>
 {
     private readonly IRpcClient _rpcClient = rpcClient;
@@ -23,10 +23,9 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
     }
 
     string ITxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>.EncodeTxToBytes(
-        ITxInput txInput, EIP1559TxParams txParams, EIP1559GasParams txGasParams, 
-        ReadOnlySpan<byte> inputData, uint nonce)
+        ITxInput txInput, EIP1559TxParams txParams, EIP1559GasParams txGasParams, uint nonce, out string txHash)
     {
-        if (!_isInitialized)
+        if(!_isInitialized)
         {
             throw new InvalidOperationException("Not initialized");
         }
@@ -35,7 +34,7 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
 
         Span<int> lengthBuffer = stackalloc int[EIP1559Transaction.NestedListCount];
 
-        int txTemplateLength = tx.GetEncodedSize(inputData, lengthBuffer);
+        int txTemplateLength = tx.GetEncodedSize(txInput.Data, lengthBuffer);
 
         int txBufferLength = 2 + txTemplateLength + TxRLPEncoder.MaxEncodedSignatureLength;
 
@@ -46,7 +45,7 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
         var txTemplateBuffer = txBuffer[1..(txTemplateLength + 2)];
         var signatureBuffer = txBuffer[^TxRLPEncoder.MaxEncodedSignatureLength..];
 
-        tx.Encode(lengthBuffer, inputData, txTemplateBuffer[1..]);
+        tx.Encode(lengthBuffer, txInput.Data, txTemplateBuffer[1..]);
         txTemplateBuffer[0] = EIP1559Transaction.PrefixByte;
 
         SignAndEncode(txTemplateBuffer, signatureBuffer, out int signatureLength);
@@ -65,6 +64,13 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
 
         var signedTxBuffer = txBuffer[..^(TxRLPEncoder.MaxEncodedSignatureLength - signatureLength)];
 
+        Span<byte> txHashBuffer = stackalloc byte[32];
+        if(!Keccak256.TryHashData(signedTxBuffer, txHashBuffer))
+        {
+            throw new InvalidOperationException("Failed to calculate tx hash");
+        }
+
+        txHash = $"0x{Convert.ToHexString(txHashBuffer)}";
         return $"0x{Convert.ToHexString(signedTxBuffer)}";
     }
 

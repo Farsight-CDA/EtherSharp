@@ -2,8 +2,8 @@
 using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.GasFeeProvider;
+using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.RPC;
-using EtherSharp.Client.Services.TxConfirmer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Client.Services.TxTypeHandler;
@@ -69,8 +69,7 @@ public class EtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithTxConfirmer<PollingTxConfirmer>()
-            .WithTxScheduler<BlockingSequentialTxScheduler>()
+            .WithTxScheduler<BlockingSequentialResumableTxScheduler>()
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
                 gasFeeProviderConfigureAction: configureGasProvider
             );
@@ -92,8 +91,7 @@ public class EtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithTxConfirmer<PollingTxConfirmer>()
-            .WithTxScheduler<BlockingSequentialTxScheduler>()
+            .WithTxScheduler<BlockingSequentialResumableTxScheduler>()
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
     }
 
@@ -128,7 +126,7 @@ public class EtherClientBuilder
         return this;
     }
 
-    public EtherClientBuilder WithTxScheduler<TTxScheduler>(Action<ITxScheduler>? configureAction = null)
+    public EtherClientBuilder WithTxScheduler<TTxScheduler>(Action<TTxScheduler>? configureAction = null)
         where TTxScheduler : class, ITxScheduler
     {
         _services.AddOrReplaceSingleton<ITxScheduler, TTxScheduler>();
@@ -136,7 +134,7 @@ public class EtherClientBuilder
         return this;
     }
 
-    public EtherClientBuilder WithTxPublisher<TTxPublisher>(Action<ITxPublisher>? configureAction = null)
+    public EtherClientBuilder WithTxPublisher<TTxPublisher>(Action<TTxPublisher>? configureAction = null)
         where TTxPublisher : class, ITxPublisher
     {
         _services.AddOrReplaceSingleton<ITxPublisher, TTxPublisher>();
@@ -144,11 +142,11 @@ public class EtherClientBuilder
         return this;
     }
 
-    public EtherClientBuilder WithTxConfirmer<TTxConfirmer>(Action<ITxConfirmer>? configureAction = null)
-        where TTxConfirmer : class, ITxConfirmer
+    public EtherClientBuilder WithResiliencyLayer<TResiliencyLayer>(Action<TResiliencyLayer>? configureAction = null)
+        where TResiliencyLayer : class, IResiliencyLayer
     {
-        _services.AddOrReplaceSingleton<ITxConfirmer, TTxConfirmer>();
-        AddConfigureAction<ITxConfirmer, TTxConfirmer>(configureAction);
+        _services.AddOrReplaceSingleton<IResiliencyLayer, TResiliencyLayer>();
+        AddConfigureAction<IResiliencyLayer, TResiliencyLayer>(configureAction);
         return this;
     }
 
@@ -240,10 +238,6 @@ public class EtherClientBuilder
         if(!_services.Any(x => x.ServiceType == typeof(ITxPublisher)))
         {
             throw new InvalidOperationException($"No {nameof(ITxPublisher)} configured. Call the {nameof(WithTxPublisher)} method prior to {nameof(BuildTxClient)}");
-        }
-        if(!_services.Any(x => x.ServiceType == typeof(ITxConfirmer)))
-        {
-            throw new InvalidOperationException($"No {nameof(ITxConfirmer)} configured. Call the {nameof(WithTxConfirmer)} method prior to {nameof(BuildTxClient)}");
         }
     }
     public IEtherTxClient BuildTxClient()

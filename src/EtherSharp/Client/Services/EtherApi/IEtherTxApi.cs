@@ -8,7 +8,7 @@ public interface IEtherTxApi : IEtherApi
 {
     public Task<BigInteger> GetMyBalanceAsync(TargetBlockNumber blockNumber = default);
 
-    public TxInput Transfer(Address receiver, BigInteger amount);
-    public TxInput Transfer(string receiver, BigInteger amount);
-    public TxInput Transfer(IPayableContract contract, BigInteger amount);
+    public ITxInput Transfer(Address receiver, BigInteger amount);
+    public ITxInput Transfer(string receiver, BigInteger amount);
+    public ITxInput Transfer(IPayableContract contract, BigInteger amount);
 }

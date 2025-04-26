@@ -31,7 +31,7 @@ public interface IEtherClient
     public TContract Contract<TContract>(Address address)
         where TContract : IEVMContract;
 
-    public Task<T> CallAsync<T>(TxInput<T> call, TargetBlockNumber targetHeight = default, TxStateOverride? stateOverride = default, CancellationToken cancellationToken = default);
+    public Task<T> CallAsync<T>(ITxInput<T> call, TargetBlockNumber targetHeight = default, TxStateOverride? stateOverride = default, CancellationToken cancellationToken = default);
 
     public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
         double[] rewardPercentiles, CancellationToken cancellationToken = default);

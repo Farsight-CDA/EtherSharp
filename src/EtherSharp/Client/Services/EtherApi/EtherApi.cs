@@ -12,12 +12,12 @@ internal class EtherApi(IRpcClient rpcClient, IServiceProvider provider) : IEthe
     private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IServiceProvider _provider = provider;
 
-    public TxInput Transfer(Address receiver, BigInteger amount)
-        => TxInput.ForEthTransfer(receiver, amount);
-    public TxInput Transfer(string receiver, BigInteger amount)
-        => TxInput.ForEthTransfer(Address.FromString(receiver), amount);
-    public TxInput Transfer(IPayableContract contract, BigInteger amount)
-        => TxInput.ForEthTransfer(contract.Address, amount);
+    public ITxInput Transfer(Address receiver, BigInteger amount)
+        => ITxInput.ForEthTransfer(receiver, amount);
+    public ITxInput Transfer(string receiver, BigInteger amount)
+        => ITxInput.ForEthTransfer(Address.FromString(receiver), amount);
+    public ITxInput Transfer(IPayableContract contract, BigInteger amount)
+        => ITxInput.ForEthTransfer(contract.Address, amount);
 
     public Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber blockNumber)
         => _rpcClient.EthGetBalance(address.String, blockNumber);
