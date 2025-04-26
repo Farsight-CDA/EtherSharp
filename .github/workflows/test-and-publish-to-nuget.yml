@@ -20,13 +20,13 @@ jobs:
           dotnet-version: "9.x"
 
       - name: Create local NuGet source directory
-        run: mkdir /local-nuget
+        run: mkdir ./local-nuget
 
       - name: Add local NuGet source
-        run: dotnet nuget add source /local-nuget --name LocalNuGetSource
+        run: dotnet nuget add source ./local-nuget --name LocalNuGetSource
 
       - name: Build EtherSharp.Generator
-        run: cd src/EtherSharp.Generator && dotnet publish --configuration Release --output /local-nuget
+        run: cd src/EtherSharp.Generator && dotnet publish --configuration Release --output ../../local-nuget
 
       - name: Restore dependencies
         run: dotnet restore
