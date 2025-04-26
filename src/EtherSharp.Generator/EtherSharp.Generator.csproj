@@ -14,8 +14,8 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
 		<IncludeBuildOutput>False</IncludeBuildOutput>
-		
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+		<PackageIcon>logo.png</PackageIcon>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -32,7 +32,9 @@
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 		<AnalysisLevel>latest</AnalysisLevel>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageIcon>logo.png</PackageIcon>
 	</PropertyGroup>
 

@@ -4,18 +4,21 @@
 	<PropertyGroup>
 		<FileVersion>$(AssemblyVersion)</FileVersion>
 		<Version>$(AssemblyVersion)</Version>
+		<OutputType>Library</OutputType>
 		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Title>EtherSharp.ERC</Title>
 		<Company>Farsight CDA Crypto Development &amp; Analytics UG</Company>
 		<Authors>Playwo</Authors>
 		<RepositoryUrl>https://github.com/farsight-CDA/EtherSharp</RepositoryUrl>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+		<AnalysisLevel>latest</AnalysisLevel>
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageIcon>logo.png</PackageIcon>
-		<AnalysisLevel>latest</AnalysisLevel>
 	</PropertyGroup>
 
 	<ItemGroup>
