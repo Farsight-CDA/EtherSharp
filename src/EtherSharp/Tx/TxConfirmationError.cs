@@ -11,9 +11,9 @@ public record TxConfirmationError
     public sealed record Timeout : TxConfirmationError;
 
     /// <summary>
-    /// There already is a transaction with this nonce in the mempool and the provided gas fee is not high enough to replace it.
+    /// The transaction fee is too low to be included in the mempool.
     /// </summary>
-    public sealed record ReplacementTransactionUnderpriced : TxConfirmationError;
+    public sealed record TransactionUnderpriced : TxConfirmationError;
 
     /// <summary>
     /// Represents any error condition not represented by the other TxConfirmationError types.

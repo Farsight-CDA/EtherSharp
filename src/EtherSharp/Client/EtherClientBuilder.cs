@@ -2,6 +2,7 @@
 using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.GasFeeProvider;
+using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
@@ -125,7 +126,7 @@ public class EtherClientBuilder
         return this;
     }
 
-    public EtherClientBuilder WithTxScheduler<TTxScheduler>(Action<ITxScheduler>? configureAction = null)
+    public EtherClientBuilder WithTxScheduler<TTxScheduler>(Action<TTxScheduler>? configureAction = null)
         where TTxScheduler : class, ITxScheduler
     {
         _services.AddOrReplaceSingleton<ITxScheduler, TTxScheduler>();
@@ -133,11 +134,19 @@ public class EtherClientBuilder
         return this;
     }
 
-    public EtherClientBuilder WithTxPublisher<TTxPublisher>(Action<ITxPublisher>? configureAction = null)
+    public EtherClientBuilder WithTxPublisher<TTxPublisher>(Action<TTxPublisher>? configureAction = null)
         where TTxPublisher : class, ITxPublisher
     {
         _services.AddOrReplaceSingleton<ITxPublisher, TTxPublisher>();
         AddConfigureAction<ITxPublisher, TTxPublisher>(configureAction);
+        return this;
+    }
+
+    public EtherClientBuilder WithResiliencyLayer<TResiliencyLayer>(Action<TResiliencyLayer>? configureAction = null)
+        where TResiliencyLayer : class, IResiliencyLayer
+    {
+        _services.AddOrReplaceSingleton<IResiliencyLayer, TResiliencyLayer>();
+        AddConfigureAction<IResiliencyLayer, TResiliencyLayer>(configureAction);
         return this;
     }
 

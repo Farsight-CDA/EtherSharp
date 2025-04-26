@@ -28,5 +28,12 @@ public interface IPendingTxHandler<TTxParams, TTxGasParams>
     /// </summary>
     /// <param name="onError"></param>
     /// <returns></returns>
-    public Task<TxConfirmationResult> PublishAndConfirmAsync(Func<TxConfirmationError, ITxInput, TTxParams, TTxGasParams, TxConfirmationAction> onError);
+    public Task<TxConfirmationResult> PublishAndConfirmAsync(
+        Func<
+            TxConfirmationError,
+            TxConfirmationActionBuilder<TTxParams, TTxGasParams>,
+            TxSubmission<TTxParams, TTxGasParams>,
+            TxConfirmationAction<TTxParams, TTxGasParams>
+        > onError
+    );
 }
