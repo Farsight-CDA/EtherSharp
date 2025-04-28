@@ -141,7 +141,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, call.Data, txParams, default);
 
         string txBytes = handler.EncodeTxToBytes(call, txParams, txGasParams, nextNonce, out string txHash);
-        var submission = new TxSubmission<TTxParams, TTxGasParams>(txHash, txBytes, call, txParams, txGasParams);
+        var submission = new TxSubmission<TTxParams, TTxGasParams>(_chainId, 0, txHash, txBytes, call, txParams, txGasParams);
 
         var pendingTxHandler = new PendingTxHandler<TTxParams, TTxGasParams>(
             nextNonce,
@@ -180,7 +180,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         var txSubmissions = await _resiliencyLayer.FetchTxSubmissionsAsync(nonce);
         var handler = new PendingTxHandler<TTxParams, TTxGasParams>(
             nonce,
-            txSubmissions.Select(x => x.ToTxSubmission<TTxParams, TTxGasParams>()),
+            txSubmissions.Select(x => x.ToTxSubmission<TTxParams, TTxGasParams>()).OrderByDescending(x => x.Sequence),
             PublishAndConfirmPendingTxAsync<TTransaction, TTxParams, TTxGasParams>
         );
 
@@ -297,6 +297,8 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
                     );
 
                     var newSubmission = new TxSubmission<TTxParams, TTxGasParams>(
+                        _chainId,
+                        latestSubmission.Sequence +1,
                         newTxHash,
                         newSignedTx,
                         latestSubmission.Call,

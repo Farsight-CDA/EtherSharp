@@ -5,6 +5,8 @@ using System.Numerics;
 
 namespace EtherSharp.Client.Services.ResiliencyLayer;
 public record TxSubmissionStorage(
+    ulong ChainId,
+    uint Sequence,
     uint Nonce,
     string TxHash,
     string SignedTx,
@@ -19,6 +21,8 @@ public record TxSubmissionStorage(
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams> 
         => new TxSubmission<TTxParams, TTxGasParams>(
+            ChainId, 
+            Sequence,
             TxHash,
             SignedTx,
             new TxInput(Address.FromString(To), Value, CallData),

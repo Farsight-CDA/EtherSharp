@@ -3,6 +3,8 @@ using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Tx;
 public record TxSubmission<TTxParams, TTxGasParams>(
+    ulong ChainId,
+    uint Sequence,
     string TxHash, 
     string SignedTx,
     ITxInput Call,
@@ -14,6 +16,8 @@ public record TxSubmission<TTxParams, TTxGasParams>(
 {
     public TxSubmissionStorage ToStorageType(uint nonce) 
         => new TxSubmissionStorage(
+            ChainId,
+            Sequence,
             nonce, 
             TxHash, 
             SignedTx, 
