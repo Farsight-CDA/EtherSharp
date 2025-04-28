@@ -16,7 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
 
 namespace EtherSharp.Client;
-internal class EtherClient : IEtherClient, IEtherTxClient
+internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 {
     private readonly IServiceProvider _provider;
     private readonly bool _isTxClient;
@@ -30,6 +30,9 @@ internal class EtherClient : IEtherClient, IEtherTxClient
 
     private bool _initialized;
     private ulong _chainId;
+
+    IServiceProvider IInternalEtherClient.Provider => _provider;
+    IRpcClient IInternalEtherClient.RPC => _rpcClient;
 
     ulong IEtherClient.ChainId
     {
@@ -85,6 +88,8 @@ internal class EtherClient : IEtherClient, IEtherTxClient
             throw new InvalidOperationException("Client not initialized");
         }
     }
+
+    IInternalEtherClient IEtherClient.AsInternal() => this;
 
     async Task IEtherClient.InitializeAsync(CancellationToken cancellationToken)
     {
