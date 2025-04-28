@@ -158,7 +158,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         return pendingTxHandler;
     }
 
-    async Task<IPendingTxHandler<TTxParams, TTxGasParams>> ITxScheduler.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(uint nonce)
+    async Task<IPendingTxHandler<TTxParams, TTxGasParams>> ITxScheduler.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(uint nonce, CancellationToken cancellationToken)
     {
         if(_resiliencyLayer is null)
         {
@@ -177,7 +177,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
             pendingHandler = tempPendingHandler;
         }
 
-        var txSubmissions = await _resiliencyLayer.FetchTxSubmissionsAsync(nonce);
+        var txSubmissions = await _resiliencyLayer.FetchTxSubmissionsAsync(nonce, cancellationToken);
         var handler = new PendingTxHandler<TTxParams, TTxGasParams>(
             nonce,
             txSubmissions.Select(x => x.ToTxSubmission<TTxParams, TTxGasParams>()).OrderByDescending(x => x.Sequence),
@@ -308,7 +308,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
 
                     if(_resiliencyLayer is not null)
                     {
-                        await _resiliencyLayer.StoreTxSubmissionAsync(newSubmission.ToStorageType(txHandler.Nonce));
+                        await _resiliencyLayer.StoreTxSubmissionAsync(newSubmission.ToStorageType(txHandler.Nonce), cts.Token);
                     }
 
                     requirePublish = true;
