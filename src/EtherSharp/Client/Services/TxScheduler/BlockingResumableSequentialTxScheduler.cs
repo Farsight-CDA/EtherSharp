@@ -318,6 +318,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         });
 
         await noncePollTask;
+        cts.Cancel();
         return await FetchTxConfirmationResultAsync(txHandler);
     }
 
