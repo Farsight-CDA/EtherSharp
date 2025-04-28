@@ -326,14 +326,19 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
-        foreach(var txSubmission in txHandler.TxSubmissions)
+        for (int i = 0; i < 3; i++)
         {
-            var txReceipt = await _rpcClient.EthGetTransactionReceiptAsync(txSubmission.TxHash);
-
-            if(txReceipt is not null)
+            foreach(var txSubmission in txHandler.TxSubmissions)
             {
-                return new TxConfirmationResult.Success(txReceipt);
+                var txReceipt = await _rpcClient.EthGetTransactionReceiptAsync(txSubmission.TxHash);
+
+                if(txReceipt is not null)
+                {
+                    return new TxConfirmationResult.Success(txReceipt);
+                }
             }
+
+            await Task.Delay(1000 * i);
         }
 
         return new TxConfirmationResult.NonceAlreadyUsed();
