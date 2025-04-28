@@ -8,14 +8,15 @@ public interface IResiliencyLayer
     /// <summary>
     /// Stores the given tx parameters.
     /// </summary>
-    /// <param name="nonce"></param>
     /// <param name="txSubmission"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task StoreTxSubmissionAsync(TxSubmissionStorage txSubmission);
+    public Task StoreTxSubmissionAsync(TxSubmissionStorage txSubmission, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Fetches the highest nonce that was stored previously.
     /// </summary>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public Task<uint> GetLastSubmittedNonceAsync(CancellationToken cancellationToken = default);
 
@@ -23,6 +24,7 @@ public interface IResiliencyLayer
     /// Retrieves all tx parameters with the given nonce.
     /// </summary>
     /// <param name="nonce"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<IReadOnlyList<TxSubmissionStorage>> FetchTxSubmissionsAsync(uint nonce);
+    public Task<IReadOnlyList<TxSubmissionStorage>> FetchTxSubmissionsAsync(uint nonce, CancellationToken cancellationToken = default);
 }
