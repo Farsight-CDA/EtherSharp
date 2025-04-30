@@ -6,7 +6,6 @@ using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using System.Numerics;
-using System.Text.RegularExpressions;
 
 namespace EtherSharp.Client.Services.RPC;
 

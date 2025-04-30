@@ -19,7 +19,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     public bool SupportsSubscriptions => false;
 
     /// <inheritdoc />
-    public event Action? OnConnectionEstablished;    
+    public event Action? OnConnectionEstablished;
     /// <inheritdoc />
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
@@ -38,7 +38,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     }
 
     /// <inheritdoc />
-    public ValueTask InitializeAsync(CancellationToken cancellationToken = default) 
+    public ValueTask InitializeAsync(CancellationToken cancellationToken = default)
         => ValueTask.CompletedTask;
 
     private record RpcError(int Code, string Message);

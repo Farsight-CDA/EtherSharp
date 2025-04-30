@@ -53,7 +53,7 @@ public class ParamDecodingWriter
                 }
 
                 bool isLastParameter = i == outputParameters.Length - 1;
-                
+
                 tupleTypeSb.Append(isLastParameter ? primitiveType : $"{primitiveType}, ");
                 returnValSb.Append(isLastParameter ? $"val{i}" : $"val{i}, ");
 
@@ -63,7 +63,7 @@ public class ParamDecodingWriter
                     $"decoder.{GetPrimitiveABIDecodingMethodName(parameter.Type)}(out var val{(isBytesType ? "bytes" : "")}{i});"
                 );
 
-                if (isBytesType)
+                if(isBytesType)
                 {
                     decoderFuncSb.AppendLine($"var val{i} = valbytes{i}.ToArray();");
                 }

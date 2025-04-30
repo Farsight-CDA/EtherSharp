@@ -1,5 +1,5 @@
-using EtherSharp.ABI.Fixed;
 using EtherSharp.ABI.Decode.Interfaces;
+using EtherSharp.ABI.Fixed;
 
 namespace EtherSharp.ABI;
 public partial class AbiDecoder

@@ -25,7 +25,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     private IRpcClient _rpcClient = null!;
     private IEtherSigner _signer = null!;
     private ITxScheduler _txScheduler = null!;
-    
+
     private ContractFactory _contractFactory = null!;
 
     private bool _initialized;
@@ -121,7 +121,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         _initialized = true;
     }
 
-    Task<BlockDataTrasactionAsString> IEtherClient.GetBlockAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken) 
+    Task<BlockDataTrasactionAsString> IEtherClient.GetBlockAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
     {
         AssertReady();
         return _rpcClient.EthGetBlockByNumberAsync(targetBlockNumber, cancellationToken);
@@ -178,7 +178,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     {
         AssertReady();
 
-        if (from is null && _isTxClient)
+        if(from is null && _isTxClient)
         {
             from = _signer.Address.String;
         }
@@ -200,7 +200,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     }
 
     TContract IEtherClient.Contract<TContract>(string address)
-        => Contract<TContract>(address); 
+        => Contract<TContract>(address);
     TContract IEtherClient.Contract<TContract>(Address address)
         => Contract<TContract>(address);
 

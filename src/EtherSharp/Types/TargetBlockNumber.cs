@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Numerics;
 namespace EtherSharp.Types;
 
 public readonly struct TargetBlockNumber

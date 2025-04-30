@@ -1,5 +1,4 @@
 ﻿using EtherSharp.Tx.Types;
-using EtherSharp.Types;
 
 namespace EtherSharp.Tx.PendingHandler;
 

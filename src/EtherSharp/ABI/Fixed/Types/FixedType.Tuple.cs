@@ -20,7 +20,7 @@ internal abstract partial class FixedType
             value.TryWritoTo(buffer);
         }
 
-        public static T Decode<T>(AbiDecoder decoder, Func<IFixedTupleDecoder, T> subDecoder) 
+        public static T Decode<T>(AbiDecoder decoder, Func<IFixedTupleDecoder, T> subDecoder)
             => subDecoder.Invoke(decoder);
     }
 }

@@ -13,13 +13,13 @@ public class BasicTxPublisher(IRpcClient rpcClient) : ITxPublisher
         {
             return await _rpcClient.EthSendRawTransactionAsync(transactionHex, cancellationToken);
         }
-        catch (RPCException ex) 
+        catch(RPCException ex)
         {
-            if (ex.Message.Contains("ALREADY_EXISTS"))
+            if(ex.Message.Contains("ALREADY_EXISTS"))
             {
                 return new TxSubmissionResult.AlreadyExists();
             }
-            else if (ex.Message.Contains("transaction underpriced") || ex.Message.Contains("max fee per gas less than block base fee"))
+            else if(ex.Message.Contains("transaction underpriced") || ex.Message.Contains("max fee per gas less than block base fee"))
             {
                 return new TxSubmissionResult.TransactionUnderpriced();
             }

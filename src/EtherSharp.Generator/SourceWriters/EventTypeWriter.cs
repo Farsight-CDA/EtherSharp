@@ -1,7 +1,6 @@
 ﻿using EtherSharp.Generator.Abi.Members;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
-using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
 public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter paramDecodingWriter)

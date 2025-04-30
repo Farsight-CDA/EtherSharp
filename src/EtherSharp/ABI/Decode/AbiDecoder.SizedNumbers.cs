@@ -1,5 +1,5 @@
-using EtherSharp.ABI.Fixed;
 using EtherSharp.ABI.Decode.Interfaces;
+using EtherSharp.ABI.Fixed;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
@@ -10,12 +10,12 @@ public partial class AbiDecoder
         value = FixedType.SByte.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    sbyte IFixedTupleDecoder.Int8() 
+    sbyte IFixedTupleDecoder.Int8()
     {
         _ = Int8(out sbyte output);
         return output;
-    }    
-    sbyte IDynamicTupleDecoder.Int8() 
+    }
+    sbyte IDynamicTupleDecoder.Int8()
     {
         _ = Int8(out sbyte output);
         return output;
@@ -25,12 +25,12 @@ public partial class AbiDecoder
         value = FixedType.Byte.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    byte IFixedTupleDecoder.UInt8() 
+    byte IFixedTupleDecoder.UInt8()
     {
         _ = UInt8(out byte output);
         return output;
     }
-    byte IDynamicTupleDecoder.UInt8() 
+    byte IDynamicTupleDecoder.UInt8()
     {
         _ = UInt8(out byte output);
         return output;
@@ -41,12 +41,12 @@ public partial class AbiDecoder
         value = FixedType.Short.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    short IFixedTupleDecoder.Int16() 
+    short IFixedTupleDecoder.Int16()
     {
         _ = Int16(out short output);
         return output;
     }
-    short IDynamicTupleDecoder.Int16() 
+    short IDynamicTupleDecoder.Int16()
     {
         _ = Int16(out short output);
         return output;
@@ -56,12 +56,12 @@ public partial class AbiDecoder
         value = FixedType.UShort.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    ushort IFixedTupleDecoder.UInt16() 
+    ushort IFixedTupleDecoder.UInt16()
     {
         _ = UInt16(out ushort output);
         return output;
     }
-    ushort IDynamicTupleDecoder.UInt16() 
+    ushort IDynamicTupleDecoder.UInt16()
     {
         _ = UInt16(out ushort output);
         return output;

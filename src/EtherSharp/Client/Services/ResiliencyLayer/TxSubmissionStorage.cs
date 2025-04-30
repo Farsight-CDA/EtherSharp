@@ -19,9 +19,9 @@ public record TxSubmissionStorage(
 {
     public TxSubmission<TTxParams, TTxGasParams> ToTxSubmission<TTxParams, TTxGasParams>()
         where TTxParams : class, ITxParams<TTxParams>
-        where TTxGasParams : class, ITxGasParams<TTxGasParams> 
+        where TTxGasParams : class, ITxGasParams<TTxGasParams>
         => new TxSubmission<TTxParams, TTxGasParams>(
-            ChainId, 
+            ChainId,
             Sequence,
             TxHash,
             SignedTx,

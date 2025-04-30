@@ -40,7 +40,7 @@ internal class EventSubscription<TEvent>(IRpcClient client, string[]? contractAd
         await InstallAsync(cancellationToken);
     }
 
-    private async Task InstallAsync(CancellationToken cancellationToken = default) 
+    private async Task InstallAsync(CancellationToken cancellationToken = default)
         => Id = await _client.EthSubscribeLogsAsync(_contractAddresses, _topics, cancellationToken);
 
     private void HandleReconnect()
@@ -59,7 +59,7 @@ internal class EventSubscription<TEvent>(IRpcClient client, string[]? contractAd
     }
 
     public async ValueTask DisposeAsync()
-    { 
+    {
         _client.OnConnectionEstablished -= HandleReconnect;
         _client.OnSubscriptionMessage -= HandleSubscriptionMessage;
 

@@ -30,11 +30,11 @@ public sealed class ContractStateOverrideBuilder
         });
 
         mappingAction(innerBuilder);
-        
+
         return this;
     }
 
-    internal OverrideAccount Build() 
+    internal OverrideAccount Build()
         => new OverrideAccount(
             null,
             null,

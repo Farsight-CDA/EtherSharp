@@ -20,10 +20,10 @@ internal abstract partial class FixedType
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 
-        public static void EncodeInto(ulong value, Span<byte> buffer) 
+        public static void EncodeInto(ulong value, Span<byte> buffer)
             => BinaryPrimitives.WriteUInt64BigEndian(buffer[(32 - 8)..], value);
 
-        public static ulong Decode(ReadOnlySpan<byte> bytes) 
+        public static ulong Decode(ReadOnlySpan<byte> bytes)
             => BinaryPrimitives.ReadUInt64BigEndian(bytes[(32 - 8)..]);
     }
 }

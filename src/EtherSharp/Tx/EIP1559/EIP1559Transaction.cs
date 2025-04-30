@@ -18,7 +18,7 @@ public record EIP1559Transaction(
     public static int NestedListCount => 2;
     public static byte PrefixByte => 0x02;
 
-    public static EIP1559Transaction Create(ulong chainId, EIP1559TxParams txParams, EIP1559GasParams txGasParams, 
+    public static EIP1559Transaction Create(ulong chainId, EIP1559TxParams txParams, EIP1559GasParams txGasParams,
         Address to, BigInteger value, uint nonce)
         => new EIP1559Transaction(
             chainId,

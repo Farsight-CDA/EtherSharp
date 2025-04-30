@@ -298,7 +298,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
 
                     var newSubmission = new TxSubmission<TTxParams, TTxGasParams>(
                         _chainId,
-                        latestSubmission.Sequence +1,
+                        latestSubmission.Sequence + 1,
                         newTxHash,
                         newSignedTx,
                         latestSubmission.Call,
@@ -326,7 +326,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
-        for (int i = 0; i < 3; i++)
+        for(int i = 0; i < 3; i++)
         {
             foreach(var txSubmission in txHandler.TxSubmissions)
             {

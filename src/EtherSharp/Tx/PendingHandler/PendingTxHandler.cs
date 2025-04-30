@@ -5,7 +5,7 @@ namespace EtherSharp.Tx.PendingHandler;
 /// Handler class for transactions that are still pending and not confirmed on the blockchain.
 /// </summary>
 public class PendingTxHandler<TTxParams, TTxGasParams>(
-    uint nonce, 
+    uint nonce,
     IEnumerable<TxSubmission<TTxParams, TTxGasParams>> txSubmissions,
     Func<
         PendingTxHandler<TTxParams, TTxGasParams>,
@@ -35,7 +35,7 @@ public class PendingTxHandler<TTxParams, TTxGasParams>(
 
     private readonly Lock _isConfirmCalledLock = new Lock();
     private bool _isConfirmCalled;
-    private readonly TaskCompletionSource _completionCts 
+    private readonly TaskCompletionSource _completionCts
         = new TaskCompletionSource();
 
     /// <summary>
@@ -52,7 +52,7 @@ public class PendingTxHandler<TTxParams, TTxGasParams>(
         Func<
             TxConfirmationError,
             TxConfirmationActionBuilder<TTxParams, TTxGasParams>,
-            TxSubmission<TTxParams, TTxGasParams>, 
+            TxSubmission<TTxParams, TTxGasParams>,
             TxConfirmationAction<TTxParams, TTxGasParams>
         > onError
     )

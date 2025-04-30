@@ -1,5 +1,4 @@
 ﻿using EtherSharp.Events;
-using System.Numerics;
 
 namespace EtherSharp.Types;
 public record Log(

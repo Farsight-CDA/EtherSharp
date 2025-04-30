@@ -1,8 +1,6 @@
 ﻿using EtherSharp.Tx.Types;
-using System.Numerics;
-using System.Text.Json;
-using System.Text;
 using System.Buffers.Binary;
+using System.Numerics;
 
 namespace EtherSharp.Tx.EIP1559;
 public record EIP1559GasParams(
@@ -43,7 +41,7 @@ public record EIP1559GasParams(
 
     EIP1559GasParams ITxGasParams<EIP1559GasParams>.IncrementByFactor(BigInteger multiplier, BigInteger divider, BigInteger minimumIncrement)
     {
-        if (multiplier < divider)
+        if(multiplier < divider)
         {
             throw new ArgumentException("Multiplier must be larger than divider");
         }
@@ -52,7 +50,7 @@ public record EIP1559GasParams(
         newMaxFeePerGas *= multiplier;
         newMaxFeePerGas /= divider;
 
-        if (newMaxFeePerGas == MaxFeePerGas)
+        if(newMaxFeePerGas == MaxFeePerGas)
         {
             newMaxFeePerGas += minimumIncrement;
         }

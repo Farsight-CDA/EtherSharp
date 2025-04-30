@@ -1,6 +1,5 @@
 ﻿using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.RPC;
-using EtherSharp.StateOverride;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Numerics;
@@ -18,7 +17,7 @@ public class EIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : 
 
     public Task<EIP1559GasParams> EstimateGasParamsAsync(
         Address to, BigInteger value, ReadOnlySpan<byte> inputData,
-        EIP1559TxParams txParams, CancellationToken cancellationToken) 
+        EIP1559TxParams txParams, CancellationToken cancellationToken)
         => SendEstimationRequestsAsync(
             to,
             value,
@@ -37,18 +36,18 @@ public class EIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : 
         BigInteger baseFee;
         BigInteger priorityFee;
 
-        if (feeHistory.BaseFeePerGas.Length == 0)
+        if(feeHistory.BaseFeePerGas.Length == 0)
         {
             baseFee = await _rpcClient.EthGasPriceAsync(cancellationToken);
         }
         else
         {
             var summedBaseFees = feeHistory.BaseFeePerGas.Aggregate(BigInteger.Zero, (prev, curr) => prev + curr);
-            baseFee = summedBaseFees / feeHistory.BaseFeePerGas.Length; 
+            baseFee = summedBaseFees / feeHistory.BaseFeePerGas.Length;
         }
 
         var nonZeroRewards = feeHistory.Reward.Where(x => x[0] != 0).ToArray();
-        if (nonZeroRewards.Length == 0)
+        if(nonZeroRewards.Length == 0)
         {
             priorityFee = await _rpcClient.EthMaxPriorityFeePerGas(cancellationToken);
         }

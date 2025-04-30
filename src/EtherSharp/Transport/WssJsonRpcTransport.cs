@@ -103,7 +103,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
 
         while(_socket is null || _socket.State != WebSocketState.Open)
         {
-            if (_socket is not null)
+            if(_socket is not null)
             {
                 _socket.Abort();
                 _socket.Dispose();
@@ -153,7 +153,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
 
             var msBuffer = ms.GetBuffer().AsSpan()[0..(int) ms.Position];
 
-            if (msBuffer.Length == 0)
+            if(msBuffer.Length == 0)
             {
                 continue;
             }
@@ -229,7 +229,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
 
                             reader.Read(); //eth_subscription string
 
-                            if (reader.TokenType != JsonTokenType.PropertyName || !reader.ValueTextEquals("params"))
+                            if(reader.TokenType != JsonTokenType.PropertyName || !reader.ValueTextEquals("params"))
                             {
                                 _logger?.LogWarning("Failed to identify payload, eth_subscription not followed by params property");
                                 return;
@@ -237,7 +237,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
 
                             reader.Read(); //params property name
 
-                            if (reader.TokenType != JsonTokenType.StartObject)
+                            if(reader.TokenType != JsonTokenType.StartObject)
                             {
                                 _logger?.LogWarning("Failed to identify payload, eth_subscription not followed by params object");
                                 return;
@@ -245,7 +245,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
 
                             reader.Read(); //start params object
 
-                            while (reader.TokenType == JsonTokenType.PropertyName)
+                            while(reader.TokenType == JsonTokenType.PropertyName)
                             {
                                 if(reader.ValueTextEquals("result"))
                                 {

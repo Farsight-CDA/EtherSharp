@@ -22,7 +22,7 @@ internal abstract partial class DynamicType
 
         public static T[] Decode<T>(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IArrayAbiDecoder, T> decoder)
         {
-            uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[28..32].Span); 
+            uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[28..32].Span);
 
             if(payloadOffset < metaDataOffset)
             {

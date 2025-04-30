@@ -1,11 +1,10 @@
-using EtherSharp.ABI.Dynamic;
 using EtherSharp.ABI.Decode.Interfaces;
+using EtherSharp.ABI.Dynamic;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
-
     public AbiDecoder Int8Array(out sbyte[] bytes)
     {
         bytes = DynamicType.PrimitiveNumberArray<sbyte>.Decode(_bytes, _bytesRead);

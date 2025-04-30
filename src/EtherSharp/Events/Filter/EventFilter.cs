@@ -3,8 +3,8 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Events.Filter;
 
-internal class EventFilter<TEvent>(IRpcClient client, 
-    TargetBlockNumber fromBlock, TargetBlockNumber toBlock, 
+internal class EventFilter<TEvent>(IRpcClient client,
+    TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
     string[]? addresses, string[]? topics
 ) : IEventFilter<TEvent>
     where TEvent : ITxEvent<TEvent>
@@ -31,7 +31,7 @@ internal class EventFilter<TEvent>(IRpcClient client,
         await InstallAsync(cancellationToken);
     }
 
-    private async Task InstallAsync(CancellationToken cancellationToken = default) 
+    private async Task InstallAsync(CancellationToken cancellationToken = default)
         => Id = await _client.EthNewFilterAsync(_fromBlock, _toBlock, _addresses, _topics, cancellationToken);
 
     private void HandleReconnect()

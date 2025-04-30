@@ -49,7 +49,7 @@ internal abstract partial class DynamicType
 
         public static BigInteger[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, uint bitSize, bool isUnsinght)
         {
-            uint arrayOffest = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..].Span); 
+            uint arrayOffest = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..].Span);
 
             long index = arrayOffest - metaDataOffset;
 

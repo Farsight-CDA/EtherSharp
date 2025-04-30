@@ -8,10 +8,10 @@ internal abstract partial class FixedType
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 
-        public static void EncodeInto(ushort value, Span<byte> buffer) 
+        public static void EncodeInto(ushort value, Span<byte> buffer)
             => BinaryPrimitives.WriteUInt16BigEndian(buffer[(32 - 2)..], value);
 
-        public static ushort Decode(ReadOnlySpan<byte> bytes) 
+        public static ushort Decode(ReadOnlySpan<byte> bytes)
             => BinaryPrimitives.ReadUInt16BigEndian(bytes[(32 - 2)..]);
     }
 }

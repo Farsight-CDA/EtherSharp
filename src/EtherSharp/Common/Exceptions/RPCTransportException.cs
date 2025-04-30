@@ -6,7 +6,7 @@ public class RPCTransportException : Exception
     {
     }
 
-    public RPCTransportException(string? message, Exception? innerException) 
+    public RPCTransportException(string? message, Exception? innerException)
         : base(message, innerException)
     {
     }

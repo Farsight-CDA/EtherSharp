@@ -1,13 +1,10 @@
-﻿using EtherSharp.ABI;
-using EtherSharp.Client.Services;
+﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.RPC;
-using EtherSharp.StateOverride;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Buffers.Binary;
 using System.Numerics;
-using System.Threading;
 
 namespace EtherSharp.Tx.EIP1559;
 public class OpStackEIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner signer)

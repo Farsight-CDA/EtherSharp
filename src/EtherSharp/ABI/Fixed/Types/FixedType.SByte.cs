@@ -18,8 +18,8 @@ internal abstract partial class FixedType
             }
         }
 
-        public static sbyte Decode(ReadOnlySpan<byte> bytes) 
-            => BitConverter.IsLittleEndian 
+        public static sbyte Decode(ReadOnlySpan<byte> bytes)
+            => BitConverter.IsLittleEndian
                 ? (sbyte) BinaryPrimitives.ReverseEndianness(bytes[^1]) : (sbyte) bytes[^1];
     }
 }

@@ -14,7 +14,6 @@ using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Secp256k1Net;
 
 namespace EtherSharp.Client;
 public class EtherClientBuilder
@@ -39,16 +38,16 @@ public class EtherClientBuilder
         _configureActions.Add((typeof(TService), typeof(TActionParam), value => configureAction((TActionParam) value)));
     }
 
-    public static EtherClientBuilder CreateEmpty() 
+    public static EtherClientBuilder CreateEmpty()
         => new EtherClientBuilder();
     public static EtherClientBuilder CreateForWebsocket(
-        string websocketUrl, TimeSpan? requestTimeout = null, 
+        string websocketUrl, TimeSpan? requestTimeout = null,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider>? configureGasProvider = null
     )
         => CreateForWebsocket(new Uri(websocketUrl, UriKind.Absolute), requestTimeout, signer, loggerFactory, configureGasProvider);
     public static EtherClientBuilder CreateForWebsocket(Uri websocketUri, TimeSpan? requestTimeout = null,
-        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null, 
+        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider>? configureGasProvider = null
     )
     {

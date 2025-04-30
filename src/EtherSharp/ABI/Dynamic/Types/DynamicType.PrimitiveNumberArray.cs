@@ -147,7 +147,8 @@ internal abstract partial class DynamicType
                         arr[i] = FixedType.Int.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
-                };
+                }
+                ;
                 case Type us64 when us64 == typeof(ulong):
                 {
                     ulong[] arr = new ulong[length];

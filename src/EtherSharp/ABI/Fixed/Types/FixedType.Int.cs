@@ -30,7 +30,7 @@ internal abstract partial class FixedType
             }
         }
 
-        public static int Decode(ReadOnlySpan<byte> bytes) 
+        public static int Decode(ReadOnlySpan<byte> bytes)
             => BinaryPrimitives.ReadInt32BigEndian(bytes[(32 - 4)..]);
     }
 }

@@ -19,6 +19,6 @@ public sealed class StateOverrideBuilder
         return this;
     }
 
-    public TxStateOverride Build() 
+    public TxStateOverride Build()
         => new TxStateOverride(_accountOverrides);
 }

@@ -55,7 +55,7 @@ public class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSigner
     {
         bool success = TrySign(data, destination);
 
-        if (!success)
+        if(!success)
         {
             return false;
         }

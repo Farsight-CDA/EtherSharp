@@ -1,7 +1,7 @@
-﻿using EtherSharp.Types;
-using System.Numerics;
+﻿using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.StateOverride;
-using EtherSharp.Client.Services.TxPublisher;
+using EtherSharp.Types;
+using System.Numerics;
 
 namespace EtherSharp.Client.Services.RPC;
 public interface IRpcClient
@@ -32,7 +32,7 @@ public interface IRpcClient
         string address, TargetBlockNumber blockNumber, CancellationToken cancellationToken = default
     );
     public Task<TxCallResult> EthCallAsync(
-        string? from, string to, uint? gas, BigInteger? gasPrice, int? value, string? data, 
+        string? from, string to, uint? gas, BigInteger? gasPrice, int? value, string? data,
         TargetBlockNumber blockNumber, TxStateOverride? stateOverride, CancellationToken cancellationToken = default);
     public Task<uint> EthGetTransactionCount(
         string address, TargetBlockNumber blockNumber, CancellationToken cancellationToken = default
@@ -59,6 +59,6 @@ public interface IRpcClient
 
     public Task<string> EthSubscribeLogsAsync(
         string[]? contracts, string[]? topics, CancellationToken cancellationToken = default
-    ); 
+    );
     public Task<bool> EthUnsubscribeAsync(string subscriptionId, CancellationToken cancellationToken = default);
 }
