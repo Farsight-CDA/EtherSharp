@@ -11,9 +11,9 @@ public class End2EndTests
         sbyte[] input = [1, 2, 3, 4, 5];
 
         // Act
-        byte[] encoded = new AbiEncoder().NumberArray<sbyte>(false, 8, input).Build();
+        byte[] encoded = new AbiEncoder().NumberArray(false, 8, input).Build();
         var decoder = new AbiDecoder(encoded);
-        _ = decoder.NumberArray<sbyte>(false, 8, out sbyte[] result);
+        _ = decoder.NumberArray(false, 8, out sbyte[] result);
 
         // Assert
         Assert.Equal(input, result);
