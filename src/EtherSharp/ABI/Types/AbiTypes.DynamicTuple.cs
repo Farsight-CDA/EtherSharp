@@ -1,11 +1,12 @@
 ﻿using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Encode.Interfaces;
+using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
 
-namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicType
+namespace EtherSharp.ABI.Types;
+internal static partial class AbiTypes
 {
-    public class Tuple(IDynamicTupleEncoder value) : DynamicType<IDynamicTupleEncoder>(value)
+    public class DynamicTuple(IDynamicTupleEncoder value) : DynamicType<IDynamicTupleEncoder>(value)
     {
         public override uint PayloadSize => Value.MetadataSize + Value.PayloadSize;
 

@@ -1,5 +1,5 @@
+using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Decode.Interfaces;
-using EtherSharp.ABI.Fixed;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
@@ -7,30 +7,30 @@ public partial class AbiDecoder
 {
     public AbiDecoder Int8(out sbyte value)
     {
-        value = FixedType.SByte.Decode(CurrentSlot);
+        value = AbiTypes.SByte.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    sbyte IFixedTupleDecoder.Int8()
+    sbyte IFixedTupleDecoder.Int8() 
     {
         _ = Int8(out sbyte output);
         return output;
-    }
-    sbyte IDynamicTupleDecoder.Int8()
+    }    
+    sbyte IDynamicTupleDecoder.Int8() 
     {
         _ = Int8(out sbyte output);
         return output;
     }
     public AbiDecoder UInt8(out byte value)
     {
-        value = FixedType.Byte.Decode(CurrentSlot);
+        value = AbiTypes.Byte.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    byte IFixedTupleDecoder.UInt8()
+    byte IFixedTupleDecoder.UInt8() 
     {
         _ = UInt8(out byte output);
         return output;
     }
-    byte IDynamicTupleDecoder.UInt8()
+    byte IDynamicTupleDecoder.UInt8() 
     {
         _ = UInt8(out byte output);
         return output;
@@ -38,37 +38,37 @@ public partial class AbiDecoder
 
     public AbiDecoder Int16(out short value)
     {
-        value = FixedType.Short.Decode(CurrentSlot);
+        value = AbiTypes.Short.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    short IFixedTupleDecoder.Int16()
+    short IFixedTupleDecoder.Int16() 
     {
         _ = Int16(out short output);
         return output;
     }
-    short IDynamicTupleDecoder.Int16()
+    short IDynamicTupleDecoder.Int16() 
     {
         _ = Int16(out short output);
         return output;
     }
     public AbiDecoder UInt16(out ushort value)
     {
-        value = FixedType.UShort.Decode(CurrentSlot);
+        value = AbiTypes.UShort.Decode(CurrentSlot);
         return ConsumeBytes();
     }
-    ushort IFixedTupleDecoder.UInt16()
+    ushort IFixedTupleDecoder.UInt16() 
     {
         _ = UInt16(out ushort output);
         return output;
     }
-    ushort IDynamicTupleDecoder.UInt16()
+    ushort IDynamicTupleDecoder.UInt16() 
     {
         _ = UInt16(out ushort output);
         return output;
     }
     public AbiDecoder Int24(out int value)
     {
-        value = FixedType.Int.Decode(CurrentSlot);
+        value = AbiTypes.Int.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     int IFixedTupleDecoder.Int24()
@@ -83,7 +83,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt24(out uint value)
     {
-        value = FixedType.UInt.Decode(CurrentSlot);
+        value = AbiTypes.UInt.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     uint IFixedTupleDecoder.UInt24()
@@ -98,7 +98,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int32(out int value)
     {
-        value = FixedType.Int.Decode(CurrentSlot);
+        value = AbiTypes.Int.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     int IFixedTupleDecoder.Int32()
@@ -113,7 +113,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt32(out uint value)
     {
-        value = FixedType.UInt.Decode(CurrentSlot);
+        value = AbiTypes.UInt.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     uint IFixedTupleDecoder.UInt32()
@@ -128,7 +128,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int40(out long value)
     {
-        value = FixedType.Long.Decode(CurrentSlot);
+        value = AbiTypes.Long.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     long IFixedTupleDecoder.Int40()
@@ -143,7 +143,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt40(out ulong value)
     {
-        value = FixedType.ULong.Decode(CurrentSlot);
+        value = AbiTypes.ULong.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     ulong IFixedTupleDecoder.UInt40()
@@ -158,7 +158,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int48(out long value)
     {
-        value = FixedType.Long.Decode(CurrentSlot);
+        value = AbiTypes.Long.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     long IFixedTupleDecoder.Int48()
@@ -173,7 +173,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt48(out ulong value)
     {
-        value = FixedType.ULong.Decode(CurrentSlot);
+        value = AbiTypes.ULong.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     ulong IFixedTupleDecoder.UInt48()
@@ -188,7 +188,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int56(out long value)
     {
-        value = FixedType.Long.Decode(CurrentSlot);
+        value = AbiTypes.Long.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     long IFixedTupleDecoder.Int56()
@@ -203,7 +203,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt56(out ulong value)
     {
-        value = FixedType.ULong.Decode(CurrentSlot);
+        value = AbiTypes.ULong.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     ulong IFixedTupleDecoder.UInt56()
@@ -218,7 +218,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int64(out long value)
     {
-        value = FixedType.Long.Decode(CurrentSlot);
+        value = AbiTypes.Long.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     long IFixedTupleDecoder.Int64()
@@ -233,7 +233,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt64(out ulong value)
     {
-        value = FixedType.ULong.Decode(CurrentSlot);
+        value = AbiTypes.ULong.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     ulong IFixedTupleDecoder.UInt64()
@@ -248,7 +248,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int72(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int72()
@@ -263,7 +263,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt72(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt72()
@@ -278,7 +278,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int80(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int80()
@@ -293,7 +293,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt80(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt80()
@@ -308,7 +308,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int88(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int88()
@@ -323,7 +323,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt88(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt88()
@@ -338,7 +338,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int96(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int96()
@@ -353,7 +353,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt96(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt96()
@@ -368,7 +368,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int104(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int104()
@@ -383,7 +383,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt104(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt104()
@@ -398,7 +398,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int112(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int112()
@@ -413,7 +413,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt112(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt112()
@@ -428,7 +428,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int120(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int120()
@@ -443,7 +443,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt120(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt120()
@@ -458,7 +458,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int128(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int128()
@@ -473,7 +473,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt128(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt128()
@@ -488,7 +488,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int136(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int136()
@@ -503,7 +503,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt136(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt136()
@@ -518,7 +518,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int144(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int144()
@@ -533,7 +533,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt144(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt144()
@@ -548,7 +548,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int152(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int152()
@@ -563,7 +563,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt152(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt152()
@@ -578,7 +578,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int160(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int160()
@@ -593,7 +593,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt160(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt160()
@@ -608,7 +608,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int168(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int168()
@@ -623,7 +623,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt168(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt168()
@@ -638,7 +638,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int176(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int176()
@@ -653,7 +653,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt176(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt176()
@@ -668,7 +668,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int184(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int184()
@@ -683,7 +683,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt184(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt184()
@@ -698,7 +698,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int192(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int192()
@@ -713,7 +713,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt192(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt192()
@@ -728,7 +728,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int200(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int200()
@@ -743,7 +743,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt200(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt200()
@@ -758,7 +758,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int208(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int208()
@@ -773,7 +773,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt208(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt208()
@@ -788,7 +788,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int216(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int216()
@@ -803,7 +803,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt216(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt216()
@@ -818,7 +818,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int224(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int224()
@@ -833,7 +833,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt224(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt224()
@@ -848,7 +848,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int232(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int232()
@@ -863,7 +863,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt232(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt232()
@@ -878,7 +878,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int240(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int240()
@@ -893,7 +893,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt240(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt240()
@@ -908,7 +908,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int248(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int248()
@@ -923,7 +923,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt248(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt248()
@@ -938,7 +938,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Int256(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, false);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.Int256()
@@ -953,7 +953,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt256(out BigInteger value)
     {
-        value = FixedType.BigInteger.Decode(CurrentSlot, true);
+        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
         return ConsumeBytes();
     }
     BigInteger IFixedTupleDecoder.UInt256()

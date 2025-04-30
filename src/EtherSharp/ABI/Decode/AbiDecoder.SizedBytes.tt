@@ -1,4 +1,4 @@
-using EtherSharp.ABI.Fixed;
+using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Decode.Interfaces;
 
 namespace EtherSharp.ABI;
@@ -6,7 +6,7 @@ public partial class AbiDecoder
 {
     public AbiDecoder Bytes1(out byte value)
     {
-        value = FixedType.Byte.Decode(CurrentSlot);
+        value = AbiTypes.Byte.Decode(CurrentSlot);
         return this;
     }
     byte IFixedTupleDecoder.Bytes1()
@@ -25,7 +25,7 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Bytes<#=i#>(out ReadOnlySpan<byte> value)
     {
-        value = FixedType.Bytes.Decode(CurrentSlot, <#=i#>);
+        value = AbiTypes.Bytes.Decode(CurrentSlot, <#=i#>);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes<#=i#>()

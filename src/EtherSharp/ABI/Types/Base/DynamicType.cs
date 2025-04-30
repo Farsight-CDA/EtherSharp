@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.ABI.Dynamic;
+﻿using EtherSharp.ABI.Types.Interfaces;
+
+namespace EtherSharp.ABI.Types.Base;
 
 internal abstract class DynamicType<T>(T value) : IDynamicType
 {

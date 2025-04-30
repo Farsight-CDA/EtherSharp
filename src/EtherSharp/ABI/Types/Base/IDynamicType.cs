@@ -1,6 +1,4 @@
-﻿using EtherSharp.ABI.Encode;
-
-namespace EtherSharp.ABI.Dynamic;
+﻿namespace EtherSharp.ABI.Types.Interfaces;
 internal interface IDynamicType : IEncodeType
 {
     public uint PayloadSize { get; }

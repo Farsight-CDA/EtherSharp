@@ -1,7 +1,6 @@
-﻿using EtherSharp.ABI.Dynamic;
-using EtherSharp.ABI.Encode;
+﻿using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
-using EtherSharp.ABI.Fixed;
+using EtherSharp.ABI.Types.Interfaces;
 using EtherSharp.Types;
 using System.Numerics;
 
@@ -31,7 +30,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         }
         else if(item is IFixedType fix)
         {
-            _metadataSize += fix.MetadataSize;
+            _metadataSize += fix.Size;
         }
         else
         {
@@ -52,59 +51,59 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         return AddElement(bitLength switch
         {
             8 => isUnsigned
-                ? new FixedType.Byte(
+                ? new AbiTypes.Byte(
                     number is byte us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}"))
-                : new FixedType.SByte(
+                : new AbiTypes.SByte(
                     number is sbyte s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}")),
             16 => isUnsigned
-                ? new FixedType.UShort(
+                ? new AbiTypes.UShort(
                     number is ushort us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}"))
-                : new FixedType.Short(
+                : new AbiTypes.Short(
                     number is short s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}")),
             > 16 and <= 32 => isUnsigned
-                ? new FixedType.UInt(
-                    number is uint us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"), bitLength)
-                : new FixedType.Int(
-                    number is int s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"), bitLength),
+                ? new AbiTypes.UInt(
+                    number is uint us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"), bitLength / 8)
+                : new AbiTypes.Int(
+                    number is int s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"), bitLength / 8),
             > 32 and <= 64 => isUnsigned
-                ? new FixedType.ULong(
-                    number is ulong us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"), bitLength)
-                : new FixedType.Long(
-                    number is long s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"), bitLength),
-            > 64 and <= 256 => new FixedType.BigInteger(
+                ? new AbiTypes.ULong(
+                    number is ulong us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"), bitLength / 8)
+                : new AbiTypes.Long(
+                    number is long s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"), bitLength / 8),
+            > 64 and <= 256 => new AbiTypes.BigInteger(
                 number is BigInteger s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"),
-                isUnsigned, bitLength),
+                isUnsigned, bitLength / 8),
             _ => throw new NotImplementedException()
         });
     }
     public AbiEncoder Bool(bool value)
-        => AddElement(new FixedType.Bool(value));
+        => AddElement(new AbiTypes.Bool(value));
     public AbiEncoder Address(string value)
-        => AddElement(new FixedType.Address(value));
+        => AddElement(new AbiTypes.Address(value));
 
     public AbiEncoder String(string value)
-        => AddElement(new DynamicType.String(value));
+        => AddElement(new AbiTypes.String(value));
     public AbiEncoder Bytes(byte[] arr)
-        => AddElement(new DynamicType.Bytes(arr));
+        => AddElement(new AbiTypes.Bytes(arr));
 
     public AbiEncoder AddressArray(params string[] addresses)
-        => AddElement(new DynamicType.EncodeTypeArray<FixedType.Address>(
-            addresses.Select(x => new FixedType.Address(x)).ToArray()));
+        => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Address>(
+            addresses.Select(x => new AbiTypes.Address(x)).ToArray()));
     public AbiEncoder AddressArray(params Address[] addresses)
-        => AddElement(new DynamicType.EncodeTypeArray<FixedType.Address>(
-            addresses.Select(x => new FixedType.Address(x.String)).ToArray()));
+        => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Address>(
+            addresses.Select(x => new AbiTypes.Address(x.String)).ToArray()));
     public AbiEncoder StringArray(params string[] value)
-        => AddElement(new DynamicType.EncodeTypeArray<DynamicType.String>(
-            value.Select(x => new DynamicType.String(x)).ToArray()));
+        => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.String>(
+            value.Select(x => new AbiTypes.String(x)).ToArray()));
     public AbiEncoder BytesArray(params byte[][] value)
-        => AddElement(new DynamicType.EncodeTypeArray<DynamicType.Bytes>(
-            value.Select(x => new DynamicType.Bytes(x)).ToArray()));
+        => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bytes>(
+            value.Select(x => new AbiTypes.Bytes(x)).ToArray()));
 
     public AbiEncoder Array(Action<IArrayAbiEncoder> func)
     {
         var encoder = new AbiEncoder();
         func(encoder);
-        return AddElement(new DynamicType.Array(encoder));
+        return AddElement(new AbiTypes.Array(encoder));
     }
 
     IArrayAbiEncoder IArrayAbiEncoder.Array(Action<IArrayAbiEncoder> func)
@@ -114,13 +113,13 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     {
         var encoder = new AbiEncoder();
         func(encoder);
-        return AddElement(new DynamicType.Tuple(encoder));
+        return AddElement(new AbiTypes.DynamicTuple(encoder));
     }
     public AbiEncoder FixedTuple(Action<IFixedTupleEncoder> func)
     {
         var encoder = new AbiEncoder();
         func(encoder);
-        return AddElement(new FixedType.Tuple(encoder));
+        return AddElement(new AbiTypes.FixedTuple(encoder));
     }
 
     IArrayAbiEncoder IArrayAbiEncoder.DynamicTuple(Action<IDynamicTupleEncoder> func)
@@ -158,34 +157,34 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         return AddElement(bitLength switch
         {
             8 => isUnsigned
-                ? new DynamicType.PrimitiveNumberArray<byte>(
+                ? new AbiTypes.PrimitiveNumberArray<byte>(
                     numbers is byte[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}"),
                     bitLength)
-                : new DynamicType.PrimitiveNumberArray<sbyte>(
+                : new AbiTypes.PrimitiveNumberArray<sbyte>(
                     numbers is sbyte[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}"),
                     bitLength),
             16 => isUnsigned
-                ? new DynamicType.PrimitiveNumberArray<ushort>(
+                ? new AbiTypes.PrimitiveNumberArray<ushort>(
                     numbers is ushort[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}"),
                     bitLength)
-                : new DynamicType.PrimitiveNumberArray<short>(
+                : new AbiTypes.PrimitiveNumberArray<short>(
                     numbers is short[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}"),
                     bitLength),
             > 16 and <= 32 => isUnsigned
-                ? new DynamicType.PrimitiveNumberArray<uint>(
+                ? new AbiTypes.PrimitiveNumberArray<uint>(
                     numbers is uint[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"),
                     bitLength)
-                : new DynamicType.PrimitiveNumberArray<int>(
+                : new AbiTypes.PrimitiveNumberArray<int>(
                     numbers is int[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"),
                     bitLength),
             > 32 and <= 64 => isUnsigned
-                ? new DynamicType.PrimitiveNumberArray<ulong>(
+                ? new AbiTypes.PrimitiveNumberArray<ulong>(
                     numbers is ulong[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"),
                     bitLength)
-                : new DynamicType.PrimitiveNumberArray<long>(
+                : new AbiTypes.PrimitiveNumberArray<long>(
                     numbers is long[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"),
                     bitLength),
-            > 64 and <= 256 => new DynamicType.BigIntegerArray(
+            > 64 and <= 256 => new AbiTypes.BigIntegerArray(
                 numbers is BigInteger[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"),
                 isUnsigned, bitLength),
             _ => throw new NotImplementedException()
@@ -223,9 +222,9 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
                     fixEncType.Encode(
                         outputBuffer.Slice(
                             (int) metadataOffset,
-                            (int) fixEncType.MetadataSize
+                            (int) fixEncType.Size
                     ));
-                    metadataOffset += fixEncType.MetadataSize;
+                    metadataOffset += fixEncType.Size;
                     break;
                 default:
                     throw new NotImplementedException(entry.GetType().FullName);

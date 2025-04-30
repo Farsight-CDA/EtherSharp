@@ -1,11 +1,14 @@
-﻿using System.Buffers.Binary;
+﻿using EtherSharp.ABI.Types.Base;
+using EtherSharp.ABI.Types.Interfaces;
+using System.Buffers.Binary;
 
-namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicType
+namespace EtherSharp.ABI.Types;
+internal static partial class AbiTypes
 {
-    public class Bytes(byte[] value) : DynamicType<byte[]>(value)
+    public class Bytes(byte[] value) : DynamicType<byte[]>(value), IPackedEncodeType
     {
         public override uint PayloadSize => (((uint) Value.Length + 31) / 32 * 32) + 32;
+        public int PackedSize => Value.Length;
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {
@@ -14,6 +17,8 @@ internal abstract partial class DynamicType
 
             Value.CopyTo(payload[32..]);
         }
+        public void EncodePacked(Span<byte> buffer) 
+            => Value.CopyTo(buffer);
 
         public static ReadOnlySpan<byte> Decode(ReadOnlySpan<byte> bytes, uint metaDataOffset)
         {

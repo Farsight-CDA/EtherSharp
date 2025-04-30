@@ -1,9 +1,10 @@
 ﻿using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Encode.Interfaces;
+using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
 
-namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicType
+namespace EtherSharp.ABI.Types;
+internal static partial class AbiTypes
 {
     public class Array(IArrayAbiEncoder value) : DynamicType<IArrayAbiEncoder>(value)
     {

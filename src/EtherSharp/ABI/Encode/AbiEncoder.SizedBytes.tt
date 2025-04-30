@@ -1,14 +1,14 @@
 <#@ template language="C#" #>
 <#@ output extension=".cs" #>
 <#@ import namespace="System" #>
-using EtherSharp.ABI.Fixed;
+using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
 
 namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
     public AbiEncoder Bytes1(byte value)
-        => AddElement(new FixedType.Byte(value));    
+        => AddElement(new AbiTypes.Byte(value));    
     IFixedTupleEncoder IFixedTupleEncoder.Bytes1(byte value)
         => Bytes1(value);    
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes1(byte value)
@@ -18,7 +18,7 @@ public partial class AbiEncoder
     {
 #>
     public AbiEncoder Bytes<#=i#>(params byte[] value)
-        => AddElement(new FixedType.Bytes(value, <#=i#>));
+        => AddElement(new AbiTypes.SizedBytes(value, <#=i#>));
     IFixedTupleEncoder IFixedTupleEncoder.Bytes<#=i#>(params byte[] value)
         => Bytes<#=i#>(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes<#=i#>(params byte[] value)

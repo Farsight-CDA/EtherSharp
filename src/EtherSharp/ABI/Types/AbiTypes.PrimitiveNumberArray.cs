@@ -1,9 +1,9 @@
-﻿using EtherSharp.ABI.Fixed;
+﻿using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
 using System.Numerics;
 
-namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicType
+namespace EtherSharp.ABI.Types;
+internal static partial class AbiTypes
 {
     public class PrimitiveNumberArray<TInner> : DynamicType<TInner[]>
         where TInner : INumber<TInner>
@@ -44,28 +44,28 @@ internal abstract partial class DynamicType
                 switch(Value[i])
                 {
                     case byte us8:
-                        FixedType.Byte.EncodeInto(us8, slot);
+                        AbiTypes.Byte.EncodeInto(us8, slot);
                         break;
                     case sbyte s8:
-                        FixedType.SByte.EncodeInto(s8, slot);
+                        AbiTypes.SByte.EncodeInto(s8, slot);
                         break;
                     case ushort us16:
-                        FixedType.UShort.EncodeInto(us16, slot);
+                        AbiTypes.UShort.EncodeInto(us16, slot);
                         break;
                     case short s16:
-                        FixedType.Short.EncodeInto(s16, slot);
+                        AbiTypes.Short.EncodeInto(s16, slot);
                         break;
                     case uint us32:
-                        FixedType.UInt.EncodeInto(us32, slot);
+                        AbiTypes.UInt.EncodeInto(us32, slot, false);
                         break;
                     case int s32:
-                        FixedType.Int.EncodeInto(s32, slot);
+                        AbiTypes.Int.EncodeInto(s32, slot, false);
                         break;
                     case ulong us64:
-                        FixedType.ULong.EncodeInto(us64, slot);
+                        AbiTypes.ULong.EncodeInto(us64, slot, false);
                         break;
                     case long s64:
-                        FixedType.Long.EncodeInto(s64, slot);
+                        AbiTypes.Long.EncodeInto(s64, slot, false);
                         break;
                     default:
                         throw new NotImplementedException();
@@ -94,7 +94,7 @@ internal abstract partial class DynamicType
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = FixedType.Byte.Decode(slot.Span);
+                        arr[i] = AbiTypes.Byte.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -104,7 +104,7 @@ internal abstract partial class DynamicType
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = FixedType.SByte.Decode(slot.Span);
+                        arr[i] = AbiTypes.SByte.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -114,7 +114,7 @@ internal abstract partial class DynamicType
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = FixedType.UShort.Decode(slot.Span);
+                        arr[i] = AbiTypes.UShort.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -124,7 +124,7 @@ internal abstract partial class DynamicType
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = FixedType.Short.Decode(slot.Span);
+                        arr[i] = AbiTypes.Short.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -134,7 +134,7 @@ internal abstract partial class DynamicType
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = FixedType.UInt.Decode(slot.Span);
+                        arr[i] = AbiTypes.UInt.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -144,7 +144,7 @@ internal abstract partial class DynamicType
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = FixedType.Int.Decode(slot.Span);
+                        arr[i] = AbiTypes.Int.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -155,7 +155,7 @@ internal abstract partial class DynamicType
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = FixedType.ULong.Decode(slot.Span);
+                        arr[i] = AbiTypes.ULong.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -165,7 +165,7 @@ internal abstract partial class DynamicType
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = FixedType.Long.Decode(slot.Span);
+                        arr[i] = AbiTypes.Long.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }

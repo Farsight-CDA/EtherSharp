@@ -1,9 +1,9 @@
-﻿using EtherSharp.ABI.Encode;
-using EtherSharp.ABI.Fixed;
+﻿using EtherSharp.ABI.Types.Base;
+using EtherSharp.ABI.Types.Interfaces;
 using System.Buffers.Binary;
 
-namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicType
+namespace EtherSharp.ABI.Types;
+internal static partial class AbiTypes
 {
     public class EncodeTypeArray<TInner>(TInner[] value) : DynamicType<TInner[]>(value)
         where TInner : IEncodeType
@@ -31,7 +31,7 @@ internal abstract partial class DynamicType
                         localPayloadOffset += dynType.PayloadSize;
                         break;
                     case IFixedType fixType:
-                        fixType.Encode(payload.Slice(localMetadataOffset, (int) fixType.MetadataSize));
+                        fixType.Encode(payload.Slice(localMetadataOffset, (int) fixType.Size));
                         break;
                 }
             }
