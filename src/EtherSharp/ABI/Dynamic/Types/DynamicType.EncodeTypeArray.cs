@@ -3,7 +3,7 @@ using EtherSharp.ABI.Fixed;
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicType<T>
+internal abstract partial class DynamicType
 {
     public class EncodeTypeArray<TInner>(TInner[] value) : DynamicType<TInner[]>(value)
         where TInner : IEncodeType

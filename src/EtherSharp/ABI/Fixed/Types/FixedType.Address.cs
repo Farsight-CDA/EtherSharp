@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 
 namespace EtherSharp.ABI.Fixed;
-internal abstract partial class FixedType<T>
+internal abstract partial class FixedType
 {
     internal class Address : FixedType<ReadOnlyMemory<char>>
     {

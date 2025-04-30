@@ -28,31 +28,31 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
         number = bitLength switch
         {
-            8 when isUnsigned => FixedType<object>.Byte.Decode(CurrentSlot) is not TNumber b
+            8 when isUnsigned => FixedType.Byte.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}")
                 : b,
-            8 when !isUnsigned => FixedType<object>.SByte.Decode(CurrentSlot) is not TNumber b
+            8 when !isUnsigned => FixedType.SByte.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}")
                 : b,
-            16 when isUnsigned => FixedType<object>.UShort.Decode(CurrentSlot) is not TNumber b
+            16 when isUnsigned => FixedType.UShort.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}")
                 : b,
-            16 when !isUnsigned => FixedType<object>.Short.Decode(CurrentSlot) is not TNumber b
+            16 when !isUnsigned => FixedType.Short.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}")
                 : b,
-            > 16 and <= 32 when isUnsigned => FixedType<object>.UInt.Decode(CurrentSlot) is not TNumber b
+            > 16 and <= 32 when isUnsigned => FixedType.UInt.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}")
                 : b,
-            > 16 and <= 32 when !isUnsigned => FixedType<object>.Int.Decode(CurrentSlot) is not TNumber b
+            > 16 and <= 32 when !isUnsigned => FixedType.Int.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}")
                 : b,
-            > 32 and <= 64 when isUnsigned => FixedType<object>.ULong.Decode(CurrentSlot) is not TNumber b
+            > 32 and <= 64 when isUnsigned => FixedType.ULong.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}")
                 : b,
-            > 32 and <= 64 when !isUnsigned => FixedType<object>.Long.Decode(CurrentSlot) is not TNumber b
+            > 32 and <= 64 when !isUnsigned => FixedType.Long.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}")
                 : b,
-            > 64 and <= 256 => FixedType<object>.BigInteger.Decode(CurrentSlot, isUnsigned) is not TNumber b
+            > 64 and <= 256 => FixedType.BigInteger.Decode(CurrentSlot, isUnsigned) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}")
                 : b,
             _ => throw new NotSupportedException()
@@ -73,7 +73,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
     public AbiDecoder Bool(out bool value)
     {
-        value = FixedType<object>.Bool.Decode(CurrentSlot);
+        value = FixedType.Bool.Decode(CurrentSlot);
         return ConsumeBytes();
     }
     bool IFixedTupleDecoder.Bool()
@@ -89,13 +89,13 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
     public AbiDecoder Address(out string value)
     {
-        value = FixedType<object>.Address.Decode(CurrentSlot);
+        value = FixedType.Address.Decode(CurrentSlot);
         return ConsumeBytes();
     }
 
     public AbiDecoder String(out string str)
     {
-        str = DynamicType<object>.String.Decode(_bytes, _bytesRead);
+        str = DynamicType.String.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
     string IDynamicTupleDecoder.String()
@@ -106,7 +106,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
     public AbiDecoder Bytes(out ReadOnlySpan<byte> value)
     {
-        value = DynamicType<object>.Bytes.Decode(_bytes.Span, _bytesRead);
+        value = DynamicType.Bytes.Decode(_bytes.Span, _bytesRead);
         return ConsumeBytes();
     }
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes()
@@ -134,7 +134,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         int offset = 32;
         for(uint i = 0; i < arrayLength; i++)
         {
-            addresses[i] = FixedType<object>.Address.Decode(payload[offset..(offset + 32)]);
+            addresses[i] = FixedType.Address.Decode(payload[offset..(offset + 32)]);
             offset += 32;
         }
 
@@ -148,7 +148,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
     public AbiDecoder Array<T>(out T[] value, Func<IArrayAbiDecoder, T> func)
     {
-        value = DynamicType<T>.Array.Decode(_bytes, _bytesRead, func);
+        value = DynamicType.Array.Decode(_bytes, _bytesRead, func);
         return ConsumeBytes();
     }
     T[] IArrayAbiDecoder.Array<T>(Func<IArrayAbiDecoder, T> func)
@@ -164,7 +164,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
     public AbiDecoder FixedTuple<T>(out T value, Func<IFixedTupleDecoder, T> func)
     {
-        value = FixedType<T>.Tuple.Decode(this, func);
+        value = FixedType.Tuple.Decode(this, func);
         return ConsumeBytes();
     }
     T IFixedTupleDecoder.FixedTuple<T>(Func<IFixedTupleDecoder, T> func)
@@ -180,7 +180,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
     public AbiDecoder DynamicTuple<T>(out T value, Func<IDynamicTupleDecoder, T> func)
     {
-        value = DynamicType<T>.Tuple.Decode(_bytes, _bytesRead, func);
+        value = DynamicType.Tuple.Decode<T>(_bytes, _bytesRead, func);
         return ConsumeBytes();
     }
     T IDynamicTupleDecoder.DynamicTuple<T>(Func<IDynamicTupleDecoder, T> func)
@@ -198,31 +198,31 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
         numbers = bitLength switch
         {
-            8 when isUnsigned => DynamicType<object>.PrimitiveNumberArray<byte>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            8 when isUnsigned => DynamicType.PrimitiveNumberArray<byte>.Decode(_bytes, _bytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}")
                 : b,
-            8 when !isUnsigned => DynamicType<object>.PrimitiveNumberArray<sbyte>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            8 when !isUnsigned => DynamicType.PrimitiveNumberArray<sbyte>.Decode(_bytes, _bytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}")
                 : b,
-            16 when isUnsigned => DynamicType<object>.PrimitiveNumberArray<ushort>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            16 when isUnsigned => DynamicType.PrimitiveNumberArray<ushort>.Decode(_bytes, _bytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}")
                 : b,
-            16 when !isUnsigned => DynamicType<object>.PrimitiveNumberArray<short>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            16 when !isUnsigned => DynamicType.PrimitiveNumberArray<short>.Decode(_bytes, _bytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}")
                 : b,
-            > 16 and <= 32 when isUnsigned => DynamicType<object>.PrimitiveNumberArray<uint>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            > 16 and <= 32 when isUnsigned => DynamicType.PrimitiveNumberArray<uint>.Decode(_bytes, _bytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}")
                 : b,
-            > 16 and <= 32 when !isUnsigned => DynamicType<object>.PrimitiveNumberArray<int>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            > 16 and <= 32 when !isUnsigned => DynamicType.PrimitiveNumberArray<int>.Decode(_bytes, _bytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}")
                 : b,
-            > 32 and <= 64 when isUnsigned => DynamicType<object>.PrimitiveNumberArray<ulong>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            > 32 and <= 64 when isUnsigned => DynamicType.PrimitiveNumberArray<ulong>.Decode(_bytes, _bytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}")
                 : b,
-            > 32 and <= 64 when !isUnsigned => DynamicType<object>.PrimitiveNumberArray<long>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            > 32 and <= 64 when !isUnsigned => DynamicType.PrimitiveNumberArray<long>.Decode(_bytes, _bytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}")
                 : b,
-            > 64 and <= 256 => DynamicType<object>.BigIntegerArray.Decode(_bytes, _bytesRead, bitLength, isUnsigned) is not TNumber[] b
+            > 64 and <= 256 => DynamicType.BigIntegerArray.Decode(_bytes, _bytesRead, bitLength, isUnsigned) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {(isUnsigned ? "u-" : "")} {typeof(System.Numerics.BigInteger)}")
                 : b,
             _ => throw new NotSupportedException()

@@ -2,7 +2,7 @@
 using System.Text;
 
 namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicType<T>
+internal abstract partial class DynamicType
 {
     public class String(string value) : DynamicType<string>(value ?? throw new ArgumentNullException(nameof(value)))
     {

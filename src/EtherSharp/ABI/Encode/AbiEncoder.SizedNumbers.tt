@@ -9,28 +9,28 @@ namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
     public AbiEncoder UInt8(byte value)
-        => AddElement(new FixedType<object>.Byte(value));
+        => AddElement(new FixedType.Byte(value));
     IFixedTupleEncoder IFixedTupleEncoder.UInt8(byte value)
         => UInt8(value);    
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt8(byte value)
         => UInt8(value);
 
     public AbiEncoder Int8(sbyte value)
-        => AddElement(new FixedType<object>.SByte(value));
+        => AddElement(new FixedType.SByte(value));
     IFixedTupleEncoder IFixedTupleEncoder.Int8(sbyte value)
         => Int8(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int8(sbyte value)
         => Int8(value);
 
     public AbiEncoder UInt16(ushort value)
-        => AddElement(new FixedType<object>.UShort(value));
+        => AddElement(new FixedType.UShort(value));
     IFixedTupleEncoder IFixedTupleEncoder.UInt16(ushort value)
         => UInt16(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt16(ushort value)
         => UInt16(value);
 
     public AbiEncoder Int16(short value)
-        => AddElement(new FixedType<object>.Short(value));
+        => AddElement(new FixedType.Short(value));
     IFixedTupleEncoder IFixedTupleEncoder.Int16(short value)
         => Int16(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int16(short value)
@@ -41,14 +41,14 @@ public partial class AbiEncoder
     {
 #>
     public AbiEncoder Int<#=i#>(int value)
-        => AddElement(new FixedType<object>.Int(value, <#=i#>));
+        => AddElement(new FixedType.Int(value, <#=i#>));
     IFixedTupleEncoder IFixedTupleEncoder.Int<#=i#>(int value)
         => Int<#=i#>(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int<#=i#>(int value)
         => Int<#=i#>(value);
 
     public AbiEncoder UInt<#=i#>(uint value)
-        => AddElement(new FixedType<object>.UInt(value, <#=i#>));
+        => AddElement(new FixedType.UInt(value, <#=i#>));
     IFixedTupleEncoder IFixedTupleEncoder.UInt<#=i#>(uint value)
         => UInt<#=i#>(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt<#=i#>(uint value)
@@ -61,14 +61,14 @@ public partial class AbiEncoder
     {
 #>
     public AbiEncoder Int<#=i#>(long value)
-        => AddElement(new FixedType<object>.Long(value, <#=i#>));
+        => AddElement(new FixedType.Long(value, <#=i#>));
     IFixedTupleEncoder IFixedTupleEncoder.Int<#=i#>(long value)
         => Int<#=i#>(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int<#=i#>(long value)
         => Int<#=i#>(value);
 
     public AbiEncoder UInt<#=i#>(ulong value)
-        => AddElement(new FixedType<object>.ULong(value, <#=i#>));
+        => AddElement(new FixedType.ULong(value, <#=i#>));
     IFixedTupleEncoder IFixedTupleEncoder.UInt<#=i#>(ulong value)
         => UInt<#=i#>(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt<#=i#>(ulong value)
@@ -81,14 +81,14 @@ public partial class AbiEncoder
     {
 #>
     public AbiEncoder Int<#=i#>(BigInteger value)
-        => AddElement(new FixedType<object>.BigInteger(value, false, <#=i#>));
+        => AddElement(new FixedType.BigInteger(value, false, <#=i#>));
     IFixedTupleEncoder IFixedTupleEncoder.Int<#=i#>(BigInteger value)
         => Int<#=i#>(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int<#=i#>(BigInteger value)
         => Int<#=i#>(value);
 
     public AbiEncoder UInt<#=i#>(BigInteger value)
-        => AddElement(new FixedType<object>.BigInteger(value, true, <#=i#>));
+        => AddElement(new FixedType.BigInteger(value, true, <#=i#>));
     IFixedTupleEncoder IFixedTupleEncoder.UInt<#=i#>(BigInteger value)
         => UInt<#=i#>(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt<#=i#>(BigInteger value)

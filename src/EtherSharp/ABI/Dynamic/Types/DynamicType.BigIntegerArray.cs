@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicType<T>
+internal abstract partial class DynamicType
 {
     public class BigIntegerArray : DynamicType<BigInteger[]>
     {
@@ -43,7 +43,7 @@ internal abstract partial class DynamicType<T>
             for(int i = 0; i < Value.Length; i++)
             {
                 var slot = payload.Slice(32 + (i * 32), 32);
-                FixedType<object>.BigInteger.EncodeInto(Value[i], _isUnsigned, slot);
+                FixedType.BigInteger.EncodeInto(Value[i], _isUnsigned, slot);
             }
         }
 
@@ -64,7 +64,7 @@ internal abstract partial class DynamicType<T>
             for(int i = 0; i < arrLength; i++)
             {
                 var slot = data[(i * 32)..((i * 32) + 32)];
-                arr[i] = FixedType<object>.BigInteger.Decode(slot.Span, isUnsinght);
+                arr[i] = FixedType.BigInteger.Decode(slot.Span, isUnsinght);
             }
             return arr;
 

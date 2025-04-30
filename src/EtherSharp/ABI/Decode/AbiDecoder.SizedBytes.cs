@@ -6,7 +6,7 @@ public partial class AbiDecoder
 {
     public AbiDecoder Bytes1(out byte value)
     {
-        value = FixedType<object>.Byte.Decode(CurrentSlot);
+        value = FixedType.Byte.Decode(CurrentSlot);
         return this;
     }
     byte IFixedTupleDecoder.Bytes1()
@@ -21,7 +21,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes2(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 2);
+        value = FixedType.Bytes.Decode(CurrentSlot, 2);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes2()
@@ -36,7 +36,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes3(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 3);
+        value = FixedType.Bytes.Decode(CurrentSlot, 3);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes3()
@@ -51,7 +51,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes4(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 4);
+        value = FixedType.Bytes.Decode(CurrentSlot, 4);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes4()
@@ -66,7 +66,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes5(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 5);
+        value = FixedType.Bytes.Decode(CurrentSlot, 5);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes5()
@@ -81,7 +81,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes6(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 6);
+        value = FixedType.Bytes.Decode(CurrentSlot, 6);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes6()
@@ -96,7 +96,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes7(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 7);
+        value = FixedType.Bytes.Decode(CurrentSlot, 7);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes7()
@@ -111,7 +111,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes8(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 8);
+        value = FixedType.Bytes.Decode(CurrentSlot, 8);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes8()
@@ -126,7 +126,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes9(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 9);
+        value = FixedType.Bytes.Decode(CurrentSlot, 9);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes9()
@@ -141,7 +141,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes10(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 10);
+        value = FixedType.Bytes.Decode(CurrentSlot, 10);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes10()
@@ -156,7 +156,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes11(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 11);
+        value = FixedType.Bytes.Decode(CurrentSlot, 11);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes11()
@@ -171,7 +171,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes12(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 12);
+        value = FixedType.Bytes.Decode(CurrentSlot, 12);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes12()
@@ -186,7 +186,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes13(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 13);
+        value = FixedType.Bytes.Decode(CurrentSlot, 13);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes13()
@@ -201,7 +201,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes14(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 14);
+        value = FixedType.Bytes.Decode(CurrentSlot, 14);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes14()
@@ -216,7 +216,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes15(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 15);
+        value = FixedType.Bytes.Decode(CurrentSlot, 15);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes15()
@@ -231,7 +231,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes16(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 16);
+        value = FixedType.Bytes.Decode(CurrentSlot, 16);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes16()
@@ -246,7 +246,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes17(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 17);
+        value = FixedType.Bytes.Decode(CurrentSlot, 17);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes17()
@@ -261,7 +261,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes18(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 18);
+        value = FixedType.Bytes.Decode(CurrentSlot, 18);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes18()
@@ -276,7 +276,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes19(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 19);
+        value = FixedType.Bytes.Decode(CurrentSlot, 19);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes19()
@@ -291,7 +291,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes20(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 20);
+        value = FixedType.Bytes.Decode(CurrentSlot, 20);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes20()
@@ -306,7 +306,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes21(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 21);
+        value = FixedType.Bytes.Decode(CurrentSlot, 21);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes21()
@@ -321,7 +321,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes22(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 22);
+        value = FixedType.Bytes.Decode(CurrentSlot, 22);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes22()
@@ -336,7 +336,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes23(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 23);
+        value = FixedType.Bytes.Decode(CurrentSlot, 23);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes23()
@@ -351,7 +351,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes24(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 24);
+        value = FixedType.Bytes.Decode(CurrentSlot, 24);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes24()
@@ -366,7 +366,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes25(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 25);
+        value = FixedType.Bytes.Decode(CurrentSlot, 25);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes25()
@@ -381,7 +381,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes26(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 26);
+        value = FixedType.Bytes.Decode(CurrentSlot, 26);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes26()
@@ -396,7 +396,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes27(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 27);
+        value = FixedType.Bytes.Decode(CurrentSlot, 27);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes27()
@@ -411,7 +411,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes28(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 28);
+        value = FixedType.Bytes.Decode(CurrentSlot, 28);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes28()
@@ -426,7 +426,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes29(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 29);
+        value = FixedType.Bytes.Decode(CurrentSlot, 29);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes29()
@@ -441,7 +441,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes30(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 30);
+        value = FixedType.Bytes.Decode(CurrentSlot, 30);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes30()
@@ -456,7 +456,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes31(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 31);
+        value = FixedType.Bytes.Decode(CurrentSlot, 31);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes31()
@@ -471,7 +471,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder Bytes32(out ReadOnlySpan<byte> value)
     {
-        value = FixedType<object>.Bytes.Decode(CurrentSlot, 32);
+        value = FixedType.Bytes.Decode(CurrentSlot, 32);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes32()

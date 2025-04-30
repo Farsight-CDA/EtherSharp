@@ -3,7 +3,7 @@ using EtherSharp.ABI.Encode.Interfaces;
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicType<T>
+internal abstract partial class DynamicType
 {
     public class Array(IArrayAbiEncoder value) : DynamicType<IArrayAbiEncoder>(value)
     {
@@ -20,7 +20,7 @@ internal abstract partial class DynamicType<T>
             }
         }
 
-        public static T[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IArrayAbiDecoder, T> decoder)
+        public static T[] Decode<T>(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IArrayAbiDecoder, T> decoder)
         {
             uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[28..32].Span); 
 

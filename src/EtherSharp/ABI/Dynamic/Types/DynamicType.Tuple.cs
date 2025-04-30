@@ -3,7 +3,7 @@ using EtherSharp.ABI.Encode.Interfaces;
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicType<T>
+internal abstract partial class DynamicType
 {
     public class Tuple(IDynamicTupleEncoder value) : DynamicType<IDynamicTupleEncoder>(value)
     {
@@ -24,7 +24,7 @@ internal abstract partial class DynamicType<T>
             }
         }
 
-        public static T Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IDynamicTupleDecoder, T> decoder)
+        public static T Decode<T>(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IDynamicTupleDecoder, T> decoder)
         {
             uint structOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..].Span);
 

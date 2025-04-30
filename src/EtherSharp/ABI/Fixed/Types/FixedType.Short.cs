@@ -1,7 +1,7 @@
 ﻿using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Fixed;
-internal abstract partial class FixedType<T>
+internal abstract partial class FixedType
 {
     internal class Short(short value) : FixedType<short>(value)
     {

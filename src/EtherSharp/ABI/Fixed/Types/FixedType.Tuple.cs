@@ -2,7 +2,7 @@
 using EtherSharp.ABI.Encode.Interfaces;
 
 namespace EtherSharp.ABI.Fixed;
-internal abstract partial class FixedType<T>
+internal abstract partial class FixedType
 {
     internal class Tuple(IFixedTupleEncoder value) : FixedType<IFixedTupleEncoder>(value)
     {
@@ -20,7 +20,7 @@ internal abstract partial class FixedType<T>
             value.TryWritoTo(buffer);
         }
 
-        public static T Decode(AbiDecoder decoder, Func<IFixedTupleDecoder, T> subDecoder) 
+        public static T Decode<T>(AbiDecoder decoder, Func<IFixedTupleDecoder, T> subDecoder) 
             => subDecoder.Invoke(decoder);
     }
 }

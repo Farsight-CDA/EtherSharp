@@ -1,5 +1,5 @@
 ﻿namespace EtherSharp.ABI.Fixed;
-internal abstract partial class FixedType<T>
+internal abstract partial class FixedType
 {
     internal class Byte(byte value) : FixedType<byte>(value)
     {

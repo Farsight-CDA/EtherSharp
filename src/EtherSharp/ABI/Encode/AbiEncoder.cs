@@ -52,59 +52,59 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         return AddElement(bitLength switch
         {
             8 => isUnsigned
-                ? new FixedType<object>.Byte(
+                ? new FixedType.Byte(
                     number is byte us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}"))
-                : new FixedType<object>.SByte(
+                : new FixedType.SByte(
                     number is sbyte s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}")),
             16 => isUnsigned
-                ? new FixedType<object>.UShort(
+                ? new FixedType.UShort(
                     number is ushort us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}"))
-                : new FixedType<object>.Short(
+                : new FixedType.Short(
                     number is short s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}")),
             > 16 and <= 32 => isUnsigned
-                ? new FixedType<object>.UInt(
+                ? new FixedType.UInt(
                     number is uint us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"), bitLength)
-                : new FixedType<object>.Int(
+                : new FixedType.Int(
                     number is int s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"), bitLength),
             > 32 and <= 64 => isUnsigned
-                ? new FixedType<object>.ULong(
+                ? new FixedType.ULong(
                     number is ulong us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"), bitLength)
-                : new FixedType<object>.Long(
+                : new FixedType.Long(
                     number is long s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"), bitLength),
-            > 64 and <= 256 => new FixedType<object>.BigInteger(
+            > 64 and <= 256 => new FixedType.BigInteger(
                 number is BigInteger s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"),
                 isUnsigned, bitLength),
             _ => throw new NotImplementedException()
         });
     }
     public AbiEncoder Bool(bool value)
-        => AddElement(new FixedType<object>.Bool(value));
+        => AddElement(new FixedType.Bool(value));
     public AbiEncoder Address(string value)
-        => AddElement(new FixedType<object>.Address(value));
+        => AddElement(new FixedType.Address(value));
 
     public AbiEncoder String(string value)
-        => AddElement(new DynamicType<object>.String(value));
+        => AddElement(new DynamicType.String(value));
     public AbiEncoder Bytes(byte[] arr)
-        => AddElement(new DynamicType<object>.Bytes(arr));
+        => AddElement(new DynamicType.Bytes(arr));
 
     public AbiEncoder AddressArray(params string[] addresses)
-        => AddElement(new DynamicType<object>.EncodeTypeArray<FixedType<object>.Address>(
-            addresses.Select(x => new FixedType<object>.Address(x)).ToArray()));
+        => AddElement(new DynamicType.EncodeTypeArray<FixedType.Address>(
+            addresses.Select(x => new FixedType.Address(x)).ToArray()));
     public AbiEncoder AddressArray(params Address[] addresses)
-        => AddElement(new DynamicType<object>.EncodeTypeArray<FixedType<object>.Address>(
-            addresses.Select(x => new FixedType<object>.Address(x.String)).ToArray()));
+        => AddElement(new DynamicType.EncodeTypeArray<FixedType.Address>(
+            addresses.Select(x => new FixedType.Address(x.String)).ToArray()));
     public AbiEncoder StringArray(params string[] value)
-        => AddElement(new DynamicType<object>.EncodeTypeArray<DynamicType<object>.String>(
-            value.Select(x => new DynamicType<object>.String(x)).ToArray()));
+        => AddElement(new DynamicType.EncodeTypeArray<DynamicType.String>(
+            value.Select(x => new DynamicType.String(x)).ToArray()));
     public AbiEncoder BytesArray(params byte[][] value)
-        => AddElement(new DynamicType<object>.EncodeTypeArray<DynamicType<object>.Bytes>(
-            value.Select(x => new DynamicType<object>.Bytes(x)).ToArray()));
+        => AddElement(new DynamicType.EncodeTypeArray<DynamicType.Bytes>(
+            value.Select(x => new DynamicType.Bytes(x)).ToArray()));
 
     public AbiEncoder Array(Action<IArrayAbiEncoder> func)
     {
         var encoder = new AbiEncoder();
         func(encoder);
-        return AddElement(new DynamicType<object>.Array(encoder));
+        return AddElement(new DynamicType.Array(encoder));
     }
 
     IArrayAbiEncoder IArrayAbiEncoder.Array(Action<IArrayAbiEncoder> func)
@@ -114,13 +114,13 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     {
         var encoder = new AbiEncoder();
         func(encoder);
-        return AddElement(new DynamicType<object>.Tuple(encoder));
+        return AddElement(new DynamicType.Tuple(encoder));
     }
     public AbiEncoder FixedTuple(Action<IFixedTupleEncoder> func)
     {
         var encoder = new AbiEncoder();
         func(encoder);
-        return AddElement(new FixedType<object>.Tuple(encoder));
+        return AddElement(new FixedType.Tuple(encoder));
     }
 
     IArrayAbiEncoder IArrayAbiEncoder.DynamicTuple(Action<IDynamicTupleEncoder> func)
@@ -158,34 +158,34 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         return AddElement(bitLength switch
         {
             8 => isUnsigned
-                ? new DynamicType<object>.PrimitiveNumberArray<byte>(
+                ? new DynamicType.PrimitiveNumberArray<byte>(
                     numbers is byte[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}"),
                     bitLength)
-                : new DynamicType<object>.PrimitiveNumberArray<sbyte>(
+                : new DynamicType.PrimitiveNumberArray<sbyte>(
                     numbers is sbyte[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}"),
                     bitLength),
             16 => isUnsigned
-                ? new DynamicType<object>.PrimitiveNumberArray<ushort>(
+                ? new DynamicType.PrimitiveNumberArray<ushort>(
                     numbers is ushort[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}"),
                     bitLength)
-                : new DynamicType<object>.PrimitiveNumberArray<short>(
+                : new DynamicType.PrimitiveNumberArray<short>(
                     numbers is short[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}"),
                     bitLength),
             > 16 and <= 32 => isUnsigned
-                ? new DynamicType<object>.PrimitiveNumberArray<uint>(
+                ? new DynamicType.PrimitiveNumberArray<uint>(
                     numbers is uint[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"),
                     bitLength)
-                : new DynamicType<object>.PrimitiveNumberArray<int>(
+                : new DynamicType.PrimitiveNumberArray<int>(
                     numbers is int[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"),
                     bitLength),
             > 32 and <= 64 => isUnsigned
-                ? new DynamicType<object>.PrimitiveNumberArray<ulong>(
+                ? new DynamicType.PrimitiveNumberArray<ulong>(
                     numbers is ulong[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"),
                     bitLength)
-                : new DynamicType<object>.PrimitiveNumberArray<long>(
+                : new DynamicType.PrimitiveNumberArray<long>(
                     numbers is long[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"),
                     bitLength),
-            > 64 and <= 256 => new DynamicType<object>.BigIntegerArray(
+            > 64 and <= 256 => new DynamicType.BigIntegerArray(
                 numbers is BigInteger[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"),
                 isUnsigned, bitLength),
             _ => throw new NotImplementedException()

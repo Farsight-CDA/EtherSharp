@@ -11,7 +11,7 @@ public partial class AbiDecoder
 
     public AbiDecoder Int8Array(out sbyte[] bytes)
     {
-        bytes = DynamicType<object>.PrimitiveNumberArray<sbyte>.Decode(_bytes, _bytesRead);
+        bytes = DynamicType.PrimitiveNumberArray<sbyte>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
     sbyte[] IArrayAbiDecoder.Int8Array()
@@ -26,7 +26,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt8Array(out byte[] bytes)
     {
-        bytes = DynamicType<object>.PrimitiveNumberArray<byte>.Decode(_bytes, _bytesRead);
+        bytes = DynamicType.PrimitiveNumberArray<byte>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
     byte[] IArrayAbiDecoder.UInt8Array()
@@ -42,7 +42,7 @@ public partial class AbiDecoder
 
     public AbiDecoder Int16Array(out short[] shorts)
     {
-        shorts = DynamicType<short>.PrimitiveNumberArray<short>.Decode(_bytes, _bytesRead);
+        shorts = DynamicType.PrimitiveNumberArray<short>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
     short[] IArrayAbiDecoder.Int16Array()
@@ -57,7 +57,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt16Array(out ushort[] shorts)
     {
-        shorts = DynamicType<ushort>.PrimitiveNumberArray<ushort>.Decode(_bytes, _bytesRead);
+        shorts = DynamicType.PrimitiveNumberArray<ushort>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
     ushort[] IArrayAbiDecoder.UInt16Array()
@@ -77,7 +77,7 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>Array(out int[] ints)
     {
-        ints = DynamicType<int>.PrimitiveNumberArray<int>.Decode(_bytes, _bytesRead);
+        ints = DynamicType.PrimitiveNumberArray<int>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
     int[] IArrayAbiDecoder.Int<#=i#>Array()
@@ -92,7 +92,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt<#=i#>Array(out uint[] ints)
     {
-        ints = DynamicType<uint>.PrimitiveNumberArray<uint>.Decode(_bytes, _bytesRead);
+        ints = DynamicType.PrimitiveNumberArray<uint>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
     uint[] IArrayAbiDecoder.UInt<#=i#>Array()
@@ -114,7 +114,7 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>Array(out long[] longs)
     {
-        longs = DynamicType<object>.PrimitiveNumberArray<long>.Decode(_bytes, _bytesRead);
+        longs = DynamicType.PrimitiveNumberArray<long>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
     long[] IArrayAbiDecoder.Int<#=i#>Array()
@@ -129,7 +129,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt<#=i#>Array(out ulong[] longs)
     {
-        longs = DynamicType<ulong>.PrimitiveNumberArray<ulong>.Decode(_bytes, _bytesRead);
+        longs = DynamicType.PrimitiveNumberArray<ulong>.Decode(_bytes, _bytesRead);
         return ConsumeBytes();
     }
     ulong[] IArrayAbiDecoder.UInt<#=i#>Array()
@@ -151,7 +151,7 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Int<#=i#>Array(out System.Numerics.BigInteger[] bytes)
     {
-        bytes = DynamicType<System.Numerics.BigInteger>.BigIntegerArray.Decode(_bytes, _bytesRead, <#=i#>, false);
+        bytes = DynamicType.BigIntegerArray.Decode(_bytes, _bytesRead, <#=i#>, false);
         return ConsumeBytes();
     }
     BigInteger[] IArrayAbiDecoder.Int<#=i#>Array()
@@ -166,7 +166,7 @@ public partial class AbiDecoder
     }
     public AbiDecoder UInt<#=i#>Array(out System.Numerics.BigInteger[] bytes)
     {
-        bytes = DynamicType<System.Numerics.BigInteger>.BigIntegerArray.Decode(_bytes, _bytesRead, <#=i#>, true);
+        bytes = DynamicType.BigIntegerArray.Decode(_bytes, _bytesRead, <#=i#>, true);
         return ConsumeBytes();
     }
     BigInteger[] IArrayAbiDecoder.UInt<#=i#>Array()

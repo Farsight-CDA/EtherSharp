@@ -1,7 +1,7 @@
 ﻿using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Dynamic;
-internal abstract partial class DynamicType<T>
+internal abstract partial class DynamicType
 {
     public class Bytes(byte[] value) : DynamicType<byte[]>(value)
     {
