@@ -165,22 +165,38 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
             throw new NotSupportedException($"No {nameof(IResiliencyLayer)} configured");
         }
 
+        var txSubmissions = await _resiliencyLayer.FetchTxSubmissionsAsync(nonce, cancellationToken);
+        var typedTxSubmissions = txSubmissions.Select(x => x.ToTxSubmission<TTxParams, TTxGasParams>()).OrderByDescending(x => x.Sequence);
+
         QueueEntry.PendingHandler pendingHandler;
         lock(_pendingEntries)
         {
-            if(!_pendingEntries.TryGetValue(nonce, out var entry)
-                || entry is not QueueEntry.PendingHandler tempPendingHandler)
+            if (!_pendingEntries.TryGetValue(nonce, out var entry))
             {
-                throw new InvalidOperationException($"No pending tx with nonce {nonce} found");
+                if (_activeNonce <= nonce)
+                {
+                    throw new InvalidOperationException($"No pending tx with nonce {nonce} found");
+                }
+                //
+                return new PendingTxHandler<TTxParams, TTxGasParams>(
+                    nonce,
+                    typedTxSubmissions,
+                    (handler, _) => FetchTxConfirmationResultAsync(handler.TxSubmissions, 1)
+                );
             }
 
-            pendingHandler = tempPendingHandler;
+            if (entry is not QueueEntry.PendingHandler pendingHandlerEntry)
+            {
+                throw new InvalidOperationException($"There already is an existing handler for tx nonce {nonce}");
+            }
+
+            pendingHandler = pendingHandlerEntry;
         }
 
-        var txSubmissions = await _resiliencyLayer.FetchTxSubmissionsAsync(nonce, cancellationToken);
+
         var handler = new PendingTxHandler<TTxParams, TTxGasParams>(
             nonce,
-            txSubmissions.Select(x => x.ToTxSubmission<TTxParams, TTxGasParams>()).OrderByDescending(x => x.Sequence),
+            typedTxSubmissions,
             PublishAndConfirmPendingTxAsync<TTransaction, TTxParams, TTxGasParams>
         );
 
@@ -319,16 +335,16 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
 
         await noncePollTask;
         cts.Cancel();
-        return await FetchTxConfirmationResultAsync(txHandler);
+        return await FetchTxConfirmationResultAsync(txHandler.TxSubmissions, 3);
     }
 
-    private async Task<TxConfirmationResult> FetchTxConfirmationResultAsync<TTxParams, TTxGasParams>(PendingTxHandler<TTxParams, TTxGasParams> txHandler)
+    private async Task<TxConfirmationResult> FetchTxConfirmationResultAsync<TTxParams, TTxGasParams>(IEnumerable<TxSubmission<TTxParams, TTxGasParams>> txSubmissions, int attempts)
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
-        for(int i = 0; i < 3; i++)
+        for(int i = 0; i < attempts; i++)
         {
-            foreach(var txSubmission in txHandler.TxSubmissions)
+            foreach(var txSubmission in txSubmissions)
             {
                 var txReceipt = await _rpcClient.EthGetTransactionReceiptAsync(txSubmission.TxHash);
 
