@@ -114,7 +114,7 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
     }
-
+    
     public async Task<long> EthBlockTransactionCountByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
         => await SendRpcRequest<string, string>(
             "eth_getBlockTransactionCountByNumber", targetBlockNumber.ToString(), cancellationToken) switch
@@ -430,11 +430,11 @@ internal partial class EvmRpcClient : IRpcClient
         string ToBlock,
         string[]? Address,
         string[]? Topics,
-        byte[]? BlockHash
+        string? BlockHash
     );
     public async Task<Log[]> EthGetLogsAsync(
         TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
-        string[]? addresses, string[]? topics, byte[]? blockHash,
+        string[]? addresses, string[]? topics, string? blockHash,
         CancellationToken cancellationToken)
     {
         var filterOptions = new EthGetLogsRequest(fromBlock.ToString(), toBlock.ToString(), addresses, topics, blockHash);
@@ -450,6 +450,11 @@ internal partial class EvmRpcClient : IRpcClient
     private record EthSubscribeLogsRequest(string[]? Address, string[]? Topics);
     public async Task<string> EthSubscribeLogsAsync(string[]? contracts, string[]? topics, CancellationToken cancellationToken)
     {
+        if(!_transport.SupportsSubscriptions)
+        {
+            throw new InvalidOperationException("The underlying transport does not support subscriptions");
+        }
+
         var request = new EthSubscribeLogsRequest(contracts, topics);
         return await SendRpcRequest<string, EthSubscribeLogsRequest, string>(
             "eth_subscribe", "logs", request, cancellationToken) switch
@@ -460,12 +465,35 @@ internal partial class EvmRpcClient : IRpcClient
         };
     }
 
+    public async Task<string> EthSubscribeNewHeadsAsync(CancellationToken cancellationToken = default)
+    {
+        if(!_transport.SupportsSubscriptions)
+        {
+            throw new InvalidOperationException("The underlying transport does not support subscriptions");
+        }
+        //
+        return await SendRpcRequest<string, string>(
+                    "eth_subscribe", "newHeads", cancellationToken) switch
+        {
+            RpcResult<string>.Success result => result.Result,
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
+    }
+
     public async Task<bool> EthUnsubscribeAsync(string subscriptionId, CancellationToken cancellationToken)
-        => await SendRpcRequest<string, bool>(
-            "eth_unsubscribe", subscriptionId, cancellationToken) switch
+    {
+        if(!_transport.SupportsSubscriptions)
+        {
+            throw new InvalidOperationException("The underlying transport does not support subscriptions");
+        }
+        //
+        return await SendRpcRequest<string, bool>(
+                "eth_unsubscribe", subscriptionId, cancellationToken) switch
         {
             RpcResult<bool>.Success result => result.Result,
             RpcResult<bool>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
+    }
 }

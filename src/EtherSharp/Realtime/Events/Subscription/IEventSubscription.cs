@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Events.Subscription;
+﻿namespace EtherSharp.Realtime.Events.Subscription;
 public interface IEventSubscription<TEvent> : IAsyncDisposable
     where TEvent : ITxEvent<TEvent>
 {

@@ -12,7 +12,7 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
     {
         string eventTypeName = NameUtils.ToValidClassName($"{eventMember.Name}Event");
         var classBuilder = new ClassBuilder(eventTypeName)
-            .AddBaseType($"EtherSharp.Events.ITxEvent<{eventTypeName}>", true)
+            .AddBaseType($"EtherSharp.Realtime.Events.ITxEvent<{eventTypeName}>", true)
             .AddProperty(new PropertyBuilder("EtherSharp.Types.Log", "Log"))
             .WithAutoConstructor();
 

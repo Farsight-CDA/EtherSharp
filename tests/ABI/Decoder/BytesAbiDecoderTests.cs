@@ -4,7 +4,6 @@ namespace EtherSharp.Tests.ABI.Decoder;
 
 public class BytesAbiDecoderTests
 {
-
     public static IEnumerable<object[]> BitSizes
     => Enumerable.Range(1, 32)
         .Select(x => new object[] { x * 8 });
@@ -24,5 +23,16 @@ public class BytesAbiDecoderTests
         _ = new AbiDecoder(input).Bytes(out var actualBytes);
 
         Assert.Equal([0, 0, 0], actualBytes.ToArray());
+    }
+
+    [Theory]
+    [MemberData(nameof(BitSizes))]
+    public void Should_Match_Full_Zeros_Output(int bitSize)
+    {
+        byte[] input = new byte[32];
+
+        _ = new AbiDecoder(input).SizedBytes(out var output, bitSize);
+
+        Assert.Equal(input.AsSpan()[0..(bitSize / 8)], output);
     }
 }

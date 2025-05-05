@@ -1,5 +1,5 @@
 ﻿using EtherSharp.Contract;
-using EtherSharp.Events;
+using EtherSharp.Realtime.Events;
 
 namespace EtherSharp.Client.Services.LogsApi;
 public interface ILogsApi<TEvent> : IConfiguredLogsApi<TEvent>

@@ -103,6 +103,17 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         return str;
     }
 
+    public AbiDecoder SizedBytes(out ReadOnlySpan<byte> value, int bitLength)
+    {
+        if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
+        {
+            throw new ArgumentException("Invalid bitLength", nameof(bitLength));
+        }
+
+        value = AbiTypes.SizedBytes.Decode(CurrentSlot, bitLength / 8);
+        return this;
+    }
+
     public AbiDecoder Bytes(out ReadOnlySpan<byte> value)
     {
         value = AbiTypes.Bytes.Decode(_bytes.Span, _bytesRead);

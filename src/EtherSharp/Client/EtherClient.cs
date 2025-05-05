@@ -6,6 +6,7 @@ using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
+using EtherSharp.Realtime.Blocks.Subscription;
 using EtherSharp.StateOverride;
 using EtherSharp.Transport;
 using EtherSharp.Tx;
@@ -119,6 +120,14 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         }
 
         _initialized = true;
+    }
+
+    async Task<IBlocksSubscription> IEtherClient.SubscribeNewHeadsAsync(CancellationToken cancellationToken)
+    {
+        AssertReady();
+        var subscription = new BlocksSubscription(_rpcClient);
+        await subscription.InitializeAsync(cancellationToken);
+        return subscription;
     }
 
     Task<BlockDataTrasactionAsString> IEtherClient.GetBlockAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)

@@ -1,7 +1,7 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Types;
 
-namespace EtherSharp.Events.Filter;
+namespace EtherSharp.Realtime.Events.Filter;
 
 internal class EventFilter<TEvent>(IRpcClient client,
     TargetBlockNumber fromBlock, TargetBlockNumber toBlock,

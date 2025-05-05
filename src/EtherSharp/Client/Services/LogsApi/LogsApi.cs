@@ -1,9 +1,9 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
-using EtherSharp.Events;
-using EtherSharp.Events.Filter;
-using EtherSharp.Events.Subscription;
+using EtherSharp.Realtime.Events;
+using EtherSharp.Realtime.Events.Filter;
+using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Services.LogsApi;
@@ -78,7 +78,7 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
         return this;
     }
 
-    public async Task<TEvent[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, byte[]? blockHash = null)
+    public async Task<TEvent[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, string? blockHash = null)
     {
         if(fromBlock == default)
         {

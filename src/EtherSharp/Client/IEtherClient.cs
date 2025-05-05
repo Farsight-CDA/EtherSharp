@@ -1,7 +1,8 @@
 ﻿using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Contract;
-using EtherSharp.Events;
+using EtherSharp.Realtime.Blocks.Subscription;
+using EtherSharp.Realtime.Events;
 using EtherSharp.StateOverride;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
@@ -21,6 +22,8 @@ public interface IEtherClient
     public IInternalEtherClient AsInternal();
 
     public Task InitializeAsync(CancellationToken cancellationToken = default);
+
+    public Task<IBlocksSubscription> SubscribeNewHeadsAsync(CancellationToken cancellationToken = default);
 
     public Task<BlockDataTrasactionAsString> GetBlockAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken = default);
     public Task<Transaction> GetTransactionAsync(string hash, CancellationToken cancellationToken = default);

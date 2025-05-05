@@ -21,7 +21,8 @@ public record BlockData(
     string? Miner,
     BigInteger? Nonce,
     BigInteger? Number,
-    byte[]? ParentHash,
+
+    string? ParentHash,
     byte[]? ReceiptsRoot,
     byte[]? Sha3Uncles,
     BigInteger Size,
@@ -35,6 +36,8 @@ public record BlockData(
 public record BlockDataTrasactionAsString(
     ulong Number,
     DateTimeOffset Timestamp,
-    BigInteger? BaseFeePerGas
+    BigInteger? BaseFeePerGas,
+    string Hash,
+    string ParentHash
 );
 

@@ -25,7 +25,7 @@ public partial class AbiDecoder
 #>
     public AbiDecoder Bytes<#=i#>(out ReadOnlySpan<byte> value)
     {
-        value = AbiTypes.Bytes.Decode(CurrentSlot, <#=i#>);
+        value = AbiTypes.SizedBytes.Decode(CurrentSlot, <#=i#>);
         return this;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes<#=i#>()

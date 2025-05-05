@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Events.Filter;
+﻿namespace EtherSharp.Realtime.Events.Filter;
 public interface IEventFilter<TEvent> : IAsyncDisposable
     where TEvent : ITxEvent<TEvent>
 {

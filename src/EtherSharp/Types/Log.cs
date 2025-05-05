@@ -1,4 +1,4 @@
-﻿using EtherSharp.Events;
+﻿using EtherSharp.Realtime.Events;
 
 namespace EtherSharp.Types;
 public record Log(
@@ -9,7 +9,8 @@ public record Log(
     string TransactionHash,
     uint TransactionIndex,
     byte[][] Topics,
-    byte[] Data
+    byte[] Data,
+    bool Removed
 ) : ITxEvent<Log>
 {
     public static Log Decode(Log data) => data;

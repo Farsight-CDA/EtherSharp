@@ -46,7 +46,7 @@ public interface IRpcClient
 
     public Task<Log[]> EthGetLogsAsync(
         TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
-        string[]? addresses, string[]? topics, byte[]? blockHash,
+        string[]? addresses, string[]? topics, string? blockHash,
         CancellationToken cancellationToken = default
     );
     public Task<string> EthNewFilterAsync(
@@ -60,5 +60,7 @@ public interface IRpcClient
     public Task<string> EthSubscribeLogsAsync(
         string[]? contracts, string[]? topics, CancellationToken cancellationToken = default
     );
+    public Task<string> EthSubscribeNewHeadsAsync(CancellationToken cancellationToken = default);
+
     public Task<bool> EthUnsubscribeAsync(string subscriptionId, CancellationToken cancellationToken = default);
 }
