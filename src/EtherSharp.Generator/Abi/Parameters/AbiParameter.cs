@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Generator.Abi.Parameters;
-public class AbiInputParameter
+public class AbiParameter
 {
     [JsonRequired]
     public string Name { get; set; } = null!;
@@ -10,7 +10,15 @@ public class AbiInputParameter
     public string Type { get; set; } = null!;
 
     public string? InternalType { get; set; }
-    public AbiInputParameter[]? Components { get; set; }
+    public AbiParameter[]? Components { get; set; }
+
+    public AbiParameter(string name, string type, string? internalType, AbiParameter[]? components)
+    {
+        Name = name;
+        Type = type;
+        InternalType = internalType;
+        Components = components;
+    }
 
     public string GetFunctionSignatureTypeString()
     {

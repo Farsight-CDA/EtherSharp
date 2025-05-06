@@ -87,8 +87,18 @@ public class ContractSourceWriter(
                 }
             """);
 
+        List<string> signaturesSeen = [];
         foreach(var member in members.Where(x => x is EventAbiMember).Cast<EventAbiMember>())
         {
+            _ = member.GetEventTopic(out string signature);
+
+            if(signaturesSeen.Contains(signature))
+            {
+                continue;
+            }
+
+            signaturesSeen.Add(signature);
+
             string eventProperty = GenerateEventProperty($"{@namespace}.{contractName}", member);
             eventsStructBuilder.AppendLine(eventProperty);
 
@@ -136,7 +146,7 @@ public class ContractSourceWriter(
             _paramEncodingWriter.AddParameterEncoding(func, input, index);
         }
 
-        var (returnType, decoderFunction) = _paramDecodingWriter.SetQueryOutputDecoding(func, queryFunction.Outputs);
+        var (returnType, decoderFunction) = _paramDecodingWriter.SetQueryOutputDecoding(functionName, func, queryFunction.Outputs);
 
         func.AddArgument("EtherSharp.Types.TargetBlockNumber", "targetBlockNumber", true, "default");
         func.AddArgument("EtherSharp.StateOverride.TxStateOverride", "stateOverride", true, "default");
@@ -149,9 +159,7 @@ public class ContractSourceWriter(
                 0,
                 {{GetFunctionSignatureFieldName(queryFunction)}},
                 encoder,
-                decoder => {
-                {{decoderFunction}}
-                }
+                decoder => {{decoderFunction}}
             ), targetBlockNumber, stateOverride: stateOverride, cancellationToken: cancellationToken)
             """
         );
@@ -207,7 +215,7 @@ public class ContractSourceWriter(
                 """);
                 break;
             case 1:
-                var (returnType, decoderFunction) = _paramDecodingWriter.SetMessageOutputDecoding(func, messageFunction.Outputs);
+                var (returnType, decoderFunction) = _paramDecodingWriter.SetMessageOutputDecoding(functionName, func, messageFunction.Outputs);
                 func.AddStatement(
                 $$"""
                 return EtherSharp.Tx.ITxInput.ForContractCall<{{returnType}}>(
@@ -215,10 +223,7 @@ public class ContractSourceWriter(
                     {{ethParamName}},
                     {{GetFunctionSignatureFieldName(messageFunction)}},
                     encoder,
-                    decoder =>
-                    {
-                    {{decoderFunction}}
-                    }
+                    decoder => {{decoderFunction}}
                 )
                 """);
                 break;

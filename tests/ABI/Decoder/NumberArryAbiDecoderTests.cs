@@ -28,31 +28,31 @@ public class NumberArryAbiDecoderTests
         {
             case 8:
             {
-                _ = new AbiDecoder(input).NumberArray(false, bitSize, out sbyte[] value);
+                sbyte[] value = new AbiDecoder(input).NumberArray<sbyte>(false, bitSize);
                 Assert.Equal([sbyte.MinValue], value);
                 break;
             }
             case 16:
             {
-                _ = new AbiDecoder(input).NumberArray(false, bitSize, out short[] value);
+                short[] value = new AbiDecoder(input).NumberArray<short>(false, bitSize);
                 Assert.Equal([short.MinValue], value);
                 break;
             }
             case > 16 and <= 32:
             {
-                _ = new AbiDecoder(input).NumberArray(false, bitSize, out int[] value);
+                int[] value = new AbiDecoder(input).NumberArray<int>(false, bitSize);
                 Assert.Equal([int.MinValue >> (32 - (int) bitSize)], value);
                 break;
             }
             case > 32 and <= 64:
             {
-                _ = new AbiDecoder(input).NumberArray(false, bitSize, out long[] value);
+                long[] value = new AbiDecoder(input).NumberArray<long>(false, bitSize);
                 Assert.Equal([long.MinValue >> (64 - (int) bitSize)], value);
                 break;
             }
             case > 64 and <= 256:
             {
-                _ = new AbiDecoder(input).NumberArray(false, bitSize, out BigInteger[] value);
+                var value = new AbiDecoder(input).NumberArray<BigInteger>(false, bitSize);
                 Assert.Equal([-BigInteger.Pow(2, (int) (bitSize - 1))], value);
                 break;
             }
@@ -74,31 +74,31 @@ public class NumberArryAbiDecoderTests
         {
             case 8:
             {
-                _ = new AbiDecoder(input).NumberArray(false, bitSize, out sbyte[] value);
+                sbyte[] value = new AbiDecoder(input).NumberArray<sbyte>(false, bitSize);
                 Assert.Equal([sbyte.MaxValue], value);
                 break;
             }
             case 16:
             {
-                _ = new AbiDecoder(input).NumberArray(false, bitSize, out short[] value);
+                short[] value = new AbiDecoder(input).NumberArray<short>(false, bitSize);
                 Assert.Equal([short.MaxValue], value);
                 break;
             }
             case > 16 and <= 32:
             {
-                _ = new AbiDecoder(input).NumberArray(false, bitSize, out int[] value);
+                int[] value = new AbiDecoder(input).NumberArray<int>(false, bitSize);
                 Assert.Equal([int.MaxValue >> (32 - (int) bitSize)], value);
                 break;
             }
             case > 32 and <= 64:
             {
-                _ = new AbiDecoder(input).NumberArray(false, bitSize, out long[] value);
+                long[] value = new AbiDecoder(input).NumberArray<long>(false, bitSize);
                 Assert.Equal([long.MaxValue >> (64 - (int) bitSize)], value);
                 break;
             }
             case > 64 and <= 256:
             {
-                _ = new AbiDecoder(input).NumberArray(false, bitSize, out BigInteger[] value);
+                var value = new AbiDecoder(input).NumberArray<BigInteger>(false, bitSize);
                 Assert.Equal([BigInteger.Pow(2, (int) (bitSize - 1)) - 1], value);
                 break;
             }
@@ -117,31 +117,31 @@ public class NumberArryAbiDecoderTests
         {
             case 8:
             {
-                _ = new AbiDecoder(input).NumberArray(true, bitSize, out byte[] value);
+                byte[] value = new AbiDecoder(input).NumberArray<byte>(true, bitSize);
                 Assert.Equal([byte.MinValue], value);
                 break;
             }
             case 16:
             {
-                _ = new AbiDecoder(input).NumberArray(true, bitSize, out ushort[] value);
+                ushort[] value = new AbiDecoder(input).NumberArray<ushort>(true, bitSize);
                 Assert.Equal([ushort.MinValue], value);
                 break;
             }
             case > 16 and <= 32:
             {
-                _ = new AbiDecoder(input).NumberArray(true, bitSize, out uint[] value);
+                uint[] value = new AbiDecoder(input).NumberArray<uint>(true, bitSize);
                 Assert.Equal([uint.MinValue >> (32 - (int) bitSize)], value);
                 break;
             }
             case > 32 and <= 64:
             {
-                _ = new AbiDecoder(input).NumberArray(true, bitSize, out ulong[] value);
+                ulong[] value = new AbiDecoder(input).NumberArray<ulong>(true, bitSize);
                 Assert.Equal([ulong.MinValue >> (64 - (int) bitSize)], value);
                 break;
             }
             case > 64 and <= 256:
             {
-                _ = new AbiDecoder(input).NumberArray(true, bitSize, out BigInteger[] value);
+                var value = new AbiDecoder(input).NumberArray<BigInteger>(true, bitSize);
                 Assert.Equal([BigInteger.Zero], value);
                 break;
             }
@@ -164,31 +164,31 @@ public class NumberArryAbiDecoderTests
         {
             case 8:
             {
-                _ = new AbiDecoder(input).NumberArray(true, bitSize, out byte[] value);
+                byte[] value = new AbiDecoder(input).NumberArray<byte>(true, bitSize);
                 Assert.Equal([byte.MaxValue], value);
                 break;
             }
             case 16:
             {
-                _ = new AbiDecoder(input).NumberArray(true, bitSize, out ushort[] value);
+                ushort[] value = new AbiDecoder(input).NumberArray<ushort>(true, bitSize);
                 Assert.Equal([ushort.MaxValue], value);
                 break;
             }
             case > 16 and <= 32:
             {
-                _ = new AbiDecoder(input).NumberArray(true, bitSize, out uint[] value);
+                uint[] value = new AbiDecoder(input).NumberArray<uint>(true, bitSize);
                 Assert.Equal([uint.MaxValue >> (32 - (int) bitSize)], value);
                 break;
             }
             case > 32 and <= 64:
             {
-                _ = new AbiDecoder(input).NumberArray(true, bitSize, out ulong[] value);
+                ulong[] value = new AbiDecoder(input).NumberArray<ulong>(true, bitSize);
                 Assert.Equal([ulong.MaxValue >> (64 - (int) bitSize)], value);
                 break;
             }
             case > 64 and <= 256:
             {
-                _ = new AbiDecoder(input).NumberArray(true, bitSize, out BigInteger[] value);
+                var value = new AbiDecoder(input).NumberArray<BigInteger>(true, bitSize);
                 Assert.Equal([BigInteger.Pow(2, (int) bitSize) - 1], value);
                 break;
             }

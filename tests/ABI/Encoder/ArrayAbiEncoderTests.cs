@@ -15,7 +15,7 @@ public class ArrayAbiEncoderTests
     {
         byte[] expected = Convert.FromHexString("00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000");
         byte[] actual = _encoder
-            .Array(x => { })
+            .Array<object>([], (_, _) => { })
             .Build();
 
         Assert.Equal(expected, actual);

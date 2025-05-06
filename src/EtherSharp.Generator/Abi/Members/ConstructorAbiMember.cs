@@ -8,5 +8,5 @@ public class ConstructorAbiMember : AbiMember
     public StateMutability StateMutability { get; set; }
 
     [JsonRequired]
-    public AbiInputParameter[] Inputs { get; set; } = null!;
+    public AbiParameter[] Inputs { get; set; } = null!;
 }

@@ -51,11 +51,10 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
         int totalIndex = 1;
         foreach(var parameter in eventMember.Inputs)
         {
-            if(!_paramDecodingWriter.TryGetPrimitiveEquivalentType(parameter.Type, out string primitiveType, out _))
+            if(!PrimitiveTypeWriter.TryMatchPrimitiveType(parameter.Type, out string primitiveType, out _, out string abiFunctionName))
             {
                 throw new NotSupportedException();
             }
-            string decodeMethodName = _paramDecodingWriter.GetPrimitiveABIDecodingMethodName(parameter.Type);
 
             classBuilder.AddProperty(
                 new PropertyBuilder(primitiveType, NameUtils.ToValidPropertyName(parameter.Name))
@@ -68,14 +67,14 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
             {
                 tempVarName = $"topic{topicIndex}";
                 decodeMethod.AddStatement($"decoder = new EtherSharp.ABI.AbiDecoder(log.Topics[{topicIndex}])");
-                decodeMethod.AddStatement($"decoder.{decodeMethodName}(out var {tempVarName})");
+                decodeMethod.AddStatement($"var {tempVarName} = decoder.{abiFunctionName}()");
 
                 topicIndex++;
             }
             else
             {
                 tempVarName = $"param{totalIndex}";
-                decodeMethod.AddStatement($"dataDecoder.{decodeMethodName}(out var param{totalIndex})");
+                decodeMethod.AddStatement($"var {tempVarName} = dataDecoder.{abiFunctionName}()");
             }
 
             if(parameter.Type.Contains("bytes"))

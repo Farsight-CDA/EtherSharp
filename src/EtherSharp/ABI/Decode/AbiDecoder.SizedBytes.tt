@@ -4,40 +4,31 @@ using EtherSharp.ABI.Decode.Interfaces;
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
-    public AbiDecoder Bytes1(out byte value)
+    public byte Bytes1()
     {
-        value = AbiTypes.Byte.Decode(CurrentSlot);
-        return this;
+        var result = AbiTypes.Byte.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
     }
     byte IFixedTupleDecoder.Bytes1()
-    {
-        _ = Bytes1(out byte value);
-        return value;
-    }
+        => Bytes1();
     byte IDynamicTupleDecoder.Bytes1()
-    {
-        _ = Bytes1(out byte value);
-        return value;
-    }
+        => Bytes1();
+
 <#
-    for(var i = 2; i <= 32;i=i+1)
+    for(var i = 2; i <= 32; i++)
     {
 #>
-    public AbiDecoder Bytes<#=i#>(out ReadOnlySpan<byte> value)
+    public ReadOnlySpan<byte> Bytes<#=i#>()
     {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, <#=i#>);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, <#=i#>);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes<#=i#>()
-    {
-        _ = Bytes<#=i#>(out var value);
-        return value;
-    }
+        => Bytes<#=i#>();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes<#=i#>()
-    {
-        _ = Bytes<#=i#>(out var value);
-        return value;
-    }
+        => Bytes<#=i#>();
 <#
     }
 #>

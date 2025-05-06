@@ -20,7 +20,7 @@ public class BytesAbiDecoderTests
     {
         byte[] input = Convert.FromHexString("000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000000");
 
-        _ = new AbiDecoder(input).Bytes(out var actualBytes);
+        var actualBytes = new AbiDecoder(input).Bytes();
 
         Assert.Equal([0, 0, 0], actualBytes.ToArray());
     }

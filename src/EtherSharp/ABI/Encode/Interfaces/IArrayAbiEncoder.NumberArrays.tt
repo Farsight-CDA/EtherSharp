@@ -3,18 +3,18 @@
 namespace EtherSharp.ABI.Encode.Interfaces;
 public partial interface IArrayAbiEncoder 
 {
-    public IArrayAbiEncoder Int8Array(params sbyte[] value);
-    public IArrayAbiEncoder UInt8Array(params byte[] value);
+    public void Int8Array(params sbyte[] value);
+    public void UInt8Array(params byte[] value);
 
-    public IArrayAbiEncoder Int16Array(params short[] value);
-    public IArrayAbiEncoder UInt16Array(params ushort[] value);
+    public void Int16Array(params short[] value);
+    public void UInt16Array(params ushort[] value);
 
 <#
     for(var i = 24; i <= 32;i=i+8)
     {
 #>
-    public IArrayAbiEncoder Int<#=i#>Array(params int[] value);
-    public IArrayAbiEncoder UInt<#=i#>Array(params uint[] value);
+    public void Int<#=i#>Array(params int[] value);
+    public void UInt<#=i#>Array(params uint[] value);
 <#
     }
 #>
@@ -22,8 +22,8 @@ public partial interface IArrayAbiEncoder
     for(var i = 40; i <= 64;i=i+8)
     {
 #>
-    public IArrayAbiEncoder Int<#=i#>Array(params long[] value);
-    public IArrayAbiEncoder UInt<#=i#>Array(params ulong[] value);
+    public void Int<#=i#>Array(params long[] value);
+    public void UInt<#=i#>Array(params ulong[] value);
 <#
     }
 #>
@@ -31,8 +31,8 @@ public partial interface IArrayAbiEncoder
     for(var i = 72; i <= 256;i=i+8)
     {
 #>
-    public IArrayAbiEncoder Int<#=i#>Array(params BigInteger[] value);
-    public IArrayAbiEncoder UInt<#=i#>Array(params BigInteger[] value);
+    public void Int<#=i#>Array(params BigInteger[] value);
+    public void UInt<#=i#>Array(params BigInteger[] value);
 <#
     }
 #>

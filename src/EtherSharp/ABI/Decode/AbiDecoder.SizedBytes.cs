@@ -4,484 +4,325 @@ using EtherSharp.ABI.Decode.Interfaces;
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
-    public AbiDecoder Bytes1(out byte value)
+    public byte Bytes1()
     {
-        value = AbiTypes.Byte.Decode(CurrentSlot);
-        return this;
+        var result = AbiTypes.Byte.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
     }
     byte IFixedTupleDecoder.Bytes1()
-    {
-        _ = Bytes1(out byte value);
-        return value;
-    }
+        => Bytes1();
     byte IDynamicTupleDecoder.Bytes1()
+        => Bytes1();
+
+    public ReadOnlySpan<byte> Bytes2()
     {
-        _ = Bytes1(out byte value);
-        return value;
-    }
-    public AbiDecoder Bytes2(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 2);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 2);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes2()
-    {
-        _ = Bytes2(out var value);
-        return value;
-    }
+        => Bytes2();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes2()
+        => Bytes2();
+    public ReadOnlySpan<byte> Bytes3()
     {
-        _ = Bytes2(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes3(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 3);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 3);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes3()
-    {
-        _ = Bytes3(out var value);
-        return value;
-    }
+        => Bytes3();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes3()
+        => Bytes3();
+    public ReadOnlySpan<byte> Bytes4()
     {
-        _ = Bytes3(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes4(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 4);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 4);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes4()
-    {
-        _ = Bytes4(out var value);
-        return value;
-    }
+        => Bytes4();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes4()
+        => Bytes4();
+    public ReadOnlySpan<byte> Bytes5()
     {
-        _ = Bytes4(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes5(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 5);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 5);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes5()
-    {
-        _ = Bytes5(out var value);
-        return value;
-    }
+        => Bytes5();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes5()
+        => Bytes5();
+    public ReadOnlySpan<byte> Bytes6()
     {
-        _ = Bytes5(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes6(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 6);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 6);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes6()
-    {
-        _ = Bytes6(out var value);
-        return value;
-    }
+        => Bytes6();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes6()
+        => Bytes6();
+    public ReadOnlySpan<byte> Bytes7()
     {
-        _ = Bytes6(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes7(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 7);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 7);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes7()
-    {
-        _ = Bytes7(out var value);
-        return value;
-    }
+        => Bytes7();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes7()
+        => Bytes7();
+    public ReadOnlySpan<byte> Bytes8()
     {
-        _ = Bytes7(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes8(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 8);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 8);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes8()
-    {
-        _ = Bytes8(out var value);
-        return value;
-    }
+        => Bytes8();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes8()
+        => Bytes8();
+    public ReadOnlySpan<byte> Bytes9()
     {
-        _ = Bytes8(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes9(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 9);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 9);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes9()
-    {
-        _ = Bytes9(out var value);
-        return value;
-    }
+        => Bytes9();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes9()
+        => Bytes9();
+    public ReadOnlySpan<byte> Bytes10()
     {
-        _ = Bytes9(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes10(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 10);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 10);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes10()
-    {
-        _ = Bytes10(out var value);
-        return value;
-    }
+        => Bytes10();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes10()
+        => Bytes10();
+    public ReadOnlySpan<byte> Bytes11()
     {
-        _ = Bytes10(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes11(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 11);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 11);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes11()
-    {
-        _ = Bytes11(out var value);
-        return value;
-    }
+        => Bytes11();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes11()
+        => Bytes11();
+    public ReadOnlySpan<byte> Bytes12()
     {
-        _ = Bytes11(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes12(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 12);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 12);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes12()
-    {
-        _ = Bytes12(out var value);
-        return value;
-    }
+        => Bytes12();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes12()
+        => Bytes12();
+    public ReadOnlySpan<byte> Bytes13()
     {
-        _ = Bytes12(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes13(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 13);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 13);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes13()
-    {
-        _ = Bytes13(out var value);
-        return value;
-    }
+        => Bytes13();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes13()
+        => Bytes13();
+    public ReadOnlySpan<byte> Bytes14()
     {
-        _ = Bytes13(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes14(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 14);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 14);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes14()
-    {
-        _ = Bytes14(out var value);
-        return value;
-    }
+        => Bytes14();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes14()
+        => Bytes14();
+    public ReadOnlySpan<byte> Bytes15()
     {
-        _ = Bytes14(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes15(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 15);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 15);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes15()
-    {
-        _ = Bytes15(out var value);
-        return value;
-    }
+        => Bytes15();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes15()
+        => Bytes15();
+    public ReadOnlySpan<byte> Bytes16()
     {
-        _ = Bytes15(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes16(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 16);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 16);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes16()
-    {
-        _ = Bytes16(out var value);
-        return value;
-    }
+        => Bytes16();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes16()
+        => Bytes16();
+    public ReadOnlySpan<byte> Bytes17()
     {
-        _ = Bytes16(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes17(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 17);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 17);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes17()
-    {
-        _ = Bytes17(out var value);
-        return value;
-    }
+        => Bytes17();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes17()
+        => Bytes17();
+    public ReadOnlySpan<byte> Bytes18()
     {
-        _ = Bytes17(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes18(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 18);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 18);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes18()
-    {
-        _ = Bytes18(out var value);
-        return value;
-    }
+        => Bytes18();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes18()
+        => Bytes18();
+    public ReadOnlySpan<byte> Bytes19()
     {
-        _ = Bytes18(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes19(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 19);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 19);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes19()
-    {
-        _ = Bytes19(out var value);
-        return value;
-    }
+        => Bytes19();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes19()
+        => Bytes19();
+    public ReadOnlySpan<byte> Bytes20()
     {
-        _ = Bytes19(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes20(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 20);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 20);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes20()
-    {
-        _ = Bytes20(out var value);
-        return value;
-    }
+        => Bytes20();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes20()
+        => Bytes20();
+    public ReadOnlySpan<byte> Bytes21()
     {
-        _ = Bytes20(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes21(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 21);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 21);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes21()
-    {
-        _ = Bytes21(out var value);
-        return value;
-    }
+        => Bytes21();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes21()
+        => Bytes21();
+    public ReadOnlySpan<byte> Bytes22()
     {
-        _ = Bytes21(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes22(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 22);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 22);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes22()
-    {
-        _ = Bytes22(out var value);
-        return value;
-    }
+        => Bytes22();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes22()
+        => Bytes22();
+    public ReadOnlySpan<byte> Bytes23()
     {
-        _ = Bytes22(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes23(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 23);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 23);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes23()
-    {
-        _ = Bytes23(out var value);
-        return value;
-    }
+        => Bytes23();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes23()
+        => Bytes23();
+    public ReadOnlySpan<byte> Bytes24()
     {
-        _ = Bytes23(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes24(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 24);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 24);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes24()
-    {
-        _ = Bytes24(out var value);
-        return value;
-    }
+        => Bytes24();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes24()
+        => Bytes24();
+    public ReadOnlySpan<byte> Bytes25()
     {
-        _ = Bytes24(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes25(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 25);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 25);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes25()
-    {
-        _ = Bytes25(out var value);
-        return value;
-    }
+        => Bytes25();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes25()
+        => Bytes25();
+    public ReadOnlySpan<byte> Bytes26()
     {
-        _ = Bytes25(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes26(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 26);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 26);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes26()
-    {
-        _ = Bytes26(out var value);
-        return value;
-    }
+        => Bytes26();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes26()
+        => Bytes26();
+    public ReadOnlySpan<byte> Bytes27()
     {
-        _ = Bytes26(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes27(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 27);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 27);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes27()
-    {
-        _ = Bytes27(out var value);
-        return value;
-    }
+        => Bytes27();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes27()
+        => Bytes27();
+    public ReadOnlySpan<byte> Bytes28()
     {
-        _ = Bytes27(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes28(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 28);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 28);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes28()
-    {
-        _ = Bytes28(out var value);
-        return value;
-    }
+        => Bytes28();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes28()
+        => Bytes28();
+    public ReadOnlySpan<byte> Bytes29()
     {
-        _ = Bytes28(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes29(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 29);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 29);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes29()
-    {
-        _ = Bytes29(out var value);
-        return value;
-    }
+        => Bytes29();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes29()
+        => Bytes29();
+    public ReadOnlySpan<byte> Bytes30()
     {
-        _ = Bytes29(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes30(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 30);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 30);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes30()
-    {
-        _ = Bytes30(out var value);
-        return value;
-    }
+        => Bytes30();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes30()
+        => Bytes30();
+    public ReadOnlySpan<byte> Bytes31()
     {
-        _ = Bytes30(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes31(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 31);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 31);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes31()
-    {
-        _ = Bytes31(out var value);
-        return value;
-    }
+        => Bytes31();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes31()
+        => Bytes31();
+    public ReadOnlySpan<byte> Bytes32()
     {
-        _ = Bytes31(out var value);
-        return value;
-    }
-    public AbiDecoder Bytes32(out ReadOnlySpan<byte> value)
-    {
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, 32);
-        return this;
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, 32);
+        ConsumeBytes();
+        return result;
     }
     ReadOnlySpan<byte> IFixedTupleDecoder.Bytes32()
-    {
-        _ = Bytes32(out var value);
-        return value;
-    }
+        => Bytes32();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes32()
-    {
-        _ = Bytes32(out var value);
-        return value;
-    }
+        => Bytes32();
 }

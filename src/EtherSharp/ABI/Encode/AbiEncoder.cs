@@ -1,5 +1,5 @@
-﻿using EtherSharp.ABI.Types;
-using EtherSharp.ABI.Encode.Interfaces;
+﻿using EtherSharp.ABI.Encode.Interfaces;
+using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Types.Interfaces;
 using EtherSharp.Types;
 using System.Numerics;
@@ -99,15 +99,20 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bytes>(
             value.Select(x => new AbiTypes.Bytes(x)).ToArray()));
 
-    public AbiEncoder Array(Action<IArrayAbiEncoder> func)
+    public AbiEncoder Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
     {
         var encoder = new AbiEncoder();
-        func(encoder);
+
+        foreach(var value in values)
+        {
+            func(encoder, value);
+        }
+
         return AddElement(new AbiTypes.Array(encoder));
     }
 
-    IArrayAbiEncoder IArrayAbiEncoder.Array(Action<IArrayAbiEncoder> func)
-        => Array(func);
+    void IArrayAbiEncoder.Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
+        => Array(values, func);
 
     public AbiEncoder DynamicTuple(Action<IDynamicTupleEncoder> func)
     {
@@ -122,9 +127,9 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         return AddElement(new AbiTypes.FixedTuple(encoder));
     }
 
-    IArrayAbiEncoder IArrayAbiEncoder.DynamicTuple(Action<IDynamicTupleEncoder> func)
+    void IArrayAbiEncoder.DynamicTuple(Action<IDynamicTupleEncoder> func)
         => DynamicTuple(func);
-    IArrayAbiEncoder IArrayAbiEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
+    void IArrayAbiEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
         => FixedTuple(func);
 
     IDynamicTupleEncoder IDynamicTupleEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
@@ -144,8 +149,8 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         => StringArray(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.BytesArray(params byte[][] values)
         => BytesArray(values);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Array(Action<IArrayAbiEncoder> func)
-        => Array(func);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
+        => Array(values, func);
 
     public AbiEncoder NumberArray<TNumber>(bool isUnsigned, int bitLength, params TNumber[] numbers)
     {

@@ -13,7 +13,7 @@ public class End2EndTests
         // Act
         byte[] encoded = new AbiEncoder().NumberArray(false, 8, input).Build();
         var decoder = new AbiDecoder(encoded);
-        _ = decoder.NumberArray(false, 8, out sbyte[] result);
+        sbyte[] result = decoder.NumberArray<sbyte>(false, 8);
 
         // Assert
         Assert.Equal(input, result);
@@ -32,9 +32,9 @@ public class End2EndTests
             .String(str)
             .Build();
 
-        _ = new AbiDecoder(encoded)
-            .Number(out ushort outputNumber, true, 16)
-            .String(out string outputStr);
+        var decoder = new AbiDecoder(encoded);
+        ushort outputNumber = decoder.Number<ushort>(true, 16);
+        string outputStr = decoder.String();
 
         // Assert
         Assert.Equal(number, outputNumber);

@@ -8,175 +8,130 @@ using System.Numerics;
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
-    public AbiDecoder Int8(out sbyte value)
+    public sbyte Int8()
     {
-        value = AbiTypes.SByte.Decode(CurrentSlot);
-        return ConsumeBytes();
+        var result = AbiTypes.SByte.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
     }
     sbyte IFixedTupleDecoder.Int8() 
-    {
-        _ = Int8(out sbyte output);
-        return output;
-    }    
+        => Int8();
     sbyte IDynamicTupleDecoder.Int8() 
-    {
-        _ = Int8(out sbyte output);
-        return output;
-    }
-    public AbiDecoder UInt8(out byte value)
-    {
-        value = AbiTypes.Byte.Decode(CurrentSlot);
-        return ConsumeBytes();
-    }
-    byte IFixedTupleDecoder.UInt8() 
-    {
-        _ = UInt8(out byte output);
-        return output;
-    }
-    byte IDynamicTupleDecoder.UInt8() 
-    {
-        _ = UInt8(out byte output);
-        return output;
-    }
+        => Int8();
 
-    public AbiDecoder Int16(out short value)
+    public byte UInt8()
     {
-        value = AbiTypes.Short.Decode(CurrentSlot);
-        return ConsumeBytes();
+        var result = AbiTypes.Byte.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
+    }
+    byte IFixedTupleDecoder.UInt8()     
+        => UInt8();
+    byte IDynamicTupleDecoder.UInt8() 
+        => UInt8();
+
+    public short Int16()
+    {
+        var result = AbiTypes.Short.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
     }
     short IFixedTupleDecoder.Int16() 
-    {
-        _ = Int16(out short output);
-        return output;
-    }
+        => Int16();
     short IDynamicTupleDecoder.Int16() 
+        => Int16();
+
+    public ushort UInt16()
     {
-        _ = Int16(out short output);
-        return output;
+        var result = AbiTypes.UShort.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
     }
-    public AbiDecoder UInt16(out ushort value)
-    {
-        value = AbiTypes.UShort.Decode(CurrentSlot);
-        return ConsumeBytes();
-    }
-    ushort IFixedTupleDecoder.UInt16() 
-    {
-        _ = UInt16(out ushort output);
-        return output;
-    }
+    ushort IFixedTupleDecoder.UInt16()
+        => UInt16();
     ushort IDynamicTupleDecoder.UInt16() 
-    {
-        _ = UInt16(out ushort output);
-        return output;
-    }
+        => UInt16();
+
 <#
-    for(var i = 24; i <= 32;i=i+8)
-    {
+    for (var i = 24; i <= 32; i += 8) {
 #>
-    public AbiDecoder Int<#=i#>(out int value)
+    public int Int<#=i#>()
     {
-        value = AbiTypes.Int.Decode(CurrentSlot);
-        return ConsumeBytes();
+        var result = AbiTypes.Int.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
     }
-    int IFixedTupleDecoder.Int<#=i#>()
+    int IFixedTupleDecoder.Int<#=i#>() 
+        => Int<#=i#>();
+    int IDynamicTupleDecoder.Int<#=i#>() 
+        => Int<#=i#>();
+
+    public uint UInt<#=i#>()
     {
-        _ = Int<#=i#>(out int output);
-        return output;
+        var result = AbiTypes.UInt.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
     }
-    int IDynamicTupleDecoder.Int<#=i#>()
-    {
-        _ = Int<#=i#>(out int output);
-        return output;
-    }
-    public AbiDecoder UInt<#=i#>(out uint value)
-    {
-        value = AbiTypes.UInt.Decode(CurrentSlot);
-        return ConsumeBytes();
-    }
-    uint IFixedTupleDecoder.UInt<#=i#>()
-    {
-        _ = UInt<#=i#>(out uint output);
-        return output;
-    }
-    uint IDynamicTupleDecoder.UInt<#=i#>()
-    {
-        _ = UInt<#=i#>(out uint output);
-        return output;
-    }
+    uint IFixedTupleDecoder.UInt<#=i#>() 
+        => UInt<#=i#>();
+    uint IDynamicTupleDecoder.UInt<#=i#>() 
+        => UInt<#=i#>();
 <#
     }
 #>
+
 <#
-    for(var i = 40; i <= 64;i=i+8)
-    {
+    for (var i = 40; i <= 64; i += 8) {
 #>
-    public AbiDecoder Int<#=i#>(out long value)
+    public long Int<#=i#>()
     {
-        value = AbiTypes.Long.Decode(CurrentSlot);
-        return ConsumeBytes();
+        var result = AbiTypes.Long.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
     }
-    long IFixedTupleDecoder.Int<#=i#>()
+    long IFixedTupleDecoder.Int<#=i#>() 
+        => Int<#=i#>();
+    long IDynamicTupleDecoder.Int<#=i#>() 
+        => Int<#=i#>();
+
+    public ulong UInt<#=i#>()
     {
-        _ = Int<#=i#>(out long output);
-        return output;
+        var result = AbiTypes.ULong.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
     }
-    long IDynamicTupleDecoder.Int<#=i#>()
-    {
-        _ = Int<#=i#>(out long output);
-        return output;
-    }
-    public AbiDecoder UInt<#=i#>(out ulong value)
-    {
-        value = AbiTypes.ULong.Decode(CurrentSlot);
-        return ConsumeBytes();
-    }
-    ulong IFixedTupleDecoder.UInt<#=i#>()
-    {
-        _ = UInt<#=i#>(out ulong output);
-        return output;
-    }
-    ulong IDynamicTupleDecoder.UInt<#=i#>()
-    {
-        _ = UInt<#=i#>(out ulong output);
-        return output;
-    }
+    ulong IFixedTupleDecoder.UInt<#=i#>() 
+        => UInt<#=i#>();
+    ulong IDynamicTupleDecoder.UInt<#=i#>() 
+        => UInt<#=i#>();
 <#
     }
 #>
+
 <#
-    for(var i = 72; i <= 256;i=i+8)
-    {
+    for (var i = 72; i <= 256; i += 8) {
 #>
-    public AbiDecoder Int<#=i#>(out BigInteger value)
+    public BigInteger Int<#=i#>()
     {
-        value = AbiTypes.BigInteger.Decode(CurrentSlot, false);
-        return ConsumeBytes();
+        var result = AbiTypes.BigInteger.Decode(CurrentSlot, false);
+        ConsumeBytes();
+        return result;
     }
-    BigInteger IFixedTupleDecoder.Int<#=i#>()
+    BigInteger IFixedTupleDecoder.Int<#=i#>() 
+        => Int<#=i#>();
+    BigInteger IDynamicTupleDecoder.Int<#=i#>() 
+        => Int<#=i#>();
+
+    public BigInteger UInt<#=i#>()
     {
-        _ = Int<#=i#>(out var output);
-        return output;
+        var result = AbiTypes.BigInteger.Decode(CurrentSlot, true);
+        ConsumeBytes();
+        return result;
     }
-    BigInteger IDynamicTupleDecoder.Int<#=i#>()
-    {
-        _ = Int<#=i#>(out var output);
-        return output;
-    }
-    public AbiDecoder UInt<#=i#>(out BigInteger value)
-    {
-        value = AbiTypes.BigInteger.Decode(CurrentSlot, true);
-        return ConsumeBytes();
-    }
-    BigInteger IFixedTupleDecoder.UInt<#=i#>()
-    {
-        _ = UInt<#=i#>(out var output);
-        return output;
-    }
-    BigInteger IDynamicTupleDecoder.UInt<#=i#>()
-    {
-        _ = UInt<#=i#>(out var output);
-        return output;
-    }
+    BigInteger IFixedTupleDecoder.UInt<#=i#>() 
+        => UInt<#=i#>();
+    BigInteger IDynamicTupleDecoder.UInt<#=i#>() 
+        => UInt<#=i#>();
 <#
     }
 #>

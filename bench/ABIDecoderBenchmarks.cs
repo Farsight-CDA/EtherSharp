@@ -27,9 +27,11 @@ public class ABIDecoderBenchmarks
     }
 
     [Benchmark]
-    public void AbiDecoder_Build() => _abiDecoder.UInt8(out _)
-            .UInt8(out _)
-            .UInt8(out _)
-            .UInt8(out _)
-            .UInt8(out _);
+    public IEnumerable<byte> AbiDecoder_Build()
+    {
+        for(int i = 0; i < 5; i++)
+        {
+            yield return _abiDecoder.UInt8();
+        }
+    }
 }

@@ -8,178 +8,119 @@ using System.Numerics;
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
-
-    public AbiDecoder Int8Array(out sbyte[] bytes)
+    public sbyte[] Int8Array()
     {
-        bytes = AbiTypes.PrimitiveNumberArray<sbyte>.Decode(_bytes, _bytesRead);
-        return ConsumeBytes();
+        var result = AbiTypes.PrimitiveNumberArray<sbyte>.Decode(_bytes, _bytesRead);
+        ConsumeBytes();
+        return result;
     }
     sbyte[] IArrayAbiDecoder.Int8Array()
-    {
-        _ = Int8Array(out sbyte[] output);
-        return output;
-    }
+        => Int8Array();
     sbyte[] IDynamicTupleDecoder.Int8Array()
+        => Int8Array();
+
+    public byte[] UInt8Array()
     {
-        _ = Int8Array(out sbyte[] output);
-        return output;
-    }
-    public AbiDecoder UInt8Array(out byte[] bytes)
-    {
-        bytes = AbiTypes.PrimitiveNumberArray<byte>.Decode(_bytes, _bytesRead);
-        return ConsumeBytes();
+        var result = AbiTypes.PrimitiveNumberArray<byte>.Decode(_bytes, _bytesRead);
+        ConsumeBytes();
+        return result;
     }
     byte[] IArrayAbiDecoder.UInt8Array()
-    {
-        _ = UInt8Array(out byte[] output);
-        return output;
-    }
+        => UInt8Array();
     byte[] IDynamicTupleDecoder.UInt8Array()
-    {
-        _ = UInt8Array(out byte[] output);
-        return output;
-    }
+        => UInt8Array();
 
-    public AbiDecoder Int16Array(out short[] shorts)
+    public short[] Int16Array()
     {
-        shorts = AbiTypes.PrimitiveNumberArray<short>.Decode(_bytes, _bytesRead);
-        return ConsumeBytes();
+        var result = AbiTypes.PrimitiveNumberArray<short>.Decode(_bytes, _bytesRead);
+        ConsumeBytes();
+        return result;
     }
     short[] IArrayAbiDecoder.Int16Array()
-    {
-        _ = Int16Array(out short[] output);
-        return output;
-    }
+        => Int16Array();
     short[] IDynamicTupleDecoder.Int16Array()
+        => Int16Array();
+
+    public ushort[] UInt16Array()
     {
-        _ = Int16Array(out short[] output);
-        return output;
-    }
-    public AbiDecoder UInt16Array(out ushort[] shorts)
-    {
-        shorts = AbiTypes.PrimitiveNumberArray<ushort>.Decode(_bytes, _bytesRead);
-        return ConsumeBytes();
+        var result = AbiTypes.PrimitiveNumberArray<ushort>.Decode(_bytes, _bytesRead);
+        ConsumeBytes();
+        return result;
     }
     ushort[] IArrayAbiDecoder.UInt16Array()
-    {
-        _ = UInt16Array(out ushort[] output);
-        return output;
-    }
+        => UInt16Array();
     ushort[] IDynamicTupleDecoder.UInt16Array()
-    {
-        _ = UInt16Array(out ushort[] output);
-        return output;
-    }
+        => UInt16Array();
 
-<#
-    for(var i = 24; i <= 32;i=i+8)
+<#  for(var i = 24; i <= 32; i += 8) { #>
+    public int[] Int<#=i#>Array()
     {
-#>
-    public AbiDecoder Int<#=i#>Array(out int[] ints)
-    {
-        ints = AbiTypes.PrimitiveNumberArray<int>.Decode(_bytes, _bytesRead);
-        return ConsumeBytes();
+        var result = AbiTypes.PrimitiveNumberArray<int>.Decode(_bytes, _bytesRead);
+        ConsumeBytes();
+        return result;
     }
     int[] IArrayAbiDecoder.Int<#=i#>Array()
-    {
-        _ = Int<#=i#>Array(out int[] output);
-        return output;
-    }
+        => Int<#=i#>Array();
     int[] IDynamicTupleDecoder.Int<#=i#>Array()
+        => Int<#=i#>Array();
+
+    public uint[] UInt<#=i#>Array()
     {
-        _ = Int<#=i#>Array(out int[] output);
-        return output;
-    }
-    public AbiDecoder UInt<#=i#>Array(out uint[] ints)
-    {
-        ints = AbiTypes.PrimitiveNumberArray<uint>.Decode(_bytes, _bytesRead);
-        return ConsumeBytes();
+        var result = AbiTypes.PrimitiveNumberArray<uint>.Decode(_bytes, _bytesRead);
+        ConsumeBytes();
+        return result;
     }
     uint[] IArrayAbiDecoder.UInt<#=i#>Array()
-    {
-        _ = UInt<#=i#>Array(out uint[] output);
-        return output;
-    }
+        => UInt<#=i#>Array();
     uint[] IDynamicTupleDecoder.UInt<#=i#>Array()
+        => UInt<#=i#>Array();
+<# } #>
+
+<#  for(var i = 40; i <= 64; i += 8) { #>
+    public long[] Int<#=i#>Array()
     {
-        _ = UInt<#=i#>Array(out uint[] output);
-        return output;
-    }
-<#
-    }
-#>
-<#
-    for(var i = 40; i <= 64;i=i+8)
-    {
-#>
-    public AbiDecoder Int<#=i#>Array(out long[] longs)
-    {
-        longs = AbiTypes.PrimitiveNumberArray<long>.Decode(_bytes, _bytesRead);
-        return ConsumeBytes();
+        var result = AbiTypes.PrimitiveNumberArray<long>.Decode(_bytes, _bytesRead);
+        ConsumeBytes();
+        return result;
     }
     long[] IArrayAbiDecoder.Int<#=i#>Array()
-    {
-        _ = Int<#=i#>Array(out long[] output);
-        return output;
-    }
+        => Int<#=i#>Array();
     long[] IDynamicTupleDecoder.Int<#=i#>Array()
+        => Int<#=i#>Array();
+
+    public ulong[] UInt<#=i#>Array()
     {
-        _ = Int<#=i#>Array(out long[] output);
-        return output;
-    }
-    public AbiDecoder UInt<#=i#>Array(out ulong[] longs)
-    {
-        longs = AbiTypes.PrimitiveNumberArray<ulong>.Decode(_bytes, _bytesRead);
-        return ConsumeBytes();
+        var result = AbiTypes.PrimitiveNumberArray<ulong>.Decode(_bytes, _bytesRead);
+        ConsumeBytes();
+        return result;
     }
     ulong[] IArrayAbiDecoder.UInt<#=i#>Array()
-    {
-        _ = UInt<#=i#>Array(out ulong[] output);
-        return output;
-    }
+        => UInt<#=i#>Array();
     ulong[] IDynamicTupleDecoder.UInt<#=i#>Array()
+        => UInt<#=i#>Array();
+<# } #>
+
+<#  for(var i = 72; i <= 256; i += 8) { #>
+    public BigInteger[] Int<#=i#>Array()
     {
-        _ = UInt<#=i#>Array(out ulong[] output);
-        return output;
-    }
-<#
-    }
-#>
-<#
-    for(var i = 72; i <= 256;i=i+8)
-    {
-#>
-    public AbiDecoder Int<#=i#>Array(out System.Numerics.BigInteger[] bytes)
-    {
-        bytes = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, <#=i#>, false);
-        return ConsumeBytes();
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, <#=i#>, false);
+        ConsumeBytes();
+        return result;
     }
     BigInteger[] IArrayAbiDecoder.Int<#=i#>Array()
-    {
-        _ = UInt<#=i#>Array(out var output);
-        return output;
-    }
+        => Int<#=i#>Array();
     BigInteger[] IDynamicTupleDecoder.Int<#=i#>Array()
+        => Int<#=i#>Array();
+
+    public BigInteger[] UInt<#=i#>Array()
     {
-        _ = UInt<#=i#>Array(out var output);
-        return output;
-    }
-    public AbiDecoder UInt<#=i#>Array(out System.Numerics.BigInteger[] bytes)
-    {
-        bytes = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, <#=i#>, true);
-        return ConsumeBytes();
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, <#=i#>, true);
+        ConsumeBytes();
+        return result;
     }
     BigInteger[] IArrayAbiDecoder.UInt<#=i#>Array()
-    {
-        _ = UInt<#=i#>Array(out var output);
-        return output;
-    }
+        => UInt<#=i#>Array();
     BigInteger[] IDynamicTupleDecoder.UInt<#=i#>Array()
-    {
-        _ = UInt<#=i#>Array(out var output);
-        return output;
-    }
-<#
-    }
-#>
+        => UInt<#=i#>Array();
+<# } #>
 }

@@ -13,7 +13,7 @@ public partial interface IDynamicTupleEncoder
     public IDynamicTupleEncoder StringArray(params string[] values);
     public IDynamicTupleEncoder BytesArray(params byte[][] values);
 
-    public IDynamicTupleEncoder Array(Action<IArrayAbiEncoder> func);
+    public IDynamicTupleEncoder Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func);
 
     public IDynamicTupleEncoder FixedTuple(Action<IFixedTupleEncoder> func);
     public IDynamicTupleEncoder DynamicTuple(Action<IDynamicTupleEncoder> func);

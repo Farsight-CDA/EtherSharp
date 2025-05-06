@@ -12,6 +12,6 @@ public partial interface IDynamicTupleDecoder
     public T FixedTuple<T>(Func<IFixedTupleDecoder, T> func);
     public T DynamicTuple<T>(Func<IDynamicTupleDecoder, T> func);
 
-    public T[] Array<T>(out T[] value, Func<IArrayAbiDecoder, T> func);
+    public T[] Array<T>(Func<IArrayAbiDecoder, T> func);
     public TNumber[] NumberArray<TNumber>(bool isUnsigned, uint bitLength);
 }

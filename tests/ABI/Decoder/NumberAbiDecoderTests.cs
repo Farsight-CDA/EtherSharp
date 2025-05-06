@@ -24,31 +24,31 @@ public class AbiNumberEncodingTests
         {
             case 8:
             {
-                _ = new AbiDecoder(input).Number(out sbyte value, false, bitSize);
+                var value = new AbiDecoder(input).Number<sbyte>(false, bitSize);
                 Assert.Equal(sbyte.MinValue, value);
                 break;
             }
             case 16:
             {
-                _ = new AbiDecoder(input).Number(out short value, false, bitSize);
+                var value = new AbiDecoder(input).Number<short>(false, bitSize);
                 Assert.Equal(short.MinValue, value);
                 break;
             }
             case > 16 and <= 32:
             {
-                _ = new AbiDecoder(input).Number(out int value, false, bitSize);
+                var value = new AbiDecoder(input).Number<int>(false, bitSize);
                 Assert.Equal(int.MinValue >> (32 - bitSize), value);
                 break;
             }
             case > 32 and <= 64:
             {
-                _ = new AbiDecoder(input).Number(out long value, false, bitSize);
+                var value = new AbiDecoder(input).Number<long>(false, bitSize);
                 Assert.Equal(long.MinValue >> (64 - bitSize), value);
                 break;
             }
             case > 64 and <= 256:
             {
-                _ = new AbiDecoder(input).Number(out BigInteger value, false, bitSize);
+                var value = new AbiDecoder(input).Number<BigInteger>(false, bitSize);
                 Assert.Equal(-BigInteger.Pow(2, bitSize - 1), value);
                 break;
             }
@@ -68,31 +68,31 @@ public class AbiNumberEncodingTests
         {
             case 8:
             {
-                _ = new AbiDecoder(input).Number(out sbyte value, false, bitSize);
+                var value = new AbiDecoder(input).Number<sbyte>(false, bitSize);
                 Assert.Equal(sbyte.MaxValue, value);
                 break;
             }
             case 16:
             {
-                _ = new AbiDecoder(input).Number(out short value, false, bitSize);
+                var value = new AbiDecoder(input).Number<short>(false, bitSize);
                 Assert.Equal(short.MaxValue, value);
                 break;
             }
             case > 16 and <= 32:
             {
-                _ = new AbiDecoder(input).Number(out int value, false, bitSize);
+                var value = new AbiDecoder(input).Number<int>(false, bitSize);
                 Assert.Equal(int.MaxValue >> (32 - bitSize), value);
                 break;
             }
             case > 32 and <= 64:
             {
-                _ = new AbiDecoder(input).Number(out long value, false, bitSize);
+                var value = new AbiDecoder(input).Number<long>(false, bitSize);
                 Assert.Equal(long.MaxValue >> (64 - bitSize), value);
                 break;
             }
             case > 64 and <= 256:
             {
-                _ = new AbiDecoder(input).Number(out BigInteger value, false, bitSize);
+                var value = new AbiDecoder(input).Number<BigInteger>(false, bitSize);
                 Assert.Equal(BigInteger.Pow(2, bitSize - 1) - 1, value);
                 break;
             }
@@ -111,31 +111,31 @@ public class AbiNumberEncodingTests
         {
             case 8:
             {
-                _ = new AbiDecoder(input).Number(out byte value, true, bitSize);
+                var value = new AbiDecoder(input).Number<byte>(true, bitSize);
                 Assert.Equal(0, value);
                 break;
             }
             case 16:
             {
-                _ = new AbiDecoder(input).Number(out ushort value, true, bitSize);
+                var value = new AbiDecoder(input).Number<ushort>(true, bitSize);
                 Assert.Equal(0, value);
                 break;
             }
             case > 16 and <= 32:
             {
-                _ = new AbiDecoder(input).Number(out uint value, true, bitSize);
+                var value = new AbiDecoder(input).Number<uint>(true, bitSize);
                 Assert.Equal((uint) 0, value);
                 break;
             }
             case > 32 and <= 64:
             {
-                _ = new AbiDecoder(input).Number(out ulong value, true, bitSize);
+                var value = new AbiDecoder(input).Number<ulong>(true, bitSize);
                 Assert.Equal((ulong) 0, value);
                 break;
             }
             case > 64 and <= 256:
             {
-                _ = new AbiDecoder(input).Number(out BigInteger value, true, bitSize);
+                var value = new AbiDecoder(input).Number<BigInteger>(true, bitSize);
                 Assert.Equal(0, value);
                 break;
             }
@@ -155,31 +155,31 @@ public class AbiNumberEncodingTests
         {
             case 8:
             {
-                _ = new AbiDecoder(input).Number(out byte value, true, bitSize);
+                var value = new AbiDecoder(input).Number<byte>(true, bitSize);
                 Assert.Equal(byte.MaxValue, value);
                 break;
             }
             case 16:
             {
-                _ = new AbiDecoder(input).Number(out ushort value, true, bitSize);
+                var value = new AbiDecoder(input).Number<ushort>(true, bitSize);
                 Assert.Equal(ushort.MaxValue, value);
                 break;
             }
             case > 16 and <= 32:
             {
-                _ = new AbiDecoder(input).Number(out uint value, true, bitSize);
+                var value = new AbiDecoder(input).Number<uint>(true, bitSize);
                 Assert.Equal(uint.MaxValue >> (32 - bitSize), value);
                 break;
             }
             case > 32 and <= 64:
             {
-                _ = new AbiDecoder(input).Number(out ulong value, true, bitSize);
+                var value = new AbiDecoder(input).Number<ulong>(true, bitSize);
                 Assert.Equal(ulong.MaxValue >> (64 - bitSize), value);
                 break;
             }
             case > 64 and <= 256:
             {
-                _ = new AbiDecoder(input).Number(out BigInteger value, true, bitSize);
+                var value = new AbiDecoder(input).Number<BigInteger>(true, bitSize);
                 Assert.Equal(BigInteger.Pow(2, bitSize) - 1, value);
                 break;
             }

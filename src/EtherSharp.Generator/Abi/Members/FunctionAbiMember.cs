@@ -13,10 +13,10 @@ public class FunctionAbiMember : AbiMember
     public StateMutability StateMutability { get; set; }
 
     [JsonRequired]
-    public AbiInputParameter[] Inputs { get; set; } = null!;
+    public AbiParameter[] Inputs { get; set; } = null!;
 
     [JsonRequired]
-    public AbiOutputParameter[] Outputs { get; set; } = null!;
+    public AbiParameter[] Outputs { get; set; } = null!;
 
     public byte[] GetSignatureBytes(out string functionSignature)
     {
