@@ -132,6 +132,11 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     void IArrayAbiEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
         => FixedTuple(func);
 
+    IFixedTupleEncoder IFixedTupleEncoder.Bool(bool value)
+        => Bool(value);
+    IFixedTupleEncoder IFixedTupleEncoder.Address(string value)
+        => Address(value);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
         => FixedTuple(func);
     IDynamicTupleEncoder IDynamicTupleEncoder.DynamicTuple(Action<IDynamicTupleEncoder> func)
@@ -139,6 +144,10 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     IFixedTupleEncoder IFixedTupleEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
         => FixedTuple(func);
 
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bool(bool value)
+        => Bool(value);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Address(string value)
+        => Address(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.String(string value)
         => String(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(byte[] arr)

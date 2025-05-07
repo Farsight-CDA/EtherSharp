@@ -54,7 +54,13 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
             return false;
         }
 
-        var innerParameter = new AbiParameter("value", parameter.Type.Substring(0, parameter.Type.Length - 2), null, null);
+        string? internalType = parameter.InternalType is null
+            ? null
+            : parameter.InternalType.EndsWith("[]")
+                ? parameter.InternalType.Substring(0, parameter.InternalType.Length - 2)
+                : parameter.InternalType;
+
+        var innerParameter = new AbiParameter("value", parameter.Type.Substring(0, parameter.Type.Length - 2), internalType, parameter.Components);
         var (innerCSharpType, _, innerEncodeFunction, innerDecodeFunction) = CreateParameter(innerParameter);
 
         csTypeName = $"{innerCSharpType}[]";
@@ -91,8 +97,7 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
         var tupleClassBuilder = new ClassBuilder(csTypeName)
             .WithAutoConstructor();
 
-        var encodeFunctionBuilder = new FunctionBuilder("Encode")
-            .AddArgument("EtherSharp.ABI.AbiEncoder", "encoder");
+        var encodeFunctionBuilder = new FunctionBuilder("Encode");
         var decodeFunctionBuilder = new FunctionBuilder("Decode")
             .WithIsStatic()
             .WithReturnTypeRaw(csTypeName)
@@ -121,6 +126,15 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
             decodeCtorBuilder.AppendLine(innerDecodeFunc);
         }
 
+        if(isDynamic)
+        {
+            encodeFunctionBuilder.AddArgument("EtherSharp.ABI.Encode.Interfaces.IDynamicTupleEncoder", "encoder");
+        }
+        else
+        {
+            encodeFunctionBuilder.AddArgument("EtherSharp.ABI.Encode.Interfaces.IFixedTupleEncoder", "encoder");
+        }
+
         decodeFunctionBuilder.AddStatement(
             $"""
             return new {csTypeName}({decodeCtorBuilder})
@@ -131,7 +145,10 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
 
         _typeWriter.RegisterTypeBuilder(tupleClassBuilder);
 
-        encodeFunc = inputName => $"{inputName}.Encode(encoder);";
+        bool localIsDynamic = isDynamic;
+        encodeFunc = inputName => localIsDynamic
+            ? $"encoder.DynamicTuple(encoder => {inputName}.Encode(encoder));"
+            : $"encoder.FixedTuple(encoder => {inputName}.Encode(encoder));";
         decodeFunc = $"{csTypeName}.Decode(decoder)";
         return true;
     }

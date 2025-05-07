@@ -131,7 +131,8 @@ public class ContractSourceWriter(
 
     private FunctionBuilder GenerateQueryFunction(FunctionAbiMember queryFunction)
     {
-        string functionName = NameUtils.ToValidFunctionName($"{queryFunction.Name}Async");
+        string noSuffixFunctionName = NameUtils.ToValidFunctionName(queryFunction.Name);
+        string functionName = $"{noSuffixFunctionName}Async";
         var func = new FunctionBuilder(functionName)
             .WithVisibility(FunctionVisibility.Public);
 
@@ -146,7 +147,7 @@ public class ContractSourceWriter(
             _paramEncodingWriter.AddParameterEncoding(func, input, index);
         }
 
-        var (returnType, decoderFunction) = _paramDecodingWriter.SetQueryOutputDecoding(functionName, func, queryFunction.Outputs);
+        var (returnType, decoderFunction) = _paramDecodingWriter.SetQueryOutputDecoding(noSuffixFunctionName, func, queryFunction.Outputs);
 
         func.AddArgument("EtherSharp.Types.TargetBlockNumber", "targetBlockNumber", true, "default");
         func.AddArgument("EtherSharp.StateOverride.TxStateOverride", "stateOverride", true, "default");
@@ -168,7 +169,7 @@ public class ContractSourceWriter(
 
     private FunctionBuilder GenerateMessageFunction(FunctionAbiMember messageFunction)
     {
-        string functionName = NameUtils.ToValidFunctionName($"{messageFunction.Name}");
+        string functionName = NameUtils.ToValidFunctionName(messageFunction.Name);
         var func = new FunctionBuilder(functionName)
             .WithVisibility(FunctionVisibility.Public);
 

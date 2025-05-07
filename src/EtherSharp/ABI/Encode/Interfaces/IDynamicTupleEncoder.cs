@@ -6,6 +6,9 @@ public partial interface IDynamicTupleEncoder
 
     internal bool TryWritoTo(Span<byte> outputBuffer);
 
+    public IDynamicTupleEncoder Bool(bool value);
+    public IDynamicTupleEncoder Address(string value);
+
     public IDynamicTupleEncoder String(string value);
     public IDynamicTupleEncoder Bytes(byte[] value);
 
