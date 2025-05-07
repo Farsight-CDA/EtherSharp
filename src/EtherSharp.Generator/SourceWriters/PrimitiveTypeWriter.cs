@@ -3,9 +3,10 @@
 namespace EtherSharp.Generator.SourceWriters;
 public static class PrimitiveTypeWriter
 {
-    public static bool TryMatchPrimitiveType(string type, out string csharpTypeName, out bool isDynamic, out string abiFunctionName)
+    public static bool TryMatchPrimitiveType(string type, out string csharpTypeName, out bool isDynamic, out string abiFunctionName, out string decodeSuffix)
     {
         string rawType = type;
+        decodeSuffix = "";
 
         if(type.EndsWith("[]"))
         {
@@ -28,6 +29,7 @@ public static class PrimitiveTypeWriter
                 csharpTypeName = typeof(byte[]).FullName;
                 isDynamic = true;
                 abiFunctionName = "Bytes";
+                decodeSuffix = ".ToArray()";
                 break;
             case "bool":
                 csharpTypeName = typeof(bool).FullName;
@@ -65,6 +67,7 @@ public static class PrimitiveTypeWriter
                 csharpTypeName = typeof(byte[]).FullName;
                 isDynamic = false;
                 abiFunctionName = $"Bytes{bitSize}";
+                decodeSuffix = ".ToArray()";
                 break;
             default:
                 csharpTypeName = null!;

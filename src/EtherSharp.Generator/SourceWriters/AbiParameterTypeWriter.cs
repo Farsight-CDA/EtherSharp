@@ -10,7 +10,7 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
 
     public (string CSTypeName, bool isDynamic, Func<string, string> EncodeFunc, string DecodeFunc) CreateParameter(AbiParameter parameter)
     {
-        if(TryMatchPrimitiveType(parameter, out string csTypeName, out bool isDynamic, out var encodeFunc, out var decodeFunc))
+        if(TryMatchPrimitiveType(parameter, out string csTypeName, out bool isDynamic, out var encodeFunc, out string decodeFunc))
         {
             return (csTypeName, isDynamic, encodeFunc, decodeFunc);
         }
@@ -18,7 +18,11 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
         {
             return (csTypeName, true, encodeFunc, decodeFunc);
         }
-        else if(TryMatchTupleType(parameter, out csTypeName, out isDynamic, out encodeFunc, out decodeFunc))
+        else if(TryMatchStructType(parameter, out csTypeName, out isDynamic, out encodeFunc, out decodeFunc))
+        {
+            return (csTypeName, isDynamic, encodeFunc, decodeFunc);
+        }
+        else if(TryMatchAnonymousTupleType(parameter, out csTypeName, out isDynamic, out encodeFunc, out decodeFunc))
         {
             return (csTypeName, isDynamic, encodeFunc, decodeFunc);
         }
@@ -28,7 +32,7 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
 
     private bool TryMatchPrimitiveType(AbiParameter parameter, out string csTypeName, out bool isDynamic, out Func<string, string> encodeFunc, out string decodeFunc)
     {
-        if(!PrimitiveTypeWriter.TryMatchPrimitiveType(parameter.Type, out csTypeName, out isDynamic, out var abiFunctionName))
+        if(!PrimitiveTypeWriter.TryMatchPrimitiveType(parameter.Type, out csTypeName, out isDynamic, out string abiFunctionName, out string decodeSuffix))
         {
             encodeFunc = null!;
             decodeFunc = null!;
@@ -36,7 +40,7 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
         }
 
         encodeFunc = inputName => $"encoder.{abiFunctionName}({inputName});";
-        decodeFunc = $"decoder.{abiFunctionName}()";
+        decodeFunc = $"decoder.{abiFunctionName}(){decodeSuffix}";
         return true;
     }
 
@@ -68,9 +72,12 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
         return true;
     }
 
-    private bool TryMatchTupleType(AbiParameter tupleParameter, out string csTypeName, out bool isDynamic, out Func<string, string> encodeFunc, out string decodeFunc)
+    private bool TryMatchStructType(AbiParameter tupleParameter, out string csTypeName, out bool isDynamic, out Func<string, string> encodeFunc, out string decodeFunc)
     {
-        if(tupleParameter.Type != "tuple" || string.IsNullOrEmpty(tupleParameter.InternalType) || tupleParameter.Components is null)
+        if(tupleParameter.Type != "tuple"
+            || string.IsNullOrEmpty(tupleParameter.InternalType)
+            || tupleParameter.Components is null
+            || tupleParameter.Components.Any(x => string.IsNullOrEmpty(x.Name)))
         {
             csTypeName = null!;
             isDynamic = false;
@@ -126,6 +133,58 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
 
         encodeFunc = inputName => $"{inputName}.Encode(encoder);";
         decodeFunc = $"{csTypeName}.Decode(decoder)";
+        return true;
+    }
+
+    private bool TryMatchAnonymousTupleType(AbiParameter tupleParameter, out string csTypeName, out bool isDynamic, out Func<string, string> encodeFunc, out string decodeFunc)
+    {
+        if(tupleParameter.Type != "tuple"
+            || tupleParameter.Components is null)
+        {
+            csTypeName = null!;
+            isDynamic = false;
+            encodeFunc = null!;
+            decodeFunc = null!;
+            return false;
+        }
+
+        isDynamic = false;
+        var typeNameBuilder = new StringBuilder();
+        var encodeFuncBuilder = new StringBuilder();
+        var decodeFuncBuilder = new StringBuilder();
+
+        for(int i = 0; i < tupleParameter.Components.Length; i++)
+        {
+            var parameter = tupleParameter.Components[i];
+            var (innerCsType, innerIsDynamic, innerEncodeFunc, innerDecodeFunc) = CreateParameter(parameter);
+
+            if(innerIsDynamic && !isDynamic)
+            {
+                isDynamic = true;
+            }
+
+            bool isLast = parameter == tupleParameter.Components[tupleParameter.Components.Length - 1];
+
+            typeNameBuilder.Append(innerCsType);
+            decodeFuncBuilder.Append(innerDecodeFunc);
+
+            if(!isLast)
+            {
+                typeNameBuilder.Append(", ");
+                encodeFuncBuilder.AppendLine(innerEncodeFunc($"###.Item{i + 1}"));
+                decodeFuncBuilder.AppendLine(", ");
+            }
+        }
+
+        csTypeName = $"({typeNameBuilder})";
+        encodeFunc = inputName => encodeFuncBuilder.ToString().Replace("###", inputName);
+        decodeFunc =
+            $"""
+            (
+            {decodeFuncBuilder}
+            )
+            """;
+
         return true;
     }
 }
