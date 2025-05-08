@@ -11,12 +11,12 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
     where TEvent : ITxEvent<TEvent>
 {
     protected readonly IRpcClient _rpcClient = rpcClient;
-    protected string[]? _topics;
+    protected Dictionary<int, string[]?> _topics = [];
     protected string[]? _contractAddresses;
 
-    private void AssertNoTopics()
+    private void AssertNoTopics(int index)
     {
-        if(_topics is null)
+        if(!_topics.ContainsKey(index))
         {
             return;
         }
@@ -45,6 +45,13 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
         _contractAddresses = [contractAddress];
         return this;
     }
+    public ILogsApi<TEvent> HasContractAddress(Address contractAddress)
+    {
+        AssertNoContractAddresses();
+        _contractAddresses = [contractAddress.String];
+        return this;
+    }
+
     public ILogsApi<TEvent> HasContractAddresses(params ReadOnlySpan<string> contractAddresses)
     {
         AssertNoContractAddresses();
@@ -64,17 +71,30 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
 
         return this;
     }
-
-    public ILogsApi<TEvent> HasTopic(string topic)
+    public ILogsApi<TEvent> HasContractAddresses(params ReadOnlySpan<Address> contractAddresses)
     {
-        AssertNoTopics();
-        _topics = [topic];
+        AssertNoContractAddresses();
+
+        _contractAddresses = new string[contractAddresses.Length];
+
+        for(int i = 0; i < _contractAddresses.Length; i++)
+        {
+            _contractAddresses[i] = contractAddresses[i].String;
+        }
+
         return this;
     }
-    public ILogsApi<TEvent> HasTopics(params ReadOnlySpan<string> topics)
+
+    public ILogsApi<TEvent> HasTopic(string topic, int index = 0)
     {
-        AssertNoTopics();
-        _topics = topics.ToArray();
+        AssertNoTopics(index);
+        _topics[index] = [topic];
+        return this;
+    }
+    public ILogsApi<TEvent> HasTopics(int index = 0, params ReadOnlySpan<string> topics)
+    {
+        AssertNoTopics(index);
+        _topics[index] = topics.ToArray();
         return this;
     }
 
@@ -85,7 +105,7 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
             fromBlock = TargetBlockNumber.Earliest;
         }
 
-        var rawResults = await _rpcClient.EthGetLogsAsync(fromBlock, toBlock, _contractAddresses, _topics, blockHash);
+        var rawResults = await _rpcClient.EthGetLogsAsync(fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), blockHash);
 
         if(typeof(TEvent) == typeof(Log))
         {
@@ -93,20 +113,37 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
                 ?? throw new ImpossibleException();
         }
         //
-        return rawResults.Select(TEvent.Decode).ToArray();
+        return [.. rawResults.Select(TEvent.Decode)];
     }
 
     public async Task<IEventFilter<TEvent>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default)
     {
-        var filter = new EventFilter<TEvent>(_rpcClient, fromBlock, toBlock, _contractAddresses, _topics);
+        var filter = new EventFilter<TEvent>(_rpcClient, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());
         await filter.InitializeAsync(default);
         return filter;
     }
 
     public async Task<IEventSubscription<TEvent>> CreateSubscriptionAsync()
     {
-        var subscription = new EventSubscription<TEvent>(_rpcClient, _contractAddresses, _topics);
+        var subscription = new EventSubscription<TEvent>(_rpcClient, _contractAddresses, CreateTopicsArray());
         await subscription.InitializeAsync(default);
         return subscription;
+    }
+
+    private string[]?[]? CreateTopicsArray()
+    {
+        if(_topics.Count == 0)
+        {
+            return null;
+        }
+
+        string[]?[]? topics = new string[]?[_topics.Max(x => x.Key)];
+
+        foreach(var (index, topicsArr) in _topics)
+        {
+            topics[index] = topicsArr;
+        }
+
+        return topics;
     }
 }

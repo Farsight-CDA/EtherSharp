@@ -114,7 +114,7 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
     }
-    
+
     public async Task<long> EthBlockTransactionCountByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
         => await SendRpcRequest<string, string>(
             "eth_getBlockTransactionCountByNumber", targetBlockNumber.ToString(), cancellationToken) switch
@@ -358,11 +358,11 @@ internal partial class EvmRpcClient : IRpcClient
         string FromBlock,
         string ToBlock,
         string[]? Address,
-        string[]? Topics
+        string[]?[]? Topics
     );
     public async Task<string> EthNewFilterAsync(
         TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
-        string[]? address, string[]? topics,
+        string[]? address, string[]?[]? topics,
         CancellationToken cancellationToken)
     {
         if(!_transport.SupportsFilters)
@@ -429,12 +429,12 @@ internal partial class EvmRpcClient : IRpcClient
         string FromBlock,
         string ToBlock,
         string[]? Address,
-        string[]? Topics,
+        string[]?[]? Topics,
         string? BlockHash
     );
     public async Task<Log[]> EthGetLogsAsync(
         TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
-        string[]? addresses, string[]? topics, string? blockHash,
+        string[]? addresses, string[]?[]? topics, string? blockHash,
         CancellationToken cancellationToken)
     {
         var filterOptions = new EthGetLogsRequest(fromBlock.ToString(), toBlock.ToString(), addresses, topics, blockHash);
@@ -447,8 +447,8 @@ internal partial class EvmRpcClient : IRpcClient
         };
     }
 
-    private record EthSubscribeLogsRequest(string[]? Address, string[]? Topics);
-    public async Task<string> EthSubscribeLogsAsync(string[]? contracts, string[]? topics, CancellationToken cancellationToken)
+    private record EthSubscribeLogsRequest(string[]? Address, string[]?[]? Topics);
+    public async Task<string> EthSubscribeLogsAsync(string[]? contracts, string[]?[]? topics, CancellationToken cancellationToken)
     {
         if(!_transport.SupportsSubscriptions)
         {

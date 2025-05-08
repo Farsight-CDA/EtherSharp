@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Threading.Channels;
 
 namespace EtherSharp.Realtime.Events.Subscription;
-internal class EventSubscription<TEvent>(IRpcClient client, string[]? contractAddresses, string[]? topics)
+internal class EventSubscription<TEvent>(IRpcClient client, string[]? contractAddresses, string[]?[]? topics)
     : IEventSubscription<TEvent>
     where TEvent : ITxEvent<TEvent>
 {
@@ -15,7 +15,7 @@ internal class EventSubscription<TEvent>(IRpcClient client, string[]? contractAd
     private readonly IRpcClient _client = client;
 
     private readonly string[]? _contractAddresses = contractAddresses;
-    private readonly string[]? _topics = topics;
+    private readonly string[]?[]? _topics = topics;
 
     private readonly Channel<Log> _channel = Channel.CreateUnbounded<Log>(new UnboundedChannelOptions()
     {
