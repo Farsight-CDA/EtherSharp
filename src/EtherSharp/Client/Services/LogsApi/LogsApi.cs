@@ -137,7 +137,7 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
             return null;
         }
 
-        string[]?[]? topics = new string[]?[_topics.Max(x => x.Key)];
+        string[]?[]? topics = new string[]?[_topics.Max(x => x.Key) + 1];
 
         foreach(var (index, topicsArr) in _topics)
         {
