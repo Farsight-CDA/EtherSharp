@@ -6,7 +6,6 @@ namespace EtherSharp.Generator.SourceWriters;
 public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter paramDecodingWriter)
 {
     private readonly AbiTypeWriter _typeWriter = typeWriter;
-    private readonly ParamDecodingWriter _paramDecodingWriter = paramDecodingWriter;
 
     public ClassBuilder GenerateEventType(EventAbiMember eventMember)
     {
@@ -22,7 +21,7 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
             /// <summary>
             /// Event topic based on signature: {eventSignature}
             /// </summary>
-            public static System.String Topic => "0x{HexUtils.ToHexString(topic)}";
+            public const System.String Topic = "0x{HexUtils.ToHexString(topic)}";
             /// <summary>
             /// Event topic bytes based on signature: {eventSignature}
             /// </summary>
