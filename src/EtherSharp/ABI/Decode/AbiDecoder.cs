@@ -17,6 +17,47 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         _bytesRead += 32;
     }
 
+    public bool Bool()
+    {
+        var result = AbiTypes.Bool.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
+    }
+
+    public string Address()
+    {
+        string result = AbiTypes.Address.Decode(CurrentSlot);
+        ConsumeBytes();
+        return result;
+    }
+
+    public string String()
+    {
+        string result = AbiTypes.String.Decode(_bytes, _bytesRead);
+        ConsumeBytes();
+        return result;
+    }
+
+    public ReadOnlySpan<byte> Bytes()
+    {
+        var result = AbiTypes.Bytes.Decode(_bytes.Span, _bytesRead);
+        ConsumeBytes();
+        return result;
+    }
+
+
+    public ReadOnlySpan<byte> SizedBytes(int bitLength)
+    {
+        if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
+        {
+            throw new ArgumentException("Invalid bitLength", nameof(bitLength));
+        }
+
+        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, bitLength / 8);
+        ConsumeBytes();
+        return result;
+    }
+
     public TNumber Number<TNumber>(bool isUnsigned, int bitLength)
     {
         if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
@@ -59,57 +100,6 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         ConsumeBytes();
         return result;
     }
-    TNumber IFixedTupleDecoder.Number<TNumber>(bool isUnsigned, int bitLength)
-        => Number<TNumber>(isUnsigned, bitLength);
-    TNumber IDynamicTupleDecoder.Number<TNumber>(bool isUnsigned, int bitLength)
-        => Number<TNumber>(isUnsigned, bitLength);
-
-    public bool Bool()
-    {
-        var result = AbiTypes.Bool.Decode(CurrentSlot);
-        ConsumeBytes();
-        return result;
-    }
-    bool IFixedTupleDecoder.Bool()
-        => Bool();
-    bool IDynamicTupleDecoder.Bool()
-        => Bool();
-
-    public string Address()
-    {
-        string result = AbiTypes.Address.Decode(CurrentSlot);
-        ConsumeBytes();
-        return result;
-    }
-
-    public string String()
-    {
-        string result = AbiTypes.String.Decode(_bytes, _bytesRead);
-        ConsumeBytes();
-        return result;
-    }
-    string IDynamicTupleDecoder.String()
-        => String();
-
-    public AbiDecoder SizedBytes(out ReadOnlySpan<byte> value, int bitLength)
-    {
-        if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
-        {
-            throw new ArgumentException("Invalid bitLength", nameof(bitLength));
-        }
-
-        value = AbiTypes.SizedBytes.Decode(CurrentSlot, bitLength / 8);
-        return this;
-    }
-
-    public ReadOnlySpan<byte> Bytes()
-    {
-        var result = AbiTypes.Bytes.Decode(_bytes.Span, _bytesRead);
-        ConsumeBytes();
-        return result;
-    }
-    ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes()
-        => Bytes();
 
     public string[] AddressArray()
     {
@@ -137,39 +127,6 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         ConsumeBytes();
         return addresses;
     }
-    string[] IDynamicTupleDecoder.AddressArray()
-        => AddressArray();
-
-    public T[] Array<T>(Func<IArrayAbiDecoder, T> func)
-    {
-        var result = AbiTypes.Array.Decode(_bytes, _bytesRead, func);
-        ConsumeBytes();
-        return result;
-    }
-    T[] IArrayAbiDecoder.Array<T>(Func<IArrayAbiDecoder, T> func)
-        => Array(func);
-    T[] IDynamicTupleDecoder.Array<T>(Func<IArrayAbiDecoder, T> func)
-        => Array(func);
-
-    public T FixedTuple<T>(Func<IFixedTupleDecoder, T> func)
-    {
-        var result = AbiTypes.FixedTuple.Decode(this, func);
-        ConsumeBytes();
-        return result;
-    }
-    T IFixedTupleDecoder.FixedTuple<T>(Func<IFixedTupleDecoder, T> func)
-        => FixedTuple(func);
-    T IDynamicTupleDecoder.FixedTuple<T>(Func<IFixedTupleDecoder, T> func)
-        => FixedTuple(func);
-
-    public T DynamicTuple<T>(Func<IDynamicTupleDecoder, T> func)
-    {
-        var result = AbiTypes.DynamicTuple.Decode(_bytes, _bytesRead, func);
-        ConsumeBytes();
-        return result;
-    }
-    T IDynamicTupleDecoder.DynamicTuple<T>(Func<IDynamicTupleDecoder, T> func)
-        => DynamicTuple(func);
 
     public TNumber[] NumberArray<TNumber>(bool isUnsigned, uint bitLength)
     {
@@ -213,8 +170,25 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         ConsumeBytes();
         return result;
     }
-    TNumber[] IArrayAbiDecoder.NumberArray<TNumber>(bool isUnsigned, uint bitLength)
-        => NumberArray<TNumber>(isUnsigned, bitLength);
-    TNumber[] IDynamicTupleDecoder.NumberArray<TNumber>(bool isUnsigned, uint bitLength)
-        => NumberArray<TNumber>(isUnsigned, bitLength);
+
+    public T[] Array<T>(Func<IArrayAbiDecoder, T> func)
+    {
+        var result = AbiTypes.Array.Decode(_bytes, _bytesRead, func);
+        ConsumeBytes();
+        return result;
+    }
+
+    public T FixedTuple<T>(Func<IFixedTupleDecoder, T> func)
+    {
+        var result = AbiTypes.FixedTuple.Decode(this, func);
+        ConsumeBytes();
+        return result;
+    }
+
+    public T DynamicTuple<T>(Func<IDynamicTupleDecoder, T> func)
+    {
+        var result = AbiTypes.DynamicTuple.Decode(_bytes, _bytesRead, func);
+        ConsumeBytes();
+        return result;
+    }
 }

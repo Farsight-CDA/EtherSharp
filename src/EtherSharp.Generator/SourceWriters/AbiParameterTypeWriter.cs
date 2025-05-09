@@ -100,8 +100,7 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
         var encodeFunctionBuilder = new FunctionBuilder("Encode");
         var decodeFunctionBuilder = new FunctionBuilder("Decode")
             .WithIsStatic()
-            .WithReturnTypeRaw(csTypeName)
-            .AddArgument("EtherSharp.ABI.AbiDecoder", "decoder");
+            .WithReturnTypeRaw(csTypeName);
         var decodeCtorBuilder = new StringBuilder();
 
         foreach(var parameter in tupleParameter.Components)
@@ -129,10 +128,12 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
         if(isDynamic)
         {
             encodeFunctionBuilder.AddArgument("EtherSharp.ABI.Encode.Interfaces.IDynamicTupleEncoder", "encoder");
+            decodeFunctionBuilder.AddArgument("EtherSharp.ABI.Decode.Interfaces.IDynamicTupleDecoder", "decoder");
         }
         else
         {
             encodeFunctionBuilder.AddArgument("EtherSharp.ABI.Encode.Interfaces.IFixedTupleEncoder", "encoder");
+            decodeFunctionBuilder.AddArgument("EtherSharp.ABI.Decode.Interfaces.IFixedTupleDecoder", "decoder");
         }
 
         decodeFunctionBuilder.AddStatement(
@@ -149,7 +150,9 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
         encodeFunc = inputName => localIsDynamic
             ? $"encoder.DynamicTuple(encoder => {inputName}.Encode(encoder));"
             : $"encoder.FixedTuple(encoder => {inputName}.Encode(encoder));";
-        decodeFunc = $"{csTypeName}.Decode(decoder)";
+        decodeFunc = localIsDynamic
+            ? $"decoder.DynamicTuple(decoder => {csTypeName}.Decode(decoder))"
+            : $"decoder.FixedTuple(decoder => {csTypeName}.Decode(decoder))";
         return true;
     }
 
