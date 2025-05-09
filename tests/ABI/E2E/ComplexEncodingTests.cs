@@ -67,4 +67,21 @@ public class ComplexEncodingTests
         Assert.Equal("Hello", val3);
         Assert.Equal([[12]], val4);
     }
+
+    [Fact]
+    public void Should_RoundTrip_DynamicTuple_Array()
+    {
+        string[] input = ["A", "B", "C"];
+        byte[] encoded = new AbiEncoder()
+            .Array(
+                input,
+                (encoder, value) => encoder.DynamicTuple(
+                    encoder => encoder.String(value)))
+            .Build();
+
+        var decoder = new AbiDecoder(encoded);
+        string[] output = decoder.Array(decoder => decoder.DynamicTuple(x => x.String()));
+
+        Assert.Equal(input, output);
+    }
 }

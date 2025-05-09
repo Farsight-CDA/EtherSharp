@@ -37,9 +37,11 @@ internal static partial class AbiTypes
 
             var output = new T[arrayLength];
 
+            var innerDecoder = new AbiDecoder(payload[32..]);
+
             for(uint i = 0; i < arrayLength; i++)
             {
-                output[i] = decoder.Invoke(new AbiDecoder(payload[32..]));
+                output[i] = decoder.Invoke(innerDecoder);
             }
 
             return output;
