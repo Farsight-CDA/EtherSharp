@@ -181,7 +181,6 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     public T FixedTuple<T>(Func<IFixedTupleDecoder, T> func)
     {
         var result = AbiTypes.FixedTuple.Decode(this, func);
-        ConsumeBytes();
         return result;
     }
 
