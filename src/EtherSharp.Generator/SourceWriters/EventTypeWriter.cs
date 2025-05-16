@@ -5,6 +5,12 @@ using EtherSharp.Generator.Util;
 namespace EtherSharp.Generator.SourceWriters;
 public class EventTypeWriter(ParamDecodingWriter paramDecodingWriter)
 {
+    private readonly FunctionBuilder _isMatchingLogFunction = new FunctionBuilder("IsMatchingLog")
+            .AddArgument("EtherSharp.Types.Log", "log")
+            .WithReturnType<bool>()
+            .WithIsStatic()
+            .AddStatement($"return log.Topics[0].AsSpan().SequenceEqual(TopicBytes)");
+
     public ClassBuilder GenerateEventType(EventAbiMember eventMember)
     {
         string eventTypeName = NameUtils.ToValidClassName($"{eventMember.Name}Event");
@@ -87,7 +93,9 @@ public class EventTypeWriter(ParamDecodingWriter paramDecodingWriter)
         }
 
         decodeMethod.AddStatement($"return {constructorCall.ToInlineCall()}");
+
         classBuilder.AddFunction(decodeMethod);
+        classBuilder.AddFunction(_isMatchingLogFunction);
 
         return classBuilder;
     }
