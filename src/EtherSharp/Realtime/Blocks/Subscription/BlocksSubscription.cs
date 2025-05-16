@@ -35,7 +35,7 @@ internal class BlocksSubscription(IRpcClient client) : IBlocksSubscription
     }
 
     private async Task InstallAsync(CancellationToken cancellationToken = default)
-        => Id = await _client.EthSubscribeNewHeadsAsync( cancellationToken);
+        => Id = await _client.EthSubscribeNewHeadsAsync(cancellationToken);
 
     private void HandleReconnect()
         => _ = Task.Run(() => InstallAsync());

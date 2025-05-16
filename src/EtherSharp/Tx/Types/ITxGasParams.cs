@@ -16,6 +16,7 @@ public interface ITxGasParams<TSelf> : ITxGasParams
     /// </summary>
     /// <param name="multiplier"></param>
     /// <param name="divider"></param>
+    /// <param name="minimumIncrement"></param>
     /// <returns></returns>
     public TSelf IncrementByFactor(BigInteger multiplier, BigInteger divider, BigInteger minimumIncrement);
 

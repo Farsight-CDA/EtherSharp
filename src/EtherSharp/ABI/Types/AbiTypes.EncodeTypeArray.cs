@@ -1,5 +1,4 @@
 ﻿using EtherSharp.ABI.Types.Base;
-using EtherSharp.ABI.Types.Interfaces;
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;

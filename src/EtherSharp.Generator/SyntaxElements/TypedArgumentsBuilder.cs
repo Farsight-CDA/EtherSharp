@@ -81,7 +81,7 @@ public class TypedArgumentsBuilder : ISyntaxBuilder
 
         foreach(int val in _arguments.Select(x => HashCode.Combine(x)))
         {
-            innerHashCode = unchecked(innerHashCode * 314159 + val);
+            innerHashCode = unchecked((innerHashCode * 314159) + val);
         }
 
         return new SyntaxId(innerHashCode);

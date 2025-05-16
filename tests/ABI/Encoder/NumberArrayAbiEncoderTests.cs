@@ -12,12 +12,11 @@ public class NumberArrayAbiEncoderTests
     }
 
     public static TheoryData<int> BitSizes
-        => new TheoryData<int>(Enumerable.Range(1, 32).Select(x => x * 8));
+        => [.. Enumerable.Range(1, 32).Select(x => x * 8)];
     public static TheoryData<int> NonNativeBitSizes
-        => new TheoryData<int>(Enumerable.Range(1, 32)
+        => [.. Enumerable.Range(1, 32)
             .Select(x => x * 8)
-            .Where(x => x != 8 && x != 16 && x != 32 && x != 64)
-        );
+            .Where(x => x != 8 && x != 16 && x != 32 && x != 64)];
 
     [Theory]
     [MemberData(nameof(BitSizes))]

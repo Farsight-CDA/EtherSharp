@@ -1,5 +1,4 @@
 ﻿using EtherSharp.ABI.Types.Base;
-using EtherSharp.ABI.Types.Interfaces;
 
 namespace EtherSharp.ABI.Types;
 internal static partial class AbiTypes
@@ -9,7 +8,7 @@ internal static partial class AbiTypes
         public int PackedSize => 1;
 
         public override void Encode(Span<byte> buffer)
-            => EncodeInto(Value, buffer); 
+            => EncodeInto(Value, buffer);
         public void EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 

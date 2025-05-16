@@ -1,5 +1,4 @@
 ﻿using EtherSharp.ABI.Types.Base;
-using EtherSharp.ABI.Types.Interfaces;
 using System.Globalization;
 
 namespace EtherSharp.ABI.Types;
@@ -32,7 +31,7 @@ internal static partial class AbiTypes
 
             var status = Convert.FromHexString(value.Span, buffer, out _, out _);
 
-            if (status != System.Buffers.OperationStatus.Done)
+            if(status != System.Buffers.OperationStatus.Done)
             {
                 throw new InvalidOperationException($"Failed to encode address: {status}");
             }

@@ -171,9 +171,9 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         QueueEntry.PendingHandler pendingHandler;
         lock(_pendingEntries)
         {
-            if (!_pendingEntries.TryGetValue(nonce, out var entry))
+            if(!_pendingEntries.TryGetValue(nonce, out var entry))
             {
-                if (_activeNonce <= nonce)
+                if(_activeNonce <= nonce)
                 {
                     throw new InvalidOperationException($"No pending tx with nonce {nonce} found");
                 }
@@ -185,14 +185,13 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
                 );
             }
 
-            if (entry is not QueueEntry.PendingHandler pendingHandlerEntry)
+            if(entry is not QueueEntry.PendingHandler pendingHandlerEntry)
             {
                 throw new InvalidOperationException($"There already is an existing handler for tx nonce {nonce}");
             }
 
             pendingHandler = pendingHandlerEntry;
         }
-
 
         var handler = new PendingTxHandler<TTxParams, TTxGasParams>(
             nonce,

@@ -19,7 +19,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
     public bool Bool()
     {
-        var result = AbiTypes.Bool.Decode(CurrentSlot);
+        bool result = AbiTypes.Bool.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -44,7 +44,6 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         ConsumeBytes();
         return result;
     }
-
 
     public ReadOnlySpan<byte> SizedBytes(int bitLength)
     {

@@ -1,5 +1,4 @@
 ﻿using EtherSharp.ABI.Types.Base;
-using EtherSharp.ABI.Types.Interfaces;
 
 namespace EtherSharp.ABI.Types;
 internal static partial class AbiTypes

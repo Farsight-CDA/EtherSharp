@@ -73,7 +73,7 @@ public class EnumerationBuilder(string name) : ITypeBuilder
 
         foreach(int val in _enumerationValues.Select(x => HashCode.Combine(x.Value)))
         {
-            innerHashCode = unchecked(innerHashCode * 314159 + val);
+            innerHashCode = unchecked((innerHashCode * 314159) + val);
         }
 
         int hashCode = HashCode.Combine(

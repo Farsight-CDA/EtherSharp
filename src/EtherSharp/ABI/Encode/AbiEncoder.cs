@@ -1,6 +1,5 @@
 ﻿using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Types;
-using EtherSharp.ABI.Types.Interfaces;
 using EtherSharp.Types;
 using System.Numerics;
 

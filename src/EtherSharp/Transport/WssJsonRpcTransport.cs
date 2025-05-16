@@ -353,6 +353,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
         return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         lock(_statusLock)

@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.ABI.Types.Interfaces;
+﻿namespace EtherSharp.ABI.Types.Base;
 
 public interface IEncodeType
 {

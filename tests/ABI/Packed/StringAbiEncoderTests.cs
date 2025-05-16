@@ -1,5 +1,4 @@
-﻿using EtherSharp.ABI;
-using EtherSharp.ABI.Packed;
+﻿using EtherSharp.ABI.Packed;
 
 namespace EtherSharp.Tests.ABI.Packed;
 public class StringAbiEncoderTests

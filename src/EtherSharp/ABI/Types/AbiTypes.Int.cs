@@ -1,5 +1,4 @@
 ﻿using EtherSharp.ABI.Types.Base;
-using EtherSharp.ABI.Types.Interfaces;
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
@@ -7,8 +6,7 @@ internal static partial class AbiTypes
 {
     internal class Int : FixedType<int>, IPackedEncodeType
     {
-        private readonly int _byteLength;
-        public int PackedSize => _byteLength;
+        public int PackedSize { get; }
 
         public Int(int value, int byteLength) : base(value)
         {
@@ -23,7 +21,7 @@ internal static partial class AbiTypes
                 throw new ArgumentException($"Value is too large to fit in a {bitLength}-bit signed integer", nameof(value));
             }
 
-            _byteLength = byteLength;
+            PackedSize = byteLength;
         }
 
         public override void Encode(Span<byte> buffer)
@@ -31,9 +29,9 @@ internal static partial class AbiTypes
         public void EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer, true);
 
-        public static void EncodeInto(int value, Span<byte> buffer,  bool isPacked)
+        public static void EncodeInto(int value, Span<byte> buffer, bool isPacked)
         {
-            if (isPacked)
+            if(isPacked)
             {
                 Span<byte> tempBuffer = stackalloc byte[4];
                 BinaryPrimitives.WriteInt32BigEndian(tempBuffer, value);

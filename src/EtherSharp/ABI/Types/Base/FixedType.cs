@@ -1,6 +1,4 @@
-﻿using EtherSharp.ABI.Types.Interfaces;
-
-namespace EtherSharp.ABI.Types.Base;
+﻿namespace EtherSharp.ABI.Types.Base;
 
 internal abstract class FixedType<T>(T value) : IFixedType
 {

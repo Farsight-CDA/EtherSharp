@@ -1,5 +1,4 @@
 ﻿using EtherSharp.ABI.Types.Base;
-using EtherSharp.ABI.Types.Interfaces;
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
@@ -17,7 +16,7 @@ internal static partial class AbiTypes
 
             Value.CopyTo(payload[32..]);
         }
-        public void EncodePacked(Span<byte> buffer) 
+        public void EncodePacked(Span<byte> buffer)
             => Value.CopyTo(buffer);
 
         public static ReadOnlySpan<byte> Decode(ReadOnlySpan<byte> bytes, uint metaDataOffset)

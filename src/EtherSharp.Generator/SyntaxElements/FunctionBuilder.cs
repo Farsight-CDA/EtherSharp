@@ -186,7 +186,7 @@ public class FunctionBuilder(string name) : ISyntaxBuilder
 
         foreach(int val in _statements.Select(x => HashCode.Combine(x)))
         {
-            innerHashCode = unchecked(innerHashCode * 314159 + val);
+            innerHashCode = unchecked((innerHashCode * 314159) + val);
         }
 
         return new SyntaxId(HashCode.Combine(

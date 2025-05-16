@@ -1,12 +1,12 @@
-using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Decode.Interfaces;
+using EtherSharp.ABI.Types;
 
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
     public byte Bytes1()
     {
-        var result = AbiTypes.Byte.Decode(CurrentSlot);
+        byte result = AbiTypes.Byte.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
