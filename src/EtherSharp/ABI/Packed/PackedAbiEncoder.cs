@@ -1,4 +1,5 @@
 ﻿using EtherSharp.ABI.Types;
+using EtherSharp.ABI.Types.Base;
 using System.Numerics;
 
 namespace EtherSharp.ABI.Packed;
