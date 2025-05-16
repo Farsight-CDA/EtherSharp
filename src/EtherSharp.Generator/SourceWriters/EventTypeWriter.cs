@@ -3,10 +3,8 @@ using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters;
-public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter paramDecodingWriter)
+public class EventTypeWriter(ParamDecodingWriter paramDecodingWriter)
 {
-    private readonly AbiTypeWriter _typeWriter = typeWriter;
-
     public ClassBuilder GenerateEventType(EventAbiMember eventMember)
     {
         string eventTypeName = NameUtils.ToValidClassName($"{eventMember.Name}Event");
@@ -90,8 +88,6 @@ public class EventTypeWriter(AbiTypeWriter typeWriter, ParamDecodingWriter param
 
         decodeMethod.AddStatement($"return {constructorCall.ToInlineCall()}");
         classBuilder.AddFunction(decodeMethod);
-
-        _typeWriter.RegisterTypeBuilder(classBuilder);
 
         return classBuilder;
     }

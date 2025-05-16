@@ -85,6 +85,25 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
         return this;
     }
 
+    public ILogsApi<TEvent> HasContractAddresses(params IEnumerable<string> contractAddresses)
+    {
+        AssertNoContractAddresses();
+        _contractAddresses = [.. contractAddresses];
+        return this;
+    }
+    public ILogsApi<TEvent> HasContracts(params IEnumerable<IEVMContract> contracts)
+    {
+        AssertNoContractAddresses();
+        _contractAddresses = [.. contracts.Select(x => x.Address.String)];
+        return this;
+    }
+    public ILogsApi<TEvent> HasContractAddresses(params IEnumerable<Address> contractAddresses)
+    {
+        AssertNoContractAddresses();
+        _contractAddresses = [.. contractAddresses.Select(x => x.String)];
+        return this;
+    }
+
     public ILogsApi<TEvent> HasTopic(string topic, int index = 0)
     {
         AssertNoTopics(index);
@@ -95,6 +114,12 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
     {
         AssertNoTopics(index);
         _topics[index] = topics.ToArray();
+        return this;
+    }
+    public ILogsApi<TEvent> HasTopics(int index = 0, params IEnumerable<string> topics)
+    {
+        AssertNoTopics(index);
+        _topics[index] = [.. topics];
         return this;
     }
 
