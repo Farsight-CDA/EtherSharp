@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.ABI.Encode.Interfaces;
+﻿using EtherSharp.Types;
+
+namespace EtherSharp.ABI.Encode.Interfaces;
 public partial interface IDynamicTupleEncoder
 {
     public uint MetadataSize { get; }
@@ -7,12 +9,12 @@ public partial interface IDynamicTupleEncoder
     internal bool TryWritoTo(Span<byte> outputBuffer);
 
     public IDynamicTupleEncoder Bool(bool value);
-    public IDynamicTupleEncoder Address(string value);
+    public IDynamicTupleEncoder Address(Address value);
 
     public IDynamicTupleEncoder String(string value);
     public IDynamicTupleEncoder Bytes(byte[] value);
 
-    public IDynamicTupleEncoder AddressArray(params string[] addresses);
+    public IDynamicTupleEncoder AddressArray(params Address[] addresses);
     public IDynamicTupleEncoder StringArray(params string[] values);
     public IDynamicTupleEncoder BytesArray(params byte[][] values);
 

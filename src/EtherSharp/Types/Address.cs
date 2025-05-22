@@ -1,10 +1,13 @@
-﻿using System;
+﻿using EtherSharp.Common.Converter;
+using System;
 using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace EtherSharp.Types;
 /// <summary>
 /// Represents an Ethereum compatible address.
 /// </summary>
+[JsonConverter(typeof(AddressConverter))]
 public class Address
 {
     /// <summary>

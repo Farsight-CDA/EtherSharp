@@ -1,5 +1,6 @@
 ﻿using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Types;
+using EtherSharp.Types;
 using System.Buffers.Binary;
 using System.Numerics;
 
@@ -24,9 +25,9 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         return result;
     }
 
-    public string Address()
+    public Address Address()
     {
-        string result = AbiTypes.Address.Decode(CurrentSlot);
+        var result = AbiTypes.Address.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -100,7 +101,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         return result;
     }
 
-    public string[] AddressArray()
+    public Address[] AddressArray()
     {
         uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
 
@@ -114,7 +115,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
         uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32]);
 
-        string[] addresses = new string[arrayLength];
+        var addresses = new Address[arrayLength];
 
         int offset = 32;
         for(uint i = 0; i < arrayLength; i++)

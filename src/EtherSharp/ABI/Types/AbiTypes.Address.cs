@@ -37,7 +37,7 @@ internal static partial class AbiTypes
             }
         }
 
-        public static string Decode(ReadOnlySpan<byte> bytes)
-            => $"0x{Convert.ToHexString(bytes[12..])}";
+        public static EtherSharp.Types.Address Decode(ReadOnlySpan<byte> bytes)
+            => EtherSharp.Types.Address.FromBytes(bytes[12..]);
     }
 }

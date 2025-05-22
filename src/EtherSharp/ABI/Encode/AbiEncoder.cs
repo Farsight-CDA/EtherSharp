@@ -78,17 +78,14 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     }
     public AbiEncoder Bool(bool value)
         => AddElement(new AbiTypes.Bool(value));
-    public AbiEncoder Address(string value)
-        => AddElement(new AbiTypes.Address(value));
+    public AbiEncoder Address(Address value)
+        => AddElement(new AbiTypes.Address(value.String));
 
     public AbiEncoder String(string value)
         => AddElement(new AbiTypes.String(value));
     public AbiEncoder Bytes(byte[] arr)
         => AddElement(new AbiTypes.Bytes(arr));
 
-    public AbiEncoder AddressArray(params string[] addresses)
-        => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Address>(
-            addresses.Select(x => new AbiTypes.Address(x)).ToArray()));
     public AbiEncoder AddressArray(params Address[] addresses)
         => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Address>(
             addresses.Select(x => new AbiTypes.Address(x.String)).ToArray()));
@@ -134,7 +131,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
 
     IFixedTupleEncoder IFixedTupleEncoder.Bool(bool value)
         => Bool(value);
-    IFixedTupleEncoder IFixedTupleEncoder.Address(string value)
+    IFixedTupleEncoder IFixedTupleEncoder.Address(Address value)
         => Address(value);
 
     IDynamicTupleEncoder IDynamicTupleEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
@@ -146,13 +143,13 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
 
     IDynamicTupleEncoder IDynamicTupleEncoder.Bool(bool value)
         => Bool(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Address(string value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Address(Address value)
         => Address(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.String(string value)
         => String(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(byte[] arr)
         => Bytes(arr);
-    IDynamicTupleEncoder IDynamicTupleEncoder.AddressArray(params string[] addresses)
+    IDynamicTupleEncoder IDynamicTupleEncoder.AddressArray(params Address[] addresses)
         => AddressArray(addresses);
     IDynamicTupleEncoder IDynamicTupleEncoder.StringArray(params string[] values)
         => StringArray(values);

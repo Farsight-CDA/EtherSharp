@@ -16,7 +16,7 @@ public static class PrimitiveTypeWriter
         switch(rawType)
         {
             case "address":
-                csharpTypeName = typeof(string).FullName;
+                csharpTypeName = "EtherSharp.Types.Address";
                 isDynamic = false;
                 abiFunctionName = "Address";
                 break;
