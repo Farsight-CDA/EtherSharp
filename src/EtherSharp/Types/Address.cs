@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 
 namespace EtherSharp.Types;
 /// <summary>
@@ -68,6 +69,26 @@ public class Address
         => Equals(a, b);
 
     /// <inheritdoc/>
+    public static bool operator ==(Address a, string b)
+        => b.StartsWith("0x")
+            ? string.Equals(a.String, b, StringComparison.OrdinalIgnoreCase)
+            : a.String.AsSpan(2).Equals(b, StringComparison.OrdinalIgnoreCase);
+
+    /// <inheritdoc/>
+    public static bool operator ==(string a, Address b)
+        => b == a;
+
+    /// <inheritdoc/>
     public static bool operator !=(Address a, Address b)
         => !Equals(a, b);
+
+    /// <inheritdoc/>
+    public static bool operator !=(Address a, string b)
+        => b.StartsWith("0x")
+            ? !string.Equals(a.String, b, StringComparison.OrdinalIgnoreCase)
+            : !a.String.AsSpan(2).Equals(b, StringComparison.OrdinalIgnoreCase);
+
+    /// <inheritdoc/>
+    public static bool operator !=(string a, Address b)
+        => b != a;
 }
