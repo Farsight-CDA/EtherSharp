@@ -3,7 +3,7 @@ using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters;
-public class EventTypeWriter(ParamDecodingWriter paramDecodingWriter)
+public class EventTypeWriter()
 {
     private readonly FunctionBuilder _isMatchingLogFunction = new FunctionBuilder("IsMatchingLog")
             .AddArgument("EtherSharp.Types.Log", "log")

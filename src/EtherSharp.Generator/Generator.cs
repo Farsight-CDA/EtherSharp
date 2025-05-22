@@ -160,7 +160,7 @@ public class Generator : IIncrementalGenerator
             abiTypeWriter,
             new ParamEncodingWriter(abiTypeWriter, parameterTypeWriter),
             paramDecodingWriter,
-            new EventTypeWriter(paramDecodingWriter)
+            new EventTypeWriter()
         );
     }
 }
