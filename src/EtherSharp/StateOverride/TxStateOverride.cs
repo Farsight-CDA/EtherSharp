@@ -1,9 +1,11 @@
-﻿namespace EtherSharp.StateOverride;
+﻿using EtherSharp.Types;
+
+namespace EtherSharp.StateOverride;
 public class TxStateOverride
 {
-    internal readonly Dictionary<string, OverrideAccount> _accountOverrides;
+    internal readonly Dictionary<Address, OverrideAccount> _accountOverrides;
 
-    internal TxStateOverride(Dictionary<string, OverrideAccount> accountOverrides)
+    internal TxStateOverride(Dictionary<Address, OverrideAccount> accountOverrides)
     {
         _accountOverrides = accountOverrides;
     }

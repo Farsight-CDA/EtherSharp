@@ -18,7 +18,7 @@ public record BlockData(
     BigInteger? GasUsed,
     string Hash,
     string? LogsBloom,
-    string? Miner,
+    Address? Miner,
     BigInteger? Nonce,
     BigInteger? Number,
 

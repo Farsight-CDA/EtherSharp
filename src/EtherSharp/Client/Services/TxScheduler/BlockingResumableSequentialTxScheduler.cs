@@ -63,7 +63,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         _chainId = chainId;
 
         _activeNonce = await _rpcClient.EthGetTransactionCount(
-            _signer.Address.String, TargetBlockNumber.Latest, cancellationToken
+            _signer.Address, TargetBlockNumber.Latest, cancellationToken
         );
 
         if(_resiliencyLayer is null)
@@ -369,7 +369,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         {
             try
             {
-                uint txCount = await _rpcClient.EthGetTransactionCount(_signer.Address.String, TargetBlockNumber.Latest, cancellationToken);
+                uint txCount = await _rpcClient.EthGetTransactionCount(_signer.Address, TargetBlockNumber.Latest, cancellationToken);
                 if(predicate(txCount))
                 {
                     return;

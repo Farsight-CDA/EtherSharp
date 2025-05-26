@@ -29,7 +29,7 @@ public class EIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : 
         Address to, BigInteger value, string inputDataHex, CancellationToken cancellationToken)
     {
         ulong gasEstimation = await _rpcClient.EthEstimateGasAsync(
-            _signer.Address.String, to.String, value, inputDataHex, cancellationToken);
+            _signer.Address, to, value, inputDataHex, cancellationToken);
 
         var feeHistory = await _rpcClient.EthGetFeeHistory(FeeHistoryRange, TargetBlockNumber.Latest, [PriorityFeePercentile], default);
 

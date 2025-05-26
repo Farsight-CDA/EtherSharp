@@ -3,7 +3,7 @@
 namespace EtherSharp.Types;
 
 public record Withdrawal(
-    [property: JsonRequired] string Address,
+    [property: JsonRequired] Address Address,
     [property: JsonRequired] uint Amount,
     [property: JsonRequired] uint Index,
     [property: JsonRequired] uint ValidatorIndex

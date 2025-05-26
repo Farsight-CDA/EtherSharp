@@ -73,16 +73,16 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<BigInteger> EthGetBalance(string address, TargetBlockNumber blockNumber, CancellationToken cancellationToken)
-        => await SendRpcRequest<string, string, BigInteger>("eth_getBalance", address, blockNumber.ToString(), cancellationToken) switch
+    public async Task<BigInteger> EthGetBalance(Address address, TargetBlockNumber blockNumber, CancellationToken cancellationToken)
+        => await SendRpcRequest<Address, string, BigInteger>("eth_getBalance", address, blockNumber.ToString(), cancellationToken) switch
         {
             RpcResult<BigInteger>.Success result => result.Result,
             RpcResult<BigInteger>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<uint> EthGetTransactionCount(string address, TargetBlockNumber blockNumber, CancellationToken cancellationToken)
-        => await SendRpcRequest<string, string, uint>(
+    public async Task<uint> EthGetTransactionCount(Address address, TargetBlockNumber blockNumber, CancellationToken cancellationToken)
+        => await SendRpcRequest<Address, string, uint>(
             "eth_getTransactionCount", address, blockNumber.ToString(), cancellationToken) switch
         {
             RpcResult<uint>.Success result => result.Result,
@@ -127,16 +127,16 @@ internal partial class EvmRpcClient : IRpcClient
     public async Task<long> EthBlockTransactionCountByNumberAsync(ulong blockNumber, CancellationToken cancellationToken)
         => await EthBlockTransactionCountByNumberAsync(TargetBlockNumber.Height(blockNumber), cancellationToken);
 
-    private record TransactionEthCall(string? From, string To, uint? Gas, BigInteger? GasPrice, int? Value, string? Data);
+    private record TransactionEthCall(Address? From, Address To, uint? Gas, BigInteger? GasPrice, int? Value, string? Data);
     private record FakeAccountData(string? Balance, string? Nonce, string? Code, object? State, int? StateDiff);
 
     public async Task<TxCallResult> EthCallAsync(
-        string? from, string to, uint? gas, BigInteger? gasPrice, int? value, string? data,
+        Address? from, Address to, uint? gas, BigInteger? gasPrice, int? value, string? data,
         TargetBlockNumber blockNumber, TxStateOverride? stateOverride, CancellationToken cancellationToken)
     {
-        TransactionEthCall transaction = new(from, to, gas, gasPrice, value, data);
+        var transaction = new TransactionEthCall(from, to, gas, gasPrice, value, data);
 
-        return await SendRpcRequest<TransactionEthCall, string, Dictionary<string, OverrideAccount>?, byte[]>(
+        return await SendRpcRequest<TransactionEthCall, string, Dictionary<Address, OverrideAccount>?, byte[]>(
             "eth_call", transaction, blockNumber.ToString(), stateOverride?._accountOverrides, cancellationToken) switch
         {
             RpcResult<byte[]>.Success result => new TxCallResult.Success(result.Result),
@@ -219,9 +219,9 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
 
-    private record EthEstimateGasRequest(string? From, string To, BigInteger Value, string Data);
+    private record EthEstimateGasRequest(Address? From, Address To, BigInteger Value, string Data);
     public async Task<ulong> EthEstimateGasAsync(
-        string? from, string to, BigInteger value, string data, CancellationToken cancellationToken)
+        Address? from, Address to, BigInteger value, string data, CancellationToken cancellationToken)
     {
         var transaction = new EthEstimateGasRequest(from, to, value, data);
         return await SendRpcRequest<EthEstimateGasRequest, ulong>(
@@ -357,12 +357,12 @@ internal partial class EvmRpcClient : IRpcClient
     private record EthNewFilterRequest(
         string FromBlock,
         string ToBlock,
-        string[]? Address,
+        Address[]? Address,
         string[]?[]? Topics
     );
     public async Task<string> EthNewFilterAsync(
         TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
-        string[]? address, string[]?[]? topics,
+        Address[]? address, string[]?[]? topics,
         CancellationToken cancellationToken)
     {
         if(!_transport.SupportsFilters)
@@ -428,13 +428,13 @@ internal partial class EvmRpcClient : IRpcClient
     private record EthGetLogsRequest(
         string FromBlock,
         string ToBlock,
-        string[]? Address,
+        Address[]? Address,
         string[]?[]? Topics,
         string? BlockHash
     );
     public async Task<Log[]> EthGetLogsAsync(
         TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
-        string[]? addresses, string[]?[]? topics, string? blockHash,
+        Address[]? addresses, string[]?[]? topics, string? blockHash,
         CancellationToken cancellationToken)
     {
         var filterOptions = new EthGetLogsRequest(fromBlock.ToString(), toBlock.ToString(), addresses, topics, blockHash);
@@ -447,8 +447,8 @@ internal partial class EvmRpcClient : IRpcClient
         };
     }
 
-    private record EthSubscribeLogsRequest(string[]? Address, string[]?[]? Topics);
-    public async Task<string> EthSubscribeLogsAsync(string[]? contracts, string[]?[]? topics, CancellationToken cancellationToken)
+    private record EthSubscribeLogsRequest(Address[]? Address, string[]?[]? Topics);
+    public async Task<string> EthSubscribeLogsAsync(Address[]? contracts, string[]?[]? topics, CancellationToken cancellationToken)
     {
         if(!_transport.SupportsSubscriptions)
         {

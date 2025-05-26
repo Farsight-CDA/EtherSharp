@@ -12,7 +12,7 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
 {
     protected readonly IRpcClient _rpcClient = rpcClient;
     protected Dictionary<int, string[]?> _topics = [];
-    protected string[]? _contractAddresses;
+    protected Address[]? _contractAddresses;
 
     private void AssertNoTopics(int index)
     {
@@ -36,37 +36,25 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
     public ILogsApi<TEvent> HasContract(IEVMContract contract)
     {
         AssertNoContractAddresses();
-        _contractAddresses = [contract.Address.String];
-        return this;
-    }
-    public ILogsApi<TEvent> HasContractAddress(string contractAddress)
-    {
-        AssertNoContractAddresses();
-        _contractAddresses = [contractAddress];
+        _contractAddresses = [contract.Address];
         return this;
     }
     public ILogsApi<TEvent> HasContractAddress(Address contractAddress)
     {
         AssertNoContractAddresses();
-        _contractAddresses = [contractAddress.String];
+        _contractAddresses = [contractAddress];
         return this;
     }
 
-    public ILogsApi<TEvent> HasContractAddresses(params ReadOnlySpan<string> contractAddresses)
-    {
-        AssertNoContractAddresses();
-        _contractAddresses = contractAddresses.ToArray();
-        return this;
-    }
     public ILogsApi<TEvent> HasContracts(params ReadOnlySpan<IEVMContract> contracts)
     {
         AssertNoContractAddresses();
 
-        _contractAddresses = new string[contracts.Length];
+        _contractAddresses = new Address[contracts.Length];
 
         for(int i = 0; i < _contractAddresses.Length; i++)
         {
-            _contractAddresses[i] = contracts[i].Address.String;
+            _contractAddresses[i] = contracts[i].Address;
         }
 
         return this;
@@ -74,33 +62,20 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
     public ILogsApi<TEvent> HasContractAddresses(params ReadOnlySpan<Address> contractAddresses)
     {
         AssertNoContractAddresses();
-
-        _contractAddresses = new string[contractAddresses.Length];
-
-        for(int i = 0; i < _contractAddresses.Length; i++)
-        {
-            _contractAddresses[i] = contractAddresses[i].String;
-        }
-
+        _contractAddresses = contractAddresses.ToArray();
         return this;
     }
 
-    public ILogsApi<TEvent> HasContractAddresses(params IEnumerable<string> contractAddresses)
-    {
-        AssertNoContractAddresses();
-        _contractAddresses = [.. contractAddresses];
-        return this;
-    }
     public ILogsApi<TEvent> HasContracts(params IEnumerable<IEVMContract> contracts)
     {
         AssertNoContractAddresses();
-        _contractAddresses = [.. contracts.Select(x => x.Address.String)];
+        _contractAddresses = [.. contracts.Select(x => x.Address)];
         return this;
     }
     public ILogsApi<TEvent> HasContractAddresses(params IEnumerable<Address> contractAddresses)
     {
         AssertNoContractAddresses();
-        _contractAddresses = [.. contractAddresses.Select(x => x.String)];
+        _contractAddresses = [.. contractAddresses];
         return this;
     }
 

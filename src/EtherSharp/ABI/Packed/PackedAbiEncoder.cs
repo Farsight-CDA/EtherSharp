@@ -1,5 +1,6 @@
 ﻿using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Types.Base;
+using EtherSharp.Types;
 using System.Numerics;
 
 namespace EtherSharp.ABI.Packed;
@@ -53,7 +54,7 @@ public class PackedAbiEncoder
     }
     public PackedAbiEncoder Bool(bool value)
         => AddElement(new AbiTypes.Bool(value));
-    public PackedAbiEncoder Address(string value)
+    public PackedAbiEncoder Address(Address value)
         => AddElement(new AbiTypes.Address(value));
 
     public PackedAbiEncoder String(string value)

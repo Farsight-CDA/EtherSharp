@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Types;
 public record Log(
-    string Address,
+    Address Address,
     string BlockHash,
     uint BlockNumber,
     uint LogIndex,

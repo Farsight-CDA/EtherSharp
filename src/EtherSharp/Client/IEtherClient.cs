@@ -29,10 +29,8 @@ public interface IEtherClient
     public Task<Transaction> GetTransactionAsync(string hash, CancellationToken cancellationToken = default);
 
     public Task<ulong> GetPeakHeightAsync(CancellationToken cancellationToken = default);
-    public Task<uint> GetTransactionCount(string address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<uint> GetTransactionCount(Address address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 
-    public TContract Contract<TContract>(string address)
-        where TContract : IEVMContract;
     public TContract Contract<TContract>(Address address)
         where TContract : IEVMContract;
 
@@ -44,7 +42,7 @@ public interface IEtherClient
     public Task<BigInteger> GetGasPriceAsync(CancellationToken cancellationToken = default);
     public Task<BigInteger> GetMaxPriorityFeePerGasAsync(CancellationToken cancellationToken = default);
 
-    public Task<ulong> EstimateGasLimitAsync(ITxInput call, string? from = null, CancellationToken cancellationToken = default);
+    public Task<ulong> EstimateGasLimitAsync(ITxInput call, Address? from = null, CancellationToken cancellationToken = default);
 
     public Task<EIP1559GasParams> EstimateTxGasParamsAsync(ITxInput call, EIP1559TxParams? txParams = default,
         TxStateOverride? stateOverride = default, CancellationToken cancellationToken = default)

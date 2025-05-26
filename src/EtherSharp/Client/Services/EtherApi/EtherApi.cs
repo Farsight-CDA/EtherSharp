@@ -14,21 +14,17 @@ internal class EtherApi(IRpcClient rpcClient, IServiceProvider provider) : IEthe
 
     public ITxInput Transfer(Address receiver, BigInteger amount)
         => ITxInput.ForEthTransfer(receiver, amount);
-    public ITxInput Transfer(string receiver, BigInteger amount)
-        => ITxInput.ForEthTransfer(Address.FromString(receiver), amount);
     public ITxInput Transfer(IPayableContract contract, BigInteger amount)
         => ITxInput.ForEthTransfer(contract.Address, amount);
 
     public Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber blockNumber)
-        => _rpcClient.EthGetBalance(address.String, blockNumber);
-    public Task<BigInteger> GetBalanceAsync(string address, TargetBlockNumber blockNumber)
         => _rpcClient.EthGetBalance(address, blockNumber);
     public Task<BigInteger> GetBalanceAsync(IEVMContract contract, TargetBlockNumber blockNumber)
-        => _rpcClient.EthGetBalance(contract.Address.String, blockNumber);
+        => _rpcClient.EthGetBalance(contract.Address, blockNumber);
 
     public Task<BigInteger> GetMyBalanceAsync(TargetBlockNumber blockNumber)
         => _rpcClient.EthGetBalance(
-            _provider.GetService<IEtherSigner>()?.Address?.String ?? throw new InvalidOperationException("Client is not a tx client"),
+            _provider.GetService<IEtherSigner>()?.Address ?? throw new InvalidOperationException("Client is not a tx client"),
             blockNumber
         );
 }

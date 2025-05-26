@@ -5,7 +5,7 @@ namespace EtherSharp.Realtime.Events.Filter;
 
 internal class EventFilter<TEvent>(IRpcClient client,
     TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
-    string[]? addresses, string[]?[]? topics
+    Address[]? addresses, string[]?[]? topics
 ) : IEventFilter<TEvent>
     where TEvent : ITxEvent<TEvent>
 {
@@ -16,13 +16,13 @@ internal class EventFilter<TEvent>(IRpcClient client,
     private readonly TargetBlockNumber _fromBlock = fromBlock;
     private readonly TargetBlockNumber _toBlock = toBlock;
 
-    private readonly string[]? _addresses = addresses;
+    private readonly Address[]? _addresses = addresses;
     private readonly string[]?[]? _topics = topics;
 
     public async Task<TEvent[]> GetChangesAsync(CancellationToken cancellationToken)
     {
         var rawResults = await _client.EthGetEventFilterChangesAsync(Id, cancellationToken);
-        return rawResults.Select(TEvent.Decode).ToArray();
+        return [.. rawResults.Select(TEvent.Decode)];
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken)

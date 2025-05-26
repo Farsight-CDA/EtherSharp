@@ -146,18 +146,12 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return _rpcClient.EthBlockNumberAsync(cancellationToken);
     }
     Task<uint> IEtherClient.GetTransactionCount(
-        string address, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return _rpcClient.EthGetTransactionCount(address, targetHeight, cancellationToken);
     }
 
-    private TContract Contract<TContract>(string contractAddress)
-        where TContract : IEVMContract
-    {
-        AssertReady();
-        return _contractFactory.Create<TContract>(Address.FromString(contractAddress));
-    }
     private TContract Contract<TContract>(Address address)
         where TContract : IEVMContract
     {
@@ -183,17 +177,17 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return _rpcClient.EthMaxPriorityFeePerGas(cancellationToken);
     }
 
-    Task<ulong> IEtherClient.EstimateGasLimitAsync(ITxInput call, string? from, CancellationToken cancellationToken)
+    Task<ulong> IEtherClient.EstimateGasLimitAsync(ITxInput call, Address? from, CancellationToken cancellationToken)
     {
         AssertReady();
 
         if(from is null && _isTxClient)
         {
-            from = _signer.Address.String;
+            from = _signer.Address;
         }
 
         string data = $"0x{Convert.ToHexString(call.Data)}";
-        return _rpcClient.EthEstimateGasAsync(from, call.To.String, call.Value, data, cancellationToken);
+        return _rpcClient.EthEstimateGasAsync(from, call.To, call.Value, data, cancellationToken);
     }
 
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
@@ -208,8 +202,6 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, call.Data, txParams ?? TTxParams.Default, cancellationToken);
     }
 
-    TContract IEtherClient.Contract<TContract>(string address)
-        => Contract<TContract>(address);
     TContract IEtherClient.Contract<TContract>(Address address)
         => Contract<TContract>(address);
 
@@ -217,13 +209,13 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     {
         AssertReady();
 
-        string? sender = _isTxClient
-            ? _signer.Address.String
+        var sender = _isTxClient
+            ? _signer.Address
             : null;
 
         var result = await _rpcClient.EthCallAsync(
             sender,
-            call.To.String,
+            call.To,
             null,
             null,
             null,

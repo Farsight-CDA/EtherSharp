@@ -1,7 +1,9 @@
 ﻿using EtherSharp.Common.Converter;
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EtherSharp.Types;
 /// <summary>
@@ -68,6 +70,10 @@ public class Address
         => String.GetHashCode();
 
     /// <inheritdoc/>
+    public override string ToString()
+        => String;
+
+    /// <inheritdoc/>
     public static bool operator ==(Address a, Address b)
         => Equals(a, b);
 
@@ -94,4 +100,8 @@ public class Address
     /// <inheritdoc/>
     public static bool operator !=(string a, Address b)
         => b != a;
+
+    /// <inheritdoc/>
+    public static implicit operator Address(string a)
+        => FromString(a);
 }

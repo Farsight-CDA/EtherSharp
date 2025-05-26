@@ -11,6 +11,7 @@ public class OpStackEIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner sig
     : IInitializableService, IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
 {
     private readonly static EIP1559GasParams _defaultGasParams = new EIP1559GasParams(1_000_000, BigInteger.Pow(10, 10), BigInteger.Pow(10, 8));
+    private readonly static Address _opGasOracleAddress = Address.FromString("0x420000000000000000000000000000000000000F");
 
     private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IEtherSigner _signer = signer;
@@ -69,9 +70,10 @@ public class OpStackEIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner sig
         string inputDataHex, string getL1FeePayloadHex, CancellationToken cancellationToken)
     {
         var gasEstimationTask = _rpcClient.EthEstimateGasAsync(
-            _signer.Address.String, to.String, value, inputDataHex, cancellationToken);
+            _signer.Address, to, value, inputDataHex, cancellationToken);
         var l1FeeTask = _rpcClient.EthCallAsync(
-            null, "0x420000000000000000000000000000000000000F", null, null, null, getL1FeePayloadHex, TargetBlockNumber.Pending, default, cancellationToken);
+            null, _opGasOracleAddress, null, null, null, getL1FeePayloadHex, TargetBlockNumber.Pending, default, cancellationToken
+        );
 
         ulong gasEstimation = await gasEstimationTask;
 

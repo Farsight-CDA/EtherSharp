@@ -12,11 +12,6 @@ public interface ILogsApi<TEvent> : IConfiguredLogsApi<TEvent>
     public ILogsApi<TEvent> HasTopics(int index = 0, params ReadOnlySpan<string> topics);
     public ILogsApi<TEvent> HasTopics(int index = 0, params IEnumerable<string> topics);
 
-    public ILogsApi<TEvent> HasContractAddress(string contractAddress);
-    [OverloadResolutionPriority(1)]
-    public ILogsApi<TEvent> HasContractAddresses(params ReadOnlySpan<string> contractAddresses);
-    public ILogsApi<TEvent> HasContractAddresses(params IEnumerable<string> contractAddresses);
-
     public ILogsApi<TEvent> HasContractAddress(Address contractAddress);
     [OverloadResolutionPriority(1)]
     public ILogsApi<TEvent> HasContractAddresses(params ReadOnlySpan<Address> contractAddresses);
