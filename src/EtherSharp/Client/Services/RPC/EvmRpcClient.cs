@@ -283,6 +283,7 @@ internal partial class EvmRpcClient : IRpcClient
         {
             RpcResult<BlockDataTrasactionAsString>.Success result => result.Result,
             RpcResult<BlockDataTrasactionAsString>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<BlockDataTrasactionAsString>.Null => throw new RPCException(-1, "block not found, rpc returned null"),
             _ => throw new NotImplementedException(),
         };
 
