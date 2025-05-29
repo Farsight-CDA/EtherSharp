@@ -201,12 +201,11 @@ public class ContractSourceWriter(
             func.AddStatement($"{typeof(BigInteger).FullName} {ethParamName} = 0");
         }
 
-        switch(messageFunction.Outputs.Length)
+        if(messageFunction.Outputs.Length == 0)
         {
-            case 0:
-                func.WithReturnTypeRaw("EtherSharp.Tx.ITxInput");
-                func.AddStatement(
-                $$"""
+            func.WithReturnTypeRaw("EtherSharp.Tx.ITxInput");
+            func.AddStatement(
+            $$"""
                 return EtherSharp.Tx.ITxInput.ForContractCall(
                     Address,
                     {{ethParamName}},
@@ -214,11 +213,13 @@ public class ContractSourceWriter(
                     encoder
                 )
                 """);
-                break;
-            case 1:
-                var (returnType, decoderFunction) = _paramDecodingWriter.SetMessageOutputDecoding(functionName, func, messageFunction.Outputs);
-                func.AddStatement(
-                $$"""
+        }
+        else
+        {
+            var (returnType, decoderFunction) = _paramDecodingWriter.SetMessageOutputDecoding(functionName, func, messageFunction.Outputs);
+
+            func.AddStatement(
+            $$"""
                 return EtherSharp.Tx.ITxInput.ForContractCall<{{returnType}}>(
                     Address,
                     {{ethParamName}},
@@ -227,9 +228,6 @@ public class ContractSourceWriter(
                     decoder => {{decoderFunction}}
                 )
                 """);
-                break;
-            default:
-                throw new NotSupportedException();
         }
 
         return func;
