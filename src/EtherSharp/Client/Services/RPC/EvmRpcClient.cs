@@ -287,12 +287,13 @@ internal partial class EvmRpcClient : IRpcClient
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<Transaction> EthTransactionByHash(string hash, CancellationToken cancellationToken)
+    public async Task<Transaction?> EthTransactionByHash(string hash, CancellationToken cancellationToken)
         => await SendRpcRequest<string, Transaction>(
             "eth_getTransactionByHash", hash, cancellationToken) switch
         {
             RpcResult<Transaction>.Success result => result.Result,
             RpcResult<Transaction>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<Transaction>.Null => null,
             _ => throw new NotImplementedException(),
         };
 

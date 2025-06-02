@@ -135,7 +135,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         AssertReady();
         return _rpcClient.EthGetBlockByNumberAsync(targetBlockNumber, cancellationToken);
     }
-    Task<Transaction> IEtherClient.GetTransactionAsync(string hash, CancellationToken cancellationToken)
+    Task<Transaction?> IEtherClient.GetTransactionAsync(string hash, CancellationToken cancellationToken)
     {
         AssertReady();
         return _rpcClient.EthTransactionByHash(hash, cancellationToken);

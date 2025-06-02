@@ -19,7 +19,7 @@ public interface IRpcClient
     public Task<BlockDataTrasactionAsString> EthGetBlockByNumberAsync(
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken
     );
-    public Task<Transaction> EthTransactionByHash(
+    public Task<Transaction?> EthTransactionByHash(
         string hash, CancellationToken cancellationToken
     );
 
