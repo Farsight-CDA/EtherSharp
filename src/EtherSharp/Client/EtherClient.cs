@@ -140,6 +140,12 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         AssertReady();
         return _rpcClient.EthTransactionByHash(hash, cancellationToken);
     }
+    Task<TransactionReceipt?> IEtherClient.GetTransactionReceiptAsync(string hash, CancellationToken cancellationToken)
+    {
+        AssertReady();
+        return _rpcClient.EthGetTransactionReceiptAsync(hash, cancellationToken);
+    }
+
     Task<ulong> IEtherClient.GetPeakHeightAsync(CancellationToken cancellationToken)
     {
         AssertReady();
