@@ -2,10 +2,17 @@
 
 namespace EtherSharp.Types;
 public record Transaction(
+    string Hash,
     string BlockHash,
     ulong BlockNumber,
     string? ContractAddress,
-    BigInteger EffectiveGasPrice,
-    string From,
-    ulong GasUsed
+    BigInteger GasPrice,
+    BigInteger MaxFeePerGas,
+    BigInteger MaxPriorityFeePerGas,
+    ulong Gas,
+    ulong Nonce,
+    Address From,
+    Address To,
+    byte[] Input,
+    BigInteger Value
 );
