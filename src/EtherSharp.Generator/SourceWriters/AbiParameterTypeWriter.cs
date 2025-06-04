@@ -80,7 +80,7 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
 
     private bool TryMatchStructType(AbiParameter tupleParameter, out string csTypeName, out bool isDynamic, out Func<string, string> encodeFunc, out string decodeFunc)
     {
-        if(tupleParameter.Type != "tuple"
+        if(!tupleParameter.Type.Contains("tuple")
             || string.IsNullOrEmpty(tupleParameter.InternalType)
             || tupleParameter.Components is null
             || tupleParameter.Components.Any(x => string.IsNullOrEmpty(x.Name)))
@@ -91,6 +91,8 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
             decodeFunc = null!;
             return false;
         }
+
+        bool isAnonymous = tupleParameter.Type.Contains("anonymous");
 
         isDynamic = false;
         csTypeName = NameUtils.ToValidClassName(tupleParameter.InternalType!.Split(' ', '.').Last());
@@ -147,18 +149,22 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
         _typeWriter.RegisterTypeBuilder(tupleClassBuilder);
 
         bool localIsDynamic = isDynamic;
-        encodeFunc = inputName => localIsDynamic
-            ? $"encoder.DynamicTuple(encoder => {inputName}.Encode(encoder));"
-            : $"encoder.FixedTuple(encoder => {inputName}.Encode(encoder));";
-        decodeFunc = localIsDynamic
-            ? $"decoder.DynamicTuple(decoder => {csTypeName}.Decode(decoder))"
-            : $"decoder.FixedTuple(decoder => {csTypeName}.Decode(decoder))";
+        encodeFunc = inputName => isAnonymous
+            ? $"{inputName}.Encode(encoder)"
+            : localIsDynamic
+                ? $"encoder.DynamicTuple(encoder => {inputName}.Encode(encoder));"
+                : $"encoder.FixedTuple(encoder => {inputName}.Encode(encoder));";
+        decodeFunc = isAnonymous
+            ? $"{csTypeName}.Decode(decoder)"
+            : localIsDynamic
+                ? $"decoder.DynamicTuple(decoder => {csTypeName}.Decode(decoder))"
+                : $"decoder.FixedTuple(decoder => {csTypeName}.Decode(decoder))";
         return true;
     }
 
     private bool TryMatchAnonymousTupleType(AbiParameter tupleParameter, out string csTypeName, out bool isDynamic, out Func<string, string> encodeFunc, out string decodeFunc)
     {
-        if(tupleParameter.Type != "tuple"
+        if(tupleParameter.Type != "anonymous-tuple"
             || tupleParameter.Components is null)
         {
             csTypeName = null!;

@@ -11,6 +11,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     private uint _bytesRead = 0;
 
     private ReadOnlySpan<byte> CurrentSlot => _bytes.Span[..32];
+    public string Buffer => Convert.ToHexString(_bytes.Span);
 
     private void ConsumeBytes()
     {

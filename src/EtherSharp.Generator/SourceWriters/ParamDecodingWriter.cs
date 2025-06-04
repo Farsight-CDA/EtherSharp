@@ -10,7 +10,7 @@ public class ParamDecodingWriter(AbiParameterTypeWriter parameterTypeWriter)
     {
         var outputParameter = outputParameters.Length == 1
             ? outputParameters[0]
-            : new AbiParameter($"{functionName}Result", "tuple", $"{functionName}Result", outputParameters);
+            : new AbiParameter($"{functionName}Result", "anonymous-tuple", $"{functionName}Result", outputParameters);
 
         var (csTypeName, _, _, decodeFunc) = _parameterTypeWriter.CreateParameter(outputParameter);
 
@@ -22,7 +22,7 @@ public class ParamDecodingWriter(AbiParameterTypeWriter parameterTypeWriter)
     {
         var outputParameter = outputParameters.Length == 1
             ? outputParameters[0]
-            : new AbiParameter($"{functionName}Result", "tuple", $"{functionName}Result", outputParameters);
+            : new AbiParameter($"{functionName}Result", "anonymous-tuple", $"{functionName}Result", outputParameters);
 
         var (csTypeName, _, _, decodeFunc) = _parameterTypeWriter.CreateParameter(outputParameter);
 
