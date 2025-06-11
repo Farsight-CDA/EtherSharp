@@ -8,15 +8,15 @@ namespace EtherSharp.Client.Services.Subscriptions;
 internal class SubscriptionsManager
 {
     private readonly IRpcClient _rpcClient;
-    private readonly ILogger _logger;
+    private readonly ILogger? _logger;
 
     private readonly Lock _subscriptionsLock = new Lock();
     private readonly List<ISubscription> _subscriptions = [];
 
-    public SubscriptionsManager(IRpcClient rpcClient, IServiceProvider serviceProvider)
+    public SubscriptionsManager(IRpcClient rpcClient, ILoggerFactory? loggerFactory)
     {
         _rpcClient = rpcClient;
-        _logger = serviceProvider.GetRequiredService<ILogger<SubscriptionsManager>>();
+        _logger = loggerFactory?.CreateLogger<SubscriptionsManager>();
 
         _rpcClient.OnConnectionEstablished += HandleConnectionEstablished;
         _rpcClient.OnSubscriptionMessage += HandleSubscriptionMessage;
@@ -52,12 +52,12 @@ internal class SubscriptionsManager
                 {
                     try
                     {
-                        _logger.LogDebug("Reinstalling subscription of type {type}, oldId={oldId}", subscription.GetType().Name, subscription.Id);
+                        _logger?.LogDebug("Reinstalling subscription of type {type}, oldId={oldId}", subscription.GetType().Name, subscription.Id);
                         await subscription.InstallAsync();
                     }
                     catch(Exception ex)
                     {
-                        _logger.LogCritical(ex, "Failed to reinstall subscription id {id} of type {type}", subscription.Id, subscription.GetType().Name);
+                        _logger?.LogCritical(ex, "Failed to reinstall subscription id {id} of type {type}", subscription.Id, subscription.GetType().Name);
                     }
                 });
             }
@@ -90,12 +90,12 @@ internal class SubscriptionsManager
         {
             try
             {
-                _logger.LogDebug("Uninstalling unknown active subscription with id {id}", subscriptionId);
+                _logger?.LogDebug("Uninstalling unknown active subscription with id {id}", subscriptionId);
                 await _rpcClient.EthUnsubscribeAsync(subscriptionId);
             }
             catch(Exception ex)
             {
-                _logger.LogCritical(ex, "Failed to uninstall unknown subscription with id {id}", subscriptionId);
+                _logger?.LogCritical(ex, "Failed to uninstall unknown subscription with id {id}", subscriptionId);
             }
         });
     }
