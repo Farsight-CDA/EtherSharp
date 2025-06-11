@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Realtime;
 using EtherSharp.Realtime.Blocks.Subscription;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace EtherSharp.Client.Services.Subscriptions;
@@ -12,10 +13,10 @@ internal class SubscriptionsManager
     private readonly Lock _subscriptionsLock = new Lock();
     private readonly List<ISubscription> _subscriptions = [];
 
-    public SubscriptionsManager(IRpcClient rpcClient, ILogger logger)
+    public SubscriptionsManager(IRpcClient rpcClient, IServiceProvider serviceProvider)
     {
         _rpcClient = rpcClient;
-        _logger = logger;
+        _logger = serviceProvider.GetRequiredService<ILogger<SubscriptionsManager>>();
 
         _rpcClient.OnConnectionEstablished += HandleConnectionEstablished;
         _rpcClient.OnSubscriptionMessage += HandleSubscriptionMessage;
