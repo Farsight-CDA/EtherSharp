@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Services.RPC;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Realtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -91,6 +92,10 @@ internal class SubscriptionsManager
             {
                 _logger?.LogDebug("Uninstalling unknown active subscription with id {id}", subscriptionId);
                 await _rpcClient.EthUnsubscribeAsync(subscriptionId);
+            }
+            catch(RPCException ex) when(ex.Message.Contains("not found"))
+            {
+                return;
             }
             catch(Exception ex)
             {
