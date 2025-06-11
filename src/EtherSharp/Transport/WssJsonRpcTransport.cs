@@ -165,7 +165,7 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
                 case PayloadType.Response:
                     if(!_pendingRequests.TryRemove(requestId, out var value))
                     {
-                        _logger?.LogWarning("Received response to request id that is not pending");
+                        _logger?.LogDebug("Received response to request id that is not pending");
                         break;
                     }
 

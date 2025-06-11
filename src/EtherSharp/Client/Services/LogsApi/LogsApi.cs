@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Services.RPC;
+using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Events;
@@ -7,10 +8,12 @@ using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Services.LogsApi;
-internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
+internal class LogsApi<TEvent>(IRpcClient rpcClient, SubscriptionsManager subscriptionsManager) : ILogsApi<TEvent>
     where TEvent : ITxEvent<TEvent>
 {
     protected readonly IRpcClient _rpcClient = rpcClient;
+    protected readonly SubscriptionsManager _subscriptionsManager = subscriptionsManager;
+
     protected Dictionary<int, string[]?> _topics = [];
     protected Address[]? _contractAddresses;
 
@@ -98,14 +101,15 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
         return this;
     }
 
-    public async Task<TEvent[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, string? blockHash = null)
+    public async Task<TEvent[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, string? blockHash = null,
+        CancellationToken cancellationToken = default)
     {
         if(fromBlock == default)
         {
             fromBlock = TargetBlockNumber.Earliest;
         }
 
-        var rawResults = await _rpcClient.EthGetLogsAsync(fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), blockHash);
+        var rawResults = await _rpcClient.EthGetLogsAsync(fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), blockHash, cancellationToken);
 
         if(typeof(TEvent) == typeof(Log))
         {
@@ -116,17 +120,18 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient) : ILogsApi<TEvent>
         return [.. rawResults.Select(TEvent.Decode)];
     }
 
-    public async Task<IEventFilter<TEvent>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default)
+    public async Task<IEventFilter<TEvent>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default,
+        CancellationToken cancellationToken = default)
     {
         var filter = new EventFilter<TEvent>(_rpcClient, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());
-        await filter.InitializeAsync(default);
+        await filter.InitializeAsync(cancellationToken);
         return filter;
     }
 
-    public async Task<IEventSubscription<TEvent>> CreateSubscriptionAsync()
+    public async Task<IEventSubscription<TEvent>> CreateSubscriptionAsync(CancellationToken cancellationToken = default)
     {
-        var subscription = new EventSubscription<TEvent>(_rpcClient, _contractAddresses, CreateTopicsArray());
-        await subscription.InitializeAsync(default);
+        var subscription = new EventSubscription<TEvent>(_rpcClient, _subscriptionsManager, _contractAddresses, CreateTopicsArray());
+        await _subscriptionsManager.InstallSubscriptionAsync(subscription, cancellationToken);
         return subscription;
     }
 

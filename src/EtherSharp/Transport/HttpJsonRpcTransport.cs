@@ -19,9 +19,17 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     public bool SupportsSubscriptions => false;
 
     /// <inheritdoc />
-    public event Action? OnConnectionEstablished;
+    public event Action? OnConnectionEstablished
+    {
+        add => throw new NotSupportedException();
+        remove => throw new NotSupportedException();
+    }
     /// <inheritdoc />
-    public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
+    public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage
+    {
+        add => throw new NotSupportedException();
+        remove => throw new NotSupportedException();
+    }
 
     public HttpJsonRpcTransport(Uri rpcUri, bool allowFilters = true)
     {

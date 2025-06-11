@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Services.RPC;
+using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common;
 using EtherSharp.Types;
 using System.Runtime.CompilerServices;
@@ -6,13 +7,14 @@ using System.Text.Json;
 using System.Threading.Channels;
 
 namespace EtherSharp.Realtime.Events.Subscription;
-internal class EventSubscription<TEvent>(IRpcClient client, Address[]? contractAddresses, string[]?[]? topics)
-    : IEventSubscription<TEvent>
+internal class EventSubscription<TEvent>(IRpcClient client, SubscriptionsManager subscriptionsManager, Address[]? contractAddresses, string[]?[]? topics)
+    : IEventSubscription<TEvent>, ISubscription
     where TEvent : ITxEvent<TEvent>
 {
     public string Id { get; private set; } = null!;
 
     private readonly IRpcClient _client = client;
+    private readonly SubscriptionsManager _subscriptionsManager = subscriptionsManager;
 
     private readonly Address[]? _contractAddresses = contractAddresses;
     private readonly string[]?[]? _topics = topics;
@@ -32,37 +34,18 @@ internal class EventSubscription<TEvent>(IRpcClient client, Address[]? contractA
         }
     }
 
-    public async Task InitializeAsync(CancellationToken cancellationToken)
-    {
-        await InstallAsync(cancellationToken);
-
-        _client.OnConnectionEstablished += HandleReconnect;
-        _client.OnSubscriptionMessage += HandleSubscriptionMessage;
-    }
-
-    private async Task InstallAsync(CancellationToken cancellationToken = default)
+    public async Task InstallAsync(CancellationToken cancellationToken = default)
         => Id = await _client.EthSubscribeLogsAsync(_contractAddresses, _topics, cancellationToken);
 
-    private void HandleReconnect()
-        => _ = Task.Run(() => InstallAsync());
     private record LogParams(LogResponse Params);
     private record LogResponse(Log Result);
-    private void HandleSubscriptionMessage(string subscriptionId, ReadOnlySpan<byte> payload)
+    public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload)
     {
-        if(Id != subscriptionId)
-        {
-            return;
-        }
-
         var p = JsonSerializer.Deserialize<LogParams>(payload, ParsingUtils.EvmSerializerOptions)!;
         _channel.Writer.TryWrite(p.Params.Result);
+        return true;
     }
 
     public async ValueTask DisposeAsync()
-    {
-        _client.OnConnectionEstablished -= HandleReconnect;
-        _client.OnSubscriptionMessage -= HandleSubscriptionMessage;
-
-        await _client.EthUnsubscribeAsync(Id);
-    }
+        => await _subscriptionsManager.UninstallSubscription(this);
 }

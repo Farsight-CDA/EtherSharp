@@ -4,6 +4,7 @@ using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Client.Services.RPC;
+using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Blocks.Subscription;
@@ -26,6 +27,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     private IRpcClient _rpcClient = null!;
     private IEtherSigner _signer = null!;
     private ITxScheduler _txScheduler = null!;
+    private SubscriptionsManager _subscriptionsManager = null!;
 
     private ContractFactory _contractFactory = null!;
 
@@ -66,7 +68,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     ILogsApi<TEvent> IEtherClient.Logs<TEvent>()
     {
         AssertReady();
-        return new LogsApi<TEvent>(_rpcClient);
+        return new LogsApi<TEvent>(_rpcClient, _subscriptionsManager);
     }
 
     internal EtherClient(IServiceProvider provider, bool isTxClient)
@@ -105,6 +107,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         _etherApi = _provider.GetRequiredService<EtherApi>();
         _rpcClient = _provider.GetRequiredService<IRpcClient>();
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
+        _subscriptionsManager = _provider.GetRequiredService<SubscriptionsManager>();
 
         if(_isTxClient)
         {
@@ -125,8 +128,8 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     async Task<IBlocksSubscription> IEtherClient.SubscribeNewHeadsAsync(CancellationToken cancellationToken)
     {
         AssertReady();
-        var subscription = new BlocksSubscription(_rpcClient);
-        await subscription.InitializeAsync(cancellationToken);
+        var subscription = new BlocksSubscription(_rpcClient, _subscriptionsManager);
+        await _subscriptionsManager.InstallSubscriptionAsync(subscription, cancellationToken);
         return subscription;
     }
 

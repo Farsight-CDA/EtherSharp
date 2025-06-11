@@ -4,6 +4,7 @@ using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.RPC;
+using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Client.Services.TxTypeHandler;
@@ -193,6 +194,7 @@ public class EtherClientBuilder
         _services.AddSingleton<EtherApi>();
         _services.AddSingleton<IRpcClient, EvmRpcClient>();
         _services.AddSingleton<ContractFactory>();
+        _services.AddSingleton<SubscriptionsManager>();
 
         foreach(var service in _services.ToArray())
         {

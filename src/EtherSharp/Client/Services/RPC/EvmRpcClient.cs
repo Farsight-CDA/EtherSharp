@@ -23,10 +23,13 @@ internal partial class EvmRpcClient : IRpcClient
     public EvmRpcClient(IRPCTransport transport, IServiceProvider serviceProvider)
     {
         _transport = transport;
-        _middlewares = serviceProvider.GetServices<IRpcMiddleware>().Reverse().ToArray();
+        _middlewares = [.. serviceProvider.GetServices<IRpcMiddleware>().Reverse()];
 
-        _transport.OnConnectionEstablished += () => OnConnectionEstablished?.Invoke();
-        _transport.OnSubscriptionMessage += (subscriptionId, payload) => OnSubscriptionMessage?.Invoke(subscriptionId, payload);
+        if(_transport.SupportsSubscriptions)
+        {
+            _transport.OnConnectionEstablished += () => OnConnectionEstablished?.Invoke();
+            _transport.OnSubscriptionMessage += (subscriptionId, payload) => OnSubscriptionMessage?.Invoke(subscriptionId, payload);
+        }
     }
 
     private Task<RpcResult<TResult>> SendRpcRequest<TResult>(
@@ -45,7 +48,7 @@ internal partial class EvmRpcClient : IRpcClient
     private async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, CancellationToken cancellationToken)
     {
         RpcResult<TResult> result = default!;
-        Func<Task> onNext = async () => result = await _transport.SendRpcRequestAsync<TResult>(method, parameters, cancellationToken);
+        var onNext = async () => result = await _transport.SendRpcRequestAsync<TResult>(method, parameters, cancellationToken);
 
         foreach(var middleware in _middlewares)
         {

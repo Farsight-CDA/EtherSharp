@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Services.RPC;
+using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common;
 using EtherSharp.Types;
 using System.Runtime.CompilerServices;
@@ -6,11 +7,12 @@ using System.Text.Json;
 using System.Threading.Channels;
 
 namespace EtherSharp.Realtime.Blocks.Subscription;
-internal class BlocksSubscription(IRpcClient client) : IBlocksSubscription
+internal class BlocksSubscription(IRpcClient rpcClient, SubscriptionsManager subscriptionsManager) : IBlocksSubscription, ISubscription
 {
     public string Id { get; private set; } = null!;
 
-    private readonly IRpcClient _client = client;
+    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly SubscriptionsManager _subscriptionsManager = subscriptionsManager;
 
     private readonly Channel<BlockHeader> _channel = Channel.CreateUnbounded<BlockHeader>(new UnboundedChannelOptions()
     {
@@ -26,38 +28,18 @@ internal class BlocksSubscription(IRpcClient client) : IBlocksSubscription
         }
     }
 
-    public async Task InitializeAsync(CancellationToken cancellationToken)
-    {
-        await InstallAsync(cancellationToken);
+    public async Task InstallAsync(CancellationToken cancellationToken = default)
+        => Id = await _rpcClient.EthSubscribeNewHeadsAsync(cancellationToken);
 
-        _client.OnConnectionEstablished += HandleReconnect;
-        _client.OnSubscriptionMessage += HandleSubscriptionMessage;
-    }
-
-    private async Task InstallAsync(CancellationToken cancellationToken = default)
-        => Id = await _client.EthSubscribeNewHeadsAsync(cancellationToken);
-
-    private void HandleReconnect()
-        => _ = Task.Run(() => InstallAsync());
+    public async ValueTask DisposeAsync()
+        => await _subscriptionsManager.UninstallSubscription(this);
 
     private record HeadsParams(HeadsResponse Params);
     private record HeadsResponse(BlockHeader Result);
-    private void HandleSubscriptionMessage(string subscriptionId, ReadOnlySpan<byte> payload)
+    public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload)
     {
-        if(Id != subscriptionId)
-        {
-            return;
-        }
-
         var p = JsonSerializer.Deserialize<HeadsParams>(payload, ParsingUtils.EvmSerializerOptions)!;
         _channel.Writer.TryWrite(p.Params.Result);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        _client.OnConnectionEstablished -= HandleReconnect;
-        _client.OnSubscriptionMessage -= HandleSubscriptionMessage;
-
-        await _client.EthUnsubscribeAsync(Id);
+        return true;
     }
 }
