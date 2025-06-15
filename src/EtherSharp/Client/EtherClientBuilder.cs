@@ -174,10 +174,10 @@ public class EtherClientBuilder
         return this;
     }
 
-    public EtherClientBuilder WithInstrumentation(IMeterFactory meterFactory, string instrumentNamePrefix = "ethersharp.")
+    public EtherClientBuilder WithInstrumentation(IMeterFactory meterFactory, string instrumentNamePrefix = "ethersharp.", IReadOnlyDictionary<string, object?>? tags = null)
     {
         _services.AddOrReplaceSingleton(meterFactory);
-        _services.AddOrReplaceSingleton(new InstrumentationOptions(instrumentNamePrefix));
+        _services.AddOrReplaceSingleton(new InstrumentationOptions(instrumentNamePrefix, tags));
         return this;
     }
 

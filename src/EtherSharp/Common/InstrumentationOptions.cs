@@ -1,4 +1,5 @@
 ﻿namespace EtherSharp.Common;
 internal record InstrumentationOptions(
-    string InstrumentNamePrefix
+    string InstrumentNamePrefix,
+    IReadOnlyDictionary<string, object?>? Tags
 );

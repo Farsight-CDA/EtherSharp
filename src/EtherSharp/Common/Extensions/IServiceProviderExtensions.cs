@@ -4,7 +4,8 @@ using System.Diagnostics.Metrics;
 namespace EtherSharp.Common.Extensions;
 internal static class IServiceProviderExtensions
 {
-    public static Counter<T>? CreateOTELCounter<T>(this IServiceProvider provider, string name, string? unit = null, string? description = null)
+    public static Counter<T>? CreateOTELCounter<T>(this IServiceProvider provider,
+        string name, string? unit = null, string? description = null, IEnumerable<KeyValuePair<string, object?>>? tags = null)
         where T : struct
     {
         var options = provider.GetService<InstrumentationOptions>();
@@ -14,12 +15,22 @@ internal static class IServiceProviderExtensions
         {
             return null;
         }
-        //
+
+        tags ??= [];
+        if(options.Tags is not null)
+        {
+            tags = Enumerable.Union(
+                tags,
+                options.Tags.AsEnumerable()
+            );
+        }
+
         return meterFactory.Create(Diagnostics.MeterName)
-            .CreateCounter<T>($"{options.InstrumentNamePrefix}{name}", unit, description);
+            .CreateCounter<T>($"{options.InstrumentNamePrefix}{name}", unit, description, tags);
     }
 
-    public static UpDownCounter<T>? CreateOTELUpDownCounter<T>(this IServiceProvider provider, string name, string? unit = null, string? description = null)
+    public static UpDownCounter<T>? CreateOTELUpDownCounter<T>(this IServiceProvider provider,
+        string name, string? unit = null, string? description = null, IEnumerable<KeyValuePair<string, object?>>? tags = null)
         where T : struct
     {
         var options = provider.GetService<InstrumentationOptions>();
@@ -29,13 +40,22 @@ internal static class IServiceProviderExtensions
         {
             return null;
         }
-        //
+
+        tags ??= [];
+        if(options.Tags is not null)
+        {
+            tags = Enumerable.Union(
+                tags,
+                options.Tags.AsEnumerable()
+            );
+        }
+
         return meterFactory.Create(Diagnostics.MeterName)
-            .CreateUpDownCounter<T>($"{options.InstrumentNamePrefix}{name}", unit, description);
+            .CreateUpDownCounter<T>($"{options.InstrumentNamePrefix}{name}", unit, description, tags);
     }
 
     public static ObservableUpDownCounter<T>? CreateOTELObservableUpDownCounter<T>(this IServiceProvider provider,
-        string name, Func<T> observeValue, string? unit = null, string? description = null)
+        string name, Func<T> observeValue, string? unit = null, string? description = null, IEnumerable<KeyValuePair<string, object?>>? tags = null)
         where T : struct
     {
         var options = provider.GetService<InstrumentationOptions>();
@@ -45,13 +65,22 @@ internal static class IServiceProviderExtensions
         {
             return null;
         }
-        //
+
+        tags ??= [];
+        if(options.Tags is not null)
+        {
+            tags = Enumerable.Union(
+                tags,
+                options.Tags.AsEnumerable()
+            );
+        }
+
         return meterFactory.Create(Diagnostics.MeterName)
-            .CreateObservableUpDownCounter<T>($"{options.InstrumentNamePrefix}{name}", observeValue, unit, description);
+            .CreateObservableUpDownCounter($"{options.InstrumentNamePrefix}{name}", observeValue, unit, description, tags);
     }
 
     public static ObservableGauge<T>? CreateOTELObservableGauge<T>(this IServiceProvider provider,
-        string name, Func<T> observeValue, string? unit = null, string? description = null)
+        string name, Func<T> observeValue, string? unit = null, string? description = null, IEnumerable<KeyValuePair<string, object?>>? tags = null)
         where T : struct
     {
         var options = provider.GetService<InstrumentationOptions>();
@@ -61,8 +90,17 @@ internal static class IServiceProviderExtensions
         {
             return null;
         }
-        //
+
+        tags ??= [];
+        if(options.Tags is not null)
+        {
+            tags = Enumerable.Union(
+                tags,
+                options.Tags.AsEnumerable()
+            );
+        }
+
         return meterFactory.Create(Diagnostics.MeterName)
-            .CreateObservableGauge<T>($"{options.InstrumentNamePrefix}{name}", observeValue, unit, description);
+            .CreateObservableGauge($"{options.InstrumentNamePrefix}{name}", observeValue, unit, description, tags);
     }
 }
