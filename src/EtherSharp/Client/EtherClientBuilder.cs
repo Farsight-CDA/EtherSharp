@@ -8,6 +8,7 @@ using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Client.Services.TxTypeHandler;
+using EtherSharp.Common;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Transport;
 using EtherSharp.Tx.EIP1559;
@@ -15,6 +16,7 @@ using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Client;
 public class EtherClientBuilder
@@ -101,13 +103,14 @@ public class EtherClientBuilder
         return this;
     }
 
-    public EtherClientBuilder WithRPCMiddleware(IRpcMiddleware middleware)
+    public EtherClientBuilder AddRPCMiddleware<TRpcMiddleware>(TRpcMiddleware middleware)
+         where TRpcMiddleware : class, IRpcMiddleware
     {
         _services.AddSingleton<IRpcMiddleware>(middleware);
         return this;
     }
 
-    public EtherClientBuilder WithRPCMiddleware<TRpcMiddleware>()
+    public EtherClientBuilder AddRPCMiddleware<TRpcMiddleware>()
         where TRpcMiddleware : class, IRpcMiddleware
     {
         _services.AddSingleton<IRpcMiddleware, TRpcMiddleware>();
@@ -165,6 +168,13 @@ public class EtherClientBuilder
 
         AddConfigureAction<ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>, TTxTypeHandler>(handlerConfigureAction);
         AddConfigureAction<IGasFeeProvider<TTxParams, TTxGasParams>, TGasFeeProvider>(gasFeeProviderConfigureAction);
+        return this;
+    }
+
+    public EtherClientBuilder WithInstrumentation(IMeterFactory meterFactory, string instrumentNamePrefix = "ethersharp.")
+    {
+        _services.AddOrReplaceSingleton(meterFactory);
+        _services.AddOrReplaceSingleton(new InstrumentationOptions(instrumentNamePrefix));
         return this;
     }
 

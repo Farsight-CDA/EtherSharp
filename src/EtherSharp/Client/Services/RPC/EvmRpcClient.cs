@@ -1,9 +1,12 @@
 ﻿using EtherSharp.Client.Services.TxPublisher;
+using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Extensions;
 using EtherSharp.StateOverride;
 using EtherSharp.Transport;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.Metrics;
 using System.Globalization;
 using System.Numerics;
 
@@ -13,6 +16,9 @@ internal partial class EvmRpcClient : IRpcClient
 {
     private readonly IRPCTransport _transport;
     private readonly IRpcMiddleware[] _middlewares;
+
+    private readonly Counter<long>? _rpcRequestsAttempted;
+    private readonly Counter<long>? _rpcRequestsFailed;
 
     public event Action? OnConnectionEstablished;
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
@@ -24,6 +30,9 @@ internal partial class EvmRpcClient : IRpcClient
     {
         _transport = transport;
         _middlewares = [.. serviceProvider.GetServices<IRpcMiddleware>().Reverse()];
+
+        _rpcRequestsAttempted = serviceProvider.CreateInstrumentationCounter<long>("evm_rpc_requests_attempted");
+        _rpcRequestsFailed = serviceProvider.CreateInstrumentationCounter<long>("evm_rpc_requests_failed");
 
         if(_transport.SupportsSubscriptions)
         {
@@ -47,8 +56,18 @@ internal partial class EvmRpcClient : IRpcClient
 
     private async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, CancellationToken cancellationToken)
     {
-        RpcResult<TResult> result = default!;
-        var onNext = async () => result = await _transport.SendRpcRequestAsync<TResult>(method, parameters, cancellationToken);
+        var onNext = async () =>
+        {
+            try
+            {
+                return await _transport.SendRpcRequestAsync<TResult>(method, parameters, cancellationToken);
+            }
+            catch
+            {
+                _rpcRequestsFailed.Add(1);
+                throw;
+            }
+        };
 
         foreach(var middleware in _middlewares)
         {
@@ -56,8 +75,8 @@ internal partial class EvmRpcClient : IRpcClient
             onNext = () => middleware.HandleAsync(next);
         }
 
-        await onNext();
-        return result;
+        _rpcRequestsAttempted.Add(1);
+        return await onNext();
     }
 
     public async Task<ulong> EthChainIdAsync(CancellationToken cancellationToken)
