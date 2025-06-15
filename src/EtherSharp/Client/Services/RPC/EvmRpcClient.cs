@@ -1,11 +1,11 @@
 ﻿using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
+using EtherSharp.Common.Instrumentation;
 using EtherSharp.StateOverride;
 using EtherSharp.Transport;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics.Metrics;
 using System.Globalization;
 using System.Numerics;
 
@@ -16,7 +16,7 @@ internal partial class EvmRpcClient : IRpcClient
     private readonly IRPCTransport _transport;
     private readonly IRpcMiddleware[] _middlewares;
 
-    private readonly Counter<long>? _rpcRequestsCounter;
+    private readonly OTELCounter<long>? _rpcRequestsCounter;
 
     public event Action? OnConnectionEstablished;
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;

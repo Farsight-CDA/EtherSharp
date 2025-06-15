@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
+using EtherSharp.Common.Instrumentation;
 using EtherSharp.Realtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ internal class SubscriptionsManager
     private readonly Lock _subscriptionsLock = new Lock();
     private readonly List<ISubscription> _subscriptions = [];
 
-    private readonly Counter<long>? _subscriptionMessageCounter;
+    private readonly OTELCounter<long>? _subscriptionMessageCounter;
     private readonly ObservableUpDownCounter<int>? _subscriptionsCounter;
 
     public SubscriptionsManager(IRpcClient rpcClient, IServiceProvider serviceProvider)

@@ -14,6 +14,7 @@ using EtherSharp.Transport;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
+using Keysmith.Net.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.Metrics;
@@ -177,7 +178,7 @@ public class EtherClientBuilder
     public EtherClientBuilder WithInstrumentation(IMeterFactory meterFactory, string instrumentNamePrefix = "ethersharp.", IReadOnlyDictionary<string, object?>? tags = null)
     {
         _services.AddOrReplaceSingleton(meterFactory);
-        _services.AddOrReplaceSingleton(new InstrumentationOptions(instrumentNamePrefix, tags));
+        _services.AddOrReplaceSingleton(new InstrumentationOptions(instrumentNamePrefix, [.. tags ?? new Dictionary<string, object?>()]));
         return this;
     }
 
