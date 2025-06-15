@@ -1,5 +1,4 @@
 ﻿using EtherSharp.Client.Services.TxPublisher;
-using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
 using EtherSharp.StateOverride;
@@ -17,8 +16,7 @@ internal partial class EvmRpcClient : IRpcClient
     private readonly IRPCTransport _transport;
     private readonly IRpcMiddleware[] _middlewares;
 
-    private readonly Counter<long>? _rpcRequestsAttempted;
-    private readonly Counter<long>? _rpcRequestsFailed;
+    private readonly Counter<long>? _rpcRequestsCounter;
 
     public event Action? OnConnectionEstablished;
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
@@ -31,8 +29,9 @@ internal partial class EvmRpcClient : IRpcClient
         _transport = transport;
         _middlewares = [.. serviceProvider.GetServices<IRpcMiddleware>().Reverse()];
 
-        _rpcRequestsAttempted = serviceProvider.CreateInstrumentationCounter<long>("evm_rpc_requests_attempted");
-        _rpcRequestsFailed = serviceProvider.CreateInstrumentationCounter<long>("evm_rpc_requests_failed");
+        _rpcRequestsCounter = serviceProvider.CreateInstrumentationCounter<long>("evm_rpc_requests");
+        _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "success"));
+        _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "failure"));
 
         if(_transport.SupportsSubscriptions)
         {
@@ -60,11 +59,13 @@ internal partial class EvmRpcClient : IRpcClient
         {
             try
             {
-                return await _transport.SendRpcRequestAsync<TResult>(method, parameters, cancellationToken);
+                var result = await _transport.SendRpcRequestAsync<TResult>(method, parameters, cancellationToken);
+                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
+                return result;
             }
             catch
             {
-                _rpcRequestsFailed?.Add(1);
+                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
                 throw;
             }
         };
@@ -75,7 +76,6 @@ internal partial class EvmRpcClient : IRpcClient
             onNext = () => middleware.HandleAsync(next);
         }
 
-        _rpcRequestsAttempted?.Add(1);
         return await onNext();
     }
 
