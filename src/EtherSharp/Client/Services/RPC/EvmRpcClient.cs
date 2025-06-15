@@ -64,7 +64,7 @@ internal partial class EvmRpcClient : IRpcClient
             }
             catch
             {
-                _rpcRequestsFailed.Add(1);
+                _rpcRequestsFailed?.Add(1);
                 throw;
             }
         };
@@ -75,7 +75,7 @@ internal partial class EvmRpcClient : IRpcClient
             onNext = () => middleware.HandleAsync(next);
         }
 
-        _rpcRequestsAttempted.Add(1);
+        _rpcRequestsAttempted?.Add(1);
         return await onNext();
     }
 

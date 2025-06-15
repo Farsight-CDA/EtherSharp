@@ -14,7 +14,7 @@ internal static class IServiceProviderExtensions
         {
             return null;
         }
-
+        //
         return meterFactory.Create(Diagnostics.MeterName)
             .CreateCounter<T>($"{options.InstrumentNamePrefix}{name}", unit, description);
     }
