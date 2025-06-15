@@ -23,7 +23,7 @@ public class EtherClientBuilder
 {
     private readonly IServiceCollection _services = new ServiceCollection();
 
-    private IRPCTransport? _transport;
+    private Func<IServiceProvider, IRPCTransport>? _transportRegistration;
 
     private readonly List<(Type ServiceType, Type ActionType, Action<object> Action)> _configureActions = [];
     private Action<IContractFactory>? _contractConfigurationAction;
@@ -56,8 +56,11 @@ public class EtherClientBuilder
     {
         requestTimeout ??= TimeSpan.FromSeconds(30);
 
-        var builder = new EtherClientBuilder()
-            .WithRPCTransport(new WssJsonRpcTransport(websocketUri, requestTimeout.Value, loggerFactory?.CreateLogger<WssJsonRpcTransport>()));
+        var builder = new EtherClientBuilder
+        {
+            _transportRegistration = provider =>
+                new WssJsonRpcTransport(websocketUri, requestTimeout.Value, provider, loggerFactory?.CreateLogger<WssJsonRpcTransport>())
+        };
 
         if(loggerFactory is not null)
         {
@@ -99,7 +102,7 @@ public class EtherClientBuilder
 
     public EtherClientBuilder WithRPCTransport(IRPCTransport transport)
     {
-        _transport = transport;
+        _transportRegistration = provider => transport;
         return this;
     }
 
@@ -194,12 +197,12 @@ public class EtherClientBuilder
 
     private void AssertReadClientConfiguration()
     {
-        if(_transport is null)
+        if(_transportRegistration is null)
         {
             throw new InvalidOperationException($"No RPCTransport configured. Call the {nameof(WithRPCTransport)} method prior to {nameof(BuildReadClient)}.");
         }
 
-        _services.AddSingleton(_transport);
+        _services.AddSingleton(_transportRegistration);
 
         _services.AddSingleton<EtherApi>();
         _services.AddSingleton<IRpcClient, EvmRpcClient>();

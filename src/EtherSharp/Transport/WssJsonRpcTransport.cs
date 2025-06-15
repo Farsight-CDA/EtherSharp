@@ -1,8 +1,10 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Extensions;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -11,7 +13,7 @@ namespace EtherSharp.Transport;
 /// <summary>
 /// Transport for EVM Websocket RPC
 /// </summary>
-public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logger = null) : IRPCTransport, IDisposable
+public class WssJsonRpcTransport : IRPCTransport, IDisposable
 {
     /// <inheritdoc />
     public bool SupportsFilters => true;
@@ -23,20 +25,33 @@ public class WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, ILogger? logg
     /// <inheritdoc />
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
-    private readonly ILogger? _logger = logger;
+    private readonly ILogger? _logger;
 
     private readonly Lock _statusLock = new Lock();
     private bool _isInitialized;
     private bool _isDisposed;
 
-    private readonly Uri _uri = uri;
-    private readonly TimeSpan _requestTimeout = requestTimeout;
+    private readonly Uri _uri;
+    private readonly TimeSpan _requestTimeout;
     private ClientWebSocket? _socket = null!;
 
     private readonly CancellationTokenSource _connectionHandlerCts = new CancellationTokenSource();
 
     private int _requestIdCounter;
     private readonly ConcurrentDictionary<int, (Type RpcResponseType, TaskCompletionSource<object> Tcs)> _pendingRequests = [];
+
+    private readonly ObservableGauge<int>? _websocketConnectedGauge;
+
+    public WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, IServiceProvider provider, ILogger? logger = null)
+    {
+        _uri = uri;
+        _requestTimeout = requestTimeout;
+        _logger = logger;
+
+        _websocketConnectedGauge = provider.CreateOTELObservableGauge("wss_connection_up",
+            () => (_socket is not null && _socket.State == WebSocketState.Open) ? 1 : 0
+        );
+    }
 
     /// <inheritdoc />
     public async ValueTask InitializeAsync(CancellationToken cancellationToken)

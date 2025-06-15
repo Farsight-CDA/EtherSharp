@@ -49,4 +49,20 @@ internal static class IServiceProviderExtensions
         return meterFactory.Create(Diagnostics.MeterName)
             .CreateObservableUpDownCounter<T>($"{options.InstrumentNamePrefix}{name}", observeValue, unit, description);
     }
+
+    public static ObservableGauge<T>? CreateOTELObservableGauge<T>(this IServiceProvider provider,
+        string name, Func<T> observeValue, string? unit = null, string? description = null)
+        where T : struct
+    {
+        var options = provider.GetService<InstrumentationOptions>();
+        var meterFactory = provider.GetService<IMeterFactory>();
+
+        if(options is null || meterFactory is null)
+        {
+            return null;
+        }
+        //
+        return meterFactory.Create(Diagnostics.MeterName)
+            .CreateObservableGauge<T>($"{options.InstrumentNamePrefix}{name}", observeValue, unit, description);
+    }
 }
