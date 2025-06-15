@@ -17,6 +17,7 @@ internal partial class EvmRpcClient : IRpcClient
     private readonly IRpcMiddleware[] _middlewares;
 
     private readonly Counter<long>? _rpcRequestsCounter;
+    private readonly Counter<long>? _subscriptionMessageCounter;
 
     public event Action? OnConnectionEstablished;
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
@@ -36,7 +37,11 @@ internal partial class EvmRpcClient : IRpcClient
         if(_transport.SupportsSubscriptions)
         {
             _transport.OnConnectionEstablished += () => OnConnectionEstablished?.Invoke();
-            _transport.OnSubscriptionMessage += (subscriptionId, payload) => OnSubscriptionMessage?.Invoke(subscriptionId, payload);
+            _transport.OnSubscriptionMessage += (subscriptionId, payload) =>
+            {
+                _subscriptionMessageCounter?.Add(1);
+                OnSubscriptionMessage?.Invoke(subscriptionId, payload);
+            };
         }
     }
 
