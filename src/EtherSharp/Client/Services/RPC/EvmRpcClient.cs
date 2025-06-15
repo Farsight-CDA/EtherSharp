@@ -17,7 +17,6 @@ internal partial class EvmRpcClient : IRpcClient
     private readonly IRpcMiddleware[] _middlewares;
 
     private readonly Counter<long>? _rpcRequestsCounter;
-    private readonly Counter<long>? _subscriptionMessageCounter;
 
     public event Action? OnConnectionEstablished;
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
@@ -30,18 +29,15 @@ internal partial class EvmRpcClient : IRpcClient
         _transport = transport;
         _middlewares = [.. serviceProvider.GetServices<IRpcMiddleware>().Reverse()];
 
-        _rpcRequestsCounter = serviceProvider.CreateInstrumentationCounter<long>("evm_rpc_requests");
+        _rpcRequestsCounter = serviceProvider.CreateOTELCounter<long>("evm_rpc_requests");
+
         _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "success"));
         _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "failure"));
 
         if(_transport.SupportsSubscriptions)
         {
             _transport.OnConnectionEstablished += () => OnConnectionEstablished?.Invoke();
-            _transport.OnSubscriptionMessage += (subscriptionId, payload) =>
-            {
-                _subscriptionMessageCounter?.Add(1);
-                OnSubscriptionMessage?.Invoke(subscriptionId, payload);
-            };
+            _transport.OnSubscriptionMessage += (subscriptionId, payload) => OnSubscriptionMessage?.Invoke(subscriptionId, payload);
         }
     }
 

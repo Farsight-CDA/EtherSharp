@@ -9,7 +9,7 @@ namespace EtherSharp.Bench;
 [ShortRunJob]
 public class EtherClientBenchmarks
 {
-    private IEtherTxClient _client;
+    private readonly IEtherTxClient _client;
 
     public EtherClientBenchmarks()
     {

@@ -35,7 +35,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
 
     private ulong _chainId;
 
-    private SemaphoreSlim _pendingNoncesSemaphore;
+    private SemaphoreSlim _pendingNoncesSemaphore = null!;
 
     private readonly Lock _activeNonceLock = new Lock();
     /// <summary>

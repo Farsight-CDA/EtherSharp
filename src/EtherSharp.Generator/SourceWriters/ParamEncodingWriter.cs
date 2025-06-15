@@ -3,7 +3,7 @@ using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters;
-public class ParamEncodingWriter(AbiTypeWriter typeWriter, AbiParameterTypeWriter parameterTypeWriter)
+public class ParamEncodingWriter(AbiParameterTypeWriter parameterTypeWriter)
 {
     public string AddParameterEncoding(FunctionBuilder function, AbiParameter parameter, int paramIndex)
     {

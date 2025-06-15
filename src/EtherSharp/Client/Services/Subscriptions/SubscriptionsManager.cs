@@ -1,8 +1,10 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Extensions;
 using EtherSharp.Realtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Client.Services.Subscriptions;
 internal class SubscriptionsManager
@@ -13,10 +15,16 @@ internal class SubscriptionsManager
     private readonly Lock _subscriptionsLock = new Lock();
     private readonly List<ISubscription> _subscriptions = [];
 
+    private readonly Counter<long>? _subscriptionMessageCounter;
+    private readonly ObservableUpDownCounter<int>? _subscriptionsCounter;
+
     public SubscriptionsManager(IRpcClient rpcClient, IServiceProvider serviceProvider)
     {
         _rpcClient = rpcClient;
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger<SubscriptionsManager>();
+
+        _subscriptionMessageCounter = serviceProvider.CreateOTELCounter<long>("subscription_messages_received");
+        _subscriptionsCounter = serviceProvider.CreateOTELObservableUpDownCounter("active_wss_subscriptions", () => _subscriptions.Count);
 
         _rpcClient.OnConnectionEstablished += HandleConnectionEstablished;
         _rpcClient.OnSubscriptionMessage += HandleSubscriptionMessage;
@@ -66,6 +74,8 @@ internal class SubscriptionsManager
 
     private void HandleSubscriptionMessage(string subscriptionId, ReadOnlySpan<byte> payload)
     {
+        _subscriptionMessageCounter?.Add(1);
+
         ISubscription? subscription = null;
 
         lock(_subscriptionsLock)

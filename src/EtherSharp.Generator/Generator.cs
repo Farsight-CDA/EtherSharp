@@ -158,7 +158,7 @@ public class Generator : IIncrementalGenerator
 
         return new ContractSourceWriter(
             abiTypeWriter,
-            new ParamEncodingWriter(abiTypeWriter, parameterTypeWriter),
+            new ParamEncodingWriter(parameterTypeWriter),
             paramDecodingWriter,
             new EventTypeWriter()
         );
