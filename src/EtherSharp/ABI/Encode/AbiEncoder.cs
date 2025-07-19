@@ -86,6 +86,9 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     public AbiEncoder Bytes(byte[] arr)
         => AddElement(new AbiTypes.Bytes(arr));
 
+    public AbiEncoder BoolArray(params bool[] values)
+        => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bool>(
+                [.. values.Select(x => new AbiTypes.Bool(x))]));
     public AbiEncoder AddressArray(params Address[] addresses)
         => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Address>(
             [.. addresses.Select(x => new AbiTypes.Address(x))]));
@@ -149,6 +152,8 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         => String(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(byte[] arr)
         => Bytes(arr);
+    IDynamicTupleEncoder IDynamicTupleEncoder.BoolArray(params bool[] values)
+        => BoolArray(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.AddressArray(params Address[] addresses)
         => AddressArray(addresses);
     IDynamicTupleEncoder IDynamicTupleEncoder.StringArray(params string[] values)

@@ -102,6 +102,33 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         return result;
     }
 
+    public bool[] BoolArray()
+    {
+        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
+
+        if(payloadOffset < _bytesRead)
+        {
+            throw new IndexOutOfRangeException("Index out of range");
+        }
+
+        long relativePayloadOffset = payloadOffset - _bytesRead;
+        var payload = _bytes[(int) relativePayloadOffset..].Span;
+
+        uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32]);
+
+        bool[] values = new bool[arrayLength];
+
+        int offset = 32;
+        for(uint i = 0; i < arrayLength; i++)
+        {
+            values[i] = AbiTypes.Bool.Decode(payload[offset..(offset + 32)]);
+            offset += 32;
+        }
+
+        ConsumeBytes();
+        return values;
+    }
+
     public Address[] AddressArray()
     {
         uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
@@ -170,6 +197,32 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
         ConsumeBytes();
         return result;
+    }
+
+    public string[] StringArray()
+    {
+        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
+
+        if(payloadOffset < _bytesRead)
+        {
+            throw new IndexOutOfRangeException("Index out of range");
+        }
+
+        long relativePayloadOffset = payloadOffset - _bytesRead;
+        var payload = _bytes[(int) relativePayloadOffset..];
+
+        uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32].Span);
+
+        var values = new string[arrayLength];
+
+        var decoder = new AbiDecoder(payload);
+
+        for(int i = 0; i < arrayLength; i++)
+        {
+            values[i] = decoder.String();
+        }
+
+        return values;
     }
 
     public T[] Array<T>(Func<IArrayAbiDecoder, T> func)

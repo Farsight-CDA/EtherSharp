@@ -14,6 +14,7 @@ public partial interface IDynamicTupleEncoder
     public IDynamicTupleEncoder String(string value);
     public IDynamicTupleEncoder Bytes(byte[] value);
 
+    public IDynamicTupleEncoder BoolArray(params bool[] values);
     public IDynamicTupleEncoder AddressArray(params Address[] addresses);
     public IDynamicTupleEncoder StringArray(params string[] values);
     public IDynamicTupleEncoder BytesArray(params byte[][] values);

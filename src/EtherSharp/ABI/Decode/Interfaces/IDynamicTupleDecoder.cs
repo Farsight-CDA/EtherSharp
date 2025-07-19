@@ -11,8 +11,11 @@ public partial interface IDynamicTupleDecoder
     public ReadOnlySpan<byte> SizedBytes(int bitLength);
     public TNumber Number<TNumber>(bool isUnsigned, int bitLength);
 
+    public bool[] BoolArray();
     public Address[] AddressArray();
     public TNumber[] NumberArray<TNumber>(bool isUnsigned, uint bitLength);
+
+    public string[] StringArray();
 
     public T[] Array<T>(Func<IArrayAbiDecoder, T> func);
 
