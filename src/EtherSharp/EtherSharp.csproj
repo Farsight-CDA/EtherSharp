@@ -87,12 +87,16 @@
 			<LastGenOutput>IFixedTupleDecoder.SizedNumbers.cs</LastGenOutput>
 			<Generator>TextTemplatingFileGenerator</Generator>
 		</None>
+		<None Update="ABI\Encode\AbiEncoder.SizedBytesArrays.tt">
+		  <Generator>TextTemplatingFileGenerator</Generator>
+		  <LastGenOutput>AbiEncoder.SizedBytesArrays.cs</LastGenOutput>
+		</None>
 		<None Update="ABI\Encode\AbiEncoder.SizedBytes.tt">
 		  <LastGenOutput>AbiEncoder.SizedBytes.cs</LastGenOutput>
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		</None>
-		<None Update="ABI\Encode\AbiEncoder.NumberArrays.tt">
-			<LastGenOutput>AbiEncoder.NumberArrays.cs</LastGenOutput>
+		<None Update="ABI\Encode\AbiEncoder.SizedNumberArrays.tt">
+			<LastGenOutput>AbiEncoder.SizedNumberArrays.cs</LastGenOutput>
 			<Generator>TextTemplatingFileGenerator</Generator>
 		</None>
 		<None Update="ABI\Encode\AbiEncoder.SizedNumbers.tt">
@@ -103,13 +107,17 @@
 		  <LastGenOutput>IDynamicTupleEncoder.SizedBytes.cs</LastGenOutput>
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		</None>
+		<None Update="ABI\Encode\Interfaces\IDynamicTupleEncoder.SizedBytesArrays.tt">
+		  <Generator>TextTemplatingFileGenerator</Generator>
+		  <LastGenOutput>IDynamicTupleEncoder.SizedBytesArrays.cs</LastGenOutput>
+		</None>
 		<None Update="ABI\Encode\Interfaces\IFixedTupleEncoder.SizedBytes.tt">
 		  <LastGenOutput>IFixedTupleEncoder.SizedBytes.cs</LastGenOutput>
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		</None>
-		<None Update="ABI\Encode\Interfaces\IDynamicTupleEncoder.NumberArrays.tt">
+		<None Update="ABI\Encode\Interfaces\IDynamicTupleEncoder.SizedNumberArrays.tt">
 		  <Generator>TextTemplatingFileGenerator</Generator>
-		  <LastGenOutput>IDynamicTupleEncoder.NumberArrays.cs</LastGenOutput>
+		  <LastGenOutput>IDynamicTupleEncoder.SizedNumberArrays.cs</LastGenOutput>
 		</None>
 		<None Update="ABI\Encode\Interfaces\IFixedTupleEncoder.SizedNumbers.tt">
 		  <LastGenOutput>IFixedTupleEncoder.SizedNumbers.cs</LastGenOutput>
@@ -123,9 +131,9 @@
 			<LastGenOutput>ITupleAbiEncoder.NumberArrays.cs</LastGenOutput>
 			<Generator>TextTemplatingFileGenerator</Generator>
 		</None>
-		<None Update="ABI\Encode\Interfaces\IArrayAbiEncoder.NumberArrays.tt">
+		<None Update="ABI\Encode\Interfaces\IArrayAbiEncoder.SizedNumberArrays.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>IArrayAbiEncoder.NumberArrays.cs</LastGenOutput>
+			<LastGenOutput>IArrayAbiEncoder.SizedNumberArrays.cs</LastGenOutput>
 		</None>
 	</ItemGroup>
 
@@ -175,13 +183,18 @@
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 		</Compile>
+		<Compile Update="ABI\Encode\AbiEncoder.SizedBytesArrays.cs">
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>AbiEncoder.SizedBytesArrays.tt</DependentUpon>
+		</Compile>
 		<Compile Update="ABI\Encode\AbiEncoder.SizedBytes.cs">
 		  <DependentUpon>AbiEncoder.SizedBytes.tt</DependentUpon>
 		  <DesignTime>True</DesignTime>
 		  <AutoGen>True</AutoGen>
 		</Compile>
-		<Compile Update="ABI\Encode\AbiEncoder.NumberArrays.cs">
-			<DependentUpon>AbiEncoder.NumberArrays.tt</DependentUpon>
+		<Compile Update="ABI\Encode\AbiEncoder.SizedNumberArrays.cs">
+			<DependentUpon>AbiEncoder.SizedNumberArrays.tt</DependentUpon>
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 		</Compile>
@@ -190,10 +203,15 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>AbiEncoder.SizedNumbers.tt</DependentUpon>
 		</Compile>
-		<Compile Update="ABI\Encode\Interfaces\IDynamicTupleEncoder.NumberArrays.cs">
+		<Compile Update="ABI\Encode\Interfaces\IDynamicTupleEncoder.SizedBytesArrays.cs">
 		  <DesignTime>True</DesignTime>
 		  <AutoGen>True</AutoGen>
-		  <DependentUpon>IDynamicTupleEncoder.NumberArrays.tt</DependentUpon>
+		  <DependentUpon>IDynamicTupleEncoder.SizedBytesArrays.tt</DependentUpon>
+		</Compile>
+		<Compile Update="ABI\Encode\Interfaces\IDynamicTupleEncoder.SizedNumberArrays.cs">
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>IDynamicTupleEncoder.SizedNumberArrays.tt</DependentUpon>
 		</Compile>
 		<Compile Update="ABI\Encode\Interfaces\IDynamicTupleEncoder.SizedBytes.cs">
 		  <DependentUpon>IDynamicTupleEncoder.SizedBytes.tt</DependentUpon>
@@ -220,10 +238,10 @@
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 		</Compile>
-		<Compile Update="ABI\Encode\Interfaces\IArrayAbiEncoder.NumberArrays.cs">
+		<Compile Update="ABI\Encode\Interfaces\IArrayAbiEncoder.SizedNumberArrays.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
-			<DependentUpon>IArrayAbiEncoder.NumberArrays.tt</DependentUpon>
+			<DependentUpon>IArrayAbiEncoder.SizedNumberArrays.tt</DependentUpon>
 		</Compile>
 	</ItemGroup>
 

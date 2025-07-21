@@ -1,112 +1,112 @@
-using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Types;
+using EtherSharp.ABI.Encode.Interfaces;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
     public AbiEncoder Int8Array(params sbyte[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<sbyte>(value, 8));
+        => AddElement(new AbiTypes.SizedNumberArray<sbyte>(value, 8));
     void IArrayAbiEncoder.Int8Array(params sbyte[] value)
-        => Int8Array(value);
+        => Int8Array(value); 
     IDynamicTupleEncoder IDynamicTupleEncoder.Int8Array(params sbyte[] value)
         => Int8Array(value);
 
     public AbiEncoder UInt8Array(params byte[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<byte>(value, 8));
+        => AddElement(new AbiTypes.SizedNumberArray<byte>(value, 8));
     void IArrayAbiEncoder.UInt8Array(params byte[] value)
         => UInt8Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt8Array(params byte[] value)
         => UInt8Array(value);
 
     public AbiEncoder Int16Array(params short[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<short>(value, 16));
+        => AddElement(new AbiTypes.SizedNumberArray<short>(value, 16));
     void IArrayAbiEncoder.Int16Array(params short[] value)
         => Int16Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int16Array(params short[] value)
         => Int16Array(value);
 
     public AbiEncoder UInt16Array(params ushort[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<ushort>(value, 16));
+        => AddElement(new AbiTypes.SizedNumberArray<ushort>(value, 16));
     void IArrayAbiEncoder.UInt16Array(params ushort[] value)
         => UInt16Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt16Array(params ushort[] value)
         => UInt16Array(value);
 
     public AbiEncoder Int24Array(params int[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<int>(value, 24));
+        => AddElement(new AbiTypes.SizedNumberArray<int>(value, 24));
     void IArrayAbiEncoder.Int24Array(params int[] value)
         => Int24Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int24Array(params int[] value)
         => Int24Array(value);
 
     public AbiEncoder UInt24Array(params uint[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<uint>(value, 24));
+        => AddElement(new AbiTypes.SizedNumberArray<uint>(value, 24));
     void IArrayAbiEncoder.UInt24Array(params uint[] value)
         => UInt24Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt24Array(params uint[] value)
         => UInt24Array(value);
     public AbiEncoder Int32Array(params int[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<int>(value, 32));
+        => AddElement(new AbiTypes.SizedNumberArray<int>(value, 32));
     void IArrayAbiEncoder.Int32Array(params int[] value)
         => Int32Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int32Array(params int[] value)
         => Int32Array(value);
 
     public AbiEncoder UInt32Array(params uint[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<uint>(value, 32));
+        => AddElement(new AbiTypes.SizedNumberArray<uint>(value, 32));
     void IArrayAbiEncoder.UInt32Array(params uint[] value)
         => UInt32Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt32Array(params uint[] value)
         => UInt32Array(value);
     public AbiEncoder Int40Array(params long[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<long>(value, 40));
+        => AddElement(new AbiTypes.SizedNumberArray<long>(value, 40));
     void IArrayAbiEncoder.Int40Array(params long[] value)
         => Int40Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int40Array(params long[] value)
         => Int40Array(value);
 
     public AbiEncoder UInt40Array(params ulong[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<ulong>(value, 40));
+        => AddElement(new AbiTypes.SizedNumberArray<ulong>(value, 40));
     void IArrayAbiEncoder.UInt40Array(params ulong[] value)
         => UInt40Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt40Array(params ulong[] value)
         => UInt40Array(value);
     public AbiEncoder Int48Array(params long[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<long>(value, 48));
+        => AddElement(new AbiTypes.SizedNumberArray<long>(value, 48));
     void IArrayAbiEncoder.Int48Array(params long[] value)
         => Int48Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int48Array(params long[] value)
         => Int48Array(value);
 
     public AbiEncoder UInt48Array(params ulong[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<ulong>(value, 48));
+        => AddElement(new AbiTypes.SizedNumberArray<ulong>(value, 48));
     void IArrayAbiEncoder.UInt48Array(params ulong[] value)
         => UInt48Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt48Array(params ulong[] value)
         => UInt48Array(value);
     public AbiEncoder Int56Array(params long[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<long>(value, 56));
+        => AddElement(new AbiTypes.SizedNumberArray<long>(value, 56));
     void IArrayAbiEncoder.Int56Array(params long[] value)
         => Int56Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int56Array(params long[] value)
         => Int56Array(value);
 
     public AbiEncoder UInt56Array(params ulong[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<ulong>(value, 56));
+        => AddElement(new AbiTypes.SizedNumberArray<ulong>(value, 56));
     void IArrayAbiEncoder.UInt56Array(params ulong[] value)
         => UInt56Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt56Array(params ulong[] value)
         => UInt56Array(value);
     public AbiEncoder Int64Array(params long[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<long>(value, 64));
+        => AddElement(new AbiTypes.SizedNumberArray<long>(value, 64));
     void IArrayAbiEncoder.Int64Array(params long[] value)
         => Int64Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int64Array(params long[] value)
         => Int64Array(value);
 
     public AbiEncoder UInt64Array(params ulong[] value)
-        => AddElement(new AbiTypes.PrimitiveNumberArray<ulong>(value, 64));
+        => AddElement(new AbiTypes.SizedNumberArray<ulong>(value, 64));
     void IArrayAbiEncoder.UInt64Array(params ulong[] value)
         => UInt64Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt64Array(params ulong[] value)

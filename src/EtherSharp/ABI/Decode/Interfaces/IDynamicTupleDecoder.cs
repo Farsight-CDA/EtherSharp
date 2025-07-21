@@ -16,6 +16,7 @@ public partial interface IDynamicTupleDecoder
     public TNumber[] NumberArray<TNumber>(bool isUnsigned, uint bitLength);
 
     public string[] StringArray();
+    public byte[][] BytesArray();
 
     public T[] Array<T>(Func<IArrayAbiDecoder, T> func);
 

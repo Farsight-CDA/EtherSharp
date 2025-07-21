@@ -1,0 +1,26 @@
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System" #>
+using EtherSharp.ABI.Types;
+using EtherSharp.ABI.Encode.Interfaces;
+
+namespace EtherSharp.ABI;
+public partial class AbiEncoder
+{
+    public AbiEncoder Bytes1Array(params byte[] value)
+        => AddElement(new AbiTypes.SizedBytesArray([value], 1));       
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes1Array(params byte[] value)
+        => Bytes1Array(value);
+<#
+    for(var i = 2; i <= 32;i=i+1)
+    {
+#>
+    public AbiEncoder Bytes<#=i#>Array(params byte[][] values)
+        => AddElement(new AbiTypes.SizedBytesArray(values, <#=i#>));
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes<#=i#>Array(params byte[][] values)
+        => Bytes<#=i#>Array(values);
+<#
+    }
+#>
+
+}

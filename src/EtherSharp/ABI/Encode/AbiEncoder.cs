@@ -173,31 +173,31 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         return AddElement(bitLength switch
         {
             8 => isUnsigned
-                ? new AbiTypes.PrimitiveNumberArray<byte>(
+                ? new AbiTypes.SizedNumberArray<byte>(
                     numbers is byte[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}"),
                     bitLength)
-                : new AbiTypes.PrimitiveNumberArray<sbyte>(
+                : new AbiTypes.SizedNumberArray<sbyte>(
                     numbers is sbyte[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}"),
                     bitLength),
             16 => isUnsigned
-                ? new AbiTypes.PrimitiveNumberArray<ushort>(
+                ? new AbiTypes.SizedNumberArray<ushort>(
                     numbers is ushort[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}"),
                     bitLength)
-                : new AbiTypes.PrimitiveNumberArray<short>(
+                : new AbiTypes.SizedNumberArray<short>(
                     numbers is short[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}"),
                     bitLength),
             > 16 and <= 32 => isUnsigned
-                ? new AbiTypes.PrimitiveNumberArray<uint>(
+                ? new AbiTypes.SizedNumberArray<uint>(
                     numbers is uint[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"),
                     bitLength)
-                : new AbiTypes.PrimitiveNumberArray<int>(
+                : new AbiTypes.SizedNumberArray<int>(
                     numbers is int[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"),
                     bitLength),
             > 32 and <= 64 => isUnsigned
-                ? new AbiTypes.PrimitiveNumberArray<ulong>(
+                ? new AbiTypes.SizedNumberArray<ulong>(
                     numbers is ulong[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"),
                     bitLength)
-                : new AbiTypes.PrimitiveNumberArray<long>(
+                : new AbiTypes.SizedNumberArray<long>(
                     numbers is long[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"),
                     bitLength),
             > 64 and <= 256 => new AbiTypes.BigIntegerArray(
