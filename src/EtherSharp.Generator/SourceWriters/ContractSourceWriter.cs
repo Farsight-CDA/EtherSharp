@@ -58,8 +58,8 @@ public class ContractSourceWriter(
 
             contractImplementation.AddField(signatureBytesField);
 
-            bool isQuery = ((member.Outputs.Length > 0)
-                && (member.StateMutability == StateMutability.Pure)) || member.StateMutability == StateMutability.View);
+            bool isQuery = member.Outputs.Length > 0
+                && (member.StateMutability == StateMutability.Pure || member.StateMutability == StateMutability.View);
 
             var func = isQuery switch
             {
