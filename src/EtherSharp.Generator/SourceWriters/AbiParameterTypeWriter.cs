@@ -1,11 +1,15 @@
 ﻿using EtherSharp.Generator.Abi.Parameters;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
+using System.Data.Common;
+using System.Reflection.Metadata;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace EtherSharp.Generator.SourceWriters;
-public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
+public partial class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
 {
+    private static Regex _sizedArrayTypeRegex = new Regex("\\[\\d+\\]$", RegexOptions.Compiled);
     private readonly AbiTypeWriter _typeWriter = typeWriter;
 
     public (string CSTypeName, bool isDynamic, Func<string, string> EncodeFunc, string DecodeFunc) CreateParameter(AbiParameter parameter)
@@ -23,6 +27,10 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
             return (csTypeName, isDynamic, encodeFunc, decodeFunc);
         }
         else if(TryMatchAnonymousTupleType(parameter, out csTypeName, out isDynamic, out encodeFunc, out decodeFunc))
+        {
+            return (csTypeName, isDynamic, encodeFunc, decodeFunc);
+        }
+        else if(TryMatchSizedArrayType(parameter, out csTypeName, out isDynamic, out encodeFunc, out decodeFunc))
         {
             return (csTypeName, isDynamic, encodeFunc, decodeFunc);
         }
@@ -210,6 +218,67 @@ public class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
             {decodeFuncBuilder}
             )
             """;
+
+        return true;
+    }
+
+    private bool TryMatchSizedArrayType(AbiParameter sizedArrayParameter, out string csTypeName, out bool isDynamic, out Func<string, string> encodeFunc, out string decodeFunc)
+    {
+        var match = _sizedArrayTypeRegex.Match(sizedArrayParameter.Type);
+
+        if(!match.Success)
+        {
+            isDynamic = false;
+            csTypeName = null!;
+            encodeFunc = null!;
+            decodeFunc = null!;
+            return false;
+        }
+
+        int arrayLength = int.Parse(match.Value.Substring(1, match.Value.Length - 2));
+        string innerType = sizedArrayParameter.Type.Substring(0, sizedArrayParameter.Type.Length - match.Value.Length);
+
+        var innerParameter = new AbiParameter("value", innerType, null, null);
+        var (innerCSharpType, innerIsDynamic, innerEncodeFunction, innerDecodeFunction) = CreateParameter(innerParameter);
+
+        var csTypeBuilder = new StringBuilder();
+        var decodeFuncBuilder = new StringBuilder();
+
+        csTypeBuilder.Append('(');
+        decodeFuncBuilder.Append('(');
+
+        for(int i = 0; i < arrayLength; i++)
+        {
+            bool hasNextElement = i < arrayLength - 1;
+
+            csTypeBuilder.Append(innerCSharpType);
+            decodeFuncBuilder.Append(innerDecodeFunction);
+
+            if(hasNextElement)
+            {
+                csTypeBuilder.Append(", ");
+                decodeFuncBuilder.Append(", ");
+            }
+        }
+
+        csTypeBuilder.Append(')');
+        decodeFuncBuilder.Append(')');
+
+        isDynamic = innerIsDynamic;
+        csTypeName = csTypeBuilder.ToString();
+        decodeFunc = decodeFuncBuilder.ToString();
+
+        encodeFunc = inputName =>
+        {
+            var encodeFuncBuilder = new StringBuilder();
+
+            for(int i = 0; i < arrayLength; i++)
+            {
+                encodeFuncBuilder.AppendLine(innerEncodeFunction($"{inputName}.Item{i + 1}"));
+            }
+
+            return encodeFuncBuilder.ToString();
+        };
 
         return true;
     }

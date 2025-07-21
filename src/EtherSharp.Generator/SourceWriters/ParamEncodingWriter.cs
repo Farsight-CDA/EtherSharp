@@ -13,7 +13,7 @@ public class ParamEncodingWriter(AbiParameterTypeWriter parameterTypeWriter)
         var (paramType, _, encodeFunction, _) = parameterTypeWriter.CreateParameter(parameter);
 
         function.AddArgument(paramType, paramName);
-        function.AddStatement(encodeFunction(paramName));
+        function.AddStatement(encodeFunction(paramName), false);
 
         return paramName;
     }
