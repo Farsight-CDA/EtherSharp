@@ -46,25 +46,33 @@ public class ContractSourceWriter(
                 .AddStatement("return _client")
             );
 
+        var signaturesClassBuilder = new StringBuilder();
+        signaturesClassBuilder.AppendLine(
+            $$"""
+            public static class Signatures 
+            {
+            """
+        );
+
         foreach(var member in members.Where(x => x is FunctionAbiMember).Cast<FunctionAbiMember>())
         {
             byte[] signatureBytes = member.GetSignatureBytes(out string functionSignature);
             var signatureBytesField = new FieldBuilder("byte[]", GetFunctionSignatureFieldName(member))
                 .WithIsStatic(true)
                 .WithIsReadonly(true)
-                .WithVisibility(FieldVisibility.Private)
+                .WithVisibility(FieldVisibility.Public)
                 .WithDefaultValue($"[ {signatureBytes[0]}, {signatureBytes[1]}, {signatureBytes[2]}, {signatureBytes[3]} ]")
                 .WithXmlSummaryContent(functionSignature);
 
-            contractImplementation.AddField(signatureBytesField);
+            signaturesClassBuilder.AppendLine(signatureBytesField.Build());
 
             bool isQuery = member.Outputs.Length > 0
                 && (member.StateMutability == StateMutability.Pure || member.StateMutability == StateMutability.View);
 
             var func = isQuery switch
             {
-                true => GenerateQueryFunction(member),
-                false => GenerateMessageFunction(member)
+                true => GenerateQueryFunction(member, contractName),
+                false => GenerateMessageFunction(member, contractName)
             };
 
             contractInterface.AddFunction(func);
@@ -108,7 +116,10 @@ public class ContractSourceWriter(
             );
         }
 
+        signaturesClassBuilder.AppendLine("}");
         eventsStructBuilder.AppendLine("}");
+
+        contractInterface.AddRawContent(signaturesClassBuilder.ToString());
         contractInterface.AddRawContent(eventsStructBuilder.ToString());
 
         var output = new StringBuilder();
@@ -130,7 +141,7 @@ public class ContractSourceWriter(
         return output.ToString();
     }
 
-    private FunctionBuilder GenerateQueryFunction(FunctionAbiMember queryFunction)
+    private FunctionBuilder GenerateQueryFunction(FunctionAbiMember queryFunction, string contractName)
     {
         string noSuffixFunctionName = NameUtils.ToValidFunctionName(queryFunction.Name);
         string functionName = $"{noSuffixFunctionName}Async";
@@ -159,7 +170,7 @@ public class ContractSourceWriter(
             return _client.CallAsync(EtherSharp.Tx.ITxInput.ForContractCall<{{returnType}}>(
                 Address,
                 0,
-                {{GetFunctionSignatureFieldName(queryFunction)}},
+                {{contractName}}.Signatures.{{GetFunctionSignatureFieldName(queryFunction)}},
                 encoder,
                 decoder => {{decoderFunction}}
             ), targetBlockNumber, stateOverride: stateOverride, cancellationToken: cancellationToken)
@@ -168,7 +179,7 @@ public class ContractSourceWriter(
         return func;
     }
 
-    private FunctionBuilder GenerateMessageFunction(FunctionAbiMember messageFunction)
+    private FunctionBuilder GenerateMessageFunction(FunctionAbiMember messageFunction, string contractName)
     {
         string functionName = NameUtils.ToValidFunctionName(messageFunction.Name);
         var func = new FunctionBuilder(functionName)
@@ -210,7 +221,7 @@ public class ContractSourceWriter(
                 return EtherSharp.Tx.ITxInput.ForContractCall(
                     Address,
                     {{ethParamName}},
-                    {{GetFunctionSignatureFieldName(messageFunction)}},
+                    {{contractName}}.Signatures.{{GetFunctionSignatureFieldName(messageFunction)}},
                     encoder
                 )
                 """);
@@ -224,7 +235,7 @@ public class ContractSourceWriter(
                 return EtherSharp.Tx.ITxInput.ForContractCall<{{returnType}}>(
                     Address,
                     {{ethParamName}},
-                    {{GetFunctionSignatureFieldName(messageFunction)}},
+                    {{contractName}}.Signatures.{{GetFunctionSignatureFieldName(messageFunction)}},
                     encoder,
                     decoder => {{decoderFunction}}
                 )
@@ -250,5 +261,5 @@ public class ContractSourceWriter(
     }
 
     private static string GetFunctionSignatureFieldName(FunctionAbiMember abiFunction)
-        => $"_{abiFunction.Name}{HexUtils.ToHexString(abiFunction.GetSignatureBytes(out _))}Signature";
+        => $"{NameUtils.ToValidFunctionName(abiFunction.Name)}_{HexUtils.ToHexString(abiFunction.GetSignatureBytes(out _))}";
 }
