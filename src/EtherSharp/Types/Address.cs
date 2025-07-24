@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Common.Converter;
+using EtherSharp.EIPs;
 using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -12,6 +13,15 @@ namespace EtherSharp.Types;
 [JsonConverter(typeof(AddressConverter))]
 public class Address
 {
+    /// <summary>
+    /// Character length of an address including 0x prefix.
+    /// </summary>
+    public const int StringLength = 42;
+    /// <summary>
+    /// Byte length of an address.
+    /// </summary>
+    public const int BytesLength = 20;
+
     /// <summary>
     /// Returns the Zero address.
     /// </summary>
@@ -31,6 +41,11 @@ public class Address
 
     private Address(string s, byte[] b)
     {
+        if(s.Length != StringLength || b.Length != BytesLength)
+        {
+            throw new ArgumentException("Bad address length");
+        }
+
         String = s;
         _addressBytes = b;
     }
@@ -52,6 +67,13 @@ public class Address
             return new Address($"0x{s}", Convert.FromHexString(s));
         }
     }
+
+    /// <summary>
+    /// Calculates the EIP55 formatted string representation of this address.
+    /// </summary>
+    /// <returns></returns>
+    public string ToEIP55String()
+        => EIP55.FormatAddress(String);
 
     /// <summary>
     /// Creates an <see cref="Address"/> instance given its binary representation.
