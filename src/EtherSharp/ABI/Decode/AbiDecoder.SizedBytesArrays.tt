@@ -1,0 +1,30 @@
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System" #>
+using EtherSharp.ABI.Types;
+using EtherSharp.ABI.Decode.Interfaces;
+
+namespace EtherSharp.ABI;
+public partial class AbiDecoder
+{
+    public byte[] Bytes1Array()
+    {
+        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, _bytesRead, 1);
+        ConsumeBytes();
+        return result[0];
+    }
+<#
+    for(var i = 2; i <= 32;i=i+1)
+    {
+#>
+    public byte[][] Bytes<#=i#>Array()
+    {
+        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, _bytesRead, <#=i#>);
+        ConsumeBytes();
+        return result;
+    }
+<#
+    }
+#>
+
+}

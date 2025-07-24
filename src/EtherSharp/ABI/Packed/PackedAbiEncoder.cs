@@ -4,7 +4,7 @@ using EtherSharp.Types;
 using System.Numerics;
 
 namespace EtherSharp.ABI.Packed;
-public class PackedAbiEncoder
+public partial class PackedAbiEncoder
 {
     private readonly List<IPackedEncodeType> _entries = [];
 

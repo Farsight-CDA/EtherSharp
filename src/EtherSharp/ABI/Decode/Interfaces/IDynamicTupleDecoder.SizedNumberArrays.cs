@@ -1,13 +1,14 @@
 ﻿using System.Numerics;
 
 namespace EtherSharp.ABI.Decode.Interfaces;
-public partial interface IArrayAbiDecoder
+public partial interface IDynamicTupleDecoder
 {
     public sbyte[] Int8Array();
-    public byte[] UInt8Array();
+    public byte[] UInt8Array();    
 
     public short[] Int16Array();
     public ushort[] UInt16Array();
+
     public int[] Int24Array();
     public uint[] UInt24Array();
     public int[] Int32Array();
