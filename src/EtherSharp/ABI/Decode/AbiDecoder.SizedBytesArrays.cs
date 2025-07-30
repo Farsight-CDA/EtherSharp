@@ -196,5 +196,4 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-
 }

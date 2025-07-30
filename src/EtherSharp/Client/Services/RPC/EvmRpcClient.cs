@@ -159,15 +159,11 @@ internal partial class EvmRpcClient : IRpcClient
     {
         var transaction = new TransactionEthCall(from, to, gas, gasPrice, value, data);
 
-        return await SendRpcRequest<TransactionEthCall, string, Dictionary<Address, OverrideAccount>?, byte[]>(
-            "eth_call", transaction, blockNumber.ToString(), stateOverride?._accountOverrides, cancellationToken) switch
-        {
-            RpcResult<byte[]>.Success result => new TxCallResult.Success(result.Result),
-            RpcResult<byte[]>.Error error => error.Message == "execution reverted" && error.Code == -32000
-                ? new TxCallResult.Reverted()
-                : throw RPCException.FromRPCError(error),
-            _ => throw new NotImplementedException(),
-        };
+        return TxCallResult.ParseFrom(
+            await SendRpcRequest<TransactionEthCall, string, Dictionary<Address, OverrideAccount>?, byte[]>(
+                "eth_call", transaction, blockNumber.ToString(), stateOverride?._accountOverrides, cancellationToken
+            )
+        );
     }
 
     public async Task<TxSubmissionResult> EthSendRawTransactionAsync(string transaction, CancellationToken cancellationToken)

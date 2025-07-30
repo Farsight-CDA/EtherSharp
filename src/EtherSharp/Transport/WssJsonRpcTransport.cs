@@ -140,7 +140,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
         _logger?.LogInformation("Websocket connection established...");
     }
 
-    private record RpcError(int Code, string Message);
+    private record RpcError(int Code, string Message, byte[] Data);
     private record JsonRpcResponse<T>(
         [property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
     private async Task MessageHandler()
@@ -359,7 +359,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
         }
         else if(jsonRpcResponse.Error != null)
         {
-            return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message);
+            return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message, jsonRpcResponse.Error.Data);
         }
         else if(jsonRpcResponse.Result is null)
         {

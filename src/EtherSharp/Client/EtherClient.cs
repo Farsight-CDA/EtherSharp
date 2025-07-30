@@ -6,6 +6,7 @@ using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxScheduler;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Blocks.Subscription;
 using EtherSharp.StateOverride;
@@ -234,12 +235,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             cancellationToken
         );
 
-        return result switch
-        {
-            TxCallResult.Success s => call.ReadResultFrom(s.Data),
-            TxCallResult.Reverted => throw new Exception("Call reverted"),
-            _ => throw new NotImplementedException()
-        };
+        return call.ReadResultFrom(result.Unwrap());
     }
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(

@@ -49,7 +49,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     public ValueTask InitializeAsync(CancellationToken cancellationToken = default)
         => ValueTask.CompletedTask;
 
-    private record RpcError(int Code, string Message);
+    private record RpcError(int Code, string Message, byte[]? Data);
     private record JsonRpcResponse<T>([property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
 
     private record JsonRpcRequest(int Id, string Method, object?[] Params, string Jsonrpc = "2.0");
@@ -84,7 +84,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             }
             else if(jsonRpcResponse.Error != null)
             {
-                return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message);
+                return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message, jsonRpcResponse.Error.Data);
             }
             else if(jsonRpcResponse.Result is null)
             {

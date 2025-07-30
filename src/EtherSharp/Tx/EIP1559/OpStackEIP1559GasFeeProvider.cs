@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.RPC;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Buffers.Binary;
@@ -84,12 +85,7 @@ public class OpStackEIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner sig
         var gasPrice = await gasPriceTask;
         var priorityFee = await priorityFeeTask;
 
-        if(l1FeeCallResult is not TxCallResult.Success successResult)
-        {
-            throw new NotSupportedException("l1 gas estimation call reverted");
-        }
-
-        var l1Fee = new BigInteger(successResult.Data, true, true);
+        var l1Fee = new BigInteger(l1FeeCallResult.Unwrap(), true, true);
         var l1FeePerGas = l1Fee / gasEstimation;
 
         return new EIP1559GasParams(
