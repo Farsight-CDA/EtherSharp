@@ -35,6 +35,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
 
     private ulong _chainId;
 
+    private SemaphoreSlim _nonceIncrementSemaphore = new SemaphoreSlim(1);
     private SemaphoreSlim _pendingNoncesSemaphore = null!;
 
     private readonly Lock _activeNonceLock = new Lock();
@@ -135,10 +136,20 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
             ?? throw new InvalidOperationException(
                 $"No IGasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
 
-        uint nextNonce = Interlocked.Increment(ref _peakNonce) - 1;
+        await _nonceIncrementSemaphore.WaitAsync();
 
-        txParams ??= TTxParams.Default;
-        txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, call.Data, txParams, default);
+        uint nextNonce = _peakNonce;
+
+        try
+        {
+            txParams ??= TTxParams.Default;
+            txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, call.Data, txParams, default);
+            _peakNonce++;
+        }
+        finally
+        {
+            _nonceIncrementSemaphore.Release();
+        }
 
         string txBytes = handler.EncodeTxToBytes(call, txParams, txGasParams, nextNonce, out string txHash);
         var submission = new TxSubmission<TTxParams, TTxGasParams>(_chainId, 0, txHash, txBytes, call, txParams, txGasParams);
