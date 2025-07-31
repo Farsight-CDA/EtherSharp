@@ -7,11 +7,13 @@ namespace EtherSharp.Types;
 public abstract record TxCallResult
 {
     private static ReadOnlySpan<byte> ErrorStringSignature => [0x08, 0xc3, 0x79, 0xa0];
+    private static ReadOnlySpan<byte> PanicSignature => [0x4e, 0x48, 0x7b, 0x71];
 
     public record Success(byte[] Data) : TxCallResult;
     public record Reverted() : TxCallResult;
     public record RevertedWithMessage(string Message) : TxCallResult;
     public record RevertedWithCustomError(byte[] Data) : TxCallResult;
+    public record RevertedWithPanic(PanicType Type) : TxCallResult;
 
     /// <summary>
     /// Unwraps the TxCallResult by throwing if it was not a Success result.
@@ -23,6 +25,7 @@ public abstract record TxCallResult
         Reverted => throw new CallRevertedException("execution reverted"),
         RevertedWithMessage m => throw new CallRevertedException.CallRevertedWithMessageException(m.Message),
         RevertedWithCustomError c => throw new CallRevertedException.CallRevertedWithCustomErrorException(c.Data),
+        RevertedWithPanic p => throw new CallRevertedException.CallRevertedWithPanicException(p.Type),
         _ => throw new NotImplementedException()
     };
 
@@ -52,6 +55,12 @@ public abstract record TxCallResult
                 {
                     return new RevertedWithMessage(
                         AbiTypes.String.Decode(errorResult.Data.AsMemory(4), 0)
+                    );
+                }
+                else if(errorSignature.SequenceEqual(PanicSignature))
+                {
+                    return new RevertedWithPanic(
+                        (PanicType) AbiTypes.Byte.Decode(errorResult.Data.AsSpan(4))
                     );
                 }
                 //
