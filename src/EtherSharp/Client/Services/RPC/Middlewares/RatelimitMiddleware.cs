@@ -34,9 +34,9 @@ public class RatelimitMiddleware : IRpcMiddleware, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public async Task<RpcResult<TResult>> HandleAsync<TResult>(Func<Task<RpcResult<TResult>>> onNext)
+    public async Task<RpcResult<TResult>> HandleAsync<TResult>(CancellationToken cancellationToken, Func<CancellationToken, Task<RpcResult<TResult>>> onNext)
     {
         await _requestSemaphore.WaitAsync();
-        return await onNext();
+        return await onNext(cancellationToken);
     }
 }
