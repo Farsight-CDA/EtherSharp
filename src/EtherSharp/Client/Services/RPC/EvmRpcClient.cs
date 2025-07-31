@@ -56,11 +56,11 @@ internal partial class EvmRpcClient : IRpcClient
 
     private async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, CancellationToken cancellationToken)
     {
-        var onNext = async () =>
+        Func<CancellationToken, Task<RpcResult<TResult>>> onNext = async (ct) =>
         {
             try
             {
-                var result = await _transport.SendRpcRequestAsync<TResult>(method, parameters, cancellationToken);
+                var result = await _transport.SendRpcRequestAsync<TResult>(method, parameters, ct);
                 _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
                 return result;
             }
@@ -74,10 +74,10 @@ internal partial class EvmRpcClient : IRpcClient
         foreach(var middleware in _middlewares)
         {
             var next = onNext;
-            onNext = () => middleware.HandleAsync(next);
+            onNext = (ct) => middleware.HandleAsync(ct, next);
         }
 
-        return await onNext();
+        return await onNext(cancellationToken);
     }
 
     public async Task<ulong> EthChainIdAsync(CancellationToken cancellationToken)
