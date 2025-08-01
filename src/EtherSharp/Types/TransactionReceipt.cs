@@ -6,14 +6,17 @@ public record TransactionReceipt(
     int Status,
     string BlockHash,
     uint BlockNumber,
-    string From,
-    string ContractAddress,
-    uint GasUsed,
-    uint CumulativeGasUsed,
+    Address From,
+    Address? ContractAddress,
+    ulong GasUsed,
+    ulong CumulativeGasUsed,
     BigInteger EffectiveGasPrice,
     Log[] Logs,
     string? LogsBloom,
-    string? To,
+    Address? To,
     int? TransactionIndex,
     int? Type  //todo: enum ?
-);
+)
+{
+    public bool Success => Status == 1;
+}
