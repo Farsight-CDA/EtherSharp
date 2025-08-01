@@ -49,22 +49,24 @@ public abstract record TxCallResult
                     return new Reverted();
                 }
 
-                var errorSignature = errorResult.Data.AsSpan(0, 4);
+                byte[] dataBytes = Convert.FromHexString(errorResult.Data.AsSpan(2));
+
+                var errorSignature = dataBytes.AsSpan(0, 4);
 
                 if(errorSignature.SequenceEqual(ErrorStringSignature))
                 {
                     return new RevertedWithMessage(
-                        AbiTypes.String.Decode(errorResult.Data.AsMemory(4), 0)
+                        AbiTypes.String.Decode(dataBytes.AsMemory(4), 0)
                     );
                 }
                 else if(errorSignature.SequenceEqual(PanicSignature))
                 {
                     return new RevertedWithPanic(
-                        (PanicType) AbiTypes.Byte.Decode(errorResult.Data.AsSpan(4))
+                        (PanicType) AbiTypes.Byte.Decode(dataBytes.AsSpan(4))
                     );
                 }
                 //
-                return new RevertedWithCustomError(errorResult.Data);
+                return new RevertedWithCustomError(dataBytes);
             }
             default:
                 throw new NotSupportedException();

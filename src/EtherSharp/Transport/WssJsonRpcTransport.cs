@@ -140,7 +140,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
         _logger?.LogInformation("Websocket connection established...");
     }
 
-    private record RpcError(int Code, string Message, byte[] Data);
+    private record RpcError(int Code, string Message, string? Data);
     private record JsonRpcResponse<T>(
         [property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
     private async Task MessageHandler()
