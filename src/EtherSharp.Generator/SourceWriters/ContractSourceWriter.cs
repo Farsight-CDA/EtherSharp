@@ -33,7 +33,7 @@ public class ContractSourceWriter(
 
         string implementationName = $"{contractName}_Generated_Implementation";
         var contractImplementation = new ClassBuilder(implementationName)
-            .AddBaseType(contractName, true)
+            .AddBaseType($"{@namespace}.{contractName}", true)
             .WithVisibility(ClassVisibility.Internal)
             .AddField(new FieldBuilder("EtherSharp.Client.IEtherClient", "_client")
                 .WithIsReadonly(true)
