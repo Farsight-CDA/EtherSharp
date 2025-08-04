@@ -52,15 +52,25 @@ public class EventTypeWriter()
 
         int topicIndex = 1;
         int totalIndex = 1;
-        foreach(var parameter in eventMember.Inputs)
+
+        for(int i = 0; i < eventMember.Inputs.Length; i++)
         {
+            var parameter = eventMember.Inputs[i];
+
             if(!PrimitiveTypeWriter.TryMatchPrimitiveType(parameter.Type, out string primitiveType, out _, out string abiFunctionName, out string decodeSuffix))
             {
                 throw new NotSupportedException();
             }
 
+            string parameterName = NameUtils.ToValidPropertyName(parameter.Name);
+
+            if(string.IsNullOrEmpty(parameterName))
+            {
+                parameterName = $"anonymousArgument{i + 1}";
+            }
+
             classBuilder.AddProperty(
-                new PropertyBuilder(primitiveType, NameUtils.ToValidPropertyName(parameter.Name))
+                new PropertyBuilder(primitiveType, parameterName)
                     .WithVisibility(PropertyVisibility.Public)
                     .WithSetterVisibility(SetterVisibility.None)
             );
