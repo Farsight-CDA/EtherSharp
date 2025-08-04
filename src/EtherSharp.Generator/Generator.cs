@@ -89,7 +89,7 @@ public class Generator : IIncrementalGenerator
             }
 
             var schemaFiles = additionalFiles
-                .Where(file => file.Path.EndsWith(schemaFileName, StringComparison.OrdinalIgnoreCase))
+                .Where(file => Path.GetFileName(file.Path).Equals(schemaFileName, StringComparison.OrdinalIgnoreCase))
                 .ToArray();
 
             if(schemaFiles.Length == 0)
