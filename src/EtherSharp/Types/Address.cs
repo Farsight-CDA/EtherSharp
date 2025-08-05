@@ -76,6 +76,13 @@ public class Address
         => EIP55.FormatAddress(String);
 
     /// <summary>
+    /// Copies the Bytes of this address to a new Byte Array.
+    /// </summary>
+    /// <returns></returns>
+    public byte[] ToByteArray()
+        => Bytes.ToArray();
+
+    /// <summary>
     /// Creates an <see cref="Address"/> instance given its binary representation.
     /// </summary>
     /// <param name="b"></param>
