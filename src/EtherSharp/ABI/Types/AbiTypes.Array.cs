@@ -6,14 +6,16 @@ using System.Buffers.Binary;
 namespace EtherSharp.ABI.Types;
 internal static partial class AbiTypes
 {
-    public class Array(IArrayAbiEncoder value) : DynamicType<IArrayAbiEncoder>(value)
+    public class Array(IArrayAbiEncoder value, uint length) : DynamicType<IArrayAbiEncoder>(value)
     {
+        private readonly uint _length = length;
+
         public override uint PayloadSize => Value.MetadataSize + Value.PayloadSize + 32;
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
-            BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], Value.MetadataSize / 32);
+            BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], _length);
 
             if(!Value.TryWritoTo(payload[32..]))
             {

@@ -102,13 +102,15 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     public AbiEncoder Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
     {
         var encoder = new AbiEncoder();
+        uint elementCount = 0;
 
         foreach(var value in values)
         {
             func(encoder, value);
+            elementCount++;
         }
 
-        return AddElement(new AbiTypes.Array(encoder));
+        return AddElement(new AbiTypes.Array(encoder, elementCount));
     }
 
     void IArrayAbiEncoder.Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
