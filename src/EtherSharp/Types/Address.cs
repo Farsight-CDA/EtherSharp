@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Common.Converter;
 using EtherSharp.EIPs;
 using System;
+using System.Collections;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
@@ -96,7 +97,11 @@ public class Address
 
     /// <inheritdoc/>
     public override int GetHashCode()
-        => String.GetHashCode();
+    {
+        var hashCode = new HashCode();
+        hashCode.AddBytes(_addressBytes);
+        return hashCode.ToHashCode();
+    }
 
     /// <inheritdoc/>
     public override string ToString()
