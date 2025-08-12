@@ -58,16 +58,16 @@ public class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
                     /// <summary>
                     /// Event signature used to calculate the event topic.
                     /// </summary>
-                    public static string Signature => "{{signature}}";
+                    public const string Signature = "{{signature}}";
                     /// <summary>
                     /// Event topic based on signature: {{signature}}
                     /// </summary>
                     public static ReadOnlyMemory<byte> TopicBytes { get; } 
-                        = new byte[] { {{topicBytes[0]}}, {{topicBytes[1]}}, {{topicBytes[2]}}, {{topicBytes[3]}} };
+                        = new byte[] { {{string.Join(",", topicBytes)}} };
                     /// <summary>
                     /// Hex encoded event topic based on signature: {{signature}}
                     /// </summary>
-                    public static string TopicHex => "{{HexUtils.ToHexString(topicBytes)}}";
+                    public const string TopicHex = "0x{{HexUtils.ToHexString(topicBytes)}}";
                     """
                 );
 

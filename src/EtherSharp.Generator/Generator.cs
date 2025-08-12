@@ -124,7 +124,7 @@ public class Generator : IIncrementalGenerator
                 return;
             }
 
-            var writer = CreateSourceWriter();
+            var writer = CreateSourceWriter(contractSymbol.ContainingNamespace.ToString());
             string contractName = contractSymbol.Name;
 
             context.AddSource(
@@ -151,9 +151,9 @@ public class Generator : IIncrementalGenerator
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static ContractSourceWriter CreateSourceWriter()
+    private static ContractSourceWriter CreateSourceWriter(string @namespace)
     {
-        var abiTypeWriter = new AbiTypeWriter();
+        var abiTypeWriter = new AbiTypeWriter(@namespace);
         var parameterTypeWriter = new AbiParameterTypeWriter(abiTypeWriter);
 
         return new ContractSourceWriter(

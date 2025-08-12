@@ -154,7 +154,7 @@ public partial class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
         tupleClassBuilder.AddFunction(encodeFunctionBuilder);
         tupleClassBuilder.AddFunction(decodeFunctionBuilder);
 
-        _typeWriter.RegisterTypeBuilder(tupleClassBuilder);
+        csTypeName = _typeWriter.RegisterTypeBuilder(tupleClassBuilder);
 
         bool localIsDynamic = isDynamic;
         encodeFunc = inputName => isAnonymous

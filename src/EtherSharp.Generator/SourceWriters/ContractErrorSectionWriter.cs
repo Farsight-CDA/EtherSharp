@@ -7,6 +7,12 @@ using System.Text;
 namespace EtherSharp.Generator.SourceWriters;
 public class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
 {
+    private readonly FunctionBuilder _isMatchingSelectorFunction = new FunctionBuilder("IsMatchingSignature")
+        .AddArgument("System.ReadOnlySpan<byte>", "signature")
+        .WithReturnType<bool>()
+        .WithIsStatic()
+        .AddStatement($"return signature.SequenceEqual(SignatureBytes.Span)");
+
     private readonly ErrorTypeWriter _errorTypeWriter = errorTypeWriter;
 
     public void GenerateContractErrorSection(InterfaceBuilder interfaceBuilder, ClassBuilder implementationBuilder, IEnumerable<ErrorAbiMember> errorMembers)
@@ -35,16 +41,16 @@ public class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
                     /// <summary>
                     /// Error signature used to calculate the signature bytes.
                     /// </summary>
-                    public static string Signature => "{{signature}}";
+                    public const string Signature = "{{signature}}";
                     /// <summary>
                     /// Error signature bytes based on function signature: {{signature}}
                     /// </summary>
                     public static ReadOnlyMemory<byte> SignatureBytes { get; } 
-                        = new byte[] { {{signatureBytes[0]}}, {{signatureBytes[1]}}, {{signatureBytes[2]}}, {{signatureBytes[3]}} };
+                        = new byte[] { {{string.Join(",", signatureBytes)}} };
                     /// <summary>
                     /// Hex encoded error signature bytes based on function signature: {{signature}}
                     /// </summary>
-                    public static string SignatureHex => "{{HexUtils.ToHexString(signatureBytes)}}";
+                    public const string SignatureHex = "0x{{HexUtils.ToHexString(signatureBytes)}}";
                     """
                 );
 

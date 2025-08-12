@@ -7,6 +7,12 @@ using EtherSharp.Generator.Util;
 namespace EtherSharp.Generator.SourceWriters;
 public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWriter)
 {
+    private readonly FunctionBuilder _isMatchingSelectorFunction = new FunctionBuilder("IsMatchingSelector")
+        .AddArgument("System.ReadOnlySpan<byte>", "selector")
+        .WithReturnType<bool>()
+        .WithIsStatic()
+        .AddStatement($"return selector.SequenceEqual(SelectorBytes.Span)");
+
     private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
 
     public void GenerateContractFunctionSection(InterfaceBuilder interfaceBuilder, ClassBuilder implementationBuilder,
@@ -19,13 +25,14 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
         {
             foreach(var functionMember in functionMembersGroup)
             {
-                byte[] signatureBytes = functionMember.GetSignatureBytes(out string signature);
+                byte[] selectorBytes = functionMember.GetSignatureBytes(out string signature);
                 string functionTypeName = functionMembersGroup.Count() > 1
-                    ? $"{functionMembersGroup.Key}_{HexUtils.ToHexString(signatureBytes)}"
+                    ? $"{functionMembersGroup.Key}_{HexUtils.ToHexString(selectorBytes)}"
                     : functionMembersGroup.Key;
 
                 var typeBuilder = new ClassBuilder(functionTypeName)
-                    .WithIsStatic();
+                    .WithIsStatic()
+                    .AddFunction(_isMatchingSelectorFunction);
 
                 var createInputFunction = new FunctionBuilder("CreateTxInput")
                     .WithIsStatic()
@@ -41,10 +48,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                 for(int i = 0; i < functionMember.Inputs.Length; i++)
                 {
                     var input = functionMember.Inputs[i];
-                    var (paramName, paramType, encodeFunc) = _paramEncodingWriter.GetInputEncoding(
-                        input,
-                        i
-                    );
+                    var (paramName, paramType, encodeFunc) = _paramEncodingWriter.GetInputEncoding(input, i);
 
                     inputNameList.Add(paramName);
 
@@ -70,7 +74,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                         return EtherSharp.Tx.ITxInput.ForContractCall<{outputTypeName}>(
                             contractAddress,
                             ethValue,
-                            SignatureBytes,
+                            SelectorBytes,
                             encoder,
                             decoder => {decodeFunc}
                         )
@@ -85,7 +89,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                         return EtherSharp.Tx.ITxInput.ForContractCall(
                             contractAddress,
                             ethValue,
-                            SignatureBytes,
+                            SelectorBytes,
                             encoder
                         )
                         """
@@ -98,16 +102,16 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                     /// <summary>
                     /// Function signature used to calculate the signature bytes.
                     /// </summary>
-                    public static string Signature => "{{signature}}";
+                    public const string Signature = "{{signature}}";
                     /// <summary>
                     /// Function signature bytes based on function signature: {{signature}}
                     /// </summary>
-                    public static ReadOnlyMemory<byte> SignatureBytes { get; } 
-                        = new byte[] { {{signatureBytes[0]}}, {{signatureBytes[1]}}, {{signatureBytes[2]}}, {{signatureBytes[3]}} };
+                    public static ReadOnlyMemory<byte> SelectorBytes { get; } 
+                        = new byte[] { {{string.Join(",", selectorBytes)}} };
                     /// <summary>
                     /// Hex encoded function signature bytes based on function signature: {{signature}}
                     /// </summary>
-                    public static string SignatureHex => "{{HexUtils.ToHexString(signatureBytes)}}";
+                    public const string SelectorHex = "0x{{HexUtils.ToHexString(selectorBytes)}}";
                     """
                 );
 
@@ -140,7 +144,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                     interfaceFunction
                         .AddStatement(
                             $"""
-                            return {contractName}.Functions.{functionTypeName}.CreateTxInput(Address, {string.Join(",", inputNameList)}, {(isPayable ? "ethValue" : "0")})
+                            return {contractName}.Functions.{functionTypeName}.CreateTxInput(Address, {string.Join(",", inputNameList)}{(inputNameList.Count > 0 ? "," : "")} {(isPayable ? "ethValue" : "0")})
                             """
                         );
 
