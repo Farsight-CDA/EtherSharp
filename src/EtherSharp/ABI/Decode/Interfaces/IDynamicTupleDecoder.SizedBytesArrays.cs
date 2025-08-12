@@ -3,7 +3,7 @@
 namespace EtherSharp.ABI.Decode.Interfaces;
 public partial interface IDynamicTupleDecoder
 {
-    public byte[] Bytes1Array();    
+    public byte[] Bytes1Array();
     public byte[][] Bytes2Array();
     public byte[][] Bytes3Array();
     public byte[][] Bytes4Array();

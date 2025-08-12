@@ -33,6 +33,7 @@ public class ClassBuilder(string name) : ITypeBuilder
     private ClassVisibility _visibility = ClassVisibility.Public;
     private bool _isPartial;
     private bool _isAbstract;
+    private bool _isStatic;
 
     private string? _jsonConverterType;
     private string? _summaryComment;
@@ -114,6 +115,12 @@ public class ClassBuilder(string name) : ITypeBuilder
     public ClassBuilder WithIsAbstract(bool isAbstract = true)
     {
         _isAbstract = isAbstract;
+        return this;
+    }
+
+    public ClassBuilder WithIsStatic(bool isStatic = true)
+    {
+        _isStatic = isStatic;
         return this;
     }
 
@@ -212,6 +219,11 @@ public class ClassBuilder(string name) : ITypeBuilder
         {
             outputSb.Append(" abstract");
         }
+        if(_isStatic)
+        {
+            outputSb.Append(" static");
+        }
+
         outputSb.AppendLine($" class {_name} {baseTypeSb}");
         outputSb.AppendLine("{");
 

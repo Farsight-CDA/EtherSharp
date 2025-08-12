@@ -1,6 +1,6 @@
 ﻿using EtherSharp.Generator.SyntaxElements;
 
-namespace EtherSharp.Generator.SourceWriters;
+namespace EtherSharp.Generator.SourceWriters.Components;
 public class AbiTypeWriter
 {
     private readonly Dictionary<SyntaxId, ITypeBuilder> _typeBuilders = [];

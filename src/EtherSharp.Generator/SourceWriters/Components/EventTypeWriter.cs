@@ -2,36 +2,21 @@
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
 
-namespace EtherSharp.Generator.SourceWriters;
-public class EventTypeWriter()
+namespace EtherSharp.Generator.SourceWriters.Components;
+public class EventTypeWriter
 {
     private readonly FunctionBuilder _isMatchingLogFunction = new FunctionBuilder("IsMatchingLog")
             .AddArgument("EtherSharp.Types.Log", "log")
             .WithReturnType<bool>()
             .WithIsStatic()
-            .AddStatement($"return log.Topics[0].AsSpan().SequenceEqual(TopicBytes)");
+            .AddStatement($"return log.Topics[0].AsSpan().SequenceEqual(TopicBytes.Span)");
 
-    public ClassBuilder GenerateEventType(EventAbiMember eventMember)
+    public ClassBuilder GenerateEventType(string eventTypeName, EventAbiMember eventMember)
     {
-        string eventTypeName = NameUtils.ToValidClassName($"{eventMember.Name}Event");
         var classBuilder = new ClassBuilder(eventTypeName)
             .AddBaseType($"EtherSharp.Realtime.Events.ITxEvent<{eventTypeName}>", true)
             .AddProperty(new PropertyBuilder("EtherSharp.Types.Log", "Log"))
             .WithAutoConstructor();
-
-        byte[] topic = eventMember.GetEventTopic(out string eventSignature);
-        classBuilder.AddRawContent(
-            $"""
-            /// <summary>
-            /// Event topic based on signature: {eventSignature}
-            /// </summary>
-            public const System.String Topic = "0x{HexUtils.ToHexString(topic)}";
-            /// <summary>
-            /// Event topic bytes based on signature: {eventSignature}
-            /// </summary>
-            public static System.ReadOnlySpan<byte> TopicBytes => [{string.Join(", ", topic)}];
-            """
-        );
 
         var decodeMethod = new FunctionBuilder("Decode")
             .WithReturnTypeRaw(eventTypeName)
@@ -59,7 +44,7 @@ public class EventTypeWriter()
 
             if(!PrimitiveTypeWriter.TryMatchPrimitiveType(parameter.Type, out string primitiveType, out _, out string abiFunctionName, out string decodeSuffix))
             {
-                throw new NotSupportedException();
+                throw new NotSupportedException("Event can only contain primitive types");
             }
 
             string parameterName = NameUtils.ToValidPropertyName(parameter.Name);

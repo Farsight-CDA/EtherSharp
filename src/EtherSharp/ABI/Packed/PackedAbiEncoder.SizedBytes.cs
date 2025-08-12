@@ -1,11 +1,11 @@
-using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
+using EtherSharp.ABI.Types;
 
 namespace EtherSharp.ABI.Packed;
 public partial class PackedAbiEncoder
 {
     public PackedAbiEncoder Bytes1(byte value)
-        => AddElement(new AbiTypes.Byte(value));    
+        => AddElement(new AbiTypes.Byte(value));
     public PackedAbiEncoder Bytes2(params byte[] value)
         => AddElement(new AbiTypes.SizedBytes(value, 2));
     public PackedAbiEncoder Bytes3(params byte[] value)

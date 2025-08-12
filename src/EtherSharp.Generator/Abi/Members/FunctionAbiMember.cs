@@ -29,7 +29,7 @@ public class FunctionAbiMember : AbiMember
             var input = Inputs[i];
             bool isLastInput = i == Inputs.Length - 1;
 
-            sb.Append(input.GetFunctionSignatureTypeString());
+            sb.Append(input.GetSignatureTypeString());
 
             if(!isLastInput)
             {

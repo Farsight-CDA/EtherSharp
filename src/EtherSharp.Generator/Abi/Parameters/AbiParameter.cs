@@ -20,7 +20,7 @@ public class AbiParameter
         Components = components;
     }
 
-    public string GetFunctionSignatureTypeString()
+    public string GetSignatureTypeString()
     {
         if(!Type.Contains("tuple"))
         {
@@ -35,7 +35,7 @@ public class AbiParameter
             bool isLastComponent = i == Components.Length - 1;
             var component = Components[i];
 
-            sb.Append(component.GetFunctionSignatureTypeString());
+            sb.Append(component.GetSignatureTypeString());
 
             if(!isLastComponent)
             {

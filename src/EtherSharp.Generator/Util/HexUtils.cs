@@ -1,9 +1,9 @@
 ﻿namespace EtherSharp.Generator.Util;
 public class HexUtils
 {
-    public static string ToHexString(byte[] bytes)
+    public static string ToHexString(Span<byte> bytes)
     {
-        if(bytes == null || bytes.Length == 0)
+        if(bytes.Length == 0)
         {
             return string.Empty;
         }

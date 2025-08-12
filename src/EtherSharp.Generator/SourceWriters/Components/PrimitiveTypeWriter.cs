@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace EtherSharp.Generator.SourceWriters;
+namespace EtherSharp.Generator.SourceWriters.Components;
 public static class PrimitiveTypeWriter
 {
     public static bool TryMatchPrimitiveType(string type, out string csharpTypeName, out bool isDynamic, out string abiFunctionName, out string decodeSuffix)

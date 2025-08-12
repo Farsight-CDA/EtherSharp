@@ -1,28 +1,27 @@
 ﻿using EtherSharp.Generator.Abi;
 using EtherSharp.Generator.Abi.Members;
+using EtherSharp.Generator.SourceWriters.Components;
 using EtherSharp.Generator.SyntaxElements;
-using EtherSharp.Generator.Util;
-using System.Numerics;
 using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
 public class ContractSourceWriter(
     AbiTypeWriter typeWriter,
-    ParamEncodingWriter paramEncodingWriter, ParamDecodingWriter paramDecodingWriter,
-    EventTypeWriter eventTypeWriter
+    ContractErrorSectionWriter errorSectionWriter, ContractEventSectionWriter eventSectionWriter, ContractFunctionSectionWriter functionSectionWriter
 )
 {
     private readonly AbiTypeWriter _typeWriter = typeWriter;
-    private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
-    private readonly ParamDecodingWriter _paramDecodingWriter = paramDecodingWriter;
-    private readonly EventTypeWriter _eventTypeWriter = eventTypeWriter;
+
+    private readonly ContractErrorSectionWriter _errorSectionWriter = errorSectionWriter;
+    private readonly ContractEventSectionWriter _eventSectionWriter = eventSectionWriter;
+    private readonly ContractFunctionSectionWriter _functionSectionWriter = functionSectionWriter;
 
     public string WriteContractSourceCode(string @namespace, string contractName, IEnumerable<AbiMember> members)
     {
         var contractInterface = new InterfaceBuilder(contractName)
             .WithIsPartial(true)
             .WithVisibility(InterfaceVisibility.Public)
-            .AddRawContent($"public LogsApi Events => new LogsApi(this);");
+            .AddRawContent($"public Logs.LogsApi Events => new Logs.LogsApi(this);");
 
         if(members.Any(
             x => (x is FallbackAbiMember fallbackMember && fallbackMember.StateMutability == StateMutability.Payable)
@@ -46,84 +45,11 @@ public class ContractSourceWriter(
                 .AddStatement("return _client")
             );
 
-        var signaturesClassBuilder = new StringBuilder();
-        signaturesClassBuilder.AppendLine(
-            $$"""
-            public static class Signatures 
-            {
-            """
-        );
-
-        foreach(var member in members.Where(x => x is FunctionAbiMember).Cast<FunctionAbiMember>())
-        {
-            byte[] signatureBytes = member.GetSignatureBytes(out string functionSignature);
-            var signatureBytesField = new FieldBuilder("byte[]", GetFunctionSignatureFieldName(member))
-                .WithIsStatic(true)
-                .WithIsReadonly(true)
-                .WithVisibility(FieldVisibility.Public)
-                .WithDefaultValue($"[ {signatureBytes[0]}, {signatureBytes[1]}, {signatureBytes[2]}, {signatureBytes[3]} ]")
-                .WithXmlSummaryContent(functionSignature);
-
-            signaturesClassBuilder.AppendLine(signatureBytesField.Build());
-
-            bool isQuery = member.Outputs.Length > 0
-                && (member.StateMutability == StateMutability.Pure || member.StateMutability == StateMutability.View);
-
-            var func = isQuery switch
-            {
-                true => GenerateQueryFunction(member, contractName),
-                false => GenerateMessageFunction(member, contractName)
-            };
-
-            contractInterface.AddFunction(func);
-            contractImplementation.AddFunction(func);
-        }
-
-        var eventsStructBuilder = new StringBuilder();
-        eventsStructBuilder.AppendLine(
-            $$"""
-            public readonly ref struct LogsApi
-            {
-                private readonly {{@namespace}}.{{contractName}} contract;
-
-                public LogsApi({{@namespace}}.{{contractName}} contract)
-                {
-                    this.contract = contract;
-                }
-                public LogsApi()
-                {
-                    throw new NotSupportedException();
-                }
-            """);
-
-        List<string> signaturesSeen = [];
-        foreach(var member in members.Where(x => x is EventAbiMember).Cast<EventAbiMember>())
-        {
-            _ = member.GetEventTopic(out string signature);
-
-            if(signaturesSeen.Contains(signature))
-            {
-                continue;
-            }
-
-            signaturesSeen.Add(signature);
-
-            string eventProperty = GenerateEventProperty($"{@namespace}.{contractName}", member);
-            eventsStructBuilder.AppendLine(eventProperty);
-
-            contractInterface.AddInnerType(
-                _eventTypeWriter.GenerateEventType(member)
-            );
-        }
-
-        signaturesClassBuilder.AppendLine("}");
-        eventsStructBuilder.AppendLine("}");
-
-        contractInterface.AddRawContent(signaturesClassBuilder.ToString());
-        contractInterface.AddRawContent(eventsStructBuilder.ToString());
+        _functionSectionWriter.GenerateContractFunctionSection(contractInterface, contractImplementation, contractName, members.OfType<FunctionAbiMember>());
+        _errorSectionWriter.GenerateContractErrorSection(contractInterface, contractImplementation, members.OfType<ErrorAbiMember>());
+        _eventSectionWriter.GenerateContractEventSection(contractInterface, contractImplementation, @namespace, contractName, members.OfType<EventAbiMember>());
 
         var output = new StringBuilder();
-
         output.AppendLine(
             $$"""
             namespace {{@namespace}};
@@ -140,126 +66,4 @@ public class ContractSourceWriter(
 
         return output.ToString();
     }
-
-    private FunctionBuilder GenerateQueryFunction(FunctionAbiMember queryFunction, string contractName)
-    {
-        string noSuffixFunctionName = NameUtils.ToValidFunctionName(queryFunction.Name);
-        string functionName = $"{noSuffixFunctionName}Async";
-        var func = new FunctionBuilder(functionName)
-            .WithVisibility(FunctionVisibility.Public);
-
-        func.AddStatement(
-            $"""
-            var encoder = new EtherSharp.ABI.AbiEncoder()
-            """
-        );
-
-        foreach(var (input, index) in queryFunction.Inputs.Select((x, i) => (x, i)))
-        {
-            _paramEncodingWriter.AddParameterEncoding(func, input, index);
-        }
-
-        var (returnType, decoderFunction) = _paramDecodingWriter.SetQueryOutputDecoding(noSuffixFunctionName, func, queryFunction.Outputs);
-
-        func.AddArgument("EtherSharp.Types.TargetBlockNumber", "targetBlockNumber", true, "default");
-        func.AddArgument("EtherSharp.StateOverride.TxStateOverride", "stateOverride", true, "default");
-        func.AddArgument("System.Threading.CancellationToken", "cancellationToken", true, "default");
-
-        func.AddStatement(
-            $$"""
-            return _client.CallAsync(EtherSharp.Tx.ITxInput.ForContractCall<{{returnType}}>(
-                Address,
-                0,
-                {{contractName}}.Signatures.{{GetFunctionSignatureFieldName(queryFunction)}},
-                encoder,
-                decoder => {{decoderFunction}}
-            ), targetBlockNumber, stateOverride: stateOverride, cancellationToken: cancellationToken)
-            """
-        );
-        return func;
-    }
-
-    private FunctionBuilder GenerateMessageFunction(FunctionAbiMember messageFunction, string contractName)
-    {
-        string functionName = NameUtils.ToValidFunctionName(messageFunction.Name);
-        var func = new FunctionBuilder(functionName)
-            .WithVisibility(FunctionVisibility.Public);
-
-        func.AddStatement(
-        $"""
-        var encoder = new EtherSharp.ABI.AbiEncoder()
-        """);
-
-        var paramNames = new List<string>();
-        foreach(var (input, index) in messageFunction.Inputs.Select((x, i) => (x, i)))
-        {
-            paramNames.Add(
-                _paramEncodingWriter.AddParameterEncoding(func, input, index)
-            );
-        }
-
-        string ethParamName = paramNames.Contains("ethValue")
-            ? "_ethValue"
-            : "ethValue";
-
-        if(messageFunction.StateMutability == StateMutability.Payable)
-        {
-            func.AddArgument(
-                typeof(BigInteger).FullName, ethParamName
-            );
-        }
-        else
-        {
-            func.AddStatement($"{typeof(BigInteger).FullName} {ethParamName} = 0");
-        }
-
-        if(messageFunction.Outputs.Length == 0)
-        {
-            func.WithReturnTypeRaw("EtherSharp.Tx.ITxInput");
-            func.AddStatement(
-            $$"""
-                return EtherSharp.Tx.ITxInput.ForContractCall(
-                    Address,
-                    {{ethParamName}},
-                    {{contractName}}.Signatures.{{GetFunctionSignatureFieldName(messageFunction)}},
-                    encoder
-                )
-                """);
-        }
-        else
-        {
-            var (returnType, decoderFunction) = _paramDecodingWriter.SetMessageOutputDecoding(functionName, func, messageFunction.Outputs);
-
-            func.AddStatement(
-            $$"""
-                return EtherSharp.Tx.ITxInput.ForContractCall<{{returnType}}>(
-                    Address,
-                    {{ethParamName}},
-                    {{contractName}}.Signatures.{{GetFunctionSignatureFieldName(messageFunction)}},
-                    encoder,
-                    decoder => {{decoderFunction}}
-                )
-                """);
-        }
-
-        return func;
-    }
-
-    private string GenerateEventProperty(string contractInterfaceFullName, EventAbiMember eventMember)
-    {
-        string propertyName = NameUtils.ToValidFunctionName($"{eventMember.Name}");
-        string eventTypeName = NameUtils.ToValidClassName($"{eventMember.Name}Event");
-
-        return
-        $"""
-        public readonly EtherSharp.Client.Services.LogsApi.IConfiguredLogsApi<{contractInterfaceFullName}.{eventTypeName}> {propertyName}
-            => contract.GetClient()
-                .Logs<{contractInterfaceFullName}.{eventTypeName}>()
-                .HasContract(contract)
-                .HasTopic({contractInterfaceFullName}.{eventTypeName}.Topic);
-        """;
-    }
-
-    private static string GetFunctionSignatureFieldName(FunctionAbiMember abiFunction)
-        => $"{NameUtils.ToValidFunctionName(abiFunction.Name)}_{HexUtils.ToHexString(abiFunction.GetSignatureBytes(out _))}";
 }

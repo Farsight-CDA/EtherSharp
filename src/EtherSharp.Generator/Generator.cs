@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Generator.Abi;
 using EtherSharp.Generator.SourceWriters;
+using EtherSharp.Generator.SourceWriters.Components;
 using EtherSharp.Generator.Util;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -154,13 +155,12 @@ public class Generator : IIncrementalGenerator
     {
         var abiTypeWriter = new AbiTypeWriter();
         var parameterTypeWriter = new AbiParameterTypeWriter(abiTypeWriter);
-        var paramDecodingWriter = new ParamDecodingWriter(parameterTypeWriter);
 
         return new ContractSourceWriter(
             abiTypeWriter,
-            new ParamEncodingWriter(parameterTypeWriter),
-            paramDecodingWriter,
-            new EventTypeWriter()
+            new ContractErrorSectionWriter(new ErrorTypeWriter()),
+            new ContractEventSectionWriter(new EventTypeWriter()),
+            new ContractFunctionSectionWriter(new ParamEncodingWriter(parameterTypeWriter))
         );
     }
 }

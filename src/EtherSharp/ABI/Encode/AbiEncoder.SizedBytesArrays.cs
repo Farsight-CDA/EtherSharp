@@ -1,11 +1,11 @@
-using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
+using EtherSharp.ABI.Types;
 
 namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
     public AbiEncoder Bytes1Array(params byte[] value)
-        => AddElement(new AbiTypes.SizedBytesArray([value], 1));       
+        => AddElement(new AbiTypes.SizedBytesArray([value], 1));
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes1Array(params byte[] value)
         => Bytes1Array(value);
     public AbiEncoder Bytes2Array(params byte[][] values)
