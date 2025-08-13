@@ -5,19 +5,23 @@ using EtherSharp.Generator.Util;
 namespace EtherSharp.Generator.SourceWriters.Components;
 public class ErrorTypeWriter
 {
-    public ClassBuilder GenerateErrorType(string typeName, ErrorAbiMember errorMember)
+    private readonly FunctionBuilder _isMatchingSignatureFunction = new FunctionBuilder("IsMatchingSignature")
+        .AddArgument("System.ReadOnlySpan<byte>", "signature")
+        .WithReturnType<bool>()
+        .WithIsStatic()
+        .AddStatement($"return signature.SequenceEqual(SignatureBytes.Span)");
+
+    public ClassBuilder GenerateErrorType(string errorTypeName, ErrorAbiMember errorMember)
     {
-        var classBuilder = new ClassBuilder(typeName)
+        var errorTypeBuilder = new ClassBuilder(errorTypeName)
             .WithAutoConstructor();
 
         var decodeMethod = new FunctionBuilder("Decode")
-            .WithReturnTypeRaw(typeName)
+            .WithReturnTypeRaw(errorTypeName)
             .WithIsStatic(true)
             .AddArgument("EtherSharp.ABI.AbiDecoder", "decoder");
 
-        var constructorCall = new ConstructorCallBuilder(
-            typeName
-        );
+        var errorTypeCtorCall = new ConstructorCallBuilder(errorTypeName);
 
         for(int i = 0; i < errorMember.Inputs.Length; i++)
         {
@@ -34,7 +38,7 @@ public class ErrorTypeWriter
                 throw new NotSupportedException("ABI Error member must all have a name");
             }
 
-            classBuilder.AddProperty(
+            errorTypeBuilder.AddProperty(
                 new PropertyBuilder(primitiveType, parameterName)
                     .WithVisibility(PropertyVisibility.Public)
                     .WithSetterVisibility(SetterVisibility.None)
@@ -42,13 +46,14 @@ public class ErrorTypeWriter
 
             string tempVarName = $"param{i}";
             decodeMethod.AddStatement($"var {tempVarName} = decoder.{abiFunctionName}(){decodeSuffix}");
-            constructorCall.AddArgument(tempVarName);
+            errorTypeCtorCall.AddArgument(tempVarName);
         }
 
-        decodeMethod.AddStatement($"return {constructorCall.ToInlineCall()}");
+        decodeMethod.AddStatement($"return {errorTypeCtorCall.ToInlineCall()}");
 
-        classBuilder.AddFunction(decodeMethod);
+        errorTypeBuilder.AddFunction(decodeMethod);
+        errorTypeBuilder.AddFunction(_isMatchingSignatureFunction);
 
-        return classBuilder;
+        return errorTypeBuilder;
     }
 }

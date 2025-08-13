@@ -23,6 +23,24 @@ public class EventTypeWriter
             .WithIsStatic(true)
             .AddArgument("EtherSharp.Types.Log", "log");
 
+        var tryDecodeMethod = new FunctionBuilder("TryDecode")
+            .AddArgument("EtherSharp.Types.Log", "log")
+            .AddArgument($"out {eventTypeName}", "@event")
+            .WithReturnType<bool>()
+            .WithIsStatic()
+            .AddStatement(
+                $$"""
+                if (!IsMatchingLog(log)) 
+                {
+                    @event = null!;
+                    return false;
+                }
+
+                @event = Decode(log);
+                return true
+                """
+            );
+
         if(eventMember.Inputs.Any(x => !x.IsIndexed))
         {
             decodeMethod.AddStatement("EtherSharp.ABI.AbiDecoder dataDecoder = new EtherSharp.ABI.AbiDecoder(log.Data)");
@@ -90,6 +108,7 @@ public class EventTypeWriter
         decodeMethod.AddStatement($"return {constructorCall.ToInlineCall()}");
 
         classBuilder.AddFunction(decodeMethod);
+        classBuilder.AddFunction(tryDecodeMethod);
         classBuilder.AddFunction(_isMatchingLogFunction);
 
         return classBuilder;
