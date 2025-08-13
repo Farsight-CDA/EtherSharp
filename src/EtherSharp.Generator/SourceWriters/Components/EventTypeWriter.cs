@@ -1,6 +1,8 @@
 ﻿using EtherSharp.Generator.Abi.Members;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
+using System.Net.NetworkInformation;
+using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
 public class EventTypeWriter
@@ -41,21 +43,6 @@ public class EventTypeWriter
                 """
             );
 
-        if(eventMember.Inputs.Any(x => !x.IsIndexed))
-        {
-            decodeMethod.AddStatement("EtherSharp.ABI.AbiDecoder dataDecoder = new EtherSharp.ABI.AbiDecoder(log.Data)");
-        }
-        if(eventMember.Inputs.Any(x => x.IsIndexed))
-        {
-            decodeMethod.AddStatement("EtherSharp.ABI.AbiDecoder decoder");
-        }
-
-        var constructorCall = new ConstructorCallBuilder(eventTypeName)
-            .AddArgument("log");
-
-        int topicIndex = 1;
-        int totalIndex = 1;
-
         for(int i = 0; i < eventMember.Inputs.Length; i++)
         {
             var parameter = eventMember.Inputs[i];
@@ -77,40 +64,107 @@ public class EventTypeWriter
                     .WithVisibility(PropertyVisibility.Public)
                     .WithSetterVisibility(SetterVisibility.None)
             );
-
-            string tempVarName;
-            if(parameter.IsIndexed)
-            {
-                tempVarName = $"topic{topicIndex}";
-                decodeMethod.AddStatement($"decoder = new EtherSharp.ABI.AbiDecoder(log.Topics[{topicIndex}])");
-                decodeMethod.AddStatement($"var {tempVarName} = decoder.{abiFunctionName}(){decodeSuffix}");
-
-                topicIndex++;
-            }
-            else
-            {
-                tempVarName = $"param{totalIndex}";
-                decodeMethod.AddStatement($"var {tempVarName} = dataDecoder.{abiFunctionName}(){decodeSuffix}");
-            }
-
-            if(parameter.Type.Contains("bytes"))
-            {
-                constructorCall.AddArgument($"{tempVarName}.ToArray()");
-            }
-            else
-            {
-                constructorCall.AddArgument(tempVarName);
-            }
-
-            totalIndex++;
         }
 
-        decodeMethod.AddStatement($"return {constructorCall.ToInlineCall()}");
+        int topicCount = eventMember.Inputs.Count(x => x.IsIndexed);
+
+        decodeMethod.AddStatement(
+            $$"""
+            if (log.Topics.Length != 1 && log.Topics.Length != {{topicCount + 1}})
+            {
+                throw new System.InvalidOperationException("Topic count mismatch");
+            }
+            """,
+            false
+        );
+
+        if(topicCount > 0)
+        {
+            decodeMethod.AddStatement(
+                $$"""
+                if (log.Topics.Length == 1) 
+                {
+                    {{GenerateDataDecodeStatements(eventTypeName, eventMember)}}
+                }
+                else
+                {
+                    {{GenerateRegularDecodeStatements(eventTypeName, eventMember)}}
+                }
+                """,
+                false
+            );
+        }
+        else
+        {
+            decodeMethod.AddStatement(GenerateDataDecodeStatements(eventTypeName, eventMember));
+        }
 
         classBuilder.AddFunction(decodeMethod);
         classBuilder.AddFunction(tryDecodeMethod);
         classBuilder.AddFunction(_isMatchingLogFunction);
 
         return classBuilder;
+    }
+
+    private string GenerateRegularDecodeStatements(string eventTypeName, EventAbiMember eventMember)
+    {
+        var ctorBuilder = new ConstructorCallBuilder(eventTypeName).AddArgument("log");
+        var statementBuilder = new StringBuilder();
+
+        int topicIndex = 1;
+
+        foreach(var parameter in eventMember.Inputs)
+        {
+            if(!PrimitiveTypeWriter.TryMatchPrimitiveType(parameter.Type, out string primitiveType, out _, out string abiFunctionName, out string decodeSuffix))
+            {
+                throw new NotSupportedException("Event can only contain primitive types");
+            }
+
+            if(parameter.IsIndexed)
+            {
+                ctorBuilder.AddArgument(
+                    $"new EtherSharp.ABI.AbiDecoder(log.Topics[{topicIndex}]).{abiFunctionName}(){decodeSuffix}"
+                );
+
+                topicIndex++;
+            }
+            else
+            {
+                ctorBuilder.AddArgument(
+                    $"dataDecoder.{abiFunctionName}(){decodeSuffix}"
+                );
+            }
+        }
+
+        if(eventMember.Inputs.Any(x => !x.IsIndexed))
+        {
+            statementBuilder.AppendLine("EtherSharp.ABI.AbiDecoder dataDecoder = new EtherSharp.ABI.AbiDecoder(log.Data);");
+        }
+
+        statementBuilder.AppendLine($"return {ctorBuilder.ToInlineCall()};");
+        return statementBuilder.ToString();
+    }
+
+
+    private string GenerateDataDecodeStatements(string eventTypeName, EventAbiMember eventMember)
+    {
+        var ctorBuilder = new ConstructorCallBuilder(eventTypeName).AddArgument("log");
+        var statementBuilder = new StringBuilder();
+
+        foreach(var parameter in eventMember.Inputs)
+        {
+            if(!PrimitiveTypeWriter.TryMatchPrimitiveType(parameter.Type, out string primitiveType, out _, out string abiFunctionName, out string decodeSuffix))
+            {
+                throw new NotSupportedException("Event can only contain primitive types");
+            }
+
+            ctorBuilder.AddArgument(
+                $"dataDecoder.{abiFunctionName}(){decodeSuffix}"
+            );
+        }
+
+        statementBuilder.AppendLine("EtherSharp.ABI.AbiDecoder dataDecoder = new EtherSharp.ABI.AbiDecoder(log.Data);");
+        statementBuilder.AppendLine($"return {ctorBuilder.ToInlineCall()};");
+        return statementBuilder.ToString();
     }
 }
