@@ -8,7 +8,9 @@ namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
     public AbiEncoder Bytes1Array(params byte[] value)
-        => AddElement(new AbiTypes.SizedBytesArray([value], 1));       
+        => AddElement(new AbiTypes.SizedBytesArray([value], 1));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes1Array(params byte[] value)
+        => Bytes1Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes1Array(params byte[] value)
         => Bytes1Array(value);
 <#
@@ -17,6 +19,8 @@ public partial class AbiEncoder
 #>
     public AbiEncoder Bytes<#=i#>Array(params byte[][] values)
         => AddElement(new AbiTypes.SizedBytesArray(values, <#=i#>));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes<#=i#>Array(params byte[][] value)
+        => Bytes<#=i#>Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes<#=i#>Array(params byte[][] values)
         => Bytes<#=i#>Array(values);
 <#
