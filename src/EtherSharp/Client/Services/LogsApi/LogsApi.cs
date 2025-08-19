@@ -117,7 +117,7 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient, SubscriptionsManager subscr
                 ?? throw new ImpossibleException();
         }
         //
-        return [.. rawResults.Select(TEvent.Decode)];
+        return [.. rawResults.OrderBy(x => x.BlockNumber).ThenBy(x => x.LogIndex).Select(TEvent.Decode)];
     }
 
     public async Task<IEventFilter<TEvent>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default,
