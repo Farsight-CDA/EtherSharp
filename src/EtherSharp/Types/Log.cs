@@ -13,5 +13,7 @@ public record Log(
     bool Removed
 ) : ITxEvent<Log>
 {
+    Log ITxEvent.Log => this;
+
     public static Log Decode(Log data) => data;
 }
