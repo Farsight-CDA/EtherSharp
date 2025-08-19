@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.Subscriptions;
+using EtherSharp.Common.Comparer;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Events;
@@ -111,13 +112,15 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient, SubscriptionsManager subscr
 
         var rawResults = await _rpcClient.EthGetLogsAsync(fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), blockHash, cancellationToken);
 
+        Array.Sort(rawResults, LogComparer.Instance);
+
         if(typeof(TEvent) == typeof(Log))
         {
             return (rawResults as TEvent[])
                 ?? throw new ImpossibleException();
         }
         //
-        return [.. rawResults.OrderBy(x => x.BlockNumber).ThenBy(x => x.LogIndex).Select(TEvent.Decode)];
+        return [.. rawResults.Select(TEvent.Decode)];
     }
 
     public async Task<IEventFilter<TEvent>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default,
