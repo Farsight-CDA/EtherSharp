@@ -5,8 +5,16 @@ namespace EtherSharp.Common.Exceptions;
 /// Exception types thrown when eth_call reverts.
 /// </summary>
 /// <param name="message"></param>
-public class CallRevertedException(string message) : Exception(message)
+public abstract class CallRevertedException(string message) : Exception(message)
 {
+    /// <summary>
+    /// Thrown when a call reverts without any error data.
+    /// </summary>
+    public class CallRevertedWithNoDataException()
+        : CallRevertedException("Call reverted with no data, this likely means that the contract does not implement the called method.")
+    {
+    }
+
     /// <summary>
     /// Thrown when a call reverts with an error message.
     /// </summary>

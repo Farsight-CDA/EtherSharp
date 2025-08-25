@@ -10,7 +10,7 @@ public abstract record TxCallResult
     private static ReadOnlySpan<byte> PanicSignature => [0x4e, 0x48, 0x7b, 0x71];
 
     public record Success(byte[] Data) : TxCallResult;
-    public record Reverted() : TxCallResult;
+    public record RevertedWithNoData() : TxCallResult;
     public record RevertedWithMessage(string Message) : TxCallResult;
     public record RevertedWithCustomError(byte[] Data) : TxCallResult;
     public record RevertedWithPanic(PanicType Type) : TxCallResult;
@@ -22,7 +22,7 @@ public abstract record TxCallResult
     public byte[] Unwrap() => this switch
     {
         Success s => s.Data,
-        Reverted => throw new CallRevertedException("execution reverted"),
+        RevertedWithNoData => throw new CallRevertedException.CallRevertedWithNoDataException(),
         RevertedWithMessage m => throw new CallRevertedException.CallRevertedWithMessageException(m.Message),
         RevertedWithCustomError c => throw new CallRevertedException.CallRevertedWithCustomErrorException(c.Data),
         RevertedWithPanic p => throw new CallRevertedException.CallRevertedWithPanicException(p.Type),
@@ -44,9 +44,9 @@ public abstract record TxCallResult
                     throw RPCException.FromRPCError(errorResult);
                 }
 
-                if(errorResult.Data is null || errorResult.Data.Length == 0)
+                if(errorResult.Data is null || errorResult.Data.Length <= 2)
                 {
-                    return new Reverted();
+                    return new RevertedWithNoData();
                 }
 
                 byte[] dataBytes = Convert.FromHexString(errorResult.Data.AsSpan(2));
