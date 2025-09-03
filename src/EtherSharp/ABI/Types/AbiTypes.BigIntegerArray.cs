@@ -2,14 +2,14 @@
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
     public class BigIntegerArray : DynamicType<System.Numerics.BigInteger[]>
     {
         private readonly bool _isUnsigned;
         public override uint PayloadSize => (32 * (uint) Value.Length) + 32;
 
-        public BigIntegerArray(System.Numerics.BigInteger[] value, bool isUnsigned, int bitSize)
+        internal BigIntegerArray(System.Numerics.BigInteger[] value, bool isUnsigned, int bitSize)
             : base(value)
         {
             if(bitSize < 64 || bitSize > 256 || bitSize % 8 != 0)

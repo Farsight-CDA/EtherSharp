@@ -1,6 +1,12 @@
-﻿namespace EtherSharp.ABI.Types.Base;
+﻿
+namespace EtherSharp.ABI.Types.Base;
 
-internal abstract class FixedType<T>(T value) : IFixedType
+/// <summary>
+/// Represents an ABI type that will be ABI encoded into the head section of the encoding.
+/// </summary>
+/// <typeparam name="T"></typeparam>
+/// <param name="value"></param>
+public abstract class FixedType<T>(T value) : IFixedType
 {
     public T Value { get; } = value;
 

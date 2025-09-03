@@ -2,13 +2,14 @@
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
-    internal class Int : FixedType<int>, IPackedEncodeType
+    public class Int : FixedType<int>, IPackedEncodeType
     {
+        /// <inheritdoc/>
         public int PackedSize { get; }
 
-        public Int(int value, int byteLength) : base(value)
+        internal Int(int value, int byteLength) : base(value)
         {
             if(byteLength < 3 || byteLength > 4)
             {
@@ -26,7 +27,7 @@ internal static partial class AbiTypes
 
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer, false);
-        public void EncodePacked(Span<byte> buffer)
+        void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer, true);
 
         public static void EncodeInto(int value, Span<byte> buffer, bool isPacked)

@@ -1,15 +1,18 @@
 ﻿using EtherSharp.ABI.Types.Base;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
-    internal class Address(EtherSharp.Types.Address value) : FixedType<EtherSharp.Types.Address>(value), IPackedEncodeType
+    public class Address : FixedType<EtherSharp.Types.Address>, IPackedEncodeType
     {
+        /// <inheritdoc/>
         public int PackedSize => 20;
+
+        internal Address(EtherSharp.Types.Address value) : base(value) { }
 
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer, false);
-        public void EncodePacked(Span<byte> buffer)
+        void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer, true);
 
         public static void EncodeInto(EtherSharp.Types.Address value, Span<byte> buffer, bool isPacked)

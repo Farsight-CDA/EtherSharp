@@ -2,13 +2,13 @@
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
     public class SizedBytesArray : DynamicType<byte[][]>
     {
         public override uint PayloadSize => (32 * (uint) Value.Length) + 32;
 
-        public SizedBytesArray(byte[][] values, int length)
+        internal SizedBytesArray(byte[][] values, int length)
             : base(values)
         {
             for(int i = 0; i < Value.Length; i++)

@@ -4,13 +4,18 @@ using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
-    public class Array(IArrayAbiEncoder value, uint length) : DynamicType<IArrayAbiEncoder>(value)
+    public class Array : DynamicType<IArrayAbiEncoder>
     {
-        private readonly uint _length = length;
-
         public override uint PayloadSize => Value.MetadataSize + Value.PayloadSize + 32;
+
+        private readonly uint _length;
+
+        internal Array(IArrayAbiEncoder value, uint length) : base(value)
+        {
+            _length = length;
+        }
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {

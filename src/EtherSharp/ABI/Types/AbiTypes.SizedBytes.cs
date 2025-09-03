@@ -1,11 +1,11 @@
 ﻿using EtherSharp.ABI.Types.Base;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
-    internal class SizedBytes : FixedType<byte[]>, IPackedEncodeType
+    public class SizedBytes : FixedType<byte[]>, IPackedEncodeType
     {
-        public SizedBytes(byte[] value, int byteCount)
+        internal SizedBytes(byte[] value, int byteCount)
             : base(value)
         {
             if(value.Length != byteCount)
@@ -18,7 +18,7 @@ internal static partial class AbiTypes
 
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
-        public void EncodePacked(Span<byte> buffer)
+        void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 
         public static void EncodeInto(byte[] value, Span<byte> buffer)

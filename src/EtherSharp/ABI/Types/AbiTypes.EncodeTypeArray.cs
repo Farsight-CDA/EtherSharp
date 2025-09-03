@@ -2,12 +2,14 @@
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
-    public class EncodeTypeArray<TInner>(TInner[] value) : DynamicType<TInner[]>(value)
+    public class EncodeTypeArray<TInner> : DynamicType<TInner[]>
         where TInner : IEncodeType
     {
         public override uint PayloadSize => (uint) Value.Sum(x => x is IDynamicType dynType ? dynType.PayloadSize + 32 : 32) + 32;
+
+        internal EncodeTypeArray(TInner[] value) : base(value) { }
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {

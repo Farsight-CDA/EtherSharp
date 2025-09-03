@@ -3,14 +3,14 @@ using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
     public class SizedNumberArray<TInner> : DynamicType<TInner[]>
         where TInner : INumber<TInner>
     {
         public override uint PayloadSize => (32 * (uint) Value.Length) + 32;
 
-        public SizedNumberArray(TInner[] value, int length)
+        internal SizedNumberArray(TInner[] value, int length)
             : base(value)
         {
             for(int i = 0; i < Value.Length; i++)

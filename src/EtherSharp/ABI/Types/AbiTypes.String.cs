@@ -3,15 +3,15 @@ using System.Buffers.Binary;
 using System.Text;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
     public class String : DynamicType<string>, IPackedEncodeType
     {
         public override uint PayloadSize => (((uint) PackedSize + 31) / 32 * 32) + 32;
-
+        /// <inheritdoc/>
         public int PackedSize { get; }
 
-        public String(string value)
+        internal String(string value)
             : base(value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -28,7 +28,7 @@ internal static partial class AbiTypes
                 throw new InvalidOperationException("Failed to write bytes");
             }
         }
-        public void EncodePacked(Span<byte> buffer)
+        void IPackedEncodeType.EncodePacked(Span<byte> buffer)
         {
             if(!Encoding.UTF8.TryGetBytes(Value, buffer, out _))
             {

@@ -4,11 +4,13 @@ using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
-    public class DynamicTuple(IDynamicTupleEncoder value) : DynamicType<IDynamicTupleEncoder>(value)
+    public class DynamicTuple : DynamicType<IDynamicTupleEncoder>
     {
         public override uint PayloadSize => Value.MetadataSize + Value.PayloadSize;
+
+        internal DynamicTuple(IDynamicTupleEncoder value) : base(value) { }
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
         {

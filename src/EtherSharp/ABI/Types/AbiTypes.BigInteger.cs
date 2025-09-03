@@ -1,15 +1,15 @@
 ﻿using EtherSharp.ABI.Types.Base;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
-    internal class BigInteger : FixedType<System.Numerics.BigInteger>, IPackedEncodeType
+    public class BigInteger : FixedType<System.Numerics.BigInteger>, IPackedEncodeType
     {
         private readonly bool _isUnsigned;
-
+        /// <inheritdoc/>
         public int PackedSize { get; }
 
-        public BigInteger(System.Numerics.BigInteger value, bool isUnsigned, int byteLength) : base(value)
+        internal BigInteger(System.Numerics.BigInteger value, bool isUnsigned, int byteLength) : base(value)
         {
             if(byteLength < 8 || byteLength > 32)
             {
@@ -30,7 +30,7 @@ internal static partial class AbiTypes
 
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, _isUnsigned, buffer);
-        public void EncodePacked(Span<byte> buffer)
+        void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, _isUnsigned, buffer);
 
         public static void EncodeInto(System.Numerics.BigInteger value, bool isUnsigned, Span<byte> buffer)

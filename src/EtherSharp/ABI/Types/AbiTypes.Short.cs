@@ -2,15 +2,18 @@
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
-internal static partial class AbiTypes
+public static partial class AbiTypes
 {
-    internal class Short(short value) : FixedType<short>(value), IPackedEncodeType
+    public class Short : FixedType<short>, IPackedEncodeType
     {
+        /// <inheritdoc/>
         public int PackedSize => 2;
+
+        internal Short(short value) : base(value) { }
 
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
-        public void EncodePacked(Span<byte> buffer)
+        void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 
         public static void EncodeInto(short value, Span<byte> buffer)
