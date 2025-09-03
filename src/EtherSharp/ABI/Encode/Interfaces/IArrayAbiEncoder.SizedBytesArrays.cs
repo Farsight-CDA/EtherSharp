@@ -1,5 +1,5 @@
 namespace EtherSharp.ABI.Encode.Interfaces;
-public partial interface IArrayAbiEncoder 
+public partial interface IArrayAbiEncoder
 {
     public IArrayAbiEncoder Bytes1Array(params byte[] value);
     public IArrayAbiEncoder Bytes2Array(params byte[][] values);
