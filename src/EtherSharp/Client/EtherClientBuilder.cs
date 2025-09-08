@@ -11,12 +11,15 @@ using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common;
 using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Modules.Trace;
 using EtherSharp.Transport;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Secp256k1Net;
 using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Client;
@@ -209,6 +212,9 @@ public class EtherClientBuilder
         _services.AddSingleton<TraceModule>();
 
         _services.AddSingleton<IRpcClient, RpcClient>();
+        _services.AddSingleton<IEthRpcModule, EthRpcModule>();
+        _services.AddSingleton<ITraceRpcModule, TraceRpcModule>();
+
         _services.AddSingleton<ContractFactory>();
         _services.AddSingleton<SubscriptionsManager>();
 

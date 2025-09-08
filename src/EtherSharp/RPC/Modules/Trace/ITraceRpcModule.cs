@@ -1,4 +1,4 @@
 ﻿namespace EtherSharp.RPC.Modules.Trace;
-public interface ITraceApiModule
+public interface ITraceRpcModule
 {
 }
