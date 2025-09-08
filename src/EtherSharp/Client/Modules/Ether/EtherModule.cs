@@ -1,5 +1,5 @@
-﻿using EtherSharp.Client.Services.RPC;
-using EtherSharp.Contract;
+﻿using EtherSharp.Contract;
+using EtherSharp.RPC;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using EtherSharp.Wallet;

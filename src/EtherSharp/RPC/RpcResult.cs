@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Client.Services.RPC;
+﻿namespace EtherSharp.RPC;
 
 public abstract record RpcResult<T>
 {

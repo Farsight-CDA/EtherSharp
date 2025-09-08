@@ -3,7 +3,7 @@ using EtherSharp.StateOverride;
 using EtherSharp.Types;
 using System.Numerics;
 
-namespace EtherSharp.Client.Services.RPC;
+namespace EtherSharp.RPC;
 public interface IRpcClient
 {
     public event Action? OnConnectionEstablished;

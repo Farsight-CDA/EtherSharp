@@ -1,6 +1,6 @@
-﻿using EtherSharp.Client.Services.RPC;
-using EtherSharp.Client.Services.Subscriptions;
+﻿using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common;
+using EtherSharp.RPC;
 using EtherSharp.Types;
 using System.Runtime.CompilerServices;
 using System.Text.Json;

@@ -1,8 +1,8 @@
 ﻿using EtherSharp.Client.Services;
-using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Crypto;
 using EtherSharp.RLP;
+using EtherSharp.RPC;
 using EtherSharp.Wallet;
 
 namespace EtherSharp.Tx.EIP1559;

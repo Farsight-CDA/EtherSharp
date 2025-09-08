@@ -1,11 +1,11 @@
-﻿using EtherSharp.Client.Services.RPC;
-using EtherSharp.Client.Services.Subscriptions;
+﻿using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common.Comparer;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Events;
 using EtherSharp.Realtime.Events.Filter;
 using EtherSharp.Realtime.Events.Subscription;
+using EtherSharp.RPC;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Events;

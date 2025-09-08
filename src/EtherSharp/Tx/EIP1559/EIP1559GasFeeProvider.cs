@@ -1,5 +1,5 @@
 ﻿using EtherSharp.Client.Services.GasFeeProvider;
-using EtherSharp.Client.Services.RPC;
+using EtherSharp.RPC;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Numerics;

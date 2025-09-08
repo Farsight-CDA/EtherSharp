@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client.Services.RPC;
+﻿using EtherSharp.RPC;
 
 namespace EtherSharp.Transport;
 /// <summary>

@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using System.Numerics;
 
-namespace EtherSharp.Client.Services.RPC;
+namespace EtherSharp.RPC;
 
 internal partial class EvmRpcClient : IRpcClient
 {
@@ -181,7 +181,7 @@ internal partial class EvmRpcClient : IRpcClient
         {
             case RpcResult<string>.Success result:
                 int hexChars = result.Result.Length - 2;
-                Span<char> rawHex = stackalloc char[((hexChars - 1) / 2 * 2) + 2];
+                Span<char> rawHex = stackalloc char[(hexChars - 1) / 2 * 2 + 2];
                 int missingChars = rawHex.Length - hexChars;
                 rawHex[..missingChars].Fill('0');
                 result.Result.AsSpan(2).CopyTo(rawHex[missingChars..]);
@@ -208,7 +208,7 @@ internal partial class EvmRpcClient : IRpcClient
         {
             case RpcResult<string>.Success result:
                 int hexChars = result.Result.Length - 2;
-                Span<char> rawHex = stackalloc char[((hexChars - 1) / 2 * 2) + 2];
+                Span<char> rawHex = stackalloc char[(hexChars - 1) / 2 * 2 + 2];
                 int missingChars = rawHex.Length - hexChars;
                 rawHex[..missingChars].Fill('0');
                 result.Result.AsSpan(2).CopyTo(rawHex[missingChars..]);

@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client.Services.RPC;
+﻿using EtherSharp.RPC;
 using EtherSharp.Types;
 
 namespace EtherSharp.Realtime.Events.Filter;

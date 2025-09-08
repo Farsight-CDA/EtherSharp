@@ -1,6 +1,6 @@
 ﻿using EtherSharp.ABI.Types;
-using EtherSharp.Client.Services.RPC;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.RPC;
 
 namespace EtherSharp.Types;
 public abstract record TxCallResult

@@ -1,6 +1,6 @@
-﻿using EtherSharp.Client.Services.RPC;
-using EtherSharp.Common;
+﻿using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.RPC;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 

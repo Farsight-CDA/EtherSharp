@@ -1,9 +1,9 @@
 ﻿using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.ResiliencyLayer;
-using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.RPC;
 using EtherSharp.Tx;
 using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Tx.Types;

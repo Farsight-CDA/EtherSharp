@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.Client.Services.RPC.Middlewares;
+﻿using EtherSharp.RPC;
+
+namespace EtherSharp.RPC.Middlewares;
 public class RatelimitMiddleware : IRpcMiddleware, IDisposable
 {
     private readonly TimeSpan _windowSize;

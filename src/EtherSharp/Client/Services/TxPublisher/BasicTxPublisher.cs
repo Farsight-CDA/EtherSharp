@@ -1,5 +1,5 @@
-﻿using EtherSharp.Client.Services.RPC;
-using EtherSharp.Common.Exceptions;
+﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.RPC;
 
 namespace EtherSharp.Client.Services.TxPublisher;
 public class BasicTxPublisher(IRpcClient rpcClient) : ITxPublisher

@@ -1,8 +1,8 @@
-﻿using EtherSharp.Client.Services.RPC;
-using EtherSharp.Common.Exceptions;
+﻿using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Common.Instrumentation;
 using EtherSharp.Realtime;
+using EtherSharp.RPC;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.Metrics;
