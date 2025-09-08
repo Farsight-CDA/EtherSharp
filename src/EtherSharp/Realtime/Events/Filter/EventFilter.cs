@@ -3,11 +3,11 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Realtime.Events.Filter;
 
-internal class EventFilter<TEvent>(IRpcClient client,
+internal class EventFilter<TLog>(IRpcClient client,
     TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
     Address[]? addresses, string[]?[]? topics
-) : IEventFilter<TEvent>
-    where TEvent : ITxEvent<TEvent>
+) : IEventFilter<TLog>
+    where TLog : ITxLog<TLog>
 {
     public string Id { get; private set; } = null!;
 
@@ -19,10 +19,10 @@ internal class EventFilter<TEvent>(IRpcClient client,
     private readonly Address[]? _addresses = addresses;
     private readonly string[]?[]? _topics = topics;
 
-    public async Task<TEvent[]> GetChangesAsync(CancellationToken cancellationToken)
+    public async Task<TLog[]> GetChangesAsync(CancellationToken cancellationToken)
     {
         var rawResults = await _client.EthGetEventFilterChangesAsync(Id, cancellationToken);
-        return [.. rawResults.Select(TEvent.Decode)];
+        return [.. rawResults.Select(TLog.Decode)];
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken)

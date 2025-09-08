@@ -1,6 +1,6 @@
 ﻿namespace EtherSharp.Realtime.Events.Subscription;
-public interface IEventSubscription<TEvent> : IAsyncDisposable
-    where TEvent : ITxEvent<TEvent>
+public interface IEventSubscription<TLog> : IAsyncDisposable
+    where TLog : ITxLog<TLog>
 {
-    public IAsyncEnumerable<TEvent> ListenAsync(CancellationToken cancellationToken = default);
+    public IAsyncEnumerable<TLog> ListenAsync(CancellationToken cancellationToken = default);
 }

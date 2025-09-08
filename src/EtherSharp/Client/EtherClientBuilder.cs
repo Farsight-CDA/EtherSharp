@@ -14,7 +14,6 @@ using EtherSharp.Transport;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
-using Keysmith.Net.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.Metrics;

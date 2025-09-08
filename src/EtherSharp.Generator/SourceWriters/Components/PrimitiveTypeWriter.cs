@@ -36,7 +36,7 @@ public static class PrimitiveTypeWriter
                 isDynamic = false;
                 abiFunctionName = "Bool";
                 break;
-            case string s when s.StartsWith("uint", StringComparison.Ordinal) && int.TryParse(s.Substring(4), out int bitSize)
+            case string s when s.StartsWith("uint", StringComparison.Ordinal) && Int32.TryParse(s.Substring(4), out int bitSize)
                 && bitSize % 8 == 0 && bitSize >= 8 && bitSize <= 256:
                 csharpTypeName = bitSize switch
                 {
@@ -49,7 +49,7 @@ public static class PrimitiveTypeWriter
                 isDynamic = false;
                 abiFunctionName = $"UInt{bitSize}";
                 break;
-            case string s when s.StartsWith("int", StringComparison.Ordinal) && int.TryParse(s.Substring(3), out int bitSize)
+            case string s when s.StartsWith("int", StringComparison.Ordinal) && Int32.TryParse(s.Substring(3), out int bitSize)
                 && bitSize % 8 == 0 && bitSize >= 8 && bitSize <= 256:
                 csharpTypeName = bitSize switch
                 {
@@ -62,7 +62,7 @@ public static class PrimitiveTypeWriter
                 isDynamic = false;
                 abiFunctionName = $"Int{bitSize}";
                 break;
-            case string s when s.StartsWith("bytes", StringComparison.Ordinal) && int.TryParse(s.Substring(5), out int bitSize)
+            case string s when s.StartsWith("bytes", StringComparison.Ordinal) && Int32.TryParse(s.Substring(5), out int bitSize)
                 && bitSize >= 1 && bitSize <= 32:
                 csharpTypeName = typeof(byte[]).FullName;
                 isDynamic = false;

@@ -7,7 +7,7 @@ using System.Text;
 namespace EtherSharp.Generator.SourceWriters.Components;
 public class EventTypeWriter
 {
-    private readonly FunctionBuilder _isMatchingLogFunction = new FunctionBuilder("IsMatchingLog")
+    private readonly FunctionBuilder _isMatchingEventFunction = new FunctionBuilder("IsMatchingEvent")
             .AddArgument("EtherSharp.Types.Log", "log")
             .WithReturnType<bool>()
             .WithIsStatic()
@@ -16,8 +16,8 @@ public class EventTypeWriter
     public ClassBuilder GenerateEventType(string eventTypeName, EventAbiMember eventMember)
     {
         var classBuilder = new ClassBuilder(eventTypeName)
-            .AddBaseType($"EtherSharp.Realtime.Events.ITxEvent<{eventTypeName}>", true)
-            .AddProperty(new PropertyBuilder("EtherSharp.Types.Log", "Log"))
+            .AddBaseType($"EtherSharp.Realtime.Events.ITxLog<{eventTypeName}>", true)
+            .AddProperty(new PropertyBuilder("EtherSharp.Types.Log", "Event"))
             .WithAutoConstructor();
 
         var decodeMethod = new FunctionBuilder("Decode")
@@ -27,18 +27,18 @@ public class EventTypeWriter
 
         var tryDecodeMethod = new FunctionBuilder("TryDecode")
             .AddArgument("EtherSharp.Types.Log", "log")
-            .AddArgument($"out {eventTypeName}", "@event")
+            .AddArgument($"out {eventTypeName}", "parsedEvent")
             .WithReturnType<bool>()
             .WithIsStatic()
             .AddStatement(
                 $$"""
-                if (!IsMatchingLog(log)) 
+                if (!IsMatchingEvent(log)) 
                 {
-                    @event = null!;
+                    parsedEvent = null!;
                     return false;
                 }
 
-                @event = Decode(log);
+                parsedEvent = Decode(log);
                 return true
                 """
             );
@@ -54,7 +54,7 @@ public class EventTypeWriter
 
             string parameterName = NameUtils.ToValidPropertyName(parameter.Name);
 
-            if(string.IsNullOrEmpty(parameterName))
+            if(String.IsNullOrEmpty(parameterName))
             {
                 parameterName = $"anonymousArgument{i + 1}";
             }
@@ -101,7 +101,7 @@ public class EventTypeWriter
 
         classBuilder.AddFunction(decodeMethod);
         classBuilder.AddFunction(tryDecodeMethod);
-        classBuilder.AddFunction(_isMatchingLogFunction);
+        classBuilder.AddFunction(_isMatchingEventFunction);
 
         return classBuilder;
     }
@@ -144,7 +144,6 @@ public class EventTypeWriter
         statementBuilder.AppendLine($"return {ctorBuilder.ToInlineCall()};");
         return statementBuilder.ToString();
     }
-
 
     private string GenerateDataDecodeStatements(string eventTypeName, EventAbiMember eventMember)
     {

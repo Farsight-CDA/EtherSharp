@@ -1,5 +1,5 @@
 ﻿using EtherSharp.Client.Modules.EtherModule;
-using EtherSharp.Client.Services.LogsApi;
+using EtherSharp.Client.Modules.Events;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Blocks.Subscription;
 using EtherSharp.Realtime.Events;
@@ -16,8 +16,8 @@ public interface IEtherClient
     public ulong ChainId { get; }
     public IEtherModule ETH { get; }
 
-    public ILogsApi<TEvent> Logs<TEvent>() where TEvent : ITxEvent<TEvent>;
-    public ILogsApi<Log> Logs() => Logs<Log>();
+    public IEventsModule<TEvent> Events<TEvent>() where TEvent : ITxLog<TEvent>;
+    public IEventsModule<Log> Events() => Events<Log>();
 
     public IInternalEtherClient AsInternal();
 

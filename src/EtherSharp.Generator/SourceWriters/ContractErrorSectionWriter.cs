@@ -46,7 +46,7 @@ public class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
                     /// Error signature bytes based on function signature: {{signature}}
                     /// </summary>
                     public static ReadOnlyMemory<byte> SignatureBytes { get; } 
-                        = new byte[] { {{string.Join(",", signatureBytes)}} };
+                        = new byte[] { {{String.Join(",", signatureBytes)}} };
                     /// <summary>
                     /// Hex encoded error signature bytes based on function signature: {{signature}}
                     /// </summary>

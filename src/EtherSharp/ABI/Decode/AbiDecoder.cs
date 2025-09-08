@@ -1,7 +1,6 @@
 ﻿using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Types;
 using EtherSharp.Types;
-using System;
 using System.Buffers.Binary;
 using System.Numerics;
 

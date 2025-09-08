@@ -1,5 +1,4 @@
-﻿using EtherSharp.ABI;
-using EtherSharp.ABI.Types;
+﻿using EtherSharp.ABI.Types;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Common.Exceptions;
 

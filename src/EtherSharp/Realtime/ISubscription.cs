@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EtherSharp.Realtime;
+﻿namespace EtherSharp.Realtime;
 internal interface ISubscription
 {
     public string Id { get; }

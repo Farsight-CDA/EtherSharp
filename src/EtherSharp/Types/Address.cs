@@ -1,11 +1,7 @@
 ﻿using EtherSharp.Common.Converter;
 using EtherSharp.EIPs;
-using System;
-using System.Collections;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EtherSharp.Types;
 /// <summary>

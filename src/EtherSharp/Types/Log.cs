@@ -11,9 +11,9 @@ public record Log(
     byte[][] Topics,
     byte[] Data,
     bool Removed
-) : ITxEvent<Log>
+) : ITxLog<Log>
 {
-    Log ITxEvent.Log => this;
+    Log ITxLog.Event => this;
 
-    public static Log Decode(Log data) => data;
+    public static Log Decode(Log log) => log;
 }

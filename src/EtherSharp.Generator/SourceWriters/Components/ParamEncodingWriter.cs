@@ -9,7 +9,7 @@ public class ParamEncodingWriter(AbiParameterTypeWriter parameterTypeWriter)
 
     public (string ParamName, string TypeName, Func<string, string> EncodeFunc) GetInputEncoding(AbiParameter parameter, int paramIndex)
     {
-        string paramName = string.IsNullOrWhiteSpace(parameter.Name)
+        string paramName = String.IsNullOrWhiteSpace(parameter.Name)
             ? $"param{paramIndex}"
             : NameUtils.ToValidParameterName(parameter.Name);
         var (paramType, _, encodeFunction, _) = _parameterTypeWriter.CreateParameter(parameter);

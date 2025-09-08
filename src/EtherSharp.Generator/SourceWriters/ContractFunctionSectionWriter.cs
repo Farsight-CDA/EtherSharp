@@ -107,7 +107,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                     /// Function signature bytes based on function signature: {{signature}}
                     /// </summary>
                     public static ReadOnlyMemory<byte> SelectorBytes { get; } 
-                        = new byte[] { {{string.Join(",", selectorBytes)}} };
+                        = new byte[] { {{String.Join(",", selectorBytes)}} };
                     /// <summary>
                     /// Hex encoded function signature bytes based on function signature: {{signature}}
                     /// </summary>
@@ -125,7 +125,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                         .AddStatement(
                             $"""
                             return _client.CallAsync(
-                                {contractName}.Functions.{functionTypeName}.CreateTxInput(Address, {string.Join(",", inputNameList)}{(inputNameList.Count > 0 ? "," : "")} 0), 
+                                {contractName}.Functions.{functionTypeName}.CreateTxInput(Address, {String.Join(",", inputNameList)}{(inputNameList.Count > 0 ? "," : "")} 0), 
                                 targetBlockNumber,
                                 stateOverride: stateOverride, 
                                 cancellationToken: cancellationToken
@@ -144,7 +144,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                     interfaceFunction
                         .AddStatement(
                             $"""
-                            return {contractName}.Functions.{functionTypeName}.CreateTxInput(Address, {string.Join(",", inputNameList)}{(inputNameList.Count > 0 ? "," : "")} {(isPayable ? "ethValue" : "0")})
+                            return {contractName}.Functions.{functionTypeName}.CreateTxInput(Address, {String.Join(",", inputNameList)}{(inputNameList.Count > 0 ? "," : "")} {(isPayable ? "ethValue" : "0")})
                             """
                         );
 

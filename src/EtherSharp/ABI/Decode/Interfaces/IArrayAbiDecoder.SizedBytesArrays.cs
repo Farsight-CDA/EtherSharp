@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace EtherSharp.ABI.Decode.Interfaces;
+﻿namespace EtherSharp.ABI.Decode.Interfaces;
 public partial interface IArrayAbiDecoder
 {
     public byte[] Bytes1Array();

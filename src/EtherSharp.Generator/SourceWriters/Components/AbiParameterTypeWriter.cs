@@ -89,9 +89,9 @@ public partial class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
     private bool TryMatchStructType(AbiParameter tupleParameter, out string csTypeName, out bool isDynamic, out Func<string, string> encodeFunc, out string decodeFunc)
     {
         if(!tupleParameter.Type.Contains("tuple")
-            || string.IsNullOrEmpty(tupleParameter.InternalType)
+            || String.IsNullOrEmpty(tupleParameter.InternalType)
             || tupleParameter.Components is null
-            || tupleParameter.Components.Any(x => string.IsNullOrEmpty(x.Name)))
+            || tupleParameter.Components.Any(x => String.IsNullOrEmpty(x.Name)))
         {
             csTypeName = null!;
             isDynamic = false;
@@ -235,7 +235,7 @@ public partial class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
             return false;
         }
 
-        int arrayLength = int.Parse(match.Value.Substring(1, match.Value.Length - 2));
+        int arrayLength = Int32.Parse(match.Value.Substring(1, match.Value.Length - 2));
         string innerType = sizedArrayParameter.Type.Substring(0, sizedArrayParameter.Type.Length - match.Value.Length);
 
         var innerParameter = new AbiParameter("value", innerType, null, null);

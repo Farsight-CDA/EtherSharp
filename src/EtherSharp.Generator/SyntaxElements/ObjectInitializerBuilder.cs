@@ -37,7 +37,7 @@ public class ObjectInitializerBuilder
 
         if(_arguments.Count == 0)
         {
-            return string.Empty;
+            return String.Empty;
         }
 
         _ = sb.AppendLine("{");
@@ -63,7 +63,7 @@ public class ObjectInitializerBuilder
 
         if(_arguments.Count == 0)
         {
-            return string.Empty;
+            return String.Empty;
         }
 
         _ = sb.AppendLine("{");

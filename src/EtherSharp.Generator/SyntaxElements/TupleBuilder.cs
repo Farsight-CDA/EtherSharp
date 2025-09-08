@@ -37,7 +37,7 @@ public class TupleBuilder : ITypeBuilder
         }
 
         return
-            $"({string.Join(",", _elements.Select(element => $"{element.Type}{(element.Name is null ? "" : $" {element.Name}")}"))})";
+            $"({String.Join(",", _elements.Select(element => $"{element.Type}{(element.Name is null ? "" : $" {element.Name}")}"))})";
     }
     public SyntaxId GetSyntaxId()
            => GetContentId().Combine(new SyntaxId(HashCode.Combine(TypeName)));

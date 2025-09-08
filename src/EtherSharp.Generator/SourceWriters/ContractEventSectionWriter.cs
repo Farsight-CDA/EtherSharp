@@ -18,18 +18,18 @@ public class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
 
         var distinctEvents = GetDistinctEvents(eventMembers).ToArray();
 
-        var logsApiBuilder = new StringBuilder();
-        logsApiBuilder.AppendLine(
+        var eventsModuleBuilder = new StringBuilder();
+        eventsModuleBuilder.AppendLine(
             $$"""    
-            public readonly ref struct LogsApi
+            public readonly ref struct EventsModule
             {
                 private readonly {{contractName}} contract;
 
-                public LogsApi({{contractName}} contract)
+                public EventsModule({{contractName}} contract)
                 {
                     this.contract = contract;
                 }
-                public LogsApi()
+                public EventsModule()
                 {
                     throw new NotSupportedException();
                 }
@@ -44,7 +44,7 @@ public class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
                 string eventTypeName = eventMembersGroup.Count() > 1
                     ? $"{eventMembersGroup.Key}_{HexUtils.ToHexString(topicBytes.AsSpan(0, 4))}"
                     : eventMembersGroup.Key;
-                string logsApiPropertyName = eventTypeName;
+                string eventsModulePropertyName = eventTypeName;
 
                 if(!eventTypeName.EndsWith("Event"))
                 {
@@ -63,7 +63,7 @@ public class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
                     /// Event topic based on signature: {{signature}}
                     /// </summary>
                     public static ReadOnlyMemory<byte> TopicBytes { get; } 
-                        = new byte[] { {{string.Join(",", topicBytes)}} };
+                        = new byte[] { {{String.Join(",", topicBytes)}} };
                     /// <summary>
                     /// Hex encoded event topic based on signature: {{signature}}
                     /// </summary>
@@ -71,11 +71,11 @@ public class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
                     """
                 );
 
-                logsApiBuilder.AppendLine(
+                eventsModuleBuilder.AppendLine(
                     $"""
-                    public readonly EtherSharp.Client.Services.LogsApi.IConfiguredLogsApi<{@namespace}.{contractName}.Logs.{eventTypeName}> {logsApiPropertyName}
+                    public readonly EtherSharp.Client.Modules.Events.IConfiguredEventsModule<{@namespace}.{contractName}.Logs.{eventTypeName}> {eventsModulePropertyName}
                         => contract.GetClient()
-                            .Logs<{@namespace}.{contractName}.Logs.{eventTypeName}>()
+                            .Events<{@namespace}.{contractName}.Logs.{eventTypeName}>()
                             .HasContract(contract)
                             .HasTopic({@namespace}.{contractName}.Logs.{eventTypeName}.TopicHex);
                     """
@@ -85,8 +85,8 @@ public class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
             }
         }
 
-        logsApiBuilder.AppendLine("}");
-        sectionBuilder.AddRawContent(logsApiBuilder.ToString());
+        eventsModuleBuilder.AppendLine("}");
+        sectionBuilder.AddRawContent(eventsModuleBuilder.ToString());
         interfaceBuilder.AddInnerType(sectionBuilder);
     }
 

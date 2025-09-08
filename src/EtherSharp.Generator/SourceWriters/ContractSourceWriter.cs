@@ -21,7 +21,7 @@ public class ContractSourceWriter(
         var contractInterface = new InterfaceBuilder(contractName)
             .WithIsPartial(true)
             .WithVisibility(InterfaceVisibility.Public)
-            .AddRawContent($"public Logs.LogsApi Events => new Logs.LogsApi(this);");
+            .AddRawContent($"public Logs.EventsModule Events => new Logs.EventsModule(this);");
 
         if(members.Any(
             x => (x is FallbackAbiMember fallbackMember && fallbackMember.StateMutability == StateMutability.Payable)

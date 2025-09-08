@@ -1,12 +1,11 @@
 ﻿using EtherSharp.Client.Modules.EtherModule;
+using EtherSharp.Client.Modules.Events;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.GasFeeProvider;
-using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Client.Services.RPC;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxScheduler;
-using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Blocks.Subscription;
 using EtherSharp.StateOverride;
@@ -66,10 +65,10 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         }
     }
 
-    ILogsApi<TEvent> IEtherClient.Logs<TEvent>()
+    IEventsModule<TEvent> IEtherClient.Events<TEvent>()
     {
         AssertReady();
-        return new LogsApi<TEvent>(_rpcClient, _subscriptionsManager);
+        return new EventsModule<TEvent>(_rpcClient, _subscriptionsManager);
     }
 
     internal EtherClient(IServiceProvider provider, bool isTxClient)

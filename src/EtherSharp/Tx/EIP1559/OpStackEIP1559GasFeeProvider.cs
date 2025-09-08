@@ -1,7 +1,6 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.RPC;
-using EtherSharp.Common.Exceptions;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Buffers.Binary;

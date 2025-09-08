@@ -5,7 +5,7 @@ public class HexUtils
     {
         if(bytes.Length == 0)
         {
-            return string.Empty;
+            return String.Empty;
         }
 
         char[] hexChars = new char[bytes.Length * 2];

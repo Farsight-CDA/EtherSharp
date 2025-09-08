@@ -1,6 +1,6 @@
 ﻿namespace EtherSharp.Realtime.Events.Filter;
-public interface IEventFilter<TEvent> : IAsyncDisposable
-    where TEvent : ITxEvent<TEvent>
+public interface IEventFilter<TLog> : IAsyncDisposable
+    where TLog : ITxLog<TLog>
 {
-    public Task<TEvent[]> GetChangesAsync(CancellationToken cancellationToken = default);
+    public Task<TLog[]> GetChangesAsync(CancellationToken cancellationToken = default);
 }

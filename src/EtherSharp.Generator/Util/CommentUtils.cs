@@ -9,7 +9,7 @@ public static class CommentUtils
     {
         string? comment = symbol.GetDocumentationCommentXml();
 
-        if(string.IsNullOrWhiteSpace(comment))
+        if(String.IsNullOrWhiteSpace(comment))
         {
             summary = null;
             return false;
@@ -28,7 +28,7 @@ public static class CommentUtils
 
         string summaryText = summaryElements[0].InnerText;
 
-        if(string.IsNullOrWhiteSpace(summaryText))
+        if(String.IsNullOrWhiteSpace(summaryText))
         {
             summary = null;
             return false;

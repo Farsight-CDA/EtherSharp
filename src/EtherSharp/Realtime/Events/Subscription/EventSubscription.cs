@@ -7,9 +7,9 @@ using System.Text.Json;
 using System.Threading.Channels;
 
 namespace EtherSharp.Realtime.Events.Subscription;
-internal class EventSubscription<TEvent>(IRpcClient client, SubscriptionsManager subscriptionsManager, Address[]? contractAddresses, string[]?[]? topics)
-    : IEventSubscription<TEvent>, ISubscription
-    where TEvent : ITxEvent<TEvent>
+internal class EventSubscription<TLog>(IRpcClient client, SubscriptionsManager subscriptionsManager, Address[]? contractAddresses, string[]?[]? topics)
+    : IEventSubscription<TLog>, ISubscription
+    where TLog : ITxLog<TLog>
 {
     public string Id { get; private set; } = null!;
 
@@ -25,12 +25,12 @@ internal class EventSubscription<TEvent>(IRpcClient client, SubscriptionsManager
         SingleWriter = true,
     });
 
-    public async IAsyncEnumerable<TEvent> ListenAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<TLog> ListenAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         while(await _channel.Reader.WaitToReadAsync(cancellationToken))
         {
             var log = await _channel.Reader.ReadAsync(cancellationToken);
-            yield return TEvent.Decode(log);
+            yield return TLog.Decode(log);
         }
     }
 

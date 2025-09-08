@@ -33,7 +33,7 @@ public class ErrorTypeWriter
             }
 
             string parameterName = NameUtils.ToValidPropertyName(parameter.Name);
-            if(string.IsNullOrWhiteSpace(parameterName))
+            if(String.IsNullOrWhiteSpace(parameterName))
             {
                 throw new NotSupportedException("ABI Error member must all have a name");
             }

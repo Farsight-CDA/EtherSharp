@@ -1,9 +1,9 @@
 ﻿using EtherSharp.Types;
 
 namespace EtherSharp.Common.Comparer;
-public class LogComparer : IComparer<Log>
+public class EventComparer : IComparer<Log>
 {
-    public static LogComparer Instance { get; } = new LogComparer();
+    public static EventComparer Instance { get; } = new EventComparer();
 
     public int Compare(Log? x, Log? y)
     {

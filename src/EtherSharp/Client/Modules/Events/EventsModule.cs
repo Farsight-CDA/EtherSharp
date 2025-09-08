@@ -8,9 +8,9 @@ using EtherSharp.Realtime.Events.Filter;
 using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.Types;
 
-namespace EtherSharp.Client.Services.LogsApi;
-internal class LogsApi<TEvent>(IRpcClient rpcClient, SubscriptionsManager subscriptionsManager) : ILogsApi<TEvent>
-    where TEvent : ITxEvent<TEvent>
+namespace EtherSharp.Client.Modules.Events;
+internal class EventsModule<TLog>(IRpcClient rpcClient, SubscriptionsManager subscriptionsManager) : IEventsModule<TLog>
+    where TLog : ITxLog<TLog>
 {
     protected readonly IRpcClient _rpcClient = rpcClient;
     protected readonly SubscriptionsManager _subscriptionsManager = subscriptionsManager;
@@ -37,20 +37,20 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient, SubscriptionsManager subscr
         throw new InvalidOperationException("Contract address filter already configured");
     }
 
-    public ILogsApi<TEvent> HasContract(IEVMContract contract)
+    public IEventsModule<TLog> HasContract(IEVMContract contract)
     {
         AssertNoContractAddresses();
         _contractAddresses = [contract.Address];
         return this;
     }
-    public ILogsApi<TEvent> HasContractAddress(Address contractAddress)
+    public IEventsModule<TLog> HasContractAddress(Address contractAddress)
     {
         AssertNoContractAddresses();
         _contractAddresses = [contractAddress];
         return this;
     }
 
-    public ILogsApi<TEvent> HasContracts(params ReadOnlySpan<IEVMContract> contracts)
+    public IEventsModule<TLog> HasContracts(params ReadOnlySpan<IEVMContract> contracts)
     {
         AssertNoContractAddresses();
 
@@ -63,46 +63,46 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient, SubscriptionsManager subscr
 
         return this;
     }
-    public ILogsApi<TEvent> HasContractAddresses(params ReadOnlySpan<Address> contractAddresses)
+    public IEventsModule<TLog> HasContractAddresses(params ReadOnlySpan<Address> contractAddresses)
     {
         AssertNoContractAddresses();
         _contractAddresses = contractAddresses.ToArray();
         return this;
     }
 
-    public ILogsApi<TEvent> HasContracts(params IEnumerable<IEVMContract> contracts)
+    public IEventsModule<TLog> HasContracts(params IEnumerable<IEVMContract> contracts)
     {
         AssertNoContractAddresses();
         _contractAddresses = [.. contracts.Select(x => x.Address)];
         return this;
     }
-    public ILogsApi<TEvent> HasContractAddresses(params IEnumerable<Address> contractAddresses)
+    public IEventsModule<TLog> HasContractAddresses(params IEnumerable<Address> contractAddresses)
     {
         AssertNoContractAddresses();
         _contractAddresses = [.. contractAddresses];
         return this;
     }
 
-    public ILogsApi<TEvent> HasTopic(string topic, int index = 0)
+    public IEventsModule<TLog> HasTopic(string topic, int index = 0)
     {
         AssertNoTopics(index);
         _topics[index] = [topic];
         return this;
     }
-    public ILogsApi<TEvent> HasTopics(int index = 0, params ReadOnlySpan<string> topics)
+    public IEventsModule<TLog> HasTopics(int index = 0, params ReadOnlySpan<string> topics)
     {
         AssertNoTopics(index);
         _topics[index] = topics.ToArray();
         return this;
     }
-    public ILogsApi<TEvent> HasTopics(int index = 0, params IEnumerable<string> topics)
+    public IEventsModule<TLog> HasTopics(int index = 0, params IEnumerable<string> topics)
     {
         AssertNoTopics(index);
         _topics[index] = [.. topics];
         return this;
     }
 
-    public async Task<TEvent[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, string? blockHash = null,
+    public async Task<TLog[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, string? blockHash = null,
         CancellationToken cancellationToken = default)
     {
         if(fromBlock == default)
@@ -112,28 +112,28 @@ internal class LogsApi<TEvent>(IRpcClient rpcClient, SubscriptionsManager subscr
 
         var rawResults = await _rpcClient.EthGetLogsAsync(fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), blockHash, cancellationToken);
 
-        Array.Sort(rawResults, LogComparer.Instance);
+        Array.Sort(rawResults, EventComparer.Instance);
 
-        if(typeof(TEvent) == typeof(Log))
+        if(typeof(TLog) == typeof(Log))
         {
-            return (rawResults as TEvent[])
+            return rawResults as TLog[]
                 ?? throw new ImpossibleException();
         }
         //
-        return [.. rawResults.Select(TEvent.Decode)];
+        return [.. rawResults.Select(TLog.Decode)];
     }
 
-    public async Task<IEventFilter<TEvent>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default,
+    public async Task<IEventFilter<TLog>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default,
         CancellationToken cancellationToken = default)
     {
-        var filter = new EventFilter<TEvent>(_rpcClient, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());
+        var filter = new EventFilter<TLog>(_rpcClient, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());
         await filter.InitializeAsync(cancellationToken);
         return filter;
     }
 
-    public async Task<IEventSubscription<TEvent>> CreateSubscriptionAsync(CancellationToken cancellationToken = default)
+    public async Task<IEventSubscription<TLog>> CreateSubscriptionAsync(CancellationToken cancellationToken = default)
     {
-        var subscription = new EventSubscription<TEvent>(_rpcClient, _subscriptionsManager, _contractAddresses, CreateTopicsArray());
+        var subscription = new EventSubscription<TLog>(_rpcClient, _subscriptionsManager, _contractAddresses, CreateTopicsArray());
         await _subscriptionsManager.InstallSubscriptionAsync(subscription, cancellationToken);
         return subscription;
     }

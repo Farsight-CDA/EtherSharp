@@ -80,7 +80,7 @@ public class Generator : IIncrementalGenerator
 
             string? schemaFileName = attributes.Single().ConstructorArguments[0].Value?.ToString();
 
-            if(schemaFileName is null || string.IsNullOrEmpty(schemaFileName))
+            if(schemaFileName is null || String.IsNullOrEmpty(schemaFileName))
             {
                 string fileDisplayName = schemaFileName is null
                     ? "null"
@@ -105,7 +105,7 @@ public class Generator : IIncrementalGenerator
             }
 
             string? schemaText = schemaFiles.Single().GetText()?.ToString();
-            if(string.IsNullOrEmpty(schemaText) || schemaText is null)
+            if(String.IsNullOrEmpty(schemaText) || schemaText is null)
             {
                 ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileMalformed, contractSymbol);
                 return;

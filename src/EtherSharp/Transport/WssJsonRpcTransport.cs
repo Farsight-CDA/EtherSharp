@@ -2,7 +2,6 @@
 using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
-using EtherSharp.Common.Instrumentation;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;

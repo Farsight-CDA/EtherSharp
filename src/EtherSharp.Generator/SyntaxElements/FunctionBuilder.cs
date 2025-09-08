@@ -105,7 +105,7 @@ public class FunctionBuilder(string name) : ISyntaxBuilder
     {
         if(_visibility == FunctionVisibility.Omit)
         {
-            return string.Empty;
+            return String.Empty;
         }
 
         var sb = new StringBuilder();

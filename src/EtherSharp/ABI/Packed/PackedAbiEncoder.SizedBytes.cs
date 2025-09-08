@@ -1,4 +1,3 @@
-using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Types;
 
 namespace EtherSharp.ABI.Packed;
