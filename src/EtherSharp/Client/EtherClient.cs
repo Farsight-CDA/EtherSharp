@@ -236,7 +236,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             call.To,
             null,
             null,
-            null,
+            call.Value,
             $"0x{Convert.ToHexString(call.Data)}",
             targetHeight,
             cancellationToken

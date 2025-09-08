@@ -79,11 +79,11 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
     public async Task<long> BlockTransactionCountByNumberAsync(ulong blockNumber, CancellationToken cancellationToken)
         => await BlockTransactionCountByNumberAsync(TargetBlockNumber.Height(blockNumber), cancellationToken);
 
-    private record TransactionCall(Address? From, Address To, uint? Gas, BigInteger? GasPrice, int? Value, string? Data);
+    private record TransactionCall(Address? From, Address To, uint? Gas, BigInteger? GasPrice, BigInteger Value, string? Data);
     private record FakeAccountData(string? Balance, string? Nonce, string? Code, object? State, int? StateDiff);
 
     public async Task<TxCallResult> CallAsync(
-        Address? from, Address to, uint? gas, BigInteger? gasPrice, int? value, string? data,
+        Address? from, Address to, uint? gas, BigInteger? gasPrice, BigInteger value, string? data,
         TargetBlockNumber blockNumber, CancellationToken cancellationToken)
     {
         var transaction = new TransactionCall(from, to, gas, gasPrice, value, data);
