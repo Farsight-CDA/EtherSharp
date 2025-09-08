@@ -1,6 +1,6 @@
-﻿using EtherSharp.Client.Services;
+﻿using EtherSharp.Client.Modules.EtherModule;
+using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
-using EtherSharp.Client.Services.EtherApi;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.LogsApi;
 using EtherSharp.Client.Services.RPC;
@@ -24,7 +24,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     private readonly IServiceProvider _provider;
     private readonly bool _isTxClient;
 
-    private EtherApi _etherApi = null!;
+    private EtherModule _etherApi = null!;
     private IRpcClient _rpcClient = null!;
     private IEtherSigner _signer = null!;
     private ITxScheduler _txScheduler = null!;
@@ -47,7 +47,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         }
     }
 
-    IEtherTxApi IEtherTxClient.ETH
+    IEtherTxModule IEtherTxClient.ETH
     {
         get
         {
@@ -57,7 +57,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         }
     }
 
-    IEtherApi IEtherClient.ETH
+    IEtherModule IEtherClient.ETH
     {
         get
         {
@@ -105,7 +105,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         await _provider.GetRequiredService<IRPCTransport>()
             .InitializeAsync(cancellationToken);
 
-        _etherApi = _provider.GetRequiredService<EtherApi>();
+        _etherApi = _provider.GetRequiredService<EtherModule>();
         _rpcClient = _provider.GetRequiredService<IRpcClient>();
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
         _subscriptionsManager = _provider.GetRequiredService<SubscriptionsManager>();

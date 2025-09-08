@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client.Services.EtherApi;
+﻿using EtherSharp.Client.Modules.EtherModule;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.PendingHandler;
@@ -7,7 +7,7 @@ using EtherSharp.Tx.Types;
 namespace EtherSharp.Client;
 public interface IEtherTxClient : IEtherClient
 {
-    public new IEtherTxApi ETH { get; }
+    public new IEtherTxModule ETH { get; }
 
     public Task<IPendingTxHandler<EIP1559TxParams, EIP1559GasParams>> PrepareTxAsync(ITxInput call, EIP1559TxParams? txParams = default, EIP1559GasParams? txGasParams = default)
         => PrepareTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(call, txParams, txGasParams);

@@ -6,8 +6,8 @@ using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
 
-namespace EtherSharp.Client.Services.EtherApi;
-internal class EtherApi(IRpcClient rpcClient, IServiceProvider provider) : IEtherTxApi
+namespace EtherSharp.Client.Modules.EtherModule;
+internal class EtherModule(IRpcClient rpcClient, IServiceProvider provider) : IEtherTxModule
 {
     private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IServiceProvider _provider = provider;
