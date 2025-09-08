@@ -2,7 +2,8 @@
 using EtherSharp.Types;
 using System.Numerics;
 
-namespace EtherSharp.Client.Modules.EtherModule;
+namespace EtherSharp.Client.Modules.Ether;
+
 public interface IEtherModule
 {
     public Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber blockNumber = default);

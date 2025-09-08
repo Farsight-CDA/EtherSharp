@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client.Modules.EtherModule;
+﻿using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Blocks.Subscription;

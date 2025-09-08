@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client.Modules.EtherModule;
+﻿using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.PendingHandler;

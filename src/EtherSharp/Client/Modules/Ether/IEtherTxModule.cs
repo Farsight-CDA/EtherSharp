@@ -3,7 +3,7 @@ using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Numerics;
 
-namespace EtherSharp.Client.Modules.EtherModule;
+namespace EtherSharp.Client.Modules.Ether;
 public interface IEtherTxModule : IEtherModule
 {
     public Task<BigInteger> GetMyBalanceAsync(TargetBlockNumber blockNumber = default);

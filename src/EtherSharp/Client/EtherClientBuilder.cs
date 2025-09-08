@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client.Modules.EtherModule;
+﻿using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.GasFeeProvider;

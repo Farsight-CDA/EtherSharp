@@ -6,7 +6,7 @@ using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
 
-namespace EtherSharp.Client.Modules.EtherModule;
+namespace EtherSharp.Client.Modules.Ether;
 internal class EtherModule(IRpcClient rpcClient, IServiceProvider provider) : IEtherTxModule
 {
     private readonly IRpcClient _rpcClient = rpcClient;
