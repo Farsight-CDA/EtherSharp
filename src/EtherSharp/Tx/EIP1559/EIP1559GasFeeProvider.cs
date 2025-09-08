@@ -1,13 +1,14 @@
 ﻿using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Numerics;
 
 namespace EtherSharp.Tx.EIP1559;
-public class EIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
+public class EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner signer) : IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
 {
-    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly IEtherSigner _signer = signer;
 
     public int FeeHistoryRange { get; set; } = 5;
@@ -28,17 +29,17 @@ public class EIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : 
     private async Task<EIP1559GasParams> SendEstimationRequestsAsync(
         Address to, BigInteger value, string inputDataHex, CancellationToken cancellationToken)
     {
-        ulong gasEstimation = await _rpcClient.EthEstimateGasAsync(
+        ulong gasEstimation = await _ethRpcModule.EstimateGasAsync(
             _signer.Address, to, value, inputDataHex, cancellationToken);
 
-        var feeHistory = await _rpcClient.EthGetFeeHistory(FeeHistoryRange, TargetBlockNumber.Latest, [PriorityFeePercentile], default);
+        var feeHistory = await _ethRpcModule.GetFeeHistoryAsync(FeeHistoryRange, TargetBlockNumber.Latest, [PriorityFeePercentile], default);
 
         BigInteger baseFee;
         BigInteger priorityFee;
 
         if(feeHistory.BaseFeePerGas.Length == 0)
         {
-            baseFee = await _rpcClient.EthGasPriceAsync(cancellationToken);
+            baseFee = await _ethRpcModule.GasPriceAsync(cancellationToken);
         }
         else
         {
@@ -49,7 +50,7 @@ public class EIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner signer) : 
         var nonZeroRewards = feeHistory.Reward.Where(x => x[0] != 0).ToArray();
         if(nonZeroRewards.Length == 0)
         {
-            priorityFee = await _rpcClient.EthMaxPriorityFeePerGas(cancellationToken);
+            priorityFee = await _ethRpcModule.MaxPriorityFeePerGasAsync(cancellationToken);
         }
         else
         {

@@ -3,6 +3,7 @@ using EtherSharp.Common.Extensions;
 using EtherSharp.Common.Instrumentation;
 using EtherSharp.Realtime;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.Metrics;
@@ -11,6 +12,8 @@ namespace EtherSharp.Client.Services.Subscriptions;
 internal class SubscriptionsManager
 {
     private readonly IRpcClient _rpcClient;
+    private readonly IEthRpcModule _ethRpcModule;
+
     private readonly ILogger? _logger;
 
     private readonly Lock _subscriptionsLock = new Lock();
@@ -19,9 +22,10 @@ internal class SubscriptionsManager
     private readonly OTELCounter<long>? _subscriptionMessageCounter;
     private readonly ObservableUpDownCounter<int>? _subscriptionsCounter;
 
-    public SubscriptionsManager(IRpcClient rpcClient, IServiceProvider serviceProvider)
+    public SubscriptionsManager(IRpcClient rpcClient, IEthRpcModule ethRpcModule, IServiceProvider serviceProvider)
     {
         _rpcClient = rpcClient;
+        _ethRpcModule = ethRpcModule;
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger<SubscriptionsManager>();
 
         _subscriptionMessageCounter = serviceProvider.CreateOTELCounter<long>("subscription_messages_received");
@@ -48,7 +52,7 @@ internal class SubscriptionsManager
             _subscriptions.Remove(subscription);
         }
 
-        await _rpcClient.EthUnsubscribeAsync(subscription.Id);
+        await _ethRpcModule.UnsubscribeAsync(subscription.Id);
     }
 
     private void HandleConnectionEstablished()
@@ -102,7 +106,7 @@ internal class SubscriptionsManager
             try
             {
                 _logger?.LogDebug("Uninstalling unknown active subscription with id {id}", subscriptionId);
-                await _rpcClient.EthUnsubscribeAsync(subscriptionId);
+                await _ethRpcModule.UnsubscribeAsync(subscriptionId);
             }
             catch(RPCException ex) when(ex.Message.Contains("not found"))
             {

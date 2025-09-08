@@ -1,19 +1,23 @@
 ﻿using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Channels;
 
 namespace EtherSharp.Realtime.Events.Subscription;
-internal class EventSubscription<TLog>(IRpcClient client, SubscriptionsManager subscriptionsManager, Address[]? contractAddresses, string[]?[]? topics)
+internal class EventSubscription<TLog>(
+    IRpcClient client, IEthRpcModule ethRpcModule, SubscriptionsManager subscriptionsManager, Address[]? contractAddresses, string[]?[]? topics
+)
     : IEventSubscription<TLog>, ISubscription
     where TLog : ITxLog<TLog>
 {
     public string Id { get; private set; } = null!;
 
     private readonly IRpcClient _client = client;
+    private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly SubscriptionsManager _subscriptionsManager = subscriptionsManager;
 
     private readonly Address[]? _contractAddresses = contractAddresses;
@@ -35,7 +39,7 @@ internal class EventSubscription<TLog>(IRpcClient client, SubscriptionsManager s
     }
 
     public async Task InstallAsync(CancellationToken cancellationToken = default)
-        => Id = await _client.EthSubscribeLogsAsync(_contractAddresses, _topics, cancellationToken);
+        => Id = await _ethRpcModule.SubscribeLogsAsync(_contractAddresses, _topics, cancellationToken);
 
     private record LogParams(LogResponse Params);
     private record LogResponse(Log Result);

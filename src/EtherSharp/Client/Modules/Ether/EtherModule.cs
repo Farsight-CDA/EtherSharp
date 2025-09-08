@@ -1,5 +1,5 @@
 ﻿using EtherSharp.Contract;
-using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
@@ -7,9 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
 
 namespace EtherSharp.Client.Modules.Ether;
-internal class EtherModule(IRpcClient rpcClient, IServiceProvider provider) : IEtherTxModule
+internal class EtherModule(IEthRpcModule ethRpcModule, IServiceProvider provider) : IEtherTxModule
 {
-    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly IServiceProvider _provider = provider;
 
     public ITxInput Transfer(Address receiver, BigInteger amount)
@@ -18,12 +18,12 @@ internal class EtherModule(IRpcClient rpcClient, IServiceProvider provider) : IE
         => ITxInput.ForEthTransfer(contract.Address, amount);
 
     public Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber blockNumber)
-        => _rpcClient.EthGetBalance(address, blockNumber);
+        => _ethRpcModule.GetBalanceAsync(address, blockNumber);
     public Task<BigInteger> GetBalanceAsync(IEVMContract contract, TargetBlockNumber blockNumber)
-        => _rpcClient.EthGetBalance(contract.Address, blockNumber);
+        => _ethRpcModule.GetBalanceAsync(contract.Address, blockNumber);
 
     public Task<BigInteger> GetMyBalanceAsync(TargetBlockNumber blockNumber)
-        => _rpcClient.EthGetBalance(
+        => _ethRpcModule.GetBalanceAsync(
             _provider.GetService<IEtherSigner>()?.Address ?? throw new InvalidOperationException("Client is not a tx client"),
             blockNumber
         );

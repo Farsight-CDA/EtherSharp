@@ -1,17 +1,18 @@
 ﻿using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Channels;
 
 namespace EtherSharp.Realtime.Blocks.Subscription;
-internal class BlocksSubscription(IRpcClient rpcClient, SubscriptionsManager subscriptionsManager) : IBlocksSubscription, ISubscription
+internal class BlocksSubscription(IEthRpcModule ethRpcModule, SubscriptionsManager subscriptionsManager) : IBlocksSubscription, ISubscription
 {
     public string Id { get; private set; } = null!;
 
-    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly SubscriptionsManager _subscriptionsManager = subscriptionsManager;
 
     private readonly Channel<BlockHeader> _channel = Channel.CreateUnbounded<BlockHeader>(new UnboundedChannelOptions()
@@ -29,7 +30,7 @@ internal class BlocksSubscription(IRpcClient rpcClient, SubscriptionsManager sub
     }
 
     public async Task InstallAsync(CancellationToken cancellationToken = default)
-        => Id = await _rpcClient.EthSubscribeNewHeadsAsync(cancellationToken);
+        => Id = await _ethRpcModule.SubscribeNewHeadsAsync(cancellationToken);
 
     public async ValueTask DisposeAsync()
         => await _subscriptionsManager.UninstallSubscription(this);

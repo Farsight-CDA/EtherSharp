@@ -6,14 +6,16 @@ using EtherSharp.Realtime.Events;
 using EtherSharp.Realtime.Events.Filter;
 using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Events;
-internal class EventsModule<TLog>(IRpcClient rpcClient, SubscriptionsManager subscriptionsManager) : IEventsModule<TLog>
+internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule, SubscriptionsManager subscriptionsManager) : IEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {
-    protected readonly IRpcClient _rpcClient = rpcClient;
-    protected readonly SubscriptionsManager _subscriptionsManager = subscriptionsManager;
+    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
+    private readonly SubscriptionsManager _subscriptionsManager = subscriptionsManager;
 
     protected Dictionary<int, string[]?> _topics = [];
     protected Address[]? _contractAddresses;
@@ -110,7 +112,7 @@ internal class EventsModule<TLog>(IRpcClient rpcClient, SubscriptionsManager sub
             fromBlock = TargetBlockNumber.Earliest;
         }
 
-        var rawResults = await _rpcClient.EthGetLogsAsync(fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), blockHash, cancellationToken);
+        var rawResults = await _ethRpcModule.GetLogsAsync(fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), blockHash, cancellationToken);
 
         Array.Sort(rawResults, EventComparer.Instance);
 
@@ -126,14 +128,14 @@ internal class EventsModule<TLog>(IRpcClient rpcClient, SubscriptionsManager sub
     public async Task<IEventFilter<TLog>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default,
         CancellationToken cancellationToken = default)
     {
-        var filter = new EventFilter<TLog>(_rpcClient, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());
+        var filter = new EventFilter<TLog>(rpcClient, _ethRpcModule, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());
         await filter.InitializeAsync(cancellationToken);
         return filter;
     }
 
     public async Task<IEventSubscription<TLog>> CreateSubscriptionAsync(CancellationToken cancellationToken = default)
     {
-        var subscription = new EventSubscription<TLog>(_rpcClient, _subscriptionsManager, _contractAddresses, CreateTopicsArray());
+        var subscription = new EventSubscription<TLog>(rpcClient, _ethRpcModule, _subscriptionsManager, _contractAddresses, CreateTopicsArray());
         await _subscriptionsManager.InstallSubscriptionAsync(subscription, cancellationToken);
         return subscription;
     }

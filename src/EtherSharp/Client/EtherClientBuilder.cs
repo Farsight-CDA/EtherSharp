@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Modules.Ether;
+using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.GasFeeProvider;
@@ -205,7 +206,9 @@ public class EtherClientBuilder
         _services.AddSingleton(_transportRegistration);
 
         _services.AddSingleton<EtherModule>();
-        _services.AddSingleton<IRpcClient, EvmRpcClient>();
+        _services.AddSingleton<TraceModule>();
+
+        _services.AddSingleton<IRpcClient, RpcClient>();
         _services.AddSingleton<ContractFactory>();
         _services.AddSingleton<SubscriptionsManager>();
 

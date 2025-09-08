@@ -1,6 +1,4 @@
-﻿using EtherSharp.RPC;
-
-namespace EtherSharp.RPC.Middlewares;
+﻿namespace EtherSharp.RPC.Middlewares;
 public class RatelimitMiddleware : IRpcMiddleware, IDisposable
 {
     private readonly TimeSpan _windowSize;
@@ -36,9 +34,9 @@ public class RatelimitMiddleware : IRpcMiddleware, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public async Task<RpcResult<TResult>> HandleAsync<TResult>(CancellationToken cancellationToken, Func<CancellationToken, Task<RpcResult<TResult>>> onNext)
+    public async Task<RpcResult<TResult>> HandleAsync<TResult>(Func<CancellationToken, Task<RpcResult<TResult>>> onNext, CancellationToken cancellationToken)
     {
-        await _requestSemaphore.WaitAsync();
+        await _requestSemaphore.WaitAsync(cancellationToken);
         return await onNext(cancellationToken);
     }
 }

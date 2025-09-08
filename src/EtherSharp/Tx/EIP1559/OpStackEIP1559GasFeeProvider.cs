@@ -1,19 +1,20 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.Tx.EIP1559;
-public class OpStackEIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner signer)
+public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner signer)
     : IInitializableService, IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
 {
     private readonly static EIP1559GasParams _defaultGasParams = new EIP1559GasParams(1_000_000, BigInteger.Pow(10, 10), BigInteger.Pow(10, 8));
     private readonly static Address _opGasOracleAddress = Address.FromString("0x420000000000000000000000000000000000000F");
 
-    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly IEtherSigner _signer = signer;
 
     private bool _initialized;
@@ -69,16 +70,16 @@ public class OpStackEIP1559GasFeeProvider(IRpcClient rpcClient, IEtherSigner sig
     private async Task<EIP1559GasParams> SendEstimationRequestsAsync(Address to, BigInteger value,
         string inputDataHex, string getL1FeePayloadHex, CancellationToken cancellationToken)
     {
-        var gasEstimationTask = _rpcClient.EthEstimateGasAsync(
+        var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
             _signer.Address, to, value, inputDataHex, cancellationToken);
-        var l1FeeTask = _rpcClient.EthCallAsync(
-            null, _opGasOracleAddress, null, null, null, getL1FeePayloadHex, TargetBlockNumber.Pending, default, cancellationToken
+        var l1FeeTask = _ethRpcModule.CallAsync(
+            null, _opGasOracleAddress, null, null, null, getL1FeePayloadHex, TargetBlockNumber.Pending, cancellationToken
         );
 
         ulong gasEstimation = await gasEstimationTask;
 
-        var gasPriceTask = _rpcClient.EthGasPriceAsync(cancellationToken);
-        var priorityFeeTask = _rpcClient.EthMaxPriorityFeePerGas(cancellationToken);
+        var gasPriceTask = _ethRpcModule.GasPriceAsync(cancellationToken);
+        var priorityFeeTask = _ethRpcModule.MaxPriorityFeePerGasAsync(cancellationToken);
 
         var l1FeeCallResult = await l1FeeTask;
         var gasPrice = await gasPriceTask;

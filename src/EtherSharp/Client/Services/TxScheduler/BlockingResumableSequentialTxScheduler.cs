@@ -4,6 +4,7 @@ using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Tx;
 using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Tx.Types;
@@ -22,9 +23,11 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
     }
 
     private readonly IServiceProvider _provider;
-    private readonly IRpcClient _rpcClient;
+
     private readonly IEtherSigner _signer;
     private readonly ITxPublisher _txPublisher;
+
+    private readonly IEthRpcModule _ethRpcModule;
 
     private readonly IResiliencyLayer? _resiliencyLayer;
 
@@ -48,13 +51,14 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
     /// </summary>
     private uint _peakNonce;
 
-    public BlockingSequentialResumableTxScheduler(IServiceProvider provider, IRpcClient rpcClient, IEtherSigner signer,
+    public BlockingSequentialResumableTxScheduler(IServiceProvider provider, IRpcClient rpcClient, IEthRpcModule ethRpcModule, IEtherSigner signer,
         ITxPublisher txPublisher)
     {
         _provider = provider;
-        _rpcClient = rpcClient;
         _signer = signer;
         _txPublisher = txPublisher;
+
+        _ethRpcModule = ethRpcModule;
 
         _resiliencyLayer = _provider.GetService<IResiliencyLayer>();
     }
@@ -63,7 +67,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
     {
         _chainId = chainId;
 
-        _activeNonce = await _rpcClient.EthGetTransactionCount(
+        _activeNonce = await _ethRpcModule.GetTransactionCountAsync(
             _signer.Address, TargetBlockNumber.Latest, cancellationToken
         );
 
@@ -356,7 +360,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         {
             foreach(var txSubmission in txSubmissions)
             {
-                var txReceipt = await _rpcClient.EthGetTransactionReceiptAsync(txSubmission.TxHash);
+                var txReceipt = await _ethRpcModule.GetTransactionReceiptAsync(txSubmission.TxHash);
 
                 if(txReceipt is not null)
                 {
@@ -380,7 +384,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         {
             try
             {
-                uint txCount = await _rpcClient.EthGetTransactionCount(_signer.Address, TargetBlockNumber.Latest, cancellationToken);
+                uint txCount = await _ethRpcModule.GetTransactionCountAsync(_signer.Address, TargetBlockNumber.Latest, cancellationToken);
                 if(predicate(txCount))
                 {
                     return;

@@ -120,14 +120,12 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                     interfaceFunction
                         .WithReturnTypeRaw($"System.Threading.Tasks.Task<{outputTypeName}>")
                         .AddArgument("EtherSharp.Types.TargetBlockNumber", "targetBlockNumber", true, "default")
-                        .AddArgument("EtherSharp.StateOverride.TxStateOverride", "stateOverride", true, "default")
                         .AddArgument("System.Threading.CancellationToken", "cancellationToken", true, "default")
                         .AddStatement(
                             $"""
                             return _client.CallAsync(
                                 {contractName}.Functions.{functionTypeName}.CreateTxInput(Address, {String.Join(",", inputNameList)}{(inputNameList.Count > 0 ? "," : "")} 0), 
                                 targetBlockNumber,
-                                stateOverride: stateOverride, 
                                 cancellationToken: cancellationToken
                             )
                             """

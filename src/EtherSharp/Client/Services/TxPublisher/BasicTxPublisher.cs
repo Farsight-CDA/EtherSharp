@@ -1,17 +1,18 @@
 ﻿using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
 
 namespace EtherSharp.Client.Services.TxPublisher;
-public class BasicTxPublisher(IRpcClient rpcClient) : ITxPublisher
+public class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
 {
-    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
     /// <inheritdoc/>
     public async Task<TxSubmissionResult> PublishTxAsync(string transactionHex, CancellationToken cancellationToken)
     {
         try
         {
-            return await _rpcClient.EthSendRawTransactionAsync(transactionHex, cancellationToken);
+            return await _ethRpcModule.SendRawTransactionAsync(transactionHex, cancellationToken);
         }
         catch(RPCException ex)
         {
