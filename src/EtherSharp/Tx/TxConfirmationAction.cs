@@ -19,5 +19,22 @@ public abstract record TxConfirmationAction<TTxParams, TTxGasParams>
     /// Resubmits the same transaction with an increased gas fee. 
     /// The gas fee is incremented by the minimum amount necessary to replace the transaction in the mempool.
     /// </summary>
-    public record MinimalGasFeeIncrement() : TxConfirmationAction<TTxParams, TTxGasParams>;
+    public record MinimalGasFeeIncrement() : TxConfirmationAction<TTxParams, TTxGasParams>
+    {
+        /// <summary>
+        /// Static instance of MinimalGasFeeIncrement.
+        /// </summary>
+        public static MinimalGasFeeIncrement Instance { get; } = new MinimalGasFeeIncrement();
+    }
+
+    /// <summary>
+    /// Unallocates the nonce if possible. Generates an error if there are other transactions queued after this one.
+    /// </summary>
+    public record CancelTransaction() : TxConfirmationAction<TTxParams, TTxGasParams>
+    {
+        /// <summary>
+        /// Static instance of CancelTransaction.
+        /// </summary>
+        public static CancelTransaction Instance { get; } = new CancelTransaction();
+    }
 }

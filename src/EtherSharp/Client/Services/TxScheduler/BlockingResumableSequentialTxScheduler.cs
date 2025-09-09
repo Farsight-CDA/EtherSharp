@@ -11,6 +11,7 @@ using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
 
 namespace EtherSharp.Client.Services.TxScheduler;
 
@@ -38,7 +39,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
 
     private ulong _chainId;
 
-    private SemaphoreSlim _nonceIncrementSemaphore = new SemaphoreSlim(1);
+    private readonly SemaphoreSlim _nonceIncrementSemaphore = new SemaphoreSlim(1);
     private SemaphoreSlim _pendingNoncesSemaphore = null!;
 
     private readonly Lock _activeNonceLock = new Lock();
@@ -100,7 +101,10 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
             QueueEntry? entry;
             lock(_pendingEntriesLock)
             {
-                entry = _pendingEntries[_activeNonce];
+                if(!_pendingEntries.TryGetValue(_activeNonce, out entry))
+                {
+                    continue;
+                }
             }
 
             if(entry is null)
@@ -116,7 +120,12 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
             };
 
             entry.ProcessingCts.SetResult();
-            await txHandler.WaitForCompletionAsync();
+            var result = await txHandler.WaitForCompletionAsync();
+
+            if(result is TxConfirmationResult.Cancelled)
+            {
+                continue;
+            }
 
             lock(_pendingEntriesLock)
             {
@@ -253,10 +262,12 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         }
 
         using var cts = new CancellationTokenSource();
-        var noncePollTask = WaitForNonceAsync(x => x > txHandler.Nonce);
+        var noncePollTask = WaitForNonceAsync(x => x > txHandler.Nonce, cts.Token);
         var errorHandlingTask = Task.Run(async () =>
         {
             bool requirePublish = true;
+            bool requireCancel = false;
+
             TxSubmissionResult publishResult = null!;
             var latestSubmission = txHandler.TxSubmissions[0];
 
@@ -271,30 +282,48 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
                 {
                     latestSubmission = txHandler.TxSubmissions[0];
                     publishResult = await _txPublisher.PublishTxAsync(latestSubmission.SignedTx, cts.Token);
+
+                    bool isSuccessfulPublish = publishResult switch
+                    {
+                        TxSubmissionResult.Success => true,
+                        TxSubmissionResult.AlreadyExists => true,
+                        _ => false
+                    };
+
+                    if(isSuccessfulPublish && requirePublish)
+                    {
+                        await Task.Delay(_txTimeout, cts.Token);
+                    }
                 }
 
-                bool isSuccessfulPublish = publishResult switch
-                {
-                    TxSubmissionResult.Success => true,
-                    TxSubmissionResult.AlreadyExists => true,
-                    _ => false
-                };
+                TxConfirmationError error;
 
-                if(isSuccessfulPublish && requirePublish)
+                if(requireCancel)
                 {
-                    await Task.Delay(_txTimeout, cts.Token);
+                    bool cancelled = await TryCancelTransactionAsync(txHandler.Nonce);
+
+                    if(cancelled)
+                    {
+                        cts.Cancel();
+                        return;
+                    }
+
+                    error = new TxConfirmationError.TransactionNotCancellable();
                 }
-
-                TxConfirmationError error = publishResult switch
+                else
                 {
-                    TxSubmissionResult.Success => new TxConfirmationError.Timeout(),
-                    TxSubmissionResult.AlreadyExists => new TxConfirmationError.Timeout(),
-                    TxSubmissionResult.TransactionUnderpriced => new TxConfirmationError.TransactionUnderpriced(),
-                    TxSubmissionResult.UnhandledException ex => new TxConfirmationError.UnhandledException(ex.Exception),
-                    _ => throw new ImpossibleException()
-                };
+                    error = publishResult switch
+                    {
+                        TxSubmissionResult.Success => new TxConfirmationError.Timeout(),
+                        TxSubmissionResult.AlreadyExists => new TxConfirmationError.Timeout(),
+                        TxSubmissionResult.TransactionUnderpriced => new TxConfirmationError.TransactionUnderpriced(),
+                        TxSubmissionResult.UnhandledException ex => new TxConfirmationError.UnhandledException(ex.Exception),
+                        _ => throw new ImpossibleException()
+                    };
+                }
 
                 requirePublish = false;
+                requireCancel = false;
 
                 var actions = onError.Invoke(error, new TxConfirmationActionBuilder<TTxParams, TTxGasParams>(), latestSubmission);
 
@@ -308,6 +337,9 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
                         break;
                     case TxConfirmationAction<TTxParams, TTxGasParams>.MinimalGasFeeIncrement minimalGasIncrementAction:
                         newGasParams = latestSubmission.GasParams.IncrementByFactor(1105, 1000, 1);
+                        break;
+                    case TxConfirmationAction<TTxParams, TTxGasParams>.CancelTransaction cancelTransactionAction:
+                        requireCancel = true;
                         break;
                     default:
                         throw new ImpossibleException();
@@ -347,7 +379,17 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
             }
         });
 
-        await noncePollTask;
+        try
+        {
+            await noncePollTask;
+        }
+        catch(OperationCanceledException) { }
+
+        if(cts.IsCancellationRequested)
+        {
+            return new TxConfirmationResult.Cancelled();
+        }
+
         cts.Cancel();
         return await FetchTxConfirmationResultAsync(txHandler.TxSubmissions, 3);
     }
@@ -390,12 +432,40 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
                     return;
                 }
             }
+            catch(OperationCanceledException ex) when(ex.CancellationToken == cancellationToken)
+            {
+                break;
+            }
             catch
             {
                 //ToDo: Consider how to handle exceptions here
             }
         }
+    }
 
-        throw new ImpossibleException();
+    private async Task<bool> TryCancelTransactionAsync(uint nonce)
+    {
+        await _nonceIncrementSemaphore.WaitAsync();
+
+        try
+        {
+            if(_peakNonce != nonce + 1)
+            {
+                return false;
+            }
+
+            _peakNonce = nonce;
+
+            lock(_pendingEntriesLock)
+            {
+                _pendingEntries.Remove(nonce);
+            }
+
+            return true;
+        }
+        finally
+        {
+            _nonceIncrementSemaphore.Release();
+        }
     }
 }

@@ -1,5 +1,5 @@
 ﻿namespace EtherSharp.Tx.PendingHandler;
-public interface IInternalPendingTxHandler
+internal interface IInternalPendingTxHandler
 {
-    public Task WaitForCompletionAsync();
+    Task<TxConfirmationResult> WaitForCompletionAsync();
 }

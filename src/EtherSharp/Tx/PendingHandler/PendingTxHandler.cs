@@ -35,8 +35,8 @@ public class PendingTxHandler<TTxParams, TTxGasParams>(
 
     private readonly Lock _isConfirmCalledLock = new Lock();
     private bool _isConfirmCalled;
-    private readonly TaskCompletionSource _completionCts
-        = new TaskCompletionSource();
+    private readonly TaskCompletionSource<TxConfirmationResult> _completionCts
+        = new TaskCompletionSource<TxConfirmationResult>();
 
     /// <summary>
     /// Direct access to underlying TxSubmissions list, meant for use in TxScheduler only.
@@ -67,16 +67,21 @@ public class PendingTxHandler<TTxParams, TTxGasParams>(
             _isConfirmCalled = true;
         }
 
+        TxConfirmationResult confirmationResult;
+
         try
         {
-            return await _processFunc(this, onError);
+            confirmationResult = await _processFunc(this, onError);
         }
-        finally
+        catch(Exception ex)
         {
-            _completionCts.SetResult();
+            confirmationResult = new TxConfirmationResult.UnhandledException(ex);
         }
+
+        _completionCts.SetResult(confirmationResult);
+        return confirmationResult;
     }
 
-    Task IInternalPendingTxHandler.WaitForCompletionAsync()
+    Task<TxConfirmationResult> IInternalPendingTxHandler.WaitForCompletionAsync()
         => _completionCts.Task;
 }

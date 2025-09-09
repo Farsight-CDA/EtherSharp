@@ -19,4 +19,9 @@ public record TxConfirmationError
     /// Represents any error condition not represented by the other TxConfirmationError types.
     /// </summary>
     public sealed record UnhandledException(Exception Exception) : TxConfirmationError;
+
+    /// <summary>
+    /// An attempt to cancel the transaction failed as it is not cancellable. This means that there are other transactions queued after it already.
+    /// </summary>
+    public sealed record TransactionNotCancellable() : TxConfirmationError;
 }
