@@ -270,7 +270,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
             bool requirePublish = true;
             bool requireCancel = false;
 
-            TxSubmissionResult publishResult = null!;
+            TxConfirmationError error = null!;
             var latestSubmission = txHandler.TxSubmissions[0];
 
             for(int attempt = 0; ; attempt++)
@@ -283,7 +283,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
                 if(requirePublish)
                 {
                     latestSubmission = txHandler.TxSubmissions[0];
-                    publishResult = await _txPublisher.PublishTxAsync(latestSubmission.SignedTx, cts.Token);
+                    var publishResult = await _txPublisher.PublishTxAsync(latestSubmission.SignedTx, cts.Token);
 
                     bool isSuccessfulPublish = publishResult switch
                     {
@@ -292,16 +292,22 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
                         _ => false
                     };
 
-                    if(isSuccessfulPublish && requirePublish)
+                    if(isSuccessfulPublish)
                     {
                         txInMempool = true;
                         await Task.Delay(_txTimeout, cts.Token);
                     }
+
+                    error = publishResult switch
+                    {
+                        TxSubmissionResult.Success => new TxConfirmationError.Timeout(),
+                        TxSubmissionResult.AlreadyExists => new TxConfirmationError.Timeout(),
+                        TxSubmissionResult.TransactionUnderpriced => new TxConfirmationError.TransactionUnderpriced(),
+                        TxSubmissionResult.UnhandledException ex => new TxConfirmationError.UnhandledException(ex.Exception),
+                        _ => throw new ImpossibleException()
+                    };
                 }
-
-                TxConfirmationError error;
-
-                if(requireCancel)
+                else if(requireCancel)
                 {
                     bool cancelled = !txInMempool && await TryCancelTransactionAsync(txHandler.Nonce);
 
@@ -312,17 +318,6 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
                     }
 
                     error = new TxConfirmationError.TransactionNotCancellable();
-                }
-                else
-                {
-                    error = publishResult switch
-                    {
-                        TxSubmissionResult.Success => new TxConfirmationError.Timeout(),
-                        TxSubmissionResult.AlreadyExists => new TxConfirmationError.Timeout(),
-                        TxSubmissionResult.TransactionUnderpriced => new TxConfirmationError.TransactionUnderpriced(),
-                        TxSubmissionResult.UnhandledException ex => new TxConfirmationError.UnhandledException(ex.Exception),
-                        _ => throw new ImpossibleException()
-                    };
                 }
 
                 requirePublish = false;
