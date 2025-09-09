@@ -21,7 +21,8 @@ public record TxConfirmationError
     public sealed record UnhandledException(Exception Exception) : TxConfirmationError;
 
     /// <summary>
-    /// An attempt to cancel the transaction failed as it is not cancellable. This means that there are other transactions queued after it already.
+    /// An attempt to cancel the transaction failed as it is not cancellable. 
+    /// This means that there are other transactions queued after it or it has already been successfully sent to the mempool.
     /// </summary>
     public sealed record TransactionNotCancellable() : TxConfirmationError;
 }

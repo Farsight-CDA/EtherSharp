@@ -265,6 +265,8 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         var noncePollTask = WaitForNonceAsync(x => x > txHandler.Nonce, cts.Token);
         var errorHandlingTask = Task.Run(async () =>
         {
+            bool txInMempool = false;
+
             bool requirePublish = true;
             bool requireCancel = false;
 
@@ -292,6 +294,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
 
                     if(isSuccessfulPublish && requirePublish)
                     {
+                        txInMempool = true;
                         await Task.Delay(_txTimeout, cts.Token);
                     }
                 }
@@ -300,7 +303,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
 
                 if(requireCancel)
                 {
-                    bool cancelled = await TryCancelTransactionAsync(txHandler.Nonce);
+                    bool cancelled = !txInMempool && await TryCancelTransactionAsync(txHandler.Nonce);
 
                     if(cancelled)
                     {
@@ -387,6 +390,11 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
 
         if(cts.IsCancellationRequested)
         {
+            if(_resiliencyLayer is not null)
+            {
+                await _resiliencyLayer.DeleteTxSubmissionsForNonceAsync(txHandler.Nonce);
+            }
+
             return new TxConfirmationResult.Cancelled();
         }
 

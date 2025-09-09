@@ -14,6 +14,14 @@ public interface IResiliencyLayer
     public Task StoreTxSubmissionAsync(TxSubmissionStorage txSubmission, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Deletes all tx parameters for the given nonce.
+    /// </summary>
+    /// <param name="nonce"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public Task DeleteTxSubmissionsForNonceAsync(uint nonce, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Fetches the highest nonce that was stored previously.
     /// </summary>
     /// <param name="cancellationToken"></param>
