@@ -6,7 +6,7 @@ namespace EtherSharp.Generator.Util;
 public static class NameUtils
 {
     public static string ToValidParameterName(string name)
-        => EscapeVariableName(Uncapitalize(name)).Trim('_');
+        => EscapeVariableName(Uncapitalize(name).Trim('_'));
 
     public static string ToValidVariableName(string name)
         => EscapeVariableName(Uncapitalize(name));
@@ -64,6 +64,7 @@ public static class NameUtils
             "string" => "@string",
             "operator" => "@operator",
             "delegate" => "@delegate",
+            "default" => "@default",
             _ => name,
         };
 
