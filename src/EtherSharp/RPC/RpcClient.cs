@@ -1,10 +1,12 @@
-﻿using EtherSharp.Common.Extensions;
+﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Extensions;
 using EtherSharp.Common.Instrumentation;
 using EtherSharp.Transport;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EtherSharp.RPC;
+
 internal class RpcClient : IRpcClient
 {
     private readonly IRPCTransport _transport;
@@ -48,10 +50,16 @@ internal class RpcClient : IRpcClient
                 _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
                 return result;
             }
-            catch
+            catch(Exception ex)
             {
                 _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
-                throw;
+
+                if(ex is RPCTransportException)
+                {
+                    throw;
+                }
+
+                throw new RPCTransportException("Exception while calling RPC transport", ex);
             }
         };
 

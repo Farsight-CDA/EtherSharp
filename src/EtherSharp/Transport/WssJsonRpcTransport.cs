@@ -327,7 +327,12 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
 
         _pendingRequests.TryAdd(requestId, (typeof(JsonRpcResponse<TResult>), tcs));
 
-        await _socket!.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
+        if(_socket is null || _socket.State != WebSocketState.Open)
+        {
+            throw new RPCTransportException("The WebSocket is not connected.");
+        }
+
+        await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
 
         var resultTask = await Task.WhenAny(tcs.Task, timeoutTask);
 

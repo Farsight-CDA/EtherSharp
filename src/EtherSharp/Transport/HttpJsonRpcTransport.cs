@@ -76,11 +76,11 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 
             if(jsonRpcResponse is null)
             {
-                throw new RPCTransportException("RPC Error: Invalid response");
+                throw new RPCTransportException("RPC Error: Empty response");
             }
             else if(jsonRpcResponse.Id != id)
             {
-                throw new RPCTransportException("RPC Error: Invalid response Id");
+                throw new RPCTransportException("RPC Error: Response id mismatch");
             }
             else if(jsonRpcResponse.Error != null)
             {
