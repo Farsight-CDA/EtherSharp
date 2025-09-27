@@ -44,7 +44,7 @@ public static partial class AbiTypes
 
                 if(value < 0)
                 {
-                    buffer[..(buffer.Length - 4)].Fill(byte.MaxValue);
+                    buffer[..(buffer.Length - 4)].Fill(System.Byte.MaxValue);
                 }
             }
         }

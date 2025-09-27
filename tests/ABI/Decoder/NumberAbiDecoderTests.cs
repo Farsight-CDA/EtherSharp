@@ -24,25 +24,25 @@ public class AbiNumberEncodingTests
             case 8:
             {
                 sbyte value = new AbiDecoder(input).Number<sbyte>(false, bitSize);
-                Assert.Equal(sbyte.MinValue, value);
+                Assert.Equal(SByte.MinValue, value);
                 break;
             }
             case 16:
             {
                 short value = new AbiDecoder(input).Number<short>(false, bitSize);
-                Assert.Equal(short.MinValue, value);
+                Assert.Equal(Int16.MinValue, value);
                 break;
             }
             case > 16 and <= 32:
             {
                 int value = new AbiDecoder(input).Number<int>(false, bitSize);
-                Assert.Equal(int.MinValue >> (32 - bitSize), value);
+                Assert.Equal(Int32.MinValue >> (32 - bitSize), value);
                 break;
             }
             case > 32 and <= 64:
             {
                 long value = new AbiDecoder(input).Number<long>(false, bitSize);
-                Assert.Equal(long.MinValue >> (64 - bitSize), value);
+                Assert.Equal(Int64.MinValue >> (64 - bitSize), value);
                 break;
             }
             case > 64 and <= 256:
@@ -68,25 +68,25 @@ public class AbiNumberEncodingTests
             case 8:
             {
                 sbyte value = new AbiDecoder(input).Number<sbyte>(false, bitSize);
-                Assert.Equal(sbyte.MaxValue, value);
+                Assert.Equal(SByte.MaxValue, value);
                 break;
             }
             case 16:
             {
                 short value = new AbiDecoder(input).Number<short>(false, bitSize);
-                Assert.Equal(short.MaxValue, value);
+                Assert.Equal(Int16.MaxValue, value);
                 break;
             }
             case > 16 and <= 32:
             {
                 int value = new AbiDecoder(input).Number<int>(false, bitSize);
-                Assert.Equal(int.MaxValue >> (32 - bitSize), value);
+                Assert.Equal(Int32.MaxValue >> (32 - bitSize), value);
                 break;
             }
             case > 32 and <= 64:
             {
                 long value = new AbiDecoder(input).Number<long>(false, bitSize);
-                Assert.Equal(long.MaxValue >> (64 - bitSize), value);
+                Assert.Equal(Int64.MaxValue >> (64 - bitSize), value);
                 break;
             }
             case > 64 and <= 256:
@@ -155,25 +155,25 @@ public class AbiNumberEncodingTests
             case 8:
             {
                 byte value = new AbiDecoder(input).Number<byte>(true, bitSize);
-                Assert.Equal(byte.MaxValue, value);
+                Assert.Equal(Byte.MaxValue, value);
                 break;
             }
             case 16:
             {
                 ushort value = new AbiDecoder(input).Number<ushort>(true, bitSize);
-                Assert.Equal(ushort.MaxValue, value);
+                Assert.Equal(UInt16.MaxValue, value);
                 break;
             }
             case > 16 and <= 32:
             {
                 uint value = new AbiDecoder(input).Number<uint>(true, bitSize);
-                Assert.Equal(uint.MaxValue >> (32 - bitSize), value);
+                Assert.Equal(UInt32.MaxValue >> (32 - bitSize), value);
                 break;
             }
             case > 32 and <= 64:
             {
                 ulong value = new AbiDecoder(input).Number<ulong>(true, bitSize);
-                Assert.Equal(ulong.MaxValue >> (64 - bitSize), value);
+                Assert.Equal(UInt64.MaxValue >> (64 - bitSize), value);
                 break;
             }
             case > 64 and <= 256:

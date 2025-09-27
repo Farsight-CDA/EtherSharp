@@ -31,7 +31,7 @@ public class StringAbiEncoderTests
     [Fact]
     public void Should_Match_EmptyString_Output()
     {
-        string input = string.Empty;
+        string input = String.Empty;
         byte[] expected = Convert.FromHexString("00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000");
         byte[] actual = _encoder.String(input).Build();
         Assert.Equal(expected, actual);

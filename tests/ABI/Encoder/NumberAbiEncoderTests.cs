@@ -28,10 +28,10 @@ public class AbiNumberEncodingTests
 
         byte[] actual = (bitSize switch
         {
-            8 => _encoder.Number(sbyte.MinValue, false, bitSize),
-            16 => _encoder.Number(short.MinValue, false, bitSize),
-            > 16 and <= 32 => _encoder.Number(int.MinValue >> (32 - bitSize), false, bitSize),
-            > 32 and <= 64 => _encoder.Number(long.MinValue >> (64 - bitSize), false, bitSize),
+            8 => _encoder.Number(SByte.MinValue, false, bitSize),
+            16 => _encoder.Number(Int16.MinValue, false, bitSize),
+            > 16 and <= 32 => _encoder.Number(Int32.MinValue >> (32 - bitSize), false, bitSize),
+            > 32 and <= 64 => _encoder.Number(Int64.MinValue >> (64 - bitSize), false, bitSize),
             > 64 and <= 256 => _encoder.Number(-BigInteger.Pow(2, bitSize - 1), false, bitSize),
             _ => throw new NotSupportedException()
         }).Build();
@@ -49,10 +49,10 @@ public class AbiNumberEncodingTests
 
         byte[] actual = (bitSize switch
         {
-            8 => _encoder.Number(sbyte.MaxValue, false, bitSize),
-            16 => _encoder.Number(short.MaxValue, false, bitSize),
-            > 16 and <= 32 => _encoder.Number(int.MaxValue >> (32 - bitSize), false, bitSize),
-            > 32 and <= 64 => _encoder.Number(long.MaxValue >> (64 - bitSize), false, bitSize),
+            8 => _encoder.Number(SByte.MaxValue, false, bitSize),
+            16 => _encoder.Number(Int16.MaxValue, false, bitSize),
+            > 16 and <= 32 => _encoder.Number(Int32.MaxValue >> (32 - bitSize), false, bitSize),
+            > 32 and <= 64 => _encoder.Number(Int64.MaxValue >> (64 - bitSize), false, bitSize),
             > 64 and <= 256 => _encoder.Number(BigInteger.Pow(2, bitSize - 1) - 1, false, bitSize),
             _ => throw new NotSupportedException()
         }).Build();
@@ -69,10 +69,10 @@ public class AbiNumberEncodingTests
 
         byte[] actual = (bitSize switch
         {
-            8 => _encoder.Number(byte.MaxValue, true, bitSize),
-            16 => _encoder.Number(ushort.MaxValue, true, bitSize),
-            > 16 and <= 32 => _encoder.Number(uint.MaxValue >> (32 - bitSize), true, bitSize),
-            > 32 and <= 64 => _encoder.Number(ulong.MaxValue >> (64 - bitSize), true, bitSize),
+            8 => _encoder.Number(Byte.MaxValue, true, bitSize),
+            16 => _encoder.Number(UInt16.MaxValue, true, bitSize),
+            > 16 and <= 32 => _encoder.Number(UInt32.MaxValue >> (32 - bitSize), true, bitSize),
+            > 32 and <= 64 => _encoder.Number(UInt64.MaxValue >> (64 - bitSize), true, bitSize),
             > 64 and <= 256 => _encoder.Number(BigInteger.Pow(2, bitSize) - 1, true, bitSize),
             _ => throw new NotSupportedException()
         }).Build();
@@ -121,8 +121,8 @@ public class AbiNumberEncodingTests
     public void Should_Throw_On_Int_Below_Minimum(int bitSize)
         => Assert.Throws<ArgumentException>(() => bitSize switch
         {
-            24 => _encoder.Number((int.MinValue >> (32 - bitSize)) - 1, false, bitSize),
-            > 32 and < 64 => _encoder.Number((long.MinValue >> (64 - bitSize)) - 1, false, bitSize),
+            24 => _encoder.Number((Int32.MinValue >> (32 - bitSize)) - 1, false, bitSize),
+            > 32 and < 64 => _encoder.Number((Int64.MinValue >> (64 - bitSize)) - 1, false, bitSize),
             > 64 and <= 256 => _encoder.Number(-BigInteger.Pow(2, bitSize - 1) - 1, false, bitSize),
             _ => throw new NotSupportedException()
         });
@@ -132,8 +132,8 @@ public class AbiNumberEncodingTests
     public void Should_Throw_On_UInt_AboveMaximum(int bitSize)
         => Assert.Throws<ArgumentException>(() => bitSize switch
         {
-            24 => _encoder.Number((uint.MaxValue >> (32 - bitSize)) + 1, true, bitSize),
-            > 32 and < 64 => _encoder.Number((ulong.MaxValue >> (64 - bitSize)) + 1, true, bitSize),
+            24 => _encoder.Number((UInt32.MaxValue >> (32 - bitSize)) + 1, true, bitSize),
+            > 32 and < 64 => _encoder.Number((UInt64.MaxValue >> (64 - bitSize)) + 1, true, bitSize),
             > 64 and <= 256 => _encoder.Number(BigInteger.Pow(2, bitSize), true, bitSize),
             _ => throw new NotSupportedException()
         });
@@ -143,8 +143,8 @@ public class AbiNumberEncodingTests
     public void Should_Throw_On_Int_Above_Maximum(int bitSize)
         => Assert.Throws<ArgumentException>(() => bitSize switch
         {
-            24 => _encoder.Number((int.MaxValue >> (32 - bitSize)) + 1, false, bitSize),
-            > 32 and < 64 => _encoder.Number((long.MaxValue >> (64 - bitSize)) + 1, false, bitSize),
+            24 => _encoder.Number((Int32.MaxValue >> (32 - bitSize)) + 1, false, bitSize),
+            > 32 and < 64 => _encoder.Number((Int64.MaxValue >> (64 - bitSize)) + 1, false, bitSize),
             > 64 and <= 256 => _encoder.Number(BigInteger.Pow(2, bitSize - 1), false, bitSize),
             _ => throw new NotSupportedException()
         });

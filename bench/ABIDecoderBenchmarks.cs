@@ -13,11 +13,11 @@ public class ABIDecoderBenchmarks
     public void Setup()
     {
         _abiEncoder = new AbiEncoder()
-            .UInt8(byte.MaxValue)
-            .UInt8(byte.MaxValue)
-            .UInt8(byte.MaxValue)
-            .UInt8(byte.MaxValue)
-            .UInt8(byte.MaxValue);
+            .UInt8(Byte.MaxValue)
+            .UInt8(Byte.MaxValue)
+            .UInt8(Byte.MaxValue)
+            .UInt8(Byte.MaxValue)
+            .UInt8(Byte.MaxValue);
         ;
         _buffer = new byte[32 * 5];
 

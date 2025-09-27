@@ -20,7 +20,7 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
     public async Task<ulong> BlockNumberAsync(CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<string>("eth_blockNumber", cancellationToken) switch
         {
-            RpcResult<string>.Success result => ulong.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
+            RpcResult<string>.Success result => UInt64.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
             RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
@@ -61,7 +61,7 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             "eth_getBlockTransactionCountByHash", blockHash, cancellationToken
         ) switch
         {
-            RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
+            RpcResult<string>.Success result => Int64.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
             RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
@@ -71,7 +71,7 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
         => await _rpcClient.SendRpcRequestAsync<string, string>(
             "eth_getBlockTransactionCountByNumber", targetBlockNumber.ToString(), cancellationToken) switch
         {
-            RpcResult<string>.Success result => long.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
+            RpcResult<string>.Success result => Int64.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
             RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };

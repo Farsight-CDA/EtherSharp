@@ -40,7 +40,7 @@ public static partial class AbiTypes
             long index = arrayOffest - metaDataOffset;
 
             ArgumentOutOfRangeException.ThrowIfLessThan(index, 0, nameof(metaDataOffset));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(index, int.MaxValue, nameof(metaDataOffset));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(index, Int32.MaxValue, nameof(metaDataOffset));
 
             uint length = BinaryPrimitives.ReadUInt32BigEndian(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
 

@@ -22,7 +22,7 @@ public static partial class AbiTypes
 
             if(value < 0)
             {
-                buffer[..(buffer.Length - 1)].Fill(byte.MaxValue);
+                buffer[..(buffer.Length - 1)].Fill(System.Byte.MaxValue);
             }
         }
 

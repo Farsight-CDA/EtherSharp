@@ -25,7 +25,7 @@ public static class EIP55
         Span<byte> hash = stackalloc byte[32];
         Keccak256.TryHashData(asciiBytes, hash);
 
-        return string.Create(
+        return String.Create(
             42,
             hash,
             (span, hashBytes) =>
@@ -38,10 +38,10 @@ public static class EIP55
                     byte hashByte = hashBytes[i / 2];
                     int shift = 4 * (1 - (i % 2));
 
-                    span[i + 2] = char.IsLetter(c) &&
+                    span[i + 2] = Char.IsLetter(c) &&
                         ((hashByte >> shift) & 0x0F) >= 8
-                        ? char.ToUpperInvariant(c)
-                        : char.ToLowerInvariant(c);
+                        ? Char.ToUpperInvariant(c)
+                        : Char.ToLowerInvariant(c);
                 }
             }
         );

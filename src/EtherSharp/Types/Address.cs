@@ -120,7 +120,7 @@ public class Address
         }
         //
         return b.StartsWith("0x")
-                ? string.Equals(a.String, b, StringComparison.OrdinalIgnoreCase)
+                ? String.Equals(a.String, b, StringComparison.OrdinalIgnoreCase)
                 : a.String.AsSpan(2).Equals(b, StringComparison.OrdinalIgnoreCase);
     }
 

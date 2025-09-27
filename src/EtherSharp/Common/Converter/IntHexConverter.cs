@@ -19,7 +19,7 @@ internal class IntHexConverter : JsonConverter<int>
                 {
                     throw new InvalidOperationException("Hex String Dos not star");
                 }
-                return int.Parse(s.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+                return Int32.Parse(s.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
             default:
                 throw new NotImplementedException();
         }

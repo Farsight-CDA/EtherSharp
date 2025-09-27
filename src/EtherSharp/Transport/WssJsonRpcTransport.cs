@@ -223,7 +223,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                         if(reader.ValueTextEquals("id"))
                         {
                             reader.Read();
-                            requestId = int.Parse(
+                            requestId = Int32.Parse(
                                 reader.GetString()!.AsSpan()[2..],
                                 System.Globalization.NumberStyles.HexNumber,
                                 System.Globalization.CultureInfo.InvariantCulture

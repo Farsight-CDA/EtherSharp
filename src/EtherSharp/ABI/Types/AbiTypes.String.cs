@@ -41,7 +41,7 @@ public static partial class AbiTypes
             uint bytesOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..32].Span);
 
             long index = bytesOffset - metaDataOffset;
-            if(index < 0 || index > int.MaxValue)
+            if(index < 0 || index > Int32.MaxValue)
             {
                 throw new IndexOutOfRangeException("Index out of range");
             }

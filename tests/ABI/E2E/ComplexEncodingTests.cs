@@ -7,11 +7,11 @@ public class ComplexEncodingTests
     public void Should_RoundTrip_Multiple_Numbers()
     {
         byte[] encoded = new AbiEncoder()
-            .UInt8(byte.MaxValue)
-            .UInt16(byte.MaxValue)
+            .UInt8(Byte.MaxValue)
+            .UInt16(Byte.MaxValue)
             .UInt24(50)
-            .UInt32(byte.MinValue)
-            .UInt40(byte.MinValue)
+            .UInt32(Byte.MinValue)
+            .UInt40(Byte.MinValue)
             .Build();
 
         var decoder = new AbiDecoder(encoded);
@@ -21,11 +21,11 @@ public class ComplexEncodingTests
         uint d = decoder.UInt32();
         ulong e = decoder.UInt40();
 
-        Assert.Equal(byte.MaxValue, a);
-        Assert.Equal(byte.MaxValue, b);
+        Assert.Equal(Byte.MaxValue, a);
+        Assert.Equal(Byte.MaxValue, b);
         Assert.Equal((uint) 50, c);
-        Assert.Equal(byte.MinValue, d);
-        Assert.Equal(byte.MinValue, e);
+        Assert.Equal(Byte.MinValue, d);
+        Assert.Equal(Byte.MinValue, e);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class ComplexEncodingTests
     {
         byte[] encoded = new AbiEncoder()
             .Int32(16)
-            .Int8Array(sbyte.MinValue, 0, sbyte.MaxValue)
+            .Int8Array(SByte.MinValue, 0, SByte.MaxValue)
             .String("Hello")
             .Array<byte[]>([[12]], (encoder, value) => encoder.Int8Array(12))
             .Build();
@@ -63,7 +63,7 @@ public class ComplexEncodingTests
         sbyte[][] val4 = decoder.Array(decoder => decoder.Int8Array());
 
         Assert.Equal(16, val1);
-        Assert.Equal([sbyte.MinValue, 0, sbyte.MaxValue], val2);
+        Assert.Equal([SByte.MinValue, 0, SByte.MaxValue], val2);
         Assert.Equal("Hello", val3);
         Assert.Equal([[12]], val4);
     }

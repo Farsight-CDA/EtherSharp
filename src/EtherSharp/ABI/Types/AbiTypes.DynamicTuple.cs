@@ -34,7 +34,7 @@ public static partial class AbiTypes
             long index = structOffset - metaDataOffset;
 
             ArgumentOutOfRangeException.ThrowIfLessThan(index, 0, nameof(metaDataOffset));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(index, int.MaxValue, nameof(metaDataOffset));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(index, Int32.MaxValue, nameof(metaDataOffset));
 
             var structAbiDecoder = new AbiDecoder(bytes[(int) index..]);
 
