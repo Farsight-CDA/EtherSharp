@@ -104,32 +104,41 @@ public class Address
         => String;
 
     /// <inheritdoc/>
-    public static bool operator ==(Address a, Address b)
+    public static bool operator ==(Address? a, Address? b)
         => Equals(a, b);
 
     /// <inheritdoc/>
-    public static bool operator ==(Address a, string b)
-        => b.StartsWith("0x")
-            ? string.Equals(a.String, b, StringComparison.OrdinalIgnoreCase)
-            : a.String.AsSpan(2).Equals(b, StringComparison.OrdinalIgnoreCase);
+    public static bool operator ==(Address? a, string? b)
+    {
+        if(a is null && b is null)
+        {
+            return true;
+        }
+        if(a is null || b is null)
+        {
+            return false;
+        }
+        //
+        return b.StartsWith("0x")
+                ? string.Equals(a.String, b, StringComparison.OrdinalIgnoreCase)
+                : a.String.AsSpan(2).Equals(b, StringComparison.OrdinalIgnoreCase);
+    }
 
     /// <inheritdoc/>
-    public static bool operator ==(string a, Address b)
+    public static bool operator ==(string? a, Address? b)
         => b == a;
 
     /// <inheritdoc/>
-    public static bool operator !=(Address a, Address b)
+    public static bool operator !=(Address? a, Address? b)
         => !Equals(a, b);
 
     /// <inheritdoc/>
-    public static bool operator !=(Address a, string b)
-        => b.StartsWith("0x")
-            ? !string.Equals(a.String, b, StringComparison.OrdinalIgnoreCase)
-            : !a.String.AsSpan(2).Equals(b, StringComparison.OrdinalIgnoreCase);
+    public static bool operator !=(Address? a, string? b)
+        => !(a == b);
 
     /// <inheritdoc/>
     public static bool operator !=(string a, Address b)
-        => b != a;
+        => !(a == b);
 
     /// <inheritdoc/>
     public static implicit operator Address(string a)
