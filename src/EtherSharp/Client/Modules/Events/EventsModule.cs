@@ -10,6 +10,7 @@ using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Events;
+
 internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule, SubscriptionsManager subscriptionsManager) : IEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {
@@ -128,14 +129,14 @@ internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModu
     public async Task<IEventFilter<TLog>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default,
         CancellationToken cancellationToken = default)
     {
-        var filter = new EventFilter<TLog>(rpcClient, _ethRpcModule, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());
+        var filter = new EventFilter<TLog>(_rpcClient, _ethRpcModule, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());
         await filter.InitializeAsync(cancellationToken);
         return filter;
     }
 
     public async Task<IEventSubscription<TLog>> CreateSubscriptionAsync(CancellationToken cancellationToken = default)
     {
-        var subscription = new EventSubscription<TLog>(rpcClient, _ethRpcModule, _subscriptionsManager, _contractAddresses, CreateTopicsArray());
+        var subscription = new EventSubscription<TLog>(_rpcClient, _ethRpcModule, _subscriptionsManager, _contractAddresses, CreateTopicsArray());
         await _subscriptionsManager.InstallSubscriptionAsync(subscription, cancellationToken);
         return subscription;
     }
