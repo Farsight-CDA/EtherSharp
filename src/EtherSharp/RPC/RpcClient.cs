@@ -54,7 +54,7 @@ internal class RpcClient : IRpcClient
             {
                 _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
 
-                if(ex is RPCTransportException)
+                if(ex is RPCTransportException || (ex is OperationCanceledException && cancellationToken.IsCancellationRequested))
                 {
                     throw;
                 }
