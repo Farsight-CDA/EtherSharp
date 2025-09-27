@@ -13,11 +13,11 @@ public class Address
     /// <summary>
     /// Character length of an address including 0x prefix.
     /// </summary>
-    public const int StringLength = 42;
+    public const int STRING_LENGTH = 42;
     /// <summary>
     /// Byte length of an address.
     /// </summary>
-    public const int BytesLength = 20;
+    public const int BYTES_LENGTH = 20;
 
     /// <summary>
     /// Returns the Zero address.
@@ -38,7 +38,7 @@ public class Address
 
     private Address(string s, byte[] b)
     {
-        if(s.Length != StringLength || b.Length != BytesLength)
+        if(s.Length != STRING_LENGTH || b.Length != BYTES_LENGTH)
         {
             throw new ArgumentException("Bad address length");
         }
