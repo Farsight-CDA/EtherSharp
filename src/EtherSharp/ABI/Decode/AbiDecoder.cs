@@ -5,18 +5,18 @@ using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.ABI;
+
 public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder, IDynamicTupleDecoder, IArrayAbiDecoder
 {
     private ReadOnlyMemory<byte> _bytes = bytes;
-    private uint _bytesRead = 0;
 
     private ReadOnlySpan<byte> CurrentSlot => _bytes.Span[..32];
-    public string Buffer => Convert.ToHexString(_bytes.Span);
+    public uint BytesRead { get; private set; }
 
     private void ConsumeBytes()
     {
         _bytes = _bytes[32..];
-        _bytesRead += 32;
+        BytesRead += 32;
     }
 
     public bool Bool()
@@ -35,14 +35,14 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
     public string String()
     {
-        string result = AbiTypes.String.Decode(_bytes, _bytesRead);
+        string result = AbiTypes.String.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
 
     public ReadOnlySpan<byte> Bytes()
     {
-        var result = AbiTypes.Bytes.Decode(_bytes.Span, _bytesRead);
+        var result = AbiTypes.Bytes.Decode(_bytes.Span, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -106,12 +106,12 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     {
         uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
 
-        if(payloadOffset < _bytesRead)
+        if(payloadOffset < BytesRead)
         {
             throw new IndexOutOfRangeException("Index out of range");
         }
 
-        long relativePayloadOffset = payloadOffset - _bytesRead;
+        long relativePayloadOffset = payloadOffset - BytesRead;
         var payload = _bytes[(int) relativePayloadOffset..].Span;
 
         uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32]);
@@ -133,12 +133,12 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     {
         uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
 
-        if(payloadOffset < _bytesRead)
+        if(payloadOffset < BytesRead)
         {
             throw new IndexOutOfRangeException("Index out of range");
         }
 
-        long relativePayloadOffset = payloadOffset - _bytesRead;
+        long relativePayloadOffset = payloadOffset - BytesRead;
         var payload = _bytes[(int) relativePayloadOffset..].Span;
 
         uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32]);
@@ -165,31 +165,31 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
         var result = bitLength switch
         {
-            8 when isUnsigned => AbiTypes.SizedNumberArray<byte>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            8 when isUnsigned => AbiTypes.SizedNumberArray<byte>.Decode(_bytes, BytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}")
                 : b,
-            8 when !isUnsigned => AbiTypes.SizedNumberArray<sbyte>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            8 when !isUnsigned => AbiTypes.SizedNumberArray<sbyte>.Decode(_bytes, BytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}")
                 : b,
-            16 when isUnsigned => AbiTypes.SizedNumberArray<ushort>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            16 when isUnsigned => AbiTypes.SizedNumberArray<ushort>.Decode(_bytes, BytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}")
                 : b,
-            16 when !isUnsigned => AbiTypes.SizedNumberArray<short>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            16 when !isUnsigned => AbiTypes.SizedNumberArray<short>.Decode(_bytes, BytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}")
                 : b,
-            > 16 and <= 32 when isUnsigned => AbiTypes.SizedNumberArray<uint>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            > 16 and <= 32 when isUnsigned => AbiTypes.SizedNumberArray<uint>.Decode(_bytes, BytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}")
                 : b,
-            > 16 and <= 32 when !isUnsigned => AbiTypes.SizedNumberArray<int>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            > 16 and <= 32 when !isUnsigned => AbiTypes.SizedNumberArray<int>.Decode(_bytes, BytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}")
                 : b,
-            > 32 and <= 64 when isUnsigned => AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            > 32 and <= 64 when isUnsigned => AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, BytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}")
                 : b,
-            > 32 and <= 64 when !isUnsigned => AbiTypes.SizedNumberArray<long>.Decode(_bytes, _bytesRead) is not TNumber[] b
+            > 32 and <= 64 when !isUnsigned => AbiTypes.SizedNumberArray<long>.Decode(_bytes, BytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}")
                 : b,
-            > 64 and <= 256 => AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, bitLength, isUnsigned) is not TNumber[] b
+            > 64 and <= 256 => AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, bitLength, isUnsigned) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {(isUnsigned ? "u-" : "")} {typeof(System.Numerics.BigInteger)}")
                 : b,
             _ => throw new NotSupportedException()
@@ -203,12 +203,12 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     {
         uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
 
-        if(payloadOffset < _bytesRead)
+        if(payloadOffset < BytesRead)
         {
             throw new IndexOutOfRangeException("Index out of range");
         }
 
-        long relativePayloadOffset = payloadOffset - _bytesRead;
+        long relativePayloadOffset = payloadOffset - BytesRead;
         var payload = _bytes[(int) relativePayloadOffset..];
 
         uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32].Span);
@@ -229,12 +229,12 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     {
         uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
 
-        if(payloadOffset < _bytesRead)
+        if(payloadOffset < BytesRead)
         {
             throw new IndexOutOfRangeException("Index out of range");
         }
 
-        long relativePayloadOffset = payloadOffset - _bytesRead;
+        long relativePayloadOffset = payloadOffset - BytesRead;
         var payload = _bytes[(int) relativePayloadOffset..];
 
         uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32].Span);
@@ -253,7 +253,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
     public T[] Array<T>(Func<IArrayAbiDecoder, T> func)
     {
-        var result = AbiTypes.Array.Decode(_bytes, _bytesRead, func);
+        var result = AbiTypes.Array.Decode(_bytes, BytesRead, func);
         ConsumeBytes();
         return result;
     }
@@ -266,7 +266,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
     public T DynamicTuple<T>(Func<IDynamicTupleDecoder, T> func)
     {
-        var result = AbiTypes.DynamicTuple.Decode(_bytes, _bytesRead, func);
+        var result = AbiTypes.DynamicTuple.Decode(_bytes, BytesRead, func);
         ConsumeBytes();
         return result;
     }

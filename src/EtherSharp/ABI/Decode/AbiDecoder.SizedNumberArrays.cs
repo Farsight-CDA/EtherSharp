@@ -7,7 +7,7 @@ public partial class AbiDecoder
 {
     public sbyte[] Int8Array()
     {
-        sbyte[] result = AbiTypes.SizedNumberArray<sbyte>.Decode(_bytes, _bytesRead);
+        sbyte[] result = AbiTypes.SizedNumberArray<sbyte>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -18,7 +18,7 @@ public partial class AbiDecoder
 
     public byte[] UInt8Array()
     {
-        byte[] result = AbiTypes.SizedNumberArray<byte>.Decode(_bytes, _bytesRead);
+        byte[] result = AbiTypes.SizedNumberArray<byte>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -29,7 +29,7 @@ public partial class AbiDecoder
 
     public short[] Int16Array()
     {
-        short[] result = AbiTypes.SizedNumberArray<short>.Decode(_bytes, _bytesRead);
+        short[] result = AbiTypes.SizedNumberArray<short>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -40,7 +40,7 @@ public partial class AbiDecoder
 
     public ushort[] UInt16Array()
     {
-        ushort[] result = AbiTypes.SizedNumberArray<ushort>.Decode(_bytes, _bytesRead);
+        ushort[] result = AbiTypes.SizedNumberArray<ushort>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -51,7 +51,7 @@ public partial class AbiDecoder
 
     public int[] Int24Array()
     {
-        int[] result = AbiTypes.SizedNumberArray<int>.Decode(_bytes, _bytesRead);
+        int[] result = AbiTypes.SizedNumberArray<int>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -62,7 +62,7 @@ public partial class AbiDecoder
 
     public uint[] UInt24Array()
     {
-        uint[] result = AbiTypes.SizedNumberArray<uint>.Decode(_bytes, _bytesRead);
+        uint[] result = AbiTypes.SizedNumberArray<uint>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -72,7 +72,7 @@ public partial class AbiDecoder
         => UInt24Array();
     public int[] Int32Array()
     {
-        int[] result = AbiTypes.SizedNumberArray<int>.Decode(_bytes, _bytesRead);
+        int[] result = AbiTypes.SizedNumberArray<int>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -83,7 +83,7 @@ public partial class AbiDecoder
 
     public uint[] UInt32Array()
     {
-        uint[] result = AbiTypes.SizedNumberArray<uint>.Decode(_bytes, _bytesRead);
+        uint[] result = AbiTypes.SizedNumberArray<uint>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -94,7 +94,7 @@ public partial class AbiDecoder
 
     public long[] Int40Array()
     {
-        long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, _bytesRead);
+        long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -105,7 +105,7 @@ public partial class AbiDecoder
 
     public ulong[] UInt40Array()
     {
-        ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, _bytesRead);
+        ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -115,7 +115,7 @@ public partial class AbiDecoder
         => UInt40Array();
     public long[] Int48Array()
     {
-        long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, _bytesRead);
+        long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -126,7 +126,7 @@ public partial class AbiDecoder
 
     public ulong[] UInt48Array()
     {
-        ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, _bytesRead);
+        ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -136,7 +136,7 @@ public partial class AbiDecoder
         => UInt48Array();
     public long[] Int56Array()
     {
-        long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, _bytesRead);
+        long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -147,7 +147,7 @@ public partial class AbiDecoder
 
     public ulong[] UInt56Array()
     {
-        ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, _bytesRead);
+        ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -157,7 +157,7 @@ public partial class AbiDecoder
         => UInt56Array();
     public long[] Int64Array()
     {
-        long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, _bytesRead);
+        long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -168,7 +168,7 @@ public partial class AbiDecoder
 
     public ulong[] UInt64Array()
     {
-        ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, _bytesRead);
+        ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -179,7 +179,7 @@ public partial class AbiDecoder
 
     public BigInteger[] Int72Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 72, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 72, false);
         ConsumeBytes();
         return result;
     }
@@ -190,7 +190,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt72Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 72, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 72, true);
         ConsumeBytes();
         return result;
     }
@@ -200,7 +200,7 @@ public partial class AbiDecoder
         => UInt72Array();
     public BigInteger[] Int80Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 80, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 80, false);
         ConsumeBytes();
         return result;
     }
@@ -211,7 +211,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt80Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 80, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 80, true);
         ConsumeBytes();
         return result;
     }
@@ -221,7 +221,7 @@ public partial class AbiDecoder
         => UInt80Array();
     public BigInteger[] Int88Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 88, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 88, false);
         ConsumeBytes();
         return result;
     }
@@ -232,7 +232,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt88Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 88, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 88, true);
         ConsumeBytes();
         return result;
     }
@@ -242,7 +242,7 @@ public partial class AbiDecoder
         => UInt88Array();
     public BigInteger[] Int96Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 96, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 96, false);
         ConsumeBytes();
         return result;
     }
@@ -253,7 +253,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt96Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 96, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 96, true);
         ConsumeBytes();
         return result;
     }
@@ -263,7 +263,7 @@ public partial class AbiDecoder
         => UInt96Array();
     public BigInteger[] Int104Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 104, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 104, false);
         ConsumeBytes();
         return result;
     }
@@ -274,7 +274,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt104Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 104, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 104, true);
         ConsumeBytes();
         return result;
     }
@@ -284,7 +284,7 @@ public partial class AbiDecoder
         => UInt104Array();
     public BigInteger[] Int112Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 112, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 112, false);
         ConsumeBytes();
         return result;
     }
@@ -295,7 +295,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt112Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 112, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 112, true);
         ConsumeBytes();
         return result;
     }
@@ -305,7 +305,7 @@ public partial class AbiDecoder
         => UInt112Array();
     public BigInteger[] Int120Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 120, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 120, false);
         ConsumeBytes();
         return result;
     }
@@ -316,7 +316,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt120Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 120, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 120, true);
         ConsumeBytes();
         return result;
     }
@@ -326,7 +326,7 @@ public partial class AbiDecoder
         => UInt120Array();
     public BigInteger[] Int128Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 128, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 128, false);
         ConsumeBytes();
         return result;
     }
@@ -337,7 +337,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt128Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 128, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 128, true);
         ConsumeBytes();
         return result;
     }
@@ -347,7 +347,7 @@ public partial class AbiDecoder
         => UInt128Array();
     public BigInteger[] Int136Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 136, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 136, false);
         ConsumeBytes();
         return result;
     }
@@ -358,7 +358,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt136Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 136, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 136, true);
         ConsumeBytes();
         return result;
     }
@@ -368,7 +368,7 @@ public partial class AbiDecoder
         => UInt136Array();
     public BigInteger[] Int144Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 144, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 144, false);
         ConsumeBytes();
         return result;
     }
@@ -379,7 +379,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt144Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 144, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 144, true);
         ConsumeBytes();
         return result;
     }
@@ -389,7 +389,7 @@ public partial class AbiDecoder
         => UInt144Array();
     public BigInteger[] Int152Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 152, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 152, false);
         ConsumeBytes();
         return result;
     }
@@ -400,7 +400,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt152Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 152, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 152, true);
         ConsumeBytes();
         return result;
     }
@@ -410,7 +410,7 @@ public partial class AbiDecoder
         => UInt152Array();
     public BigInteger[] Int160Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 160, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 160, false);
         ConsumeBytes();
         return result;
     }
@@ -421,7 +421,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt160Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 160, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 160, true);
         ConsumeBytes();
         return result;
     }
@@ -431,7 +431,7 @@ public partial class AbiDecoder
         => UInt160Array();
     public BigInteger[] Int168Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 168, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 168, false);
         ConsumeBytes();
         return result;
     }
@@ -442,7 +442,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt168Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 168, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 168, true);
         ConsumeBytes();
         return result;
     }
@@ -452,7 +452,7 @@ public partial class AbiDecoder
         => UInt168Array();
     public BigInteger[] Int176Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 176, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 176, false);
         ConsumeBytes();
         return result;
     }
@@ -463,7 +463,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt176Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 176, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 176, true);
         ConsumeBytes();
         return result;
     }
@@ -473,7 +473,7 @@ public partial class AbiDecoder
         => UInt176Array();
     public BigInteger[] Int184Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 184, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 184, false);
         ConsumeBytes();
         return result;
     }
@@ -484,7 +484,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt184Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 184, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 184, true);
         ConsumeBytes();
         return result;
     }
@@ -494,7 +494,7 @@ public partial class AbiDecoder
         => UInt184Array();
     public BigInteger[] Int192Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 192, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 192, false);
         ConsumeBytes();
         return result;
     }
@@ -505,7 +505,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt192Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 192, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 192, true);
         ConsumeBytes();
         return result;
     }
@@ -515,7 +515,7 @@ public partial class AbiDecoder
         => UInt192Array();
     public BigInteger[] Int200Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 200, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 200, false);
         ConsumeBytes();
         return result;
     }
@@ -526,7 +526,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt200Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 200, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 200, true);
         ConsumeBytes();
         return result;
     }
@@ -536,7 +536,7 @@ public partial class AbiDecoder
         => UInt200Array();
     public BigInteger[] Int208Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 208, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 208, false);
         ConsumeBytes();
         return result;
     }
@@ -547,7 +547,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt208Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 208, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 208, true);
         ConsumeBytes();
         return result;
     }
@@ -557,7 +557,7 @@ public partial class AbiDecoder
         => UInt208Array();
     public BigInteger[] Int216Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 216, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 216, false);
         ConsumeBytes();
         return result;
     }
@@ -568,7 +568,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt216Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 216, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 216, true);
         ConsumeBytes();
         return result;
     }
@@ -578,7 +578,7 @@ public partial class AbiDecoder
         => UInt216Array();
     public BigInteger[] Int224Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 224, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 224, false);
         ConsumeBytes();
         return result;
     }
@@ -589,7 +589,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt224Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 224, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 224, true);
         ConsumeBytes();
         return result;
     }
@@ -599,7 +599,7 @@ public partial class AbiDecoder
         => UInt224Array();
     public BigInteger[] Int232Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 232, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 232, false);
         ConsumeBytes();
         return result;
     }
@@ -610,7 +610,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt232Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 232, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 232, true);
         ConsumeBytes();
         return result;
     }
@@ -620,7 +620,7 @@ public partial class AbiDecoder
         => UInt232Array();
     public BigInteger[] Int240Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 240, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 240, false);
         ConsumeBytes();
         return result;
     }
@@ -631,7 +631,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt240Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 240, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 240, true);
         ConsumeBytes();
         return result;
     }
@@ -641,7 +641,7 @@ public partial class AbiDecoder
         => UInt240Array();
     public BigInteger[] Int248Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 248, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 248, false);
         ConsumeBytes();
         return result;
     }
@@ -652,7 +652,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt248Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 248, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 248, true);
         ConsumeBytes();
         return result;
     }
@@ -662,7 +662,7 @@ public partial class AbiDecoder
         => UInt248Array();
     public BigInteger[] Int256Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 256, false);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 256, false);
         ConsumeBytes();
         return result;
     }
@@ -673,7 +673,7 @@ public partial class AbiDecoder
 
     public BigInteger[] UInt256Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, _bytesRead, 256, true);
+        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 256, true);
         ConsumeBytes();
         return result;
     }

@@ -1,4 +1,5 @@
 ﻿using EtherSharp.ABI;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Types;
 using System.Numerics;
 
@@ -21,6 +22,25 @@ internal class TxInput<T>(Address to, BigInteger value, byte[] data, Func<AbiDec
     private readonly Func<AbiDecoder, T> _decoder = decoder;
 
     public T ReadResultFrom(ReadOnlyMemory<byte> buffer)
-        => _decoder.Invoke(new AbiDecoder(buffer));
+    {
+        if(buffer.Length == 0)
+        {
+            throw new CallParsingException.EmptyCallDataException();
+        }
+
+        try
+        {
+            var decoder = new AbiDecoder(buffer);
+            var result = _decoder.Invoke(decoder);
+
+            return decoder.BytesRead < buffer.Length
+                ? throw new CallParsingException.RemainingCallDataException(buffer.ToArray())
+                : result;
+        }
+        catch(Exception ex)
+        {
+            throw new CallParsingException.MalformedCallDataException(buffer.ToArray(), ex);
+        }
+    }
 }
 
