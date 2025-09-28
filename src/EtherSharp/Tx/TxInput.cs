@@ -32,14 +32,12 @@ internal class TxInput<T>(Address to, BigInteger value, byte[] data, Func<AbiDec
         {
             var decoder = new AbiDecoder(buffer);
             var result = _decoder.Invoke(decoder);
-
-            return decoder.BytesRead < buffer.Length
-                ? throw new CallParsingException.RemainingCallDataException(buffer.ToArray())
-                : result;
+            //ToDo: Check for remaining data
+            return result;
         }
         catch(Exception ex)
         {
-            throw new CallParsingException.MalformedCallDataException(buffer.ToArray(), ex);
+            throw new CallParsingException.MalformedCallDataException(buffer, ex);
         }
     }
 }
