@@ -82,7 +82,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                 await MessageHandler();
                 _logger?.LogWarning("Websocket connection lost, killing {RequestCount} pending requests...", _pendingRequests.Count);
 
-                var wssClosedException = new RPCTransportException("WSS closed");
+                var wssClosedException = new RPCTransportException("The WebSocket is not connected.");
                 foreach(var r in _pendingRequests)
                 {
                     r.Value.Tcs.SetException(wssClosedException);
@@ -155,7 +155,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
 
             do
             {
-                receiveResult = await _socket.ReceiveAsync(buffer, default);
+                receiveResult = await _socket.ReceiveAsync(buffer, _connectionHandlerCts.Token);
 
                 if(receiveResult.Count != 0)
                 {
@@ -327,7 +327,14 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
 
         _pendingRequests.TryAdd(requestId, (typeof(JsonRpcResponse<TResult>), tcs));
 
-        if(_socket is null || _socket.State != WebSocketState.Open)
+        try
+        {
+            if(_socket is null || _socket.State != WebSocketState.Open)
+            {
+                throw new RPCTransportException("The WebSocket is not connected.");
+            }
+        }
+        catch(ObjectDisposedException)
         {
             throw new RPCTransportException("The WebSocket is not connected.");
         }
