@@ -73,5 +73,10 @@ public interface ITxInput
 /// <typeparam name="T"></typeparam>
 public interface ITxInput<T> : ITxInput
 {
-    internal T ReadResultFrom(ReadOnlyMemory<byte> buffer);
+    /// <summary>
+    /// Parses the result from the given call return value.
+    /// </summary>
+    /// <param name="buffer"></param>
+    /// <returns></returns>
+    public T ReadResultFrom(ReadOnlyMemory<byte> buffer);
 }
