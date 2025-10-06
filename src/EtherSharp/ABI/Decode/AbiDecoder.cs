@@ -241,7 +241,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
         byte[][] values = new byte[arrayLength][];
 
-        var decoder = new AbiDecoder(payload);
+        var decoder = new AbiDecoder(payload[32..]);
 
         for(int i = 0; i < arrayLength; i++)
         {
