@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
+
 public static partial class AbiTypes
 {
     public class SizedBytesArray : DynamicType<byte[][]>
@@ -50,7 +51,7 @@ public static partial class AbiTypes
 
             for(int i = 0; i < length; i++)
             {
-                results[i] = data.Slice((i * 32) + 32 - byteSize, byteSize).ToArray();
+                results[i] = data.Slice(i * 32, byteSize).ToArray();
             }
 
             return results;

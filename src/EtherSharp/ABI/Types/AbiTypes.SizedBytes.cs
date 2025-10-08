@@ -1,6 +1,7 @@
 ﻿using EtherSharp.ABI.Types.Base;
 
 namespace EtherSharp.ABI.Types;
+
 public static partial class AbiTypes
 {
     public class SizedBytes : FixedType<byte[]>, IPackedEncodeType
@@ -22,9 +23,9 @@ public static partial class AbiTypes
             => EncodeInto(Value, buffer);
 
         public static void EncodeInto(byte[] value, Span<byte> buffer)
-            => value.CopyTo(buffer[(buffer.Length - value.Length)..]);
+            => value.CopyTo(buffer[0..value.Length]);
         public static ReadOnlySpan<byte> Decode(ReadOnlySpan<byte> bytes, int byteCount)
-            => bytes[(32 - byteCount)..];
+            => bytes[0..byteCount];
 
     }
 }
