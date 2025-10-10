@@ -11,12 +11,12 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Events;
 
-internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule, SubscriptionsManager subscriptionsManager) : IEventsModule<TLog>
+internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager) : IEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {
     private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
-    private readonly SubscriptionsManager _subscriptionsManager = subscriptionsManager;
+    private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
 
     protected Dictionary<int, string[]?> _topics = [];
     protected Address[]? _contractAddresses;

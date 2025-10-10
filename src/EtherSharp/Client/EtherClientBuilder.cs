@@ -19,10 +19,10 @@ using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Secp256k1Net;
 using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Client;
+
 public class EtherClientBuilder
 {
     private readonly IServiceCollection _services = new ServiceCollection();
@@ -216,7 +216,7 @@ public class EtherClientBuilder
         _services.AddSingleton<ITraceRpcModule, TraceRpcModule>();
 
         _services.AddSingleton<ContractFactory>();
-        _services.AddSingleton<SubscriptionsManager>();
+        _services.AddSingleton<ISubscriptionsManager, SubscriptionsManager>();
 
         foreach(var service in _services.ToArray())
         {

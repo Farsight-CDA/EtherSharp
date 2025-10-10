@@ -9,7 +9,8 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Client.Services.Subscriptions;
-internal class SubscriptionsManager
+
+internal class SubscriptionsManager : ISubscriptionsManager
 {
     private readonly IRpcClient _rpcClient;
     private readonly IEthRpcModule _ethRpcModule;

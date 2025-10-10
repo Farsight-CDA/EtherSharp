@@ -1,6 +1,5 @@
 ﻿using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common;
-using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using System.Runtime.CompilerServices;
@@ -8,12 +7,13 @@ using System.Text.Json;
 using System.Threading.Channels;
 
 namespace EtherSharp.Realtime.Blocks.Subscription;
-internal class BlocksSubscription(IEthRpcModule ethRpcModule, SubscriptionsManager subscriptionsManager) : IBlocksSubscription, ISubscription
+
+internal class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager) : IBlocksSubscription, ISubscription
 {
     public string Id { get; private set; } = null!;
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
-    private readonly SubscriptionsManager _subscriptionsManager = subscriptionsManager;
+    private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
 
     private readonly Channel<BlockHeader> _channel = Channel.CreateUnbounded<BlockHeader>(new UnboundedChannelOptions()
     {

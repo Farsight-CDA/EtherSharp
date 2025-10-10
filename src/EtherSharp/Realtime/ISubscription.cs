@@ -1,5 +1,6 @@
 ﻿namespace EtherSharp.Realtime;
-internal interface ISubscription
+
+public interface ISubscription
 {
     public string Id { get; }
     public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload);

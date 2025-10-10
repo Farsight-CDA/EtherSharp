@@ -19,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
 
 namespace EtherSharp.Client;
+
 internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 {
     private readonly IServiceProvider _provider;
@@ -33,7 +34,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     private IEtherSigner _signer = null!;
     private ITxScheduler _txScheduler = null!;
 
-    private SubscriptionsManager _subscriptionsManager = null!;
+    private ISubscriptionsManager _subscriptionsManager = null!;
     private ContractFactory _contractFactory = null!;
 
     private bool _initialized;
@@ -116,7 +117,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         _ethRpcModule = _provider.GetRequiredService<IEthRpcModule>();
 
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
-        _subscriptionsManager = _provider.GetRequiredService<SubscriptionsManager>();
+        _subscriptionsManager = _provider.GetRequiredService<ISubscriptionsManager>();
 
         if(_isTxClient)
         {
