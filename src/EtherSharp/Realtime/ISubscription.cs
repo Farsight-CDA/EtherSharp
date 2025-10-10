@@ -1,6 +1,6 @@
 ﻿namespace EtherSharp.Realtime;
 
-public interface ISubscription
+public interface ISubscription : IAsyncDisposable
 {
     public string Id { get; }
     public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload);

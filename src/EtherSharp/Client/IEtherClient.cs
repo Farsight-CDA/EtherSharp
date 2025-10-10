@@ -1,7 +1,7 @@
-﻿using EtherSharp.Client.Modules.Ether;
+﻿using EtherSharp.Client.Modules.Blocks;
+using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
 using EtherSharp.Contract;
-using EtherSharp.Realtime.Blocks.Subscription;
 using EtherSharp.Realtime.Events;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
@@ -10,10 +10,12 @@ using EtherSharp.Types;
 using System.Numerics;
 
 namespace EtherSharp.Client;
+
 public interface IEtherClient
 {
     public ulong ChainId { get; }
     public IEtherModule ETH { get; }
+    public IBlocksModule Blocks { get; }
 
     public IEventsModule<TEvent> Events<TEvent>() where TEvent : ITxLog<TEvent>;
     public IEventsModule<Log> Events() => Events<Log>();
@@ -22,13 +24,9 @@ public interface IEtherClient
 
     public Task InitializeAsync(CancellationToken cancellationToken = default);
 
-    public Task<IBlocksSubscription> SubscribeNewHeadsAsync(CancellationToken cancellationToken = default);
-
-    public Task<BlockDataTrasactionAsString> GetBlockAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken = default);
     public Task<Transaction?> GetTransactionAsync(string hash, CancellationToken cancellationToken = default);
     public Task<TransactionReceipt?> GetTransactionReceiptAsync(string hash, CancellationToken cancellationToken = default);
 
-    public Task<ulong> GetPeakHeightAsync(CancellationToken cancellationToken = default);
     public Task<uint> GetTransactionCount(Address address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 
     public TContract Contract<TContract>(Address address)

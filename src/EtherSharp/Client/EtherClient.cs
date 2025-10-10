@@ -1,4 +1,5 @@
-﻿using EtherSharp.Client.Modules.Ether;
+﻿using EtherSharp.Client.Modules.Blocks;
+using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
@@ -7,7 +8,6 @@ using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Contract;
-using EtherSharp.Realtime.Blocks.Subscription;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Transport;
@@ -27,6 +27,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     private IEtherTxModule _etherModule = null!;
     private ITraceModule _traceModule = null!;
+    private IBlocksModule _blocksModule = null!;
 
     private IRpcClient _rpcClient = null!;
     private IEthRpcModule _ethRpcModule = null!;
@@ -68,6 +69,15 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         {
             AssertReady();
             return _etherModule;
+        }
+    }
+
+    IBlocksModule IEtherClient.Blocks
+    {
+        get
+        {
+            AssertReady();
+            return _blocksModule;
         }
     }
 
@@ -135,19 +145,6 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         _initialized = true;
     }
 
-    async Task<IBlocksSubscription> IEtherClient.SubscribeNewHeadsAsync(CancellationToken cancellationToken)
-    {
-        AssertReady();
-        var subscription = new BlocksSubscription(_ethRpcModule, _subscriptionsManager);
-        await _subscriptionsManager.InstallSubscriptionAsync(subscription, cancellationToken);
-        return subscription;
-    }
-
-    Task<BlockDataTrasactionAsString> IEtherClient.GetBlockAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
-    {
-        AssertReady();
-        return _ethRpcModule.GetBlockByNumberAsync(targetBlockNumber, cancellationToken);
-    }
     Task<Transaction?> IEtherClient.GetTransactionAsync(string hash, CancellationToken cancellationToken)
     {
         AssertReady();
@@ -159,11 +156,6 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return _ethRpcModule.GetTransactionReceiptAsync(hash, cancellationToken);
     }
 
-    Task<ulong> IEtherClient.GetPeakHeightAsync(CancellationToken cancellationToken)
-    {
-        AssertReady();
-        return _ethRpcModule.BlockNumberAsync(cancellationToken);
-    }
     Task<uint> IEtherClient.GetTransactionCount(
         Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
