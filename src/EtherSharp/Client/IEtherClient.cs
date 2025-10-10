@@ -13,8 +13,17 @@ namespace EtherSharp.Client;
 
 public interface IEtherClient
 {
+    /// <summary>
+    /// The chainId of the chain you are connected to.
+    /// </summary>
     public ulong ChainId { get; }
+    /// <summary>
+    /// Module used to interact with the native currency.
+    /// </summary>
     public IEtherModule ETH { get; }
+    /// <summary>
+    /// Module used to interact with blocks.
+    /// </summary>
     public IBlocksModule Blocks { get; }
 
     public IEventsModule<TEvent> Events<TEvent>() where TEvent : ITxLog<TEvent>;
