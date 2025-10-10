@@ -7,7 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Numerics;
 
 namespace EtherSharp.Client.Modules.Ether;
-internal class EtherModule(IEthRpcModule ethRpcModule, IServiceProvider provider) : IEtherTxModule
+
+internal class EtherModule(IEthRpcModule ethRpcModule, IServiceProvider provider) : IEtherTxModule, IEtherModule
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly IServiceProvider _provider = provider;
