@@ -1,4 +1,5 @@
-﻿using EtherSharp.Client.Modules.Ether;
+﻿using EtherSharp.Client.Modules.Blocks;
+using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
@@ -221,6 +222,7 @@ public class EtherClientBuilder
         _services.AddSingleton<ITraceRpcModule, TraceRpcModule>();
         _services.AddSingleton<IEtherModule, EtherModule>();
         _services.AddSingleton<ITraceModule, TraceModule>();
+        _services.AddSingleton<IBlocksModule, BlocksModule>();
 
         _services.AddSingleton<ContractFactory>();
 
