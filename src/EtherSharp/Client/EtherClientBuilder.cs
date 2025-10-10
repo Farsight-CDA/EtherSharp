@@ -144,6 +144,14 @@ public class EtherClientBuilder
         return this;
     }
 
+    public EtherClientBuilder WithSubscriptionsManager<TSusbcriptionManager>(Action<TSusbcriptionManager>? configureAction = null)
+        where TSusbcriptionManager : class, ISubscriptionsManager
+    {
+        _services.AddOrReplaceSingleton<ISubscriptionsManager, TSusbcriptionManager>();
+        AddConfigureAction<ISubscriptionsManager, TSusbcriptionManager>(configureAction);
+        return this;
+    }
+
     public EtherClientBuilder WithTxPublisher<TTxPublisher>(Action<TTxPublisher>? configureAction = null)
         where TTxPublisher : class, ITxPublisher
     {
@@ -191,7 +199,7 @@ public class EtherClientBuilder
         return this;
     }
 
-    public void RunConfigureActions(IServiceProvider provider)
+    private void RunConfigureActions(IServiceProvider provider)
     {
         foreach(var (serviceType, _, action) in _configureActions)
         {
@@ -216,7 +224,11 @@ public class EtherClientBuilder
         _services.AddSingleton<ITraceRpcModule, TraceRpcModule>();
 
         _services.AddSingleton<ContractFactory>();
-        _services.AddSingleton<ISubscriptionsManager, SubscriptionsManager>();
+
+        if(!_services.Any(x => x.ServiceType == typeof(ISubscriptionsManager)))
+        {
+            _services.AddSingleton<ISubscriptionsManager, SubscriptionsManager>();
+        }
 
         foreach(var service in _services.ToArray())
         {
@@ -232,6 +244,7 @@ public class EtherClientBuilder
             _services.AddSingleton(typeof(IInitializableService), provider => provider.GetRequiredService(service.ServiceType));
         }
     }
+
     public IEtherClient BuildReadClient()
     {
         AssertReadClientConfiguration();
