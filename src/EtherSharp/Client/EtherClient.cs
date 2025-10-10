@@ -25,8 +25,8 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     private readonly IServiceProvider _provider;
     private readonly bool _isTxClient;
 
-    private EtherModule _etherModule = null!;
-    private TraceModule _traceModule = null!;
+    private IEtherModule _etherModule = null!;
+    private ITraceModule _traceModule = null!;
 
     private IRpcClient _rpcClient = null!;
     private IEthRpcModule _ethRpcModule = null!;
@@ -110,8 +110,8 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         await _provider.GetRequiredService<IRPCTransport>()
             .InitializeAsync(cancellationToken);
 
-        _etherModule = _provider.GetRequiredService<EtherModule>();
-        _traceModule = _provider.GetRequiredService<TraceModule>();
+        _etherModule = _provider.GetRequiredService<IEtherModule>();
+        _traceModule = _provider.GetRequiredService<ITraceModule>();
 
         _rpcClient = _provider.GetRequiredService<IRpcClient>();
         _ethRpcModule = _provider.GetRequiredService<IEthRpcModule>();

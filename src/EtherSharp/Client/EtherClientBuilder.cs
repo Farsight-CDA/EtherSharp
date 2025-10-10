@@ -216,12 +216,11 @@ public class EtherClientBuilder
 
         _services.AddSingleton(_transportRegistration);
 
-        _services.AddSingleton<EtherModule>();
-        _services.AddSingleton<TraceModule>();
-
         _services.AddSingleton<IRpcClient, RpcClient>();
         _services.AddSingleton<IEthRpcModule, EthRpcModule>();
         _services.AddSingleton<ITraceRpcModule, TraceRpcModule>();
+        _services.AddSingleton<IEtherModule, EtherModule>();
+        _services.AddSingleton<ITraceModule, TraceModule>();
 
         _services.AddSingleton<ContractFactory>();
 
