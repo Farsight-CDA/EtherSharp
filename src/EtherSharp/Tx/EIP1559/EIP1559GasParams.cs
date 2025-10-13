@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.Tx.EIP1559;
+
 public record EIP1559GasParams(
     ulong GasLimit,
     BigInteger MaxFeePerGas,
@@ -46,28 +47,10 @@ public record EIP1559GasParams(
             throw new ArgumentException("Multiplier must be larger than divider");
         }
 
-        var newMaxFeePerGas = MaxFeePerGas;
-        newMaxFeePerGas *= multiplier;
-        newMaxFeePerGas /= divider;
-
-        if(newMaxFeePerGas == MaxFeePerGas)
-        {
-            newMaxFeePerGas += minimumIncrement;
-        }
-
-        var newMaxPriorityFeePerGas = MaxPriorityFeePerGas;
-        newMaxPriorityFeePerGas *= multiplier;
-        newMaxPriorityFeePerGas /= divider;
-
-        if(newMaxPriorityFeePerGas == MaxPriorityFeePerGas)
-        {
-            newMaxPriorityFeePerGas += minimumIncrement;
-        }
-
         return new EIP1559GasParams(
             GasLimit,
-            newMaxFeePerGas,
-            newMaxPriorityFeePerGas
+            BigInteger.Max(MaxFeePerGas + minimumIncrement, MaxFeePerGas * multiplier / divider),
+            BigInteger.Max(MaxPriorityFeePerGas + minimumIncrement, MaxPriorityFeePerGas * multiplier / divider)
         );
     }
 }

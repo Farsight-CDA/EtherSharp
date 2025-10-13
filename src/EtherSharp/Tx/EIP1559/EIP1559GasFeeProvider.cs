@@ -1,11 +1,11 @@
 ﻿using EtherSharp.Client.Services.GasFeeProvider;
-using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Numerics;
 
 namespace EtherSharp.Tx.EIP1559;
+
 public class EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner signer) : IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
@@ -16,21 +16,16 @@ public class EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner sign
     public int BaseFeeOffsetPercentage { get; set; } = 20;
     public int PriorityFeeOffsetPercentage { get; set; } = 20;
 
-    public Task<EIP1559GasParams> EstimateGasParamsAsync(
-        Address to, BigInteger value, ReadOnlySpan<byte> inputData,
-        EIP1559TxParams txParams, CancellationToken cancellationToken)
+    Task<EIP1559GasParams> IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>.EstimateGasParamsAsync(ITxInput txInput, EIP1559TxParams txParams, CancellationToken cancellationToken)
         => SendEstimationRequestsAsync(
-            to,
-            value,
-            $"0x{Convert.ToHexString(inputData)}",
+            txInput,
             cancellationToken
         );
 
-    private async Task<EIP1559GasParams> SendEstimationRequestsAsync(
-        Address to, BigInteger value, string inputDataHex, CancellationToken cancellationToken)
+    private async Task<EIP1559GasParams> SendEstimationRequestsAsync(ITxInput txInput, CancellationToken cancellationToken)
     {
         ulong gasEstimation = await _ethRpcModule.EstimateGasAsync(
-            _signer.Address, to, value, inputDataHex, cancellationToken);
+            _signer.Address, txInput.To, txInput.Value, $"0x{Convert.ToHexString(txInput.Data)}", cancellationToken);
 
         var feeHistory = await _ethRpcModule.GetFeeHistoryAsync(FeeHistoryRange, TargetBlockNumber.Latest, [PriorityFeePercentile], default);
 

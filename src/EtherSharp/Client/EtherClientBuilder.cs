@@ -16,6 +16,7 @@ using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Modules.Trace;
 using EtherSharp.Transport;
 using EtherSharp.Tx.EIP1559;
+using EtherSharp.Tx.Legacy;
 using EtherSharp.Tx.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
@@ -82,7 +83,8 @@ public class EtherClientBuilder
             .WithTxScheduler<BlockingSequentialResumableTxScheduler>()
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
                 gasFeeProviderConfigureAction: configureGasProvider
-            );
+            )
+            .AddTxTypeHandler<LegacyTxTypeHandler, LegacyGasFeeProvider, LegacyTransaction, LegacyTxParams, LegacyGasParams>();
     }
     public static EtherClientBuilder CreateForHttpRpc(string websocketUrl, IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null)
     {
@@ -102,7 +104,8 @@ public class EtherClientBuilder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
             .WithTxScheduler<BlockingSequentialResumableTxScheduler>()
-            .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>();
+            .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>()
+            .AddTxTypeHandler<LegacyTxTypeHandler, LegacyGasFeeProvider, LegacyTransaction, LegacyTxParams, LegacyGasParams>();
     }
 
     public EtherClientBuilder WithRPCTransport(IRPCTransport transport)
@@ -221,6 +224,7 @@ public class EtherClientBuilder
         _services.AddSingleton<IEthRpcModule, EthRpcModule>();
         _services.AddSingleton<ITraceRpcModule, TraceRpcModule>();
         _services.AddSingleton<IEtherModule, EtherModule>();
+        _services.AddSingleton<IEtherTxModule, EtherModule>();
         _services.AddSingleton<ITraceModule, TraceModule>();
         _services.AddSingleton<IBlocksModule, BlocksModule>();
 

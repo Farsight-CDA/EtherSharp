@@ -1,6 +1,5 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.GasFeeProvider;
-using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
@@ -8,6 +7,7 @@ using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.Tx.EIP1559;
+
 public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner signer)
     : IInitializableService, IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
 {
@@ -27,19 +27,17 @@ public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSign
         return ValueTask.CompletedTask;
     }
 
-    public Task<EIP1559GasParams> EstimateGasParamsAsync(
-        Address to, BigInteger value, ReadOnlySpan<byte> inputData,
-        EIP1559TxParams txParams, CancellationToken cancellationToken)
+    public Task<EIP1559GasParams> EstimateGasParamsAsync(ITxInput txInput, EIP1559TxParams txParams, CancellationToken cancellationToken)
     {
         if(!_initialized)
         {
             throw new InvalidOperationException("Not initialized");
         }
 
-        var mockTx = EIP1559Transaction.Create(_chainId, txParams, _defaultGasParams, to, value, 1_000);
+        var mockTx = EIP1559Transaction.Create(_chainId, txParams, _defaultGasParams, txInput, 1_000);
         Span<int> listSizes = stackalloc int[EIP1559Transaction.NestedListCount];
 
-        int txByteSize = mockTx.GetEncodedSize(inputData, listSizes);
+        int txByteSize = mockTx.GetEncodedSize(listSizes);
         int simulationBufferSize = (32 * ((txByteSize - 1) / 32)) + 32 + 69;
 
         Span<byte> simulationPayloadBuffer = simulationBufferSize > 8192
@@ -56,22 +54,19 @@ public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSign
         BinaryPrimitives.WriteInt32BigEndian(simulationPayloadBuffer[64..], txByteSize);
 
         simulationPayloadBuffer[68] = EIP1559Transaction.PrefixByte;
-        mockTx.Encode(listSizes, inputData, simulationPayloadBuffer[69..]);
+        mockTx.Encode(listSizes, simulationPayloadBuffer[69..]);
 
         return SendEstimationRequestsAsync(
-            to,
-            value,
-            $"0x{Convert.ToHexString(inputData)}",
+            txInput,
             $"0x{Convert.ToHexString(simulationPayloadBuffer)}",
             cancellationToken
         );
     }
 
-    private async Task<EIP1559GasParams> SendEstimationRequestsAsync(Address to, BigInteger value,
-        string inputDataHex, string getL1FeePayloadHex, CancellationToken cancellationToken)
+    private async Task<EIP1559GasParams> SendEstimationRequestsAsync(ITxInput txInput, string getL1FeePayloadHex, CancellationToken cancellationToken)
     {
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
-            _signer.Address, to, value, inputDataHex, cancellationToken);
+            _signer.Address, txInput.To, txInput.Value, $"0x{Convert.ToHexString(txInput.Data)}", cancellationToken);
         var l1FeeTask = _ethRpcModule.CallAsync(
             null, _opGasOracleAddress, null, null, 0, getL1FeePayloadHex, TargetBlockNumber.Pending, cancellationToken
         );

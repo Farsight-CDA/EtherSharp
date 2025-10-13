@@ -156,7 +156,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
         try
         {
             txParams ??= TTxParams.Default;
-            txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, call.Data, txParams, default);
+            txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(call, txParams, default);
             _peakNonce++;
         }
         finally

@@ -6,6 +6,7 @@ using EtherSharp.RPC;
 using EtherSharp.Wallet;
 
 namespace EtherSharp.Tx.EIP1559;
+
 public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
     : IInitializableService, ITxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>
 {
@@ -30,22 +31,20 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
             throw new InvalidOperationException("Not initialized");
         }
 
-        var tx = EIP1559Transaction.Create(_chainId, txParams, txGasParams, txInput.To, txInput.Value, nonce);
+        var tx = EIP1559Transaction.Create(_chainId, txParams, txGasParams, txInput, nonce);
 
         Span<int> lengthBuffer = stackalloc int[EIP1559Transaction.NestedListCount];
-
-        int txTemplateLength = tx.GetEncodedSize(txInput.Data, lengthBuffer);
-
+        int txTemplateLength = tx.GetEncodedSize(lengthBuffer);
         int txBufferLength = 2 + txTemplateLength + TxRLPEncoder.MaxEncodedSignatureLength;
 
-        Span<byte> txBuffer = txBufferLength > 4096
+        var txBuffer = txBufferLength > 4096
             ? new byte[txBufferLength]
             : stackalloc byte[txBufferLength];
 
         var txTemplateBuffer = txBuffer[1..(txTemplateLength + 2)];
         var signatureBuffer = txBuffer[^TxRLPEncoder.MaxEncodedSignatureLength..];
 
-        tx.Encode(lengthBuffer, txInput.Data, txTemplateBuffer[1..]);
+        tx.Encode(lengthBuffer, txTemplateBuffer[1..]);
         txTemplateBuffer[0] = EIP1559Transaction.PrefixByte;
 
         SignAndEncode(txTemplateBuffer, signatureBuffer, out int signatureLength);
@@ -58,8 +57,11 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
             //Dont need the extra byte for the length increase
             txBuffer = txBuffer[1..];
         }
+        else
+        {
+            txBuffer[0] = EIP1559Transaction.PrefixByte;
+        }
 
-        txBuffer[0] = EIP1559Transaction.PrefixByte;
         _ = new RLPEncoder(txBuffer[1..]).EncodeList(lengthBuffer[0] + signatureLength);
 
         var signedTxBuffer = txBuffer[..^(TxRLPEncoder.MaxEncodedSignatureLength - signatureLength)];

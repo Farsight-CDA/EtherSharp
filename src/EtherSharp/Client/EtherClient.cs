@@ -210,7 +210,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             ?? throw new InvalidOperationException(
                 $"No GasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
 
-        return await gasFeeProvider.EstimateGasParamsAsync(call.To, call.Value, call.Data, txParams ?? TTxParams.Default, cancellationToken);
+        return await gasFeeProvider.EstimateGasParamsAsync(call, txParams ?? TTxParams.Default, cancellationToken);
     }
 
     TContract IEtherClient.Contract<TContract>(Address address)
