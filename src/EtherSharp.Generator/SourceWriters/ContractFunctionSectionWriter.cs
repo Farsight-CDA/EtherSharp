@@ -5,6 +5,7 @@ using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters;
+
 public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWriter)
 {
     private readonly FunctionBuilder _isMatchingSelectorFunction = new FunctionBuilder("IsMatchingSelector")
@@ -64,7 +65,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                 if(functionMember.Outputs.Length > 0)
                 {
                     (outputTypeName, string decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
-                        functionTypeName,
+                        $"{functionTypeName}Result",
                         functionMember.Outputs
                     );
 

@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Generator.Abi.Members;
+
 public class EventAbiMember : AbiMember
 {
     [JsonRequired]
@@ -27,7 +28,7 @@ public class EventAbiMember : AbiMember
             var input = Inputs[i];
             bool isLastInput = i == Inputs.Length - 1;
 
-            sb.Append(input.GetTopicTypeString());
+            sb.Append(input.GetSignatureTypeString());
 
             if(!isLastInput)
             {

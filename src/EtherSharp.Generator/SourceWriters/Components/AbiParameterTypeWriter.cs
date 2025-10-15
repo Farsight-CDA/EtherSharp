@@ -1,12 +1,11 @@
 ﻿using EtherSharp.Generator.Abi.Parameters;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
-using System.Data.Common;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
+
 public partial class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
 {
     private static Regex _sizedArrayTypeRegex = new Regex("\\[\\d+\\]$", RegexOptions.Compiled);

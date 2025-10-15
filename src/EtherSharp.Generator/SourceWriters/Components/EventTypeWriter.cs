@@ -1,12 +1,14 @@
 ﻿using EtherSharp.Generator.Abi.Members;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
-using System.Net.NetworkInformation;
 using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
-public class EventTypeWriter
+
+public class EventTypeWriter(ParamEncodingWriter paramEncodingWriter)
 {
+    private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
+
     private readonly FunctionBuilder _isMatchingEventFunction = new FunctionBuilder("IsMatchingEvent")
             .AddArgument("EtherSharp.Types.Log", "log")
             .WithReturnType<bool>()
@@ -45,14 +47,12 @@ public class EventTypeWriter
 
         for(int i = 0; i < eventMember.Inputs.Length; i++)
         {
-            var parameter = eventMember.Inputs[i];
+            var (outputTypeName, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
+                $"EventParam{i + 1}",
+                [eventMember.Inputs[i]]
+            );
 
-            if(!PrimitiveTypeWriter.TryMatchPrimitiveType(parameter.Type, out string primitiveType, out _, out string abiFunctionName, out string decodeSuffix))
-            {
-                throw new NotSupportedException("Event can only contain primitive types");
-            }
-
-            string parameterName = NameUtils.ToValidPropertyName(parameter.Name);
+            string parameterName = NameUtils.ToValidPropertyName(eventMember.Inputs[i].Name);
 
             if(String.IsNullOrEmpty(parameterName))
             {
@@ -60,7 +60,7 @@ public class EventTypeWriter
             }
 
             classBuilder.AddProperty(
-                new PropertyBuilder(primitiveType, parameterName)
+                new PropertyBuilder(outputTypeName, parameterName)
                     .WithVisibility(PropertyVisibility.Public)
                     .WithSetterVisibility(SetterVisibility.None)
             );
@@ -113,32 +113,52 @@ public class EventTypeWriter
 
         int topicIndex = 1;
 
-        foreach(var parameter in eventMember.Inputs)
-        {
-            if(!PrimitiveTypeWriter.TryMatchPrimitiveType(parameter.Type, out string primitiveType, out _, out string abiFunctionName, out string decodeSuffix))
-            {
-                throw new NotSupportedException("Event can only contain primitive types");
-            }
-
-            if(parameter.IsIndexed)
-            {
-                ctorBuilder.AddArgument(
-                    $"new EtherSharp.ABI.AbiDecoder(log.Topics[{topicIndex}]).{abiFunctionName}(){decodeSuffix}"
-                );
-
-                topicIndex++;
-            }
-            else
-            {
-                ctorBuilder.AddArgument(
-                    $"dataDecoder.{abiFunctionName}(){decodeSuffix}"
-                );
-            }
-        }
+        statementBuilder.AppendLine("EtherSharp.ABI.AbiDecoder decoder;");
 
         if(eventMember.Inputs.Any(x => !x.IsIndexed))
         {
-            statementBuilder.AppendLine("EtherSharp.ABI.AbiDecoder dataDecoder = new EtherSharp.ABI.AbiDecoder(log.Data);");
+            statementBuilder.AppendLine("decoder = new EtherSharp.ABI.AbiDecoder(log.Data);");
+        }
+
+        for(int i = 0; i < eventMember.Inputs.Length; i++)
+        {
+            var parameter = eventMember.Inputs[i];
+
+            if(parameter.IsIndexed)
+            {
+                continue;
+            }
+
+            var (outputTypeName, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
+                $"EventParam{i + 1}",
+                [parameter]
+            );
+
+            statementBuilder.AppendLine($"{outputTypeName} parameter{i} = {decodeFunc};");
+        }
+
+        for(int i = 0; i < eventMember.Inputs.Length; i++)
+        {
+            var parameter = eventMember.Inputs[i];
+
+            if(!parameter.IsIndexed)
+            {
+                continue;
+            }
+
+            var (outputTypeName, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
+                $"EventParam{i + 1}",
+                [parameter]
+            );
+
+            statementBuilder.AppendLine($"decoder = new EtherSharp.ABI.AbiDecoder(log.Topics[{topicIndex}]);");
+            statementBuilder.AppendLine($"{outputTypeName} parameter{i} = {decodeFunc};");
+            topicIndex++;
+        }
+
+        for(int i = 0; i < eventMember.Inputs.Length; i++)
+        {
+            ctorBuilder.AddArgument($"parameter{i}");
         }
 
         statementBuilder.AppendLine($"return {ctorBuilder.ToInlineCall()};");
@@ -150,19 +170,23 @@ public class EventTypeWriter
         var ctorBuilder = new ConstructorCallBuilder(eventTypeName).AddArgument("log");
         var statementBuilder = new StringBuilder();
 
-        foreach(var parameter in eventMember.Inputs)
+        if(eventMember.Inputs.Length != 0)
         {
-            if(!PrimitiveTypeWriter.TryMatchPrimitiveType(parameter.Type, out string primitiveType, out _, out string abiFunctionName, out string decodeSuffix))
-            {
-                throw new NotSupportedException("Event can only contain primitive types");
-            }
-
-            ctorBuilder.AddArgument(
-                $"dataDecoder.{abiFunctionName}(){decodeSuffix}"
-            );
+            statementBuilder.AppendLine("EtherSharp.ABI.AbiDecoder decoder = new EtherSharp.ABI.AbiDecoder(log.Data);");
         }
 
-        statementBuilder.AppendLine("EtherSharp.ABI.AbiDecoder dataDecoder = new EtherSharp.ABI.AbiDecoder(log.Data);");
+        for(int i = 0; i < eventMember.Inputs.Length; i++)
+        {
+            var parameter = eventMember.Inputs[i];
+            var (outputTypeName, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
+                $"EventParam{i + 1}",
+                [parameter]
+            );
+
+            statementBuilder.AppendLine($"{outputTypeName} parameter{i} = {decodeFunc};");
+            ctorBuilder.AddArgument($"parameter{i}");
+        }
+
         statementBuilder.AppendLine($"return {ctorBuilder.ToInlineCall()};");
         return statementBuilder.ToString();
     }

@@ -1,8 +1,8 @@
 ﻿using EtherSharp.Generator.Abi.Parameters;
-using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
+
 public class ParamEncodingWriter(AbiParameterTypeWriter parameterTypeWriter)
 {
     private readonly AbiParameterTypeWriter _parameterTypeWriter = parameterTypeWriter;
@@ -18,11 +18,11 @@ public class ParamEncodingWriter(AbiParameterTypeWriter parameterTypeWriter)
 
     }
 
-    public (string TypeName, string DecodeFunc) GetOutputDecoding(string functionName, AbiParameter[] outputParameters)
+    public (string TypeName, string DecodeFunc) GetOutputDecoding(string fallbackName, AbiParameter[] outputParameters)
     {
         var outputParameter = outputParameters.Length == 1
             ? outputParameters[0]
-            : new AbiParameter($"{functionName}Result", "anonymous-tuple", $"{functionName}Result", outputParameters);
+            : new AbiParameter(fallbackName, "anonymous-tuple", fallbackName, outputParameters);
 
         var (csTypeName, _, _, decodeFunc) = _parameterTypeWriter.CreateParameter(outputParameter);
 
