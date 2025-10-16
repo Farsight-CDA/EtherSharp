@@ -122,6 +122,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
         _etherModule = _provider.GetRequiredService<IEtherTxModule>();
         _traceModule = _provider.GetRequiredService<ITraceModule>();
+        _blocksModule = _provider.GetRequiredService<IBlocksModule>();
 
         _rpcClient = _provider.GetRequiredService<IRpcClient>();
         _ethRpcModule = _provider.GetRequiredService<IEthRpcModule>();
