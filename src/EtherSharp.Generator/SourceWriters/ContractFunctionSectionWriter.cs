@@ -42,6 +42,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
 
                 bool isQuery = functionMember.Outputs.Length > 0
                     && (functionMember.StateMutability == StateMutability.Pure || functionMember.StateMutability == StateMutability.View);
+                bool isPayable = functionMember.StateMutability == StateMutability.Payable;
 
                 var interfaceFunction = new FunctionBuilder(isQuery ? $"{functionTypeName}Async" : functionTypeName);
                 var inputNameList = new List<string>();
@@ -58,7 +59,10 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                     createInputFunction.AddStatement(encodeFunc(paramName));
                 }
 
-                createInputFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
+                if(isPayable)
+                {
+                    createInputFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
+                }
 
                 string? outputTypeName = null;
 
@@ -74,7 +78,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                         $"""
                         return EtherSharp.Tx.ITxInput.ForContractCall<{outputTypeName}>(
                             contractAddress,
-                            ethValue,
+                            {(isPayable ? "ethValue" : "0")},
                             SelectorBytes,
                             encoder,
                             decoder => {decodeFunc}
@@ -89,7 +93,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                         $"""
                         return EtherSharp.Tx.ITxInput.ForContractCall(
                             contractAddress,
-                            ethValue,
+                            {(isPayable ? "ethValue" : "0")},
                             SelectorBytes,
                             encoder
                         )
@@ -125,7 +129,9 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                         .AddStatement(
                             $"""
                             return _client.CallAsync(
-                                {contractName}.Functions.{functionTypeName}.CreateTxInput(Address, {String.Join(",", inputNameList)}{(inputNameList.Count > 0 ? "," : "")} 0), 
+                                {contractName}.Functions.{functionTypeName}.CreateTxInput(
+                                Address{(inputNameList.Count > 0 ? "," : "")}
+                                {String.Join(",", inputNameList)}), 
                                 targetBlockNumber,
                                 cancellationToken: cancellationToken
                             )
@@ -134,7 +140,6 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                 }
                 else
                 {
-                    bool isPayable = functionMember.StateMutability == StateMutability.Payable;
                     if(isPayable)
                     {
                         interfaceFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
@@ -143,7 +148,11 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                     interfaceFunction
                         .AddStatement(
                             $"""
-                            return {contractName}.Functions.{functionTypeName}.CreateTxInput(Address, {String.Join(",", inputNameList)}{(inputNameList.Count > 0 ? "," : "")} {(isPayable ? "ethValue" : "0")})
+                            return {contractName}.Functions.{functionTypeName}.CreateTxInput(
+                                Address{(inputNameList.Count > 0 ? "," : "")}
+                                {String.Join(",", inputNameList)}{(isPayable ? ',' : "")}
+                                {(isPayable ? "ethValue" : "")}
+                            )
                             """
                         );
 

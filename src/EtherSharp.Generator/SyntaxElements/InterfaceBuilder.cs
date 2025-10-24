@@ -1,10 +1,10 @@
-﻿using System.Globalization;
-using System.Text;
+﻿using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
 
 public enum InterfaceVisibility
 {
+    None,
     Public,
     Internal
 }
@@ -16,7 +16,7 @@ public class InterfaceBuilder(string name)
     private readonly List<string> _rawContents = [];
 
     private readonly string _name = name;
-    private InterfaceVisibility _visibility = InterfaceVisibility.Public;
+    private InterfaceVisibility _visibility = InterfaceVisibility.None;
     private bool _isPartial;
 
     public InterfaceBuilder AddFunction(FunctionBuilder function)
@@ -111,10 +111,19 @@ public class InterfaceBuilder(string name)
 
         return
             $$"""
-            {{_visibility.ToString().ToLower(CultureInfo.InvariantCulture)}}{{(_isPartial ? " partial" : "")}} interface {{_name}} {{baseInterfacesSb}} 
+            {{PrintVisibility(_visibility)}}{{(_isPartial ? "partial " : "")}}interface {{_name}} {{baseInterfacesSb}} 
             {
                 {{bodySb}}
             }
             """;
     }
+
+    private string PrintVisibility(InterfaceVisibility visibility)
+        => visibility switch
+        {
+            InterfaceVisibility.None => "",
+            InterfaceVisibility.Public => "public ",
+            InterfaceVisibility.Internal => "internal ",
+            _ => throw new NotSupportedException()
+        };
 }

@@ -5,6 +5,7 @@ using EtherSharp.Generator.SyntaxElements;
 using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
+
 public class ContractSourceWriter(
     AbiTypeWriter typeWriter,
     ContractErrorSectionWriter errorSectionWriter, ContractEventSectionWriter eventSectionWriter, ContractFunctionSectionWriter functionSectionWriter
@@ -20,7 +21,6 @@ public class ContractSourceWriter(
     {
         var contractInterface = new InterfaceBuilder(contractName)
             .WithIsPartial(true)
-            .WithVisibility(InterfaceVisibility.Public)
             .AddRawContent($"public Logs.EventsModule Events => new Logs.EventsModule(this);");
 
         if(members.Any(
