@@ -25,9 +25,10 @@ using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Client;
 
-public class EtherClientBuilder
+public class EtherClientBuilder : IInternalEtherClientBuilder
 {
     private readonly IServiceCollection _services = new ServiceCollection();
+    IServiceCollection IInternalEtherClientBuilder.Services => _services;
 
     private Func<IServiceProvider, IRPCTransport>? _transportRegistration;
 

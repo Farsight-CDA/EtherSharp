@@ -35,7 +35,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
     public string String()
     {
-        string result = AbiTypes.String.Decode(_bytes, BytesRead);
+        string result = AbiTypes.String.Decode(_bytes.Span, BytesRead);
         ConsumeBytes();
         return result;
     }

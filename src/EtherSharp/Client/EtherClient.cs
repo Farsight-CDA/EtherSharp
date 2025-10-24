@@ -236,7 +236,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             cancellationToken
         );
 
-        return call.ReadResultFrom(result.Unwrap());
+        return call.ReadResultFrom(result.Unwrap(call.To));
     }
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(

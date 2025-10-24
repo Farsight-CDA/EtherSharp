@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.Text;
 
 namespace EtherSharp.ABI.Types;
+
 public static partial class AbiTypes
 {
     public class String : DynamicType<string>, IPackedEncodeType
@@ -36,9 +37,9 @@ public static partial class AbiTypes
             }
         }
 
-        public static string Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset)
+        public static string Decode(ReadOnlySpan<byte> bytes, uint metaDataOffset)
         {
-            uint bytesOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..32].Span);
+            uint bytesOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..32]);
 
             long index = bytesOffset - metaDataOffset;
             if(index < 0 || index > Int32.MaxValue)
@@ -47,10 +48,10 @@ public static partial class AbiTypes
             }
             int validatedIndex = (int) index;
 
-            uint stringLength = BinaryPrimitives.ReadUInt32BigEndian(bytes[(validatedIndex + 32 - 4)..(validatedIndex + 32)].Span);
+            uint stringLength = BinaryPrimitives.ReadUInt32BigEndian(bytes[(validatedIndex + 32 - 4)..(validatedIndex + 32)]);
             var stringBytes = bytes[(validatedIndex + 32)..(validatedIndex + 32 + (int) stringLength)];
 
-            return Encoding.UTF8.GetString(stringBytes.Span);
+            return Encoding.UTF8.GetString(stringBytes);
         }
     }
 }
