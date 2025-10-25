@@ -1,4 +1,5 @@
 ﻿using EtherSharp.ABI;
+using EtherSharp.Client.Modules.Query;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Types;
 using System.Numerics;
@@ -40,5 +41,12 @@ internal class TxInput<T>(Address to, BigInteger value, byte[] data, Func<AbiDec
             throw new CallParsingException.MalformedCallDataException(buffer, ex);
         }
     }
+
+    IEnumerable<ITxInput> ICallable<T>.GetCalls()
+    {
+        yield return this;
+    }
+    Func<ReadOnlySpan<byte[]>, T> ICallable<T>.GetResultSelector()
+        => x => ReadResultFrom(x[0]);
 }
 

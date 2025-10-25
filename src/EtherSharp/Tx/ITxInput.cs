@@ -1,4 +1,5 @@
 ﻿using EtherSharp.ABI;
+using EtherSharp.Client.Modules.Query;
 using EtherSharp.Types;
 using System.Numerics;
 
@@ -71,7 +72,7 @@ public interface ITxInput
 /// Represents a transaction payload that returns a result of type <typeparamref name="T"/> when eth_call'ed.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface ITxInput<T> : ITxInput
+public interface ITxInput<T> : ITxInput, ICallable<T>
 {
     /// <summary>
     /// Parses the result from the given call return value.

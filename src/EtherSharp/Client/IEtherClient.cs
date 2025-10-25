@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Modules.Blocks;
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
+using EtherSharp.Client.Modules.Query;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Events;
 using EtherSharp.Tx;
@@ -25,6 +26,19 @@ public interface IEtherClient
     /// Module used to interact with blocks.
     /// </summary>
     public IBlocksModule Blocks { get; }
+    /// <summary>
+    /// Module used to combine on-chain queries.
+    /// </summary>
+    public IQueryBuilder<T> Query<T>();
+
+    public Task<(T1, T2)> QueryAsync<T1, T2>(
+        ICallable<T1> c1, ICallable<T2> c2,
+        TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
+    );
+    public Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
+        ICallable<T1> c1, ICallable<T2> c2, ICallable<T3> c3,
+        TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
+    );
 
     public IEventsModule<TEvent> Events<TEvent>() where TEvent : ITxLog<TEvent>;
     public IEventsModule<Log> Events() => Events<Log>();

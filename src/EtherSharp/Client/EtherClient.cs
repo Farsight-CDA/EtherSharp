@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Modules.Blocks;
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
+using EtherSharp.Client.Modules.Query;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
@@ -79,6 +80,25 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             AssertReady();
             return _blocksModule;
         }
+    }
+
+    public IQueryBuilder<T> Query<T>() => new QueryBuilder<T>(_ethRpcModule);
+    public async Task<(T1, T2)> QueryAsync<T1, T2>(ICallable<T1> c1, ICallable<T2> c2,
+        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+    {
+        var builder = new QueryBuilder<object>(_ethRpcModule).AddQuery(c1, x => x!).AddQuery(c2, x => x!);
+        var results = await builder.QueryAsync(targetBlockNumber, cancellationToken);
+        return ((T1) results[0], (T2) results[1]);
+    }
+    public async Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(ICallable<T1> c1, ICallable<T2> c2, ICallable<T3> c3,
+        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+    {
+        var builder = new QueryBuilder<object>(_ethRpcModule)
+            .AddQuery(c1, x => x!)
+            .AddQuery(c2, x => x!)
+            .AddQuery(c3, x => x!);
+        var results = await builder.QueryAsync(targetBlockNumber, cancellationToken);
+        return ((T1) results[0], (T2) results[1], (T3) results[2]);
     }
 
     IEventsModule<TEvent> IEtherClient.Events<TEvent>()
