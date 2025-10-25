@@ -89,7 +89,7 @@ public class Address
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)
-        => obj is Address other && other._addressBytes.SequenceEqual(_addressBytes);
+        => obj is Address other && other._addressBytes.AsSpan().SequenceEqual(_addressBytes);
 
     /// <inheritdoc/>
     public override int GetHashCode()
