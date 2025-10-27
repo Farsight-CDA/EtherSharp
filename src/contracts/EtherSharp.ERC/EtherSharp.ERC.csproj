@@ -24,11 +24,13 @@
 	<ItemGroup>
 		<None Remove="ERC1155\erc1155.abi.json" />
 		<None Remove="ERC20\erc20.abi.json" />
+		<None Remove="ERC4626\erc4626.abi.json" />
 		<None Remove="ERC721\erc721.abi.json" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<AdditionalFiles Include="ERC20\erc20.abi.json" />
+		<AdditionalFiles Include="ERC4626\erc4626.abi.json" />
 		<AdditionalFiles Include="ERC721\erc721.abi.json" />
 		<AdditionalFiles Include="ERC1155\erc1155.abi.json" />
 	</ItemGroup>
