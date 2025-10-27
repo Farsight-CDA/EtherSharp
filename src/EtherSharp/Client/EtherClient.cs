@@ -17,6 +17,7 @@ using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Numerics;
 
 namespace EtherSharp.Client;
@@ -24,6 +25,7 @@ namespace EtherSharp.Client;
 internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 {
     private readonly IServiceProvider _provider;
+    private readonly ILoggerFactory? _loggerFactory;
     private readonly bool _isTxClient;
 
     private IEtherTxModule _etherModule = null!;
@@ -82,21 +84,23 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         }
     }
 
-    public IQueryBuilder<T> Query<T>() => new QueryBuilder<T>(_ethRpcModule);
+    public IQueryBuilder<T> Query<T>() => new QueryBuilder<T>(_ethRpcModule, _loggerFactory?.CreateLogger<IQueryBuilder<T>>());
     public async Task<(T1, T2)> QueryAsync<T1, T2>(ICallable<T1> c1, ICallable<T2> c2,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
     {
-        var builder = new QueryBuilder<object>(_ethRpcModule).AddQuery(c1, x => x!).AddQuery(c2, x => x!);
+        var builder = new QueryBuilder<object>(_ethRpcModule, _loggerFactory?.CreateLogger<IQueryBuilder<(T1, T2)>>())
+            .AddCallable(c1, x => x!)
+            .AddCallable(c2, x => x!);
         var results = await builder.QueryAsync(targetBlockNumber, cancellationToken);
         return ((T1) results[0], (T2) results[1]);
     }
     public async Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(ICallable<T1> c1, ICallable<T2> c2, ICallable<T3> c3,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
     {
-        var builder = new QueryBuilder<object>(_ethRpcModule)
-            .AddQuery(c1, x => x!)
-            .AddQuery(c2, x => x!)
-            .AddQuery(c3, x => x!);
+        var builder = new QueryBuilder<object>(_ethRpcModule, _loggerFactory?.CreateLogger<IQueryBuilder<(T1, T2, T3)>>())
+            .AddCallable(c1, x => x!)
+            .AddCallable(c2, x => x!)
+            .AddCallable(c3, x => x!);
         var results = await builder.QueryAsync(targetBlockNumber, cancellationToken);
         return ((T1) results[0], (T2) results[1], (T3) results[2]);
     }
@@ -110,6 +114,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     internal EtherClient(IServiceProvider provider, bool isTxClient)
     {
         _provider = provider;
+        _loggerFactory = provider.GetService<ILoggerFactory>();
         _isTxClient = isTxClient;
     }
 
