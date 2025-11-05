@@ -1,5 +1,4 @@
 ﻿using EtherSharp.ABI;
-using EtherSharp.Client.Modules.Query;
 using EtherSharp.Types;
 using System.Numerics;
 
@@ -7,23 +6,8 @@ namespace EtherSharp.Tx;
 /// <summary>
 /// Represents a transaction payload.
 /// </summary>
-public interface ITxInput
+public interface ITxInput : ICallInput
 {
-    /// <summary>
-    /// The To field of the transaction.
-    /// </summary>
-    public Address To { get; }
-
-    /// <summary>
-    /// The ETH Value of the transaction.
-    /// </summary>
-    public BigInteger Value { get; }
-
-    /// <summary>
-    /// The calldata of the transaction.
-    /// </summary>
-    public ReadOnlySpan<byte> Data { get; }
-
     /// <summary>
     /// Creates a ITxInput for a contract call that returns a result of type <typeparamref name="T"/>.
     /// </summary>
@@ -72,12 +56,6 @@ public interface ITxInput
 /// Represents a transaction payload that returns a result of type <typeparamref name="T"/> when eth_call'ed.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface ITxInput<T> : ITxInput, ICallable<T>
+public interface ITxInput<T> : ITxInput, Client.Modules.Query.IQueryable<T>
 {
-    /// <summary>
-    /// Parses the result from the given call return value.
-    /// </summary>
-    /// <param name="buffer"></param>
-    /// <returns></returns>
-    public T ReadResultFrom(ReadOnlyMemory<byte> buffer);
 }

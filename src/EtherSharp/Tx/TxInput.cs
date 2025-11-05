@@ -21,8 +21,10 @@ internal class TxInput<T>(Address to, BigInteger value, byte[] data, Func<AbiDec
 {
     private readonly Func<AbiDecoder, T> _decoder = decoder;
 
-    public T ReadResultFrom(ReadOnlyMemory<byte> buffer)
+    public T ReadResultFrom(params ReadOnlySpan<TxCallResult> callResult)
     {
+        byte[] buffer = callResult[0].Unwrap(To);
+
         if(buffer.Length == 0)
         {
             throw new CallParsingException.EmptyCallDataException();
@@ -39,6 +41,11 @@ internal class TxInput<T>(Address to, BigInteger value, byte[] data, Func<AbiDec
         {
             throw new CallParsingException.MalformedCallDataException(buffer, ex);
         }
+    }
+
+    public IEnumerable<ICallInput> GetQueryInputs()
+    {
+        yield return this;
     }
 }
 

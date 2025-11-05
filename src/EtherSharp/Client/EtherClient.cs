@@ -85,22 +85,22 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     }
 
     public IQueryBuilder<T> Query<T>() => new QueryBuilder<T>(_ethRpcModule, _loggerFactory?.CreateLogger<IQueryBuilder<T>>());
-    public async Task<(T1, T2)> QueryAsync<T1, T2>(ICallable<T1> c1, ICallable<T2> c2,
+    public async Task<(T1, T2)> QueryAsync<T1, T2>(Modules.Query.IQueryable<T1> c1, Modules.Query.IQueryable<T2> c2,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
     {
         var builder = new QueryBuilder<object>(_ethRpcModule, _loggerFactory?.CreateLogger<IQueryBuilder<(T1, T2)>>())
-            .AddCallable(c1, x => x!)
-            .AddCallable(c2, x => x!);
+            .AddQuery(c1, x => x!)
+            .AddQuery(c2, x => x!);
         var results = await builder.QueryAsync(targetBlockNumber, cancellationToken);
         return ((T1) results[0], (T2) results[1]);
     }
-    public async Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(ICallable<T1> c1, ICallable<T2> c2, ICallable<T3> c3,
+    public async Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(Modules.Query.IQueryable<T1> c1, Modules.Query.IQueryable<T2> c2, Modules.Query.IQueryable<T3> c3,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
     {
         var builder = new QueryBuilder<object>(_ethRpcModule, _loggerFactory?.CreateLogger<IQueryBuilder<(T1, T2, T3)>>())
-            .AddCallable(c1, x => x!)
-            .AddCallable(c2, x => x!)
-            .AddCallable(c3, x => x!);
+            .AddQuery(c1, x => x!)
+            .AddQuery(c2, x => x!)
+            .AddQuery(c3, x => x!);
         var results = await builder.QueryAsync(targetBlockNumber, cancellationToken);
         return ((T1) results[0], (T2) results[1], (T3) results[2]);
     }
@@ -261,7 +261,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             cancellationToken
         );
 
-        return call.ReadResultFrom(result.Unwrap(call.To));
+        return call.ReadResultFrom(result);
     }
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(

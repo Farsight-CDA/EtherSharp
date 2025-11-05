@@ -35,10 +35,17 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                     .WithIsStatic()
                     .AddFunction(_isMatchingSelectorFunction);
 
-                var createInputFunction = new FunctionBuilder("CreateTxInput")
+                var createTxFunction = new FunctionBuilder("CreateTx")
                     .WithIsStatic()
                     .AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()")
                     .AddArgument("EtherSharp.Types.Address", "contractAddress");
+
+                var createQueryFunction = functionMember.Outputs.Length == 0
+                    ? null
+                    : new FunctionBuilder("CreateQuery")
+                        .WithIsStatic()
+                        .AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()")
+                        .AddArgument("EtherSharp.Types.Address", "contractAddress");
 
                 bool isQuery = functionMember.Outputs.Length > 0
                     && (functionMember.StateMutability == StateMutability.Pure || functionMember.StateMutability == StateMutability.View);
@@ -55,13 +62,17 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                     inputNameList.Add(paramName);
 
                     interfaceFunction.AddArgument(paramType, paramName);
-                    createInputFunction.AddArgument(paramType, paramName);
-                    createInputFunction.AddStatement(encodeFunc(paramName));
+                    createTxFunction.AddArgument(paramType, paramName);
+                    createTxFunction.AddStatement(encodeFunc(paramName));
+
+                    createQueryFunction?.AddArgument(paramType, paramName);
+                    createQueryFunction?.AddStatement(encodeFunc(paramName));
                 }
 
                 if(isPayable)
                 {
-                    createInputFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
+                    createTxFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
+                    createQueryFunction?.AddArgument("System.Numerics.BigInteger", "ethValue");
                 }
 
                 string? outputTypeName = null;
@@ -73,10 +84,23 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                         functionMember.Outputs
                     );
 
-                    createInputFunction.WithReturnTypeRaw($"EtherSharp.Tx.ITxInput<{outputTypeName}>");
-                    createInputFunction.AddStatement(
+                    createTxFunction.WithReturnTypeRaw($"EtherSharp.Tx.ITxInput<{outputTypeName}>");
+                    createTxFunction.AddStatement(
                         $"""
                         return EtherSharp.Tx.ITxInput.ForContractCall<{outputTypeName}>(
+                            contractAddress,
+                            {(isPayable ? "ethValue" : "0")},
+                            SelectorBytes,
+                            encoder,
+                            decoder => {decodeFunc}
+                        )
+                        """
+                    );
+
+                    createQueryFunction!.WithReturnTypeRaw($"EtherSharp.Client.Modules.Query.IQueryInput<EtherSharp.Client.Modules.Query.QueryResult<{outputTypeName}>>");
+                    createQueryFunction.AddStatement(
+                        $"""
+                        return EtherSharp.Client.Modules.Query.IQueryInput.ForContractCall<{outputTypeName}>(
                             contractAddress,
                             {(isPayable ? "ethValue" : "0")},
                             SelectorBytes,
@@ -88,8 +112,8 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                 }
                 else
                 {
-                    createInputFunction.WithReturnTypeRaw("EtherSharp.Tx.ITxInput");
-                    createInputFunction.AddStatement(
+                    createTxFunction.WithReturnTypeRaw("EtherSharp.Tx.ITxInput");
+                    createTxFunction.AddStatement(
                         $"""
                         return EtherSharp.Tx.ITxInput.ForContractCall(
                             contractAddress,
@@ -101,7 +125,11 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                     );
                 }
 
-                typeBuilder.AddFunction(createInputFunction);
+                typeBuilder.AddFunction(createTxFunction);
+                if(createQueryFunction is not null)
+                {
+                    typeBuilder.AddFunction(createQueryFunction);
+                }
                 typeBuilder.AddRawContent(
                     $$"""
                     /// <summary>
@@ -129,7 +157,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                         .AddStatement(
                             $"""
                             return _client.CallAsync(
-                                {contractName}.Functions.{functionTypeName}.CreateTxInput(
+                                {contractName}.Functions.{functionTypeName}.CreateTx(
                                 Address{(inputNameList.Count > 0 ? "," : "")}
                                 {String.Join(",", inputNameList)}), 
                                 targetBlockNumber,
@@ -148,7 +176,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                     interfaceFunction
                         .AddStatement(
                             $"""
-                            return {contractName}.Functions.{functionTypeName}.CreateTxInput(
+                            return {contractName}.Functions.{functionTypeName}.CreateTx(
                                 Address{(inputNameList.Count > 0 ? "," : "")}
                                 {String.Join(",", inputNameList)}{(isPayable ? ',' : "")}
                                 {(isPayable ? "ethValue" : "")}
