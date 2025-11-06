@@ -2,31 +2,30 @@
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using Microsoft.Extensions.Logging;
-using System.Buffers.Binary;
 
 namespace EtherSharp.Client.Modules.Query;
 
 internal partial class QueryBuilder<TQuery>(IEthRpcModule rpc, ILogger? logger) : IQueryBuilder<TQuery>
 {
     private readonly static byte[] _querierBytecode = Convert.FromHexString(
-        "608060405234610095576102a880380380610019816100ad565b928339810190602081830312610095578051906001600160401b038211610095570181601f820112156100955780519061005a610055836100d7565b6100ad565b9282845260208383010111610095575f5b82811061008057835f60208583010152610192565b8060208092840101518282870101520161006b565b5f80fd5b634e487b7160e01b5f52604160045260245ffd5b6040519190601f01601f191682016001600160401b038111838210176100d257604052565b610099565b6001600160401b0381116100d257601f01601f191660200190565b61600090616020610102816100ad565b838152928391906001600160401b03106100d257601f190190369060200137565b634e487b7160e01b5f52601160045260245ffd5b906017820180921161014557565b610123565b906018820180921161014557565b601801908160181161014557565b600401908160041161014557565b9190820180921161014557565b620f423f1981019190821161014557565b805180156102a5576101a26100f2565b5f925f92602082016020840194621e8480925b8082106101c4575b8787818852f35b9091929396828801926034602085015160601c94015160e01c90836101f16101ec8484610174565b610137565b1015610095575f91818361022161021161020c83968c610174565b61014a565b9261021b85610158565b90610174565b9761022b5a610181565bf1903d865a1061029d5761023e81610166565b9261600061024c8585610174565b1161029457905f6004849361026561028a97968e610174565b9081538360101c60018201538360081c600282015360ff84166003820153013e610174565b96939291906101b5565b505097506101bd565b5097506101bd565b00fe"
+        "6080604052346100955761044480380380610019816100ad565b928339810190602081830312610095578051906001600160401b038211610095570181601f820112156100955780519061005a610055836100d7565b6100ad565b9282845260208383010111610095575f5b82811061008057835f602085830101526101b3565b8060208092840101518282870101520161006b565b5f80fd5b634e487b7160e01b5f52604160045260245ffd5b6040519190601f01601f191682016001600160401b038111838210176100d257604052565b610099565b6001600160401b0381116100d257601f01601f191660200190565b634e487b7160e01b5f52601160045260245ffd5b906020820180921161011457565b6100f2565b906008820180921161011457565b600301908160031161011457565b906015820180921161011457565b906018820180921161011457565b601801908160181161011457565b600401908160041161011457565b9190820180921161011457565b90610187610055836100d7565b8281528092610198601f19916100d7565b0190602036910137565b6201869f1981019190821161011457565b805115610441576101c561602061017a565b602082019162030d405f805b835182101561043757825a1061043757818401602081810180518995858a01938401959492909160f81c608081116102bd575091815f61023c61022c610227839796602485985160e01c97015160601c9c61016d565b610143565b9261023685610151565b9061016d565b986102465a6101a2565bf1903d918015806102b4575b6102a65761025f8361015f565b9461600061026d878761016d565b116102975761028f959493925f92602492538360e81b6021820152013e61016d565b925b926101d1565b50505050955050505050602001f35b505050955050505050602001f35b50865a10610252565b91989650506081810361033057506021015160601c90813b916102df83610127565b946160006102ed878761016d565b116102975791839161030d95936103139795610319575b5050505061016d565b93610135565b90610291565b5f926023918560e81b905201903c5f808080610304565b92939290915060828103610373575061600061034b84610106565b11610367576021015160601c3f90526020019260150190610291565b50509450505050602001f35b608381036103ac57505061600061038983610119565b116103a1574360c01b90526008019260010190610291565b509450505050602001f35b608481036103da5750506160006103c283610119565b116103a1574260c01b90526008019260010190610291565b608581036104085750506160006103f083610119565b116103a1574560c01b90526008019260010190610291565b6086036100955761600061041b84610106565b11610367576021015160601c3190526020019260150190610291565b9450505050602001f35b00fe"
     );
     private const int MAX_PAYLOAD_SIZE = 32 * 1024;
 
     private readonly IEthRpcModule _rpc = rpc;
     private readonly ILogger? _logger = logger;
 
-    private readonly List<ICallInput> _calls = [];
-    private readonly List<(int, Func<ReadOnlySpan<TxCallResult>, TQuery>)> _resultSelectorFunctions = [];
+    private readonly List<IQuery> _queries = [];
+    private readonly List<(int, Func<ReadOnlySpan<byte[]>, TQuery>)> _resultSelectorFunctions = [];
 
-    private static byte[] EncodeCalls(IEnumerable<ICallInput> calls)
+    private static byte[] EncodeCalls(IEnumerable<IQuery> queryables)
     {
         int dataLength = 0;
-
         int callCount = 0;
-        foreach(var call in calls)
+
+        foreach(var queryable in queryables)
         {
-            dataLength += 20 + 4 + call.Data.Length;
+            dataLength += queryable.CallDataLength;
             callCount++;
 
             if(dataLength > MAX_PAYLOAD_SIZE)
@@ -44,25 +43,22 @@ internal partial class QueryBuilder<TQuery>(IEthRpcModule rpc, ILogger? logger) 
         AbiTypes.BigInteger.EncodeInto(dataLength, true, buffer[32..64]);
         buffer = buffer[64..];
 
-        foreach(var call in calls)
+        foreach(var queryable in queryables)
         {
-            call.To.Bytes.CopyTo(buffer[0..20]);
-            BinaryPrimitives.WriteUInt32BigEndian(buffer[20..24], (uint) call.Data.Length);
-            call.Data.CopyTo(buffer[24..]);
-
-            buffer = buffer[(24 + call.Data.Length)..];
-
-            callCount--;
             if(callCount == 0)
             {
                 break;
             }
+
+            queryable.Encode(buffer);
+            buffer = buffer[queryable.CallDataLength..];
+            callCount--;
         }
 
         return arr;
     }
 
-    private List<TQuery> ParseResults(TxCallResult[] outputs)
+    private List<TQuery> ParseResults(byte[][] outputs)
     {
         var results = new List<TQuery>(_resultSelectorFunctions.Count);
 
@@ -77,23 +73,23 @@ internal partial class QueryBuilder<TQuery>(IEthRpcModule rpc, ILogger? logger) 
     public async Task<List<TQuery>> QueryAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
     {
         Span<byte> buffer = [];
-        var outputs = new TxCallResult[_calls.Count];
-        byte[] lengthBuffer = new byte[4];
-
+        byte[][] outputs = new byte[_queries.Count][];
         int requestCount = 0;
 
-        for(int i = 0; i < _calls.Count; i++)
+        for(int i = 0; i < _queries.Count; i++)
         {
+            var query = _queries[i];
             if(buffer.Length == 0)
             {
                 requestCount++;
+                string payload = $"0x{Convert.ToHexString(EncodeCalls(_queries.Skip(i)))}";
                 var callResult = await _rpc.CallAsync(
                     Address.Zero,
                     null!,
                     null,
                     null,
                     0,
-                    $"0x{Convert.ToHexString(EncodeCalls(_calls.Skip(i)))}",
+                    payload,
                     targetBlockNumber,
                     cancellationToken
                 );
@@ -108,18 +104,10 @@ internal partial class QueryBuilder<TQuery>(IEthRpcModule rpc, ILogger? logger) 
                 buffer = output.AsSpan();
             }
 
-            bool success = buffer[0] == 0x01;
-            buffer[1..4].CopyTo(lengthBuffer.AsSpan(1));
-            int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
-            var data = buffer[4..(4 + dataLength)];
-
-            outputs[i] = success switch
-            {
-                true => new TxCallResult.Success(data.ToArray()),
-                false => new TxCallResult.Reverted(data.ToArray())
-            };
-
-            buffer = buffer[(4 + dataLength)..];
+            int sliceLength = query.ParseResultLength(buffer);
+            byte[] sliceData = buffer[0..sliceLength].ToArray();
+            outputs[i] = sliceData;
+            buffer = buffer[sliceLength..];
         }
 
         _logger?.LogTrace("Batch query processing completed using {requests} request(s)", requestCount);
@@ -132,7 +120,7 @@ internal partial class QueryBuilder<TQuery>(IEthRpcModule rpc, ILogger? logger) 
         return ParseResults(outputs);
     }
 
-    public List<TQuery> ReadResultFrom(ReadOnlySpan<TxCallResult> callResults)
+    public List<TQuery> ReadResultFrom(ReadOnlySpan<byte[]> callResults)
     {
         var results = new List<TQuery>();
         foreach(var (offset, selectorFunc) in _resultSelectorFunctions)
@@ -142,13 +130,13 @@ internal partial class QueryBuilder<TQuery>(IEthRpcModule rpc, ILogger? logger) 
         return results;
     }
 
-    public IEnumerable<ICallInput> GetQueryInputs()
-        => _calls;
+    public IEnumerable<IQuery> GetQueries()
+        => _queries;
 
-    public IQueryBuilder<TQuery> AddQuery(IQueryable<TQuery> c)
+    public IQueryBuilder<TQuery> AddQuery(IQuery<TQuery> c)
     {
-        int resultIndex = _calls.Count;
-        _calls.AddRange(c.GetQueryInputs());
+        int resultIndex = _queries.Count;
+        _queries.AddRange(c.GetQueries());
         _resultSelectorFunctions.Add((resultIndex, c.ReadResultFrom));
 
         return this;

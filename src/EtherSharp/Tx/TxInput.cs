@@ -21,31 +21,24 @@ internal class TxInput<T>(Address to, BigInteger value, byte[] data, Func<AbiDec
 {
     private readonly Func<AbiDecoder, T> _decoder = decoder;
 
-    public T ReadResultFrom(params ReadOnlySpan<TxCallResult> callResult)
+    public T ReadResultFrom(ReadOnlyMemory<byte> data)
     {
-        byte[] buffer = callResult[0].Unwrap(To);
-
-        if(buffer.Length == 0)
+        if(data.Length == 0)
         {
             throw new CallParsingException.EmptyCallDataException();
         }
 
         try
         {
-            var decoder = new AbiDecoder(buffer);
+            var decoder = new AbiDecoder(data);
             var result = _decoder.Invoke(decoder);
             //ToDo: Check for remaining data
             return result;
         }
         catch(Exception ex)
         {
-            throw new CallParsingException.MalformedCallDataException(buffer, ex);
+            throw new CallParsingException.MalformedCallDataException(data, ex);
         }
-    }
-
-    public IEnumerable<ICallInput> GetQueryInputs()
-    {
-        yield return this;
     }
 }
 

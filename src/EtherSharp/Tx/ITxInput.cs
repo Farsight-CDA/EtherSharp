@@ -56,6 +56,7 @@ public interface ITxInput : ICallInput
 /// Represents a transaction payload that returns a result of type <typeparamref name="T"/> when eth_call'ed.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface ITxInput<T> : ITxInput, Client.Modules.Query.IQueryable<T>
+public interface ITxInput<T> : ITxInput
 {
+    internal T ReadResultFrom(ReadOnlyMemory<byte> data);
 }

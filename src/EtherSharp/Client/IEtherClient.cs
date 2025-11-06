@@ -32,11 +32,19 @@ public interface IEtherClient
     public IQueryBuilder<T> Query<T>();
 
     public Task<(T1, T2)> QueryAsync<T1, T2>(
-        Modules.Query.IQueryable<T1> c1, Modules.Query.IQueryable<T2> c2,
+        IQuery<T1> c1, IQuery<T2> c2,
         TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
     );
     public Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
-        Modules.Query.IQueryable<T1> c1, Modules.Query.IQueryable<T2> c2, Modules.Query.IQueryable<T3> c3,
+        IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
+        TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
+    );
+    public Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
+        IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
+        TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
+    );
+    public Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
+        IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
         TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
     );
 

@@ -16,7 +16,7 @@ internal partial class QueryBuilder<TQuery> : IQueryBuilder<TQuery>
     for (int n = 1; n <= 9; n++)
     {
     string genericParams = string.Join(", ", Enumerable.Range(1, n).Select(i => $"T{i}"));
-    string queryableParams = string.Join(", ", Enumerable.Range(1, n).Select(i => $"IQueryable<T{i}> c{i}"));
+    string queryableParams = string.Join(", ", Enumerable.Range(1, n).Select(i => $"IQuery<T{i}> c{i}"));
     string funcParams = string.Join(", ", Enumerable.Range(1, n).Select(i => $"T{i}"));
     string funcArgs = string.Join(", ", Enumerable.Range(1, n).Select(i => $"T{i} p{i}"));
     string mapping = $"Func<{funcParams}, TQuery> mapping";
@@ -30,7 +30,7 @@ internal partial class QueryBuilder<TQuery> : IQueryBuilder<TQuery>
     {
         inputsCode += $@"
         int o{i} = _calls.Count - resultIndex;
-        _calls.AddRange(c{i}.GetQueryInputs());";
+        _calls.AddRange(c{i}.GetQueryables());";
         readArgs += $@"
             c{i}.ReadResultFrom(x[o{i}..]),";
         resultIndex++;
