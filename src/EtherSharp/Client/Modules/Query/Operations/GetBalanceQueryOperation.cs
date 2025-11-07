@@ -8,6 +8,7 @@ internal class GetBalanceQueryOperation(Address user) : IQuery, IQuery<BigIntege
     private readonly Address _user = user;
 
     public int CallDataLength => 21;
+    IReadOnlyList<IQuery> IQuery<BigInteger>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
@@ -17,10 +18,6 @@ internal class GetBalanceQueryOperation(Address user) : IQuery, IQuery<BigIntege
 
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 32;
-    IEnumerable<IQuery> IQuery<BigInteger>.GetQueries()
-    {
-        yield return this;
-    }
     BigInteger IQuery<BigInteger>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
         => new BigInteger(queryResults[0], true, true);
 }

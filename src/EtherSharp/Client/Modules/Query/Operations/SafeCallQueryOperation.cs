@@ -10,6 +10,7 @@ internal class SafeCallQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<Q
     private readonly ITxInput<T> _txInput = txInput;
 
     public int CallDataLength => 4 + 20 + _txInput.Data.Length;
+    IReadOnlyList<IQuery> IQuery<QueryResult<T>>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
@@ -22,18 +23,12 @@ internal class SafeCallQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<Q
             throw new InvalidOperationException("Calldata too large");
         }
     }
-
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
     {
         Span<byte> lengthBuffer = stackalloc byte[4];
         resultData[1..4].CopyTo(lengthBuffer[1..4]);
         int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
         return dataLength + 4;
-    }
-
-    IEnumerable<IQuery> IQuery<QueryResult<T>>.GetQueries()
-    {
-        yield return this;
     }
     QueryResult<T> IQuery<QueryResult<T>>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
     {

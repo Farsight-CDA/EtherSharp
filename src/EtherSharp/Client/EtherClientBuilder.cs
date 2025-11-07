@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Client.Modules.Blocks;
 using EtherSharp.Client.Modules.Ether;
+using EtherSharp.Client.Modules.Query.Executor;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
@@ -234,6 +235,10 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         if(!_services.Any(x => x.ServiceType == typeof(ISubscriptionsManager)))
         {
             _services.AddSingleton<ISubscriptionsManager, SubscriptionsManager>();
+        }
+        if(!_services.Any(x => x.ServiceType == typeof(IQueryExecutor)))
+        {
+            _services.AddSingleton<IQueryExecutor, ConstructorCallQueryExecutor>();
         }
 
         foreach(var service in _services.ToArray())

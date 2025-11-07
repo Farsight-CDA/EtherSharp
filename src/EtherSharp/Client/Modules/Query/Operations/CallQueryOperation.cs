@@ -8,8 +8,8 @@ namespace EtherSharp.Client.Modules.Query.Operations;
 internal class CallQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<T>
 {
     private readonly ITxInput<T> _txInput = txInput;
-
     public int CallDataLength => 4 + 20 + _txInput.Data.Length;
+    IReadOnlyList<IQuery> IQuery<T>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
@@ -29,11 +29,6 @@ internal class CallQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<T>
         resultData[1..4].CopyTo(lengthBuffer[1..4]);
         int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
         return dataLength + 4;
-    }
-
-    IEnumerable<IQuery> IQuery<T>.GetQueries()
-    {
-        yield return this;
     }
 
     T IQuery<T>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)

@@ -17,7 +17,7 @@ public interface IQuery
     public static IQuery<QueryResult<T>> SafeCall<T>(ITxInput<T> input)
         => new SafeCallQueryOperation<T>(input);
 
-    public static IQuery<byte[]> GetCode(Address contract)
+    public static IQuery<EVMBytecode> GetCode(Address contract)
         => new GetCodeQueryOperation(contract);
 
     public static IQuery<byte[]> GetCodeHash(Address contract)
@@ -34,14 +34,189 @@ public interface IQuery
 
     public static IQuery<BigInteger> GetBalance(Address user)
         => new GetBalanceQueryOperation(user);
+
+    public static IQuery<TTo> Map<TFrom, TTo>(IQuery<TFrom> query, Func<TFrom, TTo> mapping)
+        => new Query<TTo>(query.Queries, results => mapping(query.ReadResultFrom(results)));
+
+    public static IQuery<(T1, T2)> Combine<T1, T2>(IQuery<T1> q1, IQuery<T2> q2)
+        => new Query<(T1, T2)>(
+            [.. q1.Queries, .. q2.Queries],
+            results => (
+                q1.ReadResultFrom(results[..]),
+                q2.ReadResultFrom(results[q1.Queries.Count..])
+            )
+        );
+
+    public static IQuery<(T1, T2, T3)> Combine<T1, T2, T3>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3)
+        => new Query<(T1, T2, T3)>(
+            [.. q1.Queries, .. q2.Queries, .. q3.Queries],
+            results => (
+                q1.ReadResultFrom(results[..]),
+                q2.ReadResultFrom(results[q1.Queries.Count..]),
+                q3.ReadResultFrom(results[(q1.Queries.Count + q2.Queries.Count)..])
+            )
+        );
+
+    public static IQuery<(T1, T2, T3, T4)> Combine<T1, T2, T3, T4>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4)
+        => new Query<(T1, T2, T3, T4)>(
+            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries],
+            results =>
+            {
+                int offset = 0;
+                int count1 = q1.Queries.Count;
+                int count2 = q2.Queries.Count;
+                int count3 = q3.Queries.Count;
+                int count4 = q4.Queries.Count;
+
+                return (
+                    q1.ReadResultFrom(results[offset..(offset += count1)]),
+                    q2.ReadResultFrom(results[offset..(offset += count2)]),
+                    q3.ReadResultFrom(results[offset..(offset += count3)]),
+                    q4.ReadResultFrom(results[offset..(offset += count4)])
+                );
+            }
+        );
+
+    public static IQuery<(T1, T2, T3, T4, T5)> Combine<T1, T2, T3, T4, T5>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5)
+        => new Query<(T1, T2, T3, T4, T5)>(
+            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries],
+            results =>
+            {
+                int offset = 0;
+                int count1 = q1.Queries.Count;
+                int count2 = q2.Queries.Count;
+                int count3 = q3.Queries.Count;
+                int count4 = q4.Queries.Count;
+                int count5 = q5.Queries.Count;
+
+                return (
+                    q1.ReadResultFrom(results[offset..(offset += count1)]),
+                    q2.ReadResultFrom(results[offset..(offset += count2)]),
+                    q3.ReadResultFrom(results[offset..(offset += count3)]),
+                    q4.ReadResultFrom(results[offset..(offset += count4)]),
+                    q5.ReadResultFrom(results[offset..(offset += count5)])
+                );
+            }
+        );
+
+    public static IQuery<(T1, T2, T3, T4, T5, T6)> Combine<T1, T2, T3, T4, T5, T6>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5, IQuery<T6> q6)
+        => new Query<(T1, T2, T3, T4, T5, T6)>(
+            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries, .. q6.Queries],
+            results =>
+            {
+                int offset = 0;
+                int count1 = q1.Queries.Count;
+                int count2 = q2.Queries.Count;
+                int count3 = q3.Queries.Count;
+                int count4 = q4.Queries.Count;
+                int count5 = q5.Queries.Count;
+                int count6 = q6.Queries.Count;
+
+                return (
+                    q1.ReadResultFrom(results[offset..(offset += count1)]),
+                    q2.ReadResultFrom(results[offset..(offset += count2)]),
+                    q3.ReadResultFrom(results[offset..(offset += count3)]),
+                    q4.ReadResultFrom(results[offset..(offset += count4)]),
+                    q5.ReadResultFrom(results[offset..(offset += count5)]),
+                    q6.ReadResultFrom(results[offset..(offset += count6)])
+                );
+            }
+        );
+
+    public static IQuery<(T1, T2, T3, T4, T5, T6, T7)> Combine<T1, T2, T3, T4, T5, T6, T7>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5, IQuery<T6> q6, IQuery<T7> q7)
+        => new Query<(T1, T2, T3, T4, T5, T6, T7)>(
+            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries, .. q6.Queries, .. q7.Queries],
+            results =>
+            {
+                int offset = 0;
+                int count1 = q1.Queries.Count;
+                int count2 = q2.Queries.Count;
+                int count3 = q3.Queries.Count;
+                int count4 = q4.Queries.Count;
+                int count5 = q5.Queries.Count;
+                int count6 = q6.Queries.Count;
+                int count7 = q7.Queries.Count;
+
+                return (
+                    q1.ReadResultFrom(results[offset..(offset += count1)]),
+                    q2.ReadResultFrom(results[offset..(offset += count2)]),
+                    q3.ReadResultFrom(results[offset..(offset += count3)]),
+                    q4.ReadResultFrom(results[offset..(offset += count4)]),
+                    q5.ReadResultFrom(results[offset..(offset += count5)]),
+                    q6.ReadResultFrom(results[offset..(offset += count6)]),
+                    q7.ReadResultFrom(results[offset..(offset += count7)])
+                );
+            }
+        );
+
+    public static IQuery<(T1, T2, T3, T4, T5, T6, T7, T8)> Combine<T1, T2, T3, T4, T5, T6, T7, T8>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5, IQuery<T6> q6, IQuery<T7> q7, IQuery<T8> q8)
+        => new Query<(T1, T2, T3, T4, T5, T6, T7, T8)>(
+            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries, .. q6.Queries, .. q7.Queries, .. q8.Queries],
+            results =>
+            {
+                int offset = 0;
+                int count1 = q1.Queries.Count;
+                int count2 = q2.Queries.Count;
+                int count3 = q3.Queries.Count;
+                int count4 = q4.Queries.Count;
+                int count5 = q5.Queries.Count;
+                int count6 = q6.Queries.Count;
+                int count7 = q7.Queries.Count;
+                int count8 = q8.Queries.Count;
+
+                return (
+                    q1.ReadResultFrom(results[offset..(offset += count1)]),
+                    q2.ReadResultFrom(results[offset..(offset += count2)]),
+                    q3.ReadResultFrom(results[offset..(offset += count3)]),
+                    q4.ReadResultFrom(results[offset..(offset += count4)]),
+                    q5.ReadResultFrom(results[offset..(offset += count5)]),
+                    q6.ReadResultFrom(results[offset..(offset += count6)]),
+                    q7.ReadResultFrom(results[offset..(offset += count7)]),
+                    q8.ReadResultFrom(results[offset..(offset += count8)])
+                );
+            }
+        );
+
+    public static IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> Combine<T1, T2, T3, T4, T5, T6, T7, T8, T9>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5, IQuery<T6> q6, IQuery<T7> q7, IQuery<T8> q8, IQuery<T9> q9)
+        => new Query<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>(
+            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries, .. q6.Queries, .. q7.Queries, .. q8.Queries, .. q9.Queries],
+            results =>
+            {
+                int offset = 0;
+                int count1 = q1.Queries.Count;
+                int count2 = q2.Queries.Count;
+                int count3 = q3.Queries.Count;
+                int count4 = q4.Queries.Count;
+                int count5 = q5.Queries.Count;
+                int count6 = q6.Queries.Count;
+                int count7 = q7.Queries.Count;
+                int count8 = q8.Queries.Count;
+                int count9 = q9.Queries.Count;
+
+                return (
+                    q1.ReadResultFrom(results[offset..(offset += count1)]),
+                    q2.ReadResultFrom(results[offset..(offset += count2)]),
+                    q3.ReadResultFrom(results[offset..(offset += count3)]),
+                    q4.ReadResultFrom(results[offset..(offset += count4)]),
+                    q5.ReadResultFrom(results[offset..(offset += count5)]),
+                    q6.ReadResultFrom(results[offset..(offset += count6)]),
+                    q7.ReadResultFrom(results[offset..(offset += count7)]),
+                    q8.ReadResultFrom(results[offset..(offset += count8)]),
+                    q9.ReadResultFrom(results[offset..(offset += count9)])
+                );
+            }
+        );
 }
 
 /// <summary>
-/// Represents a call payload that returns a result of type <typeparamref name="T"/> when eth_call'ed.
+/// Represents a call payload that returns a result of type <typeparamref name="TQuery"/> when eth_call'ed.
 /// </summary>
-/// <typeparam name="T"></typeparam>
-public interface IQuery<T>
+/// <typeparam name="TQuery"></typeparam>
+public interface IQuery<TQuery>
 {
-    internal IEnumerable<IQuery> GetQueries();
-    internal T ReadResultFrom(params ReadOnlySpan<byte[]> queryResults);
+    internal IReadOnlyList<IQuery> Queries { get; }
+    internal TQuery ReadResultFrom(params ReadOnlySpan<byte[]> queryResults);
+
+    public static IQuery<TQuery> From<TFrom>(IQuery<TFrom> query, Func<TFrom, TQuery> mapping)
+        => IQuery.Map(query, mapping);
 }

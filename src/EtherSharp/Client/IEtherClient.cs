@@ -26,11 +26,11 @@ public interface IEtherClient
     /// Module used to interact with blocks.
     /// </summary>
     public IBlocksModule Blocks { get; }
-    /// <summary>
-    /// Module used to combine on-chain queries.
-    /// </summary>
-    public IQueryBuilder<T> Query<T>();
 
+    public Task<T1> QueryAsync<T1>(
+        IQuery<T1> c1,
+        TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
+    );
     public Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
         TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default

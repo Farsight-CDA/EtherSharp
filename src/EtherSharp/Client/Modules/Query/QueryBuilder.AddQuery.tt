@@ -3,14 +3,8 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
-
-using System;
-using System.Linq;
-using System.Collections.Generic;
-
 namespace EtherSharp.Client.Modules.Query;
-
-internal partial class QueryBuilder<TQuery> : IQueryBuilder<TQuery>
+public partial class QueryBuilder<TQuery>
 {
     <#
     for (int n = 1; n <= 9; n++)
@@ -29,8 +23,8 @@ internal partial class QueryBuilder<TQuery> : IQueryBuilder<TQuery>
     for (int i = 1; i <= n; i++)
     {
         inputsCode += $@"
-        int o{i} = _calls.Count - resultIndex;
-        _calls.AddRange(c{i}.GetQueryables());";
+        int o{i} = _queries.Count - resultIndex;
+        _queries.AddRange(c{i}.Queries);";
         readArgs += $@"
             c{i}.ReadResultFrom(x[o{i}..]),";
         resultIndex++;
@@ -39,9 +33,9 @@ internal partial class QueryBuilder<TQuery> : IQueryBuilder<TQuery>
     readArgs = readArgs.TrimEnd(',');
     #>
 
-    public IQueryBuilder<TQuery> AddQuery<<#=genericParams#>>(<#=queryableParams#>, <#=mapping#>)
+    public QueryBuilder<TQuery> AddQuery<<#=genericParams#>>(<#=queryableParams#>, <#=mapping#>)
     {
-        int resultIndex = _calls.Count;
+        int resultIndex = _queries.Count;
         <#=inputsCode#>
         _resultSelectorFunctions.Add((resultIndex, <#=innerMapping#>));
         return this;
