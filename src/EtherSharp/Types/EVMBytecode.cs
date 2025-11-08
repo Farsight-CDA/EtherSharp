@@ -33,11 +33,20 @@ public class EVMBytecode(Address address, ReadOnlyMemory<byte> bytecode)
     private static List<ReadOnlyMemory<byte>> FindFunctionSelectors(ReadOnlyMemory<byte> bytecode)
     {
         var results = new List<ReadOnlyMemory<byte>>();
-        bytecode = bytecode[(bytecode.Span.IndexOf((byte) 0x5B) + 1)..];
+
+        int calltableStartIndex = bytecode.Span.IndexOf((byte) 0x5B) + 1;
+
+        bytecode = bytecode[calltableStartIndex..];
 
         while(true)
         {
             int push4Index = bytecode.Span.IndexOf((byte) 0x63);
+
+            if(push4Index == -1)
+            {
+                break;
+            }
+
             bytecode = bytecode[(push4Index + 1)..];
 
             if(push4Index > 20)
