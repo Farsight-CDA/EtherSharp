@@ -15,6 +15,7 @@ public class EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner sign
     public double PriorityFeePercentile { get; set; } = 25;
     public int BaseFeeOffsetPercentage { get; set; } = 20;
     public int PriorityFeeOffsetPercentage { get; set; } = 20;
+    public ulong GasWantedOffsetPercentage { get; set; } = 15;
 
     Task<EIP1559GasParams> IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>.EstimateGasParamsAsync(ITxInput txInput, EIP1559TxParams txParams, CancellationToken cancellationToken)
         => SendEstimationRequestsAsync(
@@ -57,7 +58,7 @@ public class EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner sign
         var adjustedPriorityFee = priorityFee * (100 + PriorityFeeOffsetPercentage) / 100;
 
         return new EIP1559GasParams(
-            gasEstimation,
+            gasEstimation * GasWantedOffsetPercentage / 100,
             adjustedBaseFee + adjustedPriorityFee,
             adjustedPriorityFee
         );

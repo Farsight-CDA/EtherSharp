@@ -10,6 +10,7 @@ public class LegacyGasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner signe
     private readonly IEtherSigner _signer = signer;
 
     public int GasPriceOffsetPercentage { get; set; } = 15;
+    public ulong GasWantedOffsetPercentage { get; set; } = 15;
 
     async Task<LegacyGasParams> IGasFeeProvider<LegacyTxParams, LegacyGasParams>.EstimateGasParamsAsync(ITxInput txInput, LegacyTxParams txParams, CancellationToken cancellationToken)
     {
@@ -19,7 +20,7 @@ public class LegacyGasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner signe
         var adjustedGasPrice = gasPrice * (100 + GasPriceOffsetPercentage) / 100;
 
         return new LegacyGasParams(
-            gasUsed,
+            gasUsed * GasWantedOffsetPercentage / 100,
             gasPrice + adjustedGasPrice
         );
     }

@@ -20,6 +20,8 @@ public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSign
     private bool _initialized;
     private ulong _chainId;
 
+    public ulong GasWantedOffsetPercentage { get; set; } = 15;
+
     public ValueTask InitializeAsync(ulong chainId, CancellationToken cancellationToken = default)
     {
         _initialized = true;
@@ -72,7 +74,6 @@ public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSign
         );
 
         ulong gasEstimation = await gasEstimationTask;
-
         var gasPriceTask = _ethRpcModule.GasPriceAsync(cancellationToken);
         var priorityFeeTask = _ethRpcModule.MaxPriorityFeePerGasAsync(cancellationToken);
 
@@ -84,7 +85,7 @@ public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSign
         var l1FeePerGas = l1Fee / gasEstimation;
 
         return new EIP1559GasParams(
-            gasEstimation,
+            gasEstimation * GasWantedOffsetPercentage / 100,
             (l1FeePerGas + gasPrice) * 11 / 10,
             priorityFee * 1 / 10
         );
