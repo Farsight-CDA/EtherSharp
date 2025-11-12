@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
+
 public static class PrimitiveTypeWriter
 {
     public static bool TryMatchPrimitiveType(string type, out string csharpTypeName, out bool isDynamic, out string abiFunctionName, out string decodeSuffix)
@@ -64,10 +65,15 @@ public static class PrimitiveTypeWriter
                 break;
             case string s when s.StartsWith("bytes", StringComparison.Ordinal) && Int32.TryParse(s.Substring(5), out int bitSize)
                 && bitSize >= 1 && bitSize <= 32:
-                csharpTypeName = typeof(byte[]).FullName;
+                csharpTypeName = bitSize == 1
+                    ? typeof(byte).FullName
+                    : typeof(byte[]).FullName;
                 isDynamic = false;
                 abiFunctionName = $"Bytes{bitSize}";
-                decodeSuffix = ".ToArray()";
+                if(bitSize > 1)
+                {
+                    decodeSuffix = ".ToArray()";
+                }
                 break;
             default:
                 csharpTypeName = null!;
