@@ -85,7 +85,7 @@ public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSign
         var l1FeePerGas = l1Fee / gasEstimation;
 
         return new EIP1559GasParams(
-            gasEstimation * GasWantedOffsetPercentage / 100,
+            gasEstimation * (100 + GasWantedOffsetPercentage) / 100,
             (l1FeePerGas + gasPrice) * 11 / 10,
             priorityFee * 1 / 10
         );

@@ -58,7 +58,7 @@ public class EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner sign
         var adjustedPriorityFee = priorityFee * (100 + PriorityFeeOffsetPercentage) / 100;
 
         return new EIP1559GasParams(
-            gasEstimation * GasWantedOffsetPercentage / 100,
+            gasEstimation * (100 + GasWantedOffsetPercentage) / 100,
             adjustedBaseFee + adjustedPriorityFee,
             adjustedPriorityFee
         );

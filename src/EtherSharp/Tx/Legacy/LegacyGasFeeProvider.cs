@@ -20,7 +20,7 @@ public class LegacyGasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner signe
         var adjustedGasPrice = gasPrice * (100 + GasPriceOffsetPercentage) / 100;
 
         return new LegacyGasParams(
-            gasUsed * GasWantedOffsetPercentage / 100,
+            gasUsed * (100 + GasWantedOffsetPercentage) / 100,
             gasPrice + adjustedGasPrice
         );
     }
