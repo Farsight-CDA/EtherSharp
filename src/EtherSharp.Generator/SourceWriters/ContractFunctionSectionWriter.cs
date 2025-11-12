@@ -21,6 +21,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
     {
         var sectionBuilder = new ClassBuilder("Functions")
             .WithIsStatic();
+        var functionClassNames = new List<string>();
 
         foreach(var functionMembersGroup in functionMembers.GroupBy(x => NameUtils.ToValidClassName(x.Name)))
         {
@@ -30,6 +31,7 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
                 string functionTypeName = functionMembersGroup.Count() > 1
                     ? $"{functionMembersGroup.Key}_{HexUtils.ToHexString(selectorBytes)}"
                     : functionMembersGroup.Key;
+                functionClassNames.Add(functionTypeName);
 
                 var typeBuilder = new ClassBuilder(functionTypeName)
                     .WithIsStatic()
@@ -172,6 +174,20 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
             }
         }
 
+        var getAllSelectorFunnction = new FunctionBuilder("GetSelectors")
+            .WithIsStatic(true)
+            .WithVisibility(FunctionVisibility.Public)
+            .WithReturnTypeRaw("System.ReadOnlyMemory<byte>[]");
+
+        getAllSelectorFunnction.AddStatement(
+            $"""
+                return [
+            {String.Join(",\n", functionClassNames.Select(x => $"       {x}.SelectorBytes"))}
+                ]
+            """
+        );
+
+        sectionBuilder.AddFunction(getAllSelectorFunnction);
         interfaceBuilder.AddInnerType(sectionBuilder);
     }
 }
