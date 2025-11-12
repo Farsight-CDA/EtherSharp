@@ -3,6 +3,7 @@ using EtherSharp.Types;
 using System.Numerics;
 
 namespace EtherSharp.RPC.Modules.Eth;
+
 public interface IEthRpcModule
 {
     public Task<ulong> ChainIdAsync(CancellationToken cancellationToken = default);
@@ -38,6 +39,10 @@ public interface IEthRpcModule
     );
     public Task<TransactionReceipt?> GetTransactionReceiptAsync(
         string transactionHash, CancellationToken cancellationToken = default
+    );
+
+    public Task<byte[]> GetStorageAtAsync(
+        Address address, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
     );
 
     public Task<Log[]> GetLogsAsync(

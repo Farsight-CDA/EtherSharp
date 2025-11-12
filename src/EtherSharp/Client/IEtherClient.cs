@@ -60,6 +60,9 @@ public interface IEtherClient
 
     public Task<uint> GetTransactionCount(Address address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 
+    public Task<byte[]> GetStorageAtAsync(Address address, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default);
+    public Task<byte[]> GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default);
+
     public TContract Contract<TContract>(Address address)
         where TContract : IEVMContract;
 

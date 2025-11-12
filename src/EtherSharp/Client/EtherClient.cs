@@ -208,6 +208,17 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return _ethRpcModule.GetTransactionCountAsync(address, targetHeight, cancellationToken);
     }
 
+    Task<byte[]> IEtherClient.GetStorageAtAsync(Address address, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default)
+    {
+        AssertReady();
+        return _ethRpcModule.GetStorageAtAsync(address, slot, targetBlockNumber, cancellationToken);
+    }
+    Task<byte[]> IEtherClient.GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default)
+    {
+        AssertReady();
+        return _ethRpcModule.GetStorageAtAsync(contract.Address, slot, targetBlockNumber, cancellationToken);
+    }
+
     private TContract Contract<TContract>(Address address)
         where TContract : IEVMContract
     {

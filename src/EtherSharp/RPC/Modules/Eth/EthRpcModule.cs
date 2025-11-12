@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Numerics;
 
 namespace EtherSharp.RPC.Modules.Eth;
+
 internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
 {
     private readonly IRpcClient _rpcClient = rpcClient;
@@ -301,6 +302,16 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             RpcResult<Uncle>.Success result => result.Result,
             RpcResult<Uncle>.Error error => throw RPCException.FromRPCError(error),
             RpcResult<Uncle>.Null _ => null,
+            _ => throw new NotImplementedException(),
+        };
+
+    public async Task<byte[]> GetStorageAtAsync(
+        Address address, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default)
+        => await _rpcClient.SendRpcRequestAsync<string, byte[], string, byte[]>(
+            "eth_getStorageAt", address.String, slot, targetBlockNumber.ToString(), cancellationToken) switch
+        {
+            RpcResult<byte[]>.Success result => result.Result,
+            RpcResult<byte[]>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
 
