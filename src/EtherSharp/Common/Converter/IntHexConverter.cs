@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Common.Converter;
+
 internal class IntHexConverter : JsonConverter<int>
 {
     public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -21,7 +22,7 @@ internal class IntHexConverter : JsonConverter<int>
                 }
                 return Int32.Parse(s.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
             default:
-                throw new NotImplementedException();
+                throw new JsonException($"Cannot parse element of type {reader.TokenType} as int");
         }
     }
 
