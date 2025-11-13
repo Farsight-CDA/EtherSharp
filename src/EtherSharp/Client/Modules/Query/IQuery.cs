@@ -219,4 +219,7 @@ public interface IQuery<TQuery>
 
     public static IQuery<TQuery> From<TFrom>(IQuery<TFrom> query, Func<TFrom, TQuery> mapping)
         => IQuery.Map(query, mapping);
+
+    public IQuery<TTo> Map<TTo>(Func<TQuery, TTo> mapping)
+        => IQuery.Map(this, mapping);
 }
