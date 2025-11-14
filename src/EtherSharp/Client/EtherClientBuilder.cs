@@ -119,6 +119,12 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return this;
     }
 
+    public EtherClientBuilder WithRPCTransport(Func<IServiceProvider, IRPCTransport> transportRegistration)
+    {
+        _transportRegistration = transportRegistration;
+        return this;
+    }
+
     public EtherClientBuilder AddRPCMiddleware<TRpcMiddleware>(TRpcMiddleware middleware)
          where TRpcMiddleware : class, IRpcMiddleware
     {
