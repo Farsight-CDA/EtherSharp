@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Common;
+
 public static class ParsingUtils
 {
     public static readonly JsonSerializerOptions EvmSerializerOptions = new JsonSerializerOptions()
@@ -17,7 +18,8 @@ public static class ParsingUtils
             new UIntHexConverter(),
             new LongHexConverter(),
             new ULongHexConverter(),
-            new UnsignedBigIntHexConverter()
+            new UnsignedBigIntHexConverter(),
+            new TargetBlockNumberConverter()
         }
     };
 }
