@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC;
+using EtherSharp.Types;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
@@ -54,7 +55,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 
     private record JsonRpcRequest(int Id, string Method, object?[] Params, string Jsonrpc = "2.0");
     /// <inheritdoc />
-    public async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, CancellationToken cancellationToken = default)
+    public async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
     {
         int id = Interlocked.Increment(ref _id);
 

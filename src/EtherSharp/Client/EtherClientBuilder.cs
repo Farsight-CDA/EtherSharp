@@ -91,7 +91,10 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
     public static EtherClientBuilder CreateForHttpRpc(string websocketUrl, IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null)
     {
         var builder = new EtherClientBuilder()
-            .WithRPCTransport(new HttpJsonRpcTransport(new Uri(websocketUrl, UriKind.Absolute)));
+        {
+            _transportRegistration = provider =>
+                new HttpJsonRpcTransport(new Uri(websocketUrl, UriKind.Absolute))
+        };
 
         if(loggerFactory is not null)
         {

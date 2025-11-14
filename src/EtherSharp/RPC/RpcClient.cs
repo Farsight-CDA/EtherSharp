@@ -40,13 +40,14 @@ internal class RpcClient : IRpcClient
         }
     }
 
-    public async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, CancellationToken cancellationToken)
+    public async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
+        string method, object?[] parameters, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
     {
         Func<CancellationToken, Task<RpcResult<TResult>>> onNext = async (ct) =>
         {
             try
             {
-                var result = await _transport.SendRpcRequestAsync<TResult>(method, parameters, ct);
+                var result = await _transport.SendRpcRequestAsync<TResult>(method, parameters, requiredBlockNumber, ct);
                 _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
                 return result;
             }

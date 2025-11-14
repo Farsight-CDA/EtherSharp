@@ -2,6 +2,7 @@
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
+using EtherSharp.Types;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
@@ -311,7 +312,8 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
 
     private record JsonRpcRequest(int Id, string Method, object?[] Params, string Jsonrpc = "2.0");
     /// <inheritdoc />
-    public async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, CancellationToken cancellationToken = default)
+    public async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
+        string method, object?[] parameters, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 

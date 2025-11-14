@@ -1,4 +1,5 @@
 ﻿using EtherSharp.RPC;
+using EtherSharp.Types;
 
 namespace EtherSharp.Transport;
 /// <summary>
@@ -38,7 +39,13 @@ public interface IRPCTransport
     /// <typeparam name="TResult">Expected result type.</typeparam>
     /// <param name="method">Rpc method name.</param>
     /// <param name="parameters">List of parameters for this call.</param>
+    /// <param name="requiredBlockNumber">The minimum target block required by the node in order to fulfil this request.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, CancellationToken cancellationToken = default);
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
+        string method,
+        object?[] parameters,
+        TargetBlockNumber requiredBlockNumber,
+        CancellationToken cancellationToken = default
+    );
 }
