@@ -46,7 +46,7 @@ public readonly struct TargetBlockNumber
     }
 
     /// <inheritdoc/>
-    public override string ToString() => _value ?? Latest._value!;
+    public override string ToString() => _value ?? "latest";
 
     /// <inheritdoc/>
     public override bool Equals([NotNullWhen(true)] object? obj)
