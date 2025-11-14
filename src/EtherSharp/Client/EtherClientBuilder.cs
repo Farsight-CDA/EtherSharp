@@ -67,7 +67,7 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         var builder = new EtherClientBuilder
         {
             _transportRegistration = provider =>
-                new WssJsonRpcTransport(websocketUri, requestTimeout.Value, provider, loggerFactory?.CreateLogger<WssJsonRpcTransport>())
+                new WssJsonRpcTransport(websocketUri, requestTimeout.Value, provider)
         };
 
         if(loggerFactory is not null)

@@ -3,6 +3,7 @@ using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
 using EtherSharp.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
@@ -43,11 +44,11 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
 
     private readonly ObservableGauge<int>? _websocketConnectedGauge;
 
-    public WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, IServiceProvider provider, ILogger? logger = null)
+    public WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, IServiceProvider provider)
     {
         _uri = uri;
         _requestTimeout = requestTimeout;
-        _logger = logger;
+        _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<WssJsonRpcTransport>();
 
         _websocketConnectedGauge = provider.CreateOTELObservableGauge("wss_connection_up",
             () => (_socket is not null && _socket.State == WebSocketState.Open) ? 1 : 0
