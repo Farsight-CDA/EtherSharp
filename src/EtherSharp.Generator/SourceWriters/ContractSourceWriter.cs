@@ -1,21 +1,19 @@
 ﻿using EtherSharp.Generator.Abi;
 using EtherSharp.Generator.Abi.Members;
-using EtherSharp.Generator.SourceWriters.Components;
 using EtherSharp.Generator.SyntaxElements;
 using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
 
 public class ContractSourceWriter(
-    AbiTypeWriter typeWriter,
-    ContractErrorSectionWriter errorSectionWriter, ContractEventSectionWriter eventSectionWriter, ContractFunctionSectionWriter functionSectionWriter
+    ContractErrorSectionWriter errorSectionWriter, ContractEventSectionWriter eventSectionWriter,
+    ContractFunctionSectionWriter functionSectionWriter, ContractTypesSectionWriter typesSectionWriter
 )
 {
-    private readonly AbiTypeWriter _typeWriter = typeWriter;
-
     private readonly ContractErrorSectionWriter _errorSectionWriter = errorSectionWriter;
     private readonly ContractEventSectionWriter _eventSectionWriter = eventSectionWriter;
     private readonly ContractFunctionSectionWriter _functionSectionWriter = functionSectionWriter;
+    private readonly ContractTypesSectionWriter _typesSectionWriter = typesSectionWriter;
 
     public string WriteContractSourceCode(string @namespace, string contractName, IEnumerable<AbiMember> members)
     {
@@ -48,6 +46,7 @@ public class ContractSourceWriter(
         _functionSectionWriter.GenerateContractFunctionSection(contractInterface, contractImplementation, contractName, members.OfType<FunctionAbiMember>());
         _errorSectionWriter.GenerateContractErrorSection(contractInterface, contractImplementation, members.OfType<ErrorAbiMember>());
         _eventSectionWriter.GenerateContractEventSection(contractInterface, contractImplementation, @namespace, contractName, members.OfType<EventAbiMember>());
+        _typesSectionWriter.GenerateContractTypesSection(contractInterface);
 
         var output = new StringBuilder();
         output.AppendLine(
@@ -58,11 +57,6 @@ public class ContractSourceWriter(
             {{contractImplementation.WithAutoConstructor().Build()}}
             """
         );
-
-        foreach(var typeBuilder in _typeWriter.GetTypeBuilders())
-        {
-            output.AppendLine(typeBuilder.Build());
-        }
 
         return output.ToString();
     }

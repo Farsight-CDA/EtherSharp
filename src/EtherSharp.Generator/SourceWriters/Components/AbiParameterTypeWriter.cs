@@ -6,10 +6,10 @@ using System.Text.RegularExpressions;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
 
-public partial class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
+public partial class AbiParameterTypeWriter(ContractTypesSectionWriter typesSectionWriter)
 {
     private static Regex _sizedArrayTypeRegex = new Regex("\\[\\d+\\]$", RegexOptions.Compiled);
-    private readonly AbiTypeWriter _typeWriter = typeWriter;
+    private readonly ContractTypesSectionWriter _typesSectionWriter = typesSectionWriter;
 
     public (string CSTypeName, bool isDynamic, Func<string, string> EncodeFunc, string DecodeFunc) CreateParameter(AbiParameter parameter)
     {
@@ -153,7 +153,7 @@ public partial class AbiParameterTypeWriter(AbiTypeWriter typeWriter)
         tupleClassBuilder.AddFunction(encodeFunctionBuilder);
         tupleClassBuilder.AddFunction(decodeFunctionBuilder);
 
-        csTypeName = _typeWriter.RegisterTypeBuilder(tupleClassBuilder);
+        csTypeName = _typesSectionWriter.RegisterTypeBuilder(tupleClassBuilder);
 
         bool localIsDynamic = isDynamic;
         encodeFunc = inputName => isAnonymous

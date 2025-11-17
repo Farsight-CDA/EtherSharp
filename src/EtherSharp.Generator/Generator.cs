@@ -124,8 +124,8 @@ public class Generator : IIncrementalGenerator
                 return;
             }
 
-            var writer = CreateSourceWriter(contractSymbol.ContainingNamespace.ToString());
             string contractName = contractSymbol.Name;
+            var writer = CreateSourceWriter(contractSymbol.ContainingNamespace.ToString(), contractName);
 
             context.AddSource(
                 $"{contractName}.generated.cs",
@@ -151,17 +151,17 @@ public class Generator : IIncrementalGenerator
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static ContractSourceWriter CreateSourceWriter(string @namespace)
+    private static ContractSourceWriter CreateSourceWriter(string @namespace, string contractInterfaceName)
     {
-        var abiTypeWriter = new AbiTypeWriter(@namespace);
-        var parameterTypeWriter = new AbiParameterTypeWriter(abiTypeWriter);
+        var typesSectionWriter = new ContractTypesSectionWriter(@namespace, contractInterfaceName);
+        var parameterTypeWriter = new AbiParameterTypeWriter(typesSectionWriter);
         var paramEncodingWriter = new ParamEncodingWriter(parameterTypeWriter);
 
         return new ContractSourceWriter(
-            abiTypeWriter,
             new ContractErrorSectionWriter(new ErrorTypeWriter()),
             new ContractEventSectionWriter(new EventTypeWriter(paramEncodingWriter)),
-            new ContractFunctionSectionWriter(paramEncodingWriter)
+            new ContractFunctionSectionWriter(paramEncodingWriter),
+            typesSectionWriter
         );
     }
 }
