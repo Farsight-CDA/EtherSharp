@@ -3,6 +3,7 @@ using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC;
 using EtherSharp.Types;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Transport;
@@ -93,7 +94,11 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             }
             //
             return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
-
+        }
+        catch(JsonException)
+        {
+            string s = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new RPCTransportException($"Error: {s}");
         }
         catch(Exception e)
         {
