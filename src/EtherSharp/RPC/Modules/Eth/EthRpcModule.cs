@@ -157,7 +157,7 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
     public async Task<BlockData?> GetFullBlockByNumberAsync(
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<TargetBlockNumber, bool, BlockData>(
-            "eth_getBlockByNumber", targetBlockNumber, false, targetBlockNumber, cancellationToken) switch
+            "eth_getBlockByNumber", targetBlockNumber, true, TargetBlockNumber.Latest, cancellationToken) switch
         {
             RpcResult<BlockData>.Success result => result.Result,
             RpcResult<BlockData>.Error error => throw RPCException.FromRPCError(error),
@@ -167,7 +167,7 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
     public async Task<BlockDataTrasactionAsString> GetBlockByNumberAsync(
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<TargetBlockNumber, bool, BlockDataTrasactionAsString>(
-            "eth_getBlockByNumber", targetBlockNumber, false, targetBlockNumber, cancellationToken) switch
+            "eth_getBlockByNumber", targetBlockNumber, false, TargetBlockNumber.Latest, cancellationToken) switch
         {
             RpcResult<BlockDataTrasactionAsString>.Success result => result.Result,
             RpcResult<BlockDataTrasactionAsString>.Error error => throw RPCException.FromRPCError(error),
