@@ -89,39 +89,74 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     public async Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
-        => await _queryExecutor.ExecuteQueryAsync(c1, targetBlockNumber, cancellationToken);
+    {
+        AssertReady();
+        return await _queryExecutor.ExecuteQueryAsync(c1, targetBlockNumber, cancellationToken);
+    }
+
     public async Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
-        => await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2), targetBlockNumber, cancellationToken);
+    {
+        AssertReady();
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2), targetBlockNumber, cancellationToken);
+    }
+
     public async Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
-        => await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), targetBlockNumber, cancellationToken);
+    {
+        AssertReady();
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), targetBlockNumber, cancellationToken);
+    }
+
     public async Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
-        => await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), targetBlockNumber, cancellationToken);
+    {
+        AssertReady();
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), targetBlockNumber, cancellationToken);
+    }
+
     public async Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
-        => await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), targetBlockNumber, cancellationToken);
+    {
+        AssertReady();
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), targetBlockNumber, cancellationToken);
+    }
+
     public async Task<(T1, T2, T3, T4, T5, T6)> QueryAsync<T1, T2, T3, T4, T5, T6>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
-        => await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), targetBlockNumber, cancellationToken);
+    {
+        AssertReady();
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), targetBlockNumber, cancellationToken);
+    }
+
     public async Task<(T1, T2, T3, T4, T5, T6, T7)> QueryAsync<T1, T2, T3, T4, T5, T6, T7>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
-        => await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), targetBlockNumber, cancellationToken);
+    {
+        AssertReady();
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), targetBlockNumber, cancellationToken);
+    }
+
     public async Task<(T1, T2, T3, T4, T5, T6, T7, T8)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
-        => await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), targetBlockNumber, cancellationToken);
+    {
+        AssertReady();
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), targetBlockNumber, cancellationToken);
+    }
+
     public async Task<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8, IQuery<T9> c9,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
-        => await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), targetBlockNumber, cancellationToken);
+    {
+        AssertReady();
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), targetBlockNumber, cancellationToken);
+    }
 
     IEventsModule<TEvent> IEtherClient.Events<TEvent>()
     {
