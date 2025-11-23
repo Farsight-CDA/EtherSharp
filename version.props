@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
-	<EthersharpVersion>0.16.8-beta</EthersharpVersion>
-    <VersionPrefix>0.16.8</VersionPrefix>
+	<EthersharpVersion>0.16.9-beta</EthersharpVersion>
+    <VersionPrefix>0.16.9</VersionPrefix>
     <VersionSuffix>beta</VersionSuffix>
   </PropertyGroup>
 </Project>
