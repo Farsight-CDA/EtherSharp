@@ -54,6 +54,7 @@ public interface IEtherClient
     public IInternalEtherClient AsInternal();
 
     public Task InitializeAsync(CancellationToken cancellationToken = default);
+    public Task<T> InitializeAsync<T>(IQuery<T> initQuery, CancellationToken cancellationToken = default);
 
     public Task<Transaction?> GetTransactionAsync(string hash, CancellationToken cancellationToken = default);
     public Task<TransactionReceipt?> GetTransactionReceiptAsync(string hash, CancellationToken cancellationToken = default);

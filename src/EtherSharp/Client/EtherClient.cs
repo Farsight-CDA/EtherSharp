@@ -171,7 +171,13 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         _loggerFactory = provider.GetService<ILoggerFactory>();
     }
 
-    async Task IEtherClient.InitializeAsync(CancellationToken cancellationToken)
+    Task IEtherClient.InitializeAsync(CancellationToken cancellationToken)
+        => InitializeAsync<object>(null, cancellationToken);
+
+    Task<T> IEtherClient.InitializeAsync<T>(IQuery<T> initQuery, CancellationToken cancellationToken)
+        => InitializeAsync(initQuery, cancellationToken);
+
+    private async Task<T> InitializeAsync<T>(IQuery<T>? initQuery, CancellationToken cancellationToken)
     {
         if(_initialized)
         {
@@ -198,6 +204,18 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             _txScheduler = _provider.GetRequiredService<ITxScheduler>();
         }
 
+        T? initResult;
+
+        if(initQuery is null)
+        {
+            _chainId = await _ethRpcModule.ChainIdAsync(cancellationToken);
+            initResult = default;
+        }
+        else
+        {
+            (_chainId, initResult) = await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(IQuery.GetChainId(), initQuery), TargetBlockNumber.Latest, cancellationToken);
+        }
+
         _chainId = await _ethRpcModule.ChainIdAsync(cancellationToken);
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
@@ -206,6 +224,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         }
 
         _initialized = true;
+        return initResult!;
     }
 
     private void AssertTxClient()
