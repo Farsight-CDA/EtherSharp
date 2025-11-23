@@ -2,13 +2,13 @@
 
 namespace EtherSharp.Client.Modules.Query.Operations;
 
-internal class GetBlockGasLimitQueryOperation : IQuery, IQuery<ulong>
+internal class GetChainIdQueryOperation : IQuery, IQuery<ulong>
 {
     public int CallDataLength => 1;
     IReadOnlyList<IQuery> IQuery<ulong>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
-        => buffer[0] = (byte) QueryOperationId.GetBlockGasLimit;
+        => buffer[0] = (byte) QueryOperationId.GetChainId;
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 8;
 

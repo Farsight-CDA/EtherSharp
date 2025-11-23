@@ -29,12 +29,4 @@ public partial class QueryBuilder<TQuery> : IQuery<List<TQuery>>, IQueryBuilder<
         }
         return results;
     }
-
-    public QueryBuilder<TQuery> AddQuery(IQuery<TQuery> c)
-    {
-        int resultIndex = _queries.Count;
-        _queries.AddRange(c.Queries);
-        _resultSelectorFunctions.Add((resultIndex, c.ReadResultFrom));
-        return this;
-    }
 }

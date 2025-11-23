@@ -29,11 +29,17 @@ public interface IQuery
     public static IQuery<DateTimeOffset> GetBlockTimestamp()
         => new GetBlockTimestampQueryOperation();
 
-    public static IQuery<BigInteger> GetBlockGasLimit()
+    public static IQuery<ulong> GetBlockGasLimit()
         => new GetBlockGasLimitQueryOperation();
+
+    public static IQuery<BigInteger> GetBlockGasPrice()
+        => new GetBlockGasPriceQueryOperation();
 
     public static IQuery<BigInteger> GetBalance(Address user)
         => new GetBalanceQueryOperation(user);
+
+    public static IQuery<ulong> GetChainId()
+        => new GetChainIdQueryOperation();
 
     public static IQuery<TTo> Map<TFrom, TTo>(IQuery<TFrom> query, Func<TFrom, TTo> mapping)
         => new Query<TTo>(query.Queries, results => mapping(query.ReadResultFrom(results)));

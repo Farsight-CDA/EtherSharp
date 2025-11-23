@@ -13,7 +13,7 @@ internal class GetCodeQueryOperation(Address address) : IQuery, IQuery<EVMByteco
 
     public void Encode(Span<byte> buffer)
     {
-        buffer[0] = 129;
+        buffer[0] = (byte) QueryOperationId.GetCode;
         _address.Bytes.CopyTo(buffer[1..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)

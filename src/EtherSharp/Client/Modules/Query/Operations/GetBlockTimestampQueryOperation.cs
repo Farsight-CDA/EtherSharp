@@ -8,7 +8,7 @@ internal class GetBlockTimestampQueryOperation : IQuery, IQuery<DateTimeOffset>
     IReadOnlyList<IQuery> IQuery<DateTimeOffset>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
-        => buffer[0] = 132;
+        => buffer[0] = (byte) QueryOperationId.GetBlockTimestamp;
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 8;
     DateTimeOffset IQuery<DateTimeOffset>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)

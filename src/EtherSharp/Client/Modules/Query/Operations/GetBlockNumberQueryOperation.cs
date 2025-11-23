@@ -8,7 +8,7 @@ internal class GetBlockNumberQueryOperation : IQuery, IQuery<ulong>
     IReadOnlyList<IQuery> IQuery<ulong>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
-        => buffer[0] = 131;
+        => buffer[0] = (byte) QueryOperationId.GetBlockNumber;
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 8;
     ulong IQuery<ulong>.ReadResultFrom(params scoped ReadOnlySpan<byte[]> queryResults)
