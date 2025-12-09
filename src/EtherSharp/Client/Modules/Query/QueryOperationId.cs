@@ -13,5 +13,7 @@ internal enum QueryOperationId : byte
 
     GetBalance = 150,
 
-    GetChainId = 160
+    GetChainId = 160,
+
+    FlashCall = 170
 }

@@ -14,8 +14,14 @@ public interface IQuery
     public static IQuery<T> Call<T>(ITxInput<T> input)
         => new CallQueryOperation<T>(input);
 
+    public static IQuery<T> FlashCall<T>(ReadOnlyMemory<byte> byteCode, ITxInput<T> input)
+        => new FlashCallQueryOperation<T>(byteCode, input);
+
     public static IQuery<QueryResult<T>> SafeCall<T>(ITxInput<T> input)
         => new SafeCallQueryOperation<T>(input);
+
+    public static IQuery<QueryResult<T>> SafeFlashCall<T>(ReadOnlyMemory<byte> byteCode, ITxInput<T> input)
+        => new SafeFlashCallQueryOperation<T>(byteCode, input);
 
     public static IQuery<EVMBytecode> GetCode(Address contract)
         => new GetCodeQueryOperation(contract);
