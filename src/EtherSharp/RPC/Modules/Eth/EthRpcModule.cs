@@ -53,9 +53,9 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    private record TransactionCall(Address? From, Address To, uint? Gas, BigInteger? GasPrice, BigInteger Value, string? Data);
+    private record TransactionCall(Address? From, Address? To, uint? Gas, BigInteger? GasPrice, BigInteger Value, string? Data);
     public async Task<TxCallResult> CallAsync(
-        Address? from, Address to, uint? gas, BigInteger? gasPrice, BigInteger value, string? data,
+        Address? from, Address? to, uint? gas, BigInteger? gasPrice, BigInteger value, string? data,
         TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
     {
         var transaction = new TransactionCall(from, to, gas, gasPrice, value, data);

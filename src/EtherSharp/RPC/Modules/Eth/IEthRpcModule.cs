@@ -29,7 +29,7 @@ public interface IEthRpcModule
         Address address, TargetBlockNumber blockNumber, CancellationToken cancellationToken = default
     );
     public Task<TxCallResult> CallAsync(
-        Address? from, Address to, uint? gas, BigInteger? gasPrice, BigInteger value, string? data,
+        Address? from, Address? to, uint? gas, BigInteger? gasPrice, BigInteger value, string? data,
         TargetBlockNumber blockNumber, CancellationToken cancellationToken = default);
     public Task<uint> GetTransactionCountAsync(
         Address address, TargetBlockNumber blockNumber, CancellationToken cancellationToken = default
