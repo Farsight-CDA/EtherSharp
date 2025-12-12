@@ -4,12 +4,12 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Client.Modules.Query.Operations;
 
-internal class CallQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<QueryResult<T>>
+internal class CallAndMeasureGasQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<(QueryResult<T>, ulong)>
 {
     private readonly ITxInput<T> _txInput = txInput;
 
     public int CallDataLength => 4 + 20 + _txInput.Data.Length;
-    IReadOnlyList<IQuery> IQuery<QueryResult<T>>.Queries => [this];
+    IReadOnlyList<IQuery> IQuery<(QueryResult<T>, ulong)>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
@@ -20,7 +20,7 @@ internal class CallQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<Query
             throw new InvalidOperationException("Calldata too large");
         }
 
-        buffer[0] = (byte) QueryOperationId.Call;
+        buffer[0] = (byte) QueryOperationId.CallAndMeasureGas;
 
         _txInput.To.Bytes.CopyTo(buffer[4..24]);
         _txInput.Data.CopyTo(buffer[24..]);
@@ -30,9 +30,9 @@ internal class CallQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<Query
         Span<byte> lengthBuffer = stackalloc byte[4];
         resultData[1..4].CopyTo(lengthBuffer[1..4]);
         int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
-        return dataLength + 4;
+        return dataLength + 12;
     }
-    QueryResult<T> IQuery<QueryResult<T>>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
+    (QueryResult<T>, ulong) IQuery<(QueryResult<T>, ulong)>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
     {
         if(queryResults.Length != 1)
         {
@@ -41,12 +41,14 @@ internal class CallQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<Query
 
         byte[] queryResult = queryResults[0];
         bool success = queryResult[0] == 0x01;
-        byte[] returnData = queryResult[4..];
+        ulong gasUsed = BinaryPrimitives.ReadUInt64BigEndian(queryResult.AsSpan(4, 8));
 
-        return success switch
+        QueryResult<T> result = success switch
         {
-            true => new QueryResult<T>.Success(_txInput.ReadResultFrom(returnData)),
-            false => new QueryResult<T>.Reverted(returnData)
+            true => new QueryResult<T>.Success(_txInput.ReadResultFrom(queryResult.AsMemory(12))),
+            false => new QueryResult<T>.Reverted(queryResult[12..])
         };
+
+        return (result, gasUsed);
     }
 }

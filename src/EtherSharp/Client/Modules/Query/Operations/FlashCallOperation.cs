@@ -1,17 +1,16 @@
 ﻿
 using EtherSharp.Tx;
-using EtherSharp.Types;
 using System.Buffers.Binary;
 
 namespace EtherSharp.Client.Modules.Query.Operations;
 
-internal class FlashCallQueryOperation<T>(ReadOnlyMemory<byte> byteCode, ITxInput<T> txInput) : IQuery, IQuery<T>
+internal class SafeFlashCallQueryOperation<T>(ReadOnlyMemory<byte> byteCode, ITxInput<T> txInput) : IQuery, IQuery<QueryResult<T>>
 {
     private readonly ITxInput<T> _txInput = txInput;
     private readonly ReadOnlyMemory<byte> _byteCode = byteCode;
 
     public int CallDataLength => 1 + 8 + _byteCode.Length + _txInput.Data.Length;
-    IReadOnlyList<IQuery> IQuery<T>.Queries => [this];
+    IReadOnlyList<IQuery> IQuery<QueryResult<T>>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
@@ -22,7 +21,6 @@ internal class FlashCallQueryOperation<T>(ReadOnlyMemory<byte> byteCode, ITxInpu
         _byteCode.Span.CopyTo(buffer[8..(8 + _byteCode.Length)]);
         _txInput.Data.CopyTo(buffer[(8 + _byteCode.Length)..]);
     }
-
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
     {
         Span<byte> lengthBuffer = stackalloc byte[4];
@@ -30,22 +28,21 @@ internal class FlashCallQueryOperation<T>(ReadOnlyMemory<byte> byteCode, ITxInpu
         int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
         return dataLength + 4;
     }
-
-    T IQuery<T>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
+    QueryResult<T> IQuery<QueryResult<T>>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
     {
-        var callResults = new TxCallResult[queryResults.Length];
-
-        for(int i = 0; i < queryResults.Length; i++)
+        if(queryResults.Length != 1)
         {
-            bool success = queryResults[i][0] == 0x01;
-            byte[] returnData = queryResults[i][4..];
-            callResults[i] = success switch
-            {
-                true => new TxCallResult.Success(returnData),
-                false => new TxCallResult.Reverted(returnData)
-            };
+            throw new InvalidOperationException("Bad result length");
         }
 
-        return _txInput.ReadResultFrom(callResults[0].Unwrap(_txInput.To));
+        byte[] queryResult = queryResults[0];
+        bool success = queryResult[0] == 0x01;
+        byte[] returnData = queryResult[4..];
+
+        return success switch
+        {
+            true => new QueryResult<T>.Success(_txInput.ReadResultFrom(returnData)),
+            false => new QueryResult<T>.Reverted(returnData)
+        };
     }
 }

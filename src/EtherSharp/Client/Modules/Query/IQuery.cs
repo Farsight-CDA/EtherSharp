@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Modules.Query.Operations;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Numerics;
@@ -12,13 +13,39 @@ public interface IQuery
     public int ParseResultLength(ReadOnlySpan<byte> resultData);
 
     public static IQuery<T> Call<T>(ITxInput<T> input)
-        => new CallQueryOperation<T>(input);
+        => SafeCall(input).Map(x => x switch
+        {
+            QueryResult<T>.Success s => s.Value,
+            QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data),
+            _ => throw new ImpossibleException()
+        });
+
+    public static IQuery<(T, ulong)> CallAndMeasureGas<T>(ITxInput<T> input)
+        => SafeCallAndMeasureGas(input).Map(x =>
+        {
+            var (result, gasUsed) = x;
+            var unwrapped = result switch
+            {
+                QueryResult<T>.Success s => s.Value,
+                QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data),
+                _ => throw new ImpossibleException()
+            };
+            return (unwrapped, gasUsed);
+        });
 
     public static IQuery<T> FlashCall<T>(ReadOnlyMemory<byte> byteCode, ITxInput<T> input)
-        => new FlashCallQueryOperation<T>(byteCode, input);
+        => SafeFlashCall(byteCode, input).Map(x => x switch
+        {
+            QueryResult<T>.Success s => s.Value,
+            QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data),
+            _ => throw new ImpossibleException()
+        });
 
     public static IQuery<QueryResult<T>> SafeCall<T>(ITxInput<T> input)
-        => new SafeCallQueryOperation<T>(input);
+        => new CallQueryOperation<T>(input);
+
+    public static IQuery<(QueryResult<T>, ulong)> SafeCallAndMeasureGas<T>(ITxInput<T> input)
+        => new CallAndMeasureGasQueryOperation<T>(input);
 
     public static IQuery<QueryResult<T>> SafeFlashCall<T>(ReadOnlyMemory<byte> byteCode, ITxInput<T> input)
         => new SafeFlashCallQueryOperation<T>(byteCode, input);

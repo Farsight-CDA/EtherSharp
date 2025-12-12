@@ -2,7 +2,9 @@
 
 internal enum QueryOperationId : byte
 {
-    //First 128 are reserved for call
+    Call = 0,
+    CallAndMeasureGas = 1,
+
     GetCode = 130,
     GetCodeHash = 131,
 
