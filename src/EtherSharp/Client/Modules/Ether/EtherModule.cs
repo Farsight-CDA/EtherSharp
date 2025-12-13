@@ -18,14 +18,15 @@ internal class EtherModule(IEthRpcModule ethRpcModule, IServiceProvider provider
     public ITxInput Transfer(IPayableContract contract, BigInteger amount)
         => ITxInput.ForEthTransfer(contract.Address, amount);
 
-    public Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber blockNumber)
-        => _ethRpcModule.GetBalanceAsync(address, blockNumber);
-    public Task<BigInteger> GetBalanceAsync(IEVMContract contract, TargetBlockNumber blockNumber)
-        => _ethRpcModule.GetBalanceAsync(contract.Address, blockNumber);
+    public Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        => _ethRpcModule.GetBalanceAsync(address, targetBlockNumber, cancellationToken);
+    public Task<BigInteger> GetBalanceAsync(IEVMContract contract, TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        => _ethRpcModule.GetBalanceAsync(contract.Address, targetBlockNumber, cancellationToken);
 
-    public Task<BigInteger> GetMyBalanceAsync(TargetBlockNumber blockNumber)
+    public Task<BigInteger> GetMyBalanceAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
         => _ethRpcModule.GetBalanceAsync(
             _provider.GetService<IEtherSigner>()?.Address ?? throw new InvalidOperationException("Client is not a tx client"),
-            blockNumber
+            targetBlockNumber,
+            cancellationToken
         );
 }

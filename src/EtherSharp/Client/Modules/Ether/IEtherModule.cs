@@ -13,14 +13,16 @@ public interface IEtherModule
     /// Fetches the native balance of the given address.
     /// </summary>
     /// <param name="address"></param>
-    /// <param name="blockNumber"></param>
+    /// <param name="targetBlockNumber"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber blockNumber = default);
+    public Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default);
     /// <summary>
     /// Fetches the native balance of the given contract.
     /// </summary>
     /// <param name="contract"></param>
-    /// <param name="blockNumber"></param>
+    /// <param name="targetBlockNumber"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<BigInteger> GetBalanceAsync(IEVMContract contract, TargetBlockNumber blockNumber = default);
+    public Task<BigInteger> GetBalanceAsync(IEVMContract contract, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default);
 }
