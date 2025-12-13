@@ -34,11 +34,6 @@ internal class CallQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<Query
     }
     QueryResult<T> IQuery<QueryResult<T>>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
     {
-        if(queryResults.Length != 1)
-        {
-            throw new InvalidOperationException("Bad result length");
-        }
-
         byte[] queryResult = queryResults[0];
         bool success = queryResult[0] == 0x01;
         byte[] returnData = queryResult[4..];

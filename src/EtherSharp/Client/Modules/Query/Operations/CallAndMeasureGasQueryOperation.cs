@@ -34,11 +34,6 @@ internal class CallAndMeasureGasQueryOperation<T>(ITxInput<T> txInput) : IQuery,
     }
     (QueryResult<T>, ulong) IQuery<(QueryResult<T>, ulong)>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
     {
-        if(queryResults.Length != 1)
-        {
-            throw new InvalidOperationException("Bad result length");
-        }
-
         byte[] queryResult = queryResults[0];
         bool success = queryResult[0] == 0x01;
         ulong gasUsed = BinaryPrimitives.ReadUInt64BigEndian(queryResult.AsSpan(4, 8));
