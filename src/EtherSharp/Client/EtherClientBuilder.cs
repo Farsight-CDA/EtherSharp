@@ -82,7 +82,7 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithTxScheduler<BlockingSequentialResumableTxScheduler>()
+            .WithTxScheduler<BlockingSequentialTxSchedulerV1>()
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
                 gasFeeProviderConfigureAction: configureGasProvider
             )
@@ -108,7 +108,7 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithTxScheduler<BlockingSequentialResumableTxScheduler>()
+            .WithTxScheduler<BlockingSequentialTxSchedulerV1>()
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>()
             .AddTxTypeHandler<LegacyTxTypeHandler, LegacyGasFeeProvider, LegacyTransaction, LegacyTxParams, LegacyGasParams>();
     }

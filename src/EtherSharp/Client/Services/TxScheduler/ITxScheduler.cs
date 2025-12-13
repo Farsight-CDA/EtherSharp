@@ -3,16 +3,19 @@ using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Client.Services.TxScheduler;
+
 public interface ITxScheduler
 {
     public ValueTask<IPendingTxHandler<TTxParams, TTxGasParams>> PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
-         ITxInput call, TTxParams? txParams = default, TTxGasParams? txGasParams = default
+         ITxInput call, TTxParams? txParams = default, TTxGasParams? txGasParams = default, CancellationToken cancellationToken = default
      )
          where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
          where TTxParams : class, ITxParams<TTxParams>
          where TTxGasParams : class, ITxGasParams<TTxGasParams>;
 
-    public Task<IPendingTxHandler<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(uint nonce, CancellationToken cancellationToken = default)
+    public Task<IPendingTxHandler<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        uint nonce, CancellationToken cancellationToken = default
+    )
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>;

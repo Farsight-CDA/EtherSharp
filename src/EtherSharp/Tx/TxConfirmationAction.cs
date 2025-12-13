@@ -28,6 +28,13 @@ public abstract record TxConfirmationAction<TTxParams, TTxGasParams>
     }
 
     /// <summary>
+    /// Resubmits the same transaction with updated gas parameters.
+    /// </summary>
+    public record RepriceTransaction(TTxGasParams GasParams) : TxConfirmationAction<TTxParams, TTxGasParams>
+    {
+    }
+
+    /// <summary>
     /// Unallocates the nonce if possible. Generates an error if there are other transactions queued after this one.
     /// </summary>
     public record CancelTransaction() : TxConfirmationAction<TTxParams, TTxGasParams>

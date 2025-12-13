@@ -1,8 +1,8 @@
 ﻿using EtherSharp.Common.Exceptions;
-using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 
 namespace EtherSharp.Client.Services.TxPublisher;
+
 public class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
@@ -23,6 +23,10 @@ public class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
             else if(ex.Message.Contains("transaction underpriced") || ex.Message.Contains("max fee per gas less than block base fee"))
             {
                 return new TxSubmissionResult.TransactionUnderpriced();
+            }
+            else if(ex.Message.Contains("nonce too low") || ex.Message.Contains("next nonce"))
+            {
+                return new TxSubmissionResult.NonceTooLow();
             }
 
             return new TxSubmissionResult.UnhandledException(ex);

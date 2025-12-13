@@ -11,11 +11,10 @@ using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading.Tasks;
 
 namespace EtherSharp.Client.Services.TxScheduler;
 
-public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializableService
+public class BlockingSequentialTxSchedulerV1 : ITxScheduler, IInitializableService
 {
     private abstract record QueueEntry(TaskCompletionSource ProcessingCts)
     {
@@ -52,7 +51,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
     /// </summary>
     private uint _peakNonce;
 
-    public BlockingSequentialResumableTxScheduler(IServiceProvider provider, IRpcClient rpcClient, IEthRpcModule ethRpcModule, IEtherSigner signer,
+    public BlockingSequentialTxSchedulerV1(IServiceProvider provider, IRpcClient rpcClient, IEthRpcModule ethRpcModule, IEtherSigner signer,
         ITxPublisher txPublisher)
     {
         _provider = provider;
@@ -137,7 +136,7 @@ public class BlockingSequentialResumableTxScheduler : ITxScheduler, IInitializab
     }
 
     async ValueTask<IPendingTxHandler<TTxParams, TTxGasParams>> ITxScheduler.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams
+        ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams, CancellationToken cancellationToken = default
     )
         where TTxParams : class
         where TTxGasParams : class

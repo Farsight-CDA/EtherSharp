@@ -6,7 +6,7 @@ namespace EtherSharp.Tx;
 /// </summary>
 /// <typeparam name="TTxParams"></typeparam>
 /// <typeparam name="TTxGasParams"></typeparam>
-public class TxConfirmationActionBuilder<TTxParams, TTxGasParams>
+public record TxConfirmationActionBuilder<TTxParams, TTxGasParams>
     where TTxParams : class, ITxParams<TTxParams>
     where TTxGasParams : class, ITxGasParams<TTxGasParams>
 {
