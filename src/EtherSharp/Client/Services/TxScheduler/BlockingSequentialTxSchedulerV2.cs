@@ -112,10 +112,9 @@ public class BlockingSequentialTxSchedulerV2(
 
                 if(isActive != newIsActive)
                 {
-                    _logger?.LogDebug("Switching polling mode to {mode}", isActive ? "Fast" : "Slow");
+                    _logger?.LogDebug("Switching polling mode to {mode}", newIsActive ? "Fast" : "Slow");
+                    isActive = newIsActive;
                 }
-
-                isActive = newIsActive;
 
                 if(isActive)
                 {
