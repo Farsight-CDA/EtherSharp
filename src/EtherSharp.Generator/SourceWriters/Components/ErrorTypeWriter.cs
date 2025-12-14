@@ -10,7 +10,7 @@ public class ErrorTypeWriter
         .AddArgument("System.ReadOnlySpan<byte>", "errorData")
         .WithReturnType<bool>()
         .WithIsStatic()
-        .AddStatement($"return SignatureBytes.Span.SequenceEqual(errorData[0..4])");
+        .AddStatement($"return errorData.Length >= 4 && SignatureBytes.Span.SequenceEqual(errorData[0..4])");
 
     public ClassBuilder GenerateErrorType(string errorTypeName, ErrorAbiMember errorMember)
     {
