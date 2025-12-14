@@ -3,13 +3,14 @@ using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
+
 public class ErrorTypeWriter
 {
     private readonly FunctionBuilder _isMatchingSignatureFunction = new FunctionBuilder("IsMatchingSignature")
-        .AddArgument("System.ReadOnlySpan<byte>", "signature")
+        .AddArgument("System.ReadOnlySpan<byte>", "errorData")
         .WithReturnType<bool>()
         .WithIsStatic()
-        .AddStatement($"return signature.SequenceEqual(SignatureBytes.Span)");
+        .AddStatement($"return SignatureBytes.Span.SequenceEqual(errorData[0..4])");
 
     public ClassBuilder GenerateErrorType(string errorTypeName, ErrorAbiMember errorMember)
     {
@@ -53,6 +54,25 @@ public class ErrorTypeWriter
 
         errorTypeBuilder.AddFunction(decodeMethod);
         errorTypeBuilder.AddFunction(_isMatchingSignatureFunction);
+
+        errorTypeBuilder.AddFunction(new FunctionBuilder("TryDecode")
+            .AddArgument("System.ReadOnlyMemory<byte>", "errorData")
+            .WithReturnType<bool>()
+            .WithIsStatic()
+            .AddArgument($"out {errorTypeName}", "parsedError")
+            .AddStatement(
+                $$"""
+                if (!IsMatchingSignature(errorData.Span)) 
+                {
+                    parsedError = null;
+                    return false;
+                }
+
+                parsedError = Decode(new EtherSharp.ABI.AbiDecoder(errorData));
+                return true;
+                """
+            )
+        );
 
         return errorTypeBuilder;
     }

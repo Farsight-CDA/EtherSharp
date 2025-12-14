@@ -2,17 +2,11 @@
 using EtherSharp.Generator.SourceWriters.Components;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
-using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
+
 public class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
 {
-    private readonly FunctionBuilder _isMatchingSelectorFunction = new FunctionBuilder("IsMatchingSignature")
-        .AddArgument("System.ReadOnlySpan<byte>", "signature")
-        .WithReturnType<bool>()
-        .WithIsStatic()
-        .AddStatement($"return signature.SequenceEqual(SignatureBytes.Span)");
-
     private readonly ErrorTypeWriter _errorTypeWriter = errorTypeWriter;
 
     public void GenerateContractErrorSection(InterfaceBuilder interfaceBuilder, ClassBuilder implementationBuilder, IEnumerable<ErrorAbiMember> errorMembers)
@@ -53,6 +47,8 @@ public class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
                     public const string SignatureHex = "0x{{HexUtils.ToHexString(signatureBytes)}}";
                     """
                 );
+
+
 
                 sectionBuilder.AddInnerType(typeBuilder);
             }
