@@ -12,6 +12,7 @@ internal enum QueryOperationId : byte
     GetBlockTimestamp = 141,
     GetBlockGasLimit = 142,
     GetBlockGasPrice = 143,
+    GetBlockBaseFee = 144,
 
     GetBalance = 150,
 

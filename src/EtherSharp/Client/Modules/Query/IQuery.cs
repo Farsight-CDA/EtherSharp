@@ -68,6 +68,9 @@ public interface IQuery
     public static IQuery<BigInteger> GetBlockGasPrice()
         => new GetBlockGasPriceQueryOperation();
 
+    public static IQuery<BigInteger> GetBlockBaseFee()
+        => new GetBlockBaseFeeQueryOperation();
+
     public static IQuery<BigInteger> GetBalance(Address user)
         => new GetBalanceQueryOperation(user);
 
