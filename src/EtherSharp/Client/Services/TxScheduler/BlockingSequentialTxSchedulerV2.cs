@@ -107,6 +107,11 @@ public class BlockingSequentialTxSchedulerV2(
                         _confirmedNonce = actualNonce;
                     }
 
+                    if(_peakNonce < _confirmedNonce)
+                    {
+                        _peakNonce = _confirmedNonce;
+                    }
+
                     newIsActive = _peakNonce > _confirmedNonce;
                 }
 
