@@ -52,7 +52,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         => ValueTask.CompletedTask;
 
     private record RpcError(int Code, string Message, string? Data);
-    private record JsonRpcResponse<T>([property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
+    private record JsonRpcResponse<T>([property: JsonRequired] int? Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
 
     private record JsonRpcRequest(int Id, string Method, object?[] Params, string Jsonrpc = "2.0");
     /// <inheritdoc />
@@ -107,6 +107,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         }
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         _client?.Dispose();
