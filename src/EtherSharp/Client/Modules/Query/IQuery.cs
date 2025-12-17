@@ -9,6 +9,8 @@ namespace EtherSharp.Client.Modules.Query;
 public interface IQuery
 {
     public int CallDataLength { get; }
+    public BigInteger EthValue { get; }
+
     public void Encode(Span<byte> buffer);
     public int ParseResultLength(ReadOnlySpan<byte> resultData);
 

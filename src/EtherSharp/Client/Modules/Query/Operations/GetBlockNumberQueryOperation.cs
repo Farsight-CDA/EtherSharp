@@ -1,10 +1,12 @@
 ﻿using System.Buffers.Binary;
+using System.Numerics;
 
 namespace EtherSharp.Client.Modules.Query.Operations;
 
 internal class GetBlockNumberQueryOperation : IQuery, IQuery<ulong>
 {
     public int CallDataLength => 1;
+    public BigInteger EthValue => 0;
     IReadOnlyList<IQuery> IQuery<ulong>.Queries => [this];
 
     public void Encode(Span<byte> buffer)

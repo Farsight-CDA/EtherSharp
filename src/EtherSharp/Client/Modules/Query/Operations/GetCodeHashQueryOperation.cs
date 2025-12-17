@@ -1,5 +1,6 @@
 ﻿
 using EtherSharp.Types;
+using System.Numerics;
 
 namespace EtherSharp.Client.Modules.Query.Operations;
 
@@ -8,6 +9,7 @@ internal class GetCodeHashQueryOperation(Address address) : IQuery, IQuery<byte[
     private readonly Address _address = address;
 
     public int CallDataLength => 21;
+    public BigInteger EthValue => 0;
     IReadOnlyList<IQuery> IQuery<byte[]>.Queries => [this];
 
     public void Encode(Span<byte> buffer)

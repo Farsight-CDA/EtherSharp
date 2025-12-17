@@ -5,6 +5,7 @@ namespace EtherSharp.Client.Modules.Query.Operations;
 internal class GetBlockGasPriceQueryOperation : IQuery, IQuery<BigInteger>
 {
     public int CallDataLength => 1;
+    public BigInteger EthValue => 0;
     IReadOnlyList<IQuery> IQuery<BigInteger>.Queries => [this];
 
     public void Encode(Span<byte> buffer)

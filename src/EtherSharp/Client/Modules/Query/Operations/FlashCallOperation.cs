@@ -1,6 +1,7 @@
 ﻿
 using EtherSharp.Tx;
 using System.Buffers.Binary;
+using System.Numerics;
 
 namespace EtherSharp.Client.Modules.Query.Operations;
 
@@ -10,6 +11,7 @@ internal class SafeFlashCallQueryOperation<T>(ReadOnlyMemory<byte> byteCode, ITx
     private readonly ReadOnlyMemory<byte> _byteCode = byteCode;
 
     public int CallDataLength => 1 + 8 + _byteCode.Length + _txInput.Data.Length;
+    public BigInteger EthValue => _txInput.Value;
     IReadOnlyList<IQuery> IQuery<QueryResult<T>>.Queries => [this];
 
     public void Encode(Span<byte> buffer)

@@ -8,6 +8,7 @@ internal class GetBalanceQueryOperation(Address user) : IQuery, IQuery<BigIntege
     private readonly Address _user = user;
 
     public int CallDataLength => 21;
+    public BigInteger EthValue => 0;
     IReadOnlyList<IQuery> IQuery<BigInteger>.Queries => [this];
 
     public void Encode(Span<byte> buffer)

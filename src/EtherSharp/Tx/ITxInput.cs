@@ -58,5 +58,5 @@ public interface ITxInput : ICallInput
 /// <typeparam name="T"></typeparam>
 public interface ITxInput<T> : ITxInput
 {
-    internal T ReadResultFrom(ReadOnlyMemory<byte> data);
+    public T ReadResultFrom(ReadOnlyMemory<byte> data);
 }

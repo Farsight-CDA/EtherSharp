@@ -1,10 +1,12 @@
 ﻿using System.Buffers.Binary;
+using System.Numerics;
 
 namespace EtherSharp.Client.Modules.Query.Operations;
 
 internal class GetBlockTimestampQueryOperation : IQuery, IQuery<DateTimeOffset>
 {
     public int CallDataLength => 1;
+    public BigInteger EthValue => 0;
     IReadOnlyList<IQuery> IQuery<DateTimeOffset>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
