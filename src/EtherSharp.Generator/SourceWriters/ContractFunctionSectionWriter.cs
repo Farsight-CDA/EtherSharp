@@ -6,7 +6,7 @@ using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters;
 
-public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWriter)
+internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWriter)
 {
     private readonly FunctionBuilder _isMatchingSelectorFunction = new FunctionBuilder("IsMatchingSelector")
         .AddArgument("System.ReadOnlySpan<byte>", "selector")
@@ -17,11 +17,11 @@ public class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWrit
     private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
 
     public void GenerateContractFunctionSection(InterfaceBuilder interfaceBuilder, ClassBuilder implementationBuilder,
-        string contractName, IEnumerable<FunctionAbiMember> functionMembers)
+        string contractName, IEnumerable<FunctionAbiMember> functionMembers, byte[]? byteCode)
     {
+        var functionClassNames = new List<string>();
         var sectionBuilder = new ClassBuilder("Functions")
             .WithIsStatic();
-        var functionClassNames = new List<string>();
 
         foreach(var functionMembersGroup in functionMembers.GroupBy(x => NameUtils.ToValidClassName(x.Name)))
         {

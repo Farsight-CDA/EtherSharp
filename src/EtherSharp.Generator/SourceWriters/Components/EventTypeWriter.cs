@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
 
-public class EventTypeWriter(ParamEncodingWriter paramEncodingWriter)
+internal class EventTypeWriter(ParamEncodingWriter paramEncodingWriter)
 {
     private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
 

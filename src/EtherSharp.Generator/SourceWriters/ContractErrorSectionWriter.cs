@@ -5,7 +5,7 @@ using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters;
 
-public class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
+internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
 {
     private readonly ErrorTypeWriter _errorTypeWriter = errorTypeWriter;
 
@@ -47,8 +47,6 @@ public class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
                     public const string SignatureHex = "0x{{HexUtils.ToHexString(signatureBytes)}}";
                     """
                 );
-
-
 
                 sectionBuilder.AddInnerType(typeBuilder);
             }

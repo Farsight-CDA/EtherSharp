@@ -2,11 +2,11 @@
 using EtherSharp.Generator.SourceWriters.Components;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;
-using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
-public class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
+
+internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
 {
     private readonly EventTypeWriter _eventTypeWriter = eventTypeWriter;
 

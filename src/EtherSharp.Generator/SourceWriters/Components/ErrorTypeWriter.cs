@@ -4,7 +4,7 @@ using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
 
-public class ErrorTypeWriter
+internal class ErrorTypeWriter
 {
     private readonly FunctionBuilder _isMatchingSignatureFunction = new FunctionBuilder("IsMatchingSignature")
         .AddArgument("System.ReadOnlySpan<byte>", "errorData")

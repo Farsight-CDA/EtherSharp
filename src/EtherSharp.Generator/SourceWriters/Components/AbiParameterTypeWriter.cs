@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
 
-public partial class AbiParameterTypeWriter(ContractTypesSectionWriter typesSectionWriter)
+internal partial class AbiParameterTypeWriter(ContractTypesSectionWriter typesSectionWriter)
 {
     private static Regex _sizedArrayTypeRegex = new Regex("\\[\\d+\\]$", RegexOptions.Compiled);
     private readonly ContractTypesSectionWriter _typesSectionWriter = typesSectionWriter;
