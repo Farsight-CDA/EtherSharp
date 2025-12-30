@@ -10,9 +10,13 @@ using System.Text.Json;
 
 namespace EtherSharp.Generator;
 
+/// <summary>
+/// Contract Interface Source Generator.
+/// </summary>
 [Generator]
 public class Generator : IIncrementalGenerator
 {
+    /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var contractTypesProvider = context.SyntaxProvider
@@ -55,81 +59,20 @@ public class Generator : IIncrementalGenerator
 
         try
         {
-            bool isPartial = contractNode.Modifiers.Any(SyntaxKind.PartialKeyword);
-
-            if(!isPartial)
+            if(!TryGetContractDetails(context, contractSymbol, contractNode, additionalFiles,
+                out var abiMembers, out byte[]? bytecode))
             {
-                ReportDiagnostic(context, GeneratorDiagnostics.InterfaceMustBePartial, contractSymbol, contractSymbol.Name);
                 return;
             }
 
-            var attributes = contractSymbol.GetAttributes()
-                .Where(x => x.AttributeClass is not null && TypeIdentificationUtils.IsAbiFileAttribute(x.AttributeClass))
-                .ToArray();
-
-            if(attributes.Length == 0)
-            {
-                ReportDiagnostic(context, GeneratorDiagnostics.AbiFileAttributeNotFound, contractSymbol, contractSymbol.Name);
-                return;
-            }
-            if(attributes.Length > 1)
-            {
-                ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFileAttributeFound, contractSymbol, contractSymbol.Name);
-                return;
-            }
-
-            string? schemaFileName = attributes.Single().ConstructorArguments[0].Value?.ToString();
-
-            if(schemaFileName is null || String.IsNullOrEmpty(schemaFileName))
-            {
-                string fileDisplayName = schemaFileName is null
-                    ? "null"
-                    : $"\"{schemaFileName ?? "null"}\"";
-                ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileNotFound, contractSymbol, fileDisplayName);
-                return;
-            }
-
-            var schemaFiles = additionalFiles
-                .Where(file => Path.GetFileName(file.Path).Equals(schemaFileName, StringComparison.OrdinalIgnoreCase))
-                .ToArray();
-
-            if(schemaFiles.Length == 0)
-            {
-                ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileNotFound, contractSymbol, schemaFileName);
-                return;
-            }
-            if(schemaFiles.Length > 1)
-            {
-                ReportDiagnostic(context, GeneratorDiagnostics.MultipleSchemaFilesWithNameFound, contractSymbol, schemaFileName);
-                return;
-            }
-
-            string? schemaText = schemaFiles.Single().GetText()?.ToString();
-            if(String.IsNullOrEmpty(schemaText) || schemaText is null)
-            {
-                ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileMalformed, contractSymbol);
-                return;
-            }
-
-            AbiMember[] abiMembers;
-
-            try
-            {
-                abiMembers = JsonSerializer.Deserialize<AbiMember[]>(schemaText, ParsingUtils.AbiJsonOptions)
-                    ?? throw new NotSupportedException("Parsing schema file to ContractAPISchema failed");
-            }
-            catch(Exception ex)
-            {
-                ReportDiagnostic(context, GeneratorDiagnostics.SchemaFileMalformed, contractSymbol, ex);
-                return;
-            }
-
+            string @namespace = contractSymbol.ContainingNamespace.ToString();
             string contractName = contractSymbol.Name;
-            var writer = CreateSourceWriter(contractSymbol.ContainingNamespace.ToString(), contractName);
+
+            var writer = CreateSourceWriter(@namespace, contractName);
 
             context.AddSource(
                 $"{contractName}.generated.cs",
-                writer.WriteContractSourceCode(contractSymbol.ContainingNamespace.ToString(), contractName, abiMembers)
+                writer.WriteContractSourceCode(@namespace, contractName, abiMembers, bytecode)
             );
         }
         catch(Exception ex)
@@ -137,6 +80,140 @@ public class Generator : IIncrementalGenerator
             ReportDiagnostic(context, GeneratorDiagnostics.ExecutionFailed, contractSymbol, ex);
             return;
         }
+    }
+
+    private static bool TryGetContractDetails(
+        SourceProductionContext context, INamedTypeSymbol contractSymbol, InterfaceDeclarationSyntax contractInterface, ImmutableArray<AdditionalText> additionalFiles,
+        out AbiMember[] abiMembers, out byte[]? byteCode)
+    {
+        abiMembers = null!;
+        byteCode = null!;
+
+        bool isPartial = contractInterface.Modifiers.Any(SyntaxKind.PartialKeyword);
+
+        if(!isPartial)
+        {
+            ReportDiagnostic(context, GeneratorDiagnostics.InterfaceMustBePartial, contractSymbol, contractSymbol.Name);
+            return false;
+        }
+
+        var rawAttributes = contractSymbol.GetAttributes().Where(x => x.AttributeClass is not null).ToArray();
+
+        var abiFileAttributes = rawAttributes
+            .Where(x => TypeIdentificationUtils.IsAbiFileAttribute(x.AttributeClass!))
+            .ToArray();
+        var bytecodeFileAttributes = rawAttributes
+            .Where(x => TypeIdentificationUtils.IsBytecodeFileAttribute(x.AttributeClass!))
+            .ToArray();
+
+        if(abiFileAttributes.Length == 0)
+        {
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileAttributeNotFound, contractSymbol, contractSymbol.Name);
+            return false;
+        }
+        if(abiFileAttributes.Length > 1)
+        {
+            ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFileAttributeFound, contractSymbol, contractSymbol.Name);
+            return false;
+        }
+
+        string? abiFileName = abiFileAttributes.Single().ConstructorArguments[0].Value?.ToString();
+
+        if(abiFileName is null || String.IsNullOrEmpty(abiFileName))
+        {
+            string fileDisplayName = abiFileName is null
+                ? "null"
+                : $"\"{abiFileName}\"";
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contractSymbol, fileDisplayName);
+            return false;
+        }
+
+        var abiFiles = additionalFiles
+            .Where(file => Path.GetFileName(file.Path).Equals(abiFileName, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        if(abiFiles.Length == 0)
+        {
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contractSymbol, abiFileName);
+            return false;
+        }
+        if(abiFiles.Length > 1)
+        {
+            ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFilesWithNameFound, contractSymbol, abiFileName);
+            return false;
+        }
+
+        string? schemaText = abiFiles.Single().GetText()?.ToString();
+        if(String.IsNullOrEmpty(schemaText) || schemaText is null)
+        {
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileMalformed, contractSymbol);
+            return false;
+        }
+
+        try
+        {
+            abiMembers = JsonSerializer.Deserialize<AbiMember[]>(schemaText, ParsingUtils.AbiJsonOptions)
+                ?? throw new NotSupportedException("Parsing schema file to ContractAPISchema failed");
+        }
+        catch(Exception ex)
+        {
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileMalformed, contractSymbol, ex);
+            return false;
+        }
+
+        if(bytecodeFileAttributes.Length > 1)
+        {
+            ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFileAttributeFound, contractSymbol, contractSymbol.Name);
+            return false;
+        }
+
+        if(bytecodeFileAttributes.Length == 1)
+        {
+            string? bytecodeFileName = bytecodeFileAttributes.Single().ConstructorArguments[0].Value?.ToString();
+
+            if(bytecodeFileName is null || String.IsNullOrEmpty(bytecodeFileName))
+            {
+                string fileDisplayName = bytecodeFileName is null
+                    ? "null"
+                    : $"\"{bytecodeFileName}\"";
+                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contractSymbol, fileDisplayName);
+                return false;
+            }
+
+            var bytecodeFiles = additionalFiles
+                .Where(file => Path.GetFileName(file.Path).Equals(bytecodeFileName, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+
+            if(bytecodeFiles.Length == 0)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contractSymbol, abiFileName);
+                return false;
+            }
+            if(bytecodeFiles.Length > 1)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFileAttributeFound, contractSymbol, abiFileName);
+                return false;
+            }
+
+            string? bytecodeText = abiFiles.Single().GetText()?.ToString();
+            if(String.IsNullOrEmpty(bytecodeText) || bytecodeText is null)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contractSymbol);
+                return false;
+            }
+
+            try
+            {
+                byteCode = HexUtils.FromHex(bytecodeText);
+            }
+            catch(Exception ex)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileMalformed, contractSymbol, ex);
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static void ReportDiagnostic(SourceProductionContext context, DiagnosticDescriptor descriptor, ISymbol symbol, params string[] args)

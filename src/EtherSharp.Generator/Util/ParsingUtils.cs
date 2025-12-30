@@ -3,7 +3,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Generator.Util;
-public static class ParsingUtils
+
+internal static class ParsingUtils
 {
     public static readonly JsonSerializerOptions AbiJsonOptions = new JsonSerializerOptions()
     {

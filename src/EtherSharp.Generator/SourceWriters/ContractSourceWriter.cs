@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
 
-public class ContractSourceWriter(
+internal class ContractSourceWriter(
     ContractErrorSectionWriter errorSectionWriter, ContractEventSectionWriter eventSectionWriter,
     ContractFunctionSectionWriter functionSectionWriter, ContractTypesSectionWriter typesSectionWriter
 )
@@ -15,7 +15,7 @@ public class ContractSourceWriter(
     private readonly ContractFunctionSectionWriter _functionSectionWriter = functionSectionWriter;
     private readonly ContractTypesSectionWriter _typesSectionWriter = typesSectionWriter;
 
-    public string WriteContractSourceCode(string @namespace, string contractName, IEnumerable<AbiMember> members)
+    public string WriteContractSourceCode(string @namespace, string contractName, IEnumerable<AbiMember> members, byte[]? byteCode)
     {
         var contractInterface = new InterfaceBuilder(contractName)
             .WithIsPartial(true)

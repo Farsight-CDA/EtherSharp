@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EtherSharp.Generator.Util;
 
-public static class NameUtils
+internal static class NameUtils
 {
     public static string ToValidParameterName(string name)
         => EscapeVariableName(Uncapitalize(name).Trim('_'));

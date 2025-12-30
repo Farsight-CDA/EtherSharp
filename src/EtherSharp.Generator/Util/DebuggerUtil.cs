@@ -1,7 +1,6 @@
-﻿using System.Diagnostics;
+﻿namespace EtherSharp.Generator.Util;
 
-namespace EtherSharp.Generator.Util;
-public static class DebuggerUtils
+internal static class DebuggerUtils
 {
 #if DEBUG
     private static bool LaunchedBefore;

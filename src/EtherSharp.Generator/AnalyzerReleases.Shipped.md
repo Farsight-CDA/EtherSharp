@@ -12,4 +12,9 @@ EVMG0010 | Usage | Error | GeneratorDiagnostics
 EVMG0020 | Usage | Error | GeneratorDiagnostics
 EVMG0021 | Usage | Error | GeneratorDiagnostics
 EVMG0022 | Usage | Error | GeneratorDiagnostics
+EVMG0023 | Usage | Error | GeneratorDiagnostics
+EVMG0024 | Usage | Error | GeneratorDiagnostics
 EVMG0030 | Usage | Error | GeneratorDiagnostics
+EVMG0031 | Usage | Error | GeneratorDiagnostics
+EVMG0032 | Usage | Error | GeneratorDiagnostics
+EVMG0033 | Usage | Error | GeneratorDiagnostics

@@ -3,7 +3,8 @@ using System.Text;
 using System.Xml;
 
 namespace EtherSharp.Generator.Util;
-public static class CommentUtils
+
+internal static class CommentUtils
 {
     public static bool TryGetSummary(ISymbol symbol, out string? summary)
     {
