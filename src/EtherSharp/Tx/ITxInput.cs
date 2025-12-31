@@ -58,5 +58,10 @@ public interface ITxInput : ICallInput
 /// <typeparam name="T"></typeparam>
 public interface ITxInput<T> : ITxInput
 {
+    /// <summary>
+    /// Parses the result of type T from the given call result data.
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
     public T ReadResultFrom(ReadOnlyMemory<byte> data);
 }

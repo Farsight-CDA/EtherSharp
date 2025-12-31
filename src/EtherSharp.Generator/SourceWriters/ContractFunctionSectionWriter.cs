@@ -17,11 +17,67 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
     private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
 
     public void GenerateContractFunctionSection(InterfaceBuilder interfaceBuilder, ClassBuilder implementationBuilder,
-        string contractName, IEnumerable<FunctionAbiMember> functionMembers, byte[]? byteCode)
+        string contractName, IEnumerable<FunctionAbiMember> functionMembers, ConstructorAbiMember? constructorMember, byte[]? byteCode)
     {
         var functionClassNames = new List<string>();
         var sectionBuilder = new ClassBuilder("Functions")
             .WithIsStatic();
+
+        if(byteCode is not null)
+        {
+            var typeBuilder = new ClassBuilder("Constructor")
+                .WithIsStatic();
+
+            typeBuilder.AddRawContent(
+                $$"""
+                public static ReadOnlyMemory<byte> ByteCode { get; } = Convert.FromHexString("{{HexUtils.ToHexString(byteCode)}}");
+                """
+            );
+
+            var createCodeFunction = new FunctionBuilder("Create")
+                .WithIsStatic()
+                .WithReturnTypeRaw("EtherSharp.Types.EVMBytecode");
+
+            if(constructorMember is not null)
+            {
+                if(constructorMember.Inputs.Length > 0)
+                {
+                    createCodeFunction.AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()");
+                }
+
+                for(int i = 0; i < constructorMember.Inputs.Length; i++)
+                {
+                    var input = constructorMember.Inputs[i];
+                    var (paramName, paramType, encodeFunc) = _paramEncodingWriter.GetInputEncoding(input, i);
+
+                    createCodeFunction.AddArgument(paramType, paramName);
+                    createCodeFunction.AddStatement(encodeFunc(paramName));
+                }
+
+                if(constructorMember.Inputs.Length > 0)
+                {
+                    createCodeFunction.AddStatement(
+                        $"""
+                        var buffer = new byte[ByteCode.Length + encoder.Size];
+                        ByteCode.Span.CopyTo(buffer);
+                        encoder.TryWritoTo(buffer.AsSpan(ByteCode.Length));
+                        return new EtherSharp.Types.EVMBytecode(buffer)
+                        """
+                    );
+                }
+                else
+                {
+                    createCodeFunction.AddStatement(
+                        $"""
+                        return new EtherSharp.Types.EVMBytecode(ByteCode)
+                        """
+                    );
+                }
+            }
+
+            typeBuilder.AddFunction(createCodeFunction);
+            sectionBuilder.AddInnerType(typeBuilder);
+        }
 
         foreach(var functionMembersGroup in functionMembers.GroupBy(x => NameUtils.ToValidClassName(x.Name)))
         {

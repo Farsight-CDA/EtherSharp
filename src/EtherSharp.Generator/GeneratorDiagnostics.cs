@@ -108,4 +108,13 @@ internal static class GeneratorDiagnostics
         DiagnosticSeverity.Error,
         true
     );
+
+    public static readonly DiagnosticDescriptor MissingConstructorAbiMember = new DiagnosticDescriptor(
+        "EVMG0100",
+        "Bytecode file provided but missing constructor in ABI",
+        "Bytecode file provided but missing constructor in ABI",
+        DiagnosticCategory.USAGE,
+        DiagnosticSeverity.Warning,
+        true
+    );
 }

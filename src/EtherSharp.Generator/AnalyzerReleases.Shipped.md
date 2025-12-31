@@ -18,3 +18,4 @@ EVMG0030 | Usage | Error | GeneratorDiagnostics
 EVMG0031 | Usage | Error | GeneratorDiagnostics
 EVMG0032 | Usage | Error | GeneratorDiagnostics
 EVMG0033 | Usage | Error | GeneratorDiagnostics
+EVMG0100 | Usage | Warning | GeneratorDiagnostics

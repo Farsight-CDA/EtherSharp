@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Generator.Abi;
+using EtherSharp.Generator.Abi.Members;
 using EtherSharp.Generator.SourceWriters;
 using EtherSharp.Generator.SourceWriters.Components;
 using EtherSharp.Generator.Util;
@@ -36,11 +37,7 @@ public class Generator : IIncrementalGenerator
                 ctx.Node
             ));
 
-        var additionalFilesProvider = context.AdditionalTextsProvider
-            .Where(file => file.Path.EndsWith(".json", StringComparison.OrdinalIgnoreCase));
-
-        var combined = contractTypesProvider.Combine(additionalFilesProvider.Collect());
-
+        var combined = contractTypesProvider.Combine(context.AdditionalTextsProvider.Collect());
         context.RegisterSourceOutput(combined, GenerateSource);
     }
 
@@ -67,6 +64,13 @@ public class Generator : IIncrementalGenerator
 
             string @namespace = contractSymbol.ContainingNamespace.ToString();
             string contractName = contractSymbol.Name;
+
+            bool hasConstructor = abiMembers.Any(x => x is ConstructorAbiMember);
+
+            if(hasConstructor! && bytecode is not null)
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.MissingConstructorAbiMember, contractSymbol);
+            }
 
             var writer = CreateSourceWriter(@namespace, contractName);
 
@@ -186,16 +190,16 @@ public class Generator : IIncrementalGenerator
 
             if(bytecodeFiles.Length == 0)
             {
-                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contractSymbol, abiFileName);
+                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contractSymbol, bytecodeFileName);
                 return false;
             }
             if(bytecodeFiles.Length > 1)
             {
-                ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFileAttributeFound, contractSymbol, abiFileName);
+                ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFileAttributeFound, contractSymbol, bytecodeFileName);
                 return false;
             }
 
-            string? bytecodeText = abiFiles.Single().GetText()?.ToString();
+            string? bytecodeText = bytecodeFiles.Single().GetText()?.ToString();
             if(String.IsNullOrEmpty(bytecodeText) || bytecodeText is null)
             {
                 ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contractSymbol);

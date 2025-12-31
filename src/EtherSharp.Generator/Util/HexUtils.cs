@@ -29,7 +29,7 @@ internal class HexUtils
 
         if(span.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
         {
-            span = span.Slice(2).ToArray();
+            span = span.Slice(2);
         }
 
         if(span.Length % 2 != 0)
@@ -42,7 +42,7 @@ internal class HexUtils
         for(int i = 0; i < result.Length; i++)
         {
             result[i] = (byte) (
-                (GetHexValue(span[i * 2]) << 4) | GetHexValue(span[i * 2 + 1])
+                (GetHexValue(span[i * 2]) << 4) | GetHexValue(span[(i * 2) + 1])
             );
         }
 
@@ -55,6 +55,6 @@ internal class HexUtils
             >= '0' and <= '9' => c - '0',
             >= 'A' and <= 'F' => c - 'A' + 10,
             >= 'a' and <= 'f' => c - 'a' + 10,
-            _ => throw new ArgumentException("Input contains garbage characters.")
+            _ => throw new ArgumentException($"Input contains garbage characters: '{c}'")
         };
 }

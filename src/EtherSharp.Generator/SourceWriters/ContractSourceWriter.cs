@@ -43,7 +43,14 @@ internal class ContractSourceWriter(
                 .AddStatement("return _client")
             );
 
-        _functionSectionWriter.GenerateContractFunctionSection(contractInterface, contractImplementation, contractName, members.OfType<FunctionAbiMember>(), byteCode);
+        _functionSectionWriter.GenerateContractFunctionSection(
+            contractInterface,
+            contractImplementation,
+            contractName,
+            members.OfType<FunctionAbiMember>(),
+            members.OfType<ConstructorAbiMember>().SingleOrDefault(),
+            byteCode
+        );
         _errorSectionWriter.GenerateContractErrorSection(contractInterface, contractImplementation, members.OfType<ErrorAbiMember>());
         _eventSectionWriter.GenerateContractEventSection(contractInterface, contractImplementation, @namespace, contractName, members.OfType<EventAbiMember>());
         _typesSectionWriter.GenerateContractTypesSection(contractInterface);

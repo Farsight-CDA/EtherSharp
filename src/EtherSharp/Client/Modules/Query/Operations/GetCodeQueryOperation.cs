@@ -26,5 +26,5 @@ internal class GetCodeQueryOperation(Address address) : IQuery, IQuery<EVMByteco
         return dataLength + 3;
     }
     EVMBytecode IQuery<EVMBytecode>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
-        => new EVMBytecode(_address, queryResults[0].AsMemory()[3..]);
+        => new EVMBytecode(queryResults[0].AsMemory()[3..]);
 }
