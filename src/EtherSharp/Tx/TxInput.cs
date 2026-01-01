@@ -6,7 +6,7 @@ using System.Numerics;
 namespace EtherSharp.Tx;
 
 internal class TxInput(Address to, BigInteger value, byte[] data)
-    : ITxInput
+    : IContractCall, ITxInput
 {
     public Address To { get; } = to;
 
@@ -17,7 +17,7 @@ internal class TxInput(Address to, BigInteger value, byte[] data)
 }
 
 internal class TxInput<T>(Address to, BigInteger value, byte[] data, Func<AbiDecoder, T> decoder)
-    : TxInput(to, value, data), ITxInput<T>
+    : TxInput(to, value, data), IContractCall<T>, ITxInput<T>
 {
     private readonly Func<AbiDecoder, T> _decoder = decoder;
 

@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace EtherSharp.Client.Modules.Query.Operations;
 
-internal class CallQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<QueryResult<T>>
+internal class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<QueryResult<T>>
 {
     private readonly ITxInput<T> _txInput = txInput;
 

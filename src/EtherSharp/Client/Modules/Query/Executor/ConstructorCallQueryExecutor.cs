@@ -40,7 +40,7 @@ public class ConstructorCallQueryExecutor(IEthRpcModule ethRpcModule, IServicePr
                 string payload = $"0x{Convert.ToHexString(payloadBytes)}";
                 var callResult = await _ethRpcModule.CallAsync(
                     Address.Zero,
-                    null!,
+                    null,
                     null,
                     null,
                     ethValue,

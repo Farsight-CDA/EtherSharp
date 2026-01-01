@@ -5,23 +5,23 @@ using System.Numerics;
 
 namespace EtherSharp.Client.Modules.Query.Operations;
 
-internal class SafeFlashCallQueryOperation<T>(ReadOnlyMemory<byte> byteCode, ITxInput<T> txInput) : IQuery, IQuery<QueryResult<T>>
+internal class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IContractCall<T> txInput) : IQuery, IQuery<QueryResult<T>>
 {
     private readonly ITxInput<T> _txInput = txInput;
-    private readonly ReadOnlyMemory<byte> _byteCode = byteCode;
+    private readonly IContractDeployment _deployment = deployment;
 
-    public int CallDataLength => 1 + 8 + _byteCode.Length + _txInput.Data.Length;
-    public BigInteger EthValue => _txInput.Value;
+    public int CallDataLength => 1 + 8 + _deployment.ByteCode.Length + _txInput.Data.Length;
+    public BigInteger EthValue => _deployment.Value + _txInput.Value;
     IReadOnlyList<IQuery> IQuery<QueryResult<T>>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
         buffer[0] = (byte) QueryOperationId.FlashCall;
         buffer = buffer[1..];
-        BinaryPrimitives.WriteUInt32BigEndian(buffer[0..4], (uint) _byteCode.Length);
+        BinaryPrimitives.WriteUInt32BigEndian(buffer[0..4], (uint) _deployment.ByteCode.Length);
         BinaryPrimitives.WriteUInt32BigEndian(buffer[4..8], (uint) _txInput.Data.Length);
-        _byteCode.Span.CopyTo(buffer[8..(8 + _byteCode.Length)]);
-        _txInput.Data.CopyTo(buffer[(8 + _byteCode.Length)..]);
+        _deployment.ByteCode.ByteCode.Span.CopyTo(buffer[8..(8 + _deployment.ByteCode.Length)]);
+        _txInput.Data.CopyTo(buffer[(8 + _deployment.ByteCode.Length)..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
     {

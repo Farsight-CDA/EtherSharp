@@ -30,20 +30,21 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
 
             typeBuilder.AddRawContent(
                 $$"""
-                public static ReadOnlyMemory<byte> ByteCode { get; } = Convert.FromHexString("{{HexUtils.ToHexString(byteCode)}}");
+                public static EtherSharp.Types.EVMByteCode ByteCode { get; } = new EtherSharp.Types.EVMByteCode(Convert.FromHexString("{{HexUtils.ToHexString(byteCode)}}"));
                 """
             );
 
-            var createCodeFunction = new FunctionBuilder("Create")
+            var createCodeFunction = new FunctionBuilder("CreateCode")
                 .WithIsStatic()
-                .WithReturnTypeRaw("EtherSharp.Types.EVMBytecode");
+                .WithReturnTypeRaw("EtherSharp.Types.EVMByteCode");
+            var createFunction = new FunctionBuilder("Create")
+                .WithIsStatic()
+                .WithReturnTypeRaw("EtherSharp.Tx.IContractDeployment");
 
-            if(constructorMember is not null)
+            if(constructorMember is not null && constructorMember.Inputs.Length > 0)
             {
-                if(constructorMember.Inputs.Length > 0)
-                {
-                    createCodeFunction.AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()");
-                }
+                var createCallBuilder = new CallArgumentsBuilder();
+                bool isPayable = constructorMember.StateMutability == StateMutability.Payable;
 
                 for(int i = 0; i < constructorMember.Inputs.Length; i++)
                 {
@@ -52,30 +53,48 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
 
                     createCodeFunction.AddArgument(paramType, paramName);
                     createCodeFunction.AddStatement(encodeFunc(paramName));
+
+                    createFunction.AddArgument(paramType, paramName);
+                    createCallBuilder.AddArgument(paramName);
                 }
 
-                if(constructorMember.Inputs.Length > 0)
+                if(isPayable)
                 {
-                    createCodeFunction.AddStatement(
-                        $"""
-                        var buffer = new byte[ByteCode.Length + encoder.Size];
-                        ByteCode.Span.CopyTo(buffer);
-                        encoder.TryWritoTo(buffer.AsSpan(ByteCode.Length));
-                        return new EtherSharp.Types.EVMBytecode(buffer)
-                        """
-                    );
+                    createFunction.AddArgument("System.Numerics.BigInteger", "ethValue", true, 0);
                 }
-                else
-                {
-                    createCodeFunction.AddStatement(
-                        $"""
-                        return new EtherSharp.Types.EVMBytecode(ByteCode)
-                        """
-                    );
-                }
+
+                createCodeFunction.AddStatement(
+                    $"""
+                    var buffer = new byte[ByteCode.Length + encoder.Size];
+                    ByteCode.ByteCode.Span.CopyTo(buffer);
+                    encoder.TryWritoTo(buffer.AsSpan(ByteCode.Length));
+                    return new EtherSharp.Types.EVMByteCode(buffer)
+                    """
+                );
+
+                createFunction.AddStatement(
+                    $"""
+                    var contractByteCode = CreateCode({createCallBuilder.Build()});
+                    return EtherSharp.Tx.IContractDeployment.Create(contractByteCode, ethValue)
+                    """
+                );
+            }
+            else
+            {
+                createCodeFunction.AddStatement(
+                    $"""
+                    return ByteCode
+                    """
+                );
+                createFunction.AddStatement(
+                    $"""
+                    return EtherSharp.Tx.IContractDeployment.Create(ByteCode, 0)
+                    """
+                );
             }
 
             typeBuilder.AddFunction(createCodeFunction);
+            typeBuilder.AddFunction(createFunction);
             sectionBuilder.AddInnerType(typeBuilder);
         }
 
@@ -131,10 +150,10 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                         functionMember.Outputs
                     );
 
-                    createTxFunction.WithReturnTypeRaw($"EtherSharp.Tx.ITxInput<{outputTypeName}>");
+                    createTxFunction.WithReturnTypeRaw($"EtherSharp.Tx.IContractCall<{outputTypeName}>");
                     createTxFunction.AddStatement(
                         $"""
-                        return EtherSharp.Tx.ITxInput.ForContractCall<{outputTypeName}>(
+                        return EtherSharp.Tx.IContractCall<{outputTypeName}>.ForContractCall(
                             contractAddress,
                             {(isPayable ? "ethValue" : "0")},
                             SelectorBytes,
@@ -146,10 +165,10 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                 }
                 else
                 {
-                    createTxFunction.WithReturnTypeRaw("EtherSharp.Tx.ITxInput");
+                    createTxFunction.WithReturnTypeRaw("EtherSharp.Tx.IContractCall");
                     createTxFunction.AddStatement(
                         $"""
-                        return EtherSharp.Tx.ITxInput.ForContractCall(
+                        return EtherSharp.Tx.IContractCall.ForContractCall(
                             contractAddress,
                             {(isPayable ? "ethValue" : "0")},
                             SelectorBytes,
@@ -216,11 +235,11 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
 
                     if(outputTypeName is null)
                     {
-                        interfaceFunction.WithReturnTypeRaw("EtherSharp.Tx.ITxInput");
+                        interfaceFunction.WithReturnTypeRaw("EtherSharp.Tx.IContractCall");
                     }
                     else
                     {
-                        interfaceFunction.WithReturnTypeRaw($"EtherSharp.Tx.ITxInput<{outputTypeName}>");
+                        interfaceFunction.WithReturnTypeRaw($"EtherSharp.Tx.IContractCall<{outputTypeName}>");
                     }
                 }
 

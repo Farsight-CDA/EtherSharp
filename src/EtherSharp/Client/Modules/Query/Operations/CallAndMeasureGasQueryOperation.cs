@@ -5,7 +5,7 @@ using System.Numerics;
 
 namespace EtherSharp.Client.Modules.Query.Operations;
 
-internal class CallAndMeasureGasQueryOperation<T>(ITxInput<T> txInput) : IQuery, IQuery<(QueryResult<T>, ulong)>
+internal class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<(QueryResult<T>, ulong)>
 {
     private readonly ITxInput<T> _txInput = txInput;
 

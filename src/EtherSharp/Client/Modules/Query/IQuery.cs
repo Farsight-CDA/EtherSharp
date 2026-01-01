@@ -14,7 +14,9 @@ public interface IQuery
     public void Encode(Span<byte> buffer);
     public int ParseResultLength(ReadOnlySpan<byte> resultData);
 
-    public static IQuery<T> Call<T>(ITxInput<T> input)
+    public static IQuery<QueryResult<T>> SafeCall<T>(IContractCall<T> input)
+        => new CallQueryOperation<T>(input);
+    public static IQuery<T> Call<T>(IContractCall<T> input)
         => SafeCall(input).Map(x => x switch
         {
             QueryResult<T>.Success s => s.Value,
@@ -22,7 +24,9 @@ public interface IQuery
             _ => throw new ImpossibleException()
         });
 
-    public static IQuery<(T, ulong)> CallAndMeasureGas<T>(ITxInput<T> input)
+    public static IQuery<(QueryResult<T>, ulong)> SafeCallAndMeasureGas<T>(IContractCall<T> input)
+        => new CallAndMeasureGasQueryOperation<T>(input);
+    public static IQuery<(T, ulong)> CallAndMeasureGas<T>(IContractCall<T> input)
         => SafeCallAndMeasureGas(input).Map(x =>
         {
             var (result, gasUsed) = x;
@@ -35,24 +39,17 @@ public interface IQuery
             return (unwrapped, gasUsed);
         });
 
-    public static IQuery<T> FlashCall<T>(ReadOnlyMemory<byte> byteCode, ITxInput<T> input)
-        => SafeFlashCall(byteCode, input).Map(x => x switch
+    public static IQuery<QueryResult<T>> SafeFlashCall<T>(IContractDeployment deployment, IContractCall<T> input)
+        => new SafeFlashCallQueryOperation<T>(deployment, input);
+    public static IQuery<T> FlashCall<T>(IContractDeployment deployment, IContractCall<T> input)
+        => SafeFlashCall(deployment, input).Map(x => x switch
         {
             QueryResult<T>.Success s => s.Value,
             QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data),
             _ => throw new ImpossibleException()
         });
 
-    public static IQuery<QueryResult<T>> SafeCall<T>(ITxInput<T> input)
-        => new CallQueryOperation<T>(input);
-
-    public static IQuery<(QueryResult<T>, ulong)> SafeCallAndMeasureGas<T>(ITxInput<T> input)
-        => new CallAndMeasureGasQueryOperation<T>(input);
-
-    public static IQuery<QueryResult<T>> SafeFlashCall<T>(ReadOnlyMemory<byte> byteCode, ITxInput<T> input)
-        => new SafeFlashCallQueryOperation<T>(byteCode, input);
-
-    public static IQuery<EVMBytecode> GetCode(Address contract)
+    public static IQuery<EVMByteCode> GetCode(Address contract)
         => new GetCodeQueryOperation(contract);
 
     public static IQuery<byte[]> GetCodeHash(Address contract)

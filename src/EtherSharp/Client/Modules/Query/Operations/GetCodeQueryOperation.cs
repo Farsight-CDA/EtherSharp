@@ -5,13 +5,13 @@ using System.Numerics;
 
 namespace EtherSharp.Client.Modules.Query.Operations;
 
-internal class GetCodeQueryOperation(Address address) : IQuery, IQuery<EVMBytecode>
+internal class GetCodeQueryOperation(Address address) : IQuery, IQuery<EVMByteCode>
 {
     private readonly Address _address = address;
 
     public int CallDataLength => 21;
     public BigInteger EthValue => 0;
-    IReadOnlyList<IQuery> IQuery<EVMBytecode>.Queries => [this];
+    IReadOnlyList<IQuery> IQuery<EVMByteCode>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
@@ -25,6 +25,6 @@ internal class GetCodeQueryOperation(Address address) : IQuery, IQuery<EVMByteco
         int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
         return dataLength + 3;
     }
-    EVMBytecode IQuery<EVMBytecode>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
-        => new EVMBytecode(queryResults[0].AsMemory()[3..]);
+    EVMByteCode IQuery<EVMByteCode>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
+        => new EVMByteCode(queryResults[0].AsMemory()[3..]);
 }
