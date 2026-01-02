@@ -49,7 +49,8 @@ internal class ContractSourceWriter(
             contractName,
             members.OfType<FunctionAbiMember>(),
             members.OfType<ConstructorAbiMember>().SingleOrDefault(),
-            byteCode
+            byteCode,
+            members.OfType<FallbackAbiMember>().SingleOrDefault()
         );
         _errorSectionWriter.GenerateContractErrorSection(contractInterface, contractImplementation, members.OfType<ErrorAbiMember>());
         _eventSectionWriter.GenerateContractEventSection(contractInterface, contractImplementation, @namespace, contractName, members.OfType<EventAbiMember>());

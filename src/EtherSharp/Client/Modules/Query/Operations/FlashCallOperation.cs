@@ -1,4 +1,5 @@
 ﻿
+using EtherSharp.ABI.Types;
 using EtherSharp.Tx;
 using System.Buffers.Binary;
 using System.Numerics;
@@ -10,18 +11,26 @@ internal class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IC
     private readonly ITxInput<T> _txInput = txInput;
     private readonly IContractDeployment _deployment = deployment;
 
-    public int CallDataLength => 1 + 8 + _deployment.ByteCode.Length + _txInput.Data.Length;
+    public int CallDataLength => 1 + 38 + _deployment.ByteCode.Length + _txInput.Data.Length;
     public BigInteger EthValue => _deployment.Value + _txInput.Value;
     IReadOnlyList<IQuery> IQuery<QueryResult<T>>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
+        if(_deployment.Value > 0)
+        {
+            throw new NotSupportedException("Contract deployment cannot contain any value");
+        }
+
         buffer[0] = (byte) QueryOperationId.FlashCall;
         buffer = buffer[1..];
-        BinaryPrimitives.WriteUInt32BigEndian(buffer[0..4], (uint) _deployment.ByteCode.Length);
-        BinaryPrimitives.WriteUInt32BigEndian(buffer[4..8], (uint) _txInput.Data.Length);
-        _deployment.ByteCode.ByteCode.Span.CopyTo(buffer[8..(8 + _deployment.ByteCode.Length)]);
-        _txInput.Data.CopyTo(buffer[(8 + _deployment.ByteCode.Length)..]);
+
+        AbiTypes.UInt.EncodeInto((uint) _deployment.ByteCode.Length, buffer[0..3], true);
+        AbiTypes.UInt.EncodeInto((uint) _txInput.Data.Length, buffer[3..6], true);
+        AbiTypes.BigInteger.EncodeInto(_txInput.Value, true, buffer[6..38]);
+
+        _deployment.ByteCode.ByteCode.Span.CopyTo(buffer[38..]);
+        _txInput.Data.CopyTo(buffer[(38 + _deployment.ByteCode.Length)..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
     {

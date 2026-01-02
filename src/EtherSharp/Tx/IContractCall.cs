@@ -23,6 +23,16 @@ public interface IContractCall : ITxInput
         encoder.TryWritoTo(data.AsSpan()[functionSignature.Length..]);
         return new TxInput(contractAddress, value, data);
     }
+
+    /// <summary>
+    /// Creates an IContractCall for a raw undecoded contract call.
+    /// </summary>
+    /// <param name="contractAddress"></param>
+    /// <param name="value"></param>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    public static IContractCall<ReadOnlyMemory<byte>> ForRawContractCall(Address contractAddress, BigInteger value, ReadOnlyMemory<byte> data)
+        => new RawTxInput(contractAddress, value, data);
 }
 
 /// <summary>
@@ -33,7 +43,6 @@ public interface IContractCall<T> : IContractCall, ITxInput<T>
     /// <summary>
     /// Creates an IContractCall for a contract call that returns a result of type <typeparamref name="T"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     /// <param name="contractAddress"></param>
     /// <param name="value"></param>
     /// <param name="functionSignature"></param>

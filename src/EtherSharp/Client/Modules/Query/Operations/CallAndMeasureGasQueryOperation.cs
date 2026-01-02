@@ -7,7 +7,7 @@ namespace EtherSharp.Client.Modules.Query.Operations;
 
 internal class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<(QueryResult<T>, ulong)>
 {
-    private readonly ITxInput<T> _txInput = txInput;
+    private readonly IContractCall<T> _txInput = txInput;
 
     public int CallDataLength => 4 + 20 + 32 + _txInput.Data.Length;
     public BigInteger EthValue => _txInput.Value;

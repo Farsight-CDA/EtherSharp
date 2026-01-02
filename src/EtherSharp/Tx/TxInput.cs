@@ -42,3 +42,9 @@ internal class TxInput<T>(Address to, BigInteger value, byte[] data, Func<AbiDec
     }
 }
 
+internal record RawTxInput(Address To, BigInteger Value, ReadOnlyMemory<byte> Data) : IContractCall<ReadOnlyMemory<byte>>, ITxInput<ReadOnlyMemory<byte>>
+{
+    ReadOnlySpan<byte> ITxInput.Data => Data.Span;
+    public ReadOnlyMemory<byte> ReadResultFrom(ReadOnlyMemory<byte> data) => data;
+}
+

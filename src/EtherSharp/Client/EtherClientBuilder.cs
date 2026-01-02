@@ -247,7 +247,7 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         }
         if(!_services.Any(x => x.ServiceType == typeof(IQueryExecutor)))
         {
-            _services.AddSingleton<IQueryExecutor, ConstructorCallQueryExecutor>();
+            _services.AddSingleton<IQueryExecutor, FlashCallQueryExecutor>();
         }
 
         foreach(var service in _services.ToArray())

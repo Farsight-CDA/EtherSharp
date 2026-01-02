@@ -331,7 +331,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     TContract IEtherClient.Contract<TContract>(Address address)
         => Contract<TContract>(address);
 
-    async Task<T> IEtherClient.CallAsync<T>(ITxInput<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    public async Task<TxCallResult> SafeCallAsync<T>(ITxInput<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
 
@@ -350,10 +350,16 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             cancellationToken
         );
 
+        return result;
+    }
+
+    async Task<T> IEtherClient.CallAsync<T>(ITxInput<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    {
+        var result = await SafeCallAsync(call, targetHeight, cancellationToken);
         return call.ReadResultFrom(result.Unwrap(call.To));
     }
 
-    async Task<T> IEtherClient.FlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    public async Task<TxCallResult> SafeFlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         if(deployment.Value > 0)
@@ -391,13 +397,18 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
         var data = ((TxCallResult.Success) result).Data;
 
-        result = data.Span[0] switch
+        return data.Span[0] switch
         {
             0 => new TxCallResult.Reverted(data[1..]),
             1 => new TxCallResult.Success(data[1..]),
             _ => throw new ImpossibleException()
         };
 
+    }
+
+    async Task<T> IEtherClient.FlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    {
+        var result = await SafeFlashCallAsync(deployment, call, targetHeight, cancellationToken);
         return call.ReadResultFrom(result.Unwrap(call.To));
     }
 

@@ -17,11 +17,45 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
     private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
 
     public void GenerateContractFunctionSection(InterfaceBuilder interfaceBuilder, ClassBuilder implementationBuilder,
-        string contractName, IEnumerable<FunctionAbiMember> functionMembers, ConstructorAbiMember? constructorMember, byte[]? byteCode)
+        string contractName, IEnumerable<FunctionAbiMember> functionMembers,
+        ConstructorAbiMember? constructorMember, byte[]? byteCode,
+        FallbackAbiMember? fallbackMember)
     {
         var functionClassNames = new List<string>();
         var sectionBuilder = new ClassBuilder("Functions")
             .WithIsStatic();
+
+        if(fallbackMember is not null)
+        {
+            var typeBuilder = new ClassBuilder("Fallback")
+                .WithIsStatic();
+            var createFunction = new FunctionBuilder("Create")
+                .WithIsStatic()
+                .WithReturnTypeRaw("EtherSharp.Tx.IContractCall<System.ReadOnlyMemory<byte>>")
+                .AddArgument("EtherSharp.Types.Address", "contractAddress")
+                .AddArgument("System.ReadOnlyMemory<byte>", "calldata");
+
+            if(fallbackMember.StateMutability == StateMutability.NonPayable)
+            {
+                createFunction.AddStatement(
+                    $"""
+                    return EtherSharp.Tx.IContractCall.ForRawContractCall(contractAddress, 0, calldata);
+                    """
+                );
+            }
+            else
+            {
+                createFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
+                createFunction.AddStatement(
+                    $"""
+                    return EtherSharp.Tx.IContractCall.ForRawContractCall(contractAddress, ethValue, calldata);
+                    """
+                );
+            }
+
+            typeBuilder.AddFunction(createFunction);
+            sectionBuilder.AddInnerType(typeBuilder);
+        }
 
         if(byteCode is not null)
         {
@@ -60,7 +94,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
 
                 if(isPayable)
                 {
-                    createFunction.AddArgument("System.Numerics.BigInteger", "ethValue", true, 0);
+                    createFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
                 }
 
                 createCodeFunction.AddStatement(
