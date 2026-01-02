@@ -81,7 +81,7 @@ public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSign
         var gasPrice = await gasPriceTask;
         var priorityFee = await priorityFeeTask;
 
-        var l1Fee = new BigInteger(l1FeeCallResult.Unwrap(_opGasOracleAddress), true, true);
+        var l1Fee = new BigInteger(l1FeeCallResult.Unwrap(_opGasOracleAddress).Span, true, true);
         var l1FeePerGas = l1Fee / gasEstimation;
 
         return new EIP1559GasParams(

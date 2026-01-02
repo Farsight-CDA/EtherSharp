@@ -140,9 +140,9 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    private record EstimateGasRequest(Address? From, Address To, BigInteger Value, string Data);
+    private record EstimateGasRequest(Address? From, Address? To, BigInteger Value, string Data);
     public async Task<ulong> EstimateGasAsync(
-        Address? from, Address to, BigInteger value, string data, CancellationToken cancellationToken)
+        Address? from, Address? to, BigInteger value, string data, CancellationToken cancellationToken)
     {
         var transaction = new EstimateGasRequest(from, to, value, data);
         return await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, ulong>(

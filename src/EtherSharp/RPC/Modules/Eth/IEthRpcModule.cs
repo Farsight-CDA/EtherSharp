@@ -9,7 +9,7 @@ public interface IEthRpcModule
     public Task<ulong> ChainIdAsync(CancellationToken cancellationToken = default);
     public Task<ulong> BlockNumberAsync(CancellationToken cancellationToken = default);
     public Task<ulong> EstimateGasAsync(
-        Address? from, Address to, BigInteger value, string data,
+        Address? from, Address? to, BigInteger value, string data,
         CancellationToken cancellationToken = default
     );
 

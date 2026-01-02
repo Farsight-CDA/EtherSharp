@@ -9,6 +9,7 @@ using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxScheduler;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
@@ -19,12 +20,16 @@ using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.Client;
 
 internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 {
+    private const string FLASHCALL_CONTRACT_HEX = "383d3d39602b5160f01c80602d3df03d3d3d84602d018038039034865af181533d8160013e3d60010181f3";
+    private const int FLASHCALL_CONTRACT_LENGTH = 43;
+
     private readonly IServiceProvider _provider;
     private readonly ILoggerFactory? _loggerFactory;
     private readonly bool _isTxClient;
@@ -344,6 +349,54 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             targetHeight,
             cancellationToken
         );
+
+        return call.ReadResultFrom(result.Unwrap(call.To));
+    }
+
+    async Task<T> IEtherClient.FlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    {
+        AssertReady();
+        if(deployment.Value > 0)
+        {
+            throw new NotSupportedException("Contract deployment cannot contain any value");
+        }
+
+        var sender = _isTxClient
+            ? _signer.Address
+            : null;
+
+        int argsLength = 2 + deployment.Data.Length + call.Data.Length;
+
+        if(argsLength + FLASHCALL_CONTRACT_LENGTH > EVMByteCode.MAX_INIT_LENGTH)
+        {
+            throw new InvalidOperationException($"Maximum call length exceeded, {argsLength + FLASHCALL_CONTRACT_LENGTH} > {EVMByteCode.MAX_INIT_LENGTH}");
+        }
+
+        Span<byte> buffer = stackalloc byte[argsLength];
+
+        BinaryPrimitives.WriteUInt16BigEndian(buffer, (ushort) deployment.Data.Length);
+        deployment.Data.CopyTo(buffer[2..]);
+        call.Data.CopyTo(buffer[(deployment.Data.Length + 2)..]);
+
+        var result = await _ethRpcModule.CallAsync(
+            sender,
+            null,
+            null,
+            null,
+            call.Value,
+            $"{FLASHCALL_CONTRACT_HEX}{Convert.ToHexString(buffer)}",
+            targetHeight,
+            cancellationToken
+        );
+
+        var data = ((TxCallResult.Success) result).Data;
+
+        result = data.Span[0] switch
+        {
+            0 => new TxCallResult.Reverted(data[1..]),
+            1 => new TxCallResult.Success(data[1..]),
+            _ => throw new ImpossibleException()
+        };
 
         return call.ReadResultFrom(result.Unwrap(call.To));
     }

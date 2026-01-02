@@ -3,9 +3,17 @@
 /// <summary>
 /// Represents the source code of an EVM contract.
 /// </summary>
-/// <param name="bytecode"></param>
-public struct EVMByteCode(ReadOnlyMemory<byte> bytecode)
+public struct EVMByteCode
 {
+    /// <summary>
+    /// The maximum runtime contract length.
+    /// </summary>
+    public const int MAX_RUNTIME_LENGTH = 24_576;
+    /// <summary>
+    /// The maximum init contract length.
+    /// </summary>
+    public const int MAX_INIT_LENGTH = 49_152;
+
     private const byte PUSH4_OPCODE = 0x63;
     private const byte LT_OPCODE = 0x10;
     private const byte GT_OPCODE = 0x11;
@@ -13,10 +21,16 @@ public struct EVMByteCode(ReadOnlyMemory<byte> bytecode)
     private const byte SUB_OPCODE = 0x03;
     private static ReadOnlySpan<byte> ComparisonOpcodes => [LT_OPCODE, GT_OPCODE, EQ_OPCODE, SUB_OPCODE];
 
+    public EVMByteCode(ReadOnlyMemory<byte> byteCode)
+    {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(byteCode.Length, MAX_RUNTIME_LENGTH, nameof(byteCode));
+        ByteCode = byteCode;
+    }
+
     /// <summary>
     /// Raw bytecode bytes.
     /// </summary>
-    public ReadOnlyMemory<byte> ByteCode { get; } = bytecode;
+    public ReadOnlyMemory<byte> ByteCode { get; }
 
     /// <summary>
     /// The length of the bytecode.

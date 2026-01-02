@@ -10,7 +10,7 @@ public interface ITxInput
     /// <summary>
     /// The To field of the transaction.
     /// </summary>
-    public Address To { get; }
+    public Address? To { get; }
 
     /// <summary>
     /// The ETH Value of the transaction.

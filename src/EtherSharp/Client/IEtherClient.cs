@@ -68,6 +68,7 @@ public interface IEtherClient
         where TContract : IEVMContract;
 
     public Task<T> CallAsync<T>(ITxInput<T> call, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<T> FlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 
     public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
         double[] rewardPercentiles, CancellationToken cancellationToken = default);

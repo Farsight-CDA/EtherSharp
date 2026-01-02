@@ -5,17 +5,17 @@ namespace EtherSharp.Types;
 
 public abstract record TxCallResult
 {
-    public record Success(byte[] Data) : TxCallResult;
-    public record Reverted(byte[] Data) : TxCallResult;
+    public record Success(ReadOnlyMemory<byte> Data) : TxCallResult;
+    public record Reverted(ReadOnlyMemory<byte> Data) : TxCallResult;
 
     /// <summary>
     /// Unwraps the TxCallResult by throwing if it was not a Success result.
     /// </summary>
     /// <returns></returns>
-    public byte[] Unwrap(Address callToAddress) => this switch
+    public ReadOnlyMemory<byte> Unwrap(Address? callToAddress) => this switch
     {
         Success s => s.Data,
-        Reverted r => throw CallRevertedException.Parse(callToAddress, r.Data),
+        Reverted r => throw CallRevertedException.Parse(callToAddress, r.Data.Span),
         _ => throw new NotImplementedException()
     };
 
@@ -36,7 +36,7 @@ public abstract record TxCallResult
 
                 if(errorResult.Data is null || errorResult.Data.Length <= 2)
                 {
-                    return new Reverted([]);
+                    return new Reverted(Array.Empty<byte>());
                 }
 
                 byte[] dataBytes = Convert.FromHexString(errorResult.Data.AsSpan(2));

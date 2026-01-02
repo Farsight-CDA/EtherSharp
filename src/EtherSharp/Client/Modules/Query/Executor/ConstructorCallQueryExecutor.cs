@@ -20,7 +20,7 @@ public class ConstructorCallQueryExecutor(IEthRpcModule ethRpcModule, IServicePr
 
     public async Task<TQuery> ExecuteQueryAsync<TQuery>(IQuery<TQuery> query, TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
     {
-        Span<byte> buffer = [];
+        ReadOnlySpan<byte> buffer = [];
         byte[][] outputs = new byte[query.Queries.Count][];
         int requestCount = 0;
 
@@ -49,14 +49,14 @@ public class ConstructorCallQueryExecutor(IEthRpcModule ethRpcModule, IServicePr
                     cancellationToken
                 );
 
-                byte[] output = callResult.Unwrap(Address.Zero);
+                var output = callResult.Unwrap(Address.Zero);
 
                 if(output.Length == 0)
                 {
                     throw new InvalidOperationException("Call is too expensive to be executed within batch");
                 }
 
-                buffer = output.AsSpan();
+                buffer = output.Span;
             }
 
             int sliceLength = q.ParseResultLength(buffer);
