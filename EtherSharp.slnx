@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/bench/">
+    <Project Path="bench/EtherSharp.Bench.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="version.props" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EtherSharp.Tests.csproj" />
+  </Folder>
+  <Project Path="src/EtherSharp.ERC/EtherSharp.ERC.csproj" />
+  <Project Path="src/EtherSharp.Generator/EtherSharp.Generator.csproj" />
+  <Project Path="src/EtherSharp/EtherSharp.csproj" />
+</Solution>
