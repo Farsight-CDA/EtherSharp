@@ -28,6 +28,9 @@ using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Client;
 
+/// <summary>
+/// Builder for creating an EtherClient.
+/// </summary>
 public class EtherClientBuilder : IInternalEtherClientBuilder
 {
     private readonly IServiceCollection _services = new ServiceCollection();
@@ -51,14 +54,38 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         _configureActions.Add((typeof(TService), typeof(TActionParam), value => configureAction((TActionParam) value)));
     }
 
+    /// <summary>
+    /// Creates an empty unconfigured EtherClientBuilder.
+    /// </summary>
+    /// <returns></returns>
     public static EtherClientBuilder CreateEmpty()
         => new EtherClientBuilder();
+
+    /// <summary>
+    /// Creates an EtherClientBuilder preconfigured for a websocket RPC.
+    /// </summary>
+    /// <param name="websocketUrl"></param>
+    /// <param name="requestTimeout"></param>
+    /// <param name="signer"></param>
+    /// <param name="loggerFactory"></param>
+    /// <param name="configureGasProvider"></param>
+    /// <returns></returns>
     public static EtherClientBuilder CreateForWebsocket(
         string websocketUrl, TimeSpan? requestTimeout = null,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider>? configureGasProvider = null
     )
         => CreateForWebsocket(new Uri(websocketUrl, UriKind.Absolute), requestTimeout, signer, loggerFactory, configureGasProvider);
+
+    /// <summary>
+    /// Creates an EtherClientBuilder preconfigured for a websocket RPC.
+    /// </summary>
+    /// <param name="websocketUri"></param>
+    /// <param name="requestTimeout"></param>
+    /// <param name="signer"></param>
+    /// <param name="loggerFactory"></param>
+    /// <param name="configureGasProvider"></param>
+    /// <returns></returns>
     public static EtherClientBuilder CreateForWebsocket(Uri websocketUri, TimeSpan? requestTimeout = null,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider>? configureGasProvider = null
@@ -90,6 +117,14 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
             )
             .AddTxTypeHandler<LegacyTxTypeHandler, LegacyGasFeeProvider, LegacyTransaction, LegacyTxParams, LegacyGasParams>();
     }
+
+    /// <summary>
+    /// Creates an EtherClientBuilder preconfigured for a HTTP RPC.
+    /// </summary>
+    /// <param name="websocketUrl"></param>
+    /// <param name="signer"></param>
+    /// <param name="loggerFactory"></param>
+    /// <returns></returns>
     public static EtherClientBuilder CreateForHttpRpc(string websocketUrl, IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null)
     {
         var builder = new EtherClientBuilder()
@@ -115,18 +150,34 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
             .AddTxTypeHandler<LegacyTxTypeHandler, LegacyGasFeeProvider, LegacyTransaction, LegacyTxParams, LegacyGasParams>();
     }
 
+    /// <summary>
+    /// Configures the RPC transport.
+    /// </summary>
+    /// <param name="transport"></param>
+    /// <returns></returns>
     public EtherClientBuilder WithRPCTransport(IRPCTransport transport)
     {
         _transportRegistration = provider => transport;
         return this;
     }
 
+    /// <summary>
+    /// Configures the RPC transport via a registration action.
+    /// </summary>
+    /// <param name="transportRegistration"></param>
+    /// <returns></returns>
     public EtherClientBuilder WithRPCTransport(Func<IServiceProvider, IRPCTransport> transportRegistration)
     {
         _transportRegistration = transportRegistration;
         return this;
     }
 
+    /// <summary>
+    /// Registers the RPC middleware.
+    /// </summary>
+    /// <typeparam name="TRpcMiddleware"></typeparam>
+    /// <param name="middleware"></param>
+    /// <returns></returns>
     public EtherClientBuilder AddRPCMiddleware<TRpcMiddleware>(TRpcMiddleware middleware)
          where TRpcMiddleware : class, IRpcMiddleware
     {
@@ -134,6 +185,11 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return this;
     }
 
+    /// <summary>
+    /// Registers the RPC middleware.
+    /// </summary>
+    /// <typeparam name="TRpcMiddleware"></typeparam>
+    /// <returns></returns>
     public EtherClientBuilder AddRPCMiddleware<TRpcMiddleware>()
         where TRpcMiddleware : class, IRpcMiddleware
     {
@@ -141,18 +197,34 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return this;
     }
 
+    /// <summary>
+    /// Configures the signer.
+    /// </summary>
+    /// <param name="signer"></param>
+    /// <returns></returns>
     public EtherClientBuilder WithSigner(IEtherSigner signer)
     {
         _services.AddOrReplaceSingleton<IEtherSigner, IEtherSigner>(signer);
         return this;
     }
 
+    /// <summary>
+    /// Configures the LoggerFactory.
+    /// </summary>
+    /// <param name="loggerFactory"></param>
+    /// <returns></returns>
     public EtherClientBuilder WithLoggerFactory(ILoggerFactory loggerFactory)
     {
         _services.AddOrReplaceSingleton(loggerFactory);
         return this;
     }
 
+    /// <summary>
+    /// Configures the TxScheduler.
+    /// </summary>
+    /// <typeparam name="TTxScheduler"></typeparam>
+    /// <param name="configureAction"></param>
+    /// <returns></returns>
     public EtherClientBuilder WithTxScheduler<TTxScheduler>(Action<TTxScheduler>? configureAction = null)
         where TTxScheduler : class, ITxScheduler
     {
@@ -161,6 +233,12 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return this;
     }
 
+    /// <summary>
+    /// Configures the SubscriptionsManager.
+    /// </summary>
+    /// <typeparam name="TSusbcriptionManager"></typeparam>
+    /// <param name="configureAction"></param>
+    /// <returns></returns>
     public EtherClientBuilder WithSubscriptionsManager<TSusbcriptionManager>(Action<TSusbcriptionManager>? configureAction = null)
         where TSusbcriptionManager : class, ISubscriptionsManager
     {
@@ -169,6 +247,12 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return this;
     }
 
+    /// <summary>
+    /// Configures the TxPublisher.
+    /// </summary>
+    /// <typeparam name="TTxPublisher"></typeparam>
+    /// <param name="configureAction"></param>
+    /// <returns></returns>
     public EtherClientBuilder WithTxPublisher<TTxPublisher>(Action<TTxPublisher>? configureAction = null)
         where TTxPublisher : class, ITxPublisher
     {
@@ -177,6 +261,12 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return this;
     }
 
+    /// <summary>
+    /// Configures the ResiliencyLayer.
+    /// </summary>
+    /// <typeparam name="TResiliencyLayer"></typeparam>
+    /// <param name="configureAction"></param>
+    /// <returns></returns>
     public EtherClientBuilder WithResiliencyLayer<TResiliencyLayer>(Action<TResiliencyLayer>? configureAction = null)
         where TResiliencyLayer : class, IResiliencyLayer
     {
@@ -185,6 +275,17 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return this;
     }
 
+    /// <summary>
+    /// Configures a Transaction type.
+    /// </summary>
+    /// <typeparam name="TTxTypeHandler"></typeparam>
+    /// <typeparam name="TGasFeeProvider"></typeparam>
+    /// <typeparam name="TTransaction"></typeparam>
+    /// <typeparam name="TTxParams"></typeparam>
+    /// <typeparam name="TTxGasParams"></typeparam>
+    /// <param name="handlerConfigureAction"></param>
+    /// <param name="gasFeeProviderConfigureAction"></param>
+    /// <returns></returns>
     public EtherClientBuilder AddTxTypeHandler<TTxTypeHandler, TGasFeeProvider, TTransaction, TTxParams, TTxGasParams>(
         Action<TTxTypeHandler>? handlerConfigureAction = null,
         Action<TGasFeeProvider>? gasFeeProviderConfigureAction = null
@@ -203,6 +304,13 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return this;
     }
 
+    /// <summary>
+    /// Configures the instrumentation.
+    /// </summary>
+    /// <param name="meterFactory"></param>
+    /// <param name="instrumentNamePrefix"></param>
+    /// <param name="tags"></param>
+    /// <returns></returns>
     public EtherClientBuilder WithInstrumentation(IMeterFactory meterFactory, string instrumentNamePrefix = "ethersharp.", IReadOnlyDictionary<string, object?>? tags = null)
     {
         _services.AddOrReplaceSingleton(meterFactory);
@@ -210,12 +318,25 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return this;
     }
 
+    /// <summary>
+    /// Configures the ContractFactory.
+    /// </summary>
+    /// <param name="contractSetupAction"></param>
+    /// <returns></returns>
     public EtherClientBuilder WithContractConfiguration(Action<IContractFactory> contractSetupAction)
     {
         _contractConfigurationAction = contractSetupAction;
         return this;
     }
 
+    /// <summary>
+    /// Configures the client to use a deployed FlashCall contract.
+    /// </summary>
+    /// <param name="deploymentHeight"></param>
+    /// <param name="contractAddress"></param>
+    /// <param name="allowFallback"></param>
+    /// <param name="maxPayloadSize"></param>
+    /// <returns></returns>
     public EtherClientBuilder WithFlashCallContract(ulong deploymentHeight, Address contractAddress, bool allowFallback = true, int maxPayloadSize = 3 * 1024 * 1024)
     {
         _services.AddOrReplaceSingleton(new DeployedFlashCallExecutorConfiguration(deploymentHeight, contractAddress, allowFallback, maxPayloadSize));
@@ -278,6 +399,10 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         }
     }
 
+    /// <summary>
+    /// Builds a client supporting read-only operations.
+    /// </summary>
+    /// <returns></returns>
     public IEtherClient BuildReadClient()
     {
         AssertReadClientConfiguration();
@@ -309,6 +434,11 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
             throw new InvalidOperationException($"No {nameof(ITxPublisher)} configured. Call the {nameof(WithTxPublisher)} method prior to {nameof(BuildTxClient)}");
         }
     }
+
+    /// <summary>
+    /// Creates a client supporting read and write operations.
+    /// </summary>
+    /// <returns></returns>
     public IEtherTxClient BuildTxClient()
     {
         AssertTxClientConfiguration();
