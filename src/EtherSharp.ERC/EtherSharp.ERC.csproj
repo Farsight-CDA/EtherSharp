@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="..\..\..\version.props" />
+	<Import Project="..\..\version.props" />
 
 	<PropertyGroup>
 		<FileVersion>$(AssemblyVersion)</FileVersion>
@@ -40,10 +40,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\EtherSharp\EtherSharp.csproj" />
+		<ProjectReference Include="..\EtherSharp\EtherSharp.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="../../../resources/logo.png" Pack="true" PackagePath="" />
+		<None Include="../../resources/logo.png" Pack="true" PackagePath="" />
 	</ItemGroup>
 </Project>
