@@ -15,9 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{DC64C388
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtherSharp.Generator", "src\EtherSharp.Generator\EtherSharp.Generator.csproj", "{E3E86DD8-234F-4724-B544-F38B2D1675BA}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contracts", "contracts", "{00028E10-2C30-49E0-969F-660056BB172C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtherSharp.ERC", "src\contracts\EtherSharp.ERC\EtherSharp.ERC.csproj", "{ED133A6D-2703-44BD-9383-492842A03450}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtherSharp.ERC", "src\EtherSharp.ERC\EtherSharp.ERC.csproj", "{ED133A6D-2703-44BD-9383-492842A03450}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B1CB3A47-B3F3-4333-B92F-7DE503A94BB0}"
 	ProjectSection(SolutionItems) = preProject
