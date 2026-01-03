@@ -7,9 +7,13 @@ using EtherSharp.ABI.Decode.Interfaces;
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
+    /// <summary>
+    /// Reads a bytes1 from the input.
+    /// </summary>
+    /// <returns></returns>
     public byte[] Bytes1Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, _bytesRead, 1);
+        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 1);
         ConsumeBytes();
         return result[0];
     }
@@ -17,9 +21,13 @@ public partial class AbiDecoder
     for(var i = 2; i <= 32;i=i+1)
     {
 #>
+    /// <summary>
+    /// Reads a bytes<#=i#> array from the input.
+    /// </summary>
+    /// <returns></returns>
     public byte[][] Bytes<#=i#>Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, _bytesRead, <#=i#>);
+        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, <#=i#>);
         ConsumeBytes();
         return result;
     }

@@ -4,6 +4,10 @@ using EtherSharp.ABI.Decode.Interfaces;
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
+    /// <summary>
+    /// Reads a bytes1 from the input.
+    /// </summary>
+    /// <returns></returns>
     public byte Bytes1()
     {
         var result = AbiTypes.Byte.Decode(CurrentSlot);
@@ -19,6 +23,10 @@ public partial class AbiDecoder
     for(var i = 2; i <= 32; i++)
     {
 #>
+    /// <summary>
+    /// Reads a bytes<#=i#> from the input.
+    /// </summary>
+    /// <returns></returns>
     public ReadOnlySpan<byte> Bytes<#=i#>()
     {
         var result = AbiTypes.SizedBytes.Decode(CurrentSlot, <#=i#>);
@@ -29,6 +37,7 @@ public partial class AbiDecoder
         => Bytes<#=i#>();
     ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes<#=i#>()
         => Bytes<#=i#>();
+
 <#
     }
 #>
