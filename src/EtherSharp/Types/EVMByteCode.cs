@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Types;
+namespace EtherSharp.Types;
 
 /// <summary>
 /// Represents the source code of an EVM contract.
