@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EtherSharp.Client.Services.QueryExecutor;
 
-public class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, IServiceProvider provider) : IQueryExecutor
+internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, IServiceProvider provider) : IQueryExecutor
 {
     private readonly IFlashCallExecutor _flashCallExecutor = flashCallExecutor;
     private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<FlashCallQueryExecutor>();
