@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.Generator.Util;
+﻿using System.Diagnostics;
+
+namespace EtherSharp.Generator.Util;
 
 internal static class DebuggerUtils
 {
