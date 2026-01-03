@@ -38,7 +38,7 @@ public record EIP1559Transaction(
             RLPEncoder.GetIntSize(MaxPriorityFeePerGas) +
             RLPEncoder.GetIntSize(MaxFeePerGas) +
             RLPEncoder.GetIntSize(Gas) +
-            RLPEncoder.GetStringSize(Input.To.Bytes) +
+            RLPEncoder.GetStringSize(Input.To is null ? [] : Input.To.Bytes) +
             RLPEncoder.GetIntSize(Input.Value) +
             RLPEncoder.GetStringSize(Input.Data) +
             RLPEncoder.GetListSize(listLengths[1]);
@@ -56,7 +56,7 @@ public record EIP1559Transaction(
                 .EncodeInt(MaxPriorityFeePerGas)
                 .EncodeInt(MaxFeePerGas)
                 .EncodeInt(Gas)
-                .EncodeString(Input.To.Bytes)
+                .EncodeString(Input.To is null ? [] : Input.To.Bytes)
                 .EncodeInt(Input.Value)
                 .EncodeString(Input.Data)
                 .EncodeList(listLengths[1])

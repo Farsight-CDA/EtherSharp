@@ -29,7 +29,7 @@ public record LegacyTransaction(
             RLPEncoder.GetIntSize(Nonce) +
             RLPEncoder.GetIntSize(GasPrice) +
             RLPEncoder.GetIntSize(Gas) +
-            RLPEncoder.GetStringSize(Input.To.Bytes) +
+            RLPEncoder.GetStringSize(Input.To is null ? [] : Input.To.Bytes) +
             RLPEncoder.GetIntSize(Input.Value) +
             RLPEncoder.GetStringSize(Input.Data) +
             RLPEncoder.GetIntSize(ChainId) +
@@ -46,7 +46,7 @@ public record LegacyTransaction(
             RLPEncoder.GetIntSize(Nonce) +
             RLPEncoder.GetIntSize(GasPrice) +
             RLPEncoder.GetIntSize(Gas) +
-            RLPEncoder.GetStringSize(Input.To.Bytes) +
+            RLPEncoder.GetStringSize(Input.To is null ? [] : Input.To.Bytes) +
             RLPEncoder.GetIntSize(Input.Value) +
             RLPEncoder.GetStringSize(Input.Data);
 
@@ -61,7 +61,7 @@ public record LegacyTransaction(
                 .EncodeInt(Nonce)
                 .EncodeInt(GasPrice)
                 .EncodeInt(Gas)
-                .EncodeString(Input.To.Bytes)
+                .EncodeString(Input.To is null ? [] : Input.To.Bytes)
                 .EncodeInt(Input.Value)
                 .EncodeString(Input.Data)
                 .EncodeInt(ChainId)
@@ -74,7 +74,7 @@ public record LegacyTransaction(
                 .EncodeInt(Nonce)
                 .EncodeInt(GasPrice)
                 .EncodeInt(Gas)
-                .EncodeString(Input.To.Bytes)
+                .EncodeString(Input.To is null ? [] : Input.To.Bytes)
                 .EncodeInt(Input.Value)
                 .EncodeString(Input.Data);
 }
