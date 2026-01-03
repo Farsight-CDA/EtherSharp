@@ -1,10 +1,9 @@
-﻿
-using EtherSharp.ABI.Types;
+﻿using EtherSharp.ABI.Types;
 using EtherSharp.Tx;
 using System.Buffers.Binary;
 using System.Numerics;
 
-namespace EtherSharp.Client.Modules.Query.Operations;
+namespace EtherSharp.Query.Operations;
 
 internal class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IContractCall<T> txInput) : IQuery, IQuery<QueryResult<T>>
 {

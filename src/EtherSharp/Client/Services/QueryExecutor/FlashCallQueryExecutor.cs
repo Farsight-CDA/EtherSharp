@@ -1,10 +1,11 @@
-﻿using EtherSharp.Client.Modules.FlashCall;
+﻿using EtherSharp.Client.Services.FlashCallExecutor;
+using EtherSharp.Query;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace EtherSharp.Client.Modules.Query.Executor;
+namespace EtherSharp.Client.Services.QueryExecutor;
 
 public class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, IServiceProvider provider) : IQueryExecutor
 {

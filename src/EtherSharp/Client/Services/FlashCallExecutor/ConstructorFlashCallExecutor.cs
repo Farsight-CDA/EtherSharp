@@ -4,7 +4,7 @@ using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Buffers.Binary;
 
-namespace EtherSharp.Client.Modules.FlashCall;
+namespace EtherSharp.Client.Services.FlashCallExecutor;
 
 internal class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlashCallExecutor
 {

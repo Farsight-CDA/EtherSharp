@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace EtherSharp.Client.Modules.Query.Operations;
+namespace EtherSharp.Query.Operations;
 
 internal class GetBlockGasPriceQueryOperation : IQuery, IQuery<BigInteger>
 {

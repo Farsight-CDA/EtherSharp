@@ -1,7 +1,7 @@
 ﻿using EtherSharp.Tx;
 using EtherSharp.Types;
 
-namespace EtherSharp.Client.Modules.FlashCall;
+namespace EtherSharp.Client.Services.FlashCallExecutor;
 
 /// <summary>
 /// Interface for flash call executor strategies.

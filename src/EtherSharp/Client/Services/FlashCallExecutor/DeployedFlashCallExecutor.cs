@@ -4,7 +4,7 @@ using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Buffers.Binary;
 
-namespace EtherSharp.Client.Modules.FlashCall;
+namespace EtherSharp.Client.Services.FlashCallExecutor;
 
 internal record DeployedFlashCallExecutorConfiguration(ulong DeploymentHeight, Address ContractAddress, bool AllowFallback, int MaxPayloadSize);
 internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFlashCallExecutorConfiguration configuration) : IFlashCallExecutor

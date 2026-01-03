@@ -1,6 +1,7 @@
-﻿using EtherSharp.Types;
+﻿using EtherSharp.Query;
+using EtherSharp.Types;
 
-namespace EtherSharp.Client.Modules.Query.Executor;
+namespace EtherSharp.Client.Services.QueryExecutor;
 
 public interface IQueryExecutor
 {

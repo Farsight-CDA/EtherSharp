@@ -1,8 +1,8 @@
 ﻿using EtherSharp.Client.Modules.Blocks;
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
-using EtherSharp.Client.Modules.Query;
 using EtherSharp.Contract;
+using EtherSharp.Query;
 using EtherSharp.Realtime.Events;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;

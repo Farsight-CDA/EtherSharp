@@ -3,7 +3,7 @@ using EtherSharp.Tx;
 using System.Buffers.Binary;
 using System.Numerics;
 
-namespace EtherSharp.Client.Modules.Query.Operations;
+namespace EtherSharp.Query.Operations;
 
 internal class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<(QueryResult<T>, ulong)>
 {

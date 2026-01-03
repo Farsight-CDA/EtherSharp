@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Client.Modules.Query;
+﻿namespace EtherSharp.Query;
 
 internal record Query<T>(IReadOnlyList<IQuery> Queries, Func<ReadOnlySpan<byte[]>, T> ReadResultFrom) : IQuery<T>
 {

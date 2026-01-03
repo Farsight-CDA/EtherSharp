@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Client.Modules.Query;
+﻿namespace EtherSharp.Query;
 
 public abstract record QueryResult<T>
 {

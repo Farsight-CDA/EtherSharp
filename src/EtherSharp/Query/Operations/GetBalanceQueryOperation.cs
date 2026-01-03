@@ -1,7 +1,8 @@
-﻿using EtherSharp.Types;
+﻿using EtherSharp.Query;
+using EtherSharp.Types;
 using System.Numerics;
 
-namespace EtherSharp.Client.Modules.Query.Operations;
+namespace EtherSharp.Query.Operations;
 
 internal class GetBalanceQueryOperation(Address user) : IQuery, IQuery<BigInteger>
 {

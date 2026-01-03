@@ -155,7 +155,7 @@
 		  <LastGenOutput>PackedAbiEncoder.SizedBytes.cs</LastGenOutput>
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		</None>
-		<None Update="Client\Modules\Query\QueryBuilder.AddQuery.tt">
+		<None Update="Query\QueryBuilder.AddQuery.tt">
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		  <LastGenOutput>QueryBuilder.AddQuery.cs</LastGenOutput>
 		</None>
@@ -292,7 +292,7 @@
 		  <DesignTime>True</DesignTime>
 		  <AutoGen>True</AutoGen>
 		</Compile>
-		<Compile Update="Client\Modules\Query\QueryBuilder.AddQuery.cs">
+		<Compile Update="Query\QueryBuilder.AddQuery.cs">
 		  <DesignTime>True</DesignTime>
 		  <AutoGen>True</AutoGen>
 		  <DependentUpon>QueryBuilder.AddQuery.tt</DependentUpon>

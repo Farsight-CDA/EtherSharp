@@ -1,9 +1,9 @@
-﻿
+﻿using EtherSharp.Query;
 using EtherSharp.Types;
 using System.Buffers.Binary;
 using System.Numerics;
 
-namespace EtherSharp.Client.Modules.Query.Operations;
+namespace EtherSharp.Query.Operations;
 
 internal class GetCodeQueryOperation(Address address) : IQuery, IQuery<EVMByteCode>
 {

@@ -1,11 +1,11 @@
 ﻿using EtherSharp.Client.Modules.Blocks;
 using EtherSharp.Client.Modules.Ether;
-using EtherSharp.Client.Modules.FlashCall;
-using EtherSharp.Client.Modules.Query.Executor;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
+using EtherSharp.Client.Services.FlashCallExecutor;
 using EtherSharp.Client.Services.GasFeeProvider;
+using EtherSharp.Client.Services.QueryExecutor;
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxPublisher;

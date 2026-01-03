@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.Client.Modules.Query;
+﻿using EtherSharp.Query;
+
+namespace EtherSharp.Client.Modules.Query;
 
 public partial class QueryBuilder<TQuery> : IQuery<List<TQuery>>, IQueryBuilder<TQuery>
 {

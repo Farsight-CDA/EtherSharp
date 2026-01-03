@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Client.Modules.Query;
+﻿namespace EtherSharp.Query;
 
 internal enum QueryOperationId : byte
 {

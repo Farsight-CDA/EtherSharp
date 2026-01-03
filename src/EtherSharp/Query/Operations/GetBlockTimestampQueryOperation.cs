@@ -1,7 +1,7 @@
 ﻿using System.Buffers.Binary;
 using System.Numerics;
 
-namespace EtherSharp.Client.Modules.Query.Operations;
+namespace EtherSharp.Query.Operations;
 
 internal class GetBlockTimestampQueryOperation : IQuery, IQuery<DateTimeOffset>
 {

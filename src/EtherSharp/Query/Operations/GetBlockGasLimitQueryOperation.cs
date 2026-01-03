@@ -1,16 +1,16 @@
 ﻿using System.Buffers.Binary;
 using System.Numerics;
 
-namespace EtherSharp.Client.Modules.Query.Operations;
+namespace EtherSharp.Query.Operations;
 
-internal class GetChainIdQueryOperation : IQuery, IQuery<ulong>
+internal class GetBlockGasLimitQueryOperation : IQuery, IQuery<ulong>
 {
     public int CallDataLength => 1;
     public BigInteger EthValue => 0;
     IReadOnlyList<IQuery> IQuery<ulong>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
-        => buffer[0] = (byte) QueryOperationId.GetChainId;
+        => buffer[0] = (byte) QueryOperationId.GetBlockGasLimit;
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 8;
 

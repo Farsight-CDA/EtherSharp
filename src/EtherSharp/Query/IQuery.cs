@@ -4,7 +4,7 @@ using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Numerics;
 
-namespace EtherSharp.Client.Modules.Query;
+namespace EtherSharp.Query;
 
 public interface IQuery
 {
