@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Modules.Blocks;
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
+using EtherSharp.Client.Modules.FlashCall;
 using EtherSharp.Client.Modules.Query;
 using EtherSharp.Client.Modules.Query.Executor;
 using EtherSharp.Client.Modules.Trace;
@@ -9,7 +10,6 @@ using EtherSharp.Client.Services.ContractFactory;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxScheduler;
-using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
@@ -20,15 +20,13 @@ using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.Client;
 
 internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 {
-    private const string FLASHCALL_CONTRACT_HEX = "383d3d39602b5160f01c80602d3df03d3d3d84602d018038039034865af181533d8160013e3d60010181f3";
-    private const int FLASHCALL_CONTRACT_LENGTH = 43;
+
 
     private readonly IServiceProvider _provider;
     private readonly ILoggerFactory? _loggerFactory;
@@ -45,6 +43,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     private ITxScheduler _txScheduler = null!;
 
     private IQueryExecutor _queryExecutor = null!;
+    private IFlashCallExecutor _flashCallExecutor = null!;
     private ISubscriptionsManager _subscriptionsManager = null!;
     private ContractFactory _contractFactory = null!;
 
@@ -93,74 +92,74 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     public async Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(c1, targetBlockNumber, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(c1, targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2), targetBlockNumber, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2), targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), targetBlockNumber, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), targetBlockNumber, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), targetBlockNumber, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4, T5, T6)> QueryAsync<T1, T2, T3, T4, T5, T6>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6,
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), targetBlockNumber, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7)> QueryAsync<T1, T2, T3, T4, T5, T6, T7>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7,
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), targetBlockNumber, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7, T8)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8,
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), targetBlockNumber, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8, IQuery<T9> c9,
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), targetBlockNumber, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), targetHeight, cancellationToken);
     }
 
     IEventsModule<TEvent> IEtherClient.Events<TEvent>()
@@ -200,6 +199,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         _ethRpcModule = _provider.GetRequiredService<IEthRpcModule>();
 
         _queryExecutor = _provider.GetRequiredService<IQueryExecutor>();
+        _flashCallExecutor = _provider.GetRequiredService<IFlashCallExecutor>();
         _subscriptionsManager = _provider.GetRequiredService<ISubscriptionsManager>();
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
 
@@ -267,15 +267,15 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return _ethRpcModule.GetTransactionCountAsync(address, targetHeight, cancellationToken);
     }
 
-    Task<byte[]> IEtherClient.GetStorageAtAsync(Address address, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default)
+    Task<byte[]> IEtherClient.GetStorageAtAsync(Address address, byte[] slot, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return _ethRpcModule.GetStorageAtAsync(address, slot, targetBlockNumber, cancellationToken);
+        return _ethRpcModule.GetStorageAtAsync(address, slot, targetHeight, cancellationToken);
     }
-    Task<byte[]> IEtherClient.GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default)
+    Task<byte[]> IEtherClient.GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return _ethRpcModule.GetStorageAtAsync(contract.Address, slot, targetBlockNumber, cancellationToken);
+        return _ethRpcModule.GetStorageAtAsync(contract.Address, slot, targetHeight, cancellationToken);
     }
 
     private TContract Contract<TContract>(Address address)
@@ -359,51 +359,10 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return call.ReadResultFrom(result.Unwrap(call.To));
     }
 
-    public async Task<TxCallResult> SafeFlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    public Task<TxCallResult> SafeFlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        if(deployment.Value > 0)
-        {
-            throw new NotSupportedException("Contract deployment cannot contain any value");
-        }
-
-        var sender = _isTxClient
-            ? _signer.Address
-            : null;
-
-        int argsLength = 2 + deployment.Data.Length + call.Data.Length;
-
-        if(argsLength + FLASHCALL_CONTRACT_LENGTH > EVMByteCode.MAX_INIT_LENGTH)
-        {
-            throw new InvalidOperationException($"Maximum call length exceeded, {argsLength + FLASHCALL_CONTRACT_LENGTH} > {EVMByteCode.MAX_INIT_LENGTH}");
-        }
-
-        Span<byte> buffer = stackalloc byte[argsLength];
-
-        BinaryPrimitives.WriteUInt16BigEndian(buffer, (ushort) deployment.Data.Length);
-        deployment.Data.CopyTo(buffer[2..]);
-        call.Data.CopyTo(buffer[(deployment.Data.Length + 2)..]);
-
-        var result = await _ethRpcModule.CallAsync(
-            sender,
-            null,
-            null,
-            null,
-            call.Value,
-            $"{FLASHCALL_CONTRACT_HEX}{Convert.ToHexString(buffer)}",
-            targetHeight,
-            cancellationToken
-        );
-
-        var data = ((TxCallResult.Success) result).Data;
-
-        return data.Span[0] switch
-        {
-            0 => new TxCallResult.Reverted(data[1..]),
-            1 => new TxCallResult.Success(data[1..]),
-            _ => throw new ImpossibleException()
-        };
-
+        return _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, targetHeight, cancellationToken);
     }
 
     async Task<T> IEtherClient.FlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)

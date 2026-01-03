@@ -12,10 +12,10 @@ public interface IEtherTxModule : IEtherModule
     /// <summary>
     /// Fetches the native balance of the wallet attached to the client.
     /// </summary>
-    /// <param name="targetBlockNumber"></param>
+    /// <param name="targetHeight"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<BigInteger> GetMyBalanceAsync(TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default);
+    public Task<BigInteger> GetMyBalanceAsync(TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a tx input for transferring native currency to the given receiver.

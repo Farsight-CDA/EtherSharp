@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Client.Modules.Blocks;
 using EtherSharp.Client.Modules.Ether;
+using EtherSharp.Client.Modules.FlashCall;
 using EtherSharp.Client.Modules.Query.Executor;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
@@ -19,6 +20,7 @@ using EtherSharp.Transport;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Legacy;
 using EtherSharp.Tx.Types;
+using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -214,6 +216,13 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         return this;
     }
 
+    public EtherClientBuilder WithFlashCallContract(ulong deploymentHeight, Address contractAddress, bool allowFallback = true, int maxPayloadSize = 3 * 1024 * 1024)
+    {
+        _services.AddOrReplaceSingleton(new DeployedFlashCallExecutorConfiguration(deploymentHeight, contractAddress, allowFallback, maxPayloadSize));
+        _services.AddOrReplaceSingleton<IFlashCallExecutor, DeployedFlashCallExecutor>();
+        return this;
+    }
+
     private void RunConfigureActions(IServiceProvider provider)
     {
         foreach(var (serviceType, _, action) in _configureActions)
@@ -248,6 +257,10 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         if(!_services.Any(x => x.ServiceType == typeof(IQueryExecutor)))
         {
             _services.AddSingleton<IQueryExecutor, FlashCallQueryExecutor>();
+        }
+        if(!_services.Any(x => x.ServiceType == typeof(IFlashCallExecutor)))
+        {
+            _services.AddSingleton<IFlashCallExecutor, ConstructorFlashCallExecutor>();
         }
 
         foreach(var service in _services.ToArray())

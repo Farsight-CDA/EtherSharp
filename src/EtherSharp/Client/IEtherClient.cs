@@ -29,23 +29,23 @@ public interface IEtherClient
 
     public Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
-        TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
+        TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
     );
     public Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
-        TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
+        TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
     );
     public Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
-        TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
+        TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
     );
     public Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
-        TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
+        TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
     );
     public Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
-        TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
+        TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
     );
 
     public IEventsModule<TEvent> Events<TEvent>() where TEvent : ITxLog<TEvent>;
@@ -61,8 +61,8 @@ public interface IEtherClient
 
     public Task<uint> GetTransactionCount(Address address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 
-    public Task<byte[]> GetStorageAtAsync(Address address, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default);
-    public Task<byte[]> GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default);
+    public Task<byte[]> GetStorageAtAsync(Address address, byte[] slot, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<byte[]> GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 
     public TContract Contract<TContract>(Address address)
         where TContract : IEVMContract;

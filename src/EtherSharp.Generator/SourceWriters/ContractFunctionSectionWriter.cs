@@ -235,7 +235,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                 {
                     interfaceFunction
                         .WithReturnTypeRaw($"System.Threading.Tasks.Task<{outputTypeName}>")
-                        .AddArgument("EtherSharp.Types.TargetBlockNumber", "targetBlockNumber", true, "default")
+                        .AddArgument("EtherSharp.Types.TargetBlockNumber", "targetHeight", true, "default")
                         .AddArgument("System.Threading.CancellationToken", "cancellationToken", true, "default")
                         .AddStatement(
                             $"""
@@ -243,7 +243,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                                 {contractName}.Functions.{functionTypeName}.Create(
                                 Address{(inputNameList.Count > 0 ? "," : "")}
                                 {String.Join(",", inputNameList)}), 
-                                targetBlockNumber,
+                                targetHeight,
                                 cancellationToken: cancellationToken
                             )
                             """

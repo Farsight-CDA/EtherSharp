@@ -18,10 +18,10 @@ public interface IBlocksModule
     /// <summary>
     /// Fetches block information at the given height.
     /// </summary>
-    /// <param name="targetBlockNumber"></param>
+    /// <param name="targetHeight"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<BlockDataTrasactionAsString> GetBlockAtHeightAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken = default);
+    public Task<BlockDataTrasactionAsString> GetBlockAtHeightAsync(TargetBlockNumber targetHeight, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a subscription for listening to new block heads.

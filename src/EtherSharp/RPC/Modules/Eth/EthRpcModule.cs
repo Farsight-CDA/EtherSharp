@@ -26,27 +26,27 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+    public async Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<Address, TargetBlockNumber, BigInteger>(
-            "eth_getBalance", address, targetBlockNumber, targetBlockNumber, cancellationToken) switch
+            "eth_getBalance", address, targetHeight, targetHeight, cancellationToken) switch
         {
             RpcResult<BigInteger>.Success result => result.Result,
             RpcResult<BigInteger>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<uint> GetTransactionCountAsync(Address address, TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+    public async Task<uint> GetTransactionCountAsync(Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<Address, TargetBlockNumber, uint>(
-            "eth_getTransactionCount", address, targetBlockNumber, targetBlockNumber, cancellationToken) switch
+            "eth_getTransactionCount", address, targetHeight, targetHeight, cancellationToken) switch
         {
             RpcResult<uint>.Success result => result.Result,
             RpcResult<uint>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<long> BlockTransactionCountByNumberAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+    public async Task<long> BlockTransactionCountByNumberAsync(TargetBlockNumber targetHeight, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<TargetBlockNumber, string>(
-            "eth_getBlockTransactionCountByNumber", targetBlockNumber, targetBlockNumber, cancellationToken) switch
+            "eth_getBlockTransactionCountByNumber", targetHeight, targetHeight, cancellationToken) switch
         {
             RpcResult<string>.Success result => Int64.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
             RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
@@ -56,13 +56,13 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
     private record TransactionCall(Address? From, Address? To, uint? Gas, BigInteger? GasPrice, BigInteger Value, string? Data);
     public async Task<TxCallResult> CallAsync(
         Address? from, Address? to, uint? gas, BigInteger? gasPrice, BigInteger value, string? data,
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         var transaction = new TransactionCall(from, to, gas, gasPrice, value, data);
 
         return TxCallResult.ParseFrom(
             await _rpcClient.SendRpcRequestAsync<TransactionCall, TargetBlockNumber, byte[]>(
-                "eth_call", transaction, targetBlockNumber, targetBlockNumber, cancellationToken
+                "eth_call", transaction, targetHeight, targetHeight, cancellationToken
             )
         );
     }
@@ -155,9 +155,9 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
     }
 
     public async Task<BlockData?> GetFullBlockByNumberAsync(
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<TargetBlockNumber, bool, BlockData>(
-            "eth_getBlockByNumber", targetBlockNumber, true, targetBlockNumber, cancellationToken) switch
+            "eth_getBlockByNumber", targetHeight, true, targetHeight, cancellationToken) switch
         {
             RpcResult<BlockData>.Success result => result.Result,
             RpcResult<BlockData>.Error error => throw RPCException.FromRPCError(error),
@@ -165,9 +165,9 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
         };
 
     public async Task<BlockDataTrasactionAsString> GetBlockByNumberAsync(
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken)
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<TargetBlockNumber, bool, BlockDataTrasactionAsString>(
-            "eth_getBlockByNumber", targetBlockNumber, false, targetBlockNumber, cancellationToken) switch
+            "eth_getBlockByNumber", targetHeight, false, targetHeight, cancellationToken) switch
         {
             RpcResult<BlockDataTrasactionAsString>.Success result => result.Result,
             RpcResult<BlockDataTrasactionAsString>.Error error => throw RPCException.FromRPCError(error),
@@ -197,9 +197,9 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
         };
 
     public async Task<byte[]> GetStorageAtAsync(
-        Address address, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default)
+        Address address, byte[] slot, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
         => await _rpcClient.SendRpcRequestAsync<string, byte[], TargetBlockNumber, byte[]>(
-            "eth_getStorageAt", address.String, slot, targetBlockNumber, targetBlockNumber, cancellationToken) switch
+            "eth_getStorageAt", address.String, slot, targetHeight, targetHeight, cancellationToken) switch
         {
             RpcResult<byte[]>.Success result => result.Result,
             RpcResult<byte[]>.Error error => throw RPCException.FromRPCError(error),

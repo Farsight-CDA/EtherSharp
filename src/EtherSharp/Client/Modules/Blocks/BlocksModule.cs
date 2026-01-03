@@ -10,8 +10,8 @@ internal class BlocksModule(IEthRpcModule ethRpcModule, ISubscriptionsManager su
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
 
-    public Task<BlockDataTrasactionAsString> GetBlockAtHeightAsync(TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken = default)
-        => _ethRpcModule.GetBlockByNumberAsync(targetBlockNumber, cancellationToken);
+    public Task<BlockDataTrasactionAsString> GetBlockAtHeightAsync(TargetBlockNumber targetHeight, CancellationToken cancellationToken = default)
+        => _ethRpcModule.GetBlockByNumberAsync(targetHeight, cancellationToken);
     public Task<ulong> GetPeakHeightAsync(CancellationToken cancellationToken = default)
         => _ethRpcModule.BlockNumberAsync(cancellationToken);
     public async Task<IBlocksSubscription> SubscribeNewHeadsAsync(CancellationToken cancellationToken)

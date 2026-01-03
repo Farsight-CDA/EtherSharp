@@ -14,7 +14,7 @@ public interface IEthRpcModule
     );
 
     public Task<BlockDataTrasactionAsString> GetBlockByNumberAsync(
-        TargetBlockNumber targetBlockNumber, CancellationToken cancellationToken
+        TargetBlockNumber targetHeight, CancellationToken cancellationToken
     );
     public Task<Transaction?> TransactionByHashAsync(
         string hash, CancellationToken cancellationToken
@@ -26,13 +26,13 @@ public interface IEthRpcModule
     public Task<BigInteger> GasPriceAsync(CancellationToken cancellationToken = default);
     public Task<BigInteger> MaxPriorityFeePerGasAsync(CancellationToken cancellationToken = default);
     public Task<BigInteger> GetBalanceAsync(
-        Address address, TargetBlockNumber blockNumber, CancellationToken cancellationToken = default
+        Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken = default
     );
     public Task<TxCallResult> CallAsync(
         Address? from, Address? to, uint? gas, BigInteger? gasPrice, BigInteger value, string? data,
         TargetBlockNumber blockNumber, CancellationToken cancellationToken = default);
     public Task<uint> GetTransactionCountAsync(
-        Address address, TargetBlockNumber blockNumber, CancellationToken cancellationToken = default
+        Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken = default
     );
     public Task<TxSubmissionResult> SendRawTransactionAsync(
         string transaction, CancellationToken cancellationToken = default
@@ -42,7 +42,7 @@ public interface IEthRpcModule
     );
 
     public Task<byte[]> GetStorageAtAsync(
-        Address address, byte[] slot, TargetBlockNumber targetBlockNumber = default, CancellationToken cancellationToken = default
+        Address address, byte[] slot, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
     );
 
     public Task<Log[]> GetLogsAsync(
