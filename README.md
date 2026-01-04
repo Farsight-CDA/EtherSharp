@@ -144,6 +144,63 @@ var simulationResult = await client.FlashCallAsync(
 );
 ```
 
+### Logs & Events
+
+EtherSharp provides a powerful API for querying historical logs and subscribing to real-time events.
+
+#### Fetching Logs from a Contract
+Use the generated `Events` property on your contract instance to fetch specific events.
+
+```csharp
+var erc20 = client.Contract<IERC20>("0x123...");
+
+// Fetch all Transfer events for this contract within a block range
+var transfers = await erc20.Events.Transfer.GetAllAsync(
+    fromBlock: TargetBlockNumber.Height(18000000),
+    toBlock: TargetBlockNumber.Latest
+);
+
+foreach (var transfer in transfers)
+{
+    Console.WriteLine($"{transfer.From} -> {transfer.To}: {transfer.Value}");
+}
+```
+
+#### Multi-Contract and Generic Queries
+Query logs across multiple contracts or topics using the client's `Events()` module.
+
+```csharp
+var logs = await client.Events()
+    .HasContracts(usdt, usdc)
+    .HasTopics(0, IERC20.Logs.TransferEvent.TopicHex, IERC20.Logs.ApprovalEvent.TopicHex)
+    .GetAllAsync();
+
+// Manually match and decode raw logs using TryDecode
+foreach (var log in logs)
+{
+    if (IERC20.Logs.TransferEvent.TryDecode(log, out var transfer))
+    {
+        Console.WriteLine($"Transfer on {log.Address}: {transfer.Value}");
+    }
+    else if (IERC20.Logs.ApprovalEvent.TryDecode(log, out var approval))
+    {
+        Console.WriteLine($"Approval on {log.Address}: {approval.Owner} allowed {approval.Spender}");
+    }
+}
+```
+
+#### Real-time Subscriptions
+Subscribe to live events using `CreateSubscriptionAsync` (requires a WebSocket transport).
+
+```csharp
+await using var subscription = await erc20.Events.Transfer.CreateSubscriptionAsync();
+
+await foreach (var transfer in subscription.ListenAsync())
+{
+    Console.WriteLine($"New Transfer: {transfer.From} -> {transfer.To}");
+}
+```
+
 ---
 
 ## License
