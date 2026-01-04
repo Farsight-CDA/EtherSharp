@@ -7,7 +7,7 @@ internal static class HexUtils
         {
             span[0] = '0';
             span[1] = 'x';
-            if(!Convert.TryToHexString(state, span.Slice(2), out _))
+            if(!Convert.TryToHexString(state, span[2..], out _))
             {
                 throw new InvalidOperationException("Failed to write hex string.");
             }
