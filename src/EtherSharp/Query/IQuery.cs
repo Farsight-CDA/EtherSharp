@@ -1,5 +1,5 @@
-﻿using EtherSharp.Client.Modules.Query.Operations;
-using EtherSharp.Common.Exceptions;
+﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Query.Operations;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Numerics;

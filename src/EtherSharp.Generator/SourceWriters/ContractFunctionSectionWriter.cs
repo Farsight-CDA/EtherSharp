@@ -74,6 +74,9 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
             var createFunction = new FunctionBuilder("Create")
                 .WithIsStatic()
                 .WithReturnTypeRaw("EtherSharp.Tx.IContractDeployment");
+            var create2Function = new FunctionBuilder("Create2")
+                .WithIsStatic()
+                .WithReturnTypeRaw("EtherSharp.Tx.IContractCall<EtherSharp.Types.Address>");
 
             if(constructorMember is not null && constructorMember.Inputs.Length > 0)
             {
@@ -89,12 +92,14 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                     createCodeFunction.AddStatement(encodeFunc(paramName));
 
                     createFunction.AddArgument(paramType, paramName);
+                    create2Function.AddArgument(paramType, paramName);
                     createCallBuilder.AddArgument(paramName);
                 }
 
                 if(isPayable)
                 {
                     createFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
+                    create2Function.AddArgument("System.Numerics.BigInteger", "ethValue");
                 }
 
                 createCodeFunction.AddStatement(
@@ -105,11 +110,17 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                     return new EtherSharp.Types.EVMByteCode(buffer)
                     """
                 );
-
                 createFunction.AddStatement(
                     $"""
                     var contractByteCode = CreateCode({createCallBuilder.Build()});
                     return EtherSharp.Tx.IContractDeployment.Create(contractByteCode, ethValue)
+                    """
+                );
+                create2Function.AddArgument("System.ReadOnlySpan<byte>", "salt");
+                create2Function.AddStatement(
+                    $"""
+                    var contractByteCode = CreateCode({createCallBuilder.Build()});
+                    return EtherSharp.Tx.IContractCall.ForCreate2Call(contractByteCode, salt, ethValue)
                     """
                 );
             }
@@ -125,10 +136,17 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                     return EtherSharp.Tx.IContractDeployment.Create(ByteCode, 0)
                     """
                 );
+                create2Function.AddArgument("System.ReadOnlySpan<byte>", "salt");
+                create2Function.AddStatement(
+                    $"""
+                    return EtherSharp.Tx.IContractCall.ForCreate2Call(ByteCode, salt, 0)
+                    """
+                );
             }
 
             typeBuilder.AddFunction(createCodeFunction);
             typeBuilder.AddFunction(createFunction);
+            typeBuilder.AddFunction(create2Function);
             sectionBuilder.AddInnerType(typeBuilder);
         }
 

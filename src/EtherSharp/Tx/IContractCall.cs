@@ -8,6 +8,8 @@ namespace EtherSharp.Tx;
 /// </summary>
 public interface IContractCall : ITxInput
 {
+    private readonly static Address _create2DeployerAddress = "0x4e59b44847b379578588920ca78fbf26c0b4956c";
+
     /// <summary>
     /// Creates an IContractCall for a contract call that returns no result.
     /// </summary>
@@ -33,6 +35,33 @@ public interface IContractCall : ITxInput
     /// <returns></returns>
     public static IContractCall<ReadOnlyMemory<byte>> ForRawContractCall(Address contractAddress, BigInteger value, ReadOnlyMemory<byte> data)
         => new RawTxInput(contractAddress, value, data);
+
+    /// <summary>
+    /// Creates an IContractCall for calling the Create2 deployer factory.
+    /// </summary>
+    /// <param name="byteCode"></param>
+    /// <param name="salt"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static IContractCall<Address> ForCreate2Call(EVMByteCode byteCode, ReadOnlySpan<byte> salt, BigInteger value)
+    {
+        if(salt.Length != 32)
+        {
+            throw new ArgumentException("Salt must be 32 bytes", nameof(salt));
+        }
+
+        byte[] buffer = new byte[32 + byteCode.Length];
+        salt.CopyTo(buffer);
+        byteCode.ByteCode.Span.CopyTo(buffer.AsSpan(32));
+
+        return new TxInput<Address>(
+            _create2DeployerAddress,
+            value,
+            buffer,
+            x => Address.FromBytes(x.Span)
+        );
+    }
 }
 
 /// <summary>
@@ -54,6 +83,6 @@ public interface IContractCall<T> : IContractCall, ITxInput<T>
         byte[] data = new byte[functionSignature.Length + encoder.Size];
         functionSignature.CopyTo(data);
         encoder.TryWritoTo(data.AsSpan()[functionSignature.Length..]);
-        return new TxInput<T>(contractAddress, value, data, decoder);
+        return new TxInput<T>(contractAddress, value, data, x => decoder(new AbiDecoder(data)));
     }
 }
