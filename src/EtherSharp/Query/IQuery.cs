@@ -76,6 +76,9 @@ public interface IQuery
     public static IQuery<ulong> GetChainId()
         => new GetChainIdQueryOperation();
 
+    public static IQuery<T> Noop<T>(T value)
+        => new NoopQueryOperation<T>(value);
+
     public static IQuery<TTo> Map<TFrom, TTo>(IQuery<TFrom> query, Func<TFrom, TTo> mapping)
         => new Query<TTo>(query.Queries, results => mapping(query.ReadResultFrom(results)));
 
