@@ -20,7 +20,7 @@ public interface ITxInput
     /// <summary>
     /// The calldata of the transaction.
     /// </summary>
-    public ReadOnlySpan<byte> Data { get; }
+    public ReadOnlyMemory<byte> Data { get; }
 
     /// <summary>
     /// Creates a ITxInput for an eth transfer with no calldata.
@@ -29,7 +29,7 @@ public interface ITxInput
     /// <param name="amount"></param>
     /// <returns></returns>
     public static ITxInput ForEthTransfer(Address receiver, BigInteger amount)
-        => new TxInput(receiver, amount, []);
+        => new TxInput(receiver, amount, Array.Empty<byte>());
 }
 
 /// <summary>

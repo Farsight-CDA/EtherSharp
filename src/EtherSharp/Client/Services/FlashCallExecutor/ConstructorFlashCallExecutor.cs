@@ -37,8 +37,8 @@ internal class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlash
         Span<byte> buffer = stackalloc byte[argsLength];
 
         BinaryPrimitives.WriteUInt16BigEndian(buffer, (ushort) deployment.Data.Length);
-        deployment.Data.CopyTo(buffer[2..]);
-        call.Data.CopyTo(buffer[(deployment.Data.Length + 2)..]);
+        deployment.Data.Span.CopyTo(buffer[2..]);
+        call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 2)..]);
 
         string payload = String.Create(
             FLASHCALL_CONTRACT_HEX.Length + (buffer.Length * 2),

@@ -26,7 +26,7 @@ internal class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQ
 
         _txInput.To.Bytes.CopyTo(buffer[4..24]);
         AbiTypes.BigInteger.EncodeInto(EthValue, true, buffer[24..56]);
-        _txInput.Data.CopyTo(buffer[56..]);
+        _txInput.Data.Span.CopyTo(buffer[56..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
     {

@@ -26,7 +26,7 @@ public class EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner sign
     private async Task<EIP1559GasParams> SendEstimationRequestsAsync(ITxInput txInput, CancellationToken cancellationToken)
     {
         ulong gasEstimation = await _ethRpcModule.EstimateGasAsync(
-            _signer.Address, txInput.To, txInput.Value, $"0x{Convert.ToHexString(txInput.Data)}", cancellationToken);
+            _signer.Address, txInput.To, txInput.Value, $"0x{Convert.ToHexString(txInput.Data.Span)}", cancellationToken);
 
         var feeHistory = await _ethRpcModule.GetFeeHistoryAsync(FeeHistoryRange, TargetBlockNumber.Latest, [PriorityFeePercentile], default);
 

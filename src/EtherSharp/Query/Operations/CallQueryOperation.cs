@@ -1,5 +1,4 @@
 ﻿using EtherSharp.ABI.Types;
-using EtherSharp.Query;
 using EtherSharp.Tx;
 using System.Buffers.Binary;
 using System.Numerics;
@@ -8,7 +7,7 @@ namespace EtherSharp.Query.Operations;
 
 internal class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<QueryResult<T>>
 {
-    private readonly ITxInput<T> _txInput = txInput;
+    private readonly IContractCall<T> _txInput = txInput;
 
     public int CallDataLength => 4 + 20 + 32 + _txInput.Data.Length;
     public BigInteger EthValue => _txInput.Value;
@@ -27,7 +26,7 @@ internal class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<
 
         _txInput.To.Bytes.CopyTo(buffer[4..24]);
         AbiTypes.BigInteger.EncodeInto(EthValue, true, buffer[24..56]);
-        _txInput.Data.CopyTo(buffer[56..]);
+        _txInput.Data.Span.CopyTo(buffer[56..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
     {

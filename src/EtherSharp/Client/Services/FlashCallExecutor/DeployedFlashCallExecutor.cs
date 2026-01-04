@@ -42,8 +42,8 @@ internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFla
         Span<byte> buffer = stackalloc byte[argsLength];
 
         BinaryPrimitives.WriteUInt16BigEndian(buffer, (ushort) deployment.Data.Length);
-        deployment.Data.CopyTo(buffer[2..]);
-        call.Data.CopyTo(buffer[(deployment.Data.Length + 2)..]);
+        deployment.Data.Span.CopyTo(buffer[2..]);
+        call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 2)..]);
 
         string payload = String.Create(
             2 + (buffer.Length * 2),

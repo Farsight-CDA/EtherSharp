@@ -31,7 +31,7 @@ public record LegacyTransaction(
             RLPEncoder.GetIntSize(Gas) +
             RLPEncoder.GetStringSize(Input.To is null ? [] : Input.To.Bytes) +
             RLPEncoder.GetIntSize(Input.Value) +
-            RLPEncoder.GetStringSize(Input.Data) +
+            RLPEncoder.GetStringSize(Input.Data.Span) +
             RLPEncoder.GetIntSize(ChainId) +
             (2 * RLPEncoder.GetIntSize(0));
 
@@ -48,7 +48,7 @@ public record LegacyTransaction(
             RLPEncoder.GetIntSize(Gas) +
             RLPEncoder.GetStringSize(Input.To is null ? [] : Input.To.Bytes) +
             RLPEncoder.GetIntSize(Input.Value) +
-            RLPEncoder.GetStringSize(Input.Data);
+            RLPEncoder.GetStringSize(Input.Data.Span);
 
         listLengths[0] = contentSize;
 
@@ -63,7 +63,7 @@ public record LegacyTransaction(
                 .EncodeInt(Gas)
                 .EncodeString(Input.To is null ? [] : Input.To.Bytes)
                 .EncodeInt(Input.Value)
-                .EncodeString(Input.Data)
+                .EncodeString(Input.Data.Span)
                 .EncodeInt(ChainId)
                 .EncodeInt(0)
                 .EncodeInt(0);
@@ -76,5 +76,5 @@ public record LegacyTransaction(
                 .EncodeInt(Gas)
                 .EncodeString(Input.To is null ? [] : Input.To.Bytes)
                 .EncodeInt(Input.Value)
-                .EncodeString(Input.Data);
+                .EncodeString(Input.Data.Span);
 }

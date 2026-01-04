@@ -8,7 +8,7 @@ internal class ContractDeployment(EVMByteCode byteCode, BigInteger value) : ICon
     public EVMByteCode ByteCode { get; } = byteCode;
     public Address? To => null;
     public BigInteger Value { get; } = value;
-    public ReadOnlySpan<byte> Data => ByteCode.ByteCode.Span;
+    public ReadOnlyMemory<byte> Data => ByteCode.ByteCode;
 
     public byte[] ReadResultFrom(ReadOnlyMemory<byte> data)
         => data.ToArray();

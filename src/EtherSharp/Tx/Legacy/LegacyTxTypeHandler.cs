@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.TxTypeHandler;
+using EtherSharp.Common;
 using EtherSharp.Crypto;
 using EtherSharp.RLP;
 using EtherSharp.RPC;
@@ -77,8 +78,8 @@ public class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
             throw new InvalidOperationException("Failed to calculate tx hash");
         }
 
-        txHash = $"0x{Convert.ToHexString(txHashBuffer)}";
-        return $"0x{Convert.ToHexString(txBuffer)}";
+        txHash = HexUtils.ToPrefixedHexString(txHashBuffer);
+        return HexUtils.ToPrefixedHexString(txBuffer);
     }
 
     private void SignAndEncode(ReadOnlySpan<byte> signDataBuffer, Span<byte> signatureBuffer, ulong chainId, out int encodedSignatureLength)

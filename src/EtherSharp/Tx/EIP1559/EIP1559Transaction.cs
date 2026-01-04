@@ -40,7 +40,7 @@ public record EIP1559Transaction(
             RLPEncoder.GetIntSize(Gas) +
             RLPEncoder.GetStringSize(Input.To is null ? [] : Input.To.Bytes) +
             RLPEncoder.GetIntSize(Input.Value) +
-            RLPEncoder.GetStringSize(Input.Data) +
+            RLPEncoder.GetStringSize(Input.Data.Span) +
             RLPEncoder.GetListSize(listLengths[1]);
 
         listLengths[0] = contentSize;
@@ -58,7 +58,7 @@ public record EIP1559Transaction(
                 .EncodeInt(Gas)
                 .EncodeString(Input.To is null ? [] : Input.To.Bytes)
                 .EncodeInt(Input.Value)
-                .EncodeString(Input.Data)
+                .EncodeString(Input.Data.Span)
                 .EncodeList(listLengths[1])
                     .EncodeAccessList(AccessList);
 }

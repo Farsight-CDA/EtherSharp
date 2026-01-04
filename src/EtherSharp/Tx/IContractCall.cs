@@ -34,7 +34,7 @@ public interface IContractCall : ITxInput
     /// <param name="data"></param>
     /// <returns></returns>
     public static IContractCall<ReadOnlyMemory<byte>> ForRawContractCall(Address contractAddress, BigInteger value, ReadOnlyMemory<byte> data)
-        => new RawTxInput(contractAddress, value, data);
+        => new TxInput<ReadOnlyMemory<byte>>(contractAddress, value, data, x => x);
 
     /// <summary>
     /// Creates an IContractCall for calling the Create2 deployer factory.
@@ -70,6 +70,11 @@ public interface IContractCall : ITxInput
 public interface IContractCall<T> : IContractCall, ITxInput<T>
 {
     /// <summary>
+    /// The To field of the transaction.
+    /// </summary>
+    public new Address To { get; }
+
+    /// <summary>
     /// Creates an IContractCall for a contract call that returns a result of type <typeparamref name="T"/>.
     /// </summary>
     /// <param name="contractAddress"></param>
@@ -83,6 +88,6 @@ public interface IContractCall<T> : IContractCall, ITxInput<T>
         byte[] data = new byte[functionSignature.Length + encoder.Size];
         functionSignature.CopyTo(data);
         encoder.TryWritoTo(data.AsSpan()[functionSignature.Length..]);
-        return new TxInput<T>(contractAddress, value, data, x => decoder(new AbiDecoder(data)));
+        return new TxInput<T>(contractAddress, value, data, x => decoder(new AbiDecoder(x)));
     }
 }

@@ -29,7 +29,7 @@ internal class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IC
         AbiTypes.BigInteger.EncodeInto(_txInput.Value, true, buffer[6..38]);
 
         _deployment.ByteCode.ByteCode.Span.CopyTo(buffer[38..]);
-        _txInput.Data.CopyTo(buffer[(38 + _deployment.ByteCode.Length)..]);
+        _txInput.Data.Span.CopyTo(buffer[(38 + _deployment.ByteCode.Length)..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
     {
