@@ -5,6 +5,7 @@ using EtherSharp.Crypto;
 using EtherSharp.RLP;
 using EtherSharp.RPC;
 using EtherSharp.Wallet;
+using System.Buffers;
 
 namespace EtherSharp.Tx.EIP1559;
 
@@ -38,43 +39,54 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
         int txTemplateLength = tx.GetEncodedSize(lengthBuffer);
         int txBufferLength = 2 + txTemplateLength + TxRLPEncoder.MaxEncodedSignatureLength;
 
-        var txBuffer = txBufferLength > 4096
-            ? new byte[txBufferLength]
-            : stackalloc byte[txBufferLength];
+        byte[]? rented = null;
+        var txBuffer = txBufferLength <= 4096
+            ? stackalloc byte[txBufferLength]
+            : (rented = ArrayPool<byte>.Shared.Rent(txBufferLength)).AsSpan(0, txBufferLength);
 
-        var txTemplateBuffer = txBuffer[1..(txTemplateLength + 2)];
-        var signatureBuffer = txBuffer[^TxRLPEncoder.MaxEncodedSignatureLength..];
-
-        tx.Encode(lengthBuffer, txTemplateBuffer[1..]);
-        txTemplateBuffer[0] = EIP1559Transaction.PrefixByte;
-
-        SignAndEncode(txTemplateBuffer, signatureBuffer, out int signatureLength);
-
-        int oldLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0]);
-        int newLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0] + signatureLength);
-
-        if(newLengthBytes == oldLengthBytes)
+        try
         {
-            //Dont need the extra byte for the length increase
-            txBuffer = txBuffer[1..];
+            var txTemplateBuffer = txBuffer[1..(txTemplateLength + 2)];
+            var signatureBuffer = txBuffer[^TxRLPEncoder.MaxEncodedSignatureLength..];
+
+            tx.Encode(lengthBuffer, txTemplateBuffer[1..]);
+            txTemplateBuffer[0] = EIP1559Transaction.PrefixByte;
+
+            SignAndEncode(txTemplateBuffer, signatureBuffer, out int signatureLength);
+
+            int oldLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0]);
+            int newLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0] + signatureLength);
+
+            if(newLengthBytes == oldLengthBytes)
+            {
+                //Dont need the extra byte for the length increase
+                txBuffer = txBuffer[1..];
+            }
+            else
+            {
+                txBuffer[0] = EIP1559Transaction.PrefixByte;
+            }
+
+            _ = new RLPEncoder(txBuffer[1..]).EncodeList(lengthBuffer[0] + signatureLength);
+
+            var signedTxBuffer = txBuffer[..^(TxRLPEncoder.MaxEncodedSignatureLength - signatureLength)];
+
+            Span<byte> txHashBuffer = stackalloc byte[32];
+            if(!Keccak256.TryHashData(signedTxBuffer, txHashBuffer))
+            {
+                throw new InvalidOperationException("Failed to calculate tx hash");
+            }
+
+            txHash = HexUtils.ToPrefixedHexString(txHashBuffer);
+            return HexUtils.ToPrefixedHexString(signedTxBuffer);
         }
-        else
+        finally
         {
-            txBuffer[0] = EIP1559Transaction.PrefixByte;
+            if(rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
         }
-
-        _ = new RLPEncoder(txBuffer[1..]).EncodeList(lengthBuffer[0] + signatureLength);
-
-        var signedTxBuffer = txBuffer[..^(TxRLPEncoder.MaxEncodedSignatureLength - signatureLength)];
-
-        Span<byte> txHashBuffer = stackalloc byte[32];
-        if(!Keccak256.TryHashData(signedTxBuffer, txHashBuffer))
-        {
-            throw new InvalidOperationException("Failed to calculate tx hash");
-        }
-
-        txHash = HexUtils.ToPrefixedHexString(txHashBuffer);
-        return HexUtils.ToPrefixedHexString(signedTxBuffer);
     }
 
     private void SignAndEncode(Span<byte> txTemplateBuffer, Span<byte> signatureBuffer, out int encodedSignatureLength)

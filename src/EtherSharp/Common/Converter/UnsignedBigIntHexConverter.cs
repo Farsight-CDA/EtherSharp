@@ -11,10 +11,22 @@ internal class UnsignedBigIntHexConverter : JsonConverter<BigInteger>
         string hexNumber = reader.GetString() ?? throw new JsonException("Cannot parse null to signed BigInteger");
 
         int hexChars = hexNumber.Length - 2;
+
+        if(hexChars > 66)
+        {
+            throw new InvalidOperationException("Unexpected number length");
+        }
+
         Span<char> rawHex = stackalloc char[((hexChars - 1) / 2 * 2) + 2];
         int missingChars = rawHex.Length - hexChars;
         rawHex[..missingChars].Fill('0');
         hexNumber.AsSpan(2).CopyTo(rawHex[missingChars..]);
+
+        if(rawHex.Length > 64)
+        {
+            throw new InvalidOperationException("Unexpected number length");
+        }
+
         Span<byte> buffer = stackalloc byte[rawHex.Length / 2];
 
         var res = Convert.FromHexString(rawHex, buffer, out _, out _);

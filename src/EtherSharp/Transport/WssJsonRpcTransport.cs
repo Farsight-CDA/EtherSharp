@@ -147,7 +147,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
     private async Task MessageHandler()
     {
         using var ms = new MemoryStream();
-        byte[] buffer = new byte[8192];
+        byte[] buffer = new byte[32 * 1024];
 
         while(_socket is not null && _socket.State == WebSocketState.Open)
         {
@@ -161,14 +161,14 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
 
                 if(receiveResult.Count != 0)
                 {
-                    ms.Write(buffer.AsSpan()[0..receiveResult.Count]);
+                    ms.Write(buffer.AsSpan(0, receiveResult.Count));
                 }
 
                 totalLength += receiveResult.Count;
             }
             while(!receiveResult.EndOfMessage);
 
-            var msBuffer = ms.GetBuffer().AsSpan()[0..(int) ms.Position];
+            var msBuffer = ms.GetBuffer().AsSpan(0, (int) ms.Position);
 
             if(msBuffer.Length == 0)
             {

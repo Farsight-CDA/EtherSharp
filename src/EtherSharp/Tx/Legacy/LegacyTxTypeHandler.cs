@@ -5,6 +5,7 @@ using EtherSharp.Crypto;
 using EtherSharp.RLP;
 using EtherSharp.RPC;
 using EtherSharp.Wallet;
+using System.Buffers;
 
 namespace EtherSharp.Tx.Legacy;
 
@@ -39,47 +40,58 @@ public class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
         int signDataLength = tx.GetSignDataEncodedSize(lengthBuffer);
         int bufferLength = signDataLength + MAX_LEGACY_SIGNATURE_LENGTH;
 
-        var buffer = bufferLength > 4096
-            ? new byte[bufferLength]
-            : stackalloc byte[bufferLength];
+        byte[]? rented = null;
+        var buffer = bufferLength <= 4096
+            ? stackalloc byte[bufferLength]
+            : (rented = ArrayPool<byte>.Shared.Rent(bufferLength)).AsSpan(0, bufferLength);
 
-        var signDataBuffer = buffer[0..signDataLength];
-
-        tx.EncodeSignData(lengthBuffer, signDataBuffer);
-
-        int txSizeWithoutSignature = tx.GetEncodedSize(lengthBuffer);
-        int maxTxSize = 1 + txSizeWithoutSignature + MAX_LEGACY_SIGNATURE_LENGTH;
-
-        var txBuffer = buffer[0..maxTxSize];
-
-        var signatureBuffer = txBuffer[^MAX_LEGACY_SIGNATURE_LENGTH..];
-
-        SignAndEncode(signDataBuffer, signatureBuffer, tx.ChainId, out int signatureLength);
-
-        if(signatureLength < MAX_LEGACY_SIGNATURE_LENGTH)
+        try
         {
-            txBuffer = txBuffer[..^(MAX_LEGACY_SIGNATURE_LENGTH - signatureLength)];
+            var signDataBuffer = buffer[0..signDataLength];
+
+            tx.EncodeSignData(lengthBuffer, signDataBuffer);
+
+            int txSizeWithoutSignature = tx.GetEncodedSize(lengthBuffer);
+            int maxTxSize = 1 + txSizeWithoutSignature + MAX_LEGACY_SIGNATURE_LENGTH;
+
+            var txBuffer = buffer[0..maxTxSize];
+
+            var signatureBuffer = txBuffer[^MAX_LEGACY_SIGNATURE_LENGTH..];
+
+            SignAndEncode(signDataBuffer, signatureBuffer, tx.ChainId, out int signatureLength);
+
+            if(signatureLength < MAX_LEGACY_SIGNATURE_LENGTH)
+            {
+                txBuffer = txBuffer[..^(MAX_LEGACY_SIGNATURE_LENGTH - signatureLength)];
+            }
+
+            int oldLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0]);
+            int newLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0] + signatureLength);
+
+            if(newLengthBytes == oldLengthBytes)
+            {
+                //Dont need the extra byte for the length increase
+                txBuffer = txBuffer[1..];
+            }
+
+            tx.Encode(lengthBuffer, txBuffer, signatureLength);
+
+            Span<byte> txHashBuffer = stackalloc byte[32];
+            if(!Keccak256.TryHashData(txBuffer, txHashBuffer))
+            {
+                throw new InvalidOperationException("Failed to calculate tx hash");
+            }
+
+            txHash = HexUtils.ToPrefixedHexString(txHashBuffer);
+            return HexUtils.ToPrefixedHexString(txBuffer);
         }
-
-        int oldLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0]);
-        int newLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0] + signatureLength);
-
-        if(newLengthBytes == oldLengthBytes)
+        finally
         {
-            //Dont need the extra byte for the length increase
-            txBuffer = txBuffer[1..];
+            if(rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
         }
-
-        tx.Encode(lengthBuffer, txBuffer, signatureLength);
-
-        Span<byte> txHashBuffer = stackalloc byte[32];
-        if(!Keccak256.TryHashData(txBuffer, txHashBuffer))
-        {
-            throw new InvalidOperationException("Failed to calculate tx hash");
-        }
-
-        txHash = HexUtils.ToPrefixedHexString(txHashBuffer);
-        return HexUtils.ToPrefixedHexString(txBuffer);
     }
 
     private void SignAndEncode(ReadOnlySpan<byte> signDataBuffer, Span<byte> signatureBuffer, ulong chainId, out int encodedSignatureLength)

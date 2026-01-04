@@ -13,7 +13,7 @@ internal class ByteArrayHexConverter : JsonConverter<byte[]>
     {
         int charCount = (value.Length * 2) + 2;
         char[]? rented = null;
-        var buffer = charCount <= 512
+        var buffer = charCount <= 4096
             ? stackalloc char[charCount]
             : (rented = ArrayPool<char>.Shared.Rent(charCount));
 

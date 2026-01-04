@@ -2,6 +2,7 @@
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Tx;
 using EtherSharp.Types;
+using System.Buffers;
 using System.Buffers.Binary;
 
 namespace EtherSharp.Client.Services.FlashCallExecutor;
@@ -53,40 +54,54 @@ internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFla
         }
 
         int argsLength = 2 + deployment.Data.Length + call.Data.Length;
-        Span<byte> buffer = stackalloc byte[argsLength];
 
-        BinaryPrimitives.WriteUInt16BigEndian(buffer, (ushort) deployment.Data.Length);
-        deployment.Data.Span.CopyTo(buffer[2..]);
-        call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 2)..]);
+        byte[]? rented = null;
+        var buffer = argsLength <= 4096
+            ? stackalloc byte[argsLength]
+            : (rented = ArrayPool<byte>.Shared.Rent(argsLength)).AsSpan(0, argsLength);
 
-        string payload = String.Create(
-            2 + (buffer.Length * 2),
-            buffer,
-            (chars, buffer) =>
-            {
-                "0x".CopyTo(chars);
-                Convert.TryToHexString(buffer, chars[2..], out _);
-            }
-        );
-
-        var result = await _ethRpcModule.CallAsync(
-            null,
-            _configuration.ContractAddress,
-            null,
-            null,
-            call.Value,
-            payload,
-            targetHeight,
-            cancellationToken
-        );
-
-        var data = result.Unwrap(null);
-
-        return data.Span[0] switch
+        try
         {
-            0 => new TxCallResult.Reverted(data[1..]),
-            1 => new TxCallResult.Success(data[1..]),
-            _ => throw new ImpossibleException()
-        };
+            BinaryPrimitives.WriteUInt16BigEndian(buffer, (ushort) deployment.Data.Length);
+            deployment.Data.Span.CopyTo(buffer[2..]);
+            call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 2)..]);
+
+            string payload = String.Create(
+                2 + (argsLength * 2),
+                buffer,
+                (chars, buffer) =>
+                {
+                    "0x".CopyTo(chars);
+                    Convert.TryToHexString(buffer, chars[2..], out _);
+                }
+            );
+
+            var result = await _ethRpcModule.CallAsync(
+                null,
+                _configuration.ContractAddress,
+                null,
+                null,
+                call.Value,
+                payload,
+                targetHeight,
+                cancellationToken
+            );
+
+            var data = result.Unwrap(null);
+
+            return data.Span[0] switch
+            {
+                0 => new TxCallResult.Reverted(data[1..]),
+                1 => new TxCallResult.Success(data[1..]),
+                _ => throw new ImpossibleException()
+            };
+        }
+        finally
+        {
+            if(rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
     }
 }

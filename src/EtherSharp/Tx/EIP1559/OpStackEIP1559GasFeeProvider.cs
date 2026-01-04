@@ -4,6 +4,7 @@ using EtherSharp.Common;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Numerics;
 
@@ -43,27 +44,38 @@ public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSign
         int txByteSize = mockTx.GetEncodedSize(listSizes);
         int simulationBufferSize = (32 * ((txByteSize - 1) / 32)) + 32 + 69;
 
-        Span<byte> simulationPayloadBuffer = simulationBufferSize > 8192
-            ? new byte[simulationBufferSize]
-            : stackalloc byte[simulationBufferSize];
+        byte[]? rented = null;
+        Span<byte> simulationPayloadBuffer = simulationBufferSize <= 4096
+            ? stackalloc byte[simulationBufferSize]
+            : (rented = ArrayPool<byte>.Shared.Rent(simulationBufferSize)).AsSpan(0, simulationBufferSize);
 
-        simulationPayloadBuffer[0] = 0x49;
-        simulationPayloadBuffer[1] = 0x94;
-        simulationPayloadBuffer[2] = 0x8e;
-        simulationPayloadBuffer[3] = 0x0e;
+        try
+        {
+            simulationPayloadBuffer[0] = 0x49;
+            simulationPayloadBuffer[1] = 0x94;
+            simulationPayloadBuffer[2] = 0x8e;
+            simulationPayloadBuffer[3] = 0x0e;
 
-        simulationPayloadBuffer[35] = 32;
+            simulationPayloadBuffer[35] = 32;
 
-        BinaryPrimitives.WriteInt32BigEndian(simulationPayloadBuffer[64..], txByteSize);
+            BinaryPrimitives.WriteInt32BigEndian(simulationPayloadBuffer[64..], txByteSize);
 
-        simulationPayloadBuffer[68] = EIP1559Transaction.PrefixByte;
-        mockTx.Encode(listSizes, simulationPayloadBuffer[69..]);
+            simulationPayloadBuffer[68] = EIP1559Transaction.PrefixByte;
+            mockTx.Encode(listSizes, simulationPayloadBuffer[69..]);
 
-        return SendEstimationRequestsAsync(
-            txInput,
-            HexUtils.ToPrefixedHexString(simulationPayloadBuffer),
-            cancellationToken
-        );
+            return SendEstimationRequestsAsync(
+                txInput,
+                HexUtils.ToPrefixedHexString(simulationPayloadBuffer),
+                cancellationToken
+            );
+        }
+        finally
+        {
+            if(rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
     }
 
     private async Task<EIP1559GasParams> SendEstimationRequestsAsync(ITxInput txInput, string getL1FeePayloadHex, CancellationToken cancellationToken)
