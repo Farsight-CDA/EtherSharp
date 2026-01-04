@@ -1,6 +1,24 @@
 [
     {
+        "type": "constructor",
+        "inputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
         "type": "fallback",
         "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "deploymentHeight",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
     }
 ]

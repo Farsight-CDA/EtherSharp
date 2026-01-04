@@ -6,19 +6,28 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Client.Services.FlashCallExecutor;
 
-internal record DeployedFlashCallExecutorConfiguration(ulong DeploymentHeight, Address ContractAddress, bool AllowFallback, int MaxPayloadSize);
+internal record DeployedFlashCallExecutorConfiguration(Address ContractAddress, bool AllowFallback, int MaxPayloadSize);
 internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFlashCallExecutorConfiguration configuration) : IFlashCallExecutor
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly DeployedFlashCallExecutorConfiguration _configuration = configuration;
     private readonly ConstructorFlashCallExecutor _constructorFlashCallExecutor = new ConstructorFlashCallExecutor(ethRpcModule);
 
+    private ulong _deploymentHeight;
+
+    public Address ContractAddress => _configuration.ContractAddress;
+
     //Arbitrary limit
     public int MaxPayloadSize => _configuration.MaxPayloadSize;
 
+    public void SetDeploymentHeight(ulong deploymentHeight)
+    {
+        _deploymentHeight = deploymentHeight;
+    }
+
     public int GetMaxPayloadSize(TargetBlockNumber targetHeight)
     {
-        bool useFallback = targetHeight.Value > 0 && targetHeight.Value <= _configuration.DeploymentHeight;
+        bool useFallback = targetHeight.Value > 0 && targetHeight.Value <= _deploymentHeight;
         return useFallback
             ? _constructorFlashCallExecutor.GetMaxPayloadSize(targetHeight)
             : _configuration.MaxPayloadSize;
@@ -31,7 +40,12 @@ internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFla
             throw new NotSupportedException("Contract deployment cannot contain any value");
         }
 
-        if(targetHeight.Value > 0 && targetHeight.Value <= _configuration.DeploymentHeight)
+        if(_deploymentHeight == 0)
+        {
+            return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, targetHeight, cancellationToken);
+        }
+
+        if(targetHeight.Value > 0 && targetHeight.Value <= _deploymentHeight)
         {
             return !_configuration.AllowFallback
                 ? throw new InvalidOperationException($"Missing FlashCall contract deployment at height {targetHeight.Value}")

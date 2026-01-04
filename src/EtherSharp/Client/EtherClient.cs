@@ -210,19 +210,25 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             _txScheduler = _provider.GetRequiredService<ITxScheduler>();
         }
 
+        initQuery ??= IQuery.Noop<T>(default!);
+        var flashCallSetupQuery = _flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor
+            ? IQuery.Call(IContractCall<BigInteger>.ForContractCall(
+                deployedFlashCallExecutor.ContractAddress, 0, Convert.FromHexString("217CD3E1"), new ABI.AbiEncoder(), x => x.UInt256())
+            )
+            : IQuery.Noop<BigInteger>(0);
+
         T? initResult;
 
-        if(initQuery is null)
-        {
-            _chainId = await _ethRpcModule.ChainIdAsync(cancellationToken);
-            initResult = default;
-        }
-        else
-        {
-            (_chainId, initResult) = await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(IQuery.GetChainId(), initQuery), TargetBlockNumber.Latest, cancellationToken);
-        }
+        (_chainId, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
+            IQuery.Combine(IQuery.GetChainId(), initQuery, flashCallSetupQuery),
+            TargetBlockNumber.Latest,
+            cancellationToken
+        );
 
-        _chainId = await _ethRpcModule.ChainIdAsync(cancellationToken);
+        if(deploymentHeight > 0)
+        {
+            ((DeployedFlashCallExecutor) _flashCallExecutor).SetDeploymentHeight((ulong) deploymentHeight);
+        }
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
         {

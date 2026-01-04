@@ -332,14 +332,13 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
     /// <summary>
     /// Configures the client to use a deployed FlashCall contract.
     /// </summary>
-    /// <param name="deploymentHeight"></param>
     /// <param name="contractAddress"></param>
     /// <param name="allowFallback"></param>
     /// <param name="maxPayloadSize"></param>
     /// <returns></returns>
-    public EtherClientBuilder WithFlashCallContract(ulong deploymentHeight, Address contractAddress, bool allowFallback = true, int maxPayloadSize = 3 * 1024 * 1024)
+    public EtherClientBuilder WithFlashCallContract(Address contractAddress, bool allowFallback = true, int maxPayloadSize = 3 * 1024 * 1024)
     {
-        _services.AddOrReplaceSingleton(new DeployedFlashCallExecutorConfiguration(deploymentHeight, contractAddress, allowFallback, maxPayloadSize));
+        _services.AddOrReplaceSingleton(new DeployedFlashCallExecutorConfiguration(contractAddress, allowFallback, maxPayloadSize));
         _services.AddOrReplaceSingleton<IFlashCallExecutor, DeployedFlashCallExecutor>();
         return this;
     }
