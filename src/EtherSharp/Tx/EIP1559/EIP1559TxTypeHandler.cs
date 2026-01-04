@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.TxTypeHandler;
+using EtherSharp.Common;
 using EtherSharp.Crypto;
 using EtherSharp.RLP;
 using EtherSharp.RPC;
@@ -72,8 +73,8 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
             throw new InvalidOperationException("Failed to calculate tx hash");
         }
 
-        txHash = $"0x{Convert.ToHexString(txHashBuffer)}";
-        return $"0x{Convert.ToHexString(signedTxBuffer)}";
+        txHash = HexUtils.ToPrefixedHexString(txHashBuffer);
+        return HexUtils.ToPrefixedHexString(signedTxBuffer);
     }
 
     private void SignAndEncode(Span<byte> txTemplateBuffer, Span<byte> signatureBuffer, out int encodedSignatureLength)

@@ -1,4 +1,5 @@
-﻿using EtherSharp.Common.Converter;
+﻿using EtherSharp.Common;
+using EtherSharp.Common.Converter;
 using EtherSharp.EIPs;
 using System.Globalization;
 using System.Text.Json.Serialization;
@@ -85,7 +86,7 @@ public class Address
     /// <param name="b"></param>
     /// <returns></returns>
     public static Address FromBytes(ReadOnlySpan<byte> b)
-        => new Address($"0x{Convert.ToHexString(b)}", b.ToArray());
+        => new Address(HexUtils.ToPrefixedHexString(b), b.ToArray());
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)

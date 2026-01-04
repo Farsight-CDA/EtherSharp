@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Common.Converter;
+
 internal class DateTimeOffsetHexConverter : JsonConverter<DateTimeOffset>
 {
     public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -13,5 +14,18 @@ internal class DateTimeOffsetHexConverter : JsonConverter<DateTimeOffset>
     }
 
     public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
-        => writer.WriteStringValue($"0x{value:X}");
+    {
+        Span<char> buffer = stackalloc char[10];
+        buffer[0] = '0';
+        buffer[1] = 'x';
+
+        if(value.TryFormat(buffer[2..], out int charsWritten, "X"))
+        {
+            writer.WriteStringValue(buffer[..(2 + charsWritten)]);
+        }
+        else
+        {
+            throw new FormatException("The value could not be formatted as hex.");
+        }
+    }
 }
