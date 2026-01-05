@@ -16,10 +16,15 @@ internal class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlash
     private const int MAX_INITCODE_SIZE = 48 * 1024;
     private const int MAX_PAYLOAD_SIZE = MAX_INITCODE_SIZE - 2 - FLASHCALL_CONTRACT_LENGTH;
 
+    private const int MAX_RUNTIMECODE_SIZE = 24 * 1024;
+
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
     public int GetMaxPayloadSize(TargetBlockNumber targetHeight)
         => MAX_PAYLOAD_SIZE;
+
+    public int GetMaxResultSize(TargetBlockNumber targetHeight)
+        => MAX_RUNTIMECODE_SIZE;
 
     public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IContractCall call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {

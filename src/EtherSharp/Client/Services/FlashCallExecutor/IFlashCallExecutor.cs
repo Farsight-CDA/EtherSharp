@@ -9,9 +9,16 @@ namespace EtherSharp.Client.Services.FlashCallExecutor;
 public interface IFlashCallExecutor
 {
     /// <summary>
-    /// Gets the maximum amount of bytes that can be sent as a payload at a given target height.
+    /// Gets the maximum amount of bytes that can be sent as a payload at the given target height.
     /// </summary>
     public int GetMaxPayloadSize(TargetBlockNumber targetHeight);
+
+    /// <summary>
+    /// Gets the maximum amount of bytes that can be returned from a call at the given target height.
+    /// </summary>
+    /// <param name="targetHeight"></param>
+    /// <returns></returns>
+    public int GetMaxResultSize(TargetBlockNumber targetHeight);
 
     /// <summary>
     /// Executes a flash call with the given payload.

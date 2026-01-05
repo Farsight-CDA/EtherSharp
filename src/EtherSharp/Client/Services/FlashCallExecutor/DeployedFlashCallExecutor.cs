@@ -7,7 +7,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Client.Services.FlashCallExecutor;
 
-internal record DeployedFlashCallExecutorConfiguration(Address ContractAddress, bool AllowFallback, int MaxPayloadSize);
+internal record DeployedFlashCallExecutorConfiguration(Address ContractAddress, bool AllowFallback, int MaxPayloadSize, int MaxResultSize);
 internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFlashCallExecutorConfiguration configuration) : IFlashCallExecutor
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
@@ -18,13 +18,8 @@ internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFla
 
     public Address ContractAddress => _configuration.ContractAddress;
 
-    //Arbitrary limit
-    public int MaxPayloadSize => _configuration.MaxPayloadSize;
-
     public void SetDeploymentHeight(ulong deploymentHeight)
-    {
-        _deploymentHeight = deploymentHeight;
-    }
+        => _deploymentHeight = deploymentHeight;
 
     public int GetMaxPayloadSize(TargetBlockNumber targetHeight)
     {
@@ -32,6 +27,13 @@ internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFla
         return useFallback
             ? _constructorFlashCallExecutor.GetMaxPayloadSize(targetHeight)
             : _configuration.MaxPayloadSize;
+    }
+    public int GetMaxResultSize(TargetBlockNumber targetHeight)
+    {
+        bool useFallback = targetHeight.Value > 0 && targetHeight.Value <= _deploymentHeight;
+        return useFallback
+            ? _constructorFlashCallExecutor.GetMaxResultSize(targetHeight)
+            : _configuration.MaxResultSize;
     }
 
     public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IContractCall call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
