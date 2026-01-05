@@ -4,19 +4,17 @@ internal enum QueryOperationId : byte
 {
     Call = 0,
     CallAndMeasureGas = 1,
+    FlashCall = 2,
 
-    GetCode = 130,
-    GetCodeHash = 131,
+    GetCode = 10,
+    GetCodeHash = 11,
 
-    GetBlockNumber = 140,
-    GetBlockTimestamp = 141,
-    GetBlockGasLimit = 142,
-    GetBlockGasPrice = 143,
-    GetBlockBaseFee = 144,
+    GetChainId = 20,
+    GetBlockNumber = 21,
+    GetBlockTimestamp = 22,
+    GetBlockGasLimit = 23,
+    GetBlockGasPrice = 24,
+    GetBlockBaseFee = 25,
 
-    GetBalance = 150,
-
-    GetChainId = 160,
-
-    FlashCall = 170
+    GetBalance = 30
 }

@@ -4,6 +4,7 @@ using EtherSharp.Tx;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Buffers;
 
 namespace EtherSharp.Client.Services.QueryExecutor;
 
@@ -27,6 +28,8 @@ internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, ISer
                 byte[] payloadBytes = QuerierUtils.EncodeCalls(
                     query.Queries.Skip(i),
                     _flashCallExecutor.GetMaxPayloadSize(targetHeight) - QuerierUtils.QuerierCode.Length,
+                    _flashCallExecutor.GetMaxResultSize(targetHeight),
+                    out int payloadSize,
                     out int callCount,
                     out var ethValue
                 );
@@ -38,10 +41,12 @@ internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, ISer
 
                 var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
                     IContractDeployment.Create(QuerierUtils.QuerierCode, 0),
-                    IContractCall.ForRawContractCall(null!, ethValue, payloadBytes),
+                    IContractCall.ForRawContractCall(null!, ethValue, payloadBytes.AsMemory(0, payloadSize)),
                     targetHeight,
                     cancellationToken
                 );
+
+                ArrayPool<byte>.Shared.Return(payloadBytes);
 
                 var output = callResult.Unwrap(Address.Zero);
 
