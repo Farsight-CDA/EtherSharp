@@ -2,10 +2,10 @@
 pragma solidity ^0.8.30;
 
 contract Querier {
-    uint constant RETURN_GAS_BUFFER = 20_000;
-    uint constant ABORT_GAS_BUFFER = 30_000;
+    uint constant RETURN_GAS_BUFFER = 50_000;
+    uint constant ABORT_GAS_BUFFER = 55_000;
 
-    fallback() external {
+    fallback() external payable {
         assembly {
             let maxReturnSize := shr(224, calldataload(0))
 
