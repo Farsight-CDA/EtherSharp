@@ -37,6 +37,7 @@ internal class QuerierUtils
         encodedCallCount = callCount;
 
         byte[] arr = ArrayPool<byte>.Shared.Rent(payloadSize);
+        arr.AsSpan(0, payloadSize).Clear();
 
         BinaryPrimitives.WriteUInt32BigEndian(arr.AsSpan(0, 4), (uint) maxResultSize);
 

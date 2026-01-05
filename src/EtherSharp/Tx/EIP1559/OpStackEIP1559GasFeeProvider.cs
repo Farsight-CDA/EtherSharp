@@ -45,9 +45,14 @@ public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSign
         int simulationBufferSize = (32 * ((txByteSize - 1) / 32)) + 32 + 69;
 
         byte[]? rented = null;
-        Span<byte> simulationPayloadBuffer = simulationBufferSize <= 4096
+        var simulationPayloadBuffer = simulationBufferSize <= 4096
             ? stackalloc byte[simulationBufferSize]
             : (rented = ArrayPool<byte>.Shared.Rent(simulationBufferSize)).AsSpan(0, simulationBufferSize);
+
+        if(rented is not null)
+        {
+            simulationPayloadBuffer.Clear();
+        }
 
         try
         {
