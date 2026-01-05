@@ -79,10 +79,10 @@ contract Querier {
                     }
 
                     mstore8(outputOffset, success)
-                    mstore(add(outputOffset, 1), shl(232, returndatasize()))
-                    mstore(add(outputOffset, 4), shl(128, gasUsed))
-                    returndatacopy(add(outputOffset, 20), 0, returndatasize())
-                    outputOffset := add(outputOffset, add(20, returndatasize()))
+                    mstore(add(outputOffset, 1), shl(224, returndatasize()))
+                    mstore(add(outputOffset, 5), shl(192, gasUsed))
+                    returndatacopy(add(outputOffset, 13), 0, returndatasize())
+                    outputOffset := add(outputOffset, add(13, returndatasize()))
                 }
                 //flash_call(uint16 codeLength, uint24 calldataLength, uint256 callValue, bytes code, bytes calldata)
                 case 2 {

@@ -29,22 +29,21 @@ internal class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQ
         _txInput.Data.Span.CopyTo(buffer[56..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
-    {
-        Span<byte> lengthBuffer = stackalloc byte[4];
-        resultData[1..4].CopyTo(lengthBuffer[1..4]);
-        int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
-        return dataLength + 12;
-    }
+        => (int) BinaryPrimitives.ReadUInt32BigEndian(resultData[1..5])
+            + 1
+            + 4
+            + 8;
+
     (QueryResult<T>, ulong) IQuery<(QueryResult<T>, ulong)>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
     {
         byte[] queryResult = queryResults[0];
         bool success = queryResult[0] == 0x01;
-        ulong gasUsed = BinaryPrimitives.ReadUInt64BigEndian(queryResult.AsSpan(4, 8));
+        ulong gasUsed = BinaryPrimitives.ReadUInt64BigEndian(queryResult.AsSpan(5, 13));
 
         QueryResult<T> result = success switch
         {
-            true => new QueryResult<T>.Success(_txInput.ReadResultFrom(queryResult.AsMemory(12))),
-            false => new QueryResult<T>.Reverted(queryResult[12..])
+            true => new QueryResult<T>.Success(_txInput.ReadResultFrom(queryResult.AsMemory(13))),
+            false => new QueryResult<T>.Reverted(queryResult[13..])
         };
 
         return (result, gasUsed);
