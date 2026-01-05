@@ -10,7 +10,7 @@ internal class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IC
     private readonly ITxInput<T> _txInput = txInput;
     private readonly IContractDeployment _deployment = deployment;
 
-    public int CallDataLength => 1 + 38 + _deployment.ByteCode.Length + _txInput.Data.Length;
+    public int CallDataLength => 1 + 37 + _deployment.ByteCode.Length + _txInput.Data.Length;
     public BigInteger EthValue => _deployment.Value + _txInput.Value;
     IReadOnlyList<IQuery> IQuery<QueryResult<T>>.Queries => [this];
 
@@ -28,8 +28,8 @@ internal class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IC
         AbiTypes.UInt.EncodeInto((uint) _txInput.Data.Length, buffer[2..5], true);
         AbiTypes.BigInteger.EncodeInto(_txInput.Value, true, buffer[5..37]);
 
-        _deployment.ByteCode.ByteCode.Span.CopyTo(buffer[38..]);
-        _txInput.Data.Span.CopyTo(buffer[(38 + _deployment.ByteCode.Length)..]);
+        _deployment.ByteCode.ByteCode.Span.CopyTo(buffer[37..]);
+        _txInput.Data.Span.CopyTo(buffer[(37 + _deployment.ByteCode.Length)..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
     {
