@@ -39,7 +39,7 @@ internal class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<
     {
         byte[] queryResult = queryResults[0];
         bool success = queryResult[0] == 0x01;
-        byte[] returnData = queryResult[4..];
+        var returnData = queryResult.AsMemory(4);
 
         return success switch
         {

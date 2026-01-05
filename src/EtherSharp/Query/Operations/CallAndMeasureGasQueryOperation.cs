@@ -38,12 +38,12 @@ internal class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQ
     {
         byte[] queryResult = queryResults[0];
         bool success = queryResult[0] == 0x01;
-        ulong gasUsed = BinaryPrimitives.ReadUInt64BigEndian(queryResult.AsSpan(5, 13));
+        ulong gasUsed = BinaryPrimitives.ReadUInt64BigEndian(queryResult.AsSpan(5, 8));
 
         QueryResult<T> result = success switch
         {
             true => new QueryResult<T>.Success(_txInput.ReadResultFrom(queryResult.AsMemory(13))),
-            false => new QueryResult<T>.Reverted(queryResult[13..])
+            false => new QueryResult<T>.Reverted(queryResult.AsMemory(13))
         };
 
         return (result, gasUsed);

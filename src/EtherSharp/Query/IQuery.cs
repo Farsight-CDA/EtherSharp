@@ -20,7 +20,7 @@ public interface IQuery
         => SafeCall(input).Map(x => x switch
         {
             QueryResult<T>.Success s => s.Value,
-            QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data),
+            QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data.Span),
             _ => throw new ImpossibleException()
         });
 
@@ -33,7 +33,7 @@ public interface IQuery
             var unwrapped = result switch
             {
                 QueryResult<T>.Success s => s.Value,
-                QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data),
+                QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data.Span),
                 _ => throw new ImpossibleException()
             };
             return (unwrapped, gasUsed);
@@ -45,7 +45,7 @@ public interface IQuery
         => SafeFlashCall(deployment, input).Map(x => x switch
         {
             QueryResult<T>.Success s => s.Value,
-            QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data),
+            QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data.Span),
             _ => throw new ImpossibleException()
         });
 
