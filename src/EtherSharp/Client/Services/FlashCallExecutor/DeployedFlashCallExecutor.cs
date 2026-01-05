@@ -89,7 +89,7 @@ internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFla
                 cancellationToken
             );
 
-            var data = result.Unwrap(null);
+            var data = result.Unwrap(_configuration.ContractAddress);
 
             return data.Span[0] switch
             {
