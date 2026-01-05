@@ -12,6 +12,7 @@ internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, ISer
 {
     private readonly IFlashCallExecutor _flashCallExecutor = flashCallExecutor;
     private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<FlashCallQueryExecutor>();
+    private readonly IContractDeployment _querierDeployment = IContractDeployment.Create(QuerierUtils.QuerierCode, 0);
 
     public async Task<TQuery> ExecuteQueryAsync<TQuery>(IQuery<TQuery> query, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
@@ -40,7 +41,7 @@ internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, ISer
                 }
 
                 var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
-                    IContractDeployment.Create(QuerierUtils.QuerierCode, 0),
+                    _querierDeployment,
                     IContractCall.ForRawContractCall(null!, ethValue, payloadBytes.AsMemory(0, payloadSize)),
                     targetHeight,
                     cancellationToken
