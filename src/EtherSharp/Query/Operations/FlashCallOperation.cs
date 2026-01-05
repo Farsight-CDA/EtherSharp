@@ -24,7 +24,7 @@ internal class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IC
         buffer[0] = (byte) QueryOperationId.FlashCall;
         buffer = buffer[1..];
 
-        AbiTypes.UShort.EncodeInto((ushort) _deployment.ByteCode.Length, buffer[1..2]);
+        AbiTypes.UShort.EncodeInto((ushort) _deployment.ByteCode.Length, buffer[0..2]);
         AbiTypes.UInt.EncodeInto((uint) _txInput.Data.Length, buffer[2..5], true);
         AbiTypes.BigInteger.EncodeInto(_txInput.Value, true, buffer[5..37]);
 
