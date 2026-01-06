@@ -14,7 +14,7 @@ internal class ULongHexConverter : JsonConverter<ulong>
 
     public override void Write(Utf8JsonWriter writer, ulong value, JsonSerializerOptions options)
     {
-        Span<char> buffer = stackalloc char[10];
+        Span<char> buffer = stackalloc char[18];
         buffer[0] = '0';
         buffer[1] = 'x';
 
