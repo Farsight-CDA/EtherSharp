@@ -6,8 +6,46 @@ namespace EtherSharp.Common.Converter;
 
 internal class ByteArrayHexConverter : JsonConverter<byte[]>
 {
-    public override byte[] Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-      => Convert.FromHexString((reader.GetString() ?? throw new InvalidOperationException("Null is not a byte[]")).AsSpan()[2..]);
+    public override byte[]? Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
+    {
+        if(reader.TokenType == JsonTokenType.Null)
+        {
+            return null;
+        }
+
+        int length = reader.HasValueSequence
+            ? (int) reader.ValueSequence.Length
+            : reader.ValueSpan.Length;
+
+        char[]? rented = null;
+        var buffer = length <= 4096
+            ? stackalloc char[length]
+            : (rented = ArrayPool<char>.Shared.Rent(length));
+
+        try
+        {
+            int written = reader.CopyString(buffer);
+            ReadOnlySpan<char> hex = buffer[..written];
+
+            if(hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                hex = hex[2..];
+            }
+
+            return Convert.FromHexString(hex);
+        }
+        finally
+        {
+            if(rented is not null)
+            {
+                ArrayPool<char>.Shared.Return(rented);
+            }
+        }
+    }
 
     public override void Write(Utf8JsonWriter writer, byte[] value, JsonSerializerOptions options)
     {
