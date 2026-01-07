@@ -24,6 +24,7 @@
 	<PropertyGroup>
 		<WarningsAsErrors>$(WarningsAsErrors);NU1605;CS8604</WarningsAsErrors>
 		<NoWarn>1701;1702;CA1720;CA1716</NoWarn>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
