@@ -22,7 +22,7 @@ internal class ByteArrayHexConverter : JsonConverter<byte[]>
             : reader.ValueSpan.Length;
 
         char[]? rented = null;
-        var buffer = length <= 4096
+        var buffer = length <= 2048
             ? stackalloc char[length]
             : (rented = ArrayPool<char>.Shared.Rent(length));
 
