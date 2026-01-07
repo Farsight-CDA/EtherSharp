@@ -3,9 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Common.Extensions;
+
 internal static class IServiceProviderExtensions
 {
-    public static OTELCounter<T>? CreateOTELCounter<T>(this IServiceProvider provider,
+    internal static OTELCounter<T>? CreateOTELCounter<T>(this IServiceProvider provider,
         string name, string? unit = null, string? description = null)
         where T : struct
     {
@@ -22,7 +23,7 @@ internal static class IServiceProviderExtensions
         return new OTELCounter<T>(counter, options);
     }
 
-    public static OTELUpDownCounter<T>? CreateOTELUpDownCounter<T>(this IServiceProvider provider,
+    internal static OTELUpDownCounter<T>? CreateOTELUpDownCounter<T>(this IServiceProvider provider,
         string name, string? unit = null, string? description = null)
         where T : struct
     {
@@ -39,7 +40,7 @@ internal static class IServiceProviderExtensions
         return new OTELUpDownCounter<T>(counter, options);
     }
 
-    public static ObservableUpDownCounter<T>? CreateOTELObservableUpDownCounter<T>(this IServiceProvider provider,
+    internal static ObservableUpDownCounter<T>? CreateOTELObservableUpDownCounter<T>(this IServiceProvider provider,
         string name, Func<T> observeValue, string? unit = null, string? description = null)
         where T : struct
     {
@@ -60,7 +61,7 @@ internal static class IServiceProviderExtensions
             );
     }
 
-    public static ObservableGauge<T>? CreateOTELObservableGauge<T>(this IServiceProvider provider,
+    internal static ObservableGauge<T>? CreateOTELObservableGauge<T>(this IServiceProvider provider,
         string name, Func<T> observeValue, string? unit = null, string? description = null)
         where T : struct
     {
