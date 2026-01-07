@@ -5,7 +5,7 @@ using System.Numerics;
 
 namespace EtherSharp.Numerics;
 
-public static class BigIntegerExtensions
+internal static class BigIntegerExtensions
 {
     public static byte[] ToBytes32(this BigInteger value, bool isBigEndian)
     {
