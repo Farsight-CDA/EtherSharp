@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Buffers;
+using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -8,36 +9,53 @@ internal class UnsignedBigIntHexConverter : JsonConverter<BigInteger>
 {
     public override BigInteger Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        string hexNumber = reader.GetString() ?? throw new JsonException("Cannot parse null to signed BigInteger");
+        if(reader.TokenType != JsonTokenType.String)
+        {
+            throw new JsonException("Expected string token.");
+        }
+        int valueLength = reader.HasValueSequence
+            ? (int) reader.ValueSequence.Length
+            : reader.ValueSpan.Length;
 
-        int hexChars = hexNumber.Length - 2;
-
-        if(hexChars > 66)
+        if(valueLength > 80)
         {
             throw new InvalidOperationException("Unexpected number length");
         }
 
-        Span<char> rawHex = stackalloc char[((hexChars - 1) / 2 * 2) + 2];
-        int missingChars = rawHex.Length - hexChars;
-        rawHex[..missingChars].Fill('0');
-        hexNumber.AsSpan(2).CopyTo(rawHex[missingChars..]);
+        Span<char> sourceBuffer = stackalloc char[valueLength];
+        int charsWritten = reader.CopyString(sourceBuffer);
 
-        if(rawHex.Length > 64)
+        int hexChars = charsWritten - 2;
+        if(hexChars == 0 || hexChars > 64)
         {
             throw new InvalidOperationException("Unexpected number length");
         }
 
-        Span<byte> buffer = stackalloc byte[rawHex.Length / 2];
+        bool isUneven = hexChars % 2 != 0;
+        Span<char> rawHex = stackalloc char[isUneven ? hexChars + 1 : hexChars];
 
-        var res = Convert.FromHexString(rawHex, buffer, out _, out _);
-        return res != System.Buffers.OperationStatus.Done
+        if(isUneven)
+        {
+            rawHex[0] = '0';
+            sourceBuffer[2..charsWritten].CopyTo(rawHex[1..]);
+        }
+        else
+        {
+            sourceBuffer[2..charsWritten].CopyTo(rawHex);
+        }
+
+        Span<byte> byteBuffer = stackalloc byte[rawHex.Length / 2];
+
+        var status = Convert.FromHexString(rawHex, byteBuffer, out _, out _);
+
+        return status != OperationStatus.Done
             ? throw new InvalidOperationException("Failed to parse resulting hex")
-            : new BigInteger(buffer, true, true);
+            : new BigInteger(byteBuffer, isUnsigned: true, isBigEndian: true);
     }
 
     public override void Write(Utf8JsonWriter writer, BigInteger value, JsonSerializerOptions options)
     {
-        Span<char> buffer = stackalloc char[10];
+        Span<char> buffer = stackalloc char[66];
         buffer[0] = '0';
         buffer[1] = 'x';
 
