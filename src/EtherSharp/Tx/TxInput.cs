@@ -1,19 +1,19 @@
 ﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
-using System.Numerics;
 
 namespace EtherSharp.Tx;
 
-internal class TxInput(Address to, BigInteger value, ReadOnlyMemory<byte> data)
+internal class TxInput(Address to, UInt256 value, ReadOnlyMemory<byte> data)
     : IContractCall, ITxInput
 {
     public Address To { get; } = to;
 
-    public BigInteger Value { get; } = value;
+    public UInt256 Value { get; } = value;
     public ReadOnlyMemory<byte> Data { get; } = data;
 }
 
-internal class TxInput<T>(Address to, BigInteger value, ReadOnlyMemory<byte> data, Func<ReadOnlyMemory<byte>, T> decoder)
+internal class TxInput<T>(Address to, UInt256 value, ReadOnlyMemory<byte> data, Func<ReadOnlyMemory<byte>, T> decoder)
     : TxInput(to, value, data), IContractCall<T>, ITxInput<T>
 {
     private readonly Func<ReadOnlyMemory<byte>, T> _decoder = decoder;

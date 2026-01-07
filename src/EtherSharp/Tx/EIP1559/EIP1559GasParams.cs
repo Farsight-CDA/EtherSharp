@@ -1,56 +1,49 @@
-﻿using EtherSharp.Tx.Types;
+﻿using EtherSharp.Numerics;
+using EtherSharp.Tx.Types;
 using System.Buffers.Binary;
-using System.Numerics;
 
 namespace EtherSharp.Tx.EIP1559;
 
 public record EIP1559GasParams(
     ulong GasLimit,
-    BigInteger MaxFeePerGas,
-    BigInteger MaxPriorityFeePerGas
+    UInt256 MaxFeePerGas,
+    UInt256 MaxPriorityFeePerGas
 ) : ITxGasParams<EIP1559GasParams>
 {
     static EIP1559GasParams ITxGasParams<EIP1559GasParams>.Decode(ReadOnlySpan<byte> data)
     {
-        int maxFeePerGasBytes = data[8];
-        int maxPriorityFeePerGasBytes = data[8 + 1 + maxFeePerGasBytes];
-
         ulong gasLimit = BinaryPrimitives.ReadUInt64BigEndian(data[0..8]);
-        var maxFeePerGas = new BigInteger(data.Slice(8 + 1, maxFeePerGasBytes), true);
-        var maxPriorityFeePerGas = new BigInteger(data.Slice(8 + 1 + maxFeePerGasBytes + 1, maxPriorityFeePerGasBytes), true);
+        var maxFeePerGas = BinaryPrimitives.ReadUInt256BigEndian(data[8..40]);
+        var maxPriorityFeePerGas = BinaryPrimitives.ReadUInt256BigEndian(data[40..72]);
 
         return new EIP1559GasParams(gasLimit, maxFeePerGas, maxPriorityFeePerGas);
     }
 
     byte[] ITxGasParams<EIP1559GasParams>.Encode()
     {
-        int maxFeePerGasBytes = MaxFeePerGas.GetByteCount(true);
-        int maxPriorityFeePerGasBytes = MaxPriorityFeePerGas.GetByteCount(true);
+        int size = 8 + 32 + 32;
 
-        int size = 8 + 1 + maxFeePerGasBytes + 1 + maxPriorityFeePerGasBytes;
+        byte[] arr = new byte[size];
+        var buffer = arr.AsSpan();
 
-        byte[] buffer = new byte[size];
+        BinaryPrimitives.WriteUInt64BigEndian(buffer[0..8], GasLimit);
+        BinaryPrimitives.WriteUInt256BigEndian(buffer[8..40], MaxFeePerGas);
+        BinaryPrimitives.WriteUInt256BigEndian(buffer[40..72], MaxPriorityFeePerGas);
 
-        BinaryPrimitives.WriteUInt64BigEndian(buffer.AsSpan(0, 8), GasLimit);
-        buffer[8] = (byte) maxFeePerGasBytes;
-        MaxFeePerGas.TryWriteBytes(buffer.AsSpan(8 + 1, maxFeePerGasBytes), out _, true);
-        buffer[8 + 1 + maxFeePerGasBytes] = (byte) maxPriorityFeePerGasBytes;
-        MaxPriorityFeePerGas.TryWriteBytes(buffer.AsSpan(8 + 1 + maxFeePerGasBytes + 1, maxPriorityFeePerGasBytes), out _, true);
-
-        return buffer;
+        return arr;
     }
 
-    EIP1559GasParams ITxGasParams<EIP1559GasParams>.IncrementByFactor(BigInteger multiplier, BigInteger divider, BigInteger minimumIncrement)
+    EIP1559GasParams ITxGasParams<EIP1559GasParams>.IncrementByFactor(UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement)
     {
         if(multiplier < divider)
         {
             throw new ArgumentException("Multiplier must be larger than divider");
         }
-
+        //
         return new EIP1559GasParams(
             GasLimit,
-            BigInteger.Max(MaxFeePerGas + minimumIncrement, MaxFeePerGas * multiplier / divider),
-            BigInteger.Max(MaxPriorityFeePerGas + minimumIncrement, MaxPriorityFeePerGas * multiplier / divider)
+            UInt256.Max(MaxFeePerGas + minimumIncrement, MaxFeePerGas * multiplier / divider),
+            UInt256.Max(MaxPriorityFeePerGas + minimumIncrement, MaxPriorityFeePerGas * multiplier / divider)
         );
     }
 }

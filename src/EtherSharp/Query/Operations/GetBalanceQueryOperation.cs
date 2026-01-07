@@ -1,16 +1,16 @@
-﻿using EtherSharp.Query;
+﻿using EtherSharp.Numerics;
 using EtherSharp.Types;
-using System.Numerics;
+using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal class GetBalanceQueryOperation(Address user) : IQuery, IQuery<BigInteger>
+internal class GetBalanceQueryOperation(Address user) : IQuery, IQuery<UInt256>
 {
     private readonly Address _user = user;
 
     public int CallDataLength => 21;
-    public BigInteger EthValue => 0;
-    IReadOnlyList<IQuery> IQuery<BigInteger>.Queries => [this];
+    public UInt256 EthValue => 0;
+    IReadOnlyList<IQuery> IQuery<UInt256>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
@@ -20,6 +20,6 @@ internal class GetBalanceQueryOperation(Address user) : IQuery, IQuery<BigIntege
 
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 32;
-    BigInteger IQuery<BigInteger>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
-        => new BigInteger(queryResults[0], true, true);
+    UInt256 IQuery<UInt256>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
+        => BinaryPrimitives.ReadUInt256BigEndian(queryResults[0]);
 }

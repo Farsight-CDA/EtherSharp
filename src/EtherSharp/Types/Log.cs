@@ -1,10 +1,11 @@
 ﻿using EtherSharp.Realtime.Events;
 
 namespace EtherSharp.Types;
+
 public record Log(
     Address Address,
     string BlockHash,
-    uint BlockNumber,
+    ulong BlockNumber,
     uint LogIndex,
     string TransactionHash,
     uint TransactionIndex,

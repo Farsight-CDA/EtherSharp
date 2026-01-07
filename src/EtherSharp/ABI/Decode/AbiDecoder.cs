@@ -1,8 +1,8 @@
 ﻿using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Types;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
 using System.Buffers.Binary;
-using System.Numerics;
 
 namespace EtherSharp.ABI;
 
@@ -130,8 +130,11 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
             > 32 and <= 64 when !isUnsigned => AbiTypes.Long.Decode(CurrentSlot) is not TNumber b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}")
                 : b,
-            > 64 and <= 256 => AbiTypes.BigInteger.Decode(CurrentSlot, isUnsigned) is not TNumber b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}")
+            > 64 and <= 256 when isUnsigned => AbiTypes.UInt256.Decode(CurrentSlot) is not TNumber b
+                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(UInt256)}")
+                : b,
+            > 64 and <= 256 when !isUnsigned => AbiTypes.Int256.Decode(CurrentSlot) is not TNumber b
+                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(Int256)}")
                 : b,
             _ => throw new NotSupportedException()
         };
@@ -246,8 +249,11 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
             > 32 and <= 64 when !isUnsigned => AbiTypes.SizedNumberArray<long>.Decode(_bytes, BytesRead) is not TNumber[] b
                 ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}")
                 : b,
-            > 64 and <= 256 => AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, bitLength, isUnsigned) is not TNumber[] b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {(isUnsigned ? "u-" : "")} {typeof(System.Numerics.BigInteger)}")
+            > 64 and <= 256 when isUnsigned => AbiTypes.UInt256Array.Decode(_bytes, BytesRead, bitLength) is not TNumber[] b
+                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(UInt256)}")
+                : b,
+            > 64 and <= 256 when !isUnsigned => AbiTypes.Int256Array.Decode(_bytes, BytesRead, bitLength) is not TNumber[] b
+                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(Int256)}")
                 : b,
             _ => throw new NotSupportedException()
         };

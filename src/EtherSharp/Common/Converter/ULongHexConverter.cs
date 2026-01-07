@@ -8,8 +8,25 @@ internal class ULongHexConverter : JsonConverter<ulong>
 {
     public override ulong Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        string data = reader.GetString() ?? throw new InvalidOperationException("Null is not a ulong");
-        return UInt64.Parse(data.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        if(reader.TokenType != JsonTokenType.String)
+        {
+            throw new JsonException("Expected string token.");
+        }
+        int valueLength = reader.HasValueSequence
+            ? (int) reader.ValueSequence.Length
+            : reader.ValueSpan.Length;
+
+        if(valueLength > 20)
+        {
+            throw new InvalidOperationException("Unexpected number length");
+        }
+
+        Span<char> sourceBuffer = stackalloc char[valueLength];
+        int charsWritten = reader.CopyString(sourceBuffer);
+
+        return charsWritten > 18
+            ? throw new InvalidOperationException("Unexpected number length")
+            : UInt64.Parse(sourceBuffer[2..charsWritten], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
     }
 
     public override void Write(Utf8JsonWriter writer, ulong value, JsonSerializerOptions options)

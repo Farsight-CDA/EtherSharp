@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -13,93 +12,75 @@ using System.Runtime.Intrinsics.X86;
 namespace EtherSharp.Numerics;
 
 [StructLayout(LayoutKind.Explicit)]
-public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComparable<UInt256>, IConvertible
+public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComparable<UInt256>
 {
-    public const int Len = 4;
-    // Ensure that hashes are different for every run of the node and every node, so if are any hash collisions on
-    // one node they will not be the same on another node or across a restart so hash collision cannot be used to degrade
-    // the performance of the network as a whole.
-    private static readonly uint s_instanceRandom = (uint) System.Security.Cryptography.RandomNumberGenerator.GetInt32(Int32.MinValue, Int32.MaxValue);
+    private const int LEN = 4;
 
     public static readonly UInt256 Zero = 0ul;
     public static readonly UInt256 One = 1ul;
     public static readonly UInt256 MinValue = Zero;
     public static readonly UInt256 MaxValue = ~Zero;
-    public static readonly UInt256 UInt128MaxValue = new(UInt64.MaxValue, UInt64.MaxValue);
 
     /* in little endian order so u3 is the most significant ulong */
     [FieldOffset(0)]
-    public readonly ulong u0;
+    internal readonly ulong _u0;
     [FieldOffset(8)]
-    public readonly ulong u1;
+    internal readonly ulong _u1;
     [FieldOffset(16)]
-    public readonly ulong u2;
+    internal readonly ulong _u2;
     [FieldOffset(24)]
-    public readonly ulong u3;
+    internal readonly ulong _u3;
 
-    public static UInt256 Negate(in UInt256 a)
-    {
-        ulong cs0 = 0 - a.u0;
-        ulong cs1 = 0 - a.u1;
-        ulong cs2 = 0 - a.u2;
-        ulong cs3 = 0 - a.u3;
-        if(a.u0 > 0)
-        {
-            cs3--;
-        }
+    public int BitLength
+        => _u3 != 0
+            ? 256 - BitOperations.LeadingZeroCount(_u3)
+            : _u2 != 0
+                ? 192 - BitOperations.LeadingZeroCount(_u2)
+                : _u1 != 0
+                    ? 128 - BitOperations.LeadingZeroCount(_u1)
+                    : 64 - BitOperations.LeadingZeroCount(_u0);
 
-        return new UInt256(cs0, cs1, cs2, cs3);
-    }
-
-    public (ulong value, bool overflow) UlongWithOverflow => (u0, (u1 | u2 | u3) != 0);
-
+    internal bool IsUint64 => (_u1 | _u2 | _u3) == 0;
+    public bool IsZeroOrOne => ((_u0 >> 1) | _u1 | _u2 | _u3) == 0;
     public bool IsZero
     {
         get
         {
             if(Vector256.IsHardwareAccelerated)
             {
-                var v = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in u0));
+                var v = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0));
                 return v == default;
             }
             else
             {
-                return (u0 | u1 | u2 | u3) == 0;
+                return (_u0 | _u1 | _u2 | _u3) == 0;
             }
         }
     }
-
     public bool IsOne
     {
         get
         {
             if(Vector256.IsHardwareAccelerated)
             {
-                var v = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in u0));
+                var v = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0));
                 return v == Vector256.CreateScalar(1UL);
             }
             else
             {
-                return ((u0 ^ 1UL) | u1 | u2 | u3) == 0;
+                return ((_u0 ^ 1UL) | _u1 | _u2 | _u3) == 0;
             }
         }
     }
 
-    public bool IsZeroOrOne => ((u0 >> 1) | u1 | u2 | u3) == 0;
-
-    /// <summary>
-    /// Adds two <see cref="UInt256"/> values and returns the wrapped 256-bit result.
-    /// </summary>
-    /// <remarks>
-    /// Stores the low 256 bits of <c>a + b</c> in <paramref name="res"/>.
-    /// Overflow (carry out of the most-significant bit) is ignored - the result wraps modulo <c>2^256</c>.
-    /// Use <see cref="AddOverflow(in UInt256, in UInt256, out UInt256)"/> to detect overflow.
-    /// </remarks>
-    /// <param name="a">The first 256-bit addend.</param>
-    /// <param name="b">The second 256-bit addend.</param>
-    /// <param name="res">On return, contains <c>(a + b) mod 2^256</c>.</param>
-    public static void Add(in UInt256 a, in UInt256 b, out UInt256 res)
-        => AddOverflow(in a, in b, out res);
+    public static int LeadingZeroCount(UInt256 value)
+        => value._u3 != 0
+            ? BitOperations.LeadingZeroCount(value._u3)
+            : value._u2 != 0
+                ? 64 + BitOperations.LeadingZeroCount(value._u2)
+                : value._u1 != 0
+                    ? 128 + BitOperations.LeadingZeroCount(value._u1)
+                    : 192 + BitOperations.LeadingZeroCount(value._u0);
 
     /// <summary>
     /// Adds two <see cref="UInt256"/> values and reports whether the addition overflowed.
@@ -118,7 +99,7 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
     /// <see langword="true"/> if <c>a + b</c> overflowed (carry out of the most-significant bit); otherwise <see langword="false"/>.
     /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool AddOverflow(in UInt256 a, in UInt256 b, out UInt256 res)
+    public static bool Add(in UInt256 a, in UInt256 b, out UInt256 res)
     {
         if(!Avx2.IsSupported && !Vector256.IsHardwareAccelerated)
         {
@@ -132,18 +113,18 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
 
     private static bool AddScalar(in UInt256 a, in UInt256 b, out UInt256 res)
     {
-        ulong a0 = a.u0;
-        ulong b0 = b.u0;
-        if((a.u1 | a.u2 | a.u3 | b.u1 | b.u2 | b.u3) == 0)
+        ulong a0 = a._u0;
+        ulong b0 = b._u0;
+        if((a._u1 | a._u2 | a._u3 | b._u1 | b._u2 | b._u3) == 0)
         {
             // Fast add for numbers less than 2^64 (18,446,744,073,709,551,615)
             ulong u0 = a0 + b0;
             // Assignment to res after in case is used as input for a or b (by ref aliasing)
             res = default;
-            Unsafe.AsRef(in res.u0) = u0;
+            Unsafe.AsRef(in res._u0) = u0;
             if(u0 < a0)
             {
-                Unsafe.AsRef(in res.u1) = 1;
+                Unsafe.AsRef(in res._u1) = 1;
             }
             // Never overflows UInt256
             return false;
@@ -151,9 +132,9 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
 
         ulong c = 0;
         AddWithCarry(a0, b0, ref c, out ulong r0);
-        AddWithCarry(a.u1, b.u1, ref c, out ulong r1);
-        AddWithCarry(a.u2, b.u2, ref c, out ulong r2);
-        AddWithCarry(a.u3, b.u3, ref c, out ulong r3);
+        AddWithCarry(a._u1, b._u1, ref c, out ulong r1);
+        AddWithCarry(a._u2, b._u2, ref c, out ulong r2);
+        AddWithCarry(a._u3, b._u3, ref c, out ulong r3);
         res = new UInt256(r0, r1, r2, r3);
         return c != 0;
     }
@@ -244,18 +225,6 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         return (carry & 0b1_0000) != 0;
     }
 
-    /// <summary>
-    /// Adds this value and <paramref name="a"/> and returns the wrapped 256-bit result.
-    /// </summary>
-    /// <remarks>
-    /// Stores the low 256 bits of <c>this + a</c> in <paramref name="res"/>.
-    /// Overflow is ignored - the result wraps modulo <c>2^256</c>.
-    /// Use <see cref="AddOverflow(in UInt256, in UInt256, out UInt256)"/> to detect overflow.
-    /// </remarks>
-    /// <param name="a">The other 256-bit addend.</param>
-    /// <param name="res">On return, contains <c>(this + a) mod 2^256</c>.</param>
-    public void Add(in UInt256 a, out UInt256 res) => AddOverflow(this, a, out res);
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddWithCarry(ulong x, ulong y, ref ulong carry, out ulong sum)
     {
@@ -265,126 +234,83 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         sum = r;
     }
 
-    // It avoids c#'s way of shifting a 64-bit number by 64-bit, i.e. in c# a << 64 == a, in our version a << 64 == 0.
+    /// <summary>
+    /// Subtracts two <see cref="UInt256"/> values and reports whether the subtraction underflowed.
+    /// </summary>
+    /// <remarks>
+    /// Computes the difference of <paramref name="a"/> and <paramref name="b"/> and stores the result in <paramref name="res"/>.
+    /// </remarks>
+    /// <param name="a">The minuend.</param>
+    /// <param name="b">The subtrahend.</param>
+    /// <param name="res">
+    /// On return, contains the result of <c>a - b</c>.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if <c>a - b</c> underflowed (borrow out of the most-significant bit); otherwise <see langword="false"/>.
+    /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static ulong Lsh(ulong a, int n)
-    {
-        int n1 = n >> 1;
-        int n2 = n - n1;
-        return a << n1 << n2;
-    }
+    public static bool Subtract(in UInt256 a, in UInt256 b, out UInt256 res)
+        => Avx2.IsSupported
+            ? SubtractAvx2(a, b, out res)
+            : SubtractScalar(a, b, out res);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static ulong Rsh(ulong a, int n)
+    private static bool SubtractAvx2(in UInt256 a, in UInt256 b, out UInt256 res)
     {
-        int n1 = n >> 1;
-        int n2 = n - n1;
-        return a >> n1 >> n2;
-    }
+        var av = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
+        var bv = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in b));
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static ulong NativeLsh(ulong a, int n)
-    {
-        Debug.Assert(n < 64);
-        return a << n;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static ulong NativeRsh(ulong a, int n)
-    {
-        Debug.Assert(n < 64);
-        return a >> n;
-    }
-
-    // Subtract sets res to the difference a-b
-    public static void Subtract(in UInt256 a, in UInt256 b, out UInt256 res) => SubtractImpl(in a, in b, out res);
-
-    // Subtract sets res to the difference a-b
-    private static bool SubtractImpl(in UInt256 a, in UInt256 b, out UInt256 res)
-    {
-        if(Avx2.IsSupported)
+        var result = Avx2.Subtract(av, bv);
+        Vector256<ulong> vBorrow;
+        if(Avx512F.VL.IsSupported)
         {
-            var av = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
-            var bv = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in b));
-
-            var result = Avx2.Subtract(av, bv);
-            Vector256<ulong> vBorrow;
-            if(Avx512F.VL.IsSupported)
-            {
-                vBorrow = Avx512F.VL.CompareGreaterThan(result, av);
-            }
-            else
-            {
-                // Invert top bits as Avx2.CompareGreaterThan is only available for longs, not unsigned
-                var signFlip = Vector256.Create(0x8000_0000_0000_0000UL);
-                var resultSigned = Avx2.Xor(result, signFlip);
-                var avSigned = Avx2.Xor(av, signFlip);
-
-                // Which vectors need to borrow from the next
-                vBorrow = Avx2.CompareGreaterThan(resultSigned.AsInt64(), avSigned.AsInt64()).AsUInt64();
-            }
-            // Move borrow from Vector space to int
-            int borrow = Avx.MoveMask(vBorrow.AsDouble());
-
-            // All zeros will cascade another borrow when borrow is subtracted from it
-            var vCascade = Avx2.CompareEqual(result, Vector256<ulong>.Zero);
-            // Move cascade from Vector space to int
-            int cascade = Avx.MoveMask(vCascade.AsDouble());
-
-            // Use ints to work out the Vector cross lane cascades
-            // Move borrow to next bit and add cascade
-            borrow = cascade + (2 * borrow); // lea
-            // Remove cascades not effected by borrow
-            cascade ^= borrow;
-            // Choice of 16 vectors
-            cascade &= 0x0f;
-
-            // Lookup the borrows to broadcast to the Vectors
-            var cascadedBorrows = Unsafe.Add(ref Unsafe.As<byte, Vector256<ulong>>(ref MemoryMarshal.GetReference(BroadcastLookup)), cascade);
-
-            // Mark res as initialized so we can use it as left said of ref assignment
-            Unsafe.SkipInit(out res);
-            // Subtract the cascadedBorrows from the result
-            Unsafe.As<UInt256, Vector256<ulong>>(ref res) = Avx2.Subtract(result, cascadedBorrows);
-            return (borrow & 0b1_0000) != 0;
+            vBorrow = Avx512F.VL.CompareGreaterThan(result, av);
         }
         else
         {
-            ulong borrow = 0ul;
-            SubtractWithBorrow(a.u0, b.u0, ref borrow, out ulong res0);
-            SubtractWithBorrow(a.u1, b.u1, ref borrow, out ulong res1);
-            SubtractWithBorrow(a.u2, b.u2, ref borrow, out ulong res2);
-            SubtractWithBorrow(a.u3, b.u3, ref borrow, out ulong res3);
-            res = new UInt256(res0, res1, res2, res3);
-            return borrow != 0;
+            // Invert top bits as Avx2.CompareGreaterThan is only available for longs, not unsigned
+            var signFlip = Vector256.Create(0x8000_0000_0000_0000UL);
+            var resultSigned = Avx2.Xor(result, signFlip);
+            var avSigned = Avx2.Xor(av, signFlip);
+
+            // Which vectors need to borrow from the next
+            vBorrow = Avx2.CompareGreaterThan(resultSigned.AsInt64(), avSigned.AsInt64()).AsUInt64();
         }
+        // Move borrow from Vector space to int
+        int borrow = Avx.MoveMask(vBorrow.AsDouble());
+
+        // All zeros will cascade another borrow when borrow is subtracted from it
+        var vCascade = Avx2.CompareEqual(result, Vector256<ulong>.Zero);
+        // Move cascade from Vector space to int
+        int cascade = Avx.MoveMask(vCascade.AsDouble());
+
+        // Use ints to work out the Vector cross lane cascades
+        // Move borrow to next bit and add cascade
+        borrow = cascade + (2 * borrow); // lea
+                                         // Remove cascades not effected by borrow
+        cascade ^= borrow;
+        // Choice of 16 vectors
+        cascade &= 0x0f;
+
+        // Lookup the borrows to broadcast to the Vectors
+        var cascadedBorrows = Unsafe.Add(ref Unsafe.As<byte, Vector256<ulong>>(ref MemoryMarshal.GetReference(BroadcastLookup)), cascade);
+
+        // Mark res as initialized so we can use it as left said of ref assignment
+        Unsafe.SkipInit(out res);
+        // Subtract the cascadedBorrows from the result
+        Unsafe.As<UInt256, Vector256<ulong>>(ref res) = Avx2.Subtract(result, cascadedBorrows);
+        return (borrow & 0b1_0000) != 0;
     }
 
-    public void Subtract(in UInt256 b, out UInt256 res) => Subtract(this, b, out res);
-
-    public static void SubtractMod(in UInt256 a, in UInt256 b, in UInt256 m, out UInt256 res)
+    private static bool SubtractScalar(in UInt256 a, in UInt256 b, out UInt256 res)
     {
-        if(SubtractUnderflow(a, b, out var intermediate))
-        {
-            Subtract(b, a, out intermediate);
-            Mod(intermediate, m, out intermediate);
-            if(!intermediate.IsZero)
-            {
-                Subtract(m, intermediate, out intermediate);
-            }
-        }
-        else
-        {
-            Mod(intermediate, m, out intermediate);
-        }
-
-        res = intermediate;
+        ulong borrow = 0ul;
+        SubtractWithBorrow(a._u0, b._u0, ref borrow, out ulong res0);
+        SubtractWithBorrow(a._u1, b._u1, ref borrow, out ulong res1);
+        SubtractWithBorrow(a._u2, b._u2, ref borrow, out ulong res2);
+        SubtractWithBorrow(a._u3, b._u3, ref borrow, out ulong res3);
+        res = new UInt256(res0, res1, res2, res3);
+        return borrow != 0;
     }
-
-    public void SubtractMod(in UInt256 a, in UInt256 m, out UInt256 res) => SubtractMod(this, a, m, out res);
-
-    // SubtractUnderflow sets res to the difference a-b and returns true if the operation underflowed
-    public static bool SubtractUnderflow(in UInt256 a, in UInt256 b, out UInt256 res) => SubtractImpl(a, b, out res);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SubtractWithBorrow(ulong a, ulong b, ref ulong borrow, out ulong res)
@@ -425,11 +351,11 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         if(x.IsUint64 && y.IsUint64)
         {
             // Fast multiply for numbers less than 2^64 (18,446,744,073,709,551,615)
-            ulong high = Multiply64(x.u0, y.u0, out ulong low);
+            ulong high = Multiply64(x._u0, y._u0, out ulong low);
             // Assignment to res after multiply in case is used as input for x or y (by ref aliasing)
             res = default;
-            Unsafe.AsRef(in res.u0) = low;
-            Unsafe.AsRef(in res.u1) = high;
+            Unsafe.AsRef(in res._u0) = low;
+            Unsafe.AsRef(in res._u1) = high;
             return;
         }
 
@@ -447,12 +373,12 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
     [SkipLocalsInit]
     private static void MultiplyScalar(in UInt256 x, in UInt256 y, out UInt256 res)
     {
-        ulong x0 = x.u0;
-        ulong y0 = y.u0;
-        ulong x1 = x.u1;
-        ulong y1 = y.u1;
-        ulong x2 = x.u2;
-        ulong y2 = y.u2;
+        ulong x0 = x._u0;
+        ulong y0 = y._u0;
+        ulong x1 = x._u1;
+        ulong y1 = y._u1;
+        ulong x2 = x._u2;
+        ulong y2 = y._u2;
 
         Unsafe.SkipInit(out res);
         ref ulong pr = ref Unsafe.As<UInt256, ulong>(ref res);
@@ -475,7 +401,7 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         MultiplyAddCarry(ref a0, ref a1, ref a2, x0, y2);
         MultiplyAddCarry(ref a0, ref a1, ref a2, x1, y1);
         MultiplyAddCarry(ref a0, ref a1, ref a2, x2, y0);
-        ulong s1 = (x0 * y.u3) + (x.u3 * y0);
+        ulong s1 = (x0 * y._u3) + (x._u3 * y0);
         ulong s0 = (x1 * y2) + (x2 * y1);
         Unsafe.Add(ref pr, 2) = a0;
 
@@ -694,30 +620,19 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         }
     }
 
-    public void Multiply(in UInt256 a, out UInt256 res) => Multiply(this, a, out res);
-
     public static bool MultiplyOverflow(in UInt256 x, in UInt256 y, out UInt256 res)
     {
         Multiply256To512Bit(x, y, out res, out var high);
         return !high.IsZero;
     }
 
-    public int BitLen =>
-        u3 != 0
-            ? 256 - BitOperations.LeadingZeroCount(u3)
-            : u2 != 0
-                ? 192 - BitOperations.LeadingZeroCount(u2)
-                : u1 != 0
-                    ? 128 - BitOperations.LeadingZeroCount(u1)
-                    : 64 - BitOperations.LeadingZeroCount(u0);
-
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Squared(out UInt256 result)
     {
-        ulong x0 = u0;
-        ulong x1 = u1;
-        ulong x2 = u2;
+        ulong x0 = _u0;
+        ulong x1 = _u1;
+        ulong x2 = _u2;
 
         Unsafe.SkipInit(out result);
         ref ulong pr = ref Unsafe.As<UInt256, ulong>(ref result);
@@ -742,7 +657,7 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         Unsafe.Add(ref pr, 2) = a0;
 
         // For r3 we only need the low 64 of the incoming carry, which is a1 here.
-        ulong x3 = u3;
+        ulong x3 = _u3;
 
         // Column 3: 2*x0*x3 + 2*x1*x2 (low 64 only - anything spilling past 64 goes to r4+)
         ulong s0 = (x1 * x2) << 1;
@@ -778,25 +693,22 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         a2 += c1 + extra;
     }
 
-    public static void Exp(in UInt256 b, in UInt256 e, out UInt256 result)
+    public static UInt256 Pow(in UInt256 b, in UInt256 e)
     {
-        int bitLen = e.BitLen;
+        int bitLen = e.BitLength;
         if(bitLen == 0)
         {
-            result = One;
-            return;
+            return One;
         }
         if(b.IsUint64)
         {
             if(b.IsZero)
             {
-                result = default;
-                return;
+                return default;
             }
             if(b.IsOne)
             {
-                result = One;
-                return;
+                return One;
             }
         }
 
@@ -813,12 +725,41 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
             }
         }
 
-        result = val;
+        return val;
     }
 
-    public void Exp(in UInt256 exp, out UInt256 res) => Exp(this, exp, out res);
+    // It avoids c#'s way of shifting a 64-bit number by 64-bit, i.e. in c# a << 64 == a, in our version a << 64 == 0.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ulong Lsh(ulong a, int n)
+    {
+        int n1 = n >> 1;
+        int n2 = n - n1;
+        return a << n1 << n2;
+    }
 
-    public static void Lsh(in UInt256 x, int n, out UInt256 res)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ulong Rsh(ulong a, int n)
+    {
+        int n1 = n >> 1;
+        int n2 = n - n1;
+        return a >> n1 >> n2;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ulong NativeLsh(ulong a, int n)
+    {
+        Debug.Assert(n < 64);
+        return a << n;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ulong NativeRsh(ulong a, int n)
+    {
+        Debug.Assert(n < 64);
+        return a >> n;
+    }
+
+    public static void LeftShift(in UInt256 x, int n, out UInt256 res)
     {
         if((n % 64) == 0)
         {
@@ -875,33 +816,31 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         }
 
         // remaining shifts
-        a = NativeRsh(res.u0, 64 - n);
-        z0 = NativeLsh(res.u0, n);
+        a = NativeRsh(res._u0, 64 - n);
+        z0 = NativeLsh(res._u0, n);
 
     sh64:
-        b = NativeRsh(res.u1, 64 - n);
-        z1 = NativeLsh(res.u1, n) | a;
+        b = NativeRsh(res._u1, 64 - n);
+        z1 = NativeLsh(res._u1, n) | a;
 
     sh128:
-        a = NativeRsh(res.u2, 64 - n);
-        z2 = NativeLsh(res.u2, n) | b;
+        a = NativeRsh(res._u2, 64 - n);
+        z2 = NativeLsh(res._u2, n) | b;
         ulong z3;
     sh192:
-        z3 = NativeLsh(res.u3, n) | a;
+        z3 = NativeLsh(res._u3, n) | a;
 
         res = new UInt256(z0, z1, z2, z3);
     }
-
-    public void LeftShift(int n, out UInt256 res) => Lsh(this, n, out res);
 
     public bool Bit(int n)
     {
         uint bucket = (uint) n / 64 % 4;
         int position = n % 64;
-        return (Unsafe.Add(ref Unsafe.AsRef(in u0), bucket) & ((ulong) 1 << position)) != 0;
+        return (Unsafe.Add(ref Unsafe.AsRef(in _u0), bucket) & ((ulong) 1 << position)) != 0;
     }
 
-    public static void Rsh(in UInt256 x, int n, out UInt256 res)
+    public static void RightShift(in UInt256 x, int n, out UInt256 res)
     {
         // n % 64 == 0
         if((n & 0x3f) == 0)
@@ -942,24 +881,24 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
             }
 
             x.Rsh192(out res);
-            z1 = res.u1;
-            z2 = res.u2;
-            z3 = res.u3;
+            z1 = res._u1;
+            z2 = res._u2;
+            z3 = res._u3;
             n -= 192;
             goto sh192;
         }
         else if(n > 128)
         {
             x.Rsh128(out res);
-            z2 = res.u2;
-            z3 = res.u3;
+            z2 = res._u2;
+            z3 = res._u3;
             n -= 128;
             goto sh128;
         }
         else if(n > 64)
         {
             x.Rsh64(out res);
-            z3 = res.u3;
+            z3 = res._u3;
             n -= 64;
             goto sh64;
         }
@@ -969,38 +908,56 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         }
 
         // remaining shifts
-        a = NativeLsh(res.u3, 64 - n);
-        z3 = NativeRsh(res.u3, n);
+        a = NativeLsh(res._u3, 64 - n);
+        z3 = NativeRsh(res._u3, n);
 
     sh64:
-        b = NativeLsh(res.u2, 64 - n);
-        z2 = NativeRsh(res.u2, n) | a;
+        b = NativeLsh(res._u2, 64 - n);
+        z2 = NativeRsh(res._u2, n) | a;
 
     sh128:
-        a = NativeLsh(res.u1, 64 - n);
-        z1 = NativeRsh(res.u1, n) | b;
+        a = NativeLsh(res._u1, 64 - n);
+        z1 = NativeRsh(res._u1, n) | b;
 
     sh192:
-        z0 = NativeRsh(res.u0, n) | a;
+        z0 = NativeRsh(res._u0, n) | a;
 
         res = new UInt256(z0, z1, z2, z3);
     }
 
-    public void RightShift(int n, out UInt256 res) => Rsh(this, n, out res);
+    internal void Lsh64(out UInt256 res)
+        => res = new UInt256(0, _u0, _u1, _u2);
 
-    internal void Lsh64(out UInt256 res) => res = new UInt256(0, u0, u1, u2);
+    internal void Lsh128(out UInt256 res)
+        => res = new UInt256(0, 0, _u0, _u1);
 
-    internal void Lsh128(out UInt256 res) => res = new UInt256(0, 0, u0, u1);
+    internal void Lsh192(out UInt256 res)
+        => res = new UInt256(0, 0, 0, _u0);
 
-    internal void Lsh192(out UInt256 res) => res = new UInt256(0, 0, 0, u0);
-
-    internal void Rsh64(out UInt256 res) => res = new UInt256(u1, u2, u3);
+    internal void Rsh64(out UInt256 res)
+        => res = new UInt256(_u1, _u2, _u3);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Rsh128(out UInt256 res) => res = new UInt256(u2, u3);
+    private void Rsh128(out UInt256 res)
+        => res = new UInt256(_u2, _u3);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Rsh192(out UInt256 res) => res = new UInt256(u3);
+    private void Rsh192(out UInt256 res)
+        => res = new UInt256(_u3);
+
+    public static UInt256 Negate(in UInt256 a)
+    {
+        ulong cs0 = 0 - a._u0;
+        ulong cs1 = 0 - a._u1;
+        ulong cs2 = 0 - a._u2;
+        ulong cs3 = 0 - a._u3;
+        if(a._u0 > 0)
+        {
+            cs3--;
+        }
+
+        return new UInt256(cs0, cs1, cs2, cs3);
+    }
 
     public static void Not(in UInt256 a, out UInt256 res)
     {
@@ -1013,10 +970,10 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         }
         else
         {
-            ulong u0 = ~a.u0;
-            ulong u1 = ~a.u1;
-            ulong u2 = ~a.u2;
-            ulong u3 = ~a.u3;
+            ulong u0 = ~a._u0;
+            ulong u1 = ~a._u1;
+            ulong u2 = ~a._u2;
+            ulong u3 = ~a._u3;
             res = new UInt256(u0, u1, u2, u3);
         }
     }
@@ -1033,7 +990,7 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         }
         else
         {
-            res = new UInt256(a.u0 | b.u0, a.u1 | b.u1, a.u2 | b.u2, a.u3 | b.u3);
+            res = new UInt256(a._u0 | b._u0, a._u1 | b._u1, a._u2 | b._u2, a._u3 | b._u3);
         }
     }
 
@@ -1049,7 +1006,7 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         }
         else
         {
-            res = new UInt256(a.u0 & b.u0, a.u1 & b.u1, a.u2 & b.u2, a.u3 & b.u3);
+            res = new UInt256(a._u0 & b._u0, a._u1 & b._u1, a._u2 & b._u2, a._u3 & b._u3);
         }
     }
 
@@ -1065,21 +1022,21 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         }
         else
         {
-            res = new UInt256(a.u0 ^ b.u0, a.u1 ^ b.u1, a.u2 ^ b.u2, a.u3 ^ b.u3);
+            res = new UInt256(a._u0 ^ b._u0, a._u1 ^ b._u1, a._u2 ^ b._u2, a._u3 ^ b._u3);
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool LessThan(in UInt256 a, long b) => b >= 0 && a.u3 == 0 && a.u2 == 0 && a.u1 == 0 && a.u0 < (ulong) b;
+    private static bool LessThan(in UInt256 a, long b) => b >= 0 && a._u3 == 0 && a._u2 == 0 && a._u1 == 0 && a._u0 < (ulong) b;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool LessThan(long a, in UInt256 b) => a < 0 || b.u1 != 0 || b.u2 != 0 || b.u3 != 0 || (ulong) a < b.u0;
+    private static bool LessThan(long a, in UInt256 b) => a < 0 || b._u1 != 0 || b._u2 != 0 || b._u3 != 0 || (ulong) a < b._u0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool LessThan(in UInt256 a, ulong b) => a.u3 == 0 && a.u2 == 0 && a.u1 == 0 && a.u0 < b;
+    private static bool LessThan(in UInt256 a, ulong b) => a._u3 == 0 && a._u2 == 0 && a._u1 == 0 && a._u0 < b;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool LessThan(ulong a, in UInt256 b) => b.u3 != 0 || b.u2 != 0 || b.u1 != 0 || a < b.u0;
+    private static bool LessThan(ulong a, in UInt256 b) => b._u3 != 0 || b._u2 != 0 || b._u1 != 0 || a < b._u0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool LessThan(in UInt256 a, in UInt256 b)
@@ -1097,22 +1054,22 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool LessThanScalar(in UInt256 a, in UInt256 b)
     {
-        if(a.u3 != b.u3)
+        if(a._u3 != b._u3)
         {
-            return a.u3 < b.u3;
+            return a._u3 < b._u3;
         }
 
-        if(a.u2 != b.u2)
+        if(a._u2 != b._u2)
         {
-            return a.u2 < b.u2;
+            return a._u2 < b._u2;
         }
 
-        if(a.u1 != b.u1)
+        if(a._u1 != b._u1)
         {
-            return a.u1 < b.u1;
+            return a._u1 < b._u1;
         }
         //
-        return a.u0 < b.u0;
+        return a._u0 < b._u0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1309,97 +1266,6 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         return LessThanBothFromEqLt8(eqMaskY, ltMaskY);
     }
 
-    public override string ToString() => ((BigInteger) this).ToString();
-
-    public int CompareTo(object? obj) => obj is not UInt256 int256 ? throw new InvalidOperationException() : CompareTo(int256);
-
-    public string ToString(string format) => ((BigInteger) this).ToString(format);
-
-    public bool IsUint64 => (u1 | u2 | u3) == 0;
-
-    public bool Equals(int other) => other >= 0 && Equals((uint) other);
-
-    public bool Equals(uint other)
-    {
-        if(Vector256.IsHardwareAccelerated)
-        {
-            var v = Unsafe.As<ulong, Vector256<uint>>(ref Unsafe.AsRef(in u0));
-            return v == Vector256.CreateScalar(other);
-        }
-        else
-        {
-            return u0 == other && IsUint64;
-        }
-    }
-
-    public bool Equals(long other) => other >= 0 && Equals((ulong) other);
-
-    public bool Equals(ulong other)
-    {
-        if(Vector256.IsHardwareAccelerated)
-        {
-            var v = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in u0));
-            return v == Vector256.CreateScalar(other);
-        }
-        else
-        {
-            return u0 == other && IsUint64;
-        }
-    }
-
-    [OverloadResolutionPriority(1)]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(in UInt256 other)
-    {
-        var v1 = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in u0));
-        var v2 = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in other));
-        return v1 == v2;
-    }
-
-    public bool Equals(UInt256 other)
-    {
-        var v1 = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in u0));
-        var v2 = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in other));
-        return v1 == v2;
-    }
-
-    public int CompareTo(UInt256 b) => CompareTo(in b);
-
-    [OverloadResolutionPriority(1)]
-    public int CompareTo(in UInt256 b) => this < b ? -1 : Equals(b) ? 0 : 1;
-
-    public override bool Equals(object? obj) => obj is UInt256 other && Equals(other);
-
-    [SkipLocalsInit]
-    public override int GetHashCode()
-    {
-        // Very fast hardware accelerated non-cryptographic hash function
-
-        // Start with instance random, length and first ulong as seed
-        uint hash = BitOperations.Crc32C(s_instanceRandom, u0);
-
-        // Crc32C is 3 cycle latency, 1 cycle throughput
-        // So we use same initial 3 times to not create a dependency chain
-        uint hash0 = BitOperations.Crc32C(hash, u1);
-        uint hash1 = BitOperations.Crc32C(hash, u2);
-        uint hash2 = BitOperations.Crc32C(hash, u3);
-        // Combine the 3 hashes; performing the shift on first crc to calculate
-        return (int) BitOperations.Crc32C(hash1, ((ulong) hash0 << (sizeof(uint) * 8)) | hash2);
-    }
-
-    public ulong this[int index] => index switch
-    {
-        0 => u0,
-        1 => u1,
-        2 => u2,
-        3 => u3,
-        _ => ThrowIndexOutOfRangeException(),
-    };
-
-    public static UInt256 Max(in UInt256 a, in UInt256 b) => LessThan(in b, in a) ? a : b;
-
-    public static UInt256 Min(in UInt256 a, in UInt256 b) => LessThan(in b, in a) ? b : a;
-
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private unsafe static ulong Multiply64(ulong a, ulong b, out ulong low)
@@ -1434,15 +1300,93 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         return t2;
     }
 
-    [DoesNotReturn, StackTraceHidden]
-    private static void ThrowDivideByZeroException() => throw new DivideByZeroException();
+    public override string ToString() => ((BigInteger) this).ToString();
+    public string ToString(string format) => ((BigInteger) this).ToString(format);
 
-    [DoesNotReturn, StackTraceHidden]
-    private static void ThrowOverflowException(string message) => throw new OverflowException(message);
 
-    [DoesNotReturn, StackTraceHidden]
-    private static void ThrowNotSupportedException() => throw new NotSupportedException();
 
-    [DoesNotReturn, StackTraceHidden]
-    private static ulong ThrowIndexOutOfRangeException() => throw new IndexOutOfRangeException();
+    public bool Equals(int other) => other >= 0 && Equals((uint) other);
+
+    public bool Equals(uint other)
+    {
+        if(Vector256.IsHardwareAccelerated)
+        {
+            var v = Unsafe.As<ulong, Vector256<uint>>(ref Unsafe.AsRef(in _u0));
+            return v == Vector256.CreateScalar(other);
+        }
+        else
+        {
+            return _u0 == other && IsUint64;
+        }
+    }
+
+    public bool Equals(long other)
+        => other >= 0 && Equals((ulong) other);
+    public bool Equals(ulong other)
+    {
+        if(Vector256.IsHardwareAccelerated)
+        {
+            var v = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0));
+            return v == Vector256.CreateScalar(other);
+        }
+        else
+        {
+            return _u0 == other && IsUint64;
+        }
+    }
+
+    public override bool Equals(object? obj)
+        => obj is UInt256 other && Equals(other);
+
+    [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Equals(in UInt256 other)
+    {
+        var v1 = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0));
+        var v2 = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in other));
+        return v1 == v2;
+    }
+    public bool Equals(UInt256 other)
+    {
+        var v1 = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0));
+        var v2 = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in other));
+        return v1 == v2;
+    }
+
+    public int CompareTo(object? obj)
+        => obj is not UInt256 int256
+            ? throw new InvalidOperationException()
+            : CompareTo(int256);
+
+    [OverloadResolutionPriority(1)]
+    public int CompareTo(in UInt256 b)
+        => this < b
+            ? -1
+            : Equals(b)
+                ? 0
+                : 1;
+    public int CompareTo(UInt256 b)
+        => CompareTo(in b);
+
+    [SkipLocalsInit]
+    public override int GetHashCode()
+    {
+        // Very fast hardware accelerated non-cryptographic hash function
+
+        // Start with 0x12345678 and first ulong as seed
+        uint hash = BitOperations.Crc32C(0x12345678, _u0);
+
+        // Crc32C is 3 cycle latency, 1 cycle throughput
+        // So we use same initial 3 times to not create a dependency chain
+        uint hash0 = BitOperations.Crc32C(hash, _u1);
+        uint hash1 = BitOperations.Crc32C(hash, _u2);
+        uint hash2 = BitOperations.Crc32C(hash, _u3);
+        // Combine the 3 hashes; performing the shift on first crc to calculate
+        return (int) BitOperations.Crc32C(hash1, ((ulong) hash0 << (sizeof(uint) * 8)) | hash2);
+    }
+
+    public static UInt256 Max(in UInt256 a, in UInt256 b)
+        => LessThan(in b, in a) ? a : b;
+    public static UInt256 Min(in UInt256 a, in UInt256 b)
+        => LessThan(in b, in a) ? b : a;
 }

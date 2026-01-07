@@ -18,8 +18,9 @@ public static class ParsingUtils
             new UIntHexConverter(),
             new LongHexConverter(),
             new ULongHexConverter(),
-            new UnsignedBigIntHexConverter(),
-            new TargetBlockNumberConverter()
+            new TargetBlockNumberConverter(),
+            new UInt256HexConverter(),
+            new Int256HexConverter()
         }
     };
 }

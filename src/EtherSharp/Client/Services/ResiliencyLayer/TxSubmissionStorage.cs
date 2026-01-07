@@ -1,9 +1,10 @@
-﻿using EtherSharp.Tx;
+﻿using EtherSharp.Numerics;
+using EtherSharp.Tx;
 using EtherSharp.Tx.Types;
 using EtherSharp.Types;
-using System.Numerics;
 
 namespace EtherSharp.Client.Services.ResiliencyLayer;
+
 public record TxSubmissionStorage(
     ulong ChainId,
     uint Sequence,
@@ -11,7 +12,7 @@ public record TxSubmissionStorage(
     string TxHash,
     string SignedTx,
     string To,
-    BigInteger Value,
+    UInt256 Value,
     byte[] CallData,
     byte[] TxParams,
     byte[] TxGasParams

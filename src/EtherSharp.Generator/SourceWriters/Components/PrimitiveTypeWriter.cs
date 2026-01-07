@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace EtherSharp.Generator.SourceWriters.Components;
+﻿namespace EtherSharp.Generator.SourceWriters.Components;
 
 internal static class PrimitiveTypeWriter
 {
@@ -45,7 +43,7 @@ internal static class PrimitiveTypeWriter
                     <= 16 => typeof(ushort).FullName,
                     <= 32 => typeof(uint).FullName,
                     <= 64 => typeof(ulong).FullName,
-                    _ => typeof(BigInteger).FullName,
+                    _ => "EtherSharp.Numerics.UInt256",
                 };
                 isDynamic = false;
                 abiFunctionName = $"UInt{bitSize}";
@@ -58,7 +56,7 @@ internal static class PrimitiveTypeWriter
                     <= 16 => typeof(short).FullName,
                     <= 32 => typeof(int).FullName,
                     <= 64 => typeof(long).FullName,
-                    _ => typeof(BigInteger).FullName,
+                    _ => "EtherSharp.Numerics.Int256",
                 };
                 isDynamic = false;
                 abiFunctionName = $"Int{bitSize}";

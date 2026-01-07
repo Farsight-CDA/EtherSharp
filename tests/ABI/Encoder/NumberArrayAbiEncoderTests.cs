@@ -1,7 +1,8 @@
 ﻿using EtherSharp.ABI;
-using System.Numerics;
+using EtherSharp.Numerics;
 
 namespace EtherSharp.Tests.ABI.Encoder;
+
 public class NumberArrayAbiEncoderTests
 {
     private readonly AbiEncoder _encoder;
@@ -29,7 +30,7 @@ public class NumberArrayAbiEncoderTests
             16 => _encoder.NumberArray<short>(false, bitSize),
             > 16 and <= 32 => _encoder.NumberArray<int>(false, bitSize),
             > 32 and <= 64 => _encoder.NumberArray<long>(false, bitSize),
-            > 64 and <= 256 => _encoder.NumberArray<BigInteger>(false, bitSize),
+            > 64 and <= 256 => _encoder.NumberArray<Int256>(false, bitSize),
             _ => throw new NotSupportedException()
         }).Build();
         Assert.Equal(expected, actual);
@@ -46,7 +47,7 @@ public class NumberArrayAbiEncoderTests
             16 => _encoder.NumberArray<ushort>(true, bitSize),
             > 16 and <= 32 => _encoder.NumberArray<uint>(true, bitSize),
             > 32 and <= 64 => _encoder.NumberArray<ulong>(true, bitSize),
-            > 64 and <= 256 => _encoder.NumberArray<BigInteger>(true, bitSize),
+            > 64 and <= 256 => _encoder.NumberArray<UInt256>(true, bitSize),
             _ => throw new NotSupportedException()
         }).Build();
         Assert.Equal(expected, actual);
@@ -63,7 +64,7 @@ public class NumberArrayAbiEncoderTests
             16 => _encoder.NumberArray<ushort>(true, bitSize, 0, 0, 0, 0),
             > 16 and <= 32 => _encoder.NumberArray<uint>(true, bitSize, 0, 0, 0, 0),
             > 32 and <= 64 => _encoder.NumberArray<ulong>(true, bitSize, 0, 0, 0, 0),
-            > 64 and <= 256 => _encoder.NumberArray<BigInteger>(true, bitSize, 0, 0, 0, 0),
+            > 64 and <= 256 => _encoder.NumberArray<UInt256>(true, bitSize, 0, 0, 0, 0),
             _ => throw new NotSupportedException()
         }).Build();
         Assert.Equal(expected, actual);
@@ -80,7 +81,7 @@ public class NumberArrayAbiEncoderTests
             16 => _encoder.NumberArray<short>(false, bitSize, 0, 0, 0, 0),
             > 16 and <= 32 => _encoder.NumberArray(false, bitSize, 0, 0, 0, 0),
             > 32 and <= 64 => _encoder.NumberArray<long>(false, bitSize, 0, 0, 0, 0),
-            > 64 and <= 256 => _encoder.NumberArray<BigInteger>(false, bitSize, 0, 0, 0, 0),
+            > 64 and <= 256 => _encoder.NumberArray<Int256>(false, bitSize, 0, 0, 0, 0),
             _ => throw new NotSupportedException()
         }).Build();
         Assert.Equal(expected, actual);
@@ -97,7 +98,7 @@ public class NumberArrayAbiEncoderTests
             16 => _encoder.NumberArray<short>(false, bitSize, -50, -10, 0, 10, 50),
             > 16 and <= 32 => _encoder.NumberArray(false, bitSize, -50, -10, 0, 10, 50),
             > 32 and <= 64 => _encoder.NumberArray<long>(false, bitSize, -50, -10, 0, 10, 50),
-            > 64 and <= 256 => _encoder.NumberArray<BigInteger>(false, bitSize, -50, -10, 0, 10, 50),
+            > 64 and <= 256 => _encoder.NumberArray<Int256>(false, bitSize, -50, -10, 0, 10, 50),
             _ => throw new NotSupportedException()
         }).Build();
         Assert.Equal(expected, actual);

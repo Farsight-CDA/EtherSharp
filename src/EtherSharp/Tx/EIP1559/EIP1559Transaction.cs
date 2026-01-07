@@ -1,6 +1,6 @@
-﻿using EtherSharp.RLP;
+﻿using EtherSharp.Numerics;
+using EtherSharp.RLP;
 using EtherSharp.Tx.Types;
-using System.Numerics;
 
 namespace EtherSharp.Tx.EIP1559;
 
@@ -9,8 +9,8 @@ public record EIP1559Transaction(
     ulong Gas,
     uint Nonce,
     ITxInput Input,
-    BigInteger MaxFeePerGas,
-    BigInteger MaxPriorityFeePerGas,
+    UInt256 MaxFeePerGas,
+    UInt256 MaxPriorityFeePerGas,
     StateAccess[] AccessList
 ) : ITransaction<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>
 {

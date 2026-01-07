@@ -2,15 +2,22 @@
 // SPDX-License-Identifier: MIT
 
 using System.Buffers.Binary;
-using System.Numerics;
 
 namespace EtherSharp.Numerics;
 
-public readonly partial struct UInt256
+public readonly partial struct Int256
 {
-    public string ToString(IFormatProvider? provider) => ((BigInteger) this).ToString(provider);
+    public string ToString(IFormatProvider? provider)
+    {
+        if(IsNegative)
+        {
+            var res = Negate(this);
+            return "-" + res._value.ToString(provider);
+        }
+        return _value.ToString(provider);
+    }
 
-    public static bool TryParseFromHex(ReadOnlySpan<char> value, out UInt256 result)
+    public static bool TryParseFromHex(ReadOnlySpan<char> value, out Int256 result)
     {
         if(value.Length > 64)
         {
@@ -28,7 +35,7 @@ public readonly partial struct UInt256
 
         if(bytesWritten == 32)
         {
-            result = BinaryPrimitives.ReadUInt256BigEndian(buffer);
+            result = BinaryPrimitives.ReadInt256BigEndian(buffer);
             return true;
         }
         else if(bytesWritten == 0)
@@ -40,7 +47,7 @@ public readonly partial struct UInt256
         Span<byte> prefixedBuffer = stackalloc byte[32];
         buffer[0..bytesWritten].CopyTo(prefixedBuffer[(32 - bytesWritten)..]);
 
-        result = BinaryPrimitives.ReadUInt256BigEndian(prefixedBuffer);
+        result = BinaryPrimitives.ReadInt256BigEndian(prefixedBuffer);
         return true;
     }
 }

@@ -1,9 +1,10 @@
 ﻿using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Types.Base;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
-using System.Numerics;
 
 namespace EtherSharp.ABI.Packed;
+
 public partial class PackedAbiEncoder
 {
     private readonly List<IPackedEncodeType> _entries = [];
@@ -46,10 +47,12 @@ public partial class PackedAbiEncoder
                     number is ulong us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"), bitLength / 8)
                 : new AbiTypes.Long(
                     number is long s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"), bitLength / 8),
-            > 64 and <= 256 => new AbiTypes.BigInteger(
-                number is BigInteger s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"),
-                isUnsigned, bitLength / 8),
-            _ => throw new NotImplementedException()
+            > 64 and <= 256 => isUnsigned
+                ? new AbiTypes.UInt256(
+                    number is UInt256 us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(UInt256)}"), bitLength / 8)
+                : new AbiTypes.Int256(
+                    number is Int256 s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(Int256)}"), bitLength / 8),
+            _ => throw new NotSupportedException()
         });
     }
     public PackedAbiEncoder Bool(bool value)

@@ -1,8 +1,8 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
+using EtherSharp.Numerics;
 using EtherSharp.RLP;
 using System.Buffers.Binary;
-using System.Numerics;
 using System.Text;
 
 namespace EtherSharp.Bench;
@@ -12,10 +12,10 @@ namespace EtherSharp.Bench;
 public class RLPEncoderBenchmarks
 {
     private readonly uint _nonce = 0;
-    private readonly BigInteger _gasPrice = BigInteger.Zero;
+    private readonly UInt256 _gasPrice = UInt256.Zero;
     private readonly ulong _gas = 0;
     private readonly byte[] _to = Encoding.UTF8.GetBytes("D7B9798cE43Ca0A6aa8Be304a5EC5f88225f8bBA");
-    private readonly BigInteger _value = BigInteger.Zero;
+    private readonly UInt256 _value = UInt256.Zero;
     private readonly byte[] _data = new byte[200];
 
     private readonly Consumer _consumer = new Consumer();
@@ -78,22 +78,20 @@ public class RLPEncoderBenchmarks
     {
         byte[] nonceBytes = new byte[4];
         byte[] gasBytes = new byte[8];
+        byte[] gasPriceBytes = new byte[32];
+        byte[] valueBytes = new byte[32];
 
         BinaryPrimitives.WriteUInt32BigEndian(nonceBytes, _nonce);
         BinaryPrimitives.WriteUInt64BigEndian(gasBytes, _gas);
-
-        if(BitConverter.IsLittleEndian)
-        {
-            nonceBytes.AsSpan().Reverse();
-            gasBytes.AsSpan().Reverse();
-        }
+        BinaryPrimitives.WriteUInt256BigEndian(gasPriceBytes, _gasPrice);
+        BinaryPrimitives.WriteUInt256BigEndian(valueBytes, _value);
 
         return _ = Nethereum.RLP.RLP.EncodeList(
             Nethereum.RLP.RLP.EncodeElement(nonceBytes),
-            Nethereum.RLP.RLP.EncodeElement(_gasPrice.ToByteArray(true, true)),
+            Nethereum.RLP.RLP.EncodeElement(gasPriceBytes),
             Nethereum.RLP.RLP.EncodeElement(gasBytes),
             Nethereum.RLP.RLP.EncodeElement(_to),
-            Nethereum.RLP.RLP.EncodeElement(_value.ToByteArray(true, true)),
+            Nethereum.RLP.RLP.EncodeElement(valueBytes),
             Nethereum.RLP.RLP.EncodeElement(_data)
         );
     }

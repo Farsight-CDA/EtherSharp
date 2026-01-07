@@ -1,5 +1,5 @@
-﻿using EtherSharp.Types;
-using System.Numerics;
+﻿using EtherSharp.Numerics;
+using EtherSharp.Types;
 
 namespace EtherSharp.Tx;
 /// <summary>
@@ -15,7 +15,7 @@ public interface ITxInput
     /// <summary>
     /// The ETH Value of the transaction.
     /// </summary>
-    public BigInteger Value { get; }
+    public UInt256 Value { get; }
 
     /// <summary>
     /// The calldata of the transaction.
@@ -28,7 +28,7 @@ public interface ITxInput
     /// <param name="receiver"></param>
     /// <param name="amount"></param>
     /// <returns></returns>
-    public static ITxInput ForEthTransfer(Address receiver, BigInteger amount)
+    public static ITxInput ForEthTransfer(Address receiver, UInt256 amount)
         => new TxInput(receiver, amount, Array.Empty<byte>());
 }
 

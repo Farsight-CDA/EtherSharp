@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+﻿using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
 public partial interface IDynamicTupleEncoder 
@@ -31,8 +31,8 @@ public partial interface IDynamicTupleEncoder
     for(var i = 72; i <= 256;i=i+8)
     {
 #>
-    public IDynamicTupleEncoder Int<#=i#>Array(params BigInteger[] value);
-    public IDynamicTupleEncoder UInt<#=i#>Array(params BigInteger[] value);
+    public IDynamicTupleEncoder Int<#=i#>Array(params Int256[] value);
+    public IDynamicTupleEncoder UInt<#=i#>Array(params UInt256[] value);
 <#
     }
 #>

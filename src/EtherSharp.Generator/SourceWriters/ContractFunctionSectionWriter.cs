@@ -45,7 +45,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
             }
             else
             {
-                createFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
+                createFunction.AddArgument("EtherSharp.Numerics.UInt256", "ethValue");
                 createFunction.AddStatement(
                     $"""
                     return EtherSharp.Tx.IContractCall.ForRawContractCall(contractAddress, ethValue, calldata);
@@ -98,8 +98,8 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
 
                 if(isPayable)
                 {
-                    createFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
-                    create2Function.AddArgument("System.Numerics.BigInteger", "ethValue");
+                    createFunction.AddArgument("EtherSharp.Numerics.UInt256", "ethValue");
+                    create2Function.AddArgument("EtherSharp.Numerics.UInt256", "ethValue");
                 }
 
                 createCodeFunction.AddStatement(
@@ -190,7 +190,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
 
                 if(isPayable)
                 {
-                    createTxFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
+                    createTxFunction.AddArgument("EtherSharp.Numerics.UInt256", "ethValue");
                 }
 
                 string? outputTypeName = null;
@@ -271,7 +271,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                 {
                     if(isPayable)
                     {
-                        interfaceFunction.AddArgument("System.Numerics.BigInteger", "ethValue");
+                        interfaceFunction.AddArgument("EtherSharp.Numerics.UInt256", "ethValue");
                     }
 
                     interfaceFunction

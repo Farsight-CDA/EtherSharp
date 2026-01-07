@@ -1,6 +1,6 @@
 ﻿using EtherSharp.Client.Services.TxPublisher;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
-using System.Numerics;
 
 namespace EtherSharp.RPC.Modules.Eth;
 
@@ -9,7 +9,7 @@ public interface IEthRpcModule
     public Task<ulong> ChainIdAsync(CancellationToken cancellationToken = default);
     public Task<ulong> BlockNumberAsync(CancellationToken cancellationToken = default);
     public Task<ulong> EstimateGasAsync(
-        Address? from, Address? to, BigInteger value, string data,
+        Address? from, Address? to, UInt256 value, string data,
         CancellationToken cancellationToken = default
     );
 
@@ -23,13 +23,13 @@ public interface IEthRpcModule
     public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
         double[] rewardPercentiles, CancellationToken cancellationToken
     );
-    public Task<BigInteger> GasPriceAsync(CancellationToken cancellationToken = default);
-    public Task<BigInteger> MaxPriorityFeePerGasAsync(CancellationToken cancellationToken = default);
-    public Task<BigInteger> GetBalanceAsync(
+    public Task<UInt256> GasPriceAsync(CancellationToken cancellationToken = default);
+    public Task<UInt256> MaxPriorityFeePerGasAsync(CancellationToken cancellationToken = default);
+    public Task<UInt256> GetBalanceAsync(
         Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken = default
     );
     public Task<TxCallResult> CallAsync(
-        Address? from, Address? to, uint? gas, BigInteger? gasPrice, BigInteger value, string? data,
+        Address? from, Address? to, uint? gas, UInt256? gasPrice, UInt256 value, string? data,
         TargetBlockNumber blockNumber, CancellationToken cancellationToken = default);
     public Task<uint> GetTransactionCountAsync(
         Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken = default

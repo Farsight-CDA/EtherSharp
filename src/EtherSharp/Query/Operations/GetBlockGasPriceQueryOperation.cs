@@ -1,18 +1,19 @@
-﻿using System.Numerics;
+﻿using EtherSharp.Numerics;
+using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal class GetBlockGasPriceQueryOperation : IQuery, IQuery<BigInteger>
+internal class GetBlockGasPriceQueryOperation : IQuery, IQuery<UInt256>
 {
     public int CallDataLength => 1;
-    public BigInteger EthValue => 0;
-    IReadOnlyList<IQuery> IQuery<BigInteger>.Queries => [this];
+    public UInt256 EthValue => 0;
+    IReadOnlyList<IQuery> IQuery<UInt256>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
         => buffer[0] = (byte) QueryOperationId.GetBlockGasPrice;
 
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 32;
-    BigInteger IQuery<BigInteger>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
-        => new BigInteger(queryResults[0], true, true);
+    UInt256 IQuery<UInt256>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
+        => BinaryPrimitives.ReadUInt256BigEndian(queryResults[0]);
 }

@@ -2,14 +2,14 @@
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
+
 public static partial class AbiTypes
 {
-    public class BigIntegerArray : DynamicType<System.Numerics.BigInteger[]>
+    public class Int256Array : DynamicType<Numerics.Int256[]>
     {
-        private readonly bool _isUnsigned;
         public override uint PayloadSize => (32 * (uint) Value.Length) + 32;
 
-        internal BigIntegerArray(System.Numerics.BigInteger[] value, bool isUnsigned, int bitSize)
+        internal Int256Array(Numerics.Int256[] value, int bitSize)
             : base(value)
         {
             if(bitSize < 64 || bitSize > 256 || bitSize % 8 != 0)
@@ -21,17 +21,12 @@ public static partial class AbiTypes
             {
                 var entry = Value[i];
 
-                if(isUnsigned && entry.Sign == -1)
-                {
-                    throw new ArgumentException("Value was negative for unsigned fixed type");
-                }
-                if(entry.GetByteCount(isUnsigned) > bitSize / 8)
-                {
-                    throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit {(isUnsigned ? "un" : "")}signed integer", nameof(value));
-                }
+                //ToDo:
+                //if(entry. > bitSize / 8)
+                //{
+                //    throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit signed integer", nameof(value));
+                //}
             }
-
-            _isUnsigned = isUnsigned;
         }
 
         public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
@@ -42,11 +37,11 @@ public static partial class AbiTypes
             for(int i = 0; i < Value.Length; i++)
             {
                 var slot = payload.Slice(32 + (i * 32), 32);
-                AbiTypes.BigInteger.EncodeInto(Value[i], _isUnsigned, slot);
+                AbiTypes.Int256.EncodeInto(Value[i], slot, false);
             }
         }
 
-        public static System.Numerics.BigInteger[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, uint bitSize, bool isUnsinght)
+        public static Numerics.Int256[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, uint bitSize)
         {
             uint arrayOffest = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..].Span);
 
@@ -58,12 +53,12 @@ public static partial class AbiTypes
             uint arrLength = BinaryPrimitives.ReadUInt32BigEndian(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
 
             var data = bytes[(int) (index + 32)..];
-            var arr = new System.Numerics.BigInteger[arrLength];
+            var arr = new Numerics.Int256[arrLength];
 
             for(int i = 0; i < arrLength; i++)
             {
                 var slot = data[(i * 32)..((i * 32) + 32)];
-                arr[i] = AbiTypes.BigInteger.Decode(slot.Span, isUnsinght);
+                arr[i] = AbiTypes.Int256.Decode(slot.Span);
             }
 
             return arr;

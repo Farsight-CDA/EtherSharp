@@ -1,19 +1,19 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Common;
+using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Buffers;
 using System.Buffers.Binary;
-using System.Numerics;
 
 namespace EtherSharp.Tx.EIP1559;
 
 public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner signer)
     : IInitializableService, IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
 {
-    private readonly static EIP1559GasParams _defaultGasParams = new EIP1559GasParams(1_000_000, BigInteger.Pow(10, 10), BigInteger.Pow(10, 8));
+    private readonly static EIP1559GasParams _defaultGasParams = new EIP1559GasParams(1_000_000, UInt256.Pow(10, 10), UInt256.Pow(10, 8));
     private readonly static Address _opGasOracleAddress = Address.FromString("0x420000000000000000000000000000000000000F");
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
@@ -99,7 +99,7 @@ public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSign
         var gasPrice = await gasPriceTask;
         var priorityFee = await priorityFeeTask;
 
-        var l1Fee = new BigInteger(l1FeeCallResult.Unwrap(_opGasOracleAddress).Span, true, true);
+        var l1Fee = BinaryPrimitives.ReadUInt256BigEndian(l1FeeCallResult.Unwrap(_opGasOracleAddress).Span);
         var l1FeePerGas = l1Fee / gasEstimation;
 
         return new EIP1559GasParams(

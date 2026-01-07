@@ -1,15 +1,15 @@
 ﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Numerics;
 using EtherSharp.Query.Operations;
 using EtherSharp.Tx;
 using EtherSharp.Types;
-using System.Numerics;
 
 namespace EtherSharp.Query;
 
 public interface IQuery
 {
     public int CallDataLength { get; }
-    public BigInteger EthValue { get; }
+    public UInt256 EthValue { get; }
 
     public void Encode(Span<byte> buffer);
     public int ParseResultLength(ReadOnlySpan<byte> resultData);
@@ -64,13 +64,13 @@ public interface IQuery
     public static IQuery<ulong> GetBlockGasLimit()
         => new GetBlockGasLimitQueryOperation();
 
-    public static IQuery<BigInteger> GetBlockGasPrice()
+    public static IQuery<UInt256> GetBlockGasPrice()
         => new GetBlockGasPriceQueryOperation();
 
-    public static IQuery<BigInteger> GetBlockBaseFee()
+    public static IQuery<UInt256> GetBlockBaseFee()
         => new GetBlockBaseFeeQueryOperation();
 
-    public static IQuery<BigInteger> GetBalance(Address user)
+    public static IQuery<UInt256> GetBalance(Address user)
         => new GetBalanceQueryOperation(user);
 
     public static IQuery<ulong> GetChainId()

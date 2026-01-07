@@ -1,9 +1,10 @@
-﻿using System.Numerics;
+﻿using EtherSharp.Numerics;
 
 namespace EtherSharp.Types;
+
 public record FeeHistory(
     ulong OldestBlockHeight,
-    BigInteger[] BaseFeePerGas,
+    UInt256[] BaseFeePerGas,
     double[] GasUsedRatio,
-    BigInteger[][] Reward
+    UInt256[][] Reward
 );

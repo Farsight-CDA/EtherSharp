@@ -3,7 +3,7 @@
 <#@ import namespace="System" #>
 using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
-using System.Numerics;
+using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI;
 public partial class AbiEncoder
@@ -80,18 +80,18 @@ public partial class AbiEncoder
     for(var i = 72; i <= 256;i=i+8)
     {
 #>
-    public AbiEncoder Int<#=i#>Array(params BigInteger[] value)
-        => AddElement(new AbiTypes.BigIntegerArray(value, false, <#=i#>));
-    void IArrayAbiEncoder.Int<#=i#>Array(params BigInteger[] value)
+    public AbiEncoder Int<#=i#>Array(params Int256[] value)
+        => AddElement(new AbiTypes.Int256Array(value, <#=i#>));
+    void IArrayAbiEncoder.Int<#=i#>Array(params Int256[] value)
         => Int<#=i#>Array(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int<#=i#>Array(params BigInteger[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int<#=i#>Array(params Int256[] value)
         => Int<#=i#>Array(value);
 
-    public AbiEncoder UInt<#=i#>Array(params BigInteger[] value)
-        => AddElement(new AbiTypes.BigIntegerArray(value, true, <#=i#>));
-    void IArrayAbiEncoder.UInt<#=i#>Array(params BigInteger[] value)
+    public AbiEncoder UInt<#=i#>Array(params UInt256[] value)
+        => AddElement(new AbiTypes.UInt256Array(value, <#=i#>));
+    void IArrayAbiEncoder.UInt<#=i#>Array(params UInt256[] value)
         => UInt<#=i#>Array(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt<#=i#>Array(params BigInteger[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt<#=i#>Array(params UInt256[] value)
         => UInt<#=i#>Array(value);
 <#
     }

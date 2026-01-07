@@ -1,8 +1,8 @@
 ﻿using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Types.Base;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
-using System.Numerics;
 
 namespace EtherSharp.ABI;
 
@@ -70,10 +70,12 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
                     number is ulong us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"), bitLength / 8)
                 : new AbiTypes.Long(
                     number is long s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"), bitLength / 8),
-            > 64 and <= 256 => new AbiTypes.BigInteger(
-                number is BigInteger s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"),
-                isUnsigned, bitLength / 8),
-            _ => throw new NotImplementedException()
+            > 64 and <= 256 => isUnsigned
+                ? new AbiTypes.UInt256(
+                    number is UInt256 us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(UInt256)}"), bitLength / 8)
+                : new AbiTypes.Int256(
+                    number is Int256 s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(Int256)}"), bitLength / 8),
+            _ => throw new NotSupportedException()
         });
     }
     public AbiEncoder Bool(bool value)
@@ -202,10 +204,14 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
                 : new AbiTypes.SizedNumberArray<long>(
                     numbers is long[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"),
                     bitLength),
-            > 64 and <= 256 => new AbiTypes.BigIntegerArray(
-                numbers is BigInteger[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(BigInteger)}"),
-                isUnsigned, bitLength),
-            _ => throw new NotImplementedException()
+            > 64 and <= 256 => isUnsigned
+                ? new AbiTypes.UInt256Array(
+                    numbers is UInt256[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(UInt256)}"),
+                    bitLength)
+                : new AbiTypes.Int256Array(
+                    numbers is Int256[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(Int256)}"),
+                    bitLength),
+            _ => throw new NotSupportedException()
         });
     }
 

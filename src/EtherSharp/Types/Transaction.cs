@@ -1,18 +1,19 @@
-﻿using System.Numerics;
+﻿using EtherSharp.Numerics;
 
 namespace EtherSharp.Types;
+
 public record Transaction(
     string Hash,
     string BlockHash,
     ulong BlockNumber,
     string? ContractAddress,
-    BigInteger GasPrice,
-    BigInteger MaxFeePerGas,
-    BigInteger MaxPriorityFeePerGas,
+    UInt256 GasPrice,
+    UInt256 MaxFeePerGas,
+    UInt256 MaxPriorityFeePerGas,
     ulong Gas,
     ulong Nonce,
     Address From,
     Address To,
     byte[] Input,
-    BigInteger Value
+    UInt256 Value
 );

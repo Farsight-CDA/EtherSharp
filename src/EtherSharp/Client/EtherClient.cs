@@ -11,6 +11,7 @@ using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common;
 using EtherSharp.Contract;
+using EtherSharp.Numerics;
 using EtherSharp.Query;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
@@ -21,14 +22,11 @@ using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Numerics;
 
 namespace EtherSharp.Client;
 
 internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 {
-
-
     private readonly IServiceProvider _provider;
     private readonly ILoggerFactory? _loggerFactory;
     private readonly bool _isTxClient;
@@ -212,10 +210,10 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
         initQuery ??= IQuery.Noop<T>(default!);
         var flashCallSetupQuery = _flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor
-            ? IQuery.Call(IContractCall<BigInteger>.ForContractCall(
+            ? IQuery.Call(IContractCall<UInt256>.ForContractCall(
                 deployedFlashCallExecutor.ContractAddress, 0, Convert.FromHexString("217CD3E1"), new ABI.AbiEncoder(), x => x.UInt256())
             )
-            : IQuery.Noop<BigInteger>(0);
+            : IQuery.Noop(UInt256.Zero);
 
         T? initResult;
 
@@ -298,13 +296,13 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         AssertReady();
         return _ethRpcModule.GetFeeHistoryAsync(blockCount, newestBlock, rewardPercentiles, cancellationToken);
     }
-    Task<BigInteger> IEtherClient.GetGasPriceAsync(CancellationToken cancellationToken)
+    Task<UInt256> IEtherClient.GetGasPriceAsync(CancellationToken cancellationToken)
     {
         AssertReady();
         return _ethRpcModule.GasPriceAsync(cancellationToken);
     }
 
-    Task<BigInteger> IEtherClient.GetMaxPriorityFeePerGasAsync(CancellationToken cancellationToken)
+    Task<UInt256> IEtherClient.GetMaxPriorityFeePerGasAsync(CancellationToken cancellationToken)
     {
         AssertReady();
         return _ethRpcModule.MaxPriorityFeePerGasAsync(cancellationToken);

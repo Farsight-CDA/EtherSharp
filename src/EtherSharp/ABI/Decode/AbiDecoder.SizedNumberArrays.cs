@@ -1,6 +1,6 @@
-using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Types;
-using System.Numerics;
+using EtherSharp.ABI.Decode.Interfaces;
+using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
@@ -177,508 +177,508 @@ public partial class AbiDecoder
     ulong[] IDynamicTupleDecoder.UInt64Array()
         => UInt64Array();
 
-    public BigInteger[] Int72Array()
+    public Int256[] Int72Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 72, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 72);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int72Array()
+    Int256[] IArrayAbiDecoder.Int72Array()
         => Int72Array();
-    BigInteger[] IDynamicTupleDecoder.Int72Array()
+    Int256[] IDynamicTupleDecoder.Int72Array()
         => Int72Array();
 
-    public BigInteger[] UInt72Array()
+    public UInt256[] UInt72Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 72, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 72);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt72Array()
+    UInt256[] IArrayAbiDecoder.UInt72Array()
         => UInt72Array();
-    BigInteger[] IDynamicTupleDecoder.UInt72Array()
+    UInt256[] IDynamicTupleDecoder.UInt72Array()
         => UInt72Array();
-    public BigInteger[] Int80Array()
+    public Int256[] Int80Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 80, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 80);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int80Array()
+    Int256[] IArrayAbiDecoder.Int80Array()
         => Int80Array();
-    BigInteger[] IDynamicTupleDecoder.Int80Array()
+    Int256[] IDynamicTupleDecoder.Int80Array()
         => Int80Array();
 
-    public BigInteger[] UInt80Array()
+    public UInt256[] UInt80Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 80, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 80);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt80Array()
+    UInt256[] IArrayAbiDecoder.UInt80Array()
         => UInt80Array();
-    BigInteger[] IDynamicTupleDecoder.UInt80Array()
+    UInt256[] IDynamicTupleDecoder.UInt80Array()
         => UInt80Array();
-    public BigInteger[] Int88Array()
+    public Int256[] Int88Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 88, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 88);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int88Array()
+    Int256[] IArrayAbiDecoder.Int88Array()
         => Int88Array();
-    BigInteger[] IDynamicTupleDecoder.Int88Array()
+    Int256[] IDynamicTupleDecoder.Int88Array()
         => Int88Array();
 
-    public BigInteger[] UInt88Array()
+    public UInt256[] UInt88Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 88, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 88);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt88Array()
+    UInt256[] IArrayAbiDecoder.UInt88Array()
         => UInt88Array();
-    BigInteger[] IDynamicTupleDecoder.UInt88Array()
+    UInt256[] IDynamicTupleDecoder.UInt88Array()
         => UInt88Array();
-    public BigInteger[] Int96Array()
+    public Int256[] Int96Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 96, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 96);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int96Array()
+    Int256[] IArrayAbiDecoder.Int96Array()
         => Int96Array();
-    BigInteger[] IDynamicTupleDecoder.Int96Array()
+    Int256[] IDynamicTupleDecoder.Int96Array()
         => Int96Array();
 
-    public BigInteger[] UInt96Array()
+    public UInt256[] UInt96Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 96, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 96);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt96Array()
+    UInt256[] IArrayAbiDecoder.UInt96Array()
         => UInt96Array();
-    BigInteger[] IDynamicTupleDecoder.UInt96Array()
+    UInt256[] IDynamicTupleDecoder.UInt96Array()
         => UInt96Array();
-    public BigInteger[] Int104Array()
+    public Int256[] Int104Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 104, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 104);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int104Array()
+    Int256[] IArrayAbiDecoder.Int104Array()
         => Int104Array();
-    BigInteger[] IDynamicTupleDecoder.Int104Array()
+    Int256[] IDynamicTupleDecoder.Int104Array()
         => Int104Array();
 
-    public BigInteger[] UInt104Array()
+    public UInt256[] UInt104Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 104, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 104);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt104Array()
+    UInt256[] IArrayAbiDecoder.UInt104Array()
         => UInt104Array();
-    BigInteger[] IDynamicTupleDecoder.UInt104Array()
+    UInt256[] IDynamicTupleDecoder.UInt104Array()
         => UInt104Array();
-    public BigInteger[] Int112Array()
+    public Int256[] Int112Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 112, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 112);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int112Array()
+    Int256[] IArrayAbiDecoder.Int112Array()
         => Int112Array();
-    BigInteger[] IDynamicTupleDecoder.Int112Array()
+    Int256[] IDynamicTupleDecoder.Int112Array()
         => Int112Array();
 
-    public BigInteger[] UInt112Array()
+    public UInt256[] UInt112Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 112, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 112);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt112Array()
+    UInt256[] IArrayAbiDecoder.UInt112Array()
         => UInt112Array();
-    BigInteger[] IDynamicTupleDecoder.UInt112Array()
+    UInt256[] IDynamicTupleDecoder.UInt112Array()
         => UInt112Array();
-    public BigInteger[] Int120Array()
+    public Int256[] Int120Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 120, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 120);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int120Array()
+    Int256[] IArrayAbiDecoder.Int120Array()
         => Int120Array();
-    BigInteger[] IDynamicTupleDecoder.Int120Array()
+    Int256[] IDynamicTupleDecoder.Int120Array()
         => Int120Array();
 
-    public BigInteger[] UInt120Array()
+    public UInt256[] UInt120Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 120, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 120);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt120Array()
+    UInt256[] IArrayAbiDecoder.UInt120Array()
         => UInt120Array();
-    BigInteger[] IDynamicTupleDecoder.UInt120Array()
+    UInt256[] IDynamicTupleDecoder.UInt120Array()
         => UInt120Array();
-    public BigInteger[] Int128Array()
+    public Int256[] Int128Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 128, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 128);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int128Array()
+    Int256[] IArrayAbiDecoder.Int128Array()
         => Int128Array();
-    BigInteger[] IDynamicTupleDecoder.Int128Array()
+    Int256[] IDynamicTupleDecoder.Int128Array()
         => Int128Array();
 
-    public BigInteger[] UInt128Array()
+    public UInt256[] UInt128Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 128, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 128);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt128Array()
+    UInt256[] IArrayAbiDecoder.UInt128Array()
         => UInt128Array();
-    BigInteger[] IDynamicTupleDecoder.UInt128Array()
+    UInt256[] IDynamicTupleDecoder.UInt128Array()
         => UInt128Array();
-    public BigInteger[] Int136Array()
+    public Int256[] Int136Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 136, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 136);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int136Array()
+    Int256[] IArrayAbiDecoder.Int136Array()
         => Int136Array();
-    BigInteger[] IDynamicTupleDecoder.Int136Array()
+    Int256[] IDynamicTupleDecoder.Int136Array()
         => Int136Array();
 
-    public BigInteger[] UInt136Array()
+    public UInt256[] UInt136Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 136, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 136);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt136Array()
+    UInt256[] IArrayAbiDecoder.UInt136Array()
         => UInt136Array();
-    BigInteger[] IDynamicTupleDecoder.UInt136Array()
+    UInt256[] IDynamicTupleDecoder.UInt136Array()
         => UInt136Array();
-    public BigInteger[] Int144Array()
+    public Int256[] Int144Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 144, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 144);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int144Array()
+    Int256[] IArrayAbiDecoder.Int144Array()
         => Int144Array();
-    BigInteger[] IDynamicTupleDecoder.Int144Array()
+    Int256[] IDynamicTupleDecoder.Int144Array()
         => Int144Array();
 
-    public BigInteger[] UInt144Array()
+    public UInt256[] UInt144Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 144, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 144);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt144Array()
+    UInt256[] IArrayAbiDecoder.UInt144Array()
         => UInt144Array();
-    BigInteger[] IDynamicTupleDecoder.UInt144Array()
+    UInt256[] IDynamicTupleDecoder.UInt144Array()
         => UInt144Array();
-    public BigInteger[] Int152Array()
+    public Int256[] Int152Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 152, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 152);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int152Array()
+    Int256[] IArrayAbiDecoder.Int152Array()
         => Int152Array();
-    BigInteger[] IDynamicTupleDecoder.Int152Array()
+    Int256[] IDynamicTupleDecoder.Int152Array()
         => Int152Array();
 
-    public BigInteger[] UInt152Array()
+    public UInt256[] UInt152Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 152, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 152);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt152Array()
+    UInt256[] IArrayAbiDecoder.UInt152Array()
         => UInt152Array();
-    BigInteger[] IDynamicTupleDecoder.UInt152Array()
+    UInt256[] IDynamicTupleDecoder.UInt152Array()
         => UInt152Array();
-    public BigInteger[] Int160Array()
+    public Int256[] Int160Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 160, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 160);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int160Array()
+    Int256[] IArrayAbiDecoder.Int160Array()
         => Int160Array();
-    BigInteger[] IDynamicTupleDecoder.Int160Array()
+    Int256[] IDynamicTupleDecoder.Int160Array()
         => Int160Array();
 
-    public BigInteger[] UInt160Array()
+    public UInt256[] UInt160Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 160, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 160);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt160Array()
+    UInt256[] IArrayAbiDecoder.UInt160Array()
         => UInt160Array();
-    BigInteger[] IDynamicTupleDecoder.UInt160Array()
+    UInt256[] IDynamicTupleDecoder.UInt160Array()
         => UInt160Array();
-    public BigInteger[] Int168Array()
+    public Int256[] Int168Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 168, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 168);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int168Array()
+    Int256[] IArrayAbiDecoder.Int168Array()
         => Int168Array();
-    BigInteger[] IDynamicTupleDecoder.Int168Array()
+    Int256[] IDynamicTupleDecoder.Int168Array()
         => Int168Array();
 
-    public BigInteger[] UInt168Array()
+    public UInt256[] UInt168Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 168, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 168);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt168Array()
+    UInt256[] IArrayAbiDecoder.UInt168Array()
         => UInt168Array();
-    BigInteger[] IDynamicTupleDecoder.UInt168Array()
+    UInt256[] IDynamicTupleDecoder.UInt168Array()
         => UInt168Array();
-    public BigInteger[] Int176Array()
+    public Int256[] Int176Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 176, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 176);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int176Array()
+    Int256[] IArrayAbiDecoder.Int176Array()
         => Int176Array();
-    BigInteger[] IDynamicTupleDecoder.Int176Array()
+    Int256[] IDynamicTupleDecoder.Int176Array()
         => Int176Array();
 
-    public BigInteger[] UInt176Array()
+    public UInt256[] UInt176Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 176, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 176);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt176Array()
+    UInt256[] IArrayAbiDecoder.UInt176Array()
         => UInt176Array();
-    BigInteger[] IDynamicTupleDecoder.UInt176Array()
+    UInt256[] IDynamicTupleDecoder.UInt176Array()
         => UInt176Array();
-    public BigInteger[] Int184Array()
+    public Int256[] Int184Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 184, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 184);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int184Array()
+    Int256[] IArrayAbiDecoder.Int184Array()
         => Int184Array();
-    BigInteger[] IDynamicTupleDecoder.Int184Array()
+    Int256[] IDynamicTupleDecoder.Int184Array()
         => Int184Array();
 
-    public BigInteger[] UInt184Array()
+    public UInt256[] UInt184Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 184, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 184);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt184Array()
+    UInt256[] IArrayAbiDecoder.UInt184Array()
         => UInt184Array();
-    BigInteger[] IDynamicTupleDecoder.UInt184Array()
+    UInt256[] IDynamicTupleDecoder.UInt184Array()
         => UInt184Array();
-    public BigInteger[] Int192Array()
+    public Int256[] Int192Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 192, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 192);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int192Array()
+    Int256[] IArrayAbiDecoder.Int192Array()
         => Int192Array();
-    BigInteger[] IDynamicTupleDecoder.Int192Array()
+    Int256[] IDynamicTupleDecoder.Int192Array()
         => Int192Array();
 
-    public BigInteger[] UInt192Array()
+    public UInt256[] UInt192Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 192, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 192);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt192Array()
+    UInt256[] IArrayAbiDecoder.UInt192Array()
         => UInt192Array();
-    BigInteger[] IDynamicTupleDecoder.UInt192Array()
+    UInt256[] IDynamicTupleDecoder.UInt192Array()
         => UInt192Array();
-    public BigInteger[] Int200Array()
+    public Int256[] Int200Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 200, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 200);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int200Array()
+    Int256[] IArrayAbiDecoder.Int200Array()
         => Int200Array();
-    BigInteger[] IDynamicTupleDecoder.Int200Array()
+    Int256[] IDynamicTupleDecoder.Int200Array()
         => Int200Array();
 
-    public BigInteger[] UInt200Array()
+    public UInt256[] UInt200Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 200, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 200);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt200Array()
+    UInt256[] IArrayAbiDecoder.UInt200Array()
         => UInt200Array();
-    BigInteger[] IDynamicTupleDecoder.UInt200Array()
+    UInt256[] IDynamicTupleDecoder.UInt200Array()
         => UInt200Array();
-    public BigInteger[] Int208Array()
+    public Int256[] Int208Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 208, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 208);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int208Array()
+    Int256[] IArrayAbiDecoder.Int208Array()
         => Int208Array();
-    BigInteger[] IDynamicTupleDecoder.Int208Array()
+    Int256[] IDynamicTupleDecoder.Int208Array()
         => Int208Array();
 
-    public BigInteger[] UInt208Array()
+    public UInt256[] UInt208Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 208, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 208);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt208Array()
+    UInt256[] IArrayAbiDecoder.UInt208Array()
         => UInt208Array();
-    BigInteger[] IDynamicTupleDecoder.UInt208Array()
+    UInt256[] IDynamicTupleDecoder.UInt208Array()
         => UInt208Array();
-    public BigInteger[] Int216Array()
+    public Int256[] Int216Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 216, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 216);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int216Array()
+    Int256[] IArrayAbiDecoder.Int216Array()
         => Int216Array();
-    BigInteger[] IDynamicTupleDecoder.Int216Array()
+    Int256[] IDynamicTupleDecoder.Int216Array()
         => Int216Array();
 
-    public BigInteger[] UInt216Array()
+    public UInt256[] UInt216Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 216, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 216);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt216Array()
+    UInt256[] IArrayAbiDecoder.UInt216Array()
         => UInt216Array();
-    BigInteger[] IDynamicTupleDecoder.UInt216Array()
+    UInt256[] IDynamicTupleDecoder.UInt216Array()
         => UInt216Array();
-    public BigInteger[] Int224Array()
+    public Int256[] Int224Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 224, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 224);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int224Array()
+    Int256[] IArrayAbiDecoder.Int224Array()
         => Int224Array();
-    BigInteger[] IDynamicTupleDecoder.Int224Array()
+    Int256[] IDynamicTupleDecoder.Int224Array()
         => Int224Array();
 
-    public BigInteger[] UInt224Array()
+    public UInt256[] UInt224Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 224, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 224);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt224Array()
+    UInt256[] IArrayAbiDecoder.UInt224Array()
         => UInt224Array();
-    BigInteger[] IDynamicTupleDecoder.UInt224Array()
+    UInt256[] IDynamicTupleDecoder.UInt224Array()
         => UInt224Array();
-    public BigInteger[] Int232Array()
+    public Int256[] Int232Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 232, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 232);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int232Array()
+    Int256[] IArrayAbiDecoder.Int232Array()
         => Int232Array();
-    BigInteger[] IDynamicTupleDecoder.Int232Array()
+    Int256[] IDynamicTupleDecoder.Int232Array()
         => Int232Array();
 
-    public BigInteger[] UInt232Array()
+    public UInt256[] UInt232Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 232, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 232);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt232Array()
+    UInt256[] IArrayAbiDecoder.UInt232Array()
         => UInt232Array();
-    BigInteger[] IDynamicTupleDecoder.UInt232Array()
+    UInt256[] IDynamicTupleDecoder.UInt232Array()
         => UInt232Array();
-    public BigInteger[] Int240Array()
+    public Int256[] Int240Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 240, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 240);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int240Array()
+    Int256[] IArrayAbiDecoder.Int240Array()
         => Int240Array();
-    BigInteger[] IDynamicTupleDecoder.Int240Array()
+    Int256[] IDynamicTupleDecoder.Int240Array()
         => Int240Array();
 
-    public BigInteger[] UInt240Array()
+    public UInt256[] UInt240Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 240, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 240);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt240Array()
+    UInt256[] IArrayAbiDecoder.UInt240Array()
         => UInt240Array();
-    BigInteger[] IDynamicTupleDecoder.UInt240Array()
+    UInt256[] IDynamicTupleDecoder.UInt240Array()
         => UInt240Array();
-    public BigInteger[] Int248Array()
+    public Int256[] Int248Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 248, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 248);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int248Array()
+    Int256[] IArrayAbiDecoder.Int248Array()
         => Int248Array();
-    BigInteger[] IDynamicTupleDecoder.Int248Array()
+    Int256[] IDynamicTupleDecoder.Int248Array()
         => Int248Array();
 
-    public BigInteger[] UInt248Array()
+    public UInt256[] UInt248Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 248, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 248);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt248Array()
+    UInt256[] IArrayAbiDecoder.UInt248Array()
         => UInt248Array();
-    BigInteger[] IDynamicTupleDecoder.UInt248Array()
+    UInt256[] IDynamicTupleDecoder.UInt248Array()
         => UInt248Array();
-    public BigInteger[] Int256Array()
+    public Int256[] Int256Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 256, false);
+        var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 256);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.Int256Array()
+    Int256[] IArrayAbiDecoder.Int256Array()
         => Int256Array();
-    BigInteger[] IDynamicTupleDecoder.Int256Array()
+    Int256[] IDynamicTupleDecoder.Int256Array()
         => Int256Array();
 
-    public BigInteger[] UInt256Array()
+    public UInt256[] UInt256Array()
     {
-        var result = AbiTypes.BigIntegerArray.Decode(_bytes, BytesRead, 256, true);
+        var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 256);
         ConsumeBytes();
         return result;
     }
-    BigInteger[] IArrayAbiDecoder.UInt256Array()
+    UInt256[] IArrayAbiDecoder.UInt256Array()
         => UInt256Array();
-    BigInteger[] IDynamicTupleDecoder.UInt256Array()
+    UInt256[] IDynamicTupleDecoder.UInt256Array()
         => UInt256Array();
 }

@@ -1,9 +1,9 @@
 ﻿using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Common;
+using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
-using System.Numerics;
 
 namespace EtherSharp.Tx.EIP1559;
 
@@ -31,8 +31,8 @@ public class EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner sign
 
         var feeHistory = await _ethRpcModule.GetFeeHistoryAsync(FeeHistoryRange, TargetBlockNumber.Latest, [PriorityFeePercentile], default);
 
-        BigInteger baseFee;
-        BigInteger priorityFee;
+        UInt256 baseFee;
+        UInt256 priorityFee;
 
         if(feeHistory.BaseFeePerGas.Length == 0)
         {
@@ -40,8 +40,8 @@ public class EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner sign
         }
         else
         {
-            var summedBaseFees = feeHistory.BaseFeePerGas.Aggregate(BigInteger.Zero, (prev, curr) => prev + curr);
-            baseFee = summedBaseFees / feeHistory.BaseFeePerGas.Length;
+            var summedBaseFees = feeHistory.BaseFeePerGas.Aggregate(UInt256.Zero, (prev, curr) => prev + curr);
+            baseFee = summedBaseFees / (uint) feeHistory.BaseFeePerGas.Length;
         }
 
         var nonZeroRewards = feeHistory.Reward.Where(x => x[0] != 0).ToArray();
@@ -51,12 +51,12 @@ public class EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner sign
         }
         else
         {
-            var summedPriorityFees = nonZeroRewards.Aggregate(BigInteger.Zero, (prev, curr) => prev + curr[0]);
-            priorityFee = summedPriorityFees / nonZeroRewards.Length;
+            var summedPriorityFees = nonZeroRewards.Aggregate(UInt256.Zero, (prev, curr) => prev + curr[0]);
+            priorityFee = summedPriorityFees / (uint) nonZeroRewards.Length;
         }
 
-        var adjustedBaseFee = baseFee * (100 + BaseFeeOffsetPercentage) / 100;
-        var adjustedPriorityFee = priorityFee * (100 + PriorityFeeOffsetPercentage) / 100;
+        var adjustedBaseFee = baseFee * (uint) ((100 + BaseFeeOffsetPercentage) / 100);
+        var adjustedPriorityFee = priorityFee * (uint) ((100 + PriorityFeeOffsetPercentage) / 100);
 
         return new EIP1559GasParams(
             gasEstimation * (100 + GasWantedOffsetPercentage) / 100,

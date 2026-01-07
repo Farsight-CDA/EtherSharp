@@ -8,8 +8,26 @@ internal class DateTimeOffsetHexConverter : JsonConverter<DateTimeOffset>
 {
     public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        string hexTimestamp = reader.GetString() ?? throw new InvalidOperationException("Null is not a DateTimeOffset");
-        long utcTimestamp = Int64.Parse(hexTimestamp.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        if(reader.TokenType != JsonTokenType.String)
+        {
+            throw new JsonException("Expected string token.");
+        }
+        int valueLength = reader.HasValueSequence
+            ? (int) reader.ValueSequence.Length
+            : reader.ValueSpan.Length;
+
+        if(valueLength > 20)
+        {
+            throw new InvalidOperationException("Unexpected number length");
+        }
+
+        Span<char> sourceBuffer = stackalloc char[valueLength];
+        int charsWritten = reader.CopyString(sourceBuffer);
+
+        long utcTimestamp = charsWritten > 18
+            ? throw new InvalidOperationException("Unexpected number length")
+            : Int64.Parse(sourceBuffer[2..charsWritten], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+
         return DateTimeOffset.FromUnixTimeSeconds(utcTimestamp);
     }
 

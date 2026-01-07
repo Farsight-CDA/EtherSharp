@@ -1,33 +1,32 @@
-﻿using EtherSharp.Tx.Types;
+﻿using EtherSharp.Numerics;
+using EtherSharp.Tx.Types;
 using System.Buffers.Binary;
-using System.Numerics;
 
 namespace EtherSharp.Tx.Legacy;
 
 public record LegacyGasParams(
     ulong GasLimit,
-    BigInteger GasPrice
+    UInt256 GasPrice
 ) : ITxGasParams<LegacyGasParams>
 {
     public byte[] Encode()
     {
-        int gasPriceBytes = GasPrice.GetByteCount(true);
-        int size = 8 + gasPriceBytes;
+        int size = 8 + 32;
+        byte[] arr = new byte[size];
+        var buffer = arr.AsSpan();
 
-        byte[] buffer = new byte[size];
+        BinaryPrimitives.WriteUInt64BigEndian(buffer[0..8], GasLimit);
+        BinaryPrimitives.WriteUInt256BigEndian(buffer[8..40], GasPrice);
 
-        BinaryPrimitives.WriteUInt64BigEndian(buffer.AsSpan(0, 8), GasLimit);
-        GasPrice.TryWriteBytes(buffer.AsSpan(8, gasPriceBytes), out _, true, true);
-
-        return buffer;
+        return arr;
     }
     public static LegacyGasParams Decode(ReadOnlySpan<byte> data)
         => new LegacyGasParams(
-            BinaryPrimitives.ReadUInt64BigEndian(data[..8]),
-            new BigInteger(data[8..], true, true)
+            BinaryPrimitives.ReadUInt64BigEndian(data[0..8]),
+            BinaryPrimitives.ReadUInt256BigEndian(data[8..40])
         );
 
-    public LegacyGasParams IncrementByFactor(BigInteger multiplier, BigInteger divider, BigInteger minimumIncrement)
+    public LegacyGasParams IncrementByFactor(UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement)
     {
         if(multiplier < divider)
         {
@@ -36,7 +35,7 @@ public record LegacyGasParams(
         //
         return new LegacyGasParams(
             GasLimit,
-            BigInteger.Max(GasPrice + minimumIncrement, GasPrice * multiplier / divider)
+            UInt256.Max(GasPrice + minimumIncrement, GasPrice * multiplier / divider)
         );
     }
 }

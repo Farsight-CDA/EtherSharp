@@ -1,7 +1,7 @@
-﻿using EtherSharp.Types;
+﻿using EtherSharp.Numerics;
+using EtherSharp.Types;
 using System.Buffers;
 using System.Buffers.Binary;
-using System.Numerics;
 
 namespace EtherSharp.Query;
 
@@ -14,7 +14,7 @@ internal class QuerierUtils
     );
 
     public static byte[] EncodeCalls(IEnumerable<IQuery> queries, int maxPayloadSize, int maxResultSize,
-        out int payloadSize, out int encodedCallCount, out BigInteger ethValue)
+        out int payloadSize, out int encodedCallCount, out UInt256 ethValue)
     {
         ethValue = 0;
         payloadSize = 4;

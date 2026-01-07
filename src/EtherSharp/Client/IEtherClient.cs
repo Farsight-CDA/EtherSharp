@@ -2,13 +2,13 @@
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
 using EtherSharp.Contract;
+using EtherSharp.Numerics;
 using EtherSharp.Query;
 using EtherSharp.Realtime.Events;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Types;
 using EtherSharp.Types;
-using System.Numerics;
 
 namespace EtherSharp.Client;
 
@@ -80,8 +80,8 @@ public interface IEtherClient
     public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
         double[] rewardPercentiles, CancellationToken cancellationToken = default);
 
-    public Task<BigInteger> GetGasPriceAsync(CancellationToken cancellationToken = default);
-    public Task<BigInteger> GetMaxPriorityFeePerGasAsync(CancellationToken cancellationToken = default);
+    public Task<UInt256> GetGasPriceAsync(CancellationToken cancellationToken = default);
+    public Task<UInt256> GetMaxPriorityFeePerGasAsync(CancellationToken cancellationToken = default);
 
     public Task<ulong> EstimateGasLimitAsync(ITxInput call, Address? from = null, CancellationToken cancellationToken = default);
 

@@ -25,7 +25,8 @@ public readonly partial struct UInt256
     /// <param name="a">The divisor.</param>
     /// <param name="res">On return, contains the quotient <c>this / a</c>.</param>
     /// <exception cref="System.DivideByZeroException"><paramref name="a"/> is zero.</exception>
-    public void Divide(in UInt256 a, out UInt256 res) => Divide(this, a, out res);
+    public void Divide(in UInt256 a, out UInt256 res)
+        => Divide(this, a, out res);
 
     /// <summary>
     /// Sets <paramref name="res"/> to the integer quotient of <paramref name="x"/> divided by <paramref name="y"/>.
@@ -49,7 +50,7 @@ public readonly partial struct UInt256
     {
         if(y.IsZero)
         {
-            ThrowDivideByZeroException();
+            throw new DivideByZeroException();
         }
         // Handle y == 0 and y == 1 cheaply
         //
@@ -57,7 +58,7 @@ public readonly partial struct UInt256
         // We structure this to keep y1/y2/y3 lifetimes short - do not load them unless y0 is 0 or 1.
         //
         // (y0 & ~1) == 0 is equivalent to (y0 == 0 || y0 == 1) but compiles well and keeps the branch compact.
-        ulong y0 = y.u0;
+        ulong y0 = y._u0;
         if((y0 & ~1UL) == 0)
         {
             // yHi is the OR of the upper limbs.
@@ -84,28 +85,28 @@ public readonly partial struct UInt256
         // If we pull x1/x2/x3 all live at once and then also pull y2/y3 for the wide compare, we run out of
         // volatile regs (Windows x64 has rcx/rdx/r8 pinned for args; leaves rax/r9/r10/r11 as the main free ones).
         // That is exactly how you get extra pushes.
-        ulong x3 = x.u3;
-        ulong x2 = x.u2;
+        ulong x3 = x._u3;
+        ulong x2 = x._u2;
 
         // x fits in 64 bits iff x1==x2==x3==0.
         // We stage it:
         // - first check x3|x2 (cheap and already needed for wide compare)
         // - only then touch x1, so x1 does not become live on the wide path.
-        if((x3 | x2) == 0 && x.u1 == 0)
+        if((x3 | x2) == 0 && x._u1 == 0)
         {
             // u64 path
             //
             // Here x < 2^64. If y has any high limbs set, then y >= 2^64 > x, so quotient is 0.
             // This avoids any 256-bit division work and avoids the "unsafe" x.u0/y.u0 divide when y doesn't fit.
-            if((y.u1 | y.u2 | y.u3) != 0)
+            if((y._u1 | y._u2 | y._u3) != 0)
             {
                 res = default;
                 return;
             }
 
             // Now both x and y fit in 64 bits, and y != 0 (we already handled y==0 earlier).
-            ulong x0 = x.u0;
-            ulong yy0 = y.u0; // reload y0 in this scope so we do not keep the earlier y0 live unnecessarily
+            ulong x0 = x._u0;
+            ulong yy0 = y._u0; // reload y0 in this scope so we do not keep the earlier y0 live unnecessarily
 
             // If y > x then quotient is 0.
             if(yy0 > x0)
@@ -141,7 +142,7 @@ public readonly partial struct UInt256
         //
         // This keeps at most ~4 scalar values live at any time, helping the JIT stay in volatile regs and
         // avoid callee-saved spills - while still giving the CPU some independent loads to overlap.
-        ulong y3 = y.u3;
+        ulong y3 = y._u3;
         if(x3 < y3)
         {
             res = default;
@@ -153,7 +154,7 @@ public readonly partial struct UInt256
             return;
         } // x > y -> real division
 
-        ulong y2 = y.u2;
+        ulong y2 = y._u2;
         if(x2 < y2)
         {
             res = default;
@@ -166,8 +167,8 @@ public readonly partial struct UInt256
         } // x > y -> real division
 
         // Stage B (only reached when x3==y3 and x2==y2)
-        ulong x1 = x.u1;
-        ulong y1 = y.u1;
+        ulong x1 = x._u1;
+        ulong y1 = y._u1;
         if(x1 < y1)
         {
             res = default;
@@ -179,8 +180,8 @@ public readonly partial struct UInt256
             return;
         } // x > y -> real division
 
-        ulong x0b = x.u0;
-        ulong y0b = y.u0;
+        ulong x0b = x._u0;
+        ulong y0b = y._u0;
         if(x0b < y0b)
         {
             res = default;
@@ -224,7 +225,7 @@ public readonly partial struct UInt256
     {
         if(y.IsZero)
         {
-            ThrowDivideByZeroException();
+            throw new DivideByZeroException();
         }
 
         if(x.IsZero || y.IsOne)
@@ -250,8 +251,8 @@ public readonly partial struct UInt256
         if(x.IsUint64)
         {
             // If y > x it has already be handled by caller
-            ulong quot = x.u0 / y.u0;
-            ulong rem = x.u0 - (quot * y.u0);
+            ulong quot = x._u0 / y._u0;
+            ulong rem = x._u0 - (quot * y._u0);
             res = Create(rem, 0, 0, 0);
             return;
         }
@@ -288,7 +289,7 @@ public readonly partial struct UInt256
     {
         if(m.IsZero)
         {
-            ThrowDivideByZeroException();
+            throw new DivideByZeroException();
         }
 
         if(m.IsOne)
@@ -299,18 +300,18 @@ public readonly partial struct UInt256
         }
 
         // Compute 257-bit sum S = x + y as 5 limbs (s0..s3, s4=carry)
-        bool overflow = AddOverflow(in x, in y, out var sum);
+        bool overflow = Add(in x, in y, out var sum);
         ulong s4 = !overflow ? 0UL : 1UL;
 
         if(m.IsUint64)
         {
             if(X86Base.X64.IsSupported)
             {
-                Remainder257By64BitsX86Base(in sum, s4, m.u0, out res);
+                Remainder257By64BitsX86Base(in sum, s4, m._u0, out res);
             }
             else
             {
-                Remainder257By64Bits(in sum, s4, m.u0, out res);
+                Remainder257By64Bits(in sum, s4, m._u0, out res);
             }
         }
         else if(LessThanBoth(in x, in y, in m))
@@ -324,11 +325,11 @@ public readonly partial struct UInt256
             // No overflow - sum is the exact x+y, so normal mod is correct.
             Mod(in sum, in m, out res);
         }
-        else if(m.u3 != 0)
+        else if(m._u3 != 0)
         {
             Remainder257By256Bits(in sum, in m, out res);
         }
-        else if(m.u2 != 0)
+        else if(m._u2 != 0)
         {
             Remainder257By192Bits(in sum, in m, out res);
         }
@@ -368,7 +369,7 @@ public readonly partial struct UInt256
     {
         if(m.IsZero)
         {
-            ThrowDivideByZeroException();
+            throw new DivideByZeroException();
         }
 
         if(m.IsOne || x.IsZero || y.IsZero)
@@ -392,21 +393,21 @@ public readonly partial struct UInt256
         // Modulus-size dispatch first - keeps all the tiny-mod magic.
         if(m.IsUint64)
         {
-            MulModBy64Bits(in x, in y, m.u0, out res);
+            MulModBy64Bits(in x, in y, m._u0, out res);
             return;
         }
 
-        if((m.u2 | m.u3) == 0)
+        if((m._u2 | m._u3) == 0)
         {
             // Hybrid: if both operands are > 128-bit, avoid two 256->128 reductions.
-            if(((x.u2 | x.u3) != 0) && ((y.u2 | y.u3) != 0))
+            if(((x._u2 | x._u3) != 0) && ((y._u2 | y._u3) != 0))
             {
                 Multiply256To512Bit(in x, in y, out var lo2, out var hi2);
                 Remainder512By128Bits(in lo2, in hi2, in m, out res); // dLen will be 2
                 return;
             }
 
-            MulModBy128Bits(in x, in y, m.u0, m.u1, out res);
+            MulModBy128Bits(in x, in y, m._u0, m._u1, out res);
             return;
         }
 
@@ -450,7 +451,7 @@ public readonly partial struct UInt256
     {
         if(m.IsZero)
         {
-            ThrowDivideByZeroException();
+            throw new DivideByZeroException();
         }
 
         if(m.IsOne)
@@ -460,7 +461,7 @@ public readonly partial struct UInt256
         }
         var intermediate = One;
         var bs = b;
-        int len = e.BitLen;
+        int len = e.BitLength;
         for(int i = 0; i < len; i++)
         {
             if(e.Bit(i))
@@ -476,12 +477,12 @@ public readonly partial struct UInt256
     [SkipLocalsInit]
     // Slow path is isolated so the wrapper can tailcall it and avoid stack temps like "out _ remainder".
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void DivideFull(in UInt256 x, in UInt256 y, out UInt256 res) =>
+    private static void DivideFull(in UInt256 x, in UInt256 y, out UInt256 res)
         // Full 256-bit division. We discard the remainder via out _.
         // Keeping this in a separate method prevents the wrapper from needing
         // a 32-byte stack slot for the remainder, which would otherwise force
         // a larger frame and extra stores even on fast exits.
-        DivideImpl(x, y, out res, out _);
+        => DivideImpl(x, y, out res, out _);
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -491,7 +492,7 @@ public readonly partial struct UInt256
         // Uses carry-aware single subtract.
 
         // diff = sum - m
-        ulong borrow = !SubtractUnderflow(in sum, in m, out var d) ? 0UL : 1UL;
+        ulong borrow = !Subtract(in sum, in m, out var d) ? 0UL : 1UL;
 
         // Need subtract if (carry == 1) || (sum >= m)
         // sum >= m <=> borrow == 0
@@ -541,21 +542,21 @@ public readonly partial struct UInt256
         ulong u0, u1, u2, u3, u4, u5;
         if(s == 0)
         {
-            u0 = a.u0;
-            u1 = a.u1;
-            u2 = a.u2;
-            u3 = a.u3;
+            u0 = a._u0;
+            u1 = a._u1;
+            u2 = a._u2;
+            u3 = a._u3;
             u4 = a4;
             u5 = 0;
         }
         else
         {
             int rs = 64 - s;
-            u0 = a.u0 << s;
-            u1 = (a.u1 << s) | (a.u0 >> rs);
-            u2 = (a.u2 << s) | (a.u1 >> rs);
-            u3 = (a.u3 << s) | (a.u2 >> rs);
-            u4 = (a4 << s) | (a.u3 >> rs);
+            u0 = a._u0 << s;
+            u1 = (a._u1 << s) | (a._u0 >> rs);
+            u2 = (a._u2 << s) | (a._u1 >> rs);
+            u3 = (a._u3 << s) | (a._u2 >> rs);
+            u4 = (a4 << s) | (a._u3 >> rs);
             u5 = a4 >> rs; // top limb (a5=0)
         }
 
@@ -570,7 +571,7 @@ public readonly partial struct UInt256
         _ = UDivRem2By1(r, recip, dn, u0, out r);
 
         rem = default;
-        Unsafe.AsRef(in rem.u0) = (s == 0) ? r : (r >> s);
+        Unsafe.AsRef(in rem._u0) = (s == 0) ? r : (r >> s);
     }
 
     [SkipLocalsInit]
@@ -581,10 +582,10 @@ public readonly partial struct UInt256
         Debug.Assert(a4 <= 1);
         // Pull limbs up-front to encourage register residency and avoid repeated loads.
         // (Does not change semantics - just helps the JIT and OoO core.)
-        ulong u0 = a.u0;
-        ulong u1 = a.u1;
-        ulong u2 = a.u2;
-        ulong u3 = a.u3;
+        ulong u0 = a._u0;
+        ulong u1 = a._u1;
+        ulong u2 = a._u2;
+        ulong u3 = a._u3;
 
         // Treat the top as a single 128-bit chunk (a4:u3) and take its remainder in ONE DivRem.
         // This is valid as long as a4 < d. For a carry limb (0/1) and d>1, that's guaranteed.
@@ -594,7 +595,7 @@ public readonly partial struct UInt256
         r = X86Base.X64.DivRem(u0, r, d).Remainder;
 
         rem = default;
-        Unsafe.AsRef(in rem.u0) = r;
+        Unsafe.AsRef(in rem._u0) = r;
     }
 
     [SkipLocalsInit]
@@ -606,12 +607,12 @@ public readonly partial struct UInt256
         // Dividend is treated as n[0..5] with n5 == 0 (extra top limb), and here n4 == 1 from the 257th bit.
         // Result is a 2-limb remainder in remainder.u0..remainder.u1
         const ulong topLimb = 1;
-        Debug.Assert(mod128.u3 == 0 && mod128.u2 == 0 && mod128.u1 != 0);
+        Debug.Assert(mod128._u3 == 0 && mod128._u2 == 0 && mod128._u1 != 0);
 
         // D1 - Normalise divisor: shift so vHi has its MSB set.
         // mod128 is 128-bit: v = (vHi:vLo). normShift in [0..63].
-        ulong vLo = mod128.u0;
-        ulong vHi = mod128.u1;
+        ulong vLo = mod128._u0;
+        ulong vHi = mod128._u1;
         int normShift = BitOperations.LeadingZeroCount(vHi);
 
         if(normShift > 0)
@@ -629,23 +630,23 @@ public readonly partial struct UInt256
         ulong n0, n1, n2, n3, n4;
         if(normShift == 0)
         {
-            n0 = dividendLo256.u0;
-            n1 = dividendLo256.u1;
-            n2 = dividendLo256.u2;
-            n3 = dividendLo256.u3;
+            n0 = dividendLo256._u0;
+            n1 = dividendLo256._u1;
+            n2 = dividendLo256._u2;
+            n3 = dividendLo256._u3;
             n4 = topLimb; // top limb
         }
         else
         {
             var shifted = ShiftLeftSmall(in dividendLo256, normShift);
-            n0 = shifted.u0;
-            n1 = shifted.u1;
-            n2 = shifted.u2;
-            n3 = shifted.u3;
+            n0 = shifted._u0;
+            n1 = shifted._u1;
+            n2 = shifted._u2;
+            n3 = shifted._u3;
 
             // n4 = (topLimb:dividendLo256.u3) << normShift, but topLimb == 1 so we fold
             // the carry from dividendLo256.u3
-            n4 = (topLimb << normShift) | (dividendLo256.u3 >> (64 - normShift));
+            n4 = (topLimb << normShift) | (dividendLo256._u3 >> (64 - normShift));
         }
 
         // Top-step shortcut: only possible quotient from the topmost pair (n4:n3) is q3 in {0,1}.
@@ -792,16 +793,16 @@ public readonly partial struct UInt256
         // Uses Knuth D in base 2^64, specialised to a 3-limb divisor.
         // We operate on a 5-limb dividend window (u0..u4); the implicit u5 is provably 0 here.
         const ulong implicitTopLimb = 1;
-        Debug.Assert(modulus192.u3 == 0 && modulus192.u2 != 0);
+        Debug.Assert(modulus192._u3 == 0 && modulus192._u2 != 0);
 
         // D1 - Normalise modulus so its top limb has the MSB set.
-        ulong modTop = modulus192.u2;
+        ulong modTop = modulus192._u2;
         int normShiftBits = BitOperations.LeadingZeroCount(modTop);
 
         var normMod = ShiftLeftSmall(in modulus192, normShiftBits);
-        ulong mod0 = normMod.u0;
-        ulong mod1 = normMod.u1;
-        ulong mod2 = normMod.u2;
+        ulong mod0 = normMod._u0;
+        ulong mod1 = normMod._u1;
+        ulong mod2 = normMod._u2;
 
         ulong recipMod2 = X86Base.X64.IsSupported ? 0UL : Reciprocal2By1(mod2);
 
@@ -810,20 +811,20 @@ public readonly partial struct UInt256
         ulong u0, u1, u2, u3, u4;
         if(normShiftBits == 0)
         {
-            u0 = valueLo256.u0;
-            u1 = valueLo256.u1;
-            u2 = valueLo256.u2;
-            u3 = valueLo256.u3;
+            u0 = valueLo256._u0;
+            u1 = valueLo256._u1;
+            u2 = valueLo256._u2;
+            u3 = valueLo256._u3;
             u4 = implicitTopLimb;
         }
         else
         {
             int inv = 64 - normShiftBits;
-            u0 = valueLo256.u0 << normShiftBits;
-            u1 = (valueLo256.u1 << normShiftBits) | (valueLo256.u0 >> inv);
-            u2 = (valueLo256.u2 << normShiftBits) | (valueLo256.u1 >> inv);
-            u3 = (valueLo256.u3 << normShiftBits) | (valueLo256.u2 >> inv);
-            u4 = (implicitTopLimb << normShiftBits) | (valueLo256.u3 >> inv);
+            u0 = valueLo256._u0 << normShiftBits;
+            u1 = (valueLo256._u1 << normShiftBits) | (valueLo256._u0 >> inv);
+            u2 = (valueLo256._u2 << normShiftBits) | (valueLo256._u1 >> inv);
+            u3 = (valueLo256._u3 << normShiftBits) | (valueLo256._u2 >> inv);
+            u4 = (implicitTopLimb << normShiftBits) | (valueLo256._u3 >> inv);
             // u5 would be (implicitTopLimb >> inv) which is always 0 for inv in 1..63.
         }
 
@@ -1021,28 +1022,28 @@ public readonly partial struct UInt256
         // - Modulus is up to 256-bit (4 limbs), and must have a non-zero top limb.
         // Uses Knuth D in base 2^64, specialised to a 4-limb divisor, with the top dividend limb u5 == 0.
         const ulong implicitTopLimb = 1;
-        Debug.Assert(modulus256.u3 != 0);
+        Debug.Assert(modulus256._u3 != 0);
 
         // D1 - Normalise modulus so its high limb has the top bit set.
-        int normShiftBits = BitOperations.LeadingZeroCount(modulus256.u3);
+        int normShiftBits = BitOperations.LeadingZeroCount(modulus256._u3);
         var normMod = ShiftLeftSmall(in modulus256, normShiftBits);
         var normValue = ShiftLeftSmall(in valueLo256, normShiftBits);
 
-        ulong mod3 = normMod.u3;
+        ulong mod3 = normMod._u3;
         ulong recipMod3 = X86Base.X64.IsSupported ? 0UL : Reciprocal2By1(mod3);
 
         // D1 - Normalise the 257-bit dividend into limbs u0..u4 (u5 is implicitly 0).
-        ulong u0 = normValue.u0;
-        ulong u1 = normValue.u1;
-        ulong u2 = normValue.u2;
-        ulong u3 = normValue.u3;
+        ulong u0 = normValue._u0;
+        ulong u1 = normValue._u1;
+        ulong u2 = normValue._u2;
+        ulong u3 = normValue._u3;
         ulong u4 = (normShiftBits == 0)
             ? implicitTopLimb
-            : (implicitTopLimb << normShiftBits) | (valueLo256.u3 >> (64 - normShiftBits));
+            : (implicitTopLimb << normShiftBits) | (valueLo256._u3 >> (64 - normShiftBits));
 
-        ulong mod0 = normMod.u0;
-        ulong mod1 = normMod.u1;
-        ulong mod2 = normMod.u2;
+        ulong mod0 = normMod._u0;
+        ulong mod1 = normMod._u1;
+        ulong mod2 = normMod._u2;
 
         // High quotient digit (from the top limb) can only be 0 or 1 because:
         // - u5 == 0 for a 257-bit dividend
@@ -1215,8 +1216,8 @@ public readonly partial struct UInt256
         if((mod & (mod - 1)) == 0)
         {
             ulong mask = mod - 1;
-            ulong a = x.u0 & mask;
-            ulong b = y.u0 & mask;
+            ulong a = x._u0 & mask;
+            ulong b = y._u0 & mask;
             ulong prodLo = unchecked(a * b);
             res = new UInt256(prodLo & mask, 0, 0, 0);
             return;
@@ -1224,9 +1225,9 @@ public readonly partial struct UInt256
 
         // Fast reduce x if it is already 64-bit.
         ulong xr;
-        if((x.u1 | x.u2 | x.u3) == 0)
+        if((x._u1 | x._u2 | x._u3) == 0)
         {
-            ulong a = x.u0;
+            ulong a = x._u0;
             xr = a < mod ? a : a % mod;
         }
         else
@@ -1252,9 +1253,9 @@ public readonly partial struct UInt256
         ulong rec = X86Base.X64.IsSupported ? 0 : Reciprocal2By1(dnn);
 
         ulong yr;
-        if((y.u1 | y.u2 | y.u3) == 0)
+        if((y._u1 | y._u2 | y._u3) == 0)
         {
-            ulong b = y.u0;
+            ulong b = y._u0;
             yr = b < mod ? b : b % mod;
         }
         else
@@ -1282,12 +1283,12 @@ public readonly partial struct UInt256
     private static ulong Remainder256By64Bits(in UInt256 a, ulong dn, ulong reciprocal, int shift)
     {
         var un = ShiftLeftSmall(in a, shift);
-        ulong r = shift == 0 ? 0 : a.u3 >> (64 - shift);
+        ulong r = shift == 0 ? 0 : a._u3 >> (64 - shift);
 
-        _ = UDivRem2By1(r, reciprocal, dn, un.u3, out r);
-        _ = UDivRem2By1(r, reciprocal, dn, un.u2, out r);
-        _ = UDivRem2By1(r, reciprocal, dn, un.u1, out r);
-        _ = UDivRem2By1(r, reciprocal, dn, un.u0, out r);
+        _ = UDivRem2By1(r, reciprocal, dn, un._u3, out r);
+        _ = UDivRem2By1(r, reciprocal, dn, un._u2, out r);
+        _ = UDivRem2By1(r, reciprocal, dn, un._u1, out r);
+        _ = UDivRem2By1(r, reciprocal, dn, un._u0, out r);
 
         // Denormalise remainder.
         return r >> shift;
@@ -1296,12 +1297,12 @@ public readonly partial struct UInt256
     private static ulong Remainder256By64BitsX86Base(in UInt256 a, ulong dn, int shift)
     {
         var un = ShiftLeftSmall(in a, shift);
-        ulong r = shift == 0 ? 0 : a.u3 >> (64 - shift);
+        ulong r = shift == 0 ? 0 : a._u3 >> (64 - shift);
 
-        (_, r) = X86Base.X64.DivRem(un.u3, r, dn);
-        (_, r) = X86Base.X64.DivRem(un.u2, r, dn);
-        (_, r) = X86Base.X64.DivRem(un.u1, r, dn);
-        (_, r) = X86Base.X64.DivRem(un.u0, r, dn);
+        (_, r) = X86Base.X64.DivRem(un._u3, r, dn);
+        (_, r) = X86Base.X64.DivRem(un._u2, r, dn);
+        (_, r) = X86Base.X64.DivRem(un._u1, r, dn);
+        (_, r) = X86Base.X64.DivRem(un._u0, r, dn);
 
         // Denormalise remainder.
         return r >> shift;
@@ -1378,17 +1379,17 @@ public readonly partial struct UInt256
         {
             if(x.IsUint64 && y.IsUint64)
             {
-                ulong hi = Multiply64(x.u0, y.u0, out ulong low);
+                ulong hi = Multiply64(x._u0, y._u0, out ulong low);
                 Remainder128By128Bits(low, hi, m0, m1, out r0, out r1);
             }
             else
             {
-                ulong u0 = x.u0, u1 = x.u1, u2 = x.u2, u3 = x.u3;
+                ulong u0 = x._u0, u1 = x._u1, u2 = x._u2, u3 = x._u3;
                 Remainder256By128Bits(u0, u1, u2, u3, m0, m1, out ulong x0, out ulong x1);
-                u0 = y.u0;
-                u1 = y.u1;
-                u2 = y.u2;
-                u3 = y.u3;
+                u0 = y._u0;
+                u1 = y._u1;
+                u2 = y._u2;
+                u3 = y._u3;
                 Remainder256By128Bits(u0, u1, u2, u3, m0, m1, out ulong y0, out ulong y1);
 
                 Mul128(x0, x1, y0, y1, out ulong p0, out ulong p1, out ulong p2, out ulong p3);
@@ -1398,7 +1399,7 @@ public readonly partial struct UInt256
         else
         {
             // Single side mod; as one operand is 1.
-            ulong u0 = q.u0, u1 = q.u1, u2 = q.u2, u3 = q.u3;
+            ulong u0 = q._u0, u1 = q._u1, u2 = q._u2, u3 = q._u3;
             Remainder256By128Bits(u0, u1, u2, u3, m0, m1, out r0, out r1);
         }
         res = new UInt256(r0, r1, 0, 0);
@@ -1580,19 +1581,18 @@ public readonly partial struct UInt256
         }
     }
 
-
     [SkipLocalsInit]
     private static void Remainder512By128Bits(in UInt256 lo, in UInt256 hi, in UInt256 d, out UInt256 rem)
     {
-        Debug.Assert((d.u2 | d.u3) == 0);
+        Debug.Assert((d._u2 | d._u3) == 0);
 
-        ulong d0 = d.u0;
-        ulong d1 = d.u1;
+        ulong d0 = d._u0;
+        ulong d1 = d._u1;
         Debug.Assert((d0 | d1) != 0);
 
         // Numerator limbs (u0 is least significant).
-        ulong u0 = lo.u0, u1 = lo.u1, u2 = lo.u2, u3 = lo.u3;
-        ulong u4 = hi.u0, u5 = hi.u1, u6 = hi.u2, u7 = hi.u3;
+        ulong u0 = lo._u0, u1 = lo._u1, u2 = lo._u2, u3 = lo._u3;
+        ulong u4 = hi._u0, u5 = hi._u1, u6 = hi._u2, u7 = hi._u3;
 
         // In the slow path hi != 0, so uLen is always 5..8 (as in your original).
         int uLen = u7 != 0 ? 8 : (u6 != 0 ? 7 : (u5 != 0 ? 6 : 5));
@@ -1662,7 +1662,7 @@ public readonly partial struct UInt256
     [SkipLocalsInit]
     private static void Remainder512By256Bits(in UInt256 lo, in UInt256 hi, in UInt256 d, out UInt256 rem)
     {
-        ulong d0 = d.u0, d1 = d.u1, d2 = d.u2, d3 = d.u3;
+        ulong d0 = d._u0, d1 = d._u1, d2 = d._u2, d3 = d._u3;
 
         // Divisor length (1..4) and normalisation shift.
         int dLen;
@@ -1689,8 +1689,8 @@ public readonly partial struct UInt256
         }
 
         // Numerator limbs (u0 is least significant).
-        ulong u0 = lo.u0, u1n = lo.u1, u2n = lo.u2, u3n = lo.u3;
-        ulong u4 = hi.u0, u5 = hi.u1, u6 = hi.u2, u7 = hi.u3;
+        ulong u0 = lo._u0, u1n = lo._u1, u2n = lo._u2, u3n = lo._u3;
+        ulong u4 = hi._u0, u5 = hi._u1, u6 = hi._u2, u7 = hi._u3;
 
         // In the slow path hi != 0, so uLen is always 5..8.
         int uLen = u7 != 0 ? 8 : (u6 != 0 ? 7 : (u5 != 0 ? 6 : 5));
@@ -2202,12 +2202,12 @@ public readonly partial struct UInt256
         if(x.IsUint64 && y.IsUint64)
         {
             // Fast multiply for numbers less than 2^64 (18,446,744,073,709,551,615)
-            ulong highUL = Multiply64(x.u0, y.u0, out ulong lowUL);
+            ulong highUL = Multiply64(x._u0, y._u0, out ulong lowUL);
             // Assignment to high, low after multiply in case either is used as input for x or y (by ref aliasing)
             high = default;
             low = default;
-            Unsafe.AsRef(in low.u0) = lowUL;
-            Unsafe.AsRef(in low.u1) = highUL;
+            Unsafe.AsRef(in low._u0) = lowUL;
+            Unsafe.AsRef(in low._u1) = highUL;
             return;
         }
 
@@ -2219,8 +2219,8 @@ public readonly partial struct UInt256
     private static void Multiply256To512BitLarge(UInt256 x, UInt256 y, out UInt256 low, out UInt256 high)
     {
         // Copy inputs up front - this breaks aliasing with out params so we can store early.
-        ulong x0 = x.u0, x1 = x.u1, x2 = x.u2, x3 = x.u3;
-        ulong y0 = y.u0, y1 = y.u1, y2 = y.u2, y3 = y.u3;
+        ulong x0 = x._u0, x1 = x._u1, x2 = x._u2, x3 = x._u3;
+        ulong y0 = y._u0, y1 = y._u1, y2 = y._u2, y3 = y._u3;
 
         Unsafe.SkipInit(out low);
         Unsafe.SkipInit(out high);
@@ -2228,13 +2228,13 @@ public readonly partial struct UInt256
         // Column 0: p0 = x0*y0 (low), carry = high
         ulong carryLo = Multiply64(x0, y0, out ulong p0);
         ulong carryHi = 0;
-        Unsafe.AsRef(in low.u0) = p0;
+        Unsafe.AsRef(in low._u0) = p0;
 
         // Column 1: p1 = carry + x0*y1 + x1*y0
         ulong a0 = carryLo, a1 = carryHi, a2 = 0;
         MultiplyAddCarry(ref a0, ref a1, ref a2, x0, y1);
         MultiplyAddCarry(ref a0, ref a1, ref a2, x1, y0);
-        Unsafe.AsRef(in low.u1) = a0;
+        Unsafe.AsRef(in low._u1) = a0;
         carryLo = a1;
         carryHi = a2;
 
@@ -2245,7 +2245,7 @@ public readonly partial struct UInt256
         MultiplyAddCarry(ref a0, ref a1, ref a2, x0, y2);
         MultiplyAddCarry(ref a0, ref a1, ref a2, x1, y1);
         MultiplyAddCarry(ref a0, ref a1, ref a2, x2, y0);
-        Unsafe.AsRef(in low.u2) = a0;
+        Unsafe.AsRef(in low._u2) = a0;
         carryLo = a1;
         carryHi = a2;
 
@@ -2257,7 +2257,7 @@ public readonly partial struct UInt256
         MultiplyAddCarry(ref a0, ref a1, ref a2, x1, y2);
         MultiplyAddCarry(ref a0, ref a1, ref a2, x2, y1);
         MultiplyAddCarry(ref a0, ref a1, ref a2, x3, y0);
-        Unsafe.AsRef(in low.u3) = a0;
+        Unsafe.AsRef(in low._u3) = a0;
         carryLo = a1;
         carryHi = a2;
 
@@ -2268,7 +2268,7 @@ public readonly partial struct UInt256
         MultiplyAddCarry(ref a0, ref a1, ref a2, x1, y3);
         MultiplyAddCarry(ref a0, ref a1, ref a2, x2, y2);
         MultiplyAddCarry(ref a0, ref a1, ref a2, x3, y1);
-        Unsafe.AsRef(in high.u0) = a0;
+        Unsafe.AsRef(in high._u0) = a0;
         carryLo = a1;
         carryHi = a2;
 
@@ -2278,7 +2278,7 @@ public readonly partial struct UInt256
         a2 = 0;
         MultiplyAddCarry(ref a0, ref a1, ref a2, x2, y3);
         MultiplyAddCarry(ref a0, ref a1, ref a2, x3, y2);
-        Unsafe.AsRef(in high.u1) = a0;
+        Unsafe.AsRef(in high._u1) = a0;
         carryLo = a1;
         carryHi = a2;
 
@@ -2287,10 +2287,10 @@ public readonly partial struct UInt256
         a1 = carryHi;
         a2 = 0;
         MultiplyAddCarry(ref a0, ref a1, ref a2, x3, y3);
-        Unsafe.AsRef(in high.u2) = a0;
+        Unsafe.AsRef(in high._u2) = a0;
 
         // Column 7: remaining carry (a1). For 256x256, a2 must end up 0 here.
-        Unsafe.AsRef(in high.u3) = a1;
+        Unsafe.AsRef(in high._u3) = a1;
     }
 
     // Preconditions (enforced by public Divide wrapper):
@@ -2304,15 +2304,15 @@ public readonly partial struct UInt256
     [SkipLocalsInit]
     private static void DivideImpl(in UInt256 x, in UInt256 y, out UInt256 quotient, out UInt256 remainder)
     {
-        if(y.u3 != 0)
+        if(y._u3 != 0)
         {
             DivideBy256Bits(in x, in y, out quotient, out remainder);
         }
-        else if(y.u2 != 0)
+        else if(y._u2 != 0)
         {
             DivideBy192Bits(in x, in y, out quotient, out remainder);
         }
-        else if(y.u1 != 0)
+        else if(y._u1 != 0)
         {
             if(X86Base.X64.IsSupported)
             {
@@ -2327,11 +2327,11 @@ public readonly partial struct UInt256
         {
             if(X86Base.X64.IsSupported)
             {
-                DivideBy64BitsX86Base(in x, y.u0, out quotient, out remainder);
+                DivideBy64BitsX86Base(in x, y._u0, out quotient, out remainder);
             }
             else
             {
-                DivideBy64Bits(in x, y.u0, out quotient, out remainder);
+                DivideBy64Bits(in x, y._u0, out quotient, out remainder);
             }
         }
     }
@@ -2342,24 +2342,24 @@ public readonly partial struct UInt256
     {
         ulong rem = 0;
         ulong q3 = 0;
-        ulong u3 = x.u3;
+        ulong u3 = x._u3;
         if(u3 != 0)
         {
             (q3, rem) = X86Base.X64.DivRem(lower: u3, upper: rem, divisor);
         }
-        ulong u2 = x.u2;
+        ulong u2 = x._u2;
         ulong q2 = 0;
         if((u2 | rem) != 0)
         {
             (q2, rem) = X86Base.X64.DivRem(lower: u2, upper: rem, divisor);
         }
-        ulong u1 = x.u1;
+        ulong u1 = x._u1;
         ulong q1 = 0;
         if((u1 | rem) != 0)
         {
             (q1, rem) = X86Base.X64.DivRem(lower: u1, upper: rem, divisor);
         }
-        ulong u0 = x.u0;
+        ulong u0 = x._u0;
         ulong q0 = 0;
         if((u0 | rem) != 0)
         {
@@ -2377,10 +2377,10 @@ public readonly partial struct UInt256
         int s = BitOperations.LeadingZeroCount(divisor);
         ulong dn = divisor << s; // normalised divisor (msb set if s>0)
         // Normalise dividend into 5 limbs
-        ulong u0n = x.u0;
-        ulong u1n = x.u1;
-        ulong u2n = x.u2;
-        ulong u3n = x.u3;
+        ulong u0n = x._u0;
+        ulong u1n = x._u1;
+        ulong u2n = x._u2;
+        ulong u3n = x._u3;
         ulong rem = 0;
         if(s > 0)
         {
@@ -2410,42 +2410,42 @@ public readonly partial struct UInt256
     {
         // n >= 2: Knuth D (specialised) with reciprocal qhat
 
-        int shift = BitOperations.LeadingZeroCount(y.u2);
+        int shift = BitOperations.LeadingZeroCount(y._u2);
 
         // Normalise divisor v = y << shift
         ulong v0, v1n, v2n;
         if(shift == 0)
         {
-            v0 = y.u0;
-            v1n = y.u1;
-            v2n = y.u2;
+            v0 = y._u0;
+            v1n = y._u1;
+            v2n = y._u2;
         }
         else
         {
             int rs = 64 - shift;
-            v0 = y.u0 << shift;
-            v1n = (y.u1 << shift) | (y.u0 >> rs);
-            v2n = (y.u2 << shift) | (y.u1 >> rs);
+            v0 = y._u0 << shift;
+            v1n = (y._u1 << shift) | (y._u0 >> rs);
+            v2n = (y._u2 << shift) | (y._u1 >> rs);
         }
 
         // Normalise dividend u = x << shift into 5 limbs
         ulong u0n2, u1d, u2d, u3d, u4d;
         if(shift == 0)
         {
-            u0n2 = x.u0;
-            u1d = x.u1;
-            u2d = x.u2;
-            u3d = x.u3;
+            u0n2 = x._u0;
+            u1d = x._u1;
+            u2d = x._u2;
+            u3d = x._u3;
             u4d = 0;
         }
         else
         {
             int rs = 64 - shift;
-            u0n2 = x.u0 << shift;
-            u1d = (x.u1 << shift) | (x.u0 >> rs);
-            u2d = (x.u2 << shift) | (x.u1 >> rs);
-            u3d = (x.u3 << shift) | (x.u2 >> rs);
-            u4d = x.u3 >> rs;
+            u0n2 = x._u0 << shift;
+            u1d = (x._u1 << shift) | (x._u0 >> rs);
+            u2d = (x._u2 << shift) | (x._u1 >> rs);
+            u3d = (x._u3 << shift) | (x._u2 >> rs);
+            u4d = x._u3 >> rs;
         }
 
         ulong vRecip = X86Base.X64.IsSupported ? 0 : Reciprocal2By1(v2n);
@@ -2623,7 +2623,7 @@ public readonly partial struct UInt256
     {
         // n >= 2: Knuth D (specialised) with reciprocal qhat
 
-        int shift = BitOperations.LeadingZeroCount(y.u3);
+        int shift = BitOperations.LeadingZeroCount(y._u3);
 
         // Normalise divisor v = y << shift
         var u = ShiftLeftSmall(in x, shift);
@@ -2637,41 +2637,41 @@ public readonly partial struct UInt256
         else
         {
             int rs = 64 - shift;
-            u4d = x.u3 >> rs;
+            u4d = x._u3 >> rs;
         }
 
-        ulong vRecip = X86Base.X64.IsSupported ? 0 : Reciprocal2By1(v.u3);
+        ulong vRecip = X86Base.X64.IsSupported ? 0 : Reciprocal2By1(v._u3);
         ulong qhat, rhat, rcarry;
-        if(u4d == v.u3)
+        if(u4d == v._u3)
         {
             qhat = UInt64.MaxValue;
-            ulong sum = u.u3 + v.u3;
-            rcarry = (sum < u.u3) ? 1UL : 0UL;
+            ulong sum = u._u3 + v._u3;
+            rcarry = (sum < u._u3) ? 1UL : 0UL;
             rhat = sum;
         }
         else
         {
             if(X86Base.X64.IsSupported)
             {
-                (qhat, rhat) = X86Base.X64.DivRem(u.u3, u4d, v.u3); // (upper:lower) = (u4d:u.u3)
+                (qhat, rhat) = X86Base.X64.DivRem(u._u3, u4d, v._u3); // (upper:lower) = (u4d:u.u3)
             }
             else
             {
-                qhat = UDivRem2By1(u4d, vRecip, v.u3, u.u3, out rhat);
+                qhat = UDivRem2By1(u4d, vRecip, v._u3, u._u3, out rhat);
             }
             rcarry = 0;
         }
 
         if(rcarry == 0)
         {
-            ulong pHi = Multiply64(qhat, v.u2, out ulong pLo);
+            ulong pHi = Multiply64(qhat, v._u2, out ulong pLo);
 
             // if qhat*vNext > rhat*b + uCorr then decrement
-            if(pHi > rhat || (pHi == rhat && pLo > u.u2))
+            if(pHi > rhat || (pHi == rhat && pLo > u._u2))
             {
                 qhat--;
 
-                ulong sum1 = rhat + v.u3;
+                ulong sum1 = rhat + v._u3;
                 if(sum1 < rhat)
                 {
                     rcarry = 1;
@@ -2683,10 +2683,10 @@ public readonly partial struct UInt256
 
         if(rcarry == 0)
         {
-            ulong pHi = Multiply64(qhat, v.u2, out ulong pLo);
+            ulong pHi = Multiply64(qhat, v._u2, out ulong pLo);
 
             // if qhat*vNext > rhat*b + uCorr then decrement
-            if(pHi > rhat || (pHi == rhat && pLo > u.u2))
+            if(pHi > rhat || (pHi == rhat && pLo > u._u2))
             {
                 qhat--;
             }
@@ -2719,18 +2719,18 @@ public readonly partial struct UInt256
 
         if(!Avx2.IsSupported)
         {
-            ulong a0 = v.u0;
-            ulong a1 = v.u1;
-            ulong a2 = v.u2;
-            ulong a3 = v.u3;
+            ulong a0 = v._u0;
+            ulong a1 = v._u1;
+            ulong a2 = v._u2;
+            ulong a3 = v._u3;
 
             int rs = 64 - sh;
 
             Unsafe.SkipInit(out UInt256 r);
-            Unsafe.AsRef(in r.u0) = a0 << sh;
-            Unsafe.AsRef(in r.u1) = (a1 << sh) | (a0 >> rs);
-            Unsafe.AsRef(in r.u2) = (a2 << sh) | (a1 >> rs);
-            Unsafe.AsRef(in r.u3) = (a3 << sh) | (a2 >> rs);
+            Unsafe.AsRef(in r._u0) = a0 << sh;
+            Unsafe.AsRef(in r._u1) = (a1 << sh) | (a0 >> rs);
+            Unsafe.AsRef(in r._u2) = (a2 << sh) | (a1 >> rs);
+            Unsafe.AsRef(in r._u3) = (a3 << sh) | (a2 >> rs);
 
             return r;
         }
@@ -2773,18 +2773,18 @@ public readonly partial struct UInt256
 
         if(!Avx2.IsSupported)
         {
-            ulong a0 = v.u0;
-            ulong a1 = v.u1;
-            ulong a2 = v.u2;
-            ulong a3 = v.u3;
+            ulong a0 = v._u0;
+            ulong a1 = v._u1;
+            ulong a2 = v._u2;
+            ulong a3 = v._u3;
 
             int rs = 64 - sh;
 
             Unsafe.SkipInit(out UInt256 result);
-            Unsafe.AsRef(in result.u0) = (a0 >> sh) | (a1 << rs);
-            Unsafe.AsRef(in result.u1) = (a1 >> sh) | (a2 << rs);
-            Unsafe.AsRef(in result.u2) = (a2 >> sh) | (a3 << rs);
-            Unsafe.AsRef(in result.u3) = a3 >> sh;
+            Unsafe.AsRef(in result._u0) = (a0 >> sh) | (a1 << rs);
+            Unsafe.AsRef(in result._u1) = (a1 >> sh) | (a2 << rs);
+            Unsafe.AsRef(in result._u2) = (a2 >> sh) | (a3 << rs);
+            Unsafe.AsRef(in result._u3) = a3 >> sh;
             return result;
         }
         else
@@ -2826,11 +2826,11 @@ public readonly partial struct UInt256
     private static void DivideBy128BitsX86Base(in UInt256 x, in UInt256 y, out UInt256 q, out UInt256 remainder)
     {
         // n == 2: specialised Knuth D with hardware DivRem
-        Debug.Assert(y.u1 != 0 && y.u2 == 0 && y.u3 == 0);
+        Debug.Assert(y._u1 != 0 && y._u2 == 0 && y._u3 == 0);
 
         // Normalise divisor (2 limbs)
-        ulong y0 = y.u0;
-        ulong y1 = y.u1;
+        ulong y0 = y._u0;
+        ulong y1 = y._u1;
 
         int shift = BitOperations.LeadingZeroCount(y1);
 
@@ -2848,10 +2848,10 @@ public readonly partial struct UInt256
         }
 
         // Normalise dividend (5 limbs)
-        ulong u0 = x.u0;
-        ulong u1 = x.u1;
-        ulong u2 = x.u2;
-        ulong u3 = x.u3;
+        ulong u0 = x._u0;
+        ulong u1 = x._u1;
+        ulong u2 = x._u2;
+        ulong u3 = x._u3;
         ulong u4;
 
         if(shift != 0)
@@ -3087,11 +3087,11 @@ public readonly partial struct UInt256
     {
         // n >= 2: Knuth D (specialised) with reciprocal qhat
         // Preconditions (debug-only)
-        Debug.Assert(y.u1 != 0 && y.u2 == 0 && y.u3 == 0);
+        Debug.Assert(y._u1 != 0 && y._u2 == 0 && y._u3 == 0);
 
         // Normalise divisor (2 limbs)
-        ulong y0 = y.u0;
-        ulong y1 = y.u1;
+        ulong y0 = y._u0;
+        ulong y1 = y._u1;
 
         int shift = BitOperations.LeadingZeroCount(y1);
 
@@ -3113,10 +3113,10 @@ public readonly partial struct UInt256
 
         // Normalise dividend (5 limbs)
         // Load after divisor prep - avoids keeping u-limbs live across the Reciprocal call.
-        ulong u0 = x.u0;
-        ulong u1 = x.u1;
-        ulong u2 = x.u2;
-        ulong u3 = x.u3;
+        ulong u0 = x._u0;
+        ulong u1 = x._u1;
+        ulong u2 = x._u2;
+        ulong u3 = x._u3;
         ulong u4;
 
         if(shift != 0)
@@ -3209,7 +3209,7 @@ public readonly partial struct UInt256
 
                 qhat--;
             }
-            Unsafe.AsRef(in q.u2) = qhat;
+            Unsafe.AsRef(in q._u2) = qhat;
         }
 
         // Step j=1: q1 from (u3:u2:u1)
@@ -3280,7 +3280,7 @@ public readonly partial struct UInt256
 
                 qhat--;
             }
-            Unsafe.AsRef(in q.u1) = qhat;
+            Unsafe.AsRef(in q._u1) = qhat;
         }
 
         // Step j=0: q0 from (u2:u1:u0)
@@ -3352,29 +3352,29 @@ public readonly partial struct UInt256
                 qhat--;
             }
 
-            Unsafe.AsRef(in q.u0) = qhat;
+            Unsafe.AsRef(in q._u0) = qhat;
         }
 
         // q3 is always 0 for 256/128 here.
-        Unsafe.AsRef(in q.u3) = 0;
+        Unsafe.AsRef(in q._u3) = 0;
 
         // Remainder (u0..u1 in normalised space) - unnormalise.
         Unsafe.SkipInit(out remainder);
 
         if(shift == 0)
         {
-            Unsafe.AsRef(in remainder.u0) = u0;
-            Unsafe.AsRef(in remainder.u1) = u1;
+            Unsafe.AsRef(in remainder._u0) = u0;
+            Unsafe.AsRef(in remainder._u1) = u1;
         }
         else
         {
             int rs = 64 - shift;
-            Unsafe.AsRef(in remainder.u0) = (u0 >> shift) | (u1 << rs);
-            Unsafe.AsRef(in remainder.u1) = u1 >> shift;
+            Unsafe.AsRef(in remainder._u0) = (u0 >> shift) | (u1 << rs);
+            Unsafe.AsRef(in remainder._u1) = u1 >> shift;
         }
 
-        Unsafe.AsRef(in remainder.u2) = 0;
-        Unsafe.AsRef(in remainder.u3) = 0;
+        Unsafe.AsRef(in remainder._u2) = 0;
+        Unsafe.AsRef(in remainder._u3) = 0;
     }
 
     // Knuth steps (unrolled)
@@ -3385,28 +3385,28 @@ public readonly partial struct UInt256
     {
         ulong borrow = 0;
 
-        ulong pHi = Multiply64(q, v.u0, out ulong pLo);
+        ulong pHi = Multiply64(q, v._u0, out ulong pLo);
         ulong sum = pLo;
         ulong c2 = (sum < pLo) ? 1UL : 0UL;
         ulong carry = pHi + c2;
-        ulong r0 = Sub(u.u0, sum, ref borrow);
+        ulong r0 = Sub(u._u0, sum, ref borrow);
 
-        pHi = Multiply64(q, v.u1, out pLo);
+        pHi = Multiply64(q, v._u1, out pLo);
         sum = pLo + carry;
         c2 = (sum < pLo) ? 1UL : 0UL;
         carry = pHi + c2;
-        ulong r1 = Sub(u.u1, sum, ref borrow);
+        ulong r1 = Sub(u._u1, sum, ref borrow);
 
-        pHi = Multiply64(q, v.u2, out pLo);
+        pHi = Multiply64(q, v._u2, out pLo);
         sum = pLo + carry;
         c2 = (sum < pLo) ? 1UL : 0UL;
         carry = pHi + c2;
-        ulong r2 = Sub(u.u2, sum, ref borrow);
-        pHi = Multiply64(q, v.u3, out pLo);
+        ulong r2 = Sub(u._u2, sum, ref borrow);
+        pHi = Multiply64(q, v._u3, out pLo);
         sum = pLo + carry;
         c2 = (sum < pLo) ? 1UL : 0UL;
         carry = pHi + c2;
-        ulong r3 = Sub(u.u3, sum, ref borrow);
+        ulong r3 = Sub(u._u3, sum, ref borrow);
 
         u4 = Sub(u4, carry, ref borrow);
 

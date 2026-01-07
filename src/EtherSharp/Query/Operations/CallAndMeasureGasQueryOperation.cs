@@ -1,7 +1,6 @@
-﻿using EtherSharp.ABI.Types;
+﻿using EtherSharp.Numerics;
 using EtherSharp.Tx;
 using System.Buffers.Binary;
-using System.Numerics;
 
 namespace EtherSharp.Query.Operations;
 
@@ -10,7 +9,7 @@ internal class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQ
     private readonly IContractCall<T> _txInput = txInput;
 
     public int CallDataLength => 4 + 20 + 32 + _txInput.Data.Length;
-    public BigInteger EthValue => _txInput.Value;
+    public UInt256 EthValue => _txInput.Value;
     IReadOnlyList<IQuery> IQuery<(QueryResult<T>, ulong)>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
@@ -25,7 +24,7 @@ internal class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQ
         buffer[0] = (byte) QueryOperationId.CallAndMeasureGas;
 
         _txInput.To.Bytes.CopyTo(buffer[4..24]);
-        AbiTypes.BigInteger.EncodeInto(EthValue, true, buffer[24..56]);
+        BinaryPrimitives.WriteUInt256BigEndian(buffer[24..56], EthValue);
         _txInput.Data.Span.CopyTo(buffer[56..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)

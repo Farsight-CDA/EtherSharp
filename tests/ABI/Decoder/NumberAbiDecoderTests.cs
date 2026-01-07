@@ -1,7 +1,9 @@
 ﻿using EtherSharp.ABI;
+using EtherSharp.Numerics;
 using System.Numerics;
 
 namespace EtherSharp.Tests.ABI.Decoder;
+
 public class AbiNumberEncodingTests
 {
     public static TheoryData<int> BitSizes
@@ -47,8 +49,8 @@ public class AbiNumberEncodingTests
             }
             case > 64 and <= 256:
             {
-                var value = new AbiDecoder(input).Number<BigInteger>(false, bitSize);
-                Assert.Equal(-BigInteger.Pow(2, bitSize - 1), value);
+                var value = new AbiDecoder(input).Number<Int256>(false, bitSize);
+                Assert.Equal(-Int256.Pow(2, bitSize - 1), value);
                 break;
             }
             default:
@@ -91,8 +93,8 @@ public class AbiNumberEncodingTests
             }
             case > 64 and <= 256:
             {
-                var value = new AbiDecoder(input).Number<BigInteger>(false, bitSize);
-                Assert.Equal(BigInteger.Pow(2, bitSize - 1) - 1, value);
+                var value = new AbiDecoder(input).Number<Int256>(false, bitSize);
+                Assert.Equal(Int256.Pow(2, bitSize - 1) - 1, value);
                 break;
             }
             default:
@@ -134,8 +136,8 @@ public class AbiNumberEncodingTests
             }
             case > 64 and <= 256:
             {
-                var value = new AbiDecoder(input).Number<BigInteger>(true, bitSize);
-                Assert.Equal(0, value);
+                var value = new AbiDecoder(input).Number<UInt256>(true, bitSize);
+                Assert.Equal(UInt256.Zero, value);
                 break;
             }
             default:
@@ -178,8 +180,8 @@ public class AbiNumberEncodingTests
             }
             case > 64 and <= 256:
             {
-                var value = new AbiDecoder(input).Number<BigInteger>(true, bitSize);
-                Assert.Equal(BigInteger.Pow(2, bitSize) - 1, value);
+                var value = new AbiDecoder(input).Number<UInt256>(true, bitSize);
+                Assert.Equal(UInt256.Pow(2, (uint) bitSize) - 1, value);
                 break;
             }
             default:

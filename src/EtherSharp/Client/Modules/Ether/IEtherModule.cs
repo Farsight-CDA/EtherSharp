@@ -1,6 +1,6 @@
 ﻿using EtherSharp.Contract;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
-using System.Numerics;
 
 namespace EtherSharp.Client.Modules.Ether;
 
@@ -16,7 +16,7 @@ public interface IEtherModule
     /// <param name="targetHeight"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<UInt256> GetBalanceAsync(Address address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
     /// <summary>
     /// Fetches the native balance of the given contract.
     /// </summary>
@@ -24,5 +24,5 @@ public interface IEtherModule
     /// <param name="targetHeight"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<BigInteger> GetBalanceAsync(IEVMContract contract, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<UInt256> GetBalanceAsync(IEVMContract contract, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
 }

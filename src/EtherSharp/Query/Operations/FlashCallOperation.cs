@@ -1,7 +1,7 @@
 ﻿using EtherSharp.ABI.Types;
+using EtherSharp.Numerics;
 using EtherSharp.Tx;
 using System.Buffers.Binary;
-using System.Numerics;
 
 namespace EtherSharp.Query.Operations;
 
@@ -11,7 +11,7 @@ internal class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IC
     private readonly IContractDeployment _deployment = deployment;
 
     public int CallDataLength => 1 + 37 + _deployment.ByteCode.Length + _txInput.Data.Length;
-    public BigInteger EthValue => _deployment.Value + _txInput.Value;
+    public UInt256 EthValue => _deployment.Value + _txInput.Value;
     IReadOnlyList<IQuery> IQuery<QueryResult<T>>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
@@ -26,7 +26,7 @@ internal class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IC
 
         AbiTypes.UShort.EncodeInto((ushort) _deployment.ByteCode.Length, buffer[0..2]);
         AbiTypes.UInt.EncodeInto((uint) _txInput.Data.Length, buffer[2..5], true);
-        AbiTypes.BigInteger.EncodeInto(_txInput.Value, true, buffer[5..37]);
+        BinaryPrimitives.WriteUInt256BigEndian(buffer[5..37], EthValue);
 
         _deployment.ByteCode.ByteCode.Span.CopyTo(buffer[37..]);
         _txInput.Data.Span.CopyTo(buffer[(37 + _deployment.ByteCode.Length)..]);

@@ -1,5 +1,5 @@
 ﻿using EtherSharp.ABI;
-using System.Numerics;
+using EtherSharp.Numerics;
 namespace EtherSharp.Tests.ABI.Decoder;
 
 public class NumberArryAbiDecoderTests
@@ -52,8 +52,8 @@ public class NumberArryAbiDecoderTests
             }
             case > 64 and <= 256:
             {
-                var value = new AbiDecoder(input).NumberArray<BigInteger>(false, bitSize);
-                Assert.Equal([-BigInteger.Pow(2, (int) (bitSize - 1))], value);
+                var value = new AbiDecoder(input).NumberArray<Int256>(false, bitSize);
+                Assert.Equal([-Int256.Pow(2, (int) (bitSize - 1))], value);
                 break;
             }
             default:
@@ -98,8 +98,8 @@ public class NumberArryAbiDecoderTests
             }
             case > 64 and <= 256:
             {
-                var value = new AbiDecoder(input).NumberArray<BigInteger>(false, bitSize);
-                Assert.Equal([BigInteger.Pow(2, (int) (bitSize - 1)) - 1], value);
+                var value = new AbiDecoder(input).NumberArray<Int256>(false, bitSize);
+                Assert.Equal([Int256.Pow(2, (int) (bitSize - 1)) - 1], value);
                 break;
             }
             default:
@@ -141,8 +141,8 @@ public class NumberArryAbiDecoderTests
             }
             case > 64 and <= 256:
             {
-                var value = new AbiDecoder(input).NumberArray<BigInteger>(true, bitSize);
-                Assert.Equal([BigInteger.Zero], value);
+                var value = new AbiDecoder(input).NumberArray<UInt256>(true, bitSize);
+                Assert.Equal([UInt256.Zero], value);
                 break;
             }
             default:
@@ -188,8 +188,8 @@ public class NumberArryAbiDecoderTests
             }
             case > 64 and <= 256:
             {
-                var value = new AbiDecoder(input).NumberArray<BigInteger>(true, bitSize);
-                Assert.Equal([BigInteger.Pow(2, (int) bitSize) - 1], value);
+                var value = new AbiDecoder(input).NumberArray<UInt256>(true, bitSize);
+                Assert.Equal([UInt256.Pow(2, bitSize) - 1], value);
                 break;
             }
             default:

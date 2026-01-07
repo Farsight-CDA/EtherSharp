@@ -1,6 +1,6 @@
-using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Types;
-using System.Numerics;
+using EtherSharp.ABI.Encode.Interfaces;
+using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI;
 public partial class AbiEncoder
@@ -8,7 +8,7 @@ public partial class AbiEncoder
     public AbiEncoder UInt8(byte value)
         => AddElement(new AbiTypes.Byte(value));
     IFixedTupleEncoder IFixedTupleEncoder.UInt8(byte value)
-        => UInt8(value);
+        => UInt8(value);    
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt8(byte value)
         => UInt8(value);
 
@@ -111,316 +111,316 @@ public partial class AbiEncoder
         => UInt64(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt64(ulong value)
         => UInt64(value);
-    public AbiEncoder Int72(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 9));
-    IFixedTupleEncoder IFixedTupleEncoder.Int72(BigInteger value)
+    public AbiEncoder Int72(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 9));
+    IFixedTupleEncoder IFixedTupleEncoder.Int72(Int256 value)
         => Int72(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int72(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int72(Int256 value)
         => Int72(value);
 
-    public AbiEncoder UInt72(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 9));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt72(BigInteger value)
+    public AbiEncoder UInt72(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 9));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt72(UInt256 value)
         => UInt72(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt72(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt72(UInt256 value)
         => UInt72(value);
-    public AbiEncoder Int80(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 10));
-    IFixedTupleEncoder IFixedTupleEncoder.Int80(BigInteger value)
+    public AbiEncoder Int80(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 10));
+    IFixedTupleEncoder IFixedTupleEncoder.Int80(Int256 value)
         => Int80(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int80(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int80(Int256 value)
         => Int80(value);
 
-    public AbiEncoder UInt80(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 10));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt80(BigInteger value)
+    public AbiEncoder UInt80(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 10));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt80(UInt256 value)
         => UInt80(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt80(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt80(UInt256 value)
         => UInt80(value);
-    public AbiEncoder Int88(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 11));
-    IFixedTupleEncoder IFixedTupleEncoder.Int88(BigInteger value)
+    public AbiEncoder Int88(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 11));
+    IFixedTupleEncoder IFixedTupleEncoder.Int88(Int256 value)
         => Int88(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int88(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int88(Int256 value)
         => Int88(value);
 
-    public AbiEncoder UInt88(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 11));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt88(BigInteger value)
+    public AbiEncoder UInt88(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 11));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt88(UInt256 value)
         => UInt88(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt88(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt88(UInt256 value)
         => UInt88(value);
-    public AbiEncoder Int96(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 12));
-    IFixedTupleEncoder IFixedTupleEncoder.Int96(BigInteger value)
+    public AbiEncoder Int96(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 12));
+    IFixedTupleEncoder IFixedTupleEncoder.Int96(Int256 value)
         => Int96(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int96(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int96(Int256 value)
         => Int96(value);
 
-    public AbiEncoder UInt96(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 12));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt96(BigInteger value)
+    public AbiEncoder UInt96(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 12));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt96(UInt256 value)
         => UInt96(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt96(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt96(UInt256 value)
         => UInt96(value);
-    public AbiEncoder Int104(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 13));
-    IFixedTupleEncoder IFixedTupleEncoder.Int104(BigInteger value)
+    public AbiEncoder Int104(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 13));
+    IFixedTupleEncoder IFixedTupleEncoder.Int104(Int256 value)
         => Int104(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int104(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int104(Int256 value)
         => Int104(value);
 
-    public AbiEncoder UInt104(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 13));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt104(BigInteger value)
+    public AbiEncoder UInt104(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 13));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt104(UInt256 value)
         => UInt104(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt104(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt104(UInt256 value)
         => UInt104(value);
-    public AbiEncoder Int112(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 14));
-    IFixedTupleEncoder IFixedTupleEncoder.Int112(BigInteger value)
+    public AbiEncoder Int112(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 14));
+    IFixedTupleEncoder IFixedTupleEncoder.Int112(Int256 value)
         => Int112(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int112(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int112(Int256 value)
         => Int112(value);
 
-    public AbiEncoder UInt112(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 14));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt112(BigInteger value)
+    public AbiEncoder UInt112(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 14));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt112(UInt256 value)
         => UInt112(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt112(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt112(UInt256 value)
         => UInt112(value);
-    public AbiEncoder Int120(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 15));
-    IFixedTupleEncoder IFixedTupleEncoder.Int120(BigInteger value)
+    public AbiEncoder Int120(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 15));
+    IFixedTupleEncoder IFixedTupleEncoder.Int120(Int256 value)
         => Int120(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int120(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int120(Int256 value)
         => Int120(value);
 
-    public AbiEncoder UInt120(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 15));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt120(BigInteger value)
+    public AbiEncoder UInt120(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 15));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt120(UInt256 value)
         => UInt120(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt120(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt120(UInt256 value)
         => UInt120(value);
-    public AbiEncoder Int128(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 16));
-    IFixedTupleEncoder IFixedTupleEncoder.Int128(BigInteger value)
+    public AbiEncoder Int128(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 16));
+    IFixedTupleEncoder IFixedTupleEncoder.Int128(Int256 value)
         => Int128(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int128(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int128(Int256 value)
         => Int128(value);
 
-    public AbiEncoder UInt128(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 16));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt128(BigInteger value)
+    public AbiEncoder UInt128(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 16));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt128(UInt256 value)
         => UInt128(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt128(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt128(UInt256 value)
         => UInt128(value);
-    public AbiEncoder Int136(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 17));
-    IFixedTupleEncoder IFixedTupleEncoder.Int136(BigInteger value)
+    public AbiEncoder Int136(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 17));
+    IFixedTupleEncoder IFixedTupleEncoder.Int136(Int256 value)
         => Int136(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int136(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int136(Int256 value)
         => Int136(value);
 
-    public AbiEncoder UInt136(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 17));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt136(BigInteger value)
+    public AbiEncoder UInt136(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 17));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt136(UInt256 value)
         => UInt136(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt136(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt136(UInt256 value)
         => UInt136(value);
-    public AbiEncoder Int144(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 18));
-    IFixedTupleEncoder IFixedTupleEncoder.Int144(BigInteger value)
+    public AbiEncoder Int144(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 18));
+    IFixedTupleEncoder IFixedTupleEncoder.Int144(Int256 value)
         => Int144(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int144(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int144(Int256 value)
         => Int144(value);
 
-    public AbiEncoder UInt144(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 18));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt144(BigInteger value)
+    public AbiEncoder UInt144(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 18));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt144(UInt256 value)
         => UInt144(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt144(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt144(UInt256 value)
         => UInt144(value);
-    public AbiEncoder Int152(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 19));
-    IFixedTupleEncoder IFixedTupleEncoder.Int152(BigInteger value)
+    public AbiEncoder Int152(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 19));
+    IFixedTupleEncoder IFixedTupleEncoder.Int152(Int256 value)
         => Int152(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int152(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int152(Int256 value)
         => Int152(value);
 
-    public AbiEncoder UInt152(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 19));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt152(BigInteger value)
+    public AbiEncoder UInt152(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 19));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt152(UInt256 value)
         => UInt152(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt152(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt152(UInt256 value)
         => UInt152(value);
-    public AbiEncoder Int160(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 20));
-    IFixedTupleEncoder IFixedTupleEncoder.Int160(BigInteger value)
+    public AbiEncoder Int160(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 20));
+    IFixedTupleEncoder IFixedTupleEncoder.Int160(Int256 value)
         => Int160(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int160(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int160(Int256 value)
         => Int160(value);
 
-    public AbiEncoder UInt160(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 20));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt160(BigInteger value)
+    public AbiEncoder UInt160(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 20));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt160(UInt256 value)
         => UInt160(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt160(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt160(UInt256 value)
         => UInt160(value);
-    public AbiEncoder Int168(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 21));
-    IFixedTupleEncoder IFixedTupleEncoder.Int168(BigInteger value)
+    public AbiEncoder Int168(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 21));
+    IFixedTupleEncoder IFixedTupleEncoder.Int168(Int256 value)
         => Int168(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int168(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int168(Int256 value)
         => Int168(value);
 
-    public AbiEncoder UInt168(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 21));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt168(BigInteger value)
+    public AbiEncoder UInt168(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 21));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt168(UInt256 value)
         => UInt168(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt168(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt168(UInt256 value)
         => UInt168(value);
-    public AbiEncoder Int176(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 22));
-    IFixedTupleEncoder IFixedTupleEncoder.Int176(BigInteger value)
+    public AbiEncoder Int176(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 22));
+    IFixedTupleEncoder IFixedTupleEncoder.Int176(Int256 value)
         => Int176(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int176(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int176(Int256 value)
         => Int176(value);
 
-    public AbiEncoder UInt176(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 22));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt176(BigInteger value)
+    public AbiEncoder UInt176(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 22));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt176(UInt256 value)
         => UInt176(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt176(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt176(UInt256 value)
         => UInt176(value);
-    public AbiEncoder Int184(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 23));
-    IFixedTupleEncoder IFixedTupleEncoder.Int184(BigInteger value)
+    public AbiEncoder Int184(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 23));
+    IFixedTupleEncoder IFixedTupleEncoder.Int184(Int256 value)
         => Int184(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int184(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int184(Int256 value)
         => Int184(value);
 
-    public AbiEncoder UInt184(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 23));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt184(BigInteger value)
+    public AbiEncoder UInt184(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 23));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt184(UInt256 value)
         => UInt184(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt184(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt184(UInt256 value)
         => UInt184(value);
-    public AbiEncoder Int192(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 24));
-    IFixedTupleEncoder IFixedTupleEncoder.Int192(BigInteger value)
+    public AbiEncoder Int192(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 24));
+    IFixedTupleEncoder IFixedTupleEncoder.Int192(Int256 value)
         => Int192(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int192(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int192(Int256 value)
         => Int192(value);
 
-    public AbiEncoder UInt192(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 24));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt192(BigInteger value)
+    public AbiEncoder UInt192(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 24));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt192(UInt256 value)
         => UInt192(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt192(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt192(UInt256 value)
         => UInt192(value);
-    public AbiEncoder Int200(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 25));
-    IFixedTupleEncoder IFixedTupleEncoder.Int200(BigInteger value)
+    public AbiEncoder Int200(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 25));
+    IFixedTupleEncoder IFixedTupleEncoder.Int200(Int256 value)
         => Int200(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int200(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int200(Int256 value)
         => Int200(value);
 
-    public AbiEncoder UInt200(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 25));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt200(BigInteger value)
+    public AbiEncoder UInt200(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 25));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt200(UInt256 value)
         => UInt200(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt200(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt200(UInt256 value)
         => UInt200(value);
-    public AbiEncoder Int208(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 26));
-    IFixedTupleEncoder IFixedTupleEncoder.Int208(BigInteger value)
+    public AbiEncoder Int208(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 26));
+    IFixedTupleEncoder IFixedTupleEncoder.Int208(Int256 value)
         => Int208(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int208(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int208(Int256 value)
         => Int208(value);
 
-    public AbiEncoder UInt208(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 26));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt208(BigInteger value)
+    public AbiEncoder UInt208(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 26));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt208(UInt256 value)
         => UInt208(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt208(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt208(UInt256 value)
         => UInt208(value);
-    public AbiEncoder Int216(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 27));
-    IFixedTupleEncoder IFixedTupleEncoder.Int216(BigInteger value)
+    public AbiEncoder Int216(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 27));
+    IFixedTupleEncoder IFixedTupleEncoder.Int216(Int256 value)
         => Int216(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int216(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int216(Int256 value)
         => Int216(value);
 
-    public AbiEncoder UInt216(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 27));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt216(BigInteger value)
+    public AbiEncoder UInt216(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 27));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt216(UInt256 value)
         => UInt216(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt216(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt216(UInt256 value)
         => UInt216(value);
-    public AbiEncoder Int224(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 28));
-    IFixedTupleEncoder IFixedTupleEncoder.Int224(BigInteger value)
+    public AbiEncoder Int224(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 28));
+    IFixedTupleEncoder IFixedTupleEncoder.Int224(Int256 value)
         => Int224(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int224(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int224(Int256 value)
         => Int224(value);
 
-    public AbiEncoder UInt224(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 28));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt224(BigInteger value)
+    public AbiEncoder UInt224(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 28));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt224(UInt256 value)
         => UInt224(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt224(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt224(UInt256 value)
         => UInt224(value);
-    public AbiEncoder Int232(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 29));
-    IFixedTupleEncoder IFixedTupleEncoder.Int232(BigInteger value)
+    public AbiEncoder Int232(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 29));
+    IFixedTupleEncoder IFixedTupleEncoder.Int232(Int256 value)
         => Int232(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int232(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int232(Int256 value)
         => Int232(value);
 
-    public AbiEncoder UInt232(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 29));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt232(BigInteger value)
+    public AbiEncoder UInt232(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 29));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt232(UInt256 value)
         => UInt232(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt232(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt232(UInt256 value)
         => UInt232(value);
-    public AbiEncoder Int240(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 30));
-    IFixedTupleEncoder IFixedTupleEncoder.Int240(BigInteger value)
+    public AbiEncoder Int240(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 30));
+    IFixedTupleEncoder IFixedTupleEncoder.Int240(Int256 value)
         => Int240(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int240(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int240(Int256 value)
         => Int240(value);
 
-    public AbiEncoder UInt240(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 30));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt240(BigInteger value)
+    public AbiEncoder UInt240(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 30));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt240(UInt256 value)
         => UInt240(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt240(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt240(UInt256 value)
         => UInt240(value);
-    public AbiEncoder Int248(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 31));
-    IFixedTupleEncoder IFixedTupleEncoder.Int248(BigInteger value)
+    public AbiEncoder Int248(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 31));
+    IFixedTupleEncoder IFixedTupleEncoder.Int248(Int256 value)
         => Int248(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int248(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int248(Int256 value)
         => Int248(value);
 
-    public AbiEncoder UInt248(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 31));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt248(BigInteger value)
+    public AbiEncoder UInt248(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 31));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt248(UInt256 value)
         => UInt248(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt248(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt248(UInt256 value)
         => UInt248(value);
-    public AbiEncoder Int256(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, false, 32));
-    IFixedTupleEncoder IFixedTupleEncoder.Int256(BigInteger value)
+    public AbiEncoder Int256(Int256 value)
+        => AddElement(new AbiTypes.Int256(value, 32));
+    IFixedTupleEncoder IFixedTupleEncoder.Int256(Int256 value)
         => Int256(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Int256(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Int256(Int256 value)
         => Int256(value);
 
-    public AbiEncoder UInt256(BigInteger value)
-        => AddElement(new AbiTypes.BigInteger(value, true, 32));
-    IFixedTupleEncoder IFixedTupleEncoder.UInt256(BigInteger value)
+    public AbiEncoder UInt256(UInt256 value)
+        => AddElement(new AbiTypes.UInt256(value, 32));
+    IFixedTupleEncoder IFixedTupleEncoder.UInt256(UInt256 value)
         => UInt256(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.UInt256(BigInteger value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.UInt256(UInt256 value)
         => UInt256(value);
 }

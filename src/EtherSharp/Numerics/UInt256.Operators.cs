@@ -9,84 +9,49 @@ namespace EtherSharp.Numerics;
 
 public readonly partial struct UInt256
 {
-    public static bool operator ==(in UInt256 a, int b) => a.Equals(b);
-    public static bool operator ==(int a, in UInt256 b) => b.Equals(a);
-    public static bool operator ==(in UInt256 a, uint b) => a.Equals(b);
-    public static bool operator ==(uint a, in UInt256 b) => b.Equals(a);
-    public static bool operator ==(in UInt256 a, long b) => a.Equals(b);
-    public static bool operator ==(long a, in UInt256 b) => b.Equals(a);
-    public static bool operator ==(in UInt256 a, ulong b) => a.Equals(b);
-    public static bool operator ==(ulong a, in UInt256 b) => b.Equals(a);
-    public static bool operator !=(in UInt256 a, int b) => !a.Equals(b);
-    public static bool operator !=(int a, in UInt256 b) => !b.Equals(a);
-    public static bool operator !=(in UInt256 a, uint b) => !a.Equals(b);
-    public static bool operator !=(uint a, in UInt256 b) => !b.Equals(a);
-    public static bool operator !=(in UInt256 a, long b) => !a.Equals(b);
-    public static bool operator !=(long a, in UInt256 b) => !b.Equals(a);
-    public static bool operator !=(in UInt256 a, ulong b) => !a.Equals(b);
-    public static bool operator !=(ulong a, in UInt256 b) => !b.Equals(a);
-    public static explicit operator UInt256(sbyte a) =>
-        a < 0 ? throw new ArgumentException($"Expected a positive number and got {a}", nameof(a)) : new UInt256((ulong) a);
+    public static explicit operator UInt256(Int256 z) => z._value;
 
-    public static implicit operator UInt256(byte a) => new(a);
+    public static implicit operator UInt256(byte a) => new UInt256(a);
+    public static explicit operator UInt256(sbyte a)
+        => a < 0
+            ? throw new ArgumentException($"Expected a positive number and got {a}", nameof(a))
+            : new UInt256((ulong) a);
 
-    public static explicit operator UInt256(short a) =>
-        a < 0 ? throw new ArgumentException($"Expected a positive number and got {a}", nameof(a)) : new UInt256((ulong) a);
-
-    public static implicit operator UInt256(ushort a) => new(a);
-
-    public static explicit operator UInt256(int n) =>
-        n < 0 ? throw new ArgumentException("n < 0") : new UInt256((ulong) n);
+    public static implicit operator UInt256(ushort a) => new UInt256(a);
+    public static explicit operator UInt256(short a)
+        => a < 0
+            ? throw new ArgumentException($"Expected a positive number and got {a}", nameof(a))
+            : new UInt256((ulong) a);
 
     public static implicit operator UInt256(uint a) => new(a);
+    public static explicit operator UInt256(int n)
+        => n < 0
+            ? throw new ArgumentException("n < 0")
+            : new UInt256((ulong) n);
 
-    public static explicit operator UInt256(long a) =>
-        a < 0 ? throw new ArgumentException($"Expected a positive number and got {a}", nameof(a)) : new UInt256((ulong) a);
+    public static implicit operator UInt256(ulong value) => new UInt256(value);
+    public static explicit operator UInt256(long a)
+        => a < 0
+            ? throw new ArgumentException($"Expected a positive number and got {a}", nameof(a))
+            : new UInt256((ulong) a);
 
-    public static UInt256 operator ^(in UInt256 a, in UInt256 b)
+    public static explicit operator UInt256(in BigInteger a)
     {
-        Xor(a, b, out var res);
-        return res;
-    }
-
-    public static UInt256 operator ~(in UInt256 a)
-    {
-        Not(in a, out var res);
-        return res;
-    }
-
-    public static UInt256 operator +(in UInt256 a, in UInt256 b)
-    {
-        AddOverflow(in a, in b, out var res);
-        return res;
-    }
-
-    public static UInt256 operator ++(in UInt256 a)
-    {
-        AddOverflow(in a, 1, out var res);
-        return res;
-    }
-
-    public static UInt256 operator -(in UInt256 a, in UInt256 b)
-    {
-        if(SubtractUnderflow(in a, in b, out var c))
+        if(a.Sign == -1)
         {
-            ThrowOverflowException($"Underflow in subtraction {a} - {b}");
+            throw new ArgumentException($"Expected a positive number and got {a}", nameof(a));
         }
 
-        return c;
-    }
+        int byteCount = a.GetByteCount(true);
 
-    public static bool operator ==(in UInt256 a, in UInt256 b) => a.Equals(b);
+        if(byteCount > 32)
+        {
+            throw new ArgumentException($"BigInteger too large for UInt256: {a}", nameof(a));
+        }
 
-    public static bool operator !=(in UInt256 a, in UInt256 b) => !(a == b);
-
-    public static implicit operator UInt256(ulong value) => new UInt256(value, 0ul, 0ul, 0ul);
-
-    public static explicit operator UInt256(in BigInteger value)
-    {
-        byte[] bytes32 = value.ToBytes32(true);
-        return new UInt256(bytes32, true);
+        Span<byte> buffer = stackalloc byte[32];
+        a.TryWriteBytes(buffer[(32 - byteCount)..], out _, true, true);
+        return new UInt256(buffer, true);
     }
 
     public static explicit operator BigInteger(in UInt256 value)
@@ -95,168 +60,60 @@ public readonly partial struct UInt256
         return new BigInteger(bytes, true);
     }
 
-    public static explicit operator sbyte(in UInt256 a) =>
-        a.u1 > 0 || a.u2 > 0 || a.u3 > 0 || a.u0 > (long) SByte.MaxValue
+    public static explicit operator sbyte(in UInt256 a)
+        => a._u1 > 0 || a._u2 > 0 || a._u3 > 0 || a._u0 > (long) SByte.MaxValue
             ? throw new OverflowException("Cannot convert UInt256 value to sbyte.")
-            : (sbyte) a.u0;
+            : (sbyte) a._u0;
 
-    public static explicit operator byte(in UInt256 a) =>
-        a.u1 > 0 || a.u2 > 0 || a.u3 > 0 || a.u0 > Byte.MaxValue
+    public static explicit operator byte(in UInt256 a)
+        => a._u1 > 0 || a._u2 > 0 || a._u3 > 0 || a._u0 > Byte.MaxValue
             ? throw new OverflowException("Cannot convert UInt256 value to byte.")
-            : (byte) a.u0;
+            : (byte) a._u0;
 
-    public static explicit operator short(in UInt256 a) =>
-        a.u1 > 0 || a.u2 > 0 || a.u3 > 0 || a.u0 > (long) Int16.MaxValue
+    public static explicit operator short(in UInt256 a)
+        => a._u1 > 0 || a._u2 > 0 || a._u3 > 0 || a._u0 > (long) Int16.MaxValue
             ? throw new OverflowException("Cannot convert UInt256 value to short.")
-            : (short) a.u0;
+            : (short) a._u0;
 
-    public static explicit operator ushort(in UInt256 a) =>
-        a.u1 > 0 || a.u2 > 0 || a.u3 > 0 || a.u0 > UInt16.MaxValue
+    public static explicit operator ushort(in UInt256 a)
+        => a._u1 > 0 || a._u2 > 0 || a._u3 > 0 || a._u0 > UInt16.MaxValue
             ? throw new OverflowException("Cannot convert UInt256 value to ushort.")
-            : (ushort) a.u0;
+            : (ushort) a._u0;
 
-    public static explicit operator int(in UInt256 a) =>
-        a.u1 > 0 || a.u2 > 0 || a.u3 > 0 || a.u0 > Int32.MaxValue
+    public static explicit operator int(in UInt256 a)
+        => a._u1 > 0 || a._u2 > 0 || a._u3 > 0 || a._u0 > Int32.MaxValue
             ? throw new OverflowException("Cannot convert UInt256 value to int.")
-            : (int) a.u0;
+            : (int) a._u0;
 
-    public static explicit operator uint(in UInt256 a) =>
-        a.u1 > 0 || a.u2 > 0 || a.u3 > 0 || a.u0 > UInt32.MaxValue
+    public static explicit operator uint(in UInt256 a)
+        => a._u1 > 0 || a._u2 > 0 || a._u3 > 0 || a._u0 > UInt32.MaxValue
             ? throw new OverflowException("Cannot convert UInt256 value to uint.")
-            : (uint) a.u0;
+            : (uint) a._u0;
 
-    public static explicit operator long(in UInt256 a) =>
-        a.u1 > 0 || a.u2 > 0 || a.u3 > 0 || a.u0 > Int64.MaxValue
+    public static explicit operator long(in UInt256 a)
+        => a._u1 > 0 || a._u2 > 0 || a._u3 > 0 || a._u0 > Int64.MaxValue
             ? throw new OverflowException("Cannot convert UInt256 value to long.")
-            : (long) a.u0;
+            : (long) a._u0;
 
-    public static explicit operator ulong(in UInt256 a) =>
-        a.u1 > 0 || a.u2 > 0 || a.u3 > 0
+    public static explicit operator ulong(in UInt256 a)
+        => a._u1 > 0 || a._u2 > 0 || a._u3 > 0
             ? throw new OverflowException("Cannot convert UInt256 value to ulong.")
-            : a.u0;
+            : a._u0;
 
-    public static UInt256 operator *(in UInt256 a, uint b)
-    {
-        UInt256 ub = b;
-        Multiply(in a, in ub, out var c);
-        return c;
-    }
-
-    public static UInt256 operator *(uint a, in UInt256 b)
-    {
-        UInt256 ua = a;
-        Multiply(in ua, in b, out var c);
-        return c;
-    }
-
-    public static UInt256 operator *(in UInt256 a, ulong b)
-    {
-        UInt256 ub = b;
-        Multiply(in a, in ub, out var c);
-        return c;
-    }
-
-    public static UInt256 operator *(ulong a, in UInt256 b)
-    {
-        UInt256 ua = a;
-        Multiply(in ua, in b, out var c);
-        return c;
-    }
-
-    public static UInt256 operator *(in UInt256 a, in UInt256 b)
-    {
-        Multiply(in a, in b, out var c);
-        return c;
-    }
-
-    public static UInt256 operator /(in UInt256 a, uint b)
-    {
-        UInt256 ub = b;
-        Divide(in a, in ub, out var c);
-        return c;
-    }
-
-    public static UInt256 operator /(in UInt256 a, in UInt256 b)
-    {
-        Divide(in a, in b, out var c);
-        return c;
-    }
-
-    public static bool operator <(in UInt256 a, in UInt256 b) => LessThan(in a, in b);
-    public static bool operator <(in UInt256 a, int b) => LessThan(in a, b);
-    public static bool operator <(int a, in UInt256 b) => LessThan(a, in b);
-    public static bool operator <(in UInt256 a, uint b) => LessThan(in a, b);
-    public static bool operator <(uint a, in UInt256 b) => LessThan(a, in b);
-    public static bool operator <(in UInt256 a, long b) => LessThan(in a, b);
-    public static bool operator <(long a, in UInt256 b) => LessThan(a, in b);
-    public static bool operator <(in UInt256 a, ulong b) => LessThan(in a, b);
-    public static bool operator <(ulong a, in UInt256 b) => LessThan(a, in b);
-    public static bool operator <=(in UInt256 a, in UInt256 b) => !LessThan(in b, in a);
-    public static bool operator <=(in UInt256 a, int b) => !LessThan(b, in a);
-    public static bool operator <=(int a, in UInt256 b) => !LessThan(in b, a);
-    public static bool operator <=(in UInt256 a, uint b) => !LessThan(b, in a);
-    public static bool operator <=(uint a, in UInt256 b) => !LessThan(in b, a);
-    public static bool operator <=(in UInt256 a, long b) => !LessThan(b, in a);
-    public static bool operator <=(long a, in UInt256 b) => !LessThan(in b, a);
-    public static bool operator <=(in UInt256 a, ulong b) => !LessThan(b, in a);
-    public static bool operator <=(ulong a, UInt256 b) => !LessThan(in b, a);
-    public static bool operator >(in UInt256 a, in UInt256 b) => LessThan(in b, in a);
-    public static bool operator >(in UInt256 a, int b) => LessThan(b, in a);
-    public static bool operator >(int a, in UInt256 b) => LessThan(in b, a);
-    public static bool operator >(in UInt256 a, uint b) => LessThan(b, in a);
-    public static bool operator >(uint a, in UInt256 b) => LessThan(in b, a);
-    public static bool operator >(in UInt256 a, long b) => LessThan(b, in a);
-    public static bool operator >(long a, in UInt256 b) => LessThan(in b, a);
-    public static bool operator >(in UInt256 a, ulong b) => LessThan(b, in a);
-    public static bool operator >(ulong a, in UInt256 b) => LessThan(in b, a);
-    public static bool operator >=(in UInt256 a, in UInt256 b) => !LessThan(in a, in b);
-    public static bool operator >=(in UInt256 a, int b) => !LessThan(in a, b);
-    public static bool operator >=(int a, in UInt256 b) => !LessThan(a, in b);
-    public static bool operator >=(in UInt256 a, uint b) => !LessThan(in a, b);
-    public static bool operator >=(uint a, in UInt256 b) => !LessThan(a, in b);
-    public static bool operator >=(in UInt256 a, long b) => !LessThan(in a, b);
-    public static bool operator >=(long a, in UInt256 b) => !LessThan(a, in b);
-    public static bool operator >=(in UInt256 a, ulong b) => !LessThan(in a, b);
-    public static bool operator >=(ulong a, in UInt256 b) => !LessThan(a, in b);
-
-    public static UInt256 operator <<(in UInt256 a, int n)
-    {
-        a.LeftShift(n, out var res);
-        return res;
-    }
-
-    public static UInt256 operator >>(in UInt256 a, int n)
-    {
-        a.RightShift(n, out var res);
-        return res;
-    }
-
-    public static UInt256 operator |(in UInt256 a, in UInt256 b)
-    {
-        Or(a, b, out var res);
-        return res;
-    }
-
-    public static UInt256 operator &(in UInt256 a, in UInt256 b)
-    {
-        And(a, b, out var res);
-        return res;
-    }
     public static explicit operator double(in UInt256 a)
     {
         double multiplier = UInt64.MaxValue;
-        return (((((a.u3 * multiplier) + a.u2) * multiplier) + a.u1) * multiplier) + a.u0;
+        return (((((a._u3 * multiplier) + a._u2) * multiplier) + a._u1) * multiplier) + a._u0;
     }
 
     public static explicit operator UInt256(double a)
     {
-        UInt256 c;
-        bool negate = false;
         if(a < 0)
         {
-            negate = true;
-            a = -a;
+            throw new ArgumentException($"Expected a positive number and got {a}", nameof(a));
         }
+
+        UInt256 c;
 
         if(a <= UInt64.MaxValue)
         {
@@ -274,23 +131,186 @@ public readonly partial struct UInt256
             ulong cu2 = 0;
             ulong cu3 = 0;
             c = new UInt256(cu0, cu1, cu2, cu3);
-            c.LeftShift(shift, out c);
-        }
-
-        if(negate)
-        {
-            Negate(in c);
+            c <<= shift;
         }
 
         return c;
     }
 
-    public static explicit operator decimal(in UInt256 a) => (decimal) (BigInteger) a;
+    public static bool operator ==(in UInt256 a, in UInt256 b) => a.Equals(b);
+    public static bool operator ==(in UInt256 a, int b) => a.Equals(b);
+    public static bool operator ==(int a, in UInt256 b) => b.Equals(a);
+    public static bool operator ==(in UInt256 a, uint b) => a.Equals(b);
+    public static bool operator ==(uint a, in UInt256 b) => b.Equals(a);
+    public static bool operator ==(in UInt256 a, long b) => a.Equals(b);
+    public static bool operator ==(long a, in UInt256 b) => b.Equals(a);
+    public static bool operator ==(in UInt256 a, ulong b) => a.Equals(b);
+    public static bool operator ==(ulong a, in UInt256 b) => b.Equals(a);
 
-    public static explicit operator UInt256(decimal a)
+    public static bool operator !=(in UInt256 a, in UInt256 b) => !a.Equals(b);
+    public static bool operator !=(in UInt256 a, int b) => !a.Equals(b);
+    public static bool operator !=(int a, in UInt256 b) => !b.Equals(a);
+    public static bool operator !=(in UInt256 a, uint b) => !a.Equals(b);
+    public static bool operator !=(uint a, in UInt256 b) => !b.Equals(a);
+    public static bool operator !=(in UInt256 a, long b) => !a.Equals(b);
+    public static bool operator !=(long a, in UInt256 b) => !b.Equals(a);
+    public static bool operator !=(in UInt256 a, ulong b) => !a.Equals(b);
+    public static bool operator !=(ulong a, in UInt256 b) => !b.Equals(a);
+
+    public static bool operator <(in UInt256 a, in UInt256 b) => LessThan(in a, in b);
+    public static bool operator <(in UInt256 a, int b) => LessThan(in a, b);
+    public static bool operator <(int a, in UInt256 b) => LessThan(a, in b);
+    public static bool operator <(in UInt256 a, uint b) => LessThan(in a, b);
+    public static bool operator <(uint a, in UInt256 b) => LessThan(a, in b);
+    public static bool operator <(in UInt256 a, long b) => LessThan(in a, b);
+    public static bool operator <(long a, in UInt256 b) => LessThan(a, in b);
+    public static bool operator <(in UInt256 a, ulong b) => LessThan(in a, b);
+    public static bool operator <(ulong a, in UInt256 b) => LessThan(a, in b);
+
+    public static bool operator <=(in UInt256 a, in UInt256 b) => !LessThan(in b, in a);
+    public static bool operator <=(in UInt256 a, int b) => !LessThan(b, in a);
+    public static bool operator <=(int a, in UInt256 b) => !LessThan(in b, a);
+    public static bool operator <=(in UInt256 a, uint b) => !LessThan(b, in a);
+    public static bool operator <=(uint a, in UInt256 b) => !LessThan(in b, a);
+    public static bool operator <=(in UInt256 a, long b) => !LessThan(b, in a);
+    public static bool operator <=(long a, in UInt256 b) => !LessThan(in b, a);
+    public static bool operator <=(in UInt256 a, ulong b) => !LessThan(b, in a);
+    public static bool operator <=(ulong a, UInt256 b) => !LessThan(in b, a);
+
+    public static bool operator >(in UInt256 a, in UInt256 b) => LessThan(in b, in a);
+    public static bool operator >(in UInt256 a, int b) => LessThan(b, in a);
+    public static bool operator >(int a, in UInt256 b) => LessThan(in b, a);
+    public static bool operator >(in UInt256 a, uint b) => LessThan(b, in a);
+    public static bool operator >(uint a, in UInt256 b) => LessThan(in b, a);
+    public static bool operator >(in UInt256 a, long b) => LessThan(b, in a);
+    public static bool operator >(long a, in UInt256 b) => LessThan(in b, a);
+    public static bool operator >(in UInt256 a, ulong b) => LessThan(b, in a);
+    public static bool operator >(ulong a, in UInt256 b) => LessThan(in b, a);
+
+    public static bool operator >=(in UInt256 a, in UInt256 b) => !LessThan(in a, in b);
+    public static bool operator >=(in UInt256 a, int b) => !LessThan(in a, b);
+    public static bool operator >=(int a, in UInt256 b) => !LessThan(a, in b);
+    public static bool operator >=(in UInt256 a, uint b) => !LessThan(in a, b);
+    public static bool operator >=(uint a, in UInt256 b) => !LessThan(a, in b);
+    public static bool operator >=(in UInt256 a, long b) => !LessThan(in a, b);
+    public static bool operator >=(long a, in UInt256 b) => !LessThan(a, in b);
+    public static bool operator >=(in UInt256 a, ulong b) => !LessThan(in a, b);
+    public static bool operator >=(ulong a, in UInt256 b) => !LessThan(a, in b);
+
+    public static UInt256 operator ^(in UInt256 a, in UInt256 b)
     {
-        int[] bits = Decimal.GetBits(Decimal.Truncate(a));
-        UInt256 c = new((uint) bits[0], (uint) bits[1], (uint) bits[2], 0, 0, 0, 0, 0);
-        return a < 0 ? Negate(c) : c;
+        Xor(a, b, out var res);
+        return res;
+    }
+
+    public static UInt256 operator ~(in UInt256 a)
+    {
+        Not(in a, out var res);
+        return res;
+    }
+
+    public static UInt256 operator +(in UInt256 a, in UInt256 b)
+    {
+        Add(in a, in b, out var res);
+        return res;
+    }
+
+    public static UInt256 operator checked +(in UInt256 a, in UInt256 b)
+        => Add(in a, in b, out var res)
+            ? throw new OverflowException($"Overflow in addition {a} + {b}")
+            : res;
+
+    public static UInt256 operator ++(in UInt256 a)
+    {
+        Add(in a, 1, out var res);
+        return res;
+    }
+
+    public static UInt256 operator checked ++(in UInt256 a)
+        => Add(in a, 1, out var res)
+            ? throw new OverflowException($"Overflow in addition {a} + 1")
+            : res;
+
+    public static UInt256 operator -(in UInt256 a, in UInt256 b)
+    {
+        Subtract(a, b, out var res);
+        return res;
+    }
+
+    public static UInt256 operator checked -(in UInt256 a, in UInt256 b)
+        => Subtract(in a, in b, out var res)
+            ? throw new OverflowException($"Underflow in subtraction {a} - {b}")
+            : res;
+
+    public static UInt256 operator *(in UInt256 a, in UInt256 b)
+    {
+        Multiply(in a, in b, out var c);
+        return c;
+    }
+
+    public static UInt256 operator *(in UInt256 a, uint b)
+    {
+        Multiply(in a, b, out var c);
+        return c;
+    }
+
+    public static UInt256 operator *(uint a, in UInt256 b)
+    {
+        Multiply(a, in b, out var c);
+        return c;
+    }
+
+    public static UInt256 operator *(in UInt256 a, ulong b)
+    {
+        Multiply(in a, b, out var c);
+        return c;
+    }
+
+    public static UInt256 operator *(ulong a, in UInt256 b)
+    {
+        Multiply(a, in b, out var c);
+        return c;
+    }
+
+    public static UInt256 operator /(in UInt256 a, uint b)
+    {
+        Divide(in a, b, out var c);
+        return c;
+    }
+
+    public static UInt256 operator /(in UInt256 a, in UInt256 b)
+    {
+        Divide(in a, in b, out var c);
+        return c;
+    }
+
+    public static UInt256 operator <<(in UInt256 a, int n)
+    {
+        UInt256.LeftShift(a, n, out var res);
+        return res;
+    }
+
+    public static UInt256 operator >>(in UInt256 a, int n)
+    {
+        UInt256.RightShift(a, n, out var res);
+        return res;
+    }
+
+    public static UInt256 operator |(in UInt256 a, in UInt256 b)
+    {
+        Or(a, b, out var res);
+        return res;
+    }
+
+    public static UInt256 operator &(in UInt256 a, in UInt256 b)
+    {
+        And(a, b, out var res);
+        return res;
+    }
+
+    public static UInt256 operator %(in UInt256 a, in UInt256 b)
+    {
+        Mod(a, b, out var res);
+        return res;
     }
 }

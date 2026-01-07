@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Common;
+using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Wallet;
 
@@ -18,7 +19,7 @@ public class LegacyGasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner signe
         ulong gasUsed = await _ethRpcModule.EstimateGasAsync(_signer.Address, txInput.To, txInput.Value, HexUtils.ToPrefixedHexString(txInput.Data.Span), cancellationToken);
         var gasPrice = await _ethRpcModule.GasPriceAsync(cancellationToken);
 
-        var adjustedGasPrice = gasPrice * (100 + GasPriceOffsetPercentage) / 100;
+        var adjustedGasPrice = gasPrice * (UInt256) ((100 + GasPriceOffsetPercentage) / 100);
 
         return new LegacyGasParams(
             gasUsed * (100 + GasWantedOffsetPercentage) / 100,

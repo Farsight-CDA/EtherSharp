@@ -1,6 +1,6 @@
-﻿using EtherSharp.RLP;
+﻿using EtherSharp.Numerics;
+using EtherSharp.RLP;
 using EtherSharp.Tx.Types;
-using System.Numerics;
 
 namespace EtherSharp.Tx.Legacy;
 
@@ -9,7 +9,7 @@ public record LegacyTransaction(
     ulong Gas,
     uint Nonce,
     ITxInput Input,
-    BigInteger GasPrice
+    UInt256 GasPrice
 ) : ITransaction<LegacyTransaction, LegacyTxParams, LegacyGasParams>
 {
     public static int NestedListCount => 1;

@@ -1,34 +1,34 @@
-﻿using System.Numerics;
+﻿using EtherSharp.Numerics;
 namespace EtherSharp.Types;
 
 public record BlockData(
-    BigInteger? BaseFeePerGas,
-    BigInteger? BlobGasUsed,
-    BigInteger? ExcessBlobGas,
+    UInt256? Number,
+    UInt256? BaseFeePerGas,
+    UInt256? BlobGasUsed,
+    UInt256? ExcessBlobGas,
     byte[]? ParentBeaconBlockRoot,
     string? WithdrawalsRoot,
     Withdrawal[]? Withdrawals,
-    bool? L1BlockNumber,
-    bool? SendCount,
-    bool? SendRoot,
+    ulong? L1BlockNumber,
+    ulong? SendCount,
+    byte[]? SendRoot,
     byte[]? MixHash,
-    BigInteger? Difficulty,
+    UInt256? Difficulty,
     string? ExtraData,
-    BigInteger? GasLimit,
-    BigInteger? GasUsed,
+    ulong? GasLimit,
+    ulong? GasUsed,
     string Hash,
     string? LogsBloom,
     Address? Miner,
-    BigInteger? Nonce,
-    BigInteger? Number,
+    ulong? Nonce,
 
     string? ParentHash,
     byte[]? ReceiptsRoot,
     byte[]? Sha3Uncles,
-    BigInteger Size,
+    ulong Size,
     byte[]? StateRoot,
     DateTimeOffset? Timestamp,
-    BigInteger? TotalDifficulty,
+    UInt256? TotalDifficulty,
     byte[]? TransactionsRoot,
     List<TransactionData>? Transactions
 );
@@ -36,7 +36,7 @@ public record BlockData(
 public record BlockDataTrasactionAsString(
     ulong Number,
     DateTimeOffset Timestamp,
-    BigInteger? BaseFeePerGas,
+    UInt256? BaseFeePerGas,
     string Hash,
     string ParentHash
 );

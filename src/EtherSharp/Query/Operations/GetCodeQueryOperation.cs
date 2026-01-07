@@ -1,7 +1,6 @@
-﻿using EtherSharp.Query;
+﻿using EtherSharp.Numerics;
 using EtherSharp.Types;
 using System.Buffers.Binary;
-using System.Numerics;
 
 namespace EtherSharp.Query.Operations;
 
@@ -10,7 +9,7 @@ internal class GetCodeQueryOperation(Address address) : IQuery, IQuery<EVMByteCo
     private readonly Address _address = address;
 
     public int CallDataLength => 21;
-    public BigInteger EthValue => 0;
+    public UInt256 EthValue => 0;
     IReadOnlyList<IQuery> IQuery<EVMByteCode>.Queries => [this];
 
     public void Encode(Span<byte> buffer)

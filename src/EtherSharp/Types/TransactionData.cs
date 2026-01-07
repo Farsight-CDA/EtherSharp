@@ -1,19 +1,22 @@
-﻿namespace EtherSharp.Types;
+﻿using EtherSharp.Numerics;
+
+namespace EtherSharp.Types;
+
 public record TransactionData(
     string BlockHash,
     string BlockNumber,
-    string From,
-    string Gas,
-    string GasPrice,
-    string GasUsed,
+    Address From,
+    ulong Gas,
+    UInt256 GasPrice,
+    ulong GasUsed,
     string Input,
     string Logs,
     string Nonce,
     string PublicKey,
     string R,
     string S,
-    string To,
+    Address To,
     string TransactionHash,
-    string Value,
+    UInt256 Value,
     string V
 );

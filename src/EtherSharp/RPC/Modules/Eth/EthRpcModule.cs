@@ -1,8 +1,8 @@
 ﻿using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
 using System.Globalization;
-using System.Numerics;
 
 namespace EtherSharp.RPC.Modules.Eth;
 
@@ -26,12 +26,12 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<BigInteger> GetBalanceAsync(Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<Address, TargetBlockNumber, BigInteger>(
+    public async Task<UInt256> GetBalanceAsync(Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        => await _rpcClient.SendRpcRequestAsync<Address, TargetBlockNumber, UInt256>(
             "eth_getBalance", address, targetHeight, targetHeight, cancellationToken) switch
         {
-            RpcResult<BigInteger>.Success result => result.Result,
-            RpcResult<BigInteger>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<UInt256>.Success result => result.Result,
+            RpcResult<UInt256>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
 
@@ -53,9 +53,9 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    private record TransactionCall(Address? From, Address? To, uint? Gas, BigInteger? GasPrice, BigInteger Value, string? Data);
+    private record TransactionCall(Address? From, Address? To, uint? Gas, UInt256? GasPrice, UInt256 Value, string? Data);
     public async Task<TxCallResult> CallAsync(
-        Address? from, Address? to, uint? gas, BigInteger? gasPrice, BigInteger value, string? data,
+        Address? from, Address? to, uint? gas, UInt256? gasPrice, UInt256 value, string? data,
         TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
         var transaction = new TransactionCall(from, to, gas, gasPrice, value, data);
@@ -75,58 +75,26 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<BigInteger> GasPriceAsync(CancellationToken cancellationToken)
+    public async Task<UInt256> GasPriceAsync(CancellationToken cancellationToken)
     {
-        var response = await _rpcClient.SendRpcRequestAsync<string>("eth_gasPrice", TargetBlockNumber.Latest, cancellationToken);
-        switch(response)
+        var response = await _rpcClient.SendRpcRequestAsync<UInt256>("eth_gasPrice", TargetBlockNumber.Latest, cancellationToken);
+        return response switch
         {
-            case RpcResult<string>.Success result:
-                int hexChars = result.Result.Length - 2;
-                Span<char> rawHex = stackalloc char[((hexChars - 1) / 2 * 2) + 2];
-                int missingChars = rawHex.Length - hexChars;
-                rawHex[..missingChars].Fill('0');
-                result.Result.AsSpan(2).CopyTo(rawHex[missingChars..]);
-                Span<byte> buffer = stackalloc byte[rawHex.Length / 2];
-
-                var res = Convert.FromHexString(rawHex, buffer, out _, out _);
-                if(res != System.Buffers.OperationStatus.Done)
-                {
-                    throw new InvalidOperationException("Failed to parse resulting hex");
-                }
-
-                return new BigInteger(buffer, true, true);
-            case RpcResult<string>.Error error:
-                throw RPCException.FromRPCError(error);
-            default:
-                throw new NotImplementedException();
-        }
+            RpcResult<UInt256>.Success result => result.Result,
+            RpcResult<UInt256>.Error error => throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
     }
 
-    public async Task<BigInteger> MaxPriorityFeePerGasAsync(CancellationToken cancellationToken)
+    public async Task<UInt256> MaxPriorityFeePerGasAsync(CancellationToken cancellationToken)
     {
-        var response = await _rpcClient.SendRpcRequestAsync<string>("eth_maxPriorityFeePerGas", TargetBlockNumber.Latest, cancellationToken);
-        switch(response)
+        var response = await _rpcClient.SendRpcRequestAsync<UInt256>("eth_maxPriorityFeePerGas", TargetBlockNumber.Latest, cancellationToken);
+        return response switch
         {
-            case RpcResult<string>.Success result:
-                int hexChars = result.Result.Length - 2;
-                Span<char> rawHex = stackalloc char[((hexChars - 1) / 2 * 2) + 2];
-                int missingChars = rawHex.Length - hexChars;
-                rawHex[..missingChars].Fill('0');
-                result.Result.AsSpan(2).CopyTo(rawHex[missingChars..]);
-                Span<byte> buffer = stackalloc byte[rawHex.Length / 2];
-
-                var res = Convert.FromHexString(rawHex, buffer, out _, out _);
-                if(res != System.Buffers.OperationStatus.Done)
-                {
-                    throw new InvalidOperationException("Failed to parse resulting hex");
-                }
-
-                return new BigInteger(buffer, true, true);
-            case RpcResult<string>.Error error:
-                throw RPCException.FromRPCError(error);
-            default:
-                throw new NotImplementedException();
-        }
+            RpcResult<UInt256>.Success result => result.Result,
+            RpcResult<UInt256>.Error error => throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
     }
 
     public async Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
@@ -140,9 +108,9 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    private record EstimateGasRequest(Address? From, Address? To, BigInteger Value, string Data);
+    private record EstimateGasRequest(Address? From, Address? To, UInt256 Value, string Data);
     public async Task<ulong> EstimateGasAsync(
-        Address? from, Address? to, BigInteger value, string data, CancellationToken cancellationToken)
+        Address? from, Address? to, UInt256 value, string data, CancellationToken cancellationToken)
     {
         var transaction = new EstimateGasRequest(from, to, value, data);
         return await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, ulong>(

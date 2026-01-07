@@ -1,7 +1,9 @@
+using EtherSharp.Numerics;
 using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.RLP;
+
 public ref struct RLPEncoder
 {
     public static int GetIntSize(uint value)
@@ -12,17 +14,10 @@ public ref struct RLPEncoder
         => value < 128
             ? 1
             : GetEncodedStringLength(GetSignificantByteCount(value));
-    public static int GetIntSize(BigInteger value)
-    {
-        if(value < 0)
-        {
-            throw new NotSupportedException();
-        }
-        //
-        return value < 128
+    public static int GetIntSize(UInt256 value)
+        => value < 128
             ? 1
-            : GetEncodedStringLength(value.GetByteCount(true));
-    }
+            : GetEncodedStringLength(GetSignificantByteCount(value));
 
     public static int GetEncodedStringLength(int byteCount)
         => byteCount < 56
@@ -51,6 +46,12 @@ public ref struct RLPEncoder
     public static int GetSignificantByteCount(ulong value)
     {
         int lengthBits = 64 - BitOperations.LeadingZeroCount(value);
+        int lengthBytes = (lengthBits + 7) / 8;
+        return lengthBytes;
+    }
+    public static int GetSignificantByteCount(UInt256 value)
+    {
+        int lengthBits = 256 - UInt256.LeadingZeroCount(value);
         int lengthBytes = (lengthBits + 7) / 8;
         return lengthBytes;
     }
@@ -113,13 +114,8 @@ public ref struct RLPEncoder
         return this;
     }
 
-    public RLPEncoder EncodeInt(BigInteger value)
+    public RLPEncoder EncodeInt(UInt256 value)
     {
-        if(value < 0)
-        {
-            throw new NotSupportedException();
-        }
-
         if(value == 0)
         {
             return EncodeString();
@@ -130,13 +126,14 @@ public ref struct RLPEncoder
         }
         else
         {
-            int significantBytes = value.GetByteCount(true);
+            Span<byte> buffer = stackalloc byte[32];
+            BinaryPrimitives.WriteUInt256BigEndian(buffer, value);
 
-            _destination[0] = (byte) (0x80 + significantBytes);
+            buffer = buffer.TrimStart((byte) 0);
 
-            _ = value.TryWriteBytes(_destination[1..], out _, true, true);
-
-            _destination = _destination[(significantBytes + 1)..];
+            _destination[0] = (byte) (0x80 + buffer.Length);
+            buffer.CopyTo(_destination[1..]);
+            _destination = _destination[(1 + buffer.Length)..];
         }
 
         return this;

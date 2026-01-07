@@ -1,5 +1,5 @@
-﻿using EtherSharp.Types;
-using System.Numerics;
+﻿using EtherSharp.Numerics;
+using EtherSharp.Types;
 
 namespace EtherSharp.Tx;
 /// <summary>
@@ -18,7 +18,7 @@ public interface IContractDeployment : ITxInput<byte[]>
     /// <param name="byteCode"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static IContractDeployment Create(EVMByteCode byteCode, BigInteger value)
+    public static IContractDeployment Create(EVMByteCode byteCode, UInt256 value)
         => new ContractDeployment(
             byteCode,
             value

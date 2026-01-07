@@ -1,6 +1,7 @@
-﻿using System.Numerics;
+﻿using EtherSharp.Numerics;
 
 namespace EtherSharp.Tx.Types;
+
 public interface ITxGasParams<TSelf> : ITxGasParams
     where TSelf : ITxGasParams<TSelf>
 {
@@ -18,7 +19,7 @@ public interface ITxGasParams<TSelf> : ITxGasParams
     /// <param name="divider"></param>
     /// <param name="minimumIncrement"></param>
     /// <returns></returns>
-    public TSelf IncrementByFactor(BigInteger multiplier, BigInteger divider, BigInteger minimumIncrement);
+    public TSelf IncrementByFactor(UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement);
 
     /// <summary>
     /// Encodes this instance to bytes.

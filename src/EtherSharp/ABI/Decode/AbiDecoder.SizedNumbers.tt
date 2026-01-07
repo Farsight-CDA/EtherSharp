@@ -3,7 +3,7 @@
 <#@ import namespace="System" #>
 using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Decode.Interfaces;
-using System.Numerics;
+using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
@@ -111,26 +111,26 @@ public partial class AbiDecoder
 <#
     for (var i = 72; i <= 256; i += 8) {
 #>
-    public BigInteger Int<#=i#>()
+    public Int256 Int<#=i#>()
     {
-        var result = AbiTypes.BigInteger.Decode(CurrentSlot, false);
+        var result = AbiTypes.Int256.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
-    BigInteger IFixedTupleDecoder.Int<#=i#>() 
+    Int256 IFixedTupleDecoder.Int<#=i#>() 
         => Int<#=i#>();
-    BigInteger IDynamicTupleDecoder.Int<#=i#>() 
+    Int256 IDynamicTupleDecoder.Int<#=i#>() 
         => Int<#=i#>();
 
-    public BigInteger UInt<#=i#>()
+    public UInt256 UInt<#=i#>()
     {
-        var result = AbiTypes.BigInteger.Decode(CurrentSlot, true);
+        var result = AbiTypes.UInt256.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
-    BigInteger IFixedTupleDecoder.UInt<#=i#>() 
+    UInt256 IFixedTupleDecoder.UInt<#=i#>() 
         => UInt<#=i#>();
-    BigInteger IDynamicTupleDecoder.UInt<#=i#>() 
+    UInt256 IDynamicTupleDecoder.UInt<#=i#>() 
         => UInt<#=i#>();
 <#
     }
