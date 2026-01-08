@@ -52,6 +52,12 @@ public class Int256HexConverter : JsonConverter<Int256>
 
     public override void Write(Utf8JsonWriter writer, Int256 value, JsonSerializerOptions options)
     {
+        if(value == 0)
+        {
+            writer.WriteStringValue("0x0");
+            return;
+        }
+
         Span<char> hexBuffer = stackalloc char[66];
         hexBuffer[0] = '0';
         hexBuffer[1] = 'x';
@@ -61,12 +67,6 @@ public class Int256HexConverter : JsonConverter<Int256>
         BinaryPrimitives.WriteInt256BigEndian(byteBuffer, value);
 
         byteBuffer = byteBuffer.Trim((byte) 0);
-
-        if(byteBuffer.Length == 0)
-        {
-            writer.WriteStringValue("0x0");
-            return;
-        }
 
         if(!Convert.TryToHexString(byteBuffer, hexBuffer[2..], out int charsWritten))
         {
