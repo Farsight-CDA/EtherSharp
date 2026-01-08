@@ -2,8 +2,16 @@
 using System.Diagnostics;
 
 namespace EtherSharp.Crypto;
+
+/// <summary>
+/// Efficient implementation of the Keccak-256 hash algorithm.
+/// </summary>
 public ref struct Keccak256
 {
+    private const int OUTPUT_LENGTH_BYTES = 32;
+    private const int OUTPUT_LENGTH_BITS = OUTPUT_LENGTH_BYTES * 8;
+    private const int RATE = 1088;
+
     private static readonly ulong[] _keccakRoundConstants = [
         0x0000000000000001UL, 0x0000000000008082UL, 0x800000000000808aUL, 0x8000000080008000UL,
         0x000000000000808bUL, 0x0000000080000001UL, 0x8000000080008081UL, 0x8000000000008009UL,
@@ -12,23 +20,26 @@ public ref struct Keccak256
         0x8000000000008002UL, 0x8000000000000080UL, 0x000000000000800aUL, 0x800000008000000aUL,
         0x8000000080008081UL, 0x8000000000008080UL, 0x0000000080000001UL, 0x8000000080008008UL
     ];
-    private const int _outputLengthBytes = 32;
-    private const int _outputLengthBits = _outputLengthBytes << 3;
-    private const int _rate = 1088;
 
     private int _bitsInQueue;
     private readonly Span<byte> _dataQueue;
     private readonly Span<ulong> _state;
 
-    public Keccak256(Span<byte> dataQueue, Span<ulong> state)
+    internal Keccak256(Span<byte> dataQueue, Span<ulong> state)
     {
         _dataQueue = dataQueue;
         _state = state;
     }
 
-    public static bool TryHashData(ReadOnlySpan<byte> data, Span<byte> outputBuffer)
+    /// <summary>
+    /// Hashes the input data and writes the resulting hash into the destination buffer.
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="destination"></param>
+    /// <returns></returns>
+    public static bool TryHashData(ReadOnlySpan<byte> data, Span<byte> destination)
     {
-        if(outputBuffer.Length != _outputLengthBytes)
+        if(destination.Length != OUTPUT_LENGTH_BYTES)
         {
             return false;
         }
@@ -39,13 +50,19 @@ public ref struct Keccak256
         var keccak = new Keccak256(dataQueue, state);
 
         keccak.BlockUpdate(data);
-        keccak.DoFinal(outputBuffer);
+        keccak.DoFinal(destination);
         return true;
     }
 
+    /// <summary>
+    /// Hashes the input data and writes the hash into a newly allocated array.
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    /// <exception cref="NotSupportedException"></exception>
     public static byte[] HashData(ReadOnlySpan<byte> data)
     {
-        byte[] outputBuffer = new byte[_outputLengthBytes];
+        byte[] outputBuffer = new byte[OUTPUT_LENGTH_BYTES];
         return !TryHashData(data, outputBuffer)
             ? throw new NotSupportedException()
             : outputBuffer;
@@ -65,7 +82,7 @@ public ref struct Keccak256
         }
 
         _dataQueue[_bitsInQueue >> 3] = data;
-        if((_bitsInQueue += 8) == _rate)
+        if((_bitsInQueue += 8) == RATE)
         {
             KeccakAbsorb(_dataQueue);
             _bitsInQueue = 0;
@@ -80,7 +97,7 @@ public ref struct Keccak256
         }
 
         int bytesInQueue = _bitsInQueue / 8;
-        int rateBytes = _rate / 8;
+        int rateBytes = RATE / 8;
 
         int available = rateBytes - bytesInQueue;
 
@@ -131,12 +148,12 @@ public ref struct Keccak256
 
     private void PadAndSwitchToSqueezingPhase()
     {
-        Debug.Assert(_bitsInQueue < _rate);
+        Debug.Assert(_bitsInQueue < RATE);
 
         _dataQueue[_bitsInQueue >> 3] |= (byte) (1U << (_bitsInQueue & 7));
         _bitsInQueue++;
 
-        if(_bitsInQueue == _rate)
+        if(_bitsInQueue == RATE)
         {
             KeccakAbsorb(_dataQueue);
             _bitsInQueue = 0;
@@ -156,7 +173,7 @@ public ref struct Keccak256
             _state[full] ^= BinaryPrimitives.ReadUInt64LittleEndian(_dataQueue[(full * 8)..]) & mask;
         }
 
-        _state[(_rate - 1) >> 6] ^= 1UL << 63;
+        _state[(RATE - 1) >> 6] ^= 1UL << 63;
 
         _bitsInQueue = 0;
     }
@@ -173,9 +190,9 @@ public ref struct Keccak256
                 KeccakExtract();
             }
 
-            int partialBlock = Math.Min(_bitsInQueue, _outputLengthBits - i);
+            int partialBlock = Math.Min(_bitsInQueue, OUTPUT_LENGTH_BITS - i);
 
-            _dataQueue.Slice((_rate - _bitsInQueue) >> 3, partialBlock >> 3).CopyTo(output[(i >> 3)..]);
+            _dataQueue.Slice((RATE - _bitsInQueue) >> 3, partialBlock >> 3).CopyTo(output[(i >> 3)..]);
             _bitsInQueue -= partialBlock;
             i += partialBlock;
         }
@@ -183,7 +200,7 @@ public ref struct Keccak256
 
     private readonly void KeccakAbsorb(ReadOnlySpan<byte> data)
     {
-        int count = _rate >> 6;
+        int count = RATE >> 6;
         for(int i = 0; i < count; ++i)
         {
             _state[i] ^= BinaryPrimitives.ReadUInt64LittleEndian(data[(i * 8)..]);
@@ -196,12 +213,12 @@ public ref struct Keccak256
     {
         KeccakPermutation();
 
-        for(int i = 0; i < _rate >> 6; ++i)
+        for(int i = 0; i < RATE >> 6; ++i)
         {
             BinaryPrimitives.WriteUInt64LittleEndian(_dataQueue[(8 * i)..], _state[i]);
         }
 
-        _bitsInQueue = _rate;
+        _bitsInQueue = RATE;
     }
 
     private readonly void KeccakPermutation()
