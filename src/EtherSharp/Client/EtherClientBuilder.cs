@@ -17,7 +17,6 @@ using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Modules.Trace;
 using EtherSharp.RPC.Transport;
-using EtherSharp.Transport;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Legacy;
 using EtherSharp.Tx.Types;
