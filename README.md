@@ -60,7 +60,7 @@ For **View** or **Pure** methods, use the generated asynchronous methods ending 
 var erc20 = client.Contract<IERC20>("0x123...abc");
 
 // Direct View call
-BigInteger balance = await erc20.BalanceOfAsync("0xuser...");
+UInt256 balance = await erc20.BalanceOfAsync("0xuser...");
 
 // Simulating a state-changing method
 var transferCall = erc20.Transfer("0xreceiver...", 1000);
