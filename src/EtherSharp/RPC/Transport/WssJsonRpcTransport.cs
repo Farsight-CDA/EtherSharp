@@ -1,7 +1,6 @@
 ﻿using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
-using EtherSharp.RPC;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -187,11 +186,19 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                     }
 
                     var (responseType, tcs) = value;
-                    object? response = JsonSerializer.Deserialize(
-                        msBuffer, responseType,
-                        options: ParsingUtils.EvmSerializerOptions
-                    )!;
-                    tcs.SetResult(response);
+
+                    try
+                    {
+                        object? response = JsonSerializer.Deserialize(
+                            msBuffer, responseType,
+                            options: ParsingUtils.EvmSerializerOptions
+                        )!;
+                        tcs.SetResult(response);
+                    }
+                    catch(Exception ex)
+                    {
+                        tcs.SetException(ex);
+                    }
                     break;
                 case PayloadType.Subscription:
                     OnSubscriptionMessage?.Invoke(subscriptionId, msBuffer);
