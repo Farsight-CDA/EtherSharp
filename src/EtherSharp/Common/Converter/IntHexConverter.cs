@@ -13,10 +13,6 @@ internal class IntHexConverter : JsonConverter<int>
             case JsonTokenType.Number:
                 return reader.GetInt32();
             case JsonTokenType.String:
-                if(reader.TokenType != JsonTokenType.String)
-                {
-                    throw new JsonException("Expected string token.");
-                }
                 int valueLength = reader.HasValueSequence
                     ? (int) reader.ValueSequence.Length
                     : reader.ValueSpan.Length;
@@ -33,7 +29,7 @@ internal class IntHexConverter : JsonConverter<int>
                     ? throw new InvalidOperationException("Unexpected number length")
                     : Int32.Parse(sourceBuffer[2..charsWritten], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
             default:
-                throw new NotSupportedException();
+                throw new JsonException($"Cannot parse {nameof(Int32)} from token of type {reader.TokenType}");
         }
     }
 

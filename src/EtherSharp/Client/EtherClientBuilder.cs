@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Modules.Blocks;
+using EtherSharp.Client.Modules.Debug;
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
@@ -14,6 +15,7 @@ using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common;
 using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Debug;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Modules.Trace;
 using EtherSharp.RPC.Transport;
@@ -365,10 +367,13 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddSingleton<IRpcClient, RpcClient>();
         _services.AddSingleton<IEthRpcModule, EthRpcModule>();
         _services.AddSingleton<ITraceRpcModule, TraceRpcModule>();
+        _services.AddSingleton<IDebugRpcModule, DebugRpcModule>();
+
         _services.AddSingleton<IEtherModule, EtherModule>();
         _services.AddSingleton<IEtherTxModule, EtherModule>();
         _services.AddSingleton<ITraceModule, TraceModule>();
         _services.AddSingleton<IBlocksModule, BlocksModule>();
+        _services.AddSingleton<IDebugModule, DebugModule>();
 
         _services.AddSingleton<ContractFactory>();
 

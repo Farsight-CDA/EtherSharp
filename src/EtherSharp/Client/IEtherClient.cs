@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Modules.Blocks;
+using EtherSharp.Client.Modules.Debug;
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
 using EtherSharp.Contract;
@@ -26,6 +27,10 @@ public interface IEtherClient
     /// Module used to interact with blocks.
     /// </summary>
     public IBlocksModule Blocks { get; }
+    /// <summary>
+    /// Module used to interact with the debug api.
+    /// </summary>
+    public IDebugModule Debug { get; }
 
     public Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,

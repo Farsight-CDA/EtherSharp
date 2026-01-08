@@ -8,25 +8,29 @@ internal class LongHexConverter : JsonConverter<long>
 {
     public override long Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if(reader.TokenType != JsonTokenType.String)
+        switch(reader.TokenType)
         {
-            throw new JsonException("Expected string token.");
+            case JsonTokenType.Number:
+                return reader.GetInt64();
+            case JsonTokenType.String:
+                int valueLength = reader.HasValueSequence
+                    ? (int) reader.ValueSequence.Length
+                    : reader.ValueSpan.Length;
+
+                if(valueLength > 20)
+                {
+                    throw new InvalidOperationException("Unexpected number length");
+                }
+
+                Span<char> sourceBuffer = stackalloc char[valueLength];
+                int charsWritten = reader.CopyString(sourceBuffer);
+
+                return charsWritten > 18
+                    ? throw new InvalidOperationException("Unexpected number length")
+                    : Int64.Parse(sourceBuffer[2..charsWritten], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            default:
+                throw new JsonException($"Cannot parse {nameof(Int64)} from token of type {reader.TokenType}");
         }
-        int valueLength = reader.HasValueSequence
-            ? (int) reader.ValueSequence.Length
-            : reader.ValueSpan.Length;
-
-        if(valueLength > 20)
-        {
-            throw new InvalidOperationException("Unexpected number length");
-        }
-
-        Span<char> sourceBuffer = stackalloc char[valueLength];
-        int charsWritten = reader.CopyString(sourceBuffer);
-
-        return charsWritten > 18
-            ? throw new InvalidOperationException("Unexpected number length")
-            : Int64.Parse(sourceBuffer[2..charsWritten], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
     }
 
     public override void Write(Utf8JsonWriter writer, long value, JsonSerializerOptions options)

@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Modules.Blocks;
+using EtherSharp.Client.Modules.Debug;
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
 using EtherSharp.Client.Modules.Trace;
@@ -34,6 +35,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     private IEtherTxModule _etherModule = null!;
     private ITraceModule _traceModule = null!;
     private IBlocksModule _blocksModule = null!;
+    private IDebugModule _debugModule = null!;
 
     private IRpcClient _rpcClient = null!;
     private IEthRpcModule _ethRpcModule = null!;
@@ -53,41 +55,29 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     IRpcClient IInternalEtherClient.RPC => _rpcClient;
 
     ulong IEtherClient.ChainId
-    {
-        get
-        {
-            AssertReady();
-            return _chainId;
-        }
-    }
+        => _initialized
+            ? _chainId
+            : throw new InvalidOperationException("Client not initialized");
 
     IEtherTxModule IEtherTxClient.ETH
-    {
-        get
-        {
-            AssertReady();
-            AssertTxClient();
-            return _etherModule;
-        }
-    }
+        => _initialized
+            ? _etherModule
+            : throw new InvalidOperationException("Client not initialized");
 
     IEtherModule IEtherClient.ETH
-    {
-        get
-        {
-            AssertReady();
-            return _etherModule;
-        }
-    }
+        => _initialized
+            ? _etherModule
+            : throw new InvalidOperationException("Client not initialized");
 
     IBlocksModule IEtherClient.Blocks
-    {
-        get
-        {
-            AssertReady();
-            return _blocksModule;
-        }
-    }
+        => _initialized
+            ? _blocksModule
+            : throw new InvalidOperationException("Client not initialized");
+
+    IDebugModule IEtherClient.Debug
+        => _initialized
+            ? _debugModule
+            : throw new InvalidOperationException("Client not initialized");
 
     public async Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
@@ -193,6 +183,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         _etherModule = _provider.GetRequiredService<IEtherTxModule>();
         _traceModule = _provider.GetRequiredService<ITraceModule>();
         _blocksModule = _provider.GetRequiredService<IBlocksModule>();
+        _debugModule = _provider.GetRequiredService<IDebugModule>();
 
         _rpcClient = _provider.GetRequiredService<IRpcClient>();
         _ethRpcModule = _provider.GetRequiredService<IEthRpcModule>();
@@ -237,13 +228,6 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return initResult!;
     }
 
-    private void AssertTxClient()
-    {
-        if(!_isTxClient)
-        {
-            throw new InvalidOperationException("Client is not a tx client");
-        }
-    }
     private void AssertReady()
     {
         if(!_initialized)
