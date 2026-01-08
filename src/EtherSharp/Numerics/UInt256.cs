@@ -14,12 +14,11 @@ namespace EtherSharp.Numerics;
 [StructLayout(LayoutKind.Explicit)]
 public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComparable<UInt256>
 {
-    private const int LEN = 4;
+    public static UInt256 Zero { get; } = 0ul;
+    public static UInt256 One { get; } = 1ul;
 
-    public static readonly UInt256 Zero = 0ul;
-    public static readonly UInt256 One = 1ul;
-    public static readonly UInt256 MinValue = Zero;
-    public static readonly UInt256 MaxValue = ~Zero;
+    public static UInt256 MinValue { get; } = Zero;
+    public static UInt256 MaxValue { get; } = ~Zero;
 
     /* in little endian order so u3 is the most significant ulong */
     [FieldOffset(0)]
@@ -31,7 +30,7 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
     [FieldOffset(24)]
     internal readonly ulong _u3;
 
-    public int BitLength
+    internal int BitLength
         => _u3 != 0
             ? 256 - BitOperations.LeadingZeroCount(_u3)
             : _u2 != 0
@@ -39,39 +38,16 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
                 : _u1 != 0
                     ? 128 - BitOperations.LeadingZeroCount(_u1)
                     : 64 - BitOperations.LeadingZeroCount(_u0);
-
     internal bool IsUint64 => (_u1 | _u2 | _u3) == 0;
-    public bool IsZeroOrOne => ((_u0 >> 1) | _u1 | _u2 | _u3) == 0;
+
     public bool IsZero
-    {
-        get
-        {
-            if(Vector256.IsHardwareAccelerated)
-            {
-                var v = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0));
-                return v == default;
-            }
-            else
-            {
-                return (_u0 | _u1 | _u2 | _u3) == 0;
-            }
-        }
-    }
+        => Vector256.IsHardwareAccelerated
+            ? Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0)) == default
+            : (_u0 | _u1 | _u2 | _u3) == 0;
     public bool IsOne
-    {
-        get
-        {
-            if(Vector256.IsHardwareAccelerated)
-            {
-                var v = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0));
-                return v == Vector256.CreateScalar(1UL);
-            }
-            else
-            {
-                return ((_u0 ^ 1UL) | _u1 | _u2 | _u3) == 0;
-            }
-        }
-    }
+        => Vector256.IsHardwareAccelerated
+                ? Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0)) == Vector256.CreateScalar(1UL)
+                : ((_u0 ^ 1UL) | _u1 | _u2 | _u3) == 0;
 
     public static int LeadingZeroCount(UInt256 value)
         => value._u3 != 0
@@ -1302,8 +1278,6 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
 
     public override string ToString() => ((BigInteger) this).ToString();
     public string ToString(string format) => ((BigInteger) this).ToString(format);
-
-
 
     public bool Equals(int other) => other >= 0 && Equals((uint) other);
 

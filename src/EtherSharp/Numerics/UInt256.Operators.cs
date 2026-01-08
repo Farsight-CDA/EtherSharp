@@ -137,7 +137,9 @@ public readonly partial struct UInt256
         return c;
     }
 
+    [OverloadResolutionPriority(1)]
     public static bool operator ==(in UInt256 a, in UInt256 b) => a.Equals(b);
+    public static bool operator ==(UInt256 a, UInt256 b) => a.Equals(in b);
     public static bool operator ==(in UInt256 a, int b) => a.Equals(b);
     public static bool operator ==(int a, in UInt256 b) => b.Equals(a);
     public static bool operator ==(in UInt256 a, uint b) => a.Equals(b);
@@ -147,7 +149,9 @@ public readonly partial struct UInt256
     public static bool operator ==(in UInt256 a, ulong b) => a.Equals(b);
     public static bool operator ==(ulong a, in UInt256 b) => b.Equals(a);
 
+    [OverloadResolutionPriority(1)]
     public static bool operator !=(in UInt256 a, in UInt256 b) => !a.Equals(b);
+    public static bool operator !=(UInt256 a, UInt256 b) => !a.Equals(b);
     public static bool operator !=(in UInt256 a, int b) => !a.Equals(b);
     public static bool operator !=(int a, in UInt256 b) => !b.Equals(a);
     public static bool operator !=(in UInt256 a, uint b) => !a.Equals(b);
@@ -197,52 +201,99 @@ public readonly partial struct UInt256
     public static bool operator >=(in UInt256 a, ulong b) => !LessThan(in a, b);
     public static bool operator >=(ulong a, in UInt256 b) => !LessThan(a, in b);
 
-    public static UInt256 operator ^(in UInt256 a, in UInt256 b)
-    {
-        Xor(a, b, out var res);
-        return res;
-    }
-
-    public static UInt256 operator ~(in UInt256 a)
-    {
-        Not(in a, out var res);
-        return res;
-    }
-
+    [OverloadResolutionPriority(1)]
     public static UInt256 operator +(in UInt256 a, in UInt256 b)
     {
         Add(in a, in b, out var res);
         return res;
     }
+    public static UInt256 operator +(UInt256 a, UInt256 b)
+    {
+        Add(in a, in b, out var res);
+        return res;
+    }
 
+    [OverloadResolutionPriority(1)]
     public static UInt256 operator checked +(in UInt256 a, in UInt256 b)
         => Add(in a, in b, out var res)
             ? throw new OverflowException($"Overflow in addition {a} + {b}")
             : res;
-
-    public static UInt256 operator ++(in UInt256 a)
-    {
-        Add(in a, 1, out var res);
-        return res;
-    }
-
-    public static UInt256 operator checked ++(in UInt256 a)
-        => Add(in a, 1, out var res)
-            ? throw new OverflowException($"Overflow in addition {a} + 1")
+    public static UInt256 operator checked +(UInt256 a, UInt256 b)
+        => Add(in a, in b, out var res)
+            ? throw new OverflowException($"Overflow in addition {a} + {b}")
             : res;
 
-    public static UInt256 operator -(in UInt256 a, in UInt256 b)
+    [OverloadResolutionPriority(1)]
+    public static UInt256 operator ++(in UInt256 a)
     {
-        Subtract(a, b, out var res);
+        Add(in a, UInt256.One, out var res);
         return res;
     }
+    public static UInt256 operator ++(UInt256 a)
+    {
+        Add(in a, UInt256.One, out var res);
+        return res;
+    }
+    [OverloadResolutionPriority(1)]
+    public static UInt256 operator checked ++(in UInt256 a)
+        => Add(in a, UInt256.One, out var res)
+            ? throw new OverflowException($"Overflow in addition {a}++")
+            : res;
+    public static UInt256 operator checked ++(UInt256 a)
+        => Add(in a, UInt256.One, out var res)
+            ? throw new OverflowException($"Overflow in addition {a}++")
+            : res;
 
+    [OverloadResolutionPriority(1)]
+    public static UInt256 operator -(in UInt256 a, in UInt256 b)
+    {
+        Subtract(in a, in b, out var res);
+        return res;
+    }
+    public static UInt256 operator -(UInt256 a, UInt256 b)
+    {
+        Subtract(in a, in b, out var res);
+        return res;
+    }
+    [OverloadResolutionPriority(1)]
     public static UInt256 operator checked -(in UInt256 a, in UInt256 b)
         => Subtract(in a, in b, out var res)
             ? throw new OverflowException($"Underflow in subtraction {a} - {b}")
             : res;
+    public static UInt256 operator checked -(UInt256 a, UInt256 b)
+        => Subtract(in a, in b, out var res)
+            ? throw new OverflowException($"Underflow in subtraction {a} - {b}")
+            : res;
 
+    [OverloadResolutionPriority(1)]
+    public static UInt256 operator --(in UInt256 a)
+    {
+        Subtract(in a, UInt256.One, out var res);
+        return res;
+    }
+    public static UInt256 operator --(UInt256 a)
+    {
+        Subtract(in a, UInt256.One, out var res);
+        return res;
+    }
+
+    [OverloadResolutionPriority(1)]
+    public static UInt256 operator checked --(in UInt256 a)
+        => Subtract(in a, UInt256.One, out var res)
+            ? throw new OverflowException($"Underflow in subtraction {a} - 1")
+            : res;
+    public static UInt256 operator checked --(UInt256 a)
+        => Subtract(in a, UInt256.One, out var res)
+            ? throw new OverflowException($"Underflow in subtraction {a} - 1")
+            : res;
+
+    [OverloadResolutionPriority(1)]
     public static UInt256 operator *(in UInt256 a, in UInt256 b)
+    {
+        Multiply(in a, in b, out var c);
+        return c;
+    }
+    public static UInt256 operator *(UInt256 a, UInt256 b)
     {
         Multiply(in a, in b, out var c);
         return c;
@@ -253,7 +304,6 @@ public readonly partial struct UInt256
         Multiply(in a, b, out var c);
         return c;
     }
-
     public static UInt256 operator *(uint a, in UInt256 b)
     {
         Multiply(a, in b, out var c);
@@ -265,22 +315,26 @@ public readonly partial struct UInt256
         Multiply(in a, b, out var c);
         return c;
     }
-
     public static UInt256 operator *(ulong a, in UInt256 b)
     {
         Multiply(a, in b, out var c);
         return c;
     }
 
+    [OverloadResolutionPriority(1)]
+    public static UInt256 operator /(in UInt256 a, in UInt256 b)
+    {
+        Divide(in a, in b, out var res);
+        return res;
+    }
+    public static UInt256 operator /(UInt256 a, UInt256 b)
+    {
+        Divide(in a, in b, out var res);
+        return res;
+    }
     public static UInt256 operator /(in UInt256 a, uint b)
     {
         Divide(in a, b, out var c);
-        return c;
-    }
-
-    public static UInt256 operator /(in UInt256 a, in UInt256 b)
-    {
-        Divide(in a, in b, out var c);
         return c;
     }
 
@@ -293,6 +347,18 @@ public readonly partial struct UInt256
     public static UInt256 operator >>(in UInt256 a, int n)
     {
         UInt256.RightShift(a, n, out var res);
+        return res;
+    }
+
+    public static UInt256 operator ^(in UInt256 a, in UInt256 b)
+    {
+        Xor(a, b, out var res);
+        return res;
+    }
+
+    public static UInt256 operator ~(in UInt256 a)
+    {
+        Not(in a, out var res);
         return res;
     }
 
@@ -313,4 +379,11 @@ public readonly partial struct UInt256
         Mod(a, b, out var res);
         return res;
     }
+
+    [OverloadResolutionPriority(1)]
+    public static UInt256 operator -(in UInt256 value) => Negate(in value);
+    public static UInt256 operator -(UInt256 value) => Negate(in value);
+    [OverloadResolutionPriority(1)]
+    public static UInt256 operator +(in UInt256 value) => value;
+    public static UInt256 operator +(UInt256 value) => value;
 }
