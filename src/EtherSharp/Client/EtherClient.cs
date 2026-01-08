@@ -15,7 +15,7 @@ using EtherSharp.Numerics;
 using EtherSharp.Query;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
-using EtherSharp.Transport;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Types;

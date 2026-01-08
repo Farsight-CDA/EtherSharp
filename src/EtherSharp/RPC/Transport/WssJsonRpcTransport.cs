@@ -11,7 +11,7 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Transport;
+namespace EtherSharp.RPC.Transport;
 /// <summary>
 /// Transport for EVM Websocket RPC
 /// </summary>

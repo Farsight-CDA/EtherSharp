@@ -1,7 +1,7 @@
 ﻿using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Common.Instrumentation;
-using EtherSharp.Transport;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 
