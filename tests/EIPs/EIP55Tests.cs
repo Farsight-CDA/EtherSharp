@@ -1,4 +1,4 @@
-﻿using EtherSharp.EIPs;
+﻿using EtherSharp.Crypto;
 using EtherSharp.Types;
 
 namespace EtherSharp.Tests.EIPs;

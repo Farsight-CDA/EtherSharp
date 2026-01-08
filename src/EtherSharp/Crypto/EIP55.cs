@@ -1,8 +1,7 @@
-﻿using EtherSharp.Crypto;
-using EtherSharp.Types;
+﻿using EtherSharp.Types;
 using System.Text;
 
-namespace EtherSharp.EIPs;
+namespace EtherSharp.Crypto;
 /// <summary>
 /// Implementation of EIP55 address checksums.
 /// <a href="https://eips.ethereum.org/EIPS/eip-55">EIP55 Spec</a>

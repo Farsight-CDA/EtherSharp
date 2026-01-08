@@ -1,6 +1,6 @@
 ﻿using EtherSharp.Common;
 using EtherSharp.Common.Converter;
-using EtherSharp.EIPs;
+using EtherSharp.Crypto;
 using System.Globalization;
 using System.Text.Json.Serialization;
 
