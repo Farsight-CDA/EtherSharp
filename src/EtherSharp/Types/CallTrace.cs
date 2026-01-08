@@ -13,18 +13,11 @@ public record CallTrace(
     byte[] Output,
     CallType Type,
     CallTrace[]? Calls
-) : IEnumerable<CallTrace>
+)
 {
-    public Enumerator GetEnumerator()
-        => new Enumerator(this);
+    public Enumerator Enumerate() => new Enumerator(this);
 
-    IEnumerator<CallTrace> IEnumerable<CallTrace>.GetEnumerator()
-        => GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator()
-        => GetEnumerator();
-
-    public struct Enumerator : IEnumerator<CallTrace>
+    public struct Enumerator : IEnumerable<CallTrace>, IEnumerator<CallTrace>
     {
         private readonly Stack<CallTrace> _stack;
         private CallTrace? _current;
@@ -37,6 +30,7 @@ public record CallTrace(
         }
 
         public readonly CallTrace Current => _current!;
+
         readonly object IEnumerator.Current => Current;
 
         public bool MoveNext()
@@ -57,11 +51,10 @@ public record CallTrace(
             return true;
         }
 
-        public readonly void Reset()
-            => throw new NotSupportedException();
-
-        public readonly void Dispose()
-        {
-        }
+        public readonly void Reset() => throw new NotSupportedException();
+        public readonly void Dispose() { }
+        public readonly Enumerator GetEnumerator() => this;
+        IEnumerator<CallTrace> IEnumerable<CallTrace>.GetEnumerator() => this;
+        IEnumerator IEnumerable.GetEnumerator() => this;
     }
 }

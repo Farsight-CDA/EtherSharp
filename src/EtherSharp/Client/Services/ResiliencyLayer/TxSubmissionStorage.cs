@@ -11,7 +11,7 @@ public record TxSubmissionStorage(
     uint Nonce,
     string TxHash,
     string SignedTx,
-    string To,
+    string? To,
     UInt256 Value,
     byte[] CallData,
     byte[] TxParams,
@@ -26,7 +26,9 @@ public record TxSubmissionStorage(
             Sequence,
             TxHash,
             SignedTx,
-            new TxInput(Address.FromString(To), Value, CallData),
+            To is null
+                ? new ContractDeployment(new EVMByteCode(CallData), Value)
+                : new TxInput(Address.FromString(To), Value, CallData),
             TTxParams.Decode(TxParams),
             TTxGasParams.Decode(TxGasParams)
         );

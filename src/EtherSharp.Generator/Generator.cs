@@ -237,11 +237,12 @@ public class Generator : IIncrementalGenerator
         var typesSectionWriter = new ContractTypesSectionWriter(@namespace, contractInterfaceName);
         var parameterTypeWriter = new AbiParameterTypeWriter(typesSectionWriter);
         var paramEncodingWriter = new ParamEncodingWriter(parameterTypeWriter);
+        var memberTypeWriter = new MemberTypeWriter(paramEncodingWriter);
 
         return new ContractSourceWriter(
             new ContractErrorSectionWriter(new ErrorTypeWriter()),
-            new ContractEventSectionWriter(new EventTypeWriter(paramEncodingWriter)),
-            new ContractFunctionSectionWriter(paramEncodingWriter),
+            new ContractEventSectionWriter(new EventTypeWriter(paramEncodingWriter, memberTypeWriter)),
+            new ContractFunctionSectionWriter(paramEncodingWriter, memberTypeWriter),
             typesSectionWriter
         );
     }

@@ -6,15 +6,25 @@ using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters;
 
-internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWriter)
+internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWriter, MemberTypeWriter memberTypeWriter)
 {
     private readonly FunctionBuilder _isMatchingSelectorFunction = new FunctionBuilder("IsMatchingSelector")
-        .AddArgument("System.ReadOnlySpan<byte>", "selector")
+        .AddArgument("System.ReadOnlySpan<byte>", "data")
         .WithReturnType<bool>()
         .WithIsStatic()
-        .AddStatement($"return selector.SequenceEqual(SelectorBytes.Span)");
+        .AddStatement(
+            $$"""
+            if (data.Length < 4)
+            {
+                return false;
+            }
+
+            return data.Slice(0, 4).SequenceEqual(SelectorBytes.Span);
+            """
+        );
 
     private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
+    private readonly MemberTypeWriter _memberTypeWriter = memberTypeWriter;
 
     public void GenerateContractFunctionSection(InterfaceBuilder interfaceBuilder, ClassBuilder implementationBuilder,
         string contractName, IEnumerable<FunctionAbiMember> functionMembers,
@@ -161,8 +171,37 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                 functionClassNames.Add(functionTypeName);
 
                 var typeBuilder = new ClassBuilder(functionTypeName)
-                    .WithIsStatic()
+                    .WithAutoConstructor()
                     .AddFunction(_isMatchingSelectorFunction);
+
+                var decodeMethod = new FunctionBuilder("Decode")
+                    .WithReturnTypeRaw(functionTypeName)
+                    .WithIsStatic(true)
+                    .AddArgument("System.ReadOnlyMemory<byte>", "data")
+                    .AddStatement("if (data.Length < 4) throw new System.ArgumentException(\"Data too short\", nameof(data));", false)
+                    .AddStatement(_memberTypeWriter.GenerateDecodeStatements(functionTypeName, functionMember.Inputs, "data.Slice(4)"));
+
+                var tryDecodeMethod = new FunctionBuilder("TryDecode")
+                    .AddArgument("System.ReadOnlyMemory<byte>", "data")
+                    .AddArgument($"out {functionTypeName}", "parsedFunction")
+                    .WithReturnType<bool>()
+                    .WithIsStatic()
+                    .AddStatement(
+                        $$"""
+                        if (!IsMatchingSelector(data.Span)) 
+                        {
+                            parsedFunction = null!;
+                            return false;
+                        }
+
+                        parsedFunction = Decode(data);
+                        return true
+                        """
+                    );
+
+                _memberTypeWriter.AddInputProperties(typeBuilder, functionMember.Inputs);
+                typeBuilder.AddFunction(decodeMethod);
+                typeBuilder.AddFunction(tryDecodeMethod);
 
                 var createTxFunction = new FunctionBuilder("Create")
                     .WithIsStatic()
@@ -236,7 +275,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                     /// <summary>
                     /// Function signature used to calculate the signature bytes.
                     /// </summary>
-                    public const string Signature = "{{signature}}";
+                    public const string FunctionSignature = "{{signature}}";
                     /// <summary>
                     /// Function signature bytes based on function signature: {{signature}}
                     /// </summary>

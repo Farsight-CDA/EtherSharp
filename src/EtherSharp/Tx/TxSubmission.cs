@@ -2,6 +2,7 @@
 using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Tx;
+
 public record TxSubmission<TTxParams, TTxGasParams>(
     ulong ChainId,
     uint Sequence,
@@ -21,7 +22,7 @@ public record TxSubmission<TTxParams, TTxGasParams>(
             nonce,
             TxHash,
             SignedTx,
-            Call.To.String,
+            Call.To?.String,
             Call.Value,
             Call.Data.ToArray(),
             Params.Encode(),
