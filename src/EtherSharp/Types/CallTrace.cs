@@ -11,5 +11,5 @@ public record CallTrace(
     byte[] Input,
     byte[] Output,
     CallType Type,
-    CallTrace[] Calls
+    CallTrace[]? Calls
 );
