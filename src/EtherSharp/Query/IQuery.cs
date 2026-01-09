@@ -250,6 +250,26 @@ public interface IQuery
                 );
             }
         );
+
+    public static IQuery<IReadOnlyList<T>> Range<T>(params IEnumerable<IQuery<T>> queries)
+    {
+        var queryList = queries.ToList();
+        return new Query<IReadOnlyList<T>>(
+            queryList.SelectMany(q => q.Queries).ToList(),
+            results =>
+            {
+                var resultsList = new List<T>(queryList.Count);
+                int offset = 0;
+                foreach(var q in queryList)
+                {
+                    int count = q.Queries.Count;
+                    resultsList.Add(q.ReadResultFrom(results[offset..(offset + count)]));
+                    offset += count;
+                }
+                return resultsList;
+            }
+        );
+    }
 }
 
 /// <summary>
