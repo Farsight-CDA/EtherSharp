@@ -38,6 +38,7 @@ public record BlockDataTrasactionAsString(
     DateTimeOffset Timestamp,
     UInt256? BaseFeePerGas,
     string Hash,
-    string ParentHash
+    string ParentHash,
+    IReadOnlyList<string> Transactions
 );
 
