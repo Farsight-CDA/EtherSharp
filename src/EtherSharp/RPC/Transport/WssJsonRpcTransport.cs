@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -199,7 +198,6 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                     }
                     catch(Exception ex)
                     {
-                        var raw = Encoding.UTF8.GetString(msBuffer);
                         tcs.SetException(ex);
                     }
                     break;
