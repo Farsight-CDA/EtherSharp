@@ -74,6 +74,11 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             ? _blocksModule
             : throw new InvalidOperationException("Client not initialized");
 
+    ITraceModule IEtherClient.Trace
+        => _initialized
+            ? _traceModule
+            : throw new InvalidOperationException("Client not initialized");
+
     IDebugModule IEtherClient.Debug
         => _initialized
             ? _debugModule

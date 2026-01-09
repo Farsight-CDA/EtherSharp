@@ -1,6 +1,5 @@
 ﻿using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
-using EtherSharp.RPC;
 using EtherSharp.Types;
 using System.Net.Http.Json;
 using System.Text.Json;

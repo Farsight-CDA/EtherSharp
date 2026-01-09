@@ -194,6 +194,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                             msBuffer, responseType,
                             options: ParsingUtils.EvmSerializerOptions
                         )!;
+
                         tcs.SetResult(response);
                     }
                     catch(Exception ex)

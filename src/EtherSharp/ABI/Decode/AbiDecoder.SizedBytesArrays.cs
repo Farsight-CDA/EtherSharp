@@ -1,5 +1,4 @@
 using EtherSharp.ABI.Types;
-using EtherSharp.ABI.Decode.Interfaces;
 
 namespace EtherSharp.ABI;
 public partial class AbiDecoder

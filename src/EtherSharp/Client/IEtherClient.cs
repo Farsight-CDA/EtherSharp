@@ -2,6 +2,7 @@
 using EtherSharp.Client.Modules.Debug;
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
+using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Query;
@@ -31,6 +32,10 @@ public interface IEtherClient
     /// Module used to interact with the debug api.
     /// </summary>
     public IDebugModule Debug { get; }
+    /// <summary>
+    /// Module used to interact with the trace api.
+    /// </summary>
+    public ITraceModule Trace { get; }
 
     public Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,

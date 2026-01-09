@@ -10,9 +10,10 @@ public record CallTrace(
     ulong GasUsed,
     UInt256 Value,
     byte[] Input,
-    byte[] Output,
+    byte[]? Output,
     CallType Type,
-    CallTrace[]? Calls
+    CallTrace[]? Calls,
+    string? Error
 )
 {
     public Enumerator Enumerate() => new Enumerator(this);
