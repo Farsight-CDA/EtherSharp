@@ -24,9 +24,9 @@ internal class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
     private static CallTrace ConvertToCallTrace(TransactionTrace trace, TransactionTrace[] allTraces)
     {
         var children = allTraces
-            .Where(x => x.TraceAddress.Length == trace.TraceAddress.Length + 1
-                        && x.TraceAddress.Take(trace.TraceAddress.Length).SequenceEqual(trace.TraceAddress))
-            .OrderBy(x => x.TraceAddress.Last())
+            .Where(x => x.TraceAddress.Length == trace.TraceAddress.Length + 1 &&
+                        x.TraceAddress.AsSpan(0, trace.TraceAddress.Length).SequenceEqual(trace.TraceAddress))
+            .OrderBy(x => x.TraceAddress[^1])
             .Select(x => ConvertToCallTrace(x, allTraces))
             .ToArray();
 
@@ -44,6 +44,6 @@ internal class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
         );
     }
 
-    public Task<TransactionTraceResult> ReplayTransactionAsync(string transactionHash, IEnumerable<string> traceTypes, CancellationToken cancellationToken = default)
+    public Task<TransactionTraceResult> ReplayTransactionAsync(string transactionHash, string[] traceTypes, CancellationToken cancellationToken = default)
         => _traceRpcModule.ReplayTransactionAsync(transactionHash, traceTypes, cancellationToken);
 }

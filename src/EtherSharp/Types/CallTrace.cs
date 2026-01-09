@@ -12,7 +12,7 @@ public record CallTrace(
     byte[] Input,
     byte[]? Output,
     CallType Type,
-    CallTrace[]? Calls,
+    IReadOnlyList<CallTrace>? Calls,
     string? Error
 )
 {
@@ -43,7 +43,7 @@ public record CallTrace(
 
             if(_current.Calls is not null)
             {
-                for(int i = _current.Calls.Length - 1; i >= 0; i--)
+                for(int i = _current.Calls.Count - 1; i >= 0; i--)
                 {
                     _stack.Push(_current.Calls[i]);
                 }
