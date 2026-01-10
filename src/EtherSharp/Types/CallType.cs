@@ -7,5 +7,7 @@ public enum CallType
 {
     CALL,
     STATICCALL,
-    DELEGATECALL
+    DELEGATECALL,
+    CREATE,
+    CREATE2
 }
