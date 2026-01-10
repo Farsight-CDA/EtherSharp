@@ -94,15 +94,15 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             //
             return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
         }
-        catch(JsonException)
+        catch(JsonException ex)
         {
             string s = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new RPCTransportException($"Error: {s}");
+            throw new RPCTransportException($"Error: {s}", ex);
         }
-        catch(Exception e)
+        catch(Exception ex)
         {
             string s = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new RPCTransportException($"Error: {s}", e);
+            throw new RPCTransportException($"Error: {s}", ex);
         }
     }
 
