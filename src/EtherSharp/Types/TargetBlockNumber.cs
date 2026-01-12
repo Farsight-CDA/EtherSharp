@@ -84,5 +84,5 @@ public readonly struct TargetBlockNumber
         => left.Equals(right);
     /// <inheritdoc/>
     public static bool operator !=(TargetBlockNumber left, TargetBlockNumber right)
-        => !(left == right);
+        => !left.Equals(right);
 }

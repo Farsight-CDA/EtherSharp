@@ -63,7 +63,7 @@ public class BlockingSequentialTxSchedulerV1 : ITxScheduler, IInitializableServi
         _resiliencyLayer = _provider.GetService<IResiliencyLayer>();
     }
 
-    async ValueTask IInitializableService.InitializeAsync(ulong chainId, CancellationToken cancellationToken)
+    async ValueTask IInitializableService.InitializeAsync(ulong chainId, CompatibilityReport compatibilityReport, CancellationToken cancellationToken)
     {
         _chainId = chainId;
 

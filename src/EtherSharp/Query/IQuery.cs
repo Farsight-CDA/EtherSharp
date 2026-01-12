@@ -76,6 +76,9 @@ public interface IQuery
     public static IQuery<ulong> GetChainId()
         => new GetChainIdQueryOperation();
 
+    public static IQuery<CompatibilityReport> GetCompatibilityReport()
+        => new GetCompatibilityQueryOperation();
+
     public static IQuery<T> Noop<T>(T value)
         => new NoopQueryOperation<T>(value);
 

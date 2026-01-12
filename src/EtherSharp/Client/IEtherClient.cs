@@ -21,6 +21,11 @@ public interface IEtherClient
     /// </summary>
     public ulong ChainId { get; }
     /// <summary>
+    /// OPCode Compatibility report for the chain you are connected to.
+    /// </summary>
+    public CompatibilityReport CompatibilityReport { get; }
+
+    /// <summary>
     /// Module used to interact with the native currency.
     /// </summary>
     public IEtherModule ETH { get; }

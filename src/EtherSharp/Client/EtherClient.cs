@@ -50,6 +50,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     private bool _initialized;
     private ulong _chainId;
+    private CompatibilityReport _compatibilityReport = null!;
 
     IServiceProvider IInternalEtherClient.Provider => _provider;
     IRpcClient IInternalEtherClient.RPC => _rpcClient;
@@ -57,6 +58,11 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     ulong IEtherClient.ChainId
         => _initialized
             ? _chainId
+            : throw new InvalidOperationException("Client not initialized");
+
+    CompatibilityReport IEtherClient.CompatibilityReport
+        => _initialized
+            ? _compatibilityReport
             : throw new InvalidOperationException("Client not initialized");
 
     IEtherTxModule IEtherTxClient.ETH
@@ -213,8 +219,8 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
         T? initResult;
 
-        (_chainId, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
-            IQuery.Combine(IQuery.GetChainId(), initQuery, flashCallSetupQuery),
+        (_chainId, _compatibilityReport, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
+            IQuery.Combine(IQuery.GetChainId(), IQuery.GetCompatibilityReport(), initQuery, flashCallSetupQuery),
             TargetBlockNumber.Latest,
             cancellationToken
         );
@@ -226,7 +232,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
         {
-            await initializeableService.InitializeAsync(_chainId, cancellationToken);
+            await initializeableService.InitializeAsync(_chainId, _compatibilityReport, cancellationToken);
         }
 
         _initialized = true;
