@@ -16,5 +16,7 @@ internal enum QueryOperationId : byte
     GetBlockGasPrice = 24,
     GetBlockBaseFee = 25,
 
-    GetBalance = 30
+    GetBalance = 30,
+
+    GetRemainingGas = 40
 }

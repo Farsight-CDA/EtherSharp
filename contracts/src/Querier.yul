@@ -159,6 +159,10 @@ object "Querier" {
                     mstore(outputOffset, balance(to))
                     outputOffset := add(outputOffset, 32)
                 }
+                case 40 {
+                    mstore(outputOffset, gas())
+                    outputOffset := add(outputOffset, 32)
+                }
                 default {
                     revert(0, 0)
                 }

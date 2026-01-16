@@ -79,6 +79,9 @@ public interface IQuery
     public static IQuery<CompatibilityReport> GetCompatibilityReport()
         => new GetCompatibilityQueryOperation();
 
+    public static IQuery<UInt256> GetRemainingGas()
+        => new RemainingGasOperation();
+
     public static IQuery<T> Noop<T>(T value)
         => new NoopQueryOperation<T>(value);
 
