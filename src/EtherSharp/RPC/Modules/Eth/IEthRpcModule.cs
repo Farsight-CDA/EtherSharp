@@ -6,6 +6,8 @@ namespace EtherSharp.RPC.Modules.Eth;
 
 public interface IEthRpcModule
 {
+    public ulong? DefaultCallGas { get; set; }
+
     public Task<ulong> ChainIdAsync(CancellationToken cancellationToken = default);
     public Task<ulong> BlockNumberAsync(CancellationToken cancellationToken = default);
     public Task<ulong> EstimateGasAsync(
@@ -29,7 +31,7 @@ public interface IEthRpcModule
         Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken = default
     );
     public Task<TxCallResult> CallAsync(
-        Address? from, Address? to, uint? gas, UInt256? gasPrice, UInt256 value, string? data,
+        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, string? data,
         TargetBlockNumber blockNumber, CancellationToken cancellationToken = default);
     public Task<uint> GetTransactionCountAsync(
         Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken = default

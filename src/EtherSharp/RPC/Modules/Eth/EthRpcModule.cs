@@ -10,6 +10,8 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
 {
     private readonly IRpcClient _rpcClient = rpcClient;
 
+    public ulong? DefaultCallGas { get; set; } = null;
+
     public async Task<ulong> ChainIdAsync(CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<ulong>("eth_chainId", TargetBlockNumber.Latest, cancellationToken) switch
         {
@@ -53,12 +55,12 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    private record TransactionCall(Address? From, Address? To, uint? Gas, UInt256? GasPrice, UInt256 Value, string? Data);
+    private record TransactionCall(Address? From, Address? To, ulong? Gas, UInt256? GasPrice, UInt256 Value, string? Data);
     public async Task<TxCallResult> CallAsync(
-        Address? from, Address? to, uint? gas, UInt256? gasPrice, UInt256 value, string? data,
+        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, string? data,
         TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
-        var transaction = new TransactionCall(from, to, gas, gasPrice, value, data);
+        var transaction = new TransactionCall(from, to, gas ?? DefaultCallGas, gasPrice, value, data);
 
         return TxCallResult.ParseFrom(
             await _rpcClient.SendRpcRequestAsync<TransactionCall, TargetBlockNumber, byte[]>(
