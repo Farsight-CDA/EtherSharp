@@ -30,21 +30,15 @@ public static partial class AbiTypes
 
         public static T[] Decode<T>(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IArrayAbiDecoder, T> decoder)
         {
-            uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[28..32].Span);
+            uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
 
-            if(payloadOffset < metaDataOffset)
-            {
-                throw new IndexOutOfRangeException("Index out of range");
-            }
+            var payload = bytes[((int) payloadOffset + 32)..];
 
-            long relativePayloadOffset = payloadOffset - metaDataOffset;
-            var payload = bytes[(int) relativePayloadOffset..];
-
-            uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32].Span);
+            uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) payloadOffset + 28)..((int) payloadOffset + 32)]);
 
             var output = new T[arrayLength];
 
-            var innerDecoder = new AbiDecoder(payload[32..]);
+            var innerDecoder = new AbiDecoder(payload);
 
             for(uint i = 0; i < arrayLength; i++)
             {

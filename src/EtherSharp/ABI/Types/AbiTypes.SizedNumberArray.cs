@@ -75,16 +75,11 @@ public static partial class AbiTypes
 
         public static TInner[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset)
         {
-            uint arrayOffest = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..].Span);
+            uint arrayOffest = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
 
-            long index = arrayOffest - metaDataOffset;
+            uint length = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) arrayOffest + 28)..((int) arrayOffest + 32)]);
 
-            ArgumentOutOfRangeException.ThrowIfLessThan(index, 0, nameof(metaDataOffset));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(index, Int32.MaxValue, nameof(metaDataOffset));
-
-            uint length = BinaryPrimitives.ReadUInt32BigEndian(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
-
-            var data = bytes[(int) (index + 32)..];
+            var data = bytes[((int) arrayOffest + 32)..];
 
             switch(typeof(TInner))
             {

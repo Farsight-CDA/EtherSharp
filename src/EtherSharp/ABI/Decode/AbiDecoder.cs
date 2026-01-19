@@ -13,17 +13,23 @@ namespace EtherSharp.ABI;
 public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder, IDynamicTupleDecoder, IArrayAbiDecoder
 {
     private ReadOnlyMemory<byte> _bytes = bytes;
+    private int _offset;
 
-    private ReadOnlySpan<byte> CurrentSlot => _bytes.Span[..32];
+    public AbiDecoder(ReadOnlyMemory<byte> bytes, int offset) : this(bytes)
+    {
+        _offset = offset;
+    }
+
+    private ReadOnlySpan<byte> CurrentSlot => _bytes.Span.Slice(_offset, 32);
+
     /// <summary>
     /// Number of bytes read from the head section of the input so far.
     /// </summary>
-    public uint BytesRead { get; private set; }
+    public uint BytesRead => (uint) _offset;
 
     private void ConsumeBytes()
     {
-        _bytes = _bytes[32..];
-        BytesRead += 32;
+        _offset += 32;
     }
 
     /// <summary>
@@ -150,15 +156,9 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// <exception cref="IndexOutOfRangeException"></exception>
     public bool[] BoolArray()
     {
-        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
+        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot);
 
-        if(payloadOffset < BytesRead)
-        {
-            throw new IndexOutOfRangeException("Index out of range");
-        }
-
-        long relativePayloadOffset = payloadOffset - BytesRead;
-        var payload = _bytes[(int) relativePayloadOffset..].Span;
+        var payload = _bytes.Span[(int) payloadOffset..];
 
         uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32]);
 
@@ -182,15 +182,9 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// <exception cref="IndexOutOfRangeException"></exception>
     public Address[] AddressArray()
     {
-        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
+        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot);
 
-        if(payloadOffset < BytesRead)
-        {
-            throw new IndexOutOfRangeException("Index out of range");
-        }
-
-        long relativePayloadOffset = payloadOffset - BytesRead;
-        var payload = _bytes[(int) relativePayloadOffset..].Span;
+        var payload = _bytes.Span[(int) payloadOffset..];
 
         uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32]);
 
@@ -269,21 +263,15 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// <exception cref="IndexOutOfRangeException"></exception>
     public string[] StringArray()
     {
-        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
+        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
 
-        if(payloadOffset < BytesRead)
-        {
-            throw new IndexOutOfRangeException("Index out of range");
-        }
+        var payload = _bytes[(int) payloadOffset..];
 
-        long relativePayloadOffset = payloadOffset - BytesRead;
-        var payload = _bytes[(int) relativePayloadOffset..];
-
-        uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32].Span);
+        uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload.Span[28..32]);
 
         string[] values = new string[arrayLength];
 
-        var decoder = new AbiDecoder(payload);
+        var decoder = new AbiDecoder(payload[32..]);
 
         for(int i = 0; i < arrayLength; i++)
         {
@@ -300,17 +288,11 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// <exception cref="IndexOutOfRangeException"></exception>
     public byte[][] BytesArray()
     {
-        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(_bytes[28..32].Span);
+        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
 
-        if(payloadOffset < BytesRead)
-        {
-            throw new IndexOutOfRangeException("Index out of range");
-        }
+        var payload = _bytes[(int) payloadOffset..];
 
-        long relativePayloadOffset = payloadOffset - BytesRead;
-        var payload = _bytes[(int) relativePayloadOffset..];
-
-        uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32].Span);
+        uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload.Span[28..32]);
 
         byte[][] values = new byte[arrayLength][];
 

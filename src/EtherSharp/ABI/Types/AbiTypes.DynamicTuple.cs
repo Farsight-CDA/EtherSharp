@@ -29,14 +29,9 @@ public static partial class AbiTypes
 
         public static T Decode<T>(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IDynamicTupleDecoder, T> decoder)
         {
-            uint structOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..].Span);
+            uint structOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
 
-            long index = structOffset - metaDataOffset;
-
-            ArgumentOutOfRangeException.ThrowIfLessThan(index, 0, nameof(metaDataOffset));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(index, Int32.MaxValue, nameof(metaDataOffset));
-
-            var structAbiDecoder = new AbiDecoder(bytes[(int) index..]);
+            var structAbiDecoder = new AbiDecoder(bytes[(int) structOffset..]);
 
             var innerValue = decoder.Invoke(structAbiDecoder);
 

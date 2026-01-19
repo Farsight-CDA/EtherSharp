@@ -24,15 +24,10 @@ public static partial class AbiTypes
 
         public static ReadOnlySpan<byte> Decode(ReadOnlySpan<byte> bytes, uint metaDataOffset)
         {
-            uint bytesOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..]);
+            uint bytesOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
 
-            long index = bytesOffset - metaDataOffset;
-
-            ArgumentOutOfRangeException.ThrowIfLessThan(index, 0, nameof(metaDataOffset));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(index, bytes.Length, nameof(metaDataOffset));
-
-            uint valueLength = BinaryPrimitives.ReadUInt32BigEndian(bytes[(int) (index + 32 - 4)..(int) (index + 32)]);
-            return bytes[((int) index + 32)..(int) ((int) index + 32 + valueLength)];
+            uint valueLength = BinaryPrimitives.ReadUInt32BigEndian(bytes[((int) bytesOffset + 28)..((int) bytesOffset + 32)]);
+            return bytes[((int) bytesOffset + 32)..((int) bytesOffset + 32 + (int) valueLength)];
         }
     }
 }
