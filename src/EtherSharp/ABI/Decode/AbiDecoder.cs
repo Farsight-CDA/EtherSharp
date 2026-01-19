@@ -156,7 +156,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// <exception cref="IndexOutOfRangeException"></exception>
     public bool[] BoolArray()
     {
-        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot);
+        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
 
         var payload = _bytes.Span[(int) payloadOffset..];
 
@@ -182,7 +182,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// <exception cref="IndexOutOfRangeException"></exception>
     public Address[] AddressArray()
     {
-        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot);
+        uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
 
         var payload = _bytes.Span[(int) payloadOffset..];
 
