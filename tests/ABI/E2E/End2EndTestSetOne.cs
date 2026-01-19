@@ -75,4 +75,79 @@ public class End2EndTests
 
         Assert.Equal(input, output);
     }
+
+    [Fact]
+    public void Should_Encode_And_Decode_Bytes32_Array()
+    {
+        // Arrange
+        byte[][] input = [
+            new byte[32] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f },
+            new byte[32] { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
+            new byte[32] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+        ];
+
+        // Act
+        var encoder = new AbiEncoder().Bytes32Array(input);
+        var decoder = new AbiDecoder(encoder.Build());
+        var output = decoder.Bytes32Array();
+
+        // Assert
+        Assert.Equal(input.Length, output.Length);
+        for (int i = 0; i < input.Length; i++)
+        {
+            Assert.Equal(input[i], output[i]);
+        }
+    }
+
+    [Fact]
+    public void Should_Encode_And_Decode_Empty_Bytes32_Array()
+    {
+        // Arrange
+        byte[][] input = [];
+
+        // Act
+        var encoder = new AbiEncoder().Bytes32Array(input);
+        var decoder = new AbiDecoder(encoder.Build());
+        var output = decoder.Bytes32Array();
+
+        // Assert
+        Assert.Empty(output);
+    }
+
+    [Fact]
+    public void Should_Encode_And_Decode_Bytes32_Array_With_Other_Types()
+    {
+        // Arrange
+        ushort number = 42;
+        byte[][] bytes32Input = [
+            new byte[32] { 0xde, 0xad, 0xbe, 0xef, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+            new byte[32] { 0xca, 0xfe, 0xba, 0xbe, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+        ];
+        string str = "Test String";
+        Address address = Address.Zero;
+
+        // Act
+        byte[] encoded = new AbiEncoder()
+            .Number(number, true, 16)
+            .Bytes32Array(bytes32Input)
+            .String(str)
+            .Address(address)
+            .Build();
+
+        var decoder = new AbiDecoder(encoded);
+        ushort outputNumber = decoder.Number<ushort>(true, 16);
+        byte[][] outputBytes32 = decoder.Bytes32Array();
+        string outputStr = decoder.String();
+        Address outputAddress = decoder.Address();
+
+        // Assert
+        Assert.Equal(number, outputNumber);
+        Assert.Equal(bytes32Input.Length, outputBytes32.Length);
+        for (int i = 0; i < bytes32Input.Length; i++)
+        {
+            Assert.Equal(bytes32Input[i], outputBytes32[i]);
+        }
+        Assert.Equal(str, outputStr);
+        Assert.Equal(address, outputAddress);
+    }
 }
