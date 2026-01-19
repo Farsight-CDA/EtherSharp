@@ -3,11 +3,12 @@ using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Types.Base;
 
 namespace EtherSharp.ABI.Types;
+
 public static partial class AbiTypes
 {
     public class FixedTuple : FixedType<IFixedTupleEncoder>
     {
-        public override uint Size => Value.MetadataSize;
+        public override int Size => Value.MetadataSize;
 
         internal FixedTuple(IFixedTupleEncoder value) : base(value) { }
 

@@ -1,10 +1,11 @@
 ﻿using EtherSharp.Types;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
+
 public partial interface IFixedTupleEncoder
 {
-    public uint MetadataSize { get; }
-    public uint PayloadSize { get; }
+    public int MetadataSize { get; }
+    public int PayloadSize { get; }
 
     public IFixedTupleEncoder Bool(bool value);
     public IFixedTupleEncoder Address(Address value);

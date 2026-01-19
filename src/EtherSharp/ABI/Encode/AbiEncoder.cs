@@ -10,16 +10,16 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
 {
     private readonly List<IEncodeType> _entries = [];
 
-    private uint _payloadSize;
-    private uint _metadataSize;
+    private int _payloadSize;
+    private int _metadataSize;
 
-    public int Size => (int) (_payloadSize + _metadataSize);
-    uint IArrayAbiEncoder.MetadataSize => _metadataSize;
-    uint IArrayAbiEncoder.PayloadSize => _payloadSize;
-    uint IFixedTupleEncoder.MetadataSize => _metadataSize;
-    uint IFixedTupleEncoder.PayloadSize => _payloadSize;
-    uint IDynamicTupleEncoder.MetadataSize => _metadataSize;
-    uint IDynamicTupleEncoder.PayloadSize => _payloadSize;
+    public int Size => _payloadSize + _metadataSize;
+    int IArrayAbiEncoder.MetadataSize => _metadataSize;
+    int IArrayAbiEncoder.PayloadSize => _payloadSize;
+    int IFixedTupleEncoder.MetadataSize => _metadataSize;
+    int IFixedTupleEncoder.PayloadSize => _payloadSize;
+    int IDynamicTupleEncoder.MetadataSize => _metadataSize;
+    int IDynamicTupleEncoder.PayloadSize => _payloadSize;
 
     private AbiEncoder AddElement(IEncodeType item)
     {
@@ -222,8 +222,8 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
             throw new ArgumentException("Output buffer too small", nameof(outputBuffer));
         }
 
-        uint metadataOffset = 0;
-        uint payloadOffset = _metadataSize;
+        int metaDataOffset = 0;
+        int payloadOffset = _metadataSize;
 
         foreach(var entry in _entries)
         {
@@ -232,23 +232,23 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
                 case IDynamicType dynEncType:
                     dynEncType.Encode(
                         outputBuffer.Slice(
-                            (int) metadataOffset,
+                            metaDataOffset,
                             32),
                         outputBuffer.Slice(
-                            (int) payloadOffset,
-                            (int) dynEncType.PayloadSize),
+                            payloadOffset,
+                            dynEncType.PayloadSize),
                         payloadOffset
                     );
-                    metadataOffset += 32;
+                    metaDataOffset += 32;
                     payloadOffset += dynEncType.PayloadSize;
                     break;
                 case IFixedType fixEncType:
                     fixEncType.Encode(
                         outputBuffer.Slice(
-                            (int) metadataOffset,
-                            (int) fixEncType.Size
+                            metaDataOffset,
+                            fixEncType.Size
                     ));
-                    metadataOffset += fixEncType.Size;
+                    metaDataOffset += fixEncType.Size;
                     break;
                 default:
                     throw new NotImplementedException(entry.GetType().FullName);

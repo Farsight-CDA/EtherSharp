@@ -7,7 +7,7 @@ public static partial class AbiTypes
 {
     public class SizedBytesArray : DynamicType<byte[][]>
     {
-        public override uint PayloadSize => (32 * (uint) Value.Length) + 32;
+        public override int PayloadSize => (32 * Value.Length) + 32;
 
         internal SizedBytesArray(byte[][] values, int length)
             : base(values)
@@ -21,9 +21,9 @@ public static partial class AbiTypes
             }
         }
 
-        public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
+        public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
-            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
             BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
 
             for(int i = 0; i < Value.Length; i++)
@@ -34,18 +34,11 @@ public static partial class AbiTypes
             }
         }
 
-        public static byte[][] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, int byteSize)
+        public static byte[][] Decode(ReadOnlyMemory<byte> bytes, int metaDataOffset, int byteSize)
         {
-            uint arrayOffest = BinaryPrimitives.ReadUInt32BigEndian(bytes[(32 - 4)..].Span);
-
-            long index = arrayOffest - metaDataOffset;
-
-            ArgumentOutOfRangeException.ThrowIfLessThan(index, 0, nameof(metaDataOffset));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(index, Int32.MaxValue, nameof(metaDataOffset));
-
-            uint length = BinaryPrimitives.ReadUInt32BigEndian(bytes[(int) (index + 32 - 4)..(int) (index + 32)].Span);
-
-            var data = bytes[(int) (index + 32)..];
+            int arrayOffest = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(metaDataOffset + 28)..(metaDataOffset + 32)]);
+            int length = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(arrayOffest + 28)..(arrayOffest + 32)]);
+            var data = bytes[(arrayOffest + 32)..];
 
             byte[][] results = new byte[length][];
 

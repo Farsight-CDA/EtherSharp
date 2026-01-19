@@ -8,7 +8,7 @@ public static partial class AbiTypes
 {
     public class String : DynamicType<string>, IPackedEncodeType
     {
-        public override uint PayloadSize => (((uint) PackedSize + 31) / 32 * 32) + 32;
+        public override int PayloadSize => ((PackedSize + 31) / 32 * 32) + 32;
         /// <inheritdoc/>
         public int PackedSize { get; }
 
@@ -19,9 +19,9 @@ public static partial class AbiTypes
             PackedSize = Encoding.UTF8.GetByteCount(value);
         }
 
-        public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
+        public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
-            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
             BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
 
             if(!Encoding.UTF8.TryGetBytes(Value, payload[32..], out _))
@@ -37,12 +37,11 @@ public static partial class AbiTypes
             }
         }
 
-        public static string Decode(ReadOnlySpan<byte> bytes, uint metaDataOffset)
+        public static string Decode(ReadOnlySpan<byte> bytes, int metaDataOffset)
         {
-            uint bytesOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
-            
-            uint stringLength = BinaryPrimitives.ReadUInt32BigEndian(bytes[((int) bytesOffset + 28)..((int) bytesOffset + 32)]);
-            var stringBytes = bytes[((int) bytesOffset + 32)..((int) bytesOffset + 32 + (int) stringLength)];
+            int stringOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
+            int stringLength = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes[(stringOffset + 28)..(stringOffset + 32)]);
+            var stringBytes = bytes[(stringOffset + 32)..(stringOffset + 32 + stringLength)];
 
             return Encoding.UTF8.GetString(stringBytes);
         }

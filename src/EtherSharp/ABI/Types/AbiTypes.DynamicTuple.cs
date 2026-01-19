@@ -4,22 +4,23 @@ using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
+
 public static partial class AbiTypes
 {
     public class DynamicTuple : DynamicType<IDynamicTupleEncoder>
     {
-        public override uint PayloadSize => Value.MetadataSize + Value.PayloadSize;
+        public override int PayloadSize => Value.MetadataSize + Value.PayloadSize;
 
         internal DynamicTuple(IDynamicTupleEncoder value) : base(value) { }
 
-        public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
+        public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
             if(Value.PayloadSize == 0)
             {
                 throw new InvalidOperationException("Tried to encode a fixed value as a dynamic tuple");
             }
 
-            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
 
             if(!Value.TryWritoTo(payload))
             {
@@ -27,9 +28,9 @@ public static partial class AbiTypes
             }
         }
 
-        public static T Decode<T>(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IDynamicTupleDecoder, T> decoder)
+        public static T Decode<T>(ReadOnlyMemory<byte> bytes, int metaDataOffset, Func<IDynamicTupleDecoder, T> decoder)
         {
-            uint structOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
+            uint structOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(metaDataOffset + 28)..(metaDataOffset + 32)]);
 
             var structAbiDecoder = new AbiDecoder(bytes[(int) structOffset..]);
 

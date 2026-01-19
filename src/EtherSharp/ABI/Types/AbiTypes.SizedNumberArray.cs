@@ -3,12 +3,13 @@ using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.ABI.Types;
+
 public static partial class AbiTypes
 {
     public class SizedNumberArray<TInner> : DynamicType<TInner[]>
         where TInner : INumber<TInner>
     {
-        public override uint PayloadSize => (32 * (uint) Value.Length) + 32;
+        public override int PayloadSize => (32 * Value.Length) + 32;
 
         internal SizedNumberArray(TInner[] value, int length)
             : base(value)
@@ -33,9 +34,9 @@ public static partial class AbiTypes
             }
         }
 
-        public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
+        public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
-            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
             BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
 
             for(int i = 0; i < Value.Length; i++)
@@ -73,13 +74,11 @@ public static partial class AbiTypes
             }
         }
 
-        public static TInner[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset)
+        public static TInner[] Decode(ReadOnlyMemory<byte> bytes, int metaDataOffset)
         {
-            uint arrayOffest = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
-
-            uint length = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) arrayOffest + 28)..((int) arrayOffest + 32)]);
-
-            var data = bytes[((int) arrayOffest + 32)..];
+            int arrayOffest = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(metaDataOffset + 28)..(metaDataOffset + 32)]);
+            int length = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(arrayOffest + 28)..(arrayOffest + 32)]);
+            var data = bytes[(arrayOffest + 32)..];
 
             switch(typeof(TInner))
             {

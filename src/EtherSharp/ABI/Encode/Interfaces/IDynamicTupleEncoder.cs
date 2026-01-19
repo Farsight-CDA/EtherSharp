@@ -1,10 +1,11 @@
 ﻿using EtherSharp.Types;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
+
 public partial interface IDynamicTupleEncoder
 {
-    public uint MetadataSize { get; }
-    public uint PayloadSize { get; }
+    public int MetadataSize { get; }
+    public int PayloadSize { get; }
 
     internal bool TryWritoTo(Span<byte> outputBuffer);
 

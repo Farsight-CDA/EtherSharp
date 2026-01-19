@@ -4,11 +4,12 @@ using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
+
 public static partial class AbiTypes
 {
     public class Array : DynamicType<IArrayAbiEncoder>
     {
-        public override uint PayloadSize => Value.MetadataSize + Value.PayloadSize + 32;
+        public override int PayloadSize => Value.MetadataSize + Value.PayloadSize + 32;
 
         private readonly uint _length;
 
@@ -17,9 +18,9 @@ public static partial class AbiTypes
             _length = length;
         }
 
-        public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
+        public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
-            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
             BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], _length);
 
             if(!Value.TryWritoTo(payload[32..]))
@@ -28,13 +29,13 @@ public static partial class AbiTypes
             }
         }
 
-        public static T[] Decode<T>(ReadOnlyMemory<byte> bytes, uint metaDataOffset, Func<IArrayAbiDecoder, T> decoder)
+        public static T[] Decode<T>(ReadOnlyMemory<byte> bytes, int metaDataOffset, Func<IArrayAbiDecoder, T> decoder)
         {
-            uint payloadOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
+            int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(metaDataOffset + 28)..(metaDataOffset + 32)]);
 
-            var payload = bytes[((int) payloadOffset + 32)..];
+            var payload = bytes[(payloadOffset + 32)..];
 
-            uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) payloadOffset + 28)..((int) payloadOffset + 32)]);
+            uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(payloadOffset + 28)..(payloadOffset + 32)]);
 
             var output = new T[arrayLength];
 

@@ -7,7 +7,7 @@ public static partial class AbiTypes
 {
     public class Int256Array : DynamicType<Numerics.Int256[]>
     {
-        public override uint PayloadSize => (32 * (uint) Value.Length) + 32;
+        public override int PayloadSize => (32 * Value.Length) + 32;
 
         internal Int256Array(Numerics.Int256[] value, int bitSize)
             : base(value)
@@ -29,9 +29,9 @@ public static partial class AbiTypes
             }
         }
 
-        public override void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset)
+        public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
-            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], payloadOffset);
+            BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
             BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
 
             for(int i = 0; i < Value.Length; i++)
@@ -41,16 +41,15 @@ public static partial class AbiTypes
             }
         }
 
-        public static Numerics.Int256[] Decode(ReadOnlyMemory<byte> bytes, uint metaDataOffset, uint bitSize)
+        public static Numerics.Int256[] Decode(ReadOnlyMemory<byte> bytes, int metaDataOffset, uint bitSize)
         {
-            uint arrayOffest = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
+            int arrayOffest = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(metaDataOffset + 28)..(metaDataOffset + 32)]);
+            int length = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(arrayOffest + 28)..(arrayOffest + 32)]);
+            var data = bytes[(arrayOffest + 32)..];
 
-            uint arrLength = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) arrayOffest + 28)..((int) arrayOffest + 32)]);
+            var arr = new Numerics.Int256[length];
 
-            var data = bytes[((int) arrayOffest + 32)..];
-            var arr = new Numerics.Int256[arrLength];
-
-            for(int i = 0; i < arrLength; i++)
+            for(int i = 0; i < length; i++)
             {
                 var slot = data[(i * 32)..((i * 32) + 32)];
                 arr[i] = AbiTypes.Int256.Decode(slot.Span);

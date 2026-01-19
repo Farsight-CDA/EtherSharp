@@ -7,9 +7,9 @@
 /// <param name="value"></param>
 public abstract class DynamicType<T>(T value) : IDynamicType
 {
-    public abstract uint PayloadSize { get; }
+    public abstract int PayloadSize { get; }
 
     public readonly T Value = value;
 
-    public abstract void Encode(Span<byte> metadata, Span<byte> payload, uint payloadOffset);
+    public abstract void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset);
 }
