@@ -29,7 +29,6 @@ internal class SubscriptionsManager : ISubscriptionsManager
         _ethRpcModule = ethRpcModule;
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger<SubscriptionsManager>();
 
-        _subscriptionMessageCounter = serviceProvider.CreateOTELCounter<long>("subscription_messages_received");
         _subscriptionsCounter = serviceProvider.CreateOTELObservableUpDownCounter("active_wss_subscriptions", () => _subscriptions.Count);
 
         _rpcClient.OnConnectionEstablished += HandleConnectionEstablished;
@@ -80,8 +79,6 @@ internal class SubscriptionsManager : ISubscriptionsManager
 
     private void HandleSubscriptionMessage(string subscriptionId, ReadOnlySpan<byte> payload)
     {
-        _subscriptionMessageCounter?.Add(1);
-
         ISubscription? subscription = null;
 
         lock(_subscriptionsLock)

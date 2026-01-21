@@ -1,6 +1,9 @@
 ﻿using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Extensions;
+using EtherSharp.Common.Instrumentation;
 using EtherSharp.Types;
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -11,13 +14,15 @@ namespace EtherSharp.RPC.Transport;
 /// </summary>
 public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 {
+    /// <inheritdoc />
+    public bool SupportsFilters => true;
+    /// <inheritdoc />
+    public bool SupportsSubscriptions => false;
+
     private readonly HttpClient _client;
     private int _id;
 
-    /// <inheritdoc />
-    public bool SupportsFilters { get; set; }
-    /// <inheritdoc />
-    public bool SupportsSubscriptions => false;
+    private readonly OTELCounter<long>? _rpcRequestsCounter;
 
     /// <inheritdoc />
     public event Action? OnConnectionEstablished
@@ -32,17 +37,20 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         remove => throw new NotSupportedException();
     }
 
-    public HttpJsonRpcTransport(Uri rpcUri, bool allowFilters = true)
+    public HttpJsonRpcTransport(Uri rpcUri, IServiceProvider provider, TagList additionalTags = default)
     {
         _client = new HttpClient()
         {
             BaseAddress = rpcUri
         };
-        SupportsFilters = allowFilters;
+
+        _rpcRequestsCounter = provider.CreateOTELCounter<long>("evm_rpc_requests", tags: additionalTags);
+        _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "success"));
+        _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "failure"));
     }
 
-    public HttpJsonRpcTransport(string rpcUrl, bool allowFilters = true)
-        : this(new Uri(rpcUrl, UriKind.Absolute), allowFilters)
+    public HttpJsonRpcTransport(string rpcUrl, IServiceProvider provider, TagList additionalTags = default)
+        : this(new Uri(rpcUrl, UriKind.Absolute), provider, additionalTags)
     {
     }
 
@@ -67,7 +75,16 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             )
         };
 
-        var response = await _client.SendAsync(httpRequestMessage, cancellationToken);
+        HttpResponseMessage response;
+
+        try
+        {
+            response = await _client.SendAsync(httpRequestMessage, cancellationToken);
+        }
+        catch(Exception ex)
+        {
+            throw new RPCTransportException($"Exception while sending HTTP request", ex);
+        }
 
         try
         {
@@ -77,30 +94,37 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 
             if(jsonRpcResponse is null)
             {
+                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
                 throw new RPCTransportException("RPC Error: Empty response");
             }
             else if(jsonRpcResponse.Id != id)
             {
+                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
                 throw new RPCTransportException("RPC Error: Response id mismatch");
             }
             else if(jsonRpcResponse.Error != null)
             {
+                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
                 return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message, jsonRpcResponse.Error.Data);
             }
             else if(jsonRpcResponse.Result is null)
             {
+                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
                 return new RpcResult<TResult>.Null();
             }
-            //
+
+            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
             return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
         }
         catch(JsonException ex)
         {
+            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
             string s = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new RPCTransportException($"Error: {s}", ex);
         }
         catch(Exception ex)
         {
+            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
             string s = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new RPCTransportException($"Error: {s}", ex);
         }

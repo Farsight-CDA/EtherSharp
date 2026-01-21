@@ -1,10 +1,12 @@
 ﻿using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
+using EtherSharp.Common.Instrumentation;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
 using System.Text.Json;
@@ -42,16 +44,26 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
     private readonly ConcurrentDictionary<int, (Type RpcResponseType, TaskCompletionSource<object> Tcs)> _pendingRequests = [];
 
     private readonly ObservableGauge<int>? _websocketConnectedGauge;
+    private readonly OTELCounter<long>? _rpcRequestsCounter;
+    private readonly OTELCounter<long>? _subscriptionMessageCounter;
 
-    public WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, IServiceProvider provider)
+    public WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, IServiceProvider provider, TagList additionalTags = default)
     {
         _uri = uri;
         _requestTimeout = requestTimeout;
         _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<WssJsonRpcTransport>();
 
         _websocketConnectedGauge = provider.CreateOTELObservableGauge("wss_connection_up",
-            () => (_socket is not null && _socket.State == WebSocketState.Open) ? 1 : 0
+            () => (_socket is not null && _socket.State == WebSocketState.Open) ? 1 : 0,
+            tags: additionalTags
         );
+
+        _rpcRequestsCounter = provider.CreateOTELCounter<long>("evm_rpc_requests", tags: additionalTags);
+        _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "success"));
+        _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "failure"));
+
+        _subscriptionMessageCounter = provider.CreateOTELCounter<long>("subscription_messages_received", tags: additionalTags);
+        _subscriptionMessageCounter?.Add(0);
     }
 
     /// <inheritdoc />
@@ -202,6 +214,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                     }
                     break;
                 case PayloadType.Subscription:
+                    _subscriptionMessageCounter?.Add(1);
                     OnSubscriptionMessage?.Invoke(subscriptionId, msBuffer);
                     break;
                 default:
@@ -336,8 +349,6 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
         var tcs = new TaskCompletionSource<object>();
         var timeoutTask = Task.Delay(_requestTimeout, cancellationToken);
 
-        _pendingRequests.TryAdd(requestId, (typeof(JsonRpcResponse<TResult>), tcs));
-
         try
         {
             if(_socket is null || _socket.State != WebSocketState.Open)
@@ -350,7 +361,16 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
             throw new RPCTransportException("The WebSocket is not connected.");
         }
 
-        await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
+        _pendingRequests.TryAdd(requestId, (typeof(JsonRpcResponse<TResult>), tcs));
+
+        try
+        {
+            await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
+        }
+        catch
+        {
+            _pendingRequests.TryRemove(requestId, out _);
+        }
 
         var resultTask = await Task.WhenAny(tcs.Task, timeoutTask);
 
@@ -360,12 +380,14 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
 
             if(resultTask.IsCompletedSuccessfully)
             {
+                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
                 throw new TimeoutException($"No response received from server within {_requestTimeout} timeout");
             }
         }
 
         if(resultTask.IsCanceled)
         {
+            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
             await resultTask;
         }
 
@@ -373,21 +395,26 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
 
         if(jsonRpcResponse is null)
         {
+            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
             throw new RPCTransportException("RPC Error: Invalid response");
         }
         else if(jsonRpcResponse.Id != requestId)
         {
+            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
             throw new RPCTransportException("RPC Error: Invalid response Id");
         }
         else if(jsonRpcResponse.Error != null)
         {
+            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
             return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message, jsonRpcResponse.Error.Data);
         }
         else if(jsonRpcResponse.Result is null)
         {
+            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
             return new RpcResult<TResult>.Null();
         }
         //
+        _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
         return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
     }
 

@@ -1,6 +1,4 @@
 ﻿using EtherSharp.Common.Exceptions;
-using EtherSharp.Common.Extensions;
-using EtherSharp.Common.Instrumentation;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,8 +9,6 @@ internal class RpcClient : IRpcClient
 {
     private readonly IRPCTransport _transport;
     private readonly IRpcMiddleware[] _middlewares;
-
-    private readonly OTELCounter<long>? _rpcRequestsCounter;
 
     public event Action? OnConnectionEstablished;
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
@@ -28,11 +24,6 @@ internal class RpcClient : IRpcClient
         _transport = transport;
         _middlewares = [.. serviceProvider.GetServices<IRpcMiddleware>().Reverse()];
 
-        _rpcRequestsCounter = serviceProvider.CreateOTELCounter<long>("evm_rpc_requests");
-
-        _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "success"));
-        _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "failure"));
-
         if(_transport.SupportsSubscriptions)
         {
             _transport.OnConnectionEstablished += () => OnConnectionEstablished?.Invoke();
@@ -40,21 +31,17 @@ internal class RpcClient : IRpcClient
         }
     }
 
-    public async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
         string method, object?[] parameters, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
     {
-        Func<CancellationToken, Task<RpcResult<TResult>>> onNext = async (ct) =>
+        Func<CancellationToken, Task<RpcResult<TResult>>> onNext = (ct) =>
         {
             try
             {
-                var result = await _transport.SendRpcRequestAsync<TResult>(method, parameters, requiredBlockNumber, ct);
-                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
-                return result;
+                return _transport.SendRpcRequestAsync<TResult>(method, parameters, requiredBlockNumber, ct);
             }
             catch(Exception ex)
             {
-                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
-
                 if(ex is RPCTransportException || (ex is OperationCanceledException && cancellationToken.IsCancellationRequested))
                 {
                     throw;
@@ -70,6 +57,6 @@ internal class RpcClient : IRpcClient
             onNext = (ct) => middleware.HandleAsync(next, ct);
         }
 
-        return await onNext(cancellationToken);
+        return onNext(cancellationToken);
     }
 }

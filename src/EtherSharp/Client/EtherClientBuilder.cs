@@ -132,7 +132,7 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         var builder = new EtherClientBuilder()
         {
             _transportRegistration = provider =>
-                new HttpJsonRpcTransport(new Uri(websocketUrl, UriKind.Absolute))
+                new HttpJsonRpcTransport(new Uri(websocketUrl, UriKind.Absolute), provider)
         };
 
         if(loggerFactory is not null)
