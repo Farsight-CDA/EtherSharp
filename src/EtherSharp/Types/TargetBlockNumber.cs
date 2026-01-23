@@ -49,23 +49,24 @@ public readonly struct TargetBlockNumber
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(value, (ulong) 1);
 
-        Span<byte> bytesBuffer = stackalloc byte[8];
-        BinaryPrimitives.WriteUInt64BigEndian(bytesBuffer, value);
+        Span<byte> byteBuffer = stackalloc byte[sizeof(ulong)];
 
-        Span<char> charBuffer = stackalloc char[16];
+        BinaryPrimitives.WriteUInt64BigEndian(byteBuffer, value);
 
-        Convert.TryToHexString(bytesBuffer, charBuffer, out _);
-        int nonZeroIndex = charBuffer.IndexOfAnyExcept('0');
+        byteBuffer = byteBuffer.TrimStart((byte) 0);
 
-        if(nonZeroIndex < 2)
+        int dataIndex = byteBuffer[0] < 16 ? 1 : 2;
+        Span<char> hexBuffer = stackalloc char[(byteBuffer.Length * 2) + dataIndex];
+
+        if(!Convert.TryToHexString(byteBuffer, hexBuffer[dataIndex..], out _))
         {
-            throw new ArgumentOutOfRangeException(nameof(value), "Exceeds max block size");
+            throw new InvalidOperationException("Failed to convert to hex");
         }
 
-        charBuffer[nonZeroIndex - 1] = 'x';
-        charBuffer[nonZeroIndex - 2] = '0';
+        hexBuffer[0] = '0';
+        hexBuffer[1] = 'x';
 
-        return new TargetBlockNumber(value, charBuffer[(nonZeroIndex - 2)..].ToString());
+        return new TargetBlockNumber(value, hexBuffer.ToString());
     }
 
     /// <inheritdoc/>

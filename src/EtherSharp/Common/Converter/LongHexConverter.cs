@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Buffers.Binary;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -35,17 +36,29 @@ internal class LongHexConverter : JsonConverter<long>
 
     public override void Write(Utf8JsonWriter writer, long value, JsonSerializerOptions options)
     {
-        Span<char> buffer = stackalloc char[18];
-        buffer[0] = '0';
-        buffer[1] = 'x';
+        if(value == 0)
+        {
+            writer.WriteStringValue("0x0");
+            return;
+        }
 
-        if(value.TryFormat(buffer[2..], out int charsWritten, "X"))
+        Span<byte> byteBuffer = stackalloc byte[sizeof(long)];
+
+        BinaryPrimitives.WriteInt64BigEndian(byteBuffer, value);
+
+        byteBuffer = byteBuffer.TrimStart((byte) 0);
+
+        int dataIndex = byteBuffer[0] < 16 ? 1 : 2;
+        Span<char> hexBuffer = stackalloc char[(byteBuffer.Length * 2) + dataIndex];
+
+        if(!Convert.TryToHexString(byteBuffer, hexBuffer[dataIndex..], out _))
         {
-            writer.WriteStringValue(buffer[..(2 + charsWritten)]);
+            throw new InvalidOperationException("Failed to convert to hex");
         }
-        else
-        {
-            throw new FormatException("The value could not be formatted as hex.");
-        }
+
+        hexBuffer[0] = '0';
+        hexBuffer[1] = 'x';
+
+        writer.WriteStringValue(hexBuffer);
     }
 }

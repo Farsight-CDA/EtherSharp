@@ -58,21 +58,23 @@ public class Int256HexConverter : JsonConverter<Int256>
             return;
         }
 
-        Span<char> hexBuffer = stackalloc char[66];
-        hexBuffer[0] = '0';
-        hexBuffer[1] = 'x';
-
         Span<byte> byteBuffer = stackalloc byte[32];
 
         BinaryPrimitives.WriteInt256BigEndian(byteBuffer, value);
 
-        byteBuffer = byteBuffer.Trim((byte) 0);
+        byteBuffer = byteBuffer.TrimStart((byte) 0);
 
-        if(!Convert.TryToHexString(byteBuffer, hexBuffer[2..], out int charsWritten))
+        int dataIndex = byteBuffer[0] < 16 ? 1 : 2;
+        Span<char> hexBuffer = stackalloc char[(byteBuffer.Length * 2) + dataIndex];
+
+        if(!Convert.TryToHexString(byteBuffer, hexBuffer[dataIndex..], out _))
         {
             throw new InvalidOperationException("Failed to convert to hex");
         }
 
-        writer.WriteStringValue(hexBuffer[0..(2 + charsWritten)]);
+        hexBuffer[0] = '0';
+        hexBuffer[1] = 'x';
+
+        writer.WriteStringValue(hexBuffer);
     }
 }
