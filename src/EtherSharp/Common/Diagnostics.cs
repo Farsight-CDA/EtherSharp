@@ -1,5 +1,9 @@
 ﻿namespace EtherSharp.Common;
-internal static class Diagnostics
+
+public static class Diagnostics
 {
-    public const string MeterName = "Ethersharp";
+    /// <summary>
+    /// Ethersharp Instrumentation meter name.
+    /// </summary>
+    public const string METER_NAME = "Ethersharp";
 }
