@@ -40,7 +40,7 @@ internal static class IServiceProviderExtensions
         }
         //
         var mergedTags = MergeTags(options.Tags, tags);
-        var counter = meterFactory.Create(Diagnostics.METERNAME)
+        var counter = meterFactory.Create(Diagnostics.METER_NAME)
             .CreateCounter<T>($"{options.InstrumentNamePrefix}{name}", unit, description);
         return new OTELCounter<T>(counter, mergedTags);
     }
@@ -58,7 +58,7 @@ internal static class IServiceProviderExtensions
         }
         //
         var mergedTags = MergeTags(options.Tags, tags);
-        var counter = meterFactory.Create(Diagnostics.METERNAME)
+        var counter = meterFactory.Create(Diagnostics.METER_NAME)
             .CreateUpDownCounter<T>($"{options.InstrumentNamePrefix}{name}", unit, description);
         return new OTELUpDownCounter<T>(counter, mergedTags);
     }
@@ -76,7 +76,7 @@ internal static class IServiceProviderExtensions
         }
         //
         var mergedTags = MergeTags(options.Tags, tags);
-        return meterFactory.Create(Diagnostics.METERNAME)
+        return meterFactory.Create(Diagnostics.METER_NAME)
             .CreateObservableUpDownCounter(
                 $"{options.InstrumentNamePrefix}{name}",
                 () => new Measurement<T>(observeValue(), mergedTags),
@@ -98,7 +98,7 @@ internal static class IServiceProviderExtensions
         }
         //
         var mergedTags = MergeTags(options.Tags, tags);
-        return meterFactory.Create(Diagnostics.METERNAME)
+        return meterFactory.Create(Diagnostics.METER_NAME)
             .CreateObservableGauge(
                 $"{options.InstrumentNamePrefix}{name}",
                 () => new Measurement<T>(observeValue(), mergedTags),
