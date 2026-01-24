@@ -1276,10 +1276,8 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         return t2;
     }
 
-    public override string ToString() => ((BigInteger) this).ToString();
-    public string ToString(string format) => ((BigInteger) this).ToString(format);
-
-    public bool Equals(int other) => other >= 0 && Equals((uint) other);
+    public bool Equals(int other)
+        => other >= 0 && Equals((uint) other);
 
     public bool Equals(uint other)
     {

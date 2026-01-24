@@ -401,14 +401,14 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         res = new Int256(new UInt256(z0, z1, z2, z3));
     }
 
-    public override string ToString() => ToString(null);
 
     [OverloadResolutionPriority(1)]
-    private bool Equals(in Int256 other) => _value.Equals(other._value);
-
-    public bool Equals(Int256 other) => _value.Equals(other._value);
-
-    public override bool Equals(object? obj) => obj is Int256 other && Equals(other);
+    private bool Equals(in Int256 other)
+        => _value.Equals(other._value);
+    public bool Equals(Int256 other)
+        => _value.Equals(other._value);
+    public override bool Equals(object? obj)
+        => obj is Int256 other && Equals(other);
 
     public override int GetHashCode()
         => _value.GetHashCode();
@@ -418,10 +418,11 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
             ? throw new InvalidOperationException()
             : CompareTo(int256);
 
-    public int CompareTo(Int256 b) => CompareTo(in b);
-
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Int256 b) => this < b ? -1 : Equals(b) ? 0 : 1;
+    public int CompareTo(in Int256 b)
+        => this < b ? -1 : Equals(b) ? 0 : 1;
+    public int CompareTo(Int256 b)
+        => CompareTo(in b);
 
     public static Int256 And(in Int256 a, in Int256 b)
     {

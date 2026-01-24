@@ -2,20 +2,18 @@
 // SPDX-License-Identifier: MIT
 
 using System.Buffers.Binary;
+using System.Numerics;
 
 namespace EtherSharp.Numerics;
 
 public readonly partial struct Int256
 {
+    public string ToString()
+        => ((BigInteger) this).ToString();
+    public string ToString(string? format)
+        => ((BigInteger) this).ToString(format);
     public string ToString(IFormatProvider? provider)
-    {
-        if(IsNegative)
-        {
-            var res = Negate(this);
-            return "-" + res._value.ToString(provider);
-        }
-        return _value.ToString(provider);
-    }
+        => ((BigInteger) this).ToString(provider);
 
     public static bool TryParseFromHex(ReadOnlySpan<char> value, out Int256 result)
     {
