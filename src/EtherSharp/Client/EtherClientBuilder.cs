@@ -200,6 +200,19 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
+    /// Registers the RPC middleware.
+    /// </summary>
+    /// <typeparam name="TRpcMiddleware"></typeparam>
+    /// <param name="middlewareFactory"></param>
+    /// <returns></returns>
+    public EtherClientBuilder AddRPCMiddleware<TRpcMiddleware>(Func<IServiceProvider, TRpcMiddleware> middlewareFactory)
+        where TRpcMiddleware : class, IRpcMiddleware
+    {
+        _services.AddSingleton<IRpcMiddleware>(middlewareFactory);
+        return this;
+    }
+
+    /// <summary>
     /// Configures the signer.
     /// </summary>
     /// <param name="signer"></param>
