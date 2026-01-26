@@ -8,7 +8,7 @@ namespace EtherSharp.Numerics;
 
 public readonly partial struct UInt256
 {
-    public string ToString()
+    public override string ToString()
         => ((BigInteger) this).ToString();
     public string ToString(string? format)
         => ((BigInteger) this).ToString(format);
