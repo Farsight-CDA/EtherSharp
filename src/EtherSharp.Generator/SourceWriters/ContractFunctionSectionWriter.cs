@@ -236,7 +236,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
 
                 if(functionMember.Outputs.Length > 0)
                 {
-                    (outputTypeName, string decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
+                    (outputTypeName, _, string decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
                         $"{functionTypeName}Result",
                         functionMember.Outputs
                     );

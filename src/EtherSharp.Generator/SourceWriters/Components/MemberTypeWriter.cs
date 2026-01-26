@@ -13,7 +13,7 @@ internal class MemberTypeWriter(ParamEncodingWriter paramEncodingWriter)
     {
         for(int i = 0; i < inputs.Length; i++)
         {
-            var (outputTypeName, _) = _paramEncodingWriter.GetOutputDecoding(
+            var (outputTypeName, _, _) = _paramEncodingWriter.GetOutputDecoding(
                 $"Param{i + 1}",
                 [inputs[i]]
             );
@@ -52,7 +52,7 @@ internal class MemberTypeWriter(ParamEncodingWriter paramEncodingWriter)
         for(int i = 0; i < inputs.Length; i++)
         {
             var parameter = inputs[i];
-            var (outputTypeName, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
+            var (outputTypeName, _, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
                 $"Param{i + 1}",
                 [parameter]
             );

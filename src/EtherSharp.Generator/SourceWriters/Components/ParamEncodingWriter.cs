@@ -18,14 +18,14 @@ internal class ParamEncodingWriter(AbiParameterTypeWriter parameterTypeWriter)
 
     }
 
-    public (string TypeName, string DecodeFunc) GetOutputDecoding(string fallbackName, AbiParameter[] outputParameters)
+    public (string TypeName, bool IsDynamic, string DecodeFunc) GetOutputDecoding(string fallbackName, AbiParameter[] outputParameters)
     {
         var outputParameter = outputParameters.Length == 1
             ? outputParameters[0]
             : new AbiParameter(fallbackName, "anonymous-tuple", fallbackName, outputParameters);
 
-        var (csTypeName, _, _, decodeFunc) = _parameterTypeWriter.CreateParameter(outputParameter);
+        var (csTypeName, isDynamic, _, decodeFunc) = _parameterTypeWriter.CreateParameter(outputParameter);
 
-        return (csTypeName, decodeFunc);
+        return (csTypeName, isDynamic, decodeFunc);
     }
 }

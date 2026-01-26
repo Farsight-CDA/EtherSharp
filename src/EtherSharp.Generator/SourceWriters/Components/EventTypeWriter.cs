@@ -1,6 +1,5 @@
 ﻿using EtherSharp.Generator.Abi.Members;
 using EtherSharp.Generator.SyntaxElements;
-using EtherSharp.Generator.Util;
 using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
@@ -52,9 +51,9 @@ internal class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, MemberTy
 
         decodeMethod.AddStatement(
             $$"""
-            if (log.Topics.Length != 1 && log.Topics.Length != {{topicCount + 1}})
+            if (log.Topics.Length == 1) 
             {
-                throw new System.InvalidOperationException("Topic count mismatch");
+                {{GenerateDataDecodeStatements(eventTypeName, eventMember)}}
             }
             """,
             false
@@ -64,11 +63,7 @@ internal class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, MemberTy
         {
             decodeMethod.AddStatement(
                 $$"""
-                if (log.Topics.Length == 1) 
-                {
-                    {{GenerateDataDecodeStatements(eventTypeName, eventMember)}}
-                }
-                else
+                else if (log.Topics.Length == {{topicCount + 1}})
                 {
                     {{GenerateRegularDecodeStatements(eventTypeName, eventMember)}}
                 }
@@ -76,10 +71,29 @@ internal class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, MemberTy
                 false
             );
         }
-        else
+
+        if(TryGenerateTopicDecodeStatements(eventTypeName, eventMember, out string? topicDecodeStatements))
         {
-            decodeMethod.AddStatement(GenerateDataDecodeStatements(eventTypeName, eventMember));
+            decodeMethod.AddStatement(
+                $$"""
+                else if (log.Topics.Length == {{eventMember.Inputs.Length + 1}})
+                {
+                    {{topicDecodeStatements}}
+                }
+                """,
+                false
+            );
         }
+
+        decodeMethod.AddStatement(
+            $$"""
+            else
+            {
+                throw new System.InvalidOperationException("Topic count mismatch");
+            }
+            """,
+            false
+        );
 
         classBuilder.AddFunction(decodeMethod);
         classBuilder.AddFunction(tryDecodeMethod);
@@ -111,7 +125,7 @@ internal class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, MemberTy
                 continue;
             }
 
-            var (outputTypeName, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
+            var (outputTypeName, _, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
                 $"EventParam{i + 1}",
                 [parameter]
             );
@@ -128,7 +142,7 @@ internal class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, MemberTy
                 continue;
             }
 
-            var (outputTypeName, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
+            var (outputTypeName, _, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
                 $"EventParam{i + 1}",
                 [parameter]
             );
@@ -148,7 +162,45 @@ internal class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, MemberTy
     }
 
     private string GenerateDataDecodeStatements(string eventTypeName, EventAbiMember eventMember)
+        => _memberTypeWriter.GenerateDecodeStatements(eventTypeName, eventMember.Inputs, "log.Data", "log");
+
+    private bool TryGenerateTopicDecodeStatements(string eventTypeName, EventAbiMember eventMember, out string decodeStatements)
     {
-        return _memberTypeWriter.GenerateDecodeStatements(eventTypeName, eventMember.Inputs, "log.Data", "log");
+        var ctorBuilder = new ConstructorCallBuilder(eventTypeName).AddArgument("log");
+        var statementBuilder = new StringBuilder();
+
+        int topicIndex = 1;
+
+        statementBuilder.AppendLine("EtherSharp.ABI.AbiDecoder decoder;");
+
+        for(int i = 0; i < eventMember.Inputs.Length; i++)
+        {
+            var parameter = eventMember.Inputs[i];
+
+            var (outputTypeName, isDynamic, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
+                $"EventParam{i + 1}",
+                [parameter]
+            );
+
+            if(isDynamic && !parameter.IsIndexed)
+            {
+                //ToDo: Support this case
+                decodeStatements = null!;
+                return false;
+            }
+
+            statementBuilder.AppendLine($"decoder = new EtherSharp.ABI.AbiDecoder(log.Topics[{topicIndex}]);");
+            statementBuilder.AppendLine($"{outputTypeName} parameter{i} = {decodeFunc};");
+            topicIndex++;
+        }
+
+        for(int i = 0; i < eventMember.Inputs.Length; i++)
+        {
+            ctorBuilder.AddArgument($"parameter{i}");
+        }
+
+        statementBuilder.AppendLine($"return {ctorBuilder.ToInlineCall()};");
+        decodeStatements = statementBuilder.ToString();
+        return true;
     }
 }
