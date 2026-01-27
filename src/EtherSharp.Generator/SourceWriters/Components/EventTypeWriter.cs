@@ -72,7 +72,7 @@ internal class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, MemberTy
             );
         }
 
-        if(TryGenerateTopicDecodeStatements(eventTypeName, eventMember, out string? topicDecodeStatements))
+        if(eventMember.Inputs.Length > 0 && TryGenerateTopicDecodeStatements(eventTypeName, eventMember, out string? topicDecodeStatements))
         {
             decodeMethod.AddStatement(
                 $$"""
