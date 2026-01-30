@@ -15,6 +15,7 @@ public struct EVMByteCode
     public const int MAX_INIT_LENGTH = 49_152;
 
     private const byte PUSH4_OPCODE = 0x63;
+    private const byte PUSH32_OPCODE = 0x7F;
     private const byte LT_OPCODE = 0x10;
     private const byte GT_OPCODE = 0x11;
     private const byte EQ_OPCODE = 0x14;
@@ -60,6 +61,30 @@ public struct EVMByteCode
             byte suffixByte = ByteCode.Span[index + 5];
 
             if(!ComparisonOpcodes.Contains(suffixByte))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if the given contract code implements a set of event topics
+    /// </summary>
+    /// <param name="topics"></param>
+    /// <returns></returns>
+    public readonly bool HasEvents(params IEnumerable<ReadOnlyMemory<byte>> topics)
+    {
+        Span<byte> prefixedSelector = stackalloc byte[33];
+        foreach(var requiredTopic in topics)
+        {
+            prefixedSelector[0] = PUSH32_OPCODE;
+            requiredTopic.Span.CopyTo(prefixedSelector[1..]);
+
+            int index = ByteCode.Span.IndexOf(prefixedSelector);
+
+            if(index == -1)
             {
                 return false;
             }
