@@ -12,7 +12,10 @@ internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
     public void GenerateContractErrorSection(InterfaceBuilder interfaceBuilder, ClassBuilder implementationBuilder, IEnumerable<ErrorAbiMember> errorMembers)
     {
         var sectionBuilder = new ClassBuilder("Errors")
-            .WithIsStatic();
+            .AddBaseType("EtherSharp.Contract.Sections.IErrorsSection", true)
+            .AddRawContent("private Errors() {}");
+
+        var errorTypeNames = new List<string>();
 
         foreach(var errorMemberGroup in GetDistinctErrors(errorMembers).GroupBy(x => NameUtils.ToValidClassName(x.Name)))
         {
@@ -29,6 +32,7 @@ internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
                 }
 
                 var typeBuilder = _errorTypeWriter.GenerateErrorType(errorTypeName, errorMember);
+                errorTypeNames.Add(errorTypeName);
 
                 typeBuilder.AddRawContent(
                     $$"""
@@ -52,6 +56,20 @@ internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
             }
         }
 
+        var getAllSignaturesFunction = new FunctionBuilder("GetSignatures")
+            .WithIsStatic(true)
+            .WithVisibility(FunctionVisibility.Public)
+            .WithReturnTypeRaw("System.ReadOnlyMemory<byte>[]");
+
+        getAllSignaturesFunction.AddStatement(
+            $"""
+                return [
+            {String.Join(",\n", errorTypeNames.Select(x => $"       {x}.SignatureBytes"))}
+                ]
+            """
+        );
+
+        sectionBuilder.AddFunction(getAllSignaturesFunction);
         interfaceBuilder.AddInnerType(sectionBuilder);
     }
 

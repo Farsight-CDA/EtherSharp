@@ -33,7 +33,8 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
     {
         var functionClassNames = new List<string>();
         var sectionBuilder = new ClassBuilder("Functions")
-            .WithIsStatic();
+            .AddBaseType("EtherSharp.Contract.Sections.IFunctionsSection", true)
+            .AddRawContent("private Functions() {}");
 
         if(fallbackMember is not null)
         {
@@ -340,12 +341,12 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
             }
         }
 
-        var getAllSelectorFunnction = new FunctionBuilder("GetSelectors")
+        var getAllSelectorFunction = new FunctionBuilder("GetSelectors")
             .WithIsStatic(true)
             .WithVisibility(FunctionVisibility.Public)
             .WithReturnTypeRaw("System.ReadOnlyMemory<byte>[]");
 
-        getAllSelectorFunnction.AddStatement(
+        getAllSelectorFunction.AddStatement(
             $"""
                 return [
             {String.Join(",\n", functionClassNames.Select(x => $"       {x}.SelectorBytes"))}
@@ -353,7 +354,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
             """
         );
 
-        sectionBuilder.AddFunction(getAllSelectorFunnction);
+        sectionBuilder.AddFunction(getAllSelectorFunction);
         interfaceBuilder.AddInnerType(sectionBuilder);
     }
 }

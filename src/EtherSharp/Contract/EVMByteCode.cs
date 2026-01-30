@@ -1,3 +1,5 @@
+using EtherSharp.Contract.Sections;
+
 namespace EtherSharp.Types;
 
 /// <summary>
@@ -37,6 +39,24 @@ public struct EVMByteCode
     /// The length of the bytecode.
     /// </summary>
     public readonly int Length => ByteCode.Length;
+
+    /// <summary>
+    /// Checks if the given contract code implements the function from the given function section.
+    /// </summary>
+    /// <typeparam name="TFunctionsSection"></typeparam>
+    /// <returns></returns>
+    public readonly bool HasFunctions<TFunctionsSection>()
+        where TFunctionsSection : IFunctionsSection
+        => HasFunctions(TFunctionsSection.GetSelectors());
+
+    /// <summary>
+    /// Checks if the given contract code implements the events from the given logs section.
+    /// </summary>
+    /// <typeparam name="TLogsSection"></typeparam>
+    /// <returns></returns>
+    public readonly bool HasEvents<TLogsSection>()
+        where TLogsSection : ILogsSection
+        => HasEvents(TLogsSection.GetTopics());
 
     /// <summary>
     /// Checks if the given contract code implements a set of function selectors

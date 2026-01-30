@@ -14,7 +14,8 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
         string @namespace, string contractName, IEnumerable<EventAbiMember> eventMembers)
     {
         var sectionBuilder = new ClassBuilder("Logs")
-            .WithIsStatic();
+            .AddBaseType("EtherSharp.Contract.Sections.ILogsSection", true)
+            .AddRawContent("private Logs() {}");
 
         var distinctEvents = GetDistinctEvents(eventMembers).ToArray();
 
@@ -36,6 +37,8 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
             """
         );
 
+        var topicClassNames = new List<string>();
+
         foreach(var eventMembersGroup in distinctEvents.GroupBy(x => NameUtils.ToValidClassName(x.Name)))
         {
             foreach(var eventMember in eventMembersGroup)
@@ -52,6 +55,7 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
                 }
 
                 var typeBuilder = _eventTypeWriter.GenerateEventType(eventTypeName, eventMember);
+                topicClassNames.Add(eventTypeName);
 
                 typeBuilder.AddRawContent(
                     $$"""
@@ -85,8 +89,22 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
             }
         }
 
+        var getAllTopicsFunction = new FunctionBuilder("GetTopics")
+            .WithIsStatic(true)
+            .WithVisibility(FunctionVisibility.Public)
+            .WithReturnTypeRaw("ReadOnlyMemory<byte>[]");
+
+        getAllTopicsFunction.AddStatement(
+            $"""
+                return [
+            {String.Join(",\n", topicClassNames.Select(x => $"       {x}.TopicBytes"))}
+                ]
+            """
+        );
+
         eventsModuleBuilder.AppendLine("}");
         sectionBuilder.AddRawContent(eventsModuleBuilder.ToString());
+        sectionBuilder.AddFunction(getAllTopicsFunction);
         interfaceBuilder.AddInnerType(sectionBuilder);
     }
 
