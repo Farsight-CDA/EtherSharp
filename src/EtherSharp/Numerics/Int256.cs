@@ -21,17 +21,11 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
     public bool IsZero => this == Zero;
     public bool IsOne => this == One;
 
-    public static bool AddOverflow(in Int256 a, in Int256 b, out Int256 res)
+    internal static bool Add(in Int256 a, in Int256 b, out Int256 res)
     {
         bool overflow = UInt256.Add(a._value, b._value, out var ures);
         res = new Int256(ures);
         return overflow;
-    }
-
-    public static void Add(in Int256 a, in Int256 b, out Int256 res)
-    {
-        UInt256.Add(a._value, b._value, out var ures);
-        res = new Int256(ures);
     }
 
     public static void AddMod(in Int256 x, in Int256 y, in Int256 m, out Int256 res)
@@ -67,10 +61,11 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         }
     }
 
-    public static void Subtract(in Int256 a, in Int256 b, out Int256 res)
+    internal static bool Subtract(in Int256 a, in Int256 b, out Int256 res)
     {
-        UInt256.Subtract(a._value, b._value, out var ures);
+        bool overflow = UInt256.Subtract(a._value, b._value, out var ures);
         res = new Int256(ures);
+        return overflow;
     }
 
     public static void SubtractMod(in Int256 x, in Int256 y, in Int256 m, out Int256 res)
@@ -172,7 +167,7 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
 
     public void MultiplyMod(in Int256 a, in Int256 m, out Int256 res) => MultiplyMod(this, a, m, out res);
 
-    public static void Divide(in Int256 n, in Int256 d, out Int256 res)
+    internal static void Divide(in Int256 n, in Int256 d, out Int256 res)
     {
         UInt256 value;
         if(n.Sign >= 0)
@@ -209,8 +204,6 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         res = new Int256(value);
         res = Negate(res);
     }
-
-    public void Divide(in Int256 a, out Int256 res) => Divide(this, a, out res);
 
     public static Int256 Pow(in Int256 b, in Int256 e)
     {
@@ -301,7 +294,7 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         return new Int256(value);
     }
 
-    public static void LeftShift(in Int256 x, int n, out Int256 res)
+    internal static void LeftShift(in Int256 x, int n, out Int256 res)
     {
         var ures = x._value << n;
         res = new Int256(ures);
@@ -316,7 +309,7 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
     private void Srsh192(out Int256 res)
         => res = new Int256(new UInt256(_value._u3, UInt64.MaxValue, UInt64.MaxValue, UInt64.MaxValue));
 
-    public static void RightShift(in Int256 x, int n, out Int256 res)
+    internal static void RightShift(in Int256 x, int n, out Int256 res)
     {
         if(x.Sign >= 0)
         {
@@ -446,5 +439,25 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
     {
         UInt256.Not(in a._value, out var o);
         return new Int256(o);
+    }
+
+    internal static bool LessThan(in Int256 a, in Int256 b)
+    {
+        int zSign = a.Sign;
+        int xSign = b.Sign;
+
+        if(zSign >= 0)
+        {
+            if(xSign < 0)
+            {
+                return false;
+            }
+        }
+        else if(xSign >= 0)
+        {
+            return true;
+        }
+
+        return a._value < b._value;
     }
 }

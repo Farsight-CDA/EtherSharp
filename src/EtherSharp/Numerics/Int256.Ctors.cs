@@ -12,13 +12,25 @@ public readonly partial struct Int256
         _value = value;
     }
 
-    public Int256(int n)
+    //public Int256(int n)
+    //{
+    //    if(n < 0)
+    //    {
+    //        Int256 value = new(new UInt256((ulong) -n));
+    //        _value = Negate(value)._value;
+    //    }
+    //    else
+    //    {
+    //        _value = new UInt256((ulong) n);
+    //    }
+    //}
+
+    public Int256(long n)
     {
         if(n < 0)
         {
-            Int256 value = new(new UInt256((ulong) -n));
-            var res = Negate(value);
-            _value = res._value;
+            var value = new Int256(new UInt256((ulong) -n));
+            _value = Negate(value)._value;
         }
         else
         {
