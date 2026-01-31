@@ -28,4 +28,65 @@ public readonly partial struct Int256
         BinaryPrimitives.WriteUInt64LittleEndian(bytes.Slice(24, 8), x._value._u3);
         return new BigInteger(bytes);
     }
+
+    public static implicit operator long(Int256 value)
+    {
+        long res = unchecked((long) value._value._u0);
+        return new Int256(res) != value
+            ? throw new OverflowException("Cannot convert Int256 value to long.")
+            : res;
+    }
+
+    public static implicit operator ulong(Int256 value)
+        => (value._value._u1 | value._value._u2 | value._value._u3) != 0
+            ? throw new OverflowException("Cannot convert Int256 value to ulong.")
+            : value._value._u0;
+
+    public static implicit operator int(Int256 value)
+    {
+        long res = value;
+        return res < Int32.MinValue || res > Int32.MaxValue
+            ? throw new OverflowException("Cannot convert Int256 value to int.")
+            : (int) res;
+    }
+
+    public static implicit operator uint(Int256 value)
+    {
+        ulong ul = value;
+        return ul > UInt32.MaxValue
+            ? throw new OverflowException("Cannot convert Int256 value to uint.")
+            : (uint) ul;
+    }
+
+    public static implicit operator short(Int256 value)
+    {
+        long res = value;
+        return res < Int16.MinValue || res > Int16.MaxValue
+            ? throw new OverflowException("Cannot convert Int256 value to short.")
+            : (short) res;
+    }
+
+    public static implicit operator ushort(Int256 value)
+    {
+        ulong ul = value;
+        return ul > UInt16.MaxValue
+            ? throw new OverflowException("Cannot convert Int256 value to ushort.")
+            : (ushort) ul;
+    }
+
+    public static implicit operator sbyte(Int256 value)
+    {
+        long res = value;
+        return res < SByte.MinValue || res > SByte.MaxValue
+            ? throw new OverflowException("Cannot convert Int256 value to sbyte.")
+            : (sbyte) res;
+    }
+
+    public static implicit operator byte(Int256 value)
+    {
+        ulong ul = value;
+        return ul > Byte.MaxValue
+            ? throw new OverflowException("Cannot convert Int256 value to byte.")
+            : (byte) ul;
+    }
 }
