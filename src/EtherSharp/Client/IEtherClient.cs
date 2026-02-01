@@ -16,6 +16,8 @@ namespace EtherSharp.Client;
 
 public interface IEtherClient
 {
+    internal bool IsInitialized { get; }
+
     /// <summary>
     /// The chainId of the chain you are connected to.
     /// </summary>
@@ -23,7 +25,7 @@ public interface IEtherClient
     /// <summary>
     /// OPCode Compatibility report for the chain you are connected to.
     /// </summary>
-    public CompatibilityReport CompatibilityReport { get; }
+    public CompatibilityReport? CompatibilityReport { get; }
 
     /// <summary>
     /// Module used to interact with the native currency.
@@ -68,7 +70,7 @@ public interface IEtherClient
 
     public IInternalEtherClient AsInternal();
 
-    public Task InitializeAsync(CancellationToken cancellationToken = default);
+    public Task InitializeAsync(bool forceNoQuery = false, CancellationToken cancellationToken = default);
     public Task<T> InitializeAsync<T>(IQuery<T> initQuery, CancellationToken cancellationToken = default);
 
     public Task<Transaction?> GetTransactionAsync(string hash, CancellationToken cancellationToken = default);

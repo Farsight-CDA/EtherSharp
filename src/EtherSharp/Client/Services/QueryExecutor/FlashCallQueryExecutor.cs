@@ -8,24 +8,14 @@ using System.Buffers;
 
 namespace EtherSharp.Client.Services.QueryExecutor;
 
-internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, IServiceProvider provider) : IQueryExecutor, IInitializableService
+internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, IServiceProvider provider) : IQueryExecutor
 {
     private readonly IFlashCallExecutor _flashCallExecutor = flashCallExecutor;
     private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<FlashCallQueryExecutor>();
+    private readonly IEtherClient _client = provider.GetRequiredService<IEtherClient>();
 
-    private bool _supportsCancun = false;
     private readonly IContractDeployment _londonDeployment = IContractDeployment.Create(QuerierUtils.LondonQuerierCode, 0);
     private readonly IContractDeployment _cancunDeployment = IContractDeployment.Create(QuerierUtils.CancunQuerierCode, 0);
-
-    public ValueTask InitializeAsync(ulong chainId, CompatibilityReport compatibilityReport, CancellationToken cancellationToken = default)
-    {
-        if(compatibilityReport.SupportsPush0)
-        {
-            _supportsCancun = true;
-        }
-
-        return ValueTask.CompletedTask;
-    }
 
     public async Task<TQuery> ExecuteQueryAsync<TQuery>(IQuery<TQuery> query, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
@@ -33,7 +23,8 @@ internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, ISer
         byte[][] outputs = new byte[query.Queries.Count][];
         int requestCount = 0;
 
-        var querierDeployment = !_supportsCancun || targetHeight.Value != 0 || targetHeight == TargetBlockNumber.Earliest
+        bool supportsCancun = _client.IsInitialized && _client.CompatibilityReport is not null && _client.CompatibilityReport.SupportsPush0;
+        var querierDeployment = !supportsCancun || targetHeight.Value != 0 || targetHeight == TargetBlockNumber.Earliest
             ? _londonDeployment
             : _cancunDeployment;
 

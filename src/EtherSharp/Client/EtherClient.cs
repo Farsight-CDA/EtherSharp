@@ -23,6 +23,7 @@ using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Buffers.Binary;
 
 namespace EtherSharp.Client;
 
@@ -50,7 +51,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     private bool _initialized;
     private ulong _chainId;
-    private CompatibilityReport _compatibilityReport = null!;
+    private CompatibilityReport? _compatibilityReport = null!;
 
     IServiceProvider IInternalEtherClient.Provider => _provider;
     IRpcClient IInternalEtherClient.RPC => _rpcClient;
@@ -60,7 +61,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             ? _chainId
             : throw new InvalidOperationException("Client not initialized");
 
-    CompatibilityReport IEtherClient.CompatibilityReport
+    CompatibilityReport? IEtherClient.CompatibilityReport
         => _initialized
             ? _compatibilityReport
             : throw new InvalidOperationException("Client not initialized");
@@ -89,6 +90,8 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         => _initialized
             ? _debugModule
             : throw new InvalidOperationException("Client not initialized");
+
+    bool IEtherClient.IsInitialized => _initialized;
 
     public async Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
@@ -175,13 +178,22 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         _loggerFactory = provider.GetService<ILoggerFactory>();
     }
 
-    Task IEtherClient.InitializeAsync(CancellationToken cancellationToken)
-        => InitializeAsync<object>(null, cancellationToken);
+    async Task IEtherClient.InitializeAsync(bool forceNoQuery, CancellationToken cancellationToken)
+    {
+        if(forceNoQuery)
+        {
+            await InitializeNoQueryAsync(cancellationToken);
+        }
+        else
+        {
+            await InitializeWithQueryAsync<object?>(null, cancellationToken);
+        }
+    }
 
     Task<T> IEtherClient.InitializeAsync<T>(IQuery<T> initQuery, CancellationToken cancellationToken)
-        => InitializeAsync(initQuery, cancellationToken);
+        => InitializeWithQueryAsync(initQuery, cancellationToken);
 
-    private async Task<T> InitializeAsync<T>(IQuery<T>? initQuery, CancellationToken cancellationToken)
+    private async Task BaseInitializeAsync(CancellationToken cancellationToken)
     {
         if(_initialized)
         {
@@ -209,6 +221,43 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
             _signer = _provider.GetRequiredService<IEtherSigner>();
             _txScheduler = _provider.GetRequiredService<ITxScheduler>();
         }
+    }
+
+    private async Task InitializeNoQueryAsync(CancellationToken cancellationToken)
+    {
+        await BaseInitializeAsync(cancellationToken);
+
+        _chainId = await _ethRpcModule.ChainIdAsync(cancellationToken);
+        _compatibilityReport = null;
+
+        if(_flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor)
+        {
+            var deploymentHeightResult = await _ethRpcModule.CallAsync(
+                null,
+                deployedFlashCallExecutor.ContractAddress,
+                null,
+                null,
+                0,
+                "0x217CD3E1",
+                TargetBlockNumber.Latest,
+                cancellationToken
+            );
+
+            var deploymentHeight = BinaryPrimitives.ReadUInt256BigEndian(deploymentHeightResult.Unwrap(deployedFlashCallExecutor.ContractAddress).Span);
+            deployedFlashCallExecutor.SetDeploymentHeight((ulong) deploymentHeight);
+        }
+
+        foreach(var initializeableService in _provider.GetServices<IInitializableService>())
+        {
+            await initializeableService.InitializeAsync(_chainId, cancellationToken);
+        }
+
+        _initialized = true;
+    }
+
+    private async Task<T> InitializeWithQueryAsync<T>(IQuery<T>? initQuery, CancellationToken cancellationToken)
+    {
+        await BaseInitializeAsync(cancellationToken);
 
         initQuery ??= IQuery.Noop<T>(default!);
         var flashCallSetupQuery = _flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor
@@ -232,7 +281,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
         {
-            await initializeableService.InitializeAsync(_chainId, _compatibilityReport, cancellationToken);
+            await initializeableService.InitializeAsync(_chainId, cancellationToken);
         }
 
         _initialized = true;

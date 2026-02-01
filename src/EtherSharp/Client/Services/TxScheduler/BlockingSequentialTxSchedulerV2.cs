@@ -39,7 +39,7 @@ public class BlockingSequentialTxSchedulerV2(
     private readonly Dictionary<uint, TaskCompletionSource> _nonceGates = [];
 
     /// <inheritdoc/>
-    public async ValueTask InitializeAsync(ulong chainId, CompatibilityReport compatibilityReport, CancellationToken cancellationToken)
+    public async ValueTask InitializeAsync(ulong chainId, CancellationToken cancellationToken)
     {
         _chainId = chainId;
 
