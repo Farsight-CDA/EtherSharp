@@ -37,56 +37,81 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
             """
         );
 
+        var eventNameTopics = new Dictionary<string, List<byte[]>>();
+        foreach(var eventMember in eventMembers)
+        {
+            string rawEventTypeName = NameUtils.ToValidClassName(eventMember.Name);
+            byte[] eventTopic = eventMember.GetEventTopic(out _);
+
+            if(!eventNameTopics.TryGetValue(rawEventTypeName, out var topics))
+            {
+                eventNameTopics.Add(rawEventTypeName, [eventTopic]);
+                continue;
+            }
+            if(topics.Any(x => x.SequenceEqual(eventTopic)))
+            {
+                continue;
+            }
+
+            topics.Add(eventTopic);
+        }
+
+        string GetEventName(EventAbiMember eventMember)
+        {
+            string rawEventTypeName = NameUtils.ToValidClassName(eventMember.Name);
+            byte[] topicBytes = eventMember.GetEventTopic(out _);
+            string name = eventNameTopics[rawEventTypeName].Count == 1
+                ? rawEventTypeName
+                : $"{rawEventTypeName}_{HexUtils.ToHexString(topicBytes.AsSpan(0, 4))}";
+            return name.EndsWith("Event")
+                ? name
+                : $"{name}Event";
+        }
+
         var topicClassNames = new List<string>();
 
-        foreach(var eventMembersGroup in distinctEvents.GroupBy(x => NameUtils.ToValidClassName(x.Name)))
+        foreach(var eventMembersGroup in eventMembers.GroupBy(x => HexUtils.ToHexString(x.GetEventTopic(out _))))
         {
-            foreach(var eventMember in eventMembersGroup)
-            {
-                byte[] topicBytes = eventMember.GetEventTopic(out string signature);
-                string eventTypeName = eventMembersGroup.Count() > 1
-                    ? $"{eventMembersGroup.Key}_{HexUtils.ToHexString(topicBytes.AsSpan(0, 4))}"
-                    : eventMembersGroup.Key;
-                string eventsModulePropertyName = eventTypeName;
+            string eventTypeName = GetEventName(eventMembersGroup.First());
+            topicClassNames.Add(eventTypeName);
+            byte[] topicBytes = eventMembersGroup.First().GetEventTopic(out string? eventSignature);
 
-                if(!eventTypeName.EndsWith("Event"))
-                {
-                    eventTypeName += "Event";
-                }
+            var typeBuilder = _eventTypeWriter.GenerateEventType(eventTypeName, [.. eventMembersGroup], out var supportedTopicCounts);
 
-                var typeBuilder = _eventTypeWriter.GenerateEventType(eventTypeName, eventMember);
-                topicClassNames.Add(eventTypeName);
-
-                typeBuilder.AddRawContent(
-                    $$"""
+            typeBuilder.AddRawContent(
+                $$"""
                     /// <summary>
                     /// Event signature used to calculate the event topic.
                     /// </summary>
-                    public const string Signature = "{{signature}}";
+                    public const string Signature = "{{eventSignature}}";
                     /// <summary>
-                    /// Event topic based on signature: {{signature}}
+                    /// Event topic based on signature: {{eventSignature}}
                     /// </summary>
                     public static ReadOnlyMemory<byte> TopicBytes { get; } 
                         = new byte[] { {{String.Join(",", topicBytes)}} };
                     /// <summary>
-                    /// Hex encoded event topic based on signature: {{signature}}
+                    /// Hex encoded event topic based on signature: {{eventSignature}}
                     /// </summary>
                     public const string TopicHex = "0x{{HexUtils.ToHexString(topicBytes)}}";
+                    /// <summary>
+                    /// Supported topic counts when decoding event.
+                    /// </summary>
+                    public static ReadOnlyMemory<int> SupportedTopicCounts { get; } 
+                        = new int[] { {{String.Join(",", supportedTopicCounts)}} };
                     """
-                );
+            );
 
-                eventsModuleBuilder.AppendLine(
-                    $"""
-                    public readonly EtherSharp.Client.Modules.Events.IConfiguredEventsModule<{@namespace}.{contractName}.Logs.{eventTypeName}> {eventsModulePropertyName}
+            eventsModuleBuilder.AppendLine(
+                $"""
+                    public readonly EtherSharp.Client.Modules.Events.IConfiguredEventsModule<{@namespace}.{contractName}.Logs.{eventTypeName}> {eventTypeName}
                         => contract.GetClient()
                             .Events<{@namespace}.{contractName}.Logs.{eventTypeName}>()
                             .HasContract(contract)
                             .HasTopic({@namespace}.{contractName}.Logs.{eventTypeName}.TopicHex);
                     """
-                );
+            );
 
-                sectionBuilder.AddInnerType(typeBuilder);
-            }
+            sectionBuilder.AddInnerType(typeBuilder);
         }
 
         var getAllTopicsFunction = new FunctionBuilder("GetTopics")
