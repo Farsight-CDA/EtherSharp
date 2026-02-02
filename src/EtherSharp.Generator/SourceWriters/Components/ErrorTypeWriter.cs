@@ -20,7 +20,8 @@ internal class ErrorTypeWriter
         var decodeMethod = new FunctionBuilder("Decode")
             .WithReturnTypeRaw(errorTypeName)
             .WithIsStatic(true)
-            .AddArgument("EtherSharp.ABI.AbiDecoder", "decoder");
+            .AddArgument("System.ReadOnlyMemory<byte>", "data")
+            .AddStatement("var decoder = new EtherSharp.ABI.AbiDecoder(data[4..])");
 
         var errorTypeCtorCall = new ConstructorCallBuilder(errorTypeName);
 
@@ -68,7 +69,7 @@ internal class ErrorTypeWriter
                     return false;
                 }
 
-                parsedError = Decode(new EtherSharp.ABI.AbiDecoder(errorData));
+                parsedError = Decode(errorData);
                 return true;
                 """
             )
