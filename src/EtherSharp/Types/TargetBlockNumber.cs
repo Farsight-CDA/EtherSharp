@@ -8,19 +8,13 @@ namespace EtherSharp.Types;
 /// <remarks>
 /// Not all available TargetBlockNumbers are supported on every blockchain network.
 /// </remarks>
-public readonly struct TargetBlockNumber
+public readonly struct TargetBlockNumber(ulong value, string rawValue)
 {
     /// <summary>
     /// The block height or 0 if it is a string based one.
     /// </summary>
-    public ulong Value { get; }
-    private readonly string? _rawValue;
-
-    private TargetBlockNumber(ulong value, string rawValue)
-    {
-        Value = value;
-        _rawValue = rawValue;
-    }
+    public ulong Value { get; } = value;
+    private readonly string? _rawValue = rawValue;
 
     /// <summary>
     /// Targets the latest block.
