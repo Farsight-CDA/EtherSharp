@@ -218,14 +218,14 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                     OnSubscriptionMessage?.Invoke(subscriptionId, msBuffer);
                     break;
                 default:
-                    _logger?.LogWarning("Received unidentified websocket payload");
+                    string payload = System.Text.Encoding.UTF8.GetString(msBuffer);
+                    _logger?.LogWarning("Received unidentified websocket payload: {payload}", payload);
                     break;
             }
         }
     }
 
-    private void IdentifyPayload(ReadOnlySpan<byte> jsonSpan,
-        out PayloadType payloadType, out int requestId, out string subscriptionId)
+    private void IdentifyPayload(ReadOnlySpan<byte> jsonSpan, out PayloadType payloadType, out int requestId, out string subscriptionId)
     {
         requestId = -1;
         subscriptionId = null!;
@@ -246,8 +246,10 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                         if(reader.ValueTextEquals("id"))
                         {
                             reader.Read();
+                            Span<char> buffer = stackalloc char[16];
+                            int written = reader.CopyString(buffer);
                             requestId = Int32.Parse(
-                                reader.GetString()!.AsSpan()[2..],
+                                buffer[2..written],
                                 System.Globalization.NumberStyles.HexNumber,
                                 System.Globalization.CultureInfo.InvariantCulture
                             );
@@ -257,11 +259,10 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                         else if(reader.ValueTextEquals("method"))
                         {
                             reader.Read();
-                            string? method = reader.GetString();
 
-                            if(method != "eth_subscription")
+                            if(!reader.ValueTextEquals("eth_subscription"))
                             {
-                                _logger?.LogWarning("Failed to identify payload with method {Method}", method);
+                                _logger?.LogWarning("Failed to identify payload with method {Method}", reader.GetString());
                                 return;
                             }
 
@@ -316,12 +317,10 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
             }
 
             _logger?.LogWarning("Failed to identify payload, no marker found till end of payload");
-            return;
         }
         catch(Exception ex)
         {
             _logger?.LogWarning(ex, "Exception while trying to identify payload");
-            return;
         }
     }
 
