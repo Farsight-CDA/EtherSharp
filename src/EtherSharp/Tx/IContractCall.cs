@@ -37,6 +37,17 @@ public interface IContractCall : ITxInput
         => new TxInput<ReadOnlyMemory<byte>>(contractAddress, value, data, x => x);
 
     /// <summary>
+    /// Creates an IContractCall for a raw undecoded contract call.
+    /// </summary>
+    /// <param name="contractAddress"></param>
+    /// <param name="value"></param>
+    /// <param name="data"></param>
+    /// <param name="decodeFunc"></param>
+    /// <returns></returns>
+    public static IContractCall<T> ForRawContractCall<T>(Address contractAddress, UInt256 value, ReadOnlyMemory<byte> data, Func<ReadOnlyMemory<byte>, T> decodeFunc)
+        => new TxInput<T>(contractAddress, value, data, x => decodeFunc(x));
+
+    /// <summary>
     /// Creates an IContractCall for calling the Create2 deployer factory.
     /// </summary>
     /// <param name="byteCode"></param>
