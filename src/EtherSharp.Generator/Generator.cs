@@ -67,7 +67,7 @@ public class Generator : IIncrementalGenerator
 
             bool hasConstructor = abiMembers.Any(x => x is ConstructorAbiMember);
 
-            if(hasConstructor! && bytecode is not null)
+            if(!hasConstructor && bytecode is not null)
             {
                 ReportDiagnostic(context, GeneratorDiagnostics.MissingConstructorAbiMember, contractSymbol);
             }
