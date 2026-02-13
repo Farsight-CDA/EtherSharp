@@ -1,4 +1,4 @@
-﻿using EtherSharp.Numerics;
+using EtherSharp.Numerics;
 
 namespace EtherSharp.Types;
 
@@ -16,7 +16,11 @@ public record TransactionReceipt(
     string? LogsBloom,
     Address? To,
     int? TransactionIndex,
-    int? Type  //todo: enum ?
+    int? Type,  //todo: enum ?
+    UInt256? L1Fee,
+    UInt256? L1FeeScalar,
+    UInt256? L1GasPrice,
+    ulong? L1GasUsed
 )
 {
     public bool Success => Status == 1;
