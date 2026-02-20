@@ -1,5 +1,6 @@
 using EtherSharp.Numerics;
 namespace EtherSharp.ABI.Decode.Interfaces;
+
 public partial interface IArrayAbiDecoder
 {
     /// <summary>
@@ -11,7 +12,7 @@ public partial interface IArrayAbiDecoder
     /// Reads a uint8 array from the input.
     /// </summary>
     /// <returns>The decoded byte array.</returns>
-    public byte[] UInt8Array();    
+    public byte[] UInt8Array();
 
     /// <summary>
     /// Reads an int16 array from the input.

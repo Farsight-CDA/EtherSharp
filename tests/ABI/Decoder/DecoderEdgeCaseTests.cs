@@ -1,6 +1,5 @@
 using EtherSharp.ABI;
 using EtherSharp.Numerics;
-using EtherSharp.Types;
 using System.Buffers.Binary;
 using System.Text;
 
@@ -207,7 +206,10 @@ public class DecoderEdgeCaseTests
     public void Should_Decode_Bytes_Exactly32Bytes()
     {
         byte[] bytes = new byte[32];
-        for(int i = 0; i < 32; i++) bytes[i] = (byte) i;
+        for(int i = 0; i < 32; i++)
+        {
+            bytes[i] = (byte) i;
+        }
 
         byte[] input = new byte[96];
         BinaryPrimitives.WriteUInt32BigEndian(input.AsSpan()[28..32], 32);
@@ -223,7 +225,10 @@ public class DecoderEdgeCaseTests
     public void Should_Decode_Bytes_33Bytes()
     {
         byte[] bytes = new byte[33];
-        for(int i = 0; i < 33; i++) bytes[i] = (byte) i;
+        for(int i = 0; i < 33; i++)
+        {
+            bytes[i] = (byte) i;
+        }
 
         byte[] input = new byte[128];
         BinaryPrimitives.WriteUInt32BigEndian(input.AsSpan()[28..32], 32);

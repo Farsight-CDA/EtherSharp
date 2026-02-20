@@ -1,11 +1,12 @@
 namespace EtherSharp.ABI.Decode.Interfaces;
+
 public partial interface IDynamicTupleDecoder
 {
     /// <summary>
     /// Reads a bytes1 array from the input.
     /// </summary>
     /// <returns>The decoded byte array.</returns>
-    public byte[] Bytes1Array();    
+    public byte[] Bytes1Array();
     /// <summary>
     /// Reads a bytes2 array from the input.
     /// </summary>

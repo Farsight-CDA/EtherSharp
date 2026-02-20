@@ -1,7 +1,7 @@
 using EtherSharp.ABI.Types;
-using EtherSharp.ABI.Encode.Interfaces;
 
 namespace EtherSharp.ABI.Packed;
+
 public partial class PackedAbiEncoder
 {
     /// <summary>
@@ -10,7 +10,7 @@ public partial class PackedAbiEncoder
     /// <param name="value">The byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public PackedAbiEncoder Bytes1(byte value)
-        => AddElement(new AbiTypes.Byte(value));    
+        => AddElement(new AbiTypes.Byte(value));
     /// <summary>
     /// Encodes a bytes2 value in packed format.
     /// </summary>

@@ -1,5 +1,6 @@
 namespace EtherSharp.ABI.Encode.Interfaces;
-public partial interface IFixedTupleEncoder 
+
+public partial interface IFixedTupleEncoder
 {
     /// <summary>
     /// Encodes a bytes1 value.

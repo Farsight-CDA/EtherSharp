@@ -1,7 +1,8 @@
 using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
-public partial interface IArrayAbiEncoder 
+
+public partial interface IArrayAbiEncoder
 {
     /// <summary>
     /// Encodes an int8 array value.

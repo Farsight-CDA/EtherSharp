@@ -1,7 +1,8 @@
-using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Decode.Interfaces;
+using EtherSharp.ABI.Types;
 
 namespace EtherSharp.ABI;
+
 public partial class AbiDecoder
 {
     /// <summary>

@@ -1,8 +1,9 @@
-using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
+using EtherSharp.ABI.Types;
 using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI;
+
 public partial class AbiEncoder
 {
     /// <summary>
@@ -13,7 +14,7 @@ public partial class AbiEncoder
     public AbiEncoder Int8Array(params sbyte[] value)
         => AddElement(new AbiTypes.SizedNumberArray<sbyte>(value, 8));
     void IArrayAbiEncoder.Int8Array(params sbyte[] value)
-        => Int8Array(value); 
+        => Int8Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int8Array(params sbyte[] value)
         => Int8Array(value);
 

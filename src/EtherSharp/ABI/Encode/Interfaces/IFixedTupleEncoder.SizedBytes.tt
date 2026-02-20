@@ -1,6 +1,7 @@
 <#@ template language="C#" #><#
 #><#@ output extension=".cs" #><#
 #>namespace EtherSharp.ABI.Encode.Interfaces;
+
 public partial interface IFixedTupleEncoder 
 {
     /// <summary>

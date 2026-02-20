@@ -1,7 +1,8 @@
 using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
-public partial interface IFixedTupleEncoder 
+
+public partial interface IFixedTupleEncoder
 {
     /// <summary>
     /// Encodes an int8 value.

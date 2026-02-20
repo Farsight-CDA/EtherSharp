@@ -1,8 +1,9 @@
-using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Decode.Interfaces;
+using EtherSharp.ABI.Types;
 using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI;
+
 public partial class AbiDecoder
 {
     /// <summary>
@@ -15,9 +16,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    sbyte IFixedTupleDecoder.Int8() 
+    sbyte IFixedTupleDecoder.Int8()
         => Int8();
-    sbyte IDynamicTupleDecoder.Int8() 
+    sbyte IDynamicTupleDecoder.Int8()
         => Int8();
 
     /// <summary>
@@ -30,9 +31,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    byte IFixedTupleDecoder.UInt8()     
+    byte IFixedTupleDecoder.UInt8()
         => UInt8();
-    byte IDynamicTupleDecoder.UInt8() 
+    byte IDynamicTupleDecoder.UInt8()
         => UInt8();
 
     /// <summary>
@@ -45,9 +46,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    short IFixedTupleDecoder.Int16() 
+    short IFixedTupleDecoder.Int16()
         => Int16();
-    short IDynamicTupleDecoder.Int16() 
+    short IDynamicTupleDecoder.Int16()
         => Int16();
 
     /// <summary>
@@ -62,7 +63,7 @@ public partial class AbiDecoder
     }
     ushort IFixedTupleDecoder.UInt16()
         => UInt16();
-    ushort IDynamicTupleDecoder.UInt16() 
+    ushort IDynamicTupleDecoder.UInt16()
         => UInt16();
 
     /// <summary>
@@ -75,9 +76,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    int IFixedTupleDecoder.Int24() 
+    int IFixedTupleDecoder.Int24()
         => Int24();
-    int IDynamicTupleDecoder.Int24() 
+    int IDynamicTupleDecoder.Int24()
         => Int24();
 
     /// <summary>
@@ -90,9 +91,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    uint IFixedTupleDecoder.UInt24() 
+    uint IFixedTupleDecoder.UInt24()
         => UInt24();
-    uint IDynamicTupleDecoder.UInt24() 
+    uint IDynamicTupleDecoder.UInt24()
         => UInt24();
     /// <summary>
     /// Reads an int32 value from the input.
@@ -104,9 +105,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    int IFixedTupleDecoder.Int32() 
+    int IFixedTupleDecoder.Int32()
         => Int32();
-    int IDynamicTupleDecoder.Int32() 
+    int IDynamicTupleDecoder.Int32()
         => Int32();
 
     /// <summary>
@@ -119,9 +120,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    uint IFixedTupleDecoder.UInt32() 
+    uint IFixedTupleDecoder.UInt32()
         => UInt32();
-    uint IDynamicTupleDecoder.UInt32() 
+    uint IDynamicTupleDecoder.UInt32()
         => UInt32();
 
     /// <summary>
@@ -134,9 +135,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    long IFixedTupleDecoder.Int40() 
+    long IFixedTupleDecoder.Int40()
         => Int40();
-    long IDynamicTupleDecoder.Int40() 
+    long IDynamicTupleDecoder.Int40()
         => Int40();
 
     /// <summary>
@@ -149,9 +150,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    ulong IFixedTupleDecoder.UInt40() 
+    ulong IFixedTupleDecoder.UInt40()
         => UInt40();
-    ulong IDynamicTupleDecoder.UInt40() 
+    ulong IDynamicTupleDecoder.UInt40()
         => UInt40();
     /// <summary>
     /// Reads an int48 value from the input.
@@ -163,9 +164,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    long IFixedTupleDecoder.Int48() 
+    long IFixedTupleDecoder.Int48()
         => Int48();
-    long IDynamicTupleDecoder.Int48() 
+    long IDynamicTupleDecoder.Int48()
         => Int48();
 
     /// <summary>
@@ -178,9 +179,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    ulong IFixedTupleDecoder.UInt48() 
+    ulong IFixedTupleDecoder.UInt48()
         => UInt48();
-    ulong IDynamicTupleDecoder.UInt48() 
+    ulong IDynamicTupleDecoder.UInt48()
         => UInt48();
     /// <summary>
     /// Reads an int56 value from the input.
@@ -192,9 +193,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    long IFixedTupleDecoder.Int56() 
+    long IFixedTupleDecoder.Int56()
         => Int56();
-    long IDynamicTupleDecoder.Int56() 
+    long IDynamicTupleDecoder.Int56()
         => Int56();
 
     /// <summary>
@@ -207,9 +208,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    ulong IFixedTupleDecoder.UInt56() 
+    ulong IFixedTupleDecoder.UInt56()
         => UInt56();
-    ulong IDynamicTupleDecoder.UInt56() 
+    ulong IDynamicTupleDecoder.UInt56()
         => UInt56();
     /// <summary>
     /// Reads an int64 value from the input.
@@ -221,9 +222,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    long IFixedTupleDecoder.Int64() 
+    long IFixedTupleDecoder.Int64()
         => Int64();
-    long IDynamicTupleDecoder.Int64() 
+    long IDynamicTupleDecoder.Int64()
         => Int64();
 
     /// <summary>
@@ -236,9 +237,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    ulong IFixedTupleDecoder.UInt64() 
+    ulong IFixedTupleDecoder.UInt64()
         => UInt64();
-    ulong IDynamicTupleDecoder.UInt64() 
+    ulong IDynamicTupleDecoder.UInt64()
         => UInt64();
 
     /// <summary>
@@ -251,9 +252,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int72() 
+    Int256 IFixedTupleDecoder.Int72()
         => Int72();
-    Int256 IDynamicTupleDecoder.Int72() 
+    Int256 IDynamicTupleDecoder.Int72()
         => Int72();
 
     /// <summary>
@@ -266,9 +267,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt72() 
+    UInt256 IFixedTupleDecoder.UInt72()
         => UInt72();
-    UInt256 IDynamicTupleDecoder.UInt72() 
+    UInt256 IDynamicTupleDecoder.UInt72()
         => UInt72();
     /// <summary>
     /// Reads an int80 value from the input.
@@ -280,9 +281,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int80() 
+    Int256 IFixedTupleDecoder.Int80()
         => Int80();
-    Int256 IDynamicTupleDecoder.Int80() 
+    Int256 IDynamicTupleDecoder.Int80()
         => Int80();
 
     /// <summary>
@@ -295,9 +296,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt80() 
+    UInt256 IFixedTupleDecoder.UInt80()
         => UInt80();
-    UInt256 IDynamicTupleDecoder.UInt80() 
+    UInt256 IDynamicTupleDecoder.UInt80()
         => UInt80();
     /// <summary>
     /// Reads an int88 value from the input.
@@ -309,9 +310,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int88() 
+    Int256 IFixedTupleDecoder.Int88()
         => Int88();
-    Int256 IDynamicTupleDecoder.Int88() 
+    Int256 IDynamicTupleDecoder.Int88()
         => Int88();
 
     /// <summary>
@@ -324,9 +325,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt88() 
+    UInt256 IFixedTupleDecoder.UInt88()
         => UInt88();
-    UInt256 IDynamicTupleDecoder.UInt88() 
+    UInt256 IDynamicTupleDecoder.UInt88()
         => UInt88();
     /// <summary>
     /// Reads an int96 value from the input.
@@ -338,9 +339,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int96() 
+    Int256 IFixedTupleDecoder.Int96()
         => Int96();
-    Int256 IDynamicTupleDecoder.Int96() 
+    Int256 IDynamicTupleDecoder.Int96()
         => Int96();
 
     /// <summary>
@@ -353,9 +354,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt96() 
+    UInt256 IFixedTupleDecoder.UInt96()
         => UInt96();
-    UInt256 IDynamicTupleDecoder.UInt96() 
+    UInt256 IDynamicTupleDecoder.UInt96()
         => UInt96();
     /// <summary>
     /// Reads an int104 value from the input.
@@ -367,9 +368,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int104() 
+    Int256 IFixedTupleDecoder.Int104()
         => Int104();
-    Int256 IDynamicTupleDecoder.Int104() 
+    Int256 IDynamicTupleDecoder.Int104()
         => Int104();
 
     /// <summary>
@@ -382,9 +383,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt104() 
+    UInt256 IFixedTupleDecoder.UInt104()
         => UInt104();
-    UInt256 IDynamicTupleDecoder.UInt104() 
+    UInt256 IDynamicTupleDecoder.UInt104()
         => UInt104();
     /// <summary>
     /// Reads an int112 value from the input.
@@ -396,9 +397,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int112() 
+    Int256 IFixedTupleDecoder.Int112()
         => Int112();
-    Int256 IDynamicTupleDecoder.Int112() 
+    Int256 IDynamicTupleDecoder.Int112()
         => Int112();
 
     /// <summary>
@@ -411,9 +412,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt112() 
+    UInt256 IFixedTupleDecoder.UInt112()
         => UInt112();
-    UInt256 IDynamicTupleDecoder.UInt112() 
+    UInt256 IDynamicTupleDecoder.UInt112()
         => UInt112();
     /// <summary>
     /// Reads an int120 value from the input.
@@ -425,9 +426,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int120() 
+    Int256 IFixedTupleDecoder.Int120()
         => Int120();
-    Int256 IDynamicTupleDecoder.Int120() 
+    Int256 IDynamicTupleDecoder.Int120()
         => Int120();
 
     /// <summary>
@@ -440,9 +441,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt120() 
+    UInt256 IFixedTupleDecoder.UInt120()
         => UInt120();
-    UInt256 IDynamicTupleDecoder.UInt120() 
+    UInt256 IDynamicTupleDecoder.UInt120()
         => UInt120();
     /// <summary>
     /// Reads an int128 value from the input.
@@ -454,9 +455,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int128() 
+    Int256 IFixedTupleDecoder.Int128()
         => Int128();
-    Int256 IDynamicTupleDecoder.Int128() 
+    Int256 IDynamicTupleDecoder.Int128()
         => Int128();
 
     /// <summary>
@@ -469,9 +470,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt128() 
+    UInt256 IFixedTupleDecoder.UInt128()
         => UInt128();
-    UInt256 IDynamicTupleDecoder.UInt128() 
+    UInt256 IDynamicTupleDecoder.UInt128()
         => UInt128();
     /// <summary>
     /// Reads an int136 value from the input.
@@ -483,9 +484,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int136() 
+    Int256 IFixedTupleDecoder.Int136()
         => Int136();
-    Int256 IDynamicTupleDecoder.Int136() 
+    Int256 IDynamicTupleDecoder.Int136()
         => Int136();
 
     /// <summary>
@@ -498,9 +499,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt136() 
+    UInt256 IFixedTupleDecoder.UInt136()
         => UInt136();
-    UInt256 IDynamicTupleDecoder.UInt136() 
+    UInt256 IDynamicTupleDecoder.UInt136()
         => UInt136();
     /// <summary>
     /// Reads an int144 value from the input.
@@ -512,9 +513,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int144() 
+    Int256 IFixedTupleDecoder.Int144()
         => Int144();
-    Int256 IDynamicTupleDecoder.Int144() 
+    Int256 IDynamicTupleDecoder.Int144()
         => Int144();
 
     /// <summary>
@@ -527,9 +528,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt144() 
+    UInt256 IFixedTupleDecoder.UInt144()
         => UInt144();
-    UInt256 IDynamicTupleDecoder.UInt144() 
+    UInt256 IDynamicTupleDecoder.UInt144()
         => UInt144();
     /// <summary>
     /// Reads an int152 value from the input.
@@ -541,9 +542,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int152() 
+    Int256 IFixedTupleDecoder.Int152()
         => Int152();
-    Int256 IDynamicTupleDecoder.Int152() 
+    Int256 IDynamicTupleDecoder.Int152()
         => Int152();
 
     /// <summary>
@@ -556,9 +557,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt152() 
+    UInt256 IFixedTupleDecoder.UInt152()
         => UInt152();
-    UInt256 IDynamicTupleDecoder.UInt152() 
+    UInt256 IDynamicTupleDecoder.UInt152()
         => UInt152();
     /// <summary>
     /// Reads an int160 value from the input.
@@ -570,9 +571,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int160() 
+    Int256 IFixedTupleDecoder.Int160()
         => Int160();
-    Int256 IDynamicTupleDecoder.Int160() 
+    Int256 IDynamicTupleDecoder.Int160()
         => Int160();
 
     /// <summary>
@@ -585,9 +586,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt160() 
+    UInt256 IFixedTupleDecoder.UInt160()
         => UInt160();
-    UInt256 IDynamicTupleDecoder.UInt160() 
+    UInt256 IDynamicTupleDecoder.UInt160()
         => UInt160();
     /// <summary>
     /// Reads an int168 value from the input.
@@ -599,9 +600,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int168() 
+    Int256 IFixedTupleDecoder.Int168()
         => Int168();
-    Int256 IDynamicTupleDecoder.Int168() 
+    Int256 IDynamicTupleDecoder.Int168()
         => Int168();
 
     /// <summary>
@@ -614,9 +615,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt168() 
+    UInt256 IFixedTupleDecoder.UInt168()
         => UInt168();
-    UInt256 IDynamicTupleDecoder.UInt168() 
+    UInt256 IDynamicTupleDecoder.UInt168()
         => UInt168();
     /// <summary>
     /// Reads an int176 value from the input.
@@ -628,9 +629,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int176() 
+    Int256 IFixedTupleDecoder.Int176()
         => Int176();
-    Int256 IDynamicTupleDecoder.Int176() 
+    Int256 IDynamicTupleDecoder.Int176()
         => Int176();
 
     /// <summary>
@@ -643,9 +644,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt176() 
+    UInt256 IFixedTupleDecoder.UInt176()
         => UInt176();
-    UInt256 IDynamicTupleDecoder.UInt176() 
+    UInt256 IDynamicTupleDecoder.UInt176()
         => UInt176();
     /// <summary>
     /// Reads an int184 value from the input.
@@ -657,9 +658,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int184() 
+    Int256 IFixedTupleDecoder.Int184()
         => Int184();
-    Int256 IDynamicTupleDecoder.Int184() 
+    Int256 IDynamicTupleDecoder.Int184()
         => Int184();
 
     /// <summary>
@@ -672,9 +673,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt184() 
+    UInt256 IFixedTupleDecoder.UInt184()
         => UInt184();
-    UInt256 IDynamicTupleDecoder.UInt184() 
+    UInt256 IDynamicTupleDecoder.UInt184()
         => UInt184();
     /// <summary>
     /// Reads an int192 value from the input.
@@ -686,9 +687,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int192() 
+    Int256 IFixedTupleDecoder.Int192()
         => Int192();
-    Int256 IDynamicTupleDecoder.Int192() 
+    Int256 IDynamicTupleDecoder.Int192()
         => Int192();
 
     /// <summary>
@@ -701,9 +702,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt192() 
+    UInt256 IFixedTupleDecoder.UInt192()
         => UInt192();
-    UInt256 IDynamicTupleDecoder.UInt192() 
+    UInt256 IDynamicTupleDecoder.UInt192()
         => UInt192();
     /// <summary>
     /// Reads an int200 value from the input.
@@ -715,9 +716,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int200() 
+    Int256 IFixedTupleDecoder.Int200()
         => Int200();
-    Int256 IDynamicTupleDecoder.Int200() 
+    Int256 IDynamicTupleDecoder.Int200()
         => Int200();
 
     /// <summary>
@@ -730,9 +731,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt200() 
+    UInt256 IFixedTupleDecoder.UInt200()
         => UInt200();
-    UInt256 IDynamicTupleDecoder.UInt200() 
+    UInt256 IDynamicTupleDecoder.UInt200()
         => UInt200();
     /// <summary>
     /// Reads an int208 value from the input.
@@ -744,9 +745,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int208() 
+    Int256 IFixedTupleDecoder.Int208()
         => Int208();
-    Int256 IDynamicTupleDecoder.Int208() 
+    Int256 IDynamicTupleDecoder.Int208()
         => Int208();
 
     /// <summary>
@@ -759,9 +760,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt208() 
+    UInt256 IFixedTupleDecoder.UInt208()
         => UInt208();
-    UInt256 IDynamicTupleDecoder.UInt208() 
+    UInt256 IDynamicTupleDecoder.UInt208()
         => UInt208();
     /// <summary>
     /// Reads an int216 value from the input.
@@ -773,9 +774,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int216() 
+    Int256 IFixedTupleDecoder.Int216()
         => Int216();
-    Int256 IDynamicTupleDecoder.Int216() 
+    Int256 IDynamicTupleDecoder.Int216()
         => Int216();
 
     /// <summary>
@@ -788,9 +789,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt216() 
+    UInt256 IFixedTupleDecoder.UInt216()
         => UInt216();
-    UInt256 IDynamicTupleDecoder.UInt216() 
+    UInt256 IDynamicTupleDecoder.UInt216()
         => UInt216();
     /// <summary>
     /// Reads an int224 value from the input.
@@ -802,9 +803,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int224() 
+    Int256 IFixedTupleDecoder.Int224()
         => Int224();
-    Int256 IDynamicTupleDecoder.Int224() 
+    Int256 IDynamicTupleDecoder.Int224()
         => Int224();
 
     /// <summary>
@@ -817,9 +818,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt224() 
+    UInt256 IFixedTupleDecoder.UInt224()
         => UInt224();
-    UInt256 IDynamicTupleDecoder.UInt224() 
+    UInt256 IDynamicTupleDecoder.UInt224()
         => UInt224();
     /// <summary>
     /// Reads an int232 value from the input.
@@ -831,9 +832,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int232() 
+    Int256 IFixedTupleDecoder.Int232()
         => Int232();
-    Int256 IDynamicTupleDecoder.Int232() 
+    Int256 IDynamicTupleDecoder.Int232()
         => Int232();
 
     /// <summary>
@@ -846,9 +847,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt232() 
+    UInt256 IFixedTupleDecoder.UInt232()
         => UInt232();
-    UInt256 IDynamicTupleDecoder.UInt232() 
+    UInt256 IDynamicTupleDecoder.UInt232()
         => UInt232();
     /// <summary>
     /// Reads an int240 value from the input.
@@ -860,9 +861,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int240() 
+    Int256 IFixedTupleDecoder.Int240()
         => Int240();
-    Int256 IDynamicTupleDecoder.Int240() 
+    Int256 IDynamicTupleDecoder.Int240()
         => Int240();
 
     /// <summary>
@@ -875,9 +876,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt240() 
+    UInt256 IFixedTupleDecoder.UInt240()
         => UInt240();
-    UInt256 IDynamicTupleDecoder.UInt240() 
+    UInt256 IDynamicTupleDecoder.UInt240()
         => UInt240();
     /// <summary>
     /// Reads an int248 value from the input.
@@ -889,9 +890,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int248() 
+    Int256 IFixedTupleDecoder.Int248()
         => Int248();
-    Int256 IDynamicTupleDecoder.Int248() 
+    Int256 IDynamicTupleDecoder.Int248()
         => Int248();
 
     /// <summary>
@@ -904,9 +905,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt248() 
+    UInt256 IFixedTupleDecoder.UInt248()
         => UInt248();
-    UInt256 IDynamicTupleDecoder.UInt248() 
+    UInt256 IDynamicTupleDecoder.UInt248()
         => UInt248();
     /// <summary>
     /// Reads an int256 value from the input.
@@ -918,9 +919,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Int256 IFixedTupleDecoder.Int256() 
+    Int256 IFixedTupleDecoder.Int256()
         => Int256();
-    Int256 IDynamicTupleDecoder.Int256() 
+    Int256 IDynamicTupleDecoder.Int256()
         => Int256();
 
     /// <summary>
@@ -933,8 +934,8 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    UInt256 IFixedTupleDecoder.UInt256() 
+    UInt256 IFixedTupleDecoder.UInt256()
         => UInt256();
-    UInt256 IDynamicTupleDecoder.UInt256() 
+    UInt256 IDynamicTupleDecoder.UInt256()
         => UInt256();
 }

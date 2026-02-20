@@ -1,7 +1,8 @@
-using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
+using EtherSharp.ABI.Types;
 
 namespace EtherSharp.ABI;
+
 public partial class AbiEncoder
 {
     /// <summary>
@@ -10,9 +11,9 @@ public partial class AbiEncoder
     /// <param name="value">The byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes1(byte value)
-        => AddElement(new AbiTypes.Byte(value));    
+        => AddElement(new AbiTypes.Byte(value));
     IFixedTupleEncoder IFixedTupleEncoder.Bytes1(byte value)
-        => Bytes1(value);    
+        => Bytes1(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes1(byte value)
         => Bytes1(value);
     /// <summary>

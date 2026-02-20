@@ -5,6 +5,7 @@ using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI;
+
 public partial class AbiDecoder
 {
     /// <summary>

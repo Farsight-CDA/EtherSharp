@@ -1,4 +1,5 @@
 namespace EtherSharp.ABI.Decode.Interfaces;
+
 public partial interface IDynamicTupleDecoder
 {
     /// <summary>

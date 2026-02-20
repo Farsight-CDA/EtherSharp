@@ -1,5 +1,6 @@
 namespace EtherSharp.ABI.Encode.Interfaces;
-public partial interface IArrayAbiEncoder 
+
+public partial interface IArrayAbiEncoder
 {
     /// <summary>
     /// Encodes a bytes1 array value.
