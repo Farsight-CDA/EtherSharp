@@ -130,8 +130,15 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// <param name="values">Values to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder BoolArray(params bool[] values)
-        => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bool>(
-                [.. values.Select(x => new AbiTypes.Bool(x))]));
+    {
+        var encoded = new AbiTypes.Bool[values.Length];
+        for(int i = 0; i < values.Length; i++)
+        {
+            encoded[i] = new AbiTypes.Bool(values[i]);
+        }
+
+        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bool>(encoded));
+    }
 
     /// <summary>
     /// Encodes a dynamic array of addresses.
@@ -139,8 +146,15 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// <param name="addresses">Addresses to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder AddressArray(params Address[] addresses)
-        => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Address>(
-            [.. addresses.Select(x => new AbiTypes.Address(x))]));
+    {
+        var encoded = new AbiTypes.Address[addresses.Length];
+        for(int i = 0; i < addresses.Length; i++)
+        {
+            encoded[i] = new AbiTypes.Address(addresses[i]);
+        }
+
+        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Address>(encoded));
+    }
 
     /// <summary>
     /// Encodes a dynamic array of strings.
@@ -148,8 +162,15 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// <param name="value">Strings to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder StringArray(params string[] value)
-        => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.String>(
-            [.. value.Select(x => new AbiTypes.String(x))]));
+    {
+        var encoded = new AbiTypes.String[value.Length];
+        for(int i = 0; i < value.Length; i++)
+        {
+            encoded[i] = new AbiTypes.String(value[i]);
+        }
+
+        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.String>(encoded));
+    }
 
     /// <summary>
     /// Encodes a dynamic array of dynamic byte sequences.
@@ -157,8 +178,15 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// <param name="value">Byte sequences to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder BytesArray(params ReadOnlyMemory<byte>[] value)
-        => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bytes>(
-            [.. value.Select(x => new AbiTypes.Bytes(x))]));
+    {
+        var encoded = new AbiTypes.Bytes[value.Length];
+        for(int i = 0; i < value.Length; i++)
+        {
+            encoded[i] = new AbiTypes.Bytes(value[i]);
+        }
+
+        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bytes>(encoded));
+    }
 
     /// <summary>
     /// Encodes a dynamic array by encoding each element with the provided callback.
@@ -242,6 +270,13 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         => BytesArray(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
         => Array(values, func);
+
+    bool IArrayAbiEncoder.TryWritoTo(Span<byte> outputBuffer)
+        => TryWriteTo(outputBuffer);
+    bool IFixedTupleEncoder.TryWritoTo(Span<byte> outputBuffer)
+        => TryWriteTo(outputBuffer);
+    bool IDynamicTupleEncoder.TryWritoTo(Span<byte> outputBuffer)
+        => TryWriteTo(outputBuffer);
 
     /// <summary>
     /// Encodes an array of numeric values with the given signedness and bit width.
