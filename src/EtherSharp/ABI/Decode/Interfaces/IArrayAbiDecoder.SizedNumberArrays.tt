@@ -1,7 +1,6 @@
-<#@ template language="C#" #>
-<#@ output extension=".cs" #>
-using EtherSharp.Numerics;
-
+<#@ template language="C#" #><#
+#><#@ output extension=".cs" #><#
+#>using EtherSharp.Numerics;
 namespace EtherSharp.ABI.Decode.Interfaces;
 public partial interface IArrayAbiDecoder
 {

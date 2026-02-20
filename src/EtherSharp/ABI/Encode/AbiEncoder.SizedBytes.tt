@@ -1,6 +1,6 @@
-<#@ template language="C#" #>
-<#@ output extension=".cs" #>
-using EtherSharp.ABI.Types;
+<#@ template language="C#" #><#
+#><#@ output extension=".cs" #><#
+#>using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
 
 namespace EtherSharp.ABI;

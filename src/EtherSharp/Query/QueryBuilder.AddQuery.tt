@@ -1,8 +1,9 @@
-<#@ template language="C#" #>
+<#@ template language="C#" #><#
+#>
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System.Linq" #>
-<#@ output extension=".cs" #>
-using EtherSharp.Query;
+<#@ output extension=".cs" #><#
+#>using EtherSharp.Query;
 
 namespace EtherSharp.Client.Modules.Query;
 public partial class QueryBuilder<TQuery>

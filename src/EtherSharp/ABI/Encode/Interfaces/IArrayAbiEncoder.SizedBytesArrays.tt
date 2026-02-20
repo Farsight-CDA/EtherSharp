@@ -1,6 +1,6 @@
-<#@ template language="C#" #>
-<#@ output extension=".cs" #>
-namespace EtherSharp.ABI.Encode.Interfaces;
+<#@ template language="C#" #><#
+#><#@ output extension=".cs" #><#
+#>namespace EtherSharp.ABI.Encode.Interfaces;
 public partial interface IArrayAbiEncoder 
 {
     /// <summary>
