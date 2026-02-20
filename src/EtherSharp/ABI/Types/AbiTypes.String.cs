@@ -22,7 +22,7 @@ public static partial class AbiTypes
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
-            BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
+            BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) PackedSize);
 
             if(!Encoding.UTF8.TryGetBytes(Value, payload[32..], out _))
             {

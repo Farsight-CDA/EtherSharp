@@ -85,4 +85,18 @@ public class ComplexEncodingTests
 
         Assert.Equal(input, output);
     }
+
+    [Fact]
+    public void Should_RoundTrip_NonAscii_String()
+    {
+        string input = "hé🙂世界";
+
+        byte[] encoded = new AbiEncoder()
+            .String(input)
+            .Build();
+
+        string output = new AbiDecoder(encoded).String();
+
+        Assert.Equal(input, output);
+    }
 }

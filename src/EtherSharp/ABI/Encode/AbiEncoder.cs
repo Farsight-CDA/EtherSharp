@@ -271,13 +271,6 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     IDynamicTupleEncoder IDynamicTupleEncoder.Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
         => Array(values, func);
 
-    bool IArrayAbiEncoder.TryWritoTo(Span<byte> outputBuffer)
-        => TryWriteTo(outputBuffer);
-    bool IFixedTupleEncoder.TryWritoTo(Span<byte> outputBuffer)
-        => TryWriteTo(outputBuffer);
-    bool IDynamicTupleEncoder.TryWritoTo(Span<byte> outputBuffer)
-        => TryWriteTo(outputBuffer);
-
     /// <summary>
     /// Encodes an array of numeric values with the given signedness and bit width.
     /// </summary>

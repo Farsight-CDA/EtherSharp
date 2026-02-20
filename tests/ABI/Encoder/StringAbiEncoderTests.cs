@@ -1,4 +1,6 @@
-﻿using EtherSharp.ABI;
+using EtherSharp.ABI;
+using System.Buffers.Binary;
+using System.Text;
 
 namespace EtherSharp.Tests.ABI.Encoder;
 
@@ -41,4 +43,16 @@ public class StringAbiEncoderTests
     [Fact]
     public void Should_Throw_On_Null()
         => Assert.Throws<ArgumentNullException>(() => _encoder.String(null!));
+
+    [Fact]
+    public void Should_Store_Utf8_Byte_Length_For_NonAscii_String()
+    {
+        string input = "hé🙂";
+        byte[] encoded = _encoder.String(input).Build();
+
+        uint encodedLength = BinaryPrimitives.ReadUInt32BigEndian(encoded.AsSpan(60, 4));
+        int utf8Length = Encoding.UTF8.GetByteCount(input);
+
+        Assert.Equal(utf8Length, (int) encodedLength);
+    }
 }
