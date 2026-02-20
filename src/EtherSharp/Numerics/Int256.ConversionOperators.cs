@@ -5,7 +5,7 @@ namespace EtherSharp.Numerics;
 
 public readonly partial struct Int256
 {
-    public static explicit operator Int256(UInt256 value) => new Int256(value);
+    public static explicit operator Int256(in UInt256 value) => new Int256(value);
 
     public static implicit operator Int256(byte a) => new Int256((UInt256) a);
     public static implicit operator Int256(sbyte a) => new Int256(a);
@@ -19,7 +19,7 @@ public readonly partial struct Int256
     public static implicit operator Int256(ulong a) => new Int256((UInt256) a);
     public static implicit operator Int256(long a) => new Int256(a);
 
-    public static explicit operator BigInteger(Int256 x)
+    public static explicit operator BigInteger(in Int256 x)
     {
         Span<byte> bytes = stackalloc byte[32];
         BinaryPrimitives.WriteUInt64LittleEndian(bytes[..8], x._value._u0);
@@ -29,7 +29,7 @@ public readonly partial struct Int256
         return new BigInteger(bytes);
     }
 
-    public static implicit operator long(Int256 value)
+    public static implicit operator long(in Int256 value)
     {
         long res = unchecked((long) value._value._u0);
         return new Int256(res) != value
@@ -37,12 +37,12 @@ public readonly partial struct Int256
             : res;
     }
 
-    public static implicit operator ulong(Int256 value)
+    public static implicit operator ulong(in Int256 value)
         => (value._value._u1 | value._value._u2 | value._value._u3) != 0
             ? throw new OverflowException("Cannot convert Int256 value to ulong.")
             : value._value._u0;
 
-    public static implicit operator int(Int256 value)
+    public static implicit operator int(in Int256 value)
     {
         long res = value;
         return res < Int32.MinValue || res > Int32.MaxValue
@@ -50,7 +50,7 @@ public readonly partial struct Int256
             : (int) res;
     }
 
-    public static implicit operator uint(Int256 value)
+    public static implicit operator uint(in Int256 value)
     {
         ulong ul = value;
         return ul > UInt32.MaxValue
@@ -58,7 +58,7 @@ public readonly partial struct Int256
             : (uint) ul;
     }
 
-    public static implicit operator short(Int256 value)
+    public static implicit operator short(in Int256 value)
     {
         long res = value;
         return res < Int16.MinValue || res > Int16.MaxValue
@@ -66,7 +66,7 @@ public readonly partial struct Int256
             : (short) res;
     }
 
-    public static implicit operator ushort(Int256 value)
+    public static implicit operator ushort(in Int256 value)
     {
         ulong ul = value;
         return ul > UInt16.MaxValue
@@ -74,7 +74,7 @@ public readonly partial struct Int256
             : (ushort) ul;
     }
 
-    public static implicit operator sbyte(Int256 value)
+    public static implicit operator sbyte(in Int256 value)
     {
         long res = value;
         return res < SByte.MinValue || res > SByte.MaxValue
@@ -82,11 +82,16 @@ public readonly partial struct Int256
             : (sbyte) res;
     }
 
-    public static implicit operator byte(Int256 value)
+    public static implicit operator byte(in Int256 value)
     {
         ulong ul = value;
         return ul > Byte.MaxValue
             ? throw new OverflowException("Cannot convert Int256 value to byte.")
             : (byte) ul;
     }
+
+    public static explicit operator double(in Int256 x)
+        => !x.IsNegative
+            ? (double) x._value
+            : -(double) (-x)._value;
 }
