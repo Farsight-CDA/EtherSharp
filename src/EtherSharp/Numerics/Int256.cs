@@ -21,11 +21,23 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
     public bool IsZero => this == Zero;
     public bool IsOne => this == One;
 
-    internal static bool Add(in Int256 a, in Int256 b, out Int256 res)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void Add(in Int256 a, in Int256 b, out Int256 res)
     {
-        bool overflow = UInt256.Add(a._value, b._value, out var ures);
+        UInt256.Add(a._value, b._value, out var ures);
         res = new Int256(ures);
-        return overflow;
+    }
+
+    internal static bool AddWithOverflow(in Int256 a, in Int256 b, out Int256 res)
+    {
+        UInt256.Add(a._value, b._value, out var ures);
+        res = new Int256(ures);
+
+        bool aNeg = a.IsNegative;
+        bool bNeg = b.IsNegative;
+        bool resNeg = res.IsNegative;
+
+        return (aNeg == bNeg) && (aNeg != resNeg);
     }
 
     public static void AddMod(in Int256 x, in Int256 y, in Int256 m, out Int256 res)
@@ -61,11 +73,23 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         }
     }
 
-    internal static bool Subtract(in Int256 a, in Int256 b, out Int256 res)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void Subtract(in Int256 a, in Int256 b, out Int256 res)
     {
-        bool overflow = UInt256.Subtract(a._value, b._value, out var ures);
+        UInt256.Subtract(a._value, b._value, out var ures);
         res = new Int256(ures);
-        return overflow;
+    }
+
+    internal static bool SubtractWithOverflow(in Int256 a, in Int256 b, out Int256 res)
+    {
+        UInt256.Subtract(a._value, b._value, out var ures);
+        res = new Int256(ures);
+
+        bool aNeg = a.IsNegative;
+        bool bNeg = b.IsNegative;
+        bool resNeg = res.IsNegative;
+
+        return (aNeg != bNeg) && (aNeg != resNeg);
     }
 
     public static void SubtractMod(in Int256 x, in Int256 y, in Int256 m, out Int256 res)
@@ -101,7 +125,7 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         }
     }
 
-    public static void Multiply(in Int256 a, in Int256 b, out Int256 res)
+    internal static void Multiply(in Int256 a, in Int256 b, out Int256 res)
     {
         Int256 av = a, bv = b;
         int aSign = a.Sign;
@@ -123,8 +147,6 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
 
         res = Negate(res);
     }
-
-    public void Multiply(in Int256 a, out Int256 res) => Multiply(this, a, out res);
 
     public static void MultiplyMod(in Int256 x, in Int256 y, in Int256 m, out Int256 res)
     {
@@ -164,8 +186,6 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
             res = new Int256(ures);
         }
     }
-
-    public void MultiplyMod(in Int256 a, in Int256 m, out Int256 res) => MultiplyMod(this, a, m, out res);
 
     internal static void Divide(in Int256 n, in Int256 d, out Int256 res)
     {
@@ -396,7 +416,7 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
 
 
     [OverloadResolutionPriority(1)]
-    private bool Equals(in Int256 other)
+    public bool Equals(in Int256 other)
         => _value.Equals(other._value);
     public bool Equals(Int256 other)
         => _value.Equals(other._value);
@@ -417,25 +437,25 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
     public int CompareTo(Int256 b)
         => CompareTo(in b);
 
-    public static Int256 And(in Int256 a, in Int256 b)
+    internal static Int256 And(in Int256 a, in Int256 b)
     {
         UInt256.And(in a._value, in b._value, out var o);
         return new Int256(o);
     }
 
-    public static Int256 Xor(in Int256 a, in Int256 b)
+    internal static Int256 Xor(in Int256 a, in Int256 b)
     {
         UInt256.Xor(in a._value, in b._value, out var o);
         return new Int256(o);
     }
 
-    public static Int256 Or(in Int256 a, in Int256 b)
+    internal static Int256 Or(in Int256 a, in Int256 b)
     {
         UInt256.Or(in a._value, in b._value, out var o);
         return new Int256(o);
     }
 
-    public static Int256 Not(in Int256 a)
+    internal static Int256 Not(in Int256 a)
     {
         UInt256.Not(in a._value, out var o);
         return new Int256(o);
