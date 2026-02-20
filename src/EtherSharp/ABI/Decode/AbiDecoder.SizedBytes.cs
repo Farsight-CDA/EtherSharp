@@ -11,7 +11,7 @@ public partial class AbiDecoder
     /// <returns>The decoded byte value.</returns>
     public byte Bytes1()
     {
-        var result = AbiTypes.Byte.Decode(CurrentSlot);
+        byte result = AbiTypes.Byte.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }

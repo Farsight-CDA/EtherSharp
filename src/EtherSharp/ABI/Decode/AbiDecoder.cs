@@ -270,6 +270,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
             values[i] = decoder.String();
         }
 
+        ConsumeBytes();
         return values;
     }
 
@@ -295,6 +296,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
             values[i] = decoder.Bytes();
         }
 
+        ConsumeBytes();
         return values;
     }
 

@@ -12,7 +12,7 @@ public partial class AbiDecoder
     /// <returns>The decoded signed byte value.</returns>
     public sbyte Int8()
     {
-        var result = AbiTypes.SByte.Decode(CurrentSlot);
+        sbyte result = AbiTypes.SByte.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -27,7 +27,7 @@ public partial class AbiDecoder
     /// <returns>The decoded byte value.</returns>
     public byte UInt8()
     {
-        var result = AbiTypes.Byte.Decode(CurrentSlot);
+        byte result = AbiTypes.Byte.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -42,7 +42,7 @@ public partial class AbiDecoder
     /// <returns>The decoded short value.</returns>
     public short Int16()
     {
-        var result = AbiTypes.Short.Decode(CurrentSlot);
+        short result = AbiTypes.Short.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -57,7 +57,7 @@ public partial class AbiDecoder
     /// <returns>The decoded unsigned short value.</returns>
     public ushort UInt16()
     {
-        var result = AbiTypes.UShort.Decode(CurrentSlot);
+        ushort result = AbiTypes.UShort.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -72,7 +72,7 @@ public partial class AbiDecoder
     /// <returns>The decoded int value.</returns>
     public int Int24()
     {
-        var result = AbiTypes.Int.Decode(CurrentSlot);
+        int result = AbiTypes.Int.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -87,7 +87,7 @@ public partial class AbiDecoder
     /// <returns>The decoded uint value.</returns>
     public uint UInt24()
     {
-        var result = AbiTypes.UInt.Decode(CurrentSlot);
+        uint result = AbiTypes.UInt.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -101,7 +101,7 @@ public partial class AbiDecoder
     /// <returns>The decoded int value.</returns>
     public int Int32()
     {
-        var result = AbiTypes.Int.Decode(CurrentSlot);
+        int result = AbiTypes.Int.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -116,7 +116,7 @@ public partial class AbiDecoder
     /// <returns>The decoded uint value.</returns>
     public uint UInt32()
     {
-        var result = AbiTypes.UInt.Decode(CurrentSlot);
+        uint result = AbiTypes.UInt.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -131,7 +131,7 @@ public partial class AbiDecoder
     /// <returns>The decoded long value.</returns>
     public long Int40()
     {
-        var result = AbiTypes.Long.Decode(CurrentSlot);
+        long result = AbiTypes.Long.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -146,7 +146,7 @@ public partial class AbiDecoder
     /// <returns>The decoded ulong value.</returns>
     public ulong UInt40()
     {
-        var result = AbiTypes.ULong.Decode(CurrentSlot);
+        ulong result = AbiTypes.ULong.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -160,7 +160,7 @@ public partial class AbiDecoder
     /// <returns>The decoded long value.</returns>
     public long Int48()
     {
-        var result = AbiTypes.Long.Decode(CurrentSlot);
+        long result = AbiTypes.Long.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -175,7 +175,7 @@ public partial class AbiDecoder
     /// <returns>The decoded ulong value.</returns>
     public ulong UInt48()
     {
-        var result = AbiTypes.ULong.Decode(CurrentSlot);
+        ulong result = AbiTypes.ULong.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -189,7 +189,7 @@ public partial class AbiDecoder
     /// <returns>The decoded long value.</returns>
     public long Int56()
     {
-        var result = AbiTypes.Long.Decode(CurrentSlot);
+        long result = AbiTypes.Long.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -204,7 +204,7 @@ public partial class AbiDecoder
     /// <returns>The decoded ulong value.</returns>
     public ulong UInt56()
     {
-        var result = AbiTypes.ULong.Decode(CurrentSlot);
+        ulong result = AbiTypes.ULong.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -218,7 +218,7 @@ public partial class AbiDecoder
     /// <returns>The decoded long value.</returns>
     public long Int64()
     {
-        var result = AbiTypes.Long.Decode(CurrentSlot);
+        long result = AbiTypes.Long.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }
@@ -233,7 +233,7 @@ public partial class AbiDecoder
     /// <returns>The decoded ulong value.</returns>
     public ulong UInt64()
     {
-        var result = AbiTypes.ULong.Decode(CurrentSlot);
+        ulong result = AbiTypes.ULong.Decode(CurrentSlot);
         ConsumeBytes();
         return result;
     }

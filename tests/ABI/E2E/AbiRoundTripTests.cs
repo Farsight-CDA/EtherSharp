@@ -3,7 +3,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Tests.ABI.E2E;
 
-public class End2EndTests
+public class AbiRoundTripTests
 {
     [Fact]
     public void Should_Encode_And_Decode_Int8_Array()
@@ -71,7 +71,20 @@ public class End2EndTests
         var encoder = new AbiEncoder().BoolArray(input);
         var decoder = new AbiDecoder(encoder.Build());
 
-        var output = decoder.BoolArray();
+        bool[] output = decoder.BoolArray();
+
+        Assert.Equal(input, output);
+    }
+
+    [Fact]
+    public void Should_Encode_And_Decode_Bytes1_Array()
+    {
+        byte[] input = [0x12, 0x34, 0xab, 0xcd];
+
+        var encoder = new AbiEncoder().Bytes1Array(input);
+        var decoder = new AbiDecoder(encoder.Build());
+
+        byte[] output = decoder.Bytes1Array();
 
         Assert.Equal(input, output);
     }
@@ -124,7 +137,7 @@ public class End2EndTests
             new byte[32] { 0xca, 0xfe, 0xba, 0xbe, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
         ];
         string str = "Test String";
-        Address address = Address.Zero;
+        var address = Address.Zero;
 
         // Act
         byte[] encoded = new AbiEncoder()
@@ -136,9 +149,9 @@ public class End2EndTests
 
         var decoder = new AbiDecoder(encoded);
         ushort outputNumber = decoder.Number<ushort>(true, 16);
-        ReadOnlyMemory<byte>[] outputBytes32 = decoder.Bytes32Array();
+        var outputBytes32 = decoder.Bytes32Array();
         string outputStr = decoder.String();
-        Address outputAddress = decoder.Address();
+        var outputAddress = decoder.Address();
 
         // Assert
         Assert.Equal(number, outputNumber);
@@ -149,5 +162,41 @@ public class End2EndTests
         }
         Assert.Equal(str, outputStr);
         Assert.Equal(address, outputAddress);
+    }
+
+    [Fact]
+    public void Should_Advance_Head_After_StringArray_When_Decoding_Next_Value()
+    {
+        uint expected = 1337;
+        byte[] encoded = new AbiEncoder()
+            .StringArray("alpha", "beta")
+            .UInt32(expected)
+            .Build();
+
+        var decoder = new AbiDecoder(encoded);
+        string[] values = decoder.StringArray();
+        uint actual = decoder.UInt32();
+
+        Assert.Equal(["alpha", "beta"], values);
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Should_Advance_Head_After_BytesArray_When_Decoding_Next_Value()
+    {
+        uint expected = 7331;
+        byte[] encoded = new AbiEncoder()
+            .BytesArray([new byte[] { 0x01, 0x02 }, new byte[] { 0x03 }])
+            .UInt32(expected)
+            .Build();
+
+        var decoder = new AbiDecoder(encoded);
+        ReadOnlyMemory<byte>[] values = decoder.BytesArray();
+        uint actual = decoder.UInt32();
+
+        Assert.Equal(2, values.Length);
+        Assert.Equal(new byte[] { 0x01, 0x02 }, values[0].ToArray());
+        Assert.Equal(new byte[] { 0x03 }, values[1].ToArray());
+        Assert.Equal(expected, actual);
     }
 }

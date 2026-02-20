@@ -28,7 +28,7 @@ public class DecoderEdgeCaseTests
     public void Should_Decode_Empty_String()
     {
         byte[] input = Convert.FromHexString("00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000");
-        var result = new AbiDecoder(input).String();
+        string result = new AbiDecoder(input).String();
         Assert.Equal("", result);
     }
 
@@ -36,7 +36,7 @@ public class DecoderEdgeCaseTests
     public void Should_Decode_Empty_BoolArray()
     {
         byte[] input = Convert.FromHexString("00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000");
-        var result = new AbiDecoder(input).BoolArray();
+        bool[] result = new AbiDecoder(input).BoolArray();
         Assert.Empty(result);
     }
 
@@ -52,7 +52,7 @@ public class DecoderEdgeCaseTests
     public void Should_Decode_Empty_StringArray()
     {
         byte[] input = Convert.FromHexString("00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000");
-        var result = new AbiDecoder(input).StringArray();
+        string[] result = new AbiDecoder(input).StringArray();
         Assert.Empty(result);
     }
 
@@ -69,7 +69,7 @@ public class DecoderEdgeCaseTests
     {
         byte[] input = new byte[32];
         input[31] = 1;
-        var result = new AbiDecoder(input).Bool();
+        bool result = new AbiDecoder(input).Bool();
         Assert.True(result);
     }
 
@@ -77,7 +77,7 @@ public class DecoderEdgeCaseTests
     public void Should_Decode_Bool_False()
     {
         byte[] input = new byte[32];
-        var result = new AbiDecoder(input).Bool();
+        bool result = new AbiDecoder(input).Bool();
         Assert.False(result);
     }
 
@@ -87,7 +87,7 @@ public class DecoderEdgeCaseTests
         byte[] input = new byte[32];
         input.AsSpan().Fill(0xFF);
         input[31] = 0;
-        var result = new AbiDecoder(input).Bool();
+        bool result = new AbiDecoder(input).Bool();
         Assert.False(result);
     }
 
@@ -96,7 +96,7 @@ public class DecoderEdgeCaseTests
     {
         byte[] input = new byte[32];
         input[31] = 2;
-        var result = new AbiDecoder(input).Bool();
+        bool result = new AbiDecoder(input).Bool();
         Assert.False(result);
     }
 
@@ -105,7 +105,7 @@ public class DecoderEdgeCaseTests
     {
         byte[] input = new byte[32];
         input[31] = 255;
-        var result = new AbiDecoder(input).Bool();
+        bool result = new AbiDecoder(input).Bool();
         Assert.False(result);
     }
 
@@ -254,7 +254,7 @@ public class DecoderEdgeCaseTests
         BinaryPrimitives.WriteUInt32BigEndian(input.AsSpan()[60..64], (uint) encodedLength);
         stringBytes.CopyTo(input.AsSpan()[64..]);
 
-        var result = new AbiDecoder(input).String();
+        string result = new AbiDecoder(input).String();
         Assert.Equal(largeString, result);
     }
 }

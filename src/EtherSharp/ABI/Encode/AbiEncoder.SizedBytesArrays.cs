@@ -11,7 +11,15 @@ public partial class AbiEncoder
     /// <param name="value">The byte array to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes1Array(params byte[] value)
-        => AddElement(new AbiTypes.SizedBytesArray([value], 1));
+    {
+        var encoded = new ReadOnlyMemory<byte>[value.Length];
+        for(int i = 0; i < value.Length; i++)
+        {
+            encoded[i] = new byte[] { value[i] };
+        }
+
+        return AddElement(new AbiTypes.SizedBytesArray(encoded, 1));
+    }
     IArrayAbiEncoder IArrayAbiEncoder.Bytes1Array(params byte[] value)
         => Bytes1Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes1Array(params byte[] value)
