@@ -1,6 +1,13 @@
 # Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
+# Default line-ending behavior for all text files
+[*]
+end_of_line = lf
+
+[*.{bat,cmd}]
+end_of_line = crlf
+
 # C# files
 [*.cs]
 
@@ -12,7 +19,6 @@ indent_style = space
 tab_width = 4
 
 # New line preferences
-end_of_line = crlf
 insert_final_newline = false
 
 #### .NET Code Actions ####
