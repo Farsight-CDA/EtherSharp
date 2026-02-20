@@ -24,5 +24,5 @@ public class ABIEncoderBenchmarks
 
     [Benchmark]
     public void AbiEncoder_Build()
-        => _abiEncoder.TryWritoTo(_buffer);
+        => _abiEncoder.TryWriteTo(_buffer);
 }

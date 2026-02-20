@@ -305,7 +305,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// <param name="outputBuffer">Destination buffer. Must be at least <see cref="Size"/> bytes long.</param>
     /// <returns><see langword="true"/> when writing succeeds.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="outputBuffer"/> is too small.</exception>
-    public bool TryWritoTo(Span<byte> outputBuffer)
+    public bool TryWriteTo(Span<byte> outputBuffer)
     {
         if(outputBuffer.Length < Size)
         {
@@ -355,7 +355,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     public byte[] Build()
     {
         byte[] buffer = new byte[Size];
-        _ = TryWritoTo(buffer);
+        _ = TryWriteTo(buffer);
         return buffer;
     }
 }

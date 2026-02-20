@@ -50,7 +50,7 @@ public class OtherAbiEncoderTests
 
         _ = _encoder.String(bigIntValue).String(bigIntValue);
         byte[] actualOutput = new byte[_encoder.Size];
-        _ = _encoder.TryWritoTo(actualOutput.AsSpan());
+        _ = _encoder.TryWriteTo(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);
     }
 
@@ -65,7 +65,7 @@ public class OtherAbiEncoderTests
 
         _ = _encoder.Int8(1).String(bigIntValue);
         byte[] actualOutput = new byte[_encoder.Size];
-        _ = _encoder.TryWritoTo(actualOutput.AsSpan());
+        _ = _encoder.TryWriteTo(actualOutput.AsSpan());
         Assert.Equal(stringByte, actualOutput);
     }
 }

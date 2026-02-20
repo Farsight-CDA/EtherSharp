@@ -22,7 +22,7 @@ public static partial class AbiTypes
 
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
 
-            if(!Value.TryWritoTo(payload))
+            if(!Value.TryWriteTo(payload))
             {
                 throw new InvalidOperationException("Failed to write bytes");
             }

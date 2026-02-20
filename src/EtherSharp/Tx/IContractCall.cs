@@ -22,7 +22,7 @@ public interface IContractCall : ITxInput
     {
         byte[] data = new byte[functionSignature.Length + encoder.Size];
         functionSignature.CopyTo(data);
-        encoder.TryWritoTo(data.AsSpan()[functionSignature.Length..]);
+        encoder.TryWriteTo(data.AsSpan()[functionSignature.Length..]);
         return new TxInput(contractAddress, value, data);
     }
 
@@ -98,7 +98,7 @@ public interface IContractCall<T> : IContractCall, ITxInput<T>
     {
         byte[] data = new byte[functionSignature.Length + encoder.Size];
         functionSignature.CopyTo(data);
-        encoder.TryWritoTo(data.AsSpan()[functionSignature.Length..]);
+        encoder.TryWriteTo(data.AsSpan()[functionSignature.Length..]);
         return new TxInput<T>(contractAddress, value, data, x => decoder(new AbiDecoder(x)));
     }
 }

@@ -22,7 +22,7 @@ public partial interface IDynamicTupleEncoder
     /// </summary>
     /// <param name="outputBuffer">The buffer to write to.</param>
     /// <returns>True if the write was successful; otherwise, false.</returns>
-    internal bool TryWritoTo(Span<byte> outputBuffer);
+    internal bool TryWriteTo(Span<byte> outputBuffer);
 
     /// <summary>
     /// Encodes a boolean value.

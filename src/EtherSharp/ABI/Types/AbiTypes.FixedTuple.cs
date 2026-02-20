@@ -22,7 +22,7 @@ public static partial class AbiTypes
                 throw new InvalidOperationException("Tried to encode a dynamic value as a fixed tuple");
             }
 
-            value.TryWritoTo(buffer);
+            value.TryWriteTo(buffer);
         }
 
         public static T Decode<T>(AbiDecoder decoder, Func<IFixedTupleDecoder, T> subDecoder)
