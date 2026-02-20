@@ -191,7 +191,7 @@ public class AbiRoundTripTests
             .Build();
 
         var decoder = new AbiDecoder(encoded);
-        ReadOnlyMemory<byte>[] values = decoder.BytesArray();
+        var values = decoder.BytesArray();
         uint actual = decoder.UInt32();
 
         Assert.Equal(2, values.Length);
