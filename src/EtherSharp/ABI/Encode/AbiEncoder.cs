@@ -6,6 +6,9 @@ using EtherSharp.Types;
 
 namespace EtherSharp.ABI;
 
+/// <summary>
+/// Builds standard (non-packed) Ethereum ABI-encoded payloads.
+/// </summary>
 public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamicTupleEncoder
 {
     private readonly List<IEncodeType> _entries = [];
@@ -13,6 +16,9 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     private int _payloadSize;
     private int _metadataSize;
 
+    /// <summary>
+    /// Gets the total encoded size in bytes.
+    /// </summary>
     public int Size => _payloadSize + _metadataSize;
     int IArrayAbiEncoder.MetadataSize => _metadataSize;
     int IArrayAbiEncoder.PayloadSize => _payloadSize;
@@ -41,6 +47,14 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         return this;
     }
 
+    /// <summary>
+    /// Encodes a numeric value with the given signedness and bit width.
+    /// </summary>
+    /// <typeparam name="TNumber">CLR number type matching the requested ABI width.</typeparam>
+    /// <param name="number">Value to encode.</param>
+    /// <param name="isUnsigned"><see langword="true"/> for uintN, <see langword="false"/> for intN.</param>
+    /// <param name="bitLength">ABI bit width (8..256 in steps of 8).</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder Number<TNumber>(TNumber number, bool isUnsigned, int bitLength)
     {
         if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
@@ -78,29 +92,81 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
             _ => throw new NotSupportedException()
         });
     }
+    /// <summary>
+    /// Encodes a boolean value.
+    /// </summary>
+    /// <param name="value">Boolean to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder Bool(bool value)
         => AddElement(new AbiTypes.Bool(value));
+
+    /// <summary>
+    /// Encodes an Ethereum address.
+    /// </summary>
+    /// <param name="value">Address to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder Address(Address value)
         => AddElement(new AbiTypes.Address(value));
 
+    /// <summary>
+    /// Encodes a UTF-8 string as a dynamic ABI value.
+    /// </summary>
+    /// <param name="value">String to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder String(string value)
             => AddElement(new AbiTypes.String(value));
+
+    /// <summary>
+    /// Encodes a dynamic byte sequence.
+    /// </summary>
+    /// <param name="arr">Bytes to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder Bytes(ReadOnlyMemory<byte> arr)
         => AddElement(new AbiTypes.Bytes(arr));
 
+    /// <summary>
+    /// Encodes a dynamic array of booleans.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder BoolArray(params bool[] values)
         => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bool>(
                 [.. values.Select(x => new AbiTypes.Bool(x))]));
+
+    /// <summary>
+    /// Encodes a dynamic array of addresses.
+    /// </summary>
+    /// <param name="addresses">Addresses to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder AddressArray(params Address[] addresses)
         => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Address>(
             [.. addresses.Select(x => new AbiTypes.Address(x))]));
+
+    /// <summary>
+    /// Encodes a dynamic array of strings.
+    /// </summary>
+    /// <param name="value">Strings to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder StringArray(params string[] value)
         => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.String>(
             [.. value.Select(x => new AbiTypes.String(x))]));
+
+    /// <summary>
+    /// Encodes a dynamic array of dynamic byte sequences.
+    /// </summary>
+    /// <param name="value">Byte sequences to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder BytesArray(params ReadOnlyMemory<byte>[] value)
         => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bytes>(
             [.. value.Select(x => new AbiTypes.Bytes(x))]));
 
+    /// <summary>
+    /// Encodes a dynamic array by encoding each element with the provided callback.
+    /// </summary>
+    /// <typeparam name="T">Input element type.</typeparam>
+    /// <param name="values">Elements to encode.</param>
+    /// <param name="func">Callback that writes one element into an element encoder.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
     {
         var encoder = new AbiEncoder();
@@ -118,12 +184,22 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     void IArrayAbiEncoder.Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
         => Array(values, func);
 
+    /// <summary>
+    /// Encodes a dynamic tuple element.
+    /// </summary>
+    /// <param name="func">Callback that writes tuple fields.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder DynamicTuple(Action<IDynamicTupleEncoder> func)
     {
         var encoder = new AbiEncoder();
         func(encoder);
         return AddElement(new AbiTypes.DynamicTuple(encoder));
     }
+    /// <summary>
+    /// Encodes a fixed tuple element.
+    /// </summary>
+    /// <param name="func">Callback that writes tuple fields.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder FixedTuple(Action<IFixedTupleEncoder> func)
     {
         var encoder = new AbiEncoder();
@@ -167,6 +243,14 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     IDynamicTupleEncoder IDynamicTupleEncoder.Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
         => Array(values, func);
 
+    /// <summary>
+    /// Encodes an array of numeric values with the given signedness and bit width.
+    /// </summary>
+    /// <typeparam name="TNumber">CLR number type matching the requested ABI width.</typeparam>
+    /// <param name="isUnsigned"><see langword="true"/> for uintN[], <see langword="false"/> for intN[].</param>
+    /// <param name="bitLength">ABI bit width (8..256 in steps of 8).</param>
+    /// <param name="numbers">Values to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder NumberArray<TNumber>(bool isUnsigned, int bitLength, params TNumber[] numbers)
     {
         if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
@@ -215,6 +299,12 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         });
     }
 
+    /// <summary>
+    /// Writes the encoded payload into a caller-provided buffer.
+    /// </summary>
+    /// <param name="outputBuffer">Destination buffer. Must be at least <see cref="Size"/> bytes long.</param>
+    /// <returns><see langword="true"/> when writing succeeds.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="outputBuffer"/> is too small.</exception>
     public bool TryWritoTo(Span<byte> outputBuffer)
     {
         if(outputBuffer.Length < Size)
@@ -258,6 +348,10 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         return true;
     }
 
+    /// <summary>
+    /// Materializes the current encoded payload as a new byte array.
+    /// </summary>
+    /// <returns>The encoded ABI payload.</returns>
     public byte[] Build()
     {
         byte[] buffer = new byte[Size];

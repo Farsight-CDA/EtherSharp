@@ -7,9 +7,9 @@ using System.Buffers.Binary;
 namespace EtherSharp.ABI;
 
 /// <summary>
-/// ABI Decoding utility class
+/// Reads Ethereum ABI-encoded data sequentially from a byte buffer.
 /// </summary>
-/// <param name="bytes"></param>
+/// <param name="bytes">ABI-encoded payload to decode.</param>
 public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder, IDynamicTupleDecoder, IArrayAbiDecoder
 {
     private ReadOnlyMemory<byte> _bytes = bytes;
@@ -25,9 +25,9 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
         => BytesRead += 32;
 
     /// <summary>
-    /// Reads a boolean from the input.
+    /// Decodes the next ABI slot as a boolean value.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The decoded boolean.</returns>
     public bool Bool()
     {
         bool result = AbiTypes.Bool.Decode(CurrentSlot);
@@ -36,9 +36,9 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads an address from the input.
+    /// Decodes the next ABI slot as an Ethereum address.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The decoded address.</returns>
     public Address Address()
     {
         var result = AbiTypes.Address.Decode(CurrentSlot);
@@ -47,9 +47,9 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads a string from the input.
+    /// Decodes the next ABI slot as a dynamic UTF-8 string.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The decoded string.</returns>
     public string String()
     {
         string result = AbiTypes.String.Decode(_bytes.Span, BytesRead);
@@ -58,9 +58,9 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads bytes from the input.
+    /// Decodes the next ABI slot as a dynamic byte array.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The decoded bytes.</returns>
     public ReadOnlyMemory<byte> Bytes()
     {
         var result = AbiTypes.Bytes.Decode(_bytes, BytesRead);
@@ -69,11 +69,11 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads a sized byte from the input.
+    /// Decodes the next ABI slot as a fixed-size byte value (<c>bytesN</c>).
     /// </summary>
-    /// <param name="bitLength"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <param name="bitLength">Bit width of the target value (8..256 in steps of 8).</param>
+    /// <returns>The decoded bytes.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="bitLength"/> is outside ABI bounds.</exception>
     public ReadOnlyMemory<byte> SizedBytes(int bitLength)
     {
         if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
@@ -87,14 +87,14 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads a sized number from the input.
+    /// Decodes the next ABI slot as a numeric value (<c>intN</c> or <c>uintN</c>).
     /// </summary>
-    /// <typeparam name="TNumber"></typeparam>
-    /// <param name="isUnsigned"></param>
-    /// <param name="bitLength"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
-    /// <exception cref="NotSupportedException"></exception>
+    /// <typeparam name="TNumber">Expected CLR result type for the requested ABI width.</typeparam>
+    /// <param name="isUnsigned"><see langword="true"/> for uintN, <see langword="false"/> for intN.</param>
+    /// <param name="bitLength">ABI bit width (8..256 in steps of 8).</param>
+    /// <returns>The decoded numeric value.</returns>
+    /// <exception cref="ArgumentException">Thrown for invalid bit widths or mismatched CLR target type.</exception>
+    /// <exception cref="NotSupportedException">Thrown when the requested configuration is unsupported.</exception>
     public TNumber Number<TNumber>(bool isUnsigned, int bitLength)
     {
         if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
@@ -142,10 +142,10 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Readas a boolean array from the input.
+    /// Decodes the next ABI slot as a dynamic array of booleans.
     /// </summary>
-    /// <returns></returns>
-    /// <exception cref="IndexOutOfRangeException"></exception>
+    /// <returns>The decoded boolean array.</returns>
+    /// <exception cref="IndexOutOfRangeException">Thrown when the encoded offsets/lengths point outside the payload.</exception>
     public bool[] BoolArray()
     {
         int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
@@ -168,10 +168,10 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads an address array from the input.
+    /// Decodes the next ABI slot as a dynamic array of addresses.
     /// </summary>
-    /// <returns></returns>
-    /// <exception cref="IndexOutOfRangeException"></exception>
+    /// <returns>The decoded address array.</returns>
+    /// <exception cref="IndexOutOfRangeException">Thrown when the encoded offsets/lengths point outside the payload.</exception>
     public Address[] AddressArray()
     {
         int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
@@ -194,14 +194,14 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads a sized number array from the input.
+    /// Decodes the next ABI slot as a numeric array (<c>intN[]</c> or <c>uintN[]</c>).
     /// </summary>
-    /// <typeparam name="TNumber"></typeparam>
-    /// <param name="isUnsigned"></param>
-    /// <param name="bitLength"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
-    /// <exception cref="NotSupportedException"></exception>
+    /// <typeparam name="TNumber">Expected CLR element type for the requested ABI width.</typeparam>
+    /// <param name="isUnsigned"><see langword="true"/> for uintN[], <see langword="false"/> for intN[].</param>
+    /// <param name="bitLength">ABI bit width (8..256 in steps of 8).</param>
+    /// <returns>The decoded numeric array.</returns>
+    /// <exception cref="ArgumentException">Thrown for invalid bit widths or mismatched CLR element type.</exception>
+    /// <exception cref="NotSupportedException">Thrown when the requested configuration is unsupported.</exception>
     public TNumber[] NumberArray<TNumber>(bool isUnsigned, uint bitLength)
     {
         if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
@@ -249,10 +249,10 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads a string array from the input.
+    /// Decodes the next ABI slot as a dynamic array of strings.
     /// </summary>
-    /// <returns></returns>
-    /// <exception cref="IndexOutOfRangeException"></exception>
+    /// <returns>The decoded string array.</returns>
+    /// <exception cref="IndexOutOfRangeException">Thrown when the encoded offsets/lengths point outside the payload.</exception>
     public string[] StringArray()
     {
         int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
@@ -274,10 +274,10 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads an array of bytes from the input.
+    /// Decodes the next ABI slot as a dynamic array of byte arrays.
     /// </summary>
-    /// <returns></returns>
-    /// <exception cref="IndexOutOfRangeException"></exception>
+    /// <returns>The decoded array of byte buffers.</returns>
+    /// <exception cref="IndexOutOfRangeException">Thrown when the encoded offsets/lengths point outside the payload.</exception>
     public ReadOnlyMemory<byte>[] BytesArray()
     {
         int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
@@ -299,11 +299,11 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads an array of dynamic types from the input.
+    /// Decodes the next ABI slot as an array using a custom element decoder.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="func"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">Element result type.</typeparam>
+    /// <param name="func">Element decoder that reads one element from an array decoder.</param>
+    /// <returns>The decoded array.</returns>
     public T[] Array<T>(Func<IArrayAbiDecoder, T> func)
     {
         var result = AbiTypes.Array.Decode(_bytes, BytesRead, func);
@@ -312,11 +312,11 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads a non dynamic tuple from the input.
+    /// Decodes a fixed (static) tuple at the current decoder position.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="func"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">Tuple projection result type.</typeparam>
+    /// <param name="func">Projection that reads tuple fields from a fixed-tuple decoder.</param>
+    /// <returns>The projected tuple result.</returns>
     public T FixedTuple<T>(Func<IFixedTupleDecoder, T> func)
     {
         var result = AbiTypes.FixedTuple.Decode(this, func);
@@ -324,11 +324,11 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Reads a dynamic tuple type from the input.
+    /// Decodes the next ABI slot as a dynamic tuple.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="func"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">Tuple projection result type.</typeparam>
+    /// <param name="func">Projection that reads tuple fields from a dynamic-tuple decoder.</param>
+    /// <returns>The projected tuple result.</returns>
     public T DynamicTuple<T>(Func<IDynamicTupleDecoder, T> func)
     {
         var result = AbiTypes.DynamicTuple.Decode(_bytes, BytesRead, func);

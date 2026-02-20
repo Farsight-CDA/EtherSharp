@@ -5,10 +5,16 @@ using EtherSharp.Types;
 
 namespace EtherSharp.ABI.Packed;
 
+/// <summary>
+/// Builds Ethereum ABI-packed (tightly packed) byte payloads.
+/// </summary>
 public partial class PackedAbiEncoder
 {
     private readonly List<IPackedEncodeType> _entries = [];
 
+    /// <summary>
+    /// Gets the total packed size in bytes.
+    /// </summary>
     public int Size { get; private set; }
 
     private PackedAbiEncoder AddElement(IPackedEncodeType type)
@@ -18,6 +24,14 @@ public partial class PackedAbiEncoder
         return this;
     }
 
+    /// <summary>
+    /// Encodes a packed numeric value with the given signedness and bit width.
+    /// </summary>
+    /// <typeparam name="TNumber">CLR number type matching the requested ABI width.</typeparam>
+    /// <param name="number">Value to encode.</param>
+    /// <param name="isUnsigned"><see langword="true"/> for uintN, <see langword="false"/> for intN.</param>
+    /// <param name="bitLength">ABI bit width (8..256 in steps of 8).</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public PackedAbiEncoder Number<TNumber>(TNumber number, bool isUnsigned, int bitLength)
     {
         if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
@@ -55,16 +69,44 @@ public partial class PackedAbiEncoder
             _ => throw new NotSupportedException()
         });
     }
+    /// <summary>
+    /// Encodes a boolean value in packed format.
+    /// </summary>
+    /// <param name="value">Boolean to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public PackedAbiEncoder Bool(bool value)
         => AddElement(new AbiTypes.Bool(value));
+
+    /// <summary>
+    /// Encodes an Ethereum address in packed format.
+    /// </summary>
+    /// <param name="value">Address to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public PackedAbiEncoder Address(Address value)
         => AddElement(new AbiTypes.Address(value));
 
+    /// <summary>
+    /// Encodes a UTF-8 string in packed format.
+    /// </summary>
+    /// <param name="value">String to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public PackedAbiEncoder String(string value)
             => AddElement(new AbiTypes.String(value));
+
+    /// <summary>
+    /// Encodes a dynamic byte sequence in packed format.
+    /// </summary>
+    /// <param name="arr">Bytes to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
     public PackedAbiEncoder Bytes(ReadOnlyMemory<byte> arr)
         => AddElement(new AbiTypes.Bytes(arr));
 
+    /// <summary>
+    /// Writes the packed payload into a caller-provided buffer.
+    /// </summary>
+    /// <param name="outputBuffer">Destination buffer. Must be at least <see cref="Size"/> bytes long.</param>
+    /// <returns><see langword="true"/> when writing succeeds.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="outputBuffer"/> is too small.</exception>
     public bool TryWritoTo(Span<byte> outputBuffer)
     {
         if(outputBuffer.Length < Size)
@@ -88,6 +130,10 @@ public partial class PackedAbiEncoder
         return true;
     }
 
+    /// <summary>
+    /// Materializes the current packed payload as a new byte array.
+    /// </summary>
+    /// <returns>The encoded packed payload.</returns>
     public byte[] Build()
     {
         byte[] buffer = new byte[Size];
