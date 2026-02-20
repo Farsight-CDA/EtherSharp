@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Generator.Abi.Members;
+
 public class FunctionAbiMember : AbiMember
 {
     [JsonRequired]

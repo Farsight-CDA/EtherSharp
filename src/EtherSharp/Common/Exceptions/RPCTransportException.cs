@@ -1,4 +1,5 @@
 ﻿namespace EtherSharp.Common.Exceptions;
+
 public class RPCTransportException : Exception
 {
     public RPCTransportException(string message)

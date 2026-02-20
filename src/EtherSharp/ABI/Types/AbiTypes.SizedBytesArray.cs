@@ -5,11 +5,11 @@ namespace EtherSharp.ABI.Types;
 
 public static partial class AbiTypes
 {
-    public class SizedBytesArray : DynamicType<byte[][]>
+    public class SizedBytesArray : DynamicType<ReadOnlyMemory<byte>[]>
     {
         public override int PayloadSize => (32 * Value.Length) + 32;
 
-        internal SizedBytesArray(byte[][] values, int length)
+        internal SizedBytesArray(ReadOnlyMemory<byte>[] values, int length)
             : base(values)
         {
             for(int i = 0; i < Value.Length; i++)
@@ -34,17 +34,17 @@ public static partial class AbiTypes
             }
         }
 
-        public static byte[][] Decode(ReadOnlyMemory<byte> bytes, int metaDataOffset, int byteSize)
+        public static ReadOnlyMemory<byte>[] Decode(ReadOnlyMemory<byte> bytes, int metaDataOffset, int byteSize)
         {
             int arrayOffest = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(metaDataOffset + 28)..(metaDataOffset + 32)]);
             int length = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(arrayOffest + 28)..(arrayOffest + 32)]);
             var data = bytes[(arrayOffest + 32)..];
 
-            byte[][] results = new byte[length][];
+            ReadOnlyMemory<byte>[] results = new ReadOnlyMemory<byte>[length];
 
             for(int i = 0; i < length; i++)
             {
-                results[i] = data.Slice(i * 32, byteSize).ToArray();
+                results[i] = data.Slice(i * 32, byteSize);
             }
 
             return results;

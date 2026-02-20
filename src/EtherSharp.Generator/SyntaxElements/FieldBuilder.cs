@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 
 namespace EtherSharp.Generator.SyntaxElements;
+
 public enum FieldVisibility
 {
     Public,

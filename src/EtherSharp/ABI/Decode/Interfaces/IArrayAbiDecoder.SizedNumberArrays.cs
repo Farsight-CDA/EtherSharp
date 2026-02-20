@@ -1,72 +1,327 @@
-﻿using EtherSharp.Numerics;
+using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI.Decode.Interfaces;
 public partial interface IArrayAbiDecoder
 {
+    /// <summary>
+    /// Reads an int8 array from the input.
+    /// </summary>
+    /// <returns>The decoded signed byte array.</returns>
     public sbyte[] Int8Array();
+    /// <summary>
+    /// Reads a uint8 array from the input.
+    /// </summary>
+    /// <returns>The decoded byte array.</returns>
     public byte[] UInt8Array();    
 
+    /// <summary>
+    /// Reads an int16 array from the input.
+    /// </summary>
+    /// <returns>The decoded short array.</returns>
     public short[] Int16Array();
+    /// <summary>
+    /// Reads a uint16 array from the input.
+    /// </summary>
+    /// <returns>The decoded unsigned short array.</returns>
     public ushort[] UInt16Array();
+    /// <summary>
+    /// Reads an int24 array from the input.
+    /// </summary>
+    /// <returns>The decoded int array.</returns>
     public int[] Int24Array();
+    /// <summary>
+    /// Reads a uint24 array from the input.
+    /// </summary>
+    /// <returns>The decoded uint array.</returns>
     public uint[] UInt24Array();
+    /// <summary>
+    /// Reads an int32 array from the input.
+    /// </summary>
+    /// <returns>The decoded int array.</returns>
     public int[] Int32Array();
+    /// <summary>
+    /// Reads a uint32 array from the input.
+    /// </summary>
+    /// <returns>The decoded uint array.</returns>
     public uint[] UInt32Array();
+    /// <summary>
+    /// Reads an int40 array from the input.
+    /// </summary>
+    /// <returns>The decoded long array.</returns>
     public long[] Int40Array();
+    /// <summary>
+    /// Reads a uint40 array from the input.
+    /// </summary>
+    /// <returns>The decoded ulong array.</returns>
     public ulong[] UInt40Array();
+    /// <summary>
+    /// Reads an int48 array from the input.
+    /// </summary>
+    /// <returns>The decoded long array.</returns>
     public long[] Int48Array();
+    /// <summary>
+    /// Reads a uint48 array from the input.
+    /// </summary>
+    /// <returns>The decoded ulong array.</returns>
     public ulong[] UInt48Array();
+    /// <summary>
+    /// Reads an int56 array from the input.
+    /// </summary>
+    /// <returns>The decoded long array.</returns>
     public long[] Int56Array();
+    /// <summary>
+    /// Reads a uint56 array from the input.
+    /// </summary>
+    /// <returns>The decoded ulong array.</returns>
     public ulong[] UInt56Array();
+    /// <summary>
+    /// Reads an int64 array from the input.
+    /// </summary>
+    /// <returns>The decoded long array.</returns>
     public long[] Int64Array();
+    /// <summary>
+    /// Reads a uint64 array from the input.
+    /// </summary>
+    /// <returns>The decoded ulong array.</returns>
     public ulong[] UInt64Array();
+    /// <summary>
+    /// Reads an int72 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int72Array();
+    /// <summary>
+    /// Reads a uint72 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt72Array();
+    /// <summary>
+    /// Reads an int80 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int80Array();
+    /// <summary>
+    /// Reads a uint80 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt80Array();
+    /// <summary>
+    /// Reads an int88 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int88Array();
+    /// <summary>
+    /// Reads a uint88 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt88Array();
+    /// <summary>
+    /// Reads an int96 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int96Array();
+    /// <summary>
+    /// Reads a uint96 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt96Array();
+    /// <summary>
+    /// Reads an int104 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int104Array();
+    /// <summary>
+    /// Reads a uint104 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt104Array();
+    /// <summary>
+    /// Reads an int112 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int112Array();
+    /// <summary>
+    /// Reads a uint112 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt112Array();
+    /// <summary>
+    /// Reads an int120 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int120Array();
+    /// <summary>
+    /// Reads a uint120 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt120Array();
+    /// <summary>
+    /// Reads an int128 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int128Array();
+    /// <summary>
+    /// Reads a uint128 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt128Array();
+    /// <summary>
+    /// Reads an int136 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int136Array();
+    /// <summary>
+    /// Reads a uint136 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt136Array();
+    /// <summary>
+    /// Reads an int144 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int144Array();
+    /// <summary>
+    /// Reads a uint144 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt144Array();
+    /// <summary>
+    /// Reads an int152 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int152Array();
+    /// <summary>
+    /// Reads a uint152 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt152Array();
+    /// <summary>
+    /// Reads an int160 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int160Array();
+    /// <summary>
+    /// Reads a uint160 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt160Array();
+    /// <summary>
+    /// Reads an int168 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int168Array();
+    /// <summary>
+    /// Reads a uint168 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt168Array();
+    /// <summary>
+    /// Reads an int176 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int176Array();
+    /// <summary>
+    /// Reads a uint176 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt176Array();
+    /// <summary>
+    /// Reads an int184 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int184Array();
+    /// <summary>
+    /// Reads a uint184 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt184Array();
+    /// <summary>
+    /// Reads an int192 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int192Array();
+    /// <summary>
+    /// Reads a uint192 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt192Array();
+    /// <summary>
+    /// Reads an int200 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int200Array();
+    /// <summary>
+    /// Reads a uint200 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt200Array();
+    /// <summary>
+    /// Reads an int208 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int208Array();
+    /// <summary>
+    /// Reads a uint208 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt208Array();
+    /// <summary>
+    /// Reads an int216 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int216Array();
+    /// <summary>
+    /// Reads a uint216 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt216Array();
+    /// <summary>
+    /// Reads an int224 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int224Array();
+    /// <summary>
+    /// Reads a uint224 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt224Array();
+    /// <summary>
+    /// Reads an int232 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int232Array();
+    /// <summary>
+    /// Reads a uint232 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt232Array();
+    /// <summary>
+    /// Reads an int240 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int240Array();
+    /// <summary>
+    /// Reads a uint240 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt240Array();
+    /// <summary>
+    /// Reads an int248 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int248Array();
+    /// <summary>
+    /// Reads a uint248 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt248Array();
+    /// <summary>
+    /// Reads an int256 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int256Array();
+    /// <summary>
+    /// Reads a uint256 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt256Array();
 }
-

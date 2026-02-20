@@ -1,3 +1,5 @@
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
 using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Decode.Interfaces;
 
@@ -5,9 +7,9 @@ namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
     /// <summary>
-    /// Reads a bytes1 from the input.
+    /// Reads a bytes1 value from the input.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The decoded byte value.</returns>
     public byte Bytes1()
     {
         var result = AbiTypes.Byte.Decode(CurrentSlot);
@@ -24,18 +26,18 @@ public partial class AbiDecoder
     {
 #>
     /// <summary>
-    /// Reads a bytes<#=i#> from the input.
+    /// Reads a bytes<#=i#> value from the input.
     /// </summary>
-    /// <returns></returns>
-    public ReadOnlySpan<byte> Bytes<#=i#>()
+    /// <returns>The decoded <#=i#>-byte value.</returns>
+    public ReadOnlyMemory<byte> Bytes<#=i#>()
     {
-        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, <#=i#>);
+        var result = AbiTypes.SizedBytes.Decode(_bytes.Slice(BytesRead, 32), <#=i#>);
         ConsumeBytes();
         return result;
     }
-    ReadOnlySpan<byte> IFixedTupleDecoder.Bytes<#=i#>()
+    ReadOnlyMemory<byte> IFixedTupleDecoder.Bytes<#=i#>()
         => Bytes<#=i#>();
-    ReadOnlySpan<byte> IDynamicTupleDecoder.Bytes<#=i#>()
+    ReadOnlyMemory<byte> IDynamicTupleDecoder.Bytes<#=i#>()
         => Bytes<#=i#>();
 
 <#

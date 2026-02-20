@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Types;
 
 namespace EtherSharp.Wallet;
+
 public interface IEtherSigner
 {
     public Address Address { get; }

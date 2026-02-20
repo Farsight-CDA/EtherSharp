@@ -2,6 +2,7 @@
 using EtherSharp.Types;
 
 namespace EtherSharp.Tests.EIPs;
+
 public class EIP55Tests
 {
     [Fact]

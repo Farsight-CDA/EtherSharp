@@ -1,6 +1,7 @@
 ﻿using EtherSharp.ABI;
 
 namespace EtherSharp.Tests.ABI.Decoder;
+
 public class StringAbiDecoderTest
 {
 

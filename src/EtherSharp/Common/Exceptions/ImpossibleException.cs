@@ -1,4 +1,5 @@
 ﻿namespace EtherSharp.Common.Exceptions;
+
 internal class ImpossibleException : Exception
 {
     public ImpossibleException()

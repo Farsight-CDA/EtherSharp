@@ -2,6 +2,7 @@
 using EtherSharp.Types;
 
 namespace EtherSharp.Tests.ABI.Decoder;
+
 public class AddressAbiDecoderTests
 {
     [Fact]

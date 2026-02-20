@@ -2,6 +2,7 @@
 using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Client.Services.TxTypeHandler;
+
 public interface ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
     where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
     where TTxParams : ITxParams<TTxParams>

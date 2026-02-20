@@ -1,6 +1,7 @@
 ﻿using EtherSharp.ABI;
 
 namespace EtherSharp.Tests.ABI.E2E;
+
 public class ComplexEncodingTests
 {
     [Fact]

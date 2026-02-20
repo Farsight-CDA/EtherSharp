@@ -1,6 +1,5 @@
 <#@ template language="C#" #>
 <#@ output extension=".cs" #>
-<#@ import namespace="System" #>
 using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.Numerics;
@@ -8,6 +7,11 @@ using EtherSharp.Numerics;
 namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
+    /// <summary>
+    /// Encodes a uint8 value.
+    /// </summary>
+    /// <param name="value">The byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder UInt8(byte value)
         => AddElement(new AbiTypes.Byte(value));
     IFixedTupleEncoder IFixedTupleEncoder.UInt8(byte value)
@@ -15,6 +19,11 @@ public partial class AbiEncoder
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt8(byte value)
         => UInt8(value);
 
+    /// <summary>
+    /// Encodes an int8 value.
+    /// </summary>
+    /// <param name="value">The signed byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Int8(sbyte value)
         => AddElement(new AbiTypes.SByte(value));
     IFixedTupleEncoder IFixedTupleEncoder.Int8(sbyte value)
@@ -22,6 +31,11 @@ public partial class AbiEncoder
     IDynamicTupleEncoder IDynamicTupleEncoder.Int8(sbyte value)
         => Int8(value);
 
+    /// <summary>
+    /// Encodes a uint16 value.
+    /// </summary>
+    /// <param name="value">The unsigned short value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder UInt16(ushort value)
         => AddElement(new AbiTypes.UShort(value));
     IFixedTupleEncoder IFixedTupleEncoder.UInt16(ushort value)
@@ -29,6 +43,11 @@ public partial class AbiEncoder
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt16(ushort value)
         => UInt16(value);
 
+    /// <summary>
+    /// Encodes an int16 value.
+    /// </summary>
+    /// <param name="value">The short value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Int16(short value)
         => AddElement(new AbiTypes.Short(value));
     IFixedTupleEncoder IFixedTupleEncoder.Int16(short value)
@@ -40,6 +59,11 @@ public partial class AbiEncoder
     for(var i = 24; i <= 32;i=i+8)
     {
 #>
+    /// <summary>
+    /// Encodes an int<#=i#> value.
+    /// </summary>
+    /// <param name="value">The int value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Int<#=i#>(int value)
         => AddElement(new AbiTypes.Int(value, <#=i/8#>));
     IFixedTupleEncoder IFixedTupleEncoder.Int<#=i#>(int value)
@@ -47,6 +71,11 @@ public partial class AbiEncoder
     IDynamicTupleEncoder IDynamicTupleEncoder.Int<#=i#>(int value)
         => Int<#=i#>(value);
 
+    /// <summary>
+    /// Encodes a uint<#=i#> value.
+    /// </summary>
+    /// <param name="value">The uint value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder UInt<#=i#>(uint value)
         => AddElement(new AbiTypes.UInt(value, <#=i/8#>));
     IFixedTupleEncoder IFixedTupleEncoder.UInt<#=i#>(uint value)
@@ -60,6 +89,11 @@ public partial class AbiEncoder
     for(var i = 40; i <= 64;i=i+8)
     {
 #>
+    /// <summary>
+    /// Encodes an int<#=i#> value.
+    /// </summary>
+    /// <param name="value">The long value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Int<#=i#>(long value)
         => AddElement(new AbiTypes.Long(value, <#=i/8#>));
     IFixedTupleEncoder IFixedTupleEncoder.Int<#=i#>(long value)
@@ -67,6 +101,11 @@ public partial class AbiEncoder
     IDynamicTupleEncoder IDynamicTupleEncoder.Int<#=i#>(long value)
         => Int<#=i#>(value);
 
+    /// <summary>
+    /// Encodes a uint<#=i#> value.
+    /// </summary>
+    /// <param name="value">The ulong value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder UInt<#=i#>(ulong value)
         => AddElement(new AbiTypes.ULong(value, <#=i/8#>));
     IFixedTupleEncoder IFixedTupleEncoder.UInt<#=i#>(ulong value)
@@ -80,6 +119,11 @@ public partial class AbiEncoder
     for(var i = 72; i <= 256;i=i+8)
     {
 #>
+    /// <summary>
+    /// Encodes an int<#=i#> value.
+    /// </summary>
+    /// <param name="value">The Int256 value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Int<#=i#>(Int256 value)
         => AddElement(new AbiTypes.Int256(value, <#=i/8#>));
     IFixedTupleEncoder IFixedTupleEncoder.Int<#=i#>(Int256 value)
@@ -87,6 +131,11 @@ public partial class AbiEncoder
     IDynamicTupleEncoder IDynamicTupleEncoder.Int<#=i#>(Int256 value)
         => Int<#=i#>(value);
 
+    /// <summary>
+    /// Encodes a uint<#=i#> value.
+    /// </summary>
+    /// <param name="value">The UInt256 value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder UInt<#=i#>(UInt256 value)
         => AddElement(new AbiTypes.UInt256(value, <#=i/8#>));
     IFixedTupleEncoder IFixedTupleEncoder.UInt<#=i#>(UInt256 value)

@@ -1,6 +1,7 @@
 ﻿using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
+
 public class UntypedArgument(string sourceExpression)
 {
     public string SourceExpression { get; } = sourceExpression;

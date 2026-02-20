@@ -61,9 +61,9 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// Reads bytes from the input.
     /// </summary>
     /// <returns></returns>
-    public ReadOnlySpan<byte> Bytes()
+    public ReadOnlyMemory<byte> Bytes()
     {
-        var result = AbiTypes.Bytes.Decode(_bytes.Span, BytesRead);
+        var result = AbiTypes.Bytes.Decode(_bytes, BytesRead);
         ConsumeBytes();
         return result;
     }
@@ -74,14 +74,14 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// <param name="bitLength"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public ReadOnlySpan<byte> SizedBytes(int bitLength)
+    public ReadOnlyMemory<byte> SizedBytes(int bitLength)
     {
         if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
         {
             throw new ArgumentException("Invalid bitLength", nameof(bitLength));
         }
 
-        var result = AbiTypes.SizedBytes.Decode(CurrentSlot, bitLength / 8);
+        var result = AbiTypes.SizedBytes.Decode(_bytes.Slice(BytesRead, 32), bitLength / 8);
         ConsumeBytes();
         return result;
     }
@@ -278,7 +278,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// </summary>
     /// <returns></returns>
     /// <exception cref="IndexOutOfRangeException"></exception>
-    public byte[][] BytesArray()
+    public ReadOnlyMemory<byte>[] BytesArray()
     {
         int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
 
@@ -286,13 +286,13 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
         uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload.Span[28..32]);
 
-        byte[][] values = new byte[arrayLength][];
+        ReadOnlyMemory<byte>[] values = new ReadOnlyMemory<byte>[arrayLength];
 
         var decoder = new AbiDecoder(payload[32..]);
 
         for(int i = 0; i < arrayLength; i++)
         {
-            values[i] = decoder.Bytes().ToArray();
+            values[i] = decoder.Bytes();
         }
 
         return values;

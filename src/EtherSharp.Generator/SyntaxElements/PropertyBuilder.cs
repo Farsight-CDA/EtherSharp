@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
+
 public enum PropertyVisibility
 {
     Public,

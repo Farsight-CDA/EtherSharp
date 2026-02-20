@@ -1,6 +1,7 @@
 ﻿using EtherSharp.ABI.Packed;
 
 namespace EtherSharp.Tests.ABI.Packed;
+
 public class AddressAbiEncoderTests
 {
     private readonly PackedAbiEncoder _encoder;

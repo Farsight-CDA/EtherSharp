@@ -2,6 +2,7 @@
 using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
+
 public class EnumerationEntry(string value, string? summaryComment)
 {
     public string Value { get; } = value;

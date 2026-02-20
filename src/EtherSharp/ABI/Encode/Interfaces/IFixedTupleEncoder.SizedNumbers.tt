@@ -1,19 +1,51 @@
-﻿using EtherSharp.Numerics;
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
 public partial interface IFixedTupleEncoder 
 {
+    /// <summary>
+    /// Encodes an int8 value.
+    /// </summary>
+    /// <param name="value">The signed byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public IFixedTupleEncoder Int8(sbyte value);
+    /// <summary>
+    /// Encodes a uint8 value.
+    /// </summary>
+    /// <param name="value">The byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public IFixedTupleEncoder UInt8(byte value);
 
+    /// <summary>
+    /// Encodes an int16 value.
+    /// </summary>
+    /// <param name="value">The short value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public IFixedTupleEncoder Int16(short value);
+    /// <summary>
+    /// Encodes a uint16 value.
+    /// </summary>
+    /// <param name="value">The unsigned short value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public IFixedTupleEncoder UInt16(ushort value);
 
 <#
     for(var i = 24; i <= 32;i=i+8)
     {
 #>
+    /// <summary>
+    /// Encodes an int<#=i#> value.
+    /// </summary>
+    /// <param name="value">The int value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public IFixedTupleEncoder Int<#=i#>(int value);
+    /// <summary>
+    /// Encodes a uint<#=i#> value.
+    /// </summary>
+    /// <param name="value">The uint value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public IFixedTupleEncoder UInt<#=i#>(uint value);
 <#
     }
@@ -22,7 +54,17 @@ public partial interface IFixedTupleEncoder
     for(var i = 40; i <= 64;i=i+8)
     {
 #>
+    /// <summary>
+    /// Encodes an int<#=i#> value.
+    /// </summary>
+    /// <param name="value">The long value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public IFixedTupleEncoder Int<#=i#>(long value);
+    /// <summary>
+    /// Encodes a uint<#=i#> value.
+    /// </summary>
+    /// <param name="value">The ulong value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public IFixedTupleEncoder UInt<#=i#>(ulong value);
 <#
     }
@@ -31,7 +73,17 @@ public partial interface IFixedTupleEncoder
     for(var i = 72; i <= 256;i=i+8)
     {
 #>
+    /// <summary>
+    /// Encodes an int<#=i#> value.
+    /// </summary>
+    /// <param name="value">The Int256 value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public IFixedTupleEncoder Int<#=i#>(Int256 value);
+    /// <summary>
+    /// Encodes a uint<#=i#> value.
+    /// </summary>
+    /// <param name="value">The UInt256 value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public IFixedTupleEncoder UInt<#=i#>(UInt256 value);
 <#
     }

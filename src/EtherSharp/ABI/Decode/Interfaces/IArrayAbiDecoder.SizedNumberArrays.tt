@@ -1,18 +1,44 @@
-﻿using EtherSharp.Numerics;
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI.Decode.Interfaces;
 public partial interface IArrayAbiDecoder
 {
+    /// <summary>
+    /// Reads an int8 array from the input.
+    /// </summary>
+    /// <returns>The decoded signed byte array.</returns>
     public sbyte[] Int8Array();
+    /// <summary>
+    /// Reads a uint8 array from the input.
+    /// </summary>
+    /// <returns>The decoded byte array.</returns>
     public byte[] UInt8Array();    
 
+    /// <summary>
+    /// Reads an int16 array from the input.
+    /// </summary>
+    /// <returns>The decoded short array.</returns>
     public short[] Int16Array();
+    /// <summary>
+    /// Reads a uint16 array from the input.
+    /// </summary>
+    /// <returns>The decoded unsigned short array.</returns>
     public ushort[] UInt16Array();
 <#
     for(var i = 24; i <= 32;i=i+8)
     {
 #>
+    /// <summary>
+    /// Reads an int<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded int array.</returns>
     public int[] Int<#=i#>Array();
+    /// <summary>
+    /// Reads a uint<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded uint array.</returns>
     public uint[] UInt<#=i#>Array();
 <#
     }
@@ -21,7 +47,15 @@ public partial interface IArrayAbiDecoder
     for(var i = 40; i <= 64;i=i+8)
     {
 #>
+    /// <summary>
+    /// Reads an int<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded long array.</returns>
     public long[] Int<#=i#>Array();
+    /// <summary>
+    /// Reads a uint<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded ulong array.</returns>
     public ulong[] UInt<#=i#>Array();
 <#
     }
@@ -30,10 +64,17 @@ public partial interface IArrayAbiDecoder
     for(var i = 72; i <= 256;i=i+8)
     {
 #>
+    /// <summary>
+    /// Reads an int<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int<#=i#>Array();
+    /// <summary>
+    /// Reads a uint<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt<#=i#>Array();
 <#
     }
 #>
 }
-

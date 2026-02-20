@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Generator.Abi.Parameters;
+
 public class AbiParameter
 {
     [JsonRequired]

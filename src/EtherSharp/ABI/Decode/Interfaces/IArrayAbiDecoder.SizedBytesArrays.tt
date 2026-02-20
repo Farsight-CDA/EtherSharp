@@ -1,16 +1,23 @@
-﻿using System.Numerics;
-
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
 namespace EtherSharp.ABI.Decode.Interfaces;
 public partial interface IArrayAbiDecoder
 {
+    /// <summary>
+    /// Reads a bytes1 array from the input.
+    /// </summary>
+    /// <returns>The decoded byte array.</returns>
     public byte[] Bytes1Array();    
 <#
     for(var i = 2; i <= 32;i=i+1)
     {
 #>
-    public byte[][] Bytes<#=i#>Array();
+    /// <summary>
+    /// Reads a bytes<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded array of <#=i#>-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes<#=i#>Array();
 <#
     }
 #>
 }
-

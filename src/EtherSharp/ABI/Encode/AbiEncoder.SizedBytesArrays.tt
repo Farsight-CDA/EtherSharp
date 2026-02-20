@@ -1,12 +1,16 @@
 <#@ template language="C#" #>
 <#@ output extension=".cs" #>
-<#@ import namespace="System" #>
 using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
 
 namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
+    /// <summary>
+    /// Encodes a bytes1 array value.
+    /// </summary>
+    /// <param name="value">The byte array to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes1Array(params byte[] value)
         => AddElement(new AbiTypes.SizedBytesArray([value], 1));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes1Array(params byte[] value)
@@ -17,11 +21,16 @@ public partial class AbiEncoder
     for(var i = 2; i <= 32;i=i+1)
     {
 #>
-    public AbiEncoder Bytes<#=i#>Array(params byte[][] values)
+    /// <summary>
+    /// Encodes a bytes<#=i#> array value.
+    /// </summary>
+    /// <param name="values">The array of <#=i#>-byte values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes<#=i#>Array(params ReadOnlyMemory<byte>[] values)
         => AddElement(new AbiTypes.SizedBytesArray(values, <#=i#>));
-    IArrayAbiEncoder IArrayAbiEncoder.Bytes<#=i#>Array(params byte[][] value)
-        => Bytes<#=i#>Array(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes<#=i#>Array(params byte[][] values)
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes<#=i#>Array(params ReadOnlyMemory<byte>[] values)
+        => Bytes<#=i#>Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes<#=i#>Array(params ReadOnlyMemory<byte>[] values)
         => Bytes<#=i#>Array(values);
 <#
     }

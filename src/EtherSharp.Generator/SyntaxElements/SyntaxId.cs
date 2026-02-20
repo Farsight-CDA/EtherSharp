@@ -1,4 +1,5 @@
 ﻿namespace EtherSharp.Generator.SyntaxElements;
+
 public readonly struct SyntaxId(int id)
 {
     private readonly int Id = id;

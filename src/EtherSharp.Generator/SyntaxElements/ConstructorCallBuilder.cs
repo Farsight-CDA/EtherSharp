@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
+
 public class ConstructorCallBuilder(string constructedType)
 {
     private readonly CallArgumentsBuilder _argumentsBuilder = new CallArgumentsBuilder();

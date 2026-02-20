@@ -5,6 +5,7 @@ using EtherSharp.Contract;
 using EtherSharp.Wallet;
 
 namespace EtherSharp.Bench;
+
 [MemoryDiagnoser]
 [ShortRunJob]
 public class EtherClientBenchmarks

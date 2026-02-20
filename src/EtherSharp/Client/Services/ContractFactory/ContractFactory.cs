@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace EtherSharp.Client.Services.ContractFactory;
+
 internal class ContractFactory(IEtherClient etherClient) : IContractFactory
 {
     private readonly Lock _lock = new Lock();

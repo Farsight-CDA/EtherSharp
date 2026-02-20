@@ -13,12 +13,12 @@ public partial interface IDynamicTupleEncoder
     public IDynamicTupleEncoder Address(Address value);
 
     public IDynamicTupleEncoder String(string value);
-    public IDynamicTupleEncoder Bytes(byte[] value);
+    public IDynamicTupleEncoder Bytes(ReadOnlyMemory<byte> value);
 
     public IDynamicTupleEncoder BoolArray(params bool[] values);
     public IDynamicTupleEncoder AddressArray(params Address[] addresses);
     public IDynamicTupleEncoder StringArray(params string[] values);
-    public IDynamicTupleEncoder BytesArray(params byte[][] values);
+    public IDynamicTupleEncoder BytesArray(params ReadOnlyMemory<byte>[] values);
 
     public IDynamicTupleEncoder Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func);
 

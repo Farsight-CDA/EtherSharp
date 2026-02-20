@@ -6,6 +6,7 @@ using Keysmith.Net.Wallet;
 using System.Security.Cryptography;
 
 namespace EtherSharp.Wallet;
+
 public class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSigner
 {
     public Address Address { get; } = null!;

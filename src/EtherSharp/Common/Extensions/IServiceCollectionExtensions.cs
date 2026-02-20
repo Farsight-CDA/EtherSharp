@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace EtherSharp.Common.Extensions;
+
 internal static class IServiceCollectionExtensions
 {
     internal static void AddOrReplaceSingleton<TService, TImplementation>(this IServiceCollection services)

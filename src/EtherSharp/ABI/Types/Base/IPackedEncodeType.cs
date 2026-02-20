@@ -1,4 +1,5 @@
 ﻿namespace EtherSharp.ABI.Types.Base;
+
 internal interface IPackedEncodeType
 {
     /// <summary>

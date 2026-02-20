@@ -4,9 +4,9 @@ namespace EtherSharp.ABI.Types;
 
 public static partial class AbiTypes
 {
-    public class SizedBytes : FixedType<byte[]>, IPackedEncodeType
+    public class SizedBytes : FixedType<ReadOnlyMemory<byte>>, IPackedEncodeType
     {
-        internal SizedBytes(byte[] value, int byteCount)
+        internal SizedBytes(ReadOnlyMemory<byte> value, int byteCount)
             : base(value)
         {
             if(value.Length != byteCount)
@@ -22,10 +22,10 @@ public static partial class AbiTypes
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 
-        public static void EncodeInto(byte[] value, Span<byte> buffer)
-            => value.CopyTo(buffer[0..value.Length]);
-        public static ReadOnlySpan<byte> Decode(ReadOnlySpan<byte> bytes, int byteCount)
-            => bytes[0..byteCount];
+        public static void EncodeInto(ReadOnlyMemory<byte> value, Span<byte> buffer)
+            => value.Span.CopyTo(buffer[0..value.Length]);
+        public static ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> bytes, int byteCount)
+            => bytes.Slice(0, byteCount);
 
     }
 }

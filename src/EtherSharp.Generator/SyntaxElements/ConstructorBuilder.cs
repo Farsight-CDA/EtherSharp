@@ -1,6 +1,7 @@
 ﻿using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
+
 public class ConstructorBuilder(string className) : ISyntaxBuilder
 {
     private readonly List<FieldBuilder> _fields = [];

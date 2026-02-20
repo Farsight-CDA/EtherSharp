@@ -4,6 +4,7 @@ using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Events;
+
 public interface IConfiguredEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {

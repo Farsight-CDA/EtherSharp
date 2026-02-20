@@ -1,200 +1,360 @@
-using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.ABI.Types;
+using EtherSharp.ABI.Encode.Interfaces;
 
 namespace EtherSharp.ABI;
 public partial class AbiEncoder
 {
+    /// <summary>
+    /// Encodes a bytes1 value.
+    /// </summary>
+    /// <param name="value">The byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes1(byte value)
-        => AddElement(new AbiTypes.Byte(value));
+        => AddElement(new AbiTypes.Byte(value));    
     IFixedTupleEncoder IFixedTupleEncoder.Bytes1(byte value)
-        => Bytes1(value);
+        => Bytes1(value);    
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes1(byte value)
         => Bytes1(value);
-    public AbiEncoder Bytes2(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes2 value.
+    /// </summary>
+    /// <param name="value">The 2-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes2(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 2));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes2(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes2(ReadOnlyMemory<byte> value)
         => Bytes2(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes2(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes2(ReadOnlyMemory<byte> value)
         => Bytes2(value);
-    public AbiEncoder Bytes3(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes3 value.
+    /// </summary>
+    /// <param name="value">The 3-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes3(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 3));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes3(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes3(ReadOnlyMemory<byte> value)
         => Bytes3(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes3(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes3(ReadOnlyMemory<byte> value)
         => Bytes3(value);
-    public AbiEncoder Bytes4(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes4 value.
+    /// </summary>
+    /// <param name="value">The 4-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes4(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 4));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes4(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes4(ReadOnlyMemory<byte> value)
         => Bytes4(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes4(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes4(ReadOnlyMemory<byte> value)
         => Bytes4(value);
-    public AbiEncoder Bytes5(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes5 value.
+    /// </summary>
+    /// <param name="value">The 5-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes5(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 5));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes5(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes5(ReadOnlyMemory<byte> value)
         => Bytes5(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes5(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes5(ReadOnlyMemory<byte> value)
         => Bytes5(value);
-    public AbiEncoder Bytes6(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes6 value.
+    /// </summary>
+    /// <param name="value">The 6-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes6(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 6));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes6(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes6(ReadOnlyMemory<byte> value)
         => Bytes6(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes6(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes6(ReadOnlyMemory<byte> value)
         => Bytes6(value);
-    public AbiEncoder Bytes7(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes7 value.
+    /// </summary>
+    /// <param name="value">The 7-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes7(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 7));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes7(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes7(ReadOnlyMemory<byte> value)
         => Bytes7(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes7(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes7(ReadOnlyMemory<byte> value)
         => Bytes7(value);
-    public AbiEncoder Bytes8(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes8 value.
+    /// </summary>
+    /// <param name="value">The 8-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes8(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 8));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes8(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes8(ReadOnlyMemory<byte> value)
         => Bytes8(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes8(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes8(ReadOnlyMemory<byte> value)
         => Bytes8(value);
-    public AbiEncoder Bytes9(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes9 value.
+    /// </summary>
+    /// <param name="value">The 9-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes9(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 9));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes9(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes9(ReadOnlyMemory<byte> value)
         => Bytes9(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes9(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes9(ReadOnlyMemory<byte> value)
         => Bytes9(value);
-    public AbiEncoder Bytes10(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes10 value.
+    /// </summary>
+    /// <param name="value">The 10-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes10(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 10));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes10(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes10(ReadOnlyMemory<byte> value)
         => Bytes10(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes10(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes10(ReadOnlyMemory<byte> value)
         => Bytes10(value);
-    public AbiEncoder Bytes11(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes11 value.
+    /// </summary>
+    /// <param name="value">The 11-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes11(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 11));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes11(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes11(ReadOnlyMemory<byte> value)
         => Bytes11(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes11(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes11(ReadOnlyMemory<byte> value)
         => Bytes11(value);
-    public AbiEncoder Bytes12(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes12 value.
+    /// </summary>
+    /// <param name="value">The 12-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes12(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 12));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes12(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes12(ReadOnlyMemory<byte> value)
         => Bytes12(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes12(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes12(ReadOnlyMemory<byte> value)
         => Bytes12(value);
-    public AbiEncoder Bytes13(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes13 value.
+    /// </summary>
+    /// <param name="value">The 13-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes13(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 13));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes13(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes13(ReadOnlyMemory<byte> value)
         => Bytes13(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes13(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes13(ReadOnlyMemory<byte> value)
         => Bytes13(value);
-    public AbiEncoder Bytes14(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes14 value.
+    /// </summary>
+    /// <param name="value">The 14-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes14(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 14));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes14(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes14(ReadOnlyMemory<byte> value)
         => Bytes14(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes14(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes14(ReadOnlyMemory<byte> value)
         => Bytes14(value);
-    public AbiEncoder Bytes15(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes15 value.
+    /// </summary>
+    /// <param name="value">The 15-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes15(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 15));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes15(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes15(ReadOnlyMemory<byte> value)
         => Bytes15(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes15(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes15(ReadOnlyMemory<byte> value)
         => Bytes15(value);
-    public AbiEncoder Bytes16(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes16 value.
+    /// </summary>
+    /// <param name="value">The 16-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes16(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 16));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes16(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes16(ReadOnlyMemory<byte> value)
         => Bytes16(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes16(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes16(ReadOnlyMemory<byte> value)
         => Bytes16(value);
-    public AbiEncoder Bytes17(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes17 value.
+    /// </summary>
+    /// <param name="value">The 17-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes17(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 17));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes17(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes17(ReadOnlyMemory<byte> value)
         => Bytes17(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes17(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes17(ReadOnlyMemory<byte> value)
         => Bytes17(value);
-    public AbiEncoder Bytes18(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes18 value.
+    /// </summary>
+    /// <param name="value">The 18-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes18(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 18));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes18(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes18(ReadOnlyMemory<byte> value)
         => Bytes18(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes18(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes18(ReadOnlyMemory<byte> value)
         => Bytes18(value);
-    public AbiEncoder Bytes19(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes19 value.
+    /// </summary>
+    /// <param name="value">The 19-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes19(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 19));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes19(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes19(ReadOnlyMemory<byte> value)
         => Bytes19(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes19(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes19(ReadOnlyMemory<byte> value)
         => Bytes19(value);
-    public AbiEncoder Bytes20(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes20 value.
+    /// </summary>
+    /// <param name="value">The 20-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes20(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 20));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes20(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes20(ReadOnlyMemory<byte> value)
         => Bytes20(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes20(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes20(ReadOnlyMemory<byte> value)
         => Bytes20(value);
-    public AbiEncoder Bytes21(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes21 value.
+    /// </summary>
+    /// <param name="value">The 21-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes21(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 21));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes21(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes21(ReadOnlyMemory<byte> value)
         => Bytes21(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes21(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes21(ReadOnlyMemory<byte> value)
         => Bytes21(value);
-    public AbiEncoder Bytes22(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes22 value.
+    /// </summary>
+    /// <param name="value">The 22-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes22(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 22));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes22(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes22(ReadOnlyMemory<byte> value)
         => Bytes22(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes22(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes22(ReadOnlyMemory<byte> value)
         => Bytes22(value);
-    public AbiEncoder Bytes23(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes23 value.
+    /// </summary>
+    /// <param name="value">The 23-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes23(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 23));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes23(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes23(ReadOnlyMemory<byte> value)
         => Bytes23(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes23(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes23(ReadOnlyMemory<byte> value)
         => Bytes23(value);
-    public AbiEncoder Bytes24(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes24 value.
+    /// </summary>
+    /// <param name="value">The 24-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes24(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 24));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes24(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes24(ReadOnlyMemory<byte> value)
         => Bytes24(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes24(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes24(ReadOnlyMemory<byte> value)
         => Bytes24(value);
-    public AbiEncoder Bytes25(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes25 value.
+    /// </summary>
+    /// <param name="value">The 25-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes25(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 25));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes25(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes25(ReadOnlyMemory<byte> value)
         => Bytes25(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes25(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes25(ReadOnlyMemory<byte> value)
         => Bytes25(value);
-    public AbiEncoder Bytes26(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes26 value.
+    /// </summary>
+    /// <param name="value">The 26-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes26(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 26));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes26(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes26(ReadOnlyMemory<byte> value)
         => Bytes26(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes26(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes26(ReadOnlyMemory<byte> value)
         => Bytes26(value);
-    public AbiEncoder Bytes27(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes27 value.
+    /// </summary>
+    /// <param name="value">The 27-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes27(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 27));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes27(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes27(ReadOnlyMemory<byte> value)
         => Bytes27(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes27(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes27(ReadOnlyMemory<byte> value)
         => Bytes27(value);
-    public AbiEncoder Bytes28(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes28 value.
+    /// </summary>
+    /// <param name="value">The 28-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes28(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 28));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes28(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes28(ReadOnlyMemory<byte> value)
         => Bytes28(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes28(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes28(ReadOnlyMemory<byte> value)
         => Bytes28(value);
-    public AbiEncoder Bytes29(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes29 value.
+    /// </summary>
+    /// <param name="value">The 29-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes29(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 29));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes29(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes29(ReadOnlyMemory<byte> value)
         => Bytes29(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes29(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes29(ReadOnlyMemory<byte> value)
         => Bytes29(value);
-    public AbiEncoder Bytes30(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes30 value.
+    /// </summary>
+    /// <param name="value">The 30-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes30(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 30));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes30(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes30(ReadOnlyMemory<byte> value)
         => Bytes30(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes30(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes30(ReadOnlyMemory<byte> value)
         => Bytes30(value);
-    public AbiEncoder Bytes31(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes31 value.
+    /// </summary>
+    /// <param name="value">The 31-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes31(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 31));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes31(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes31(ReadOnlyMemory<byte> value)
         => Bytes31(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes31(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes31(ReadOnlyMemory<byte> value)
         => Bytes31(value);
-    public AbiEncoder Bytes32(params byte[] value)
+    /// <summary>
+    /// Encodes a bytes32 value.
+    /// </summary>
+    /// <param name="value">The 32-byte value to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    public AbiEncoder Bytes32(ReadOnlyMemory<byte> value)
         => AddElement(new AbiTypes.SizedBytes(value, 32));
-    IFixedTupleEncoder IFixedTupleEncoder.Bytes32(params byte[] value)
+    IFixedTupleEncoder IFixedTupleEncoder.Bytes32(ReadOnlyMemory<byte> value)
         => Bytes32(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes32(params byte[] value)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes32(ReadOnlyMemory<byte> value)
         => Bytes32(value);
 
 }

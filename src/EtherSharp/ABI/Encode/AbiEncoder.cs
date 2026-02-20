@@ -84,8 +84,8 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         => AddElement(new AbiTypes.Address(value));
 
     public AbiEncoder String(string value)
-        => AddElement(new AbiTypes.String(value));
-    public AbiEncoder Bytes(byte[] arr)
+            => AddElement(new AbiTypes.String(value));
+    public AbiEncoder Bytes(ReadOnlyMemory<byte> arr)
         => AddElement(new AbiTypes.Bytes(arr));
 
     public AbiEncoder BoolArray(params bool[] values)
@@ -97,7 +97,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     public AbiEncoder StringArray(params string[] value)
         => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.String>(
             [.. value.Select(x => new AbiTypes.String(x))]));
-    public AbiEncoder BytesArray(params byte[][] value)
+    public AbiEncoder BytesArray(params ReadOnlyMemory<byte>[] value)
         => AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bytes>(
             [.. value.Select(x => new AbiTypes.Bytes(x))]));
 
@@ -154,15 +154,15 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         => Address(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.String(string value)
         => String(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(byte[] arr)
-        => Bytes(arr);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(ReadOnlyMemory<byte> arr)
+            => Bytes(arr);
     IDynamicTupleEncoder IDynamicTupleEncoder.BoolArray(params bool[] values)
         => BoolArray(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.AddressArray(params Address[] addresses)
         => AddressArray(addresses);
     IDynamicTupleEncoder IDynamicTupleEncoder.StringArray(params string[] values)
         => StringArray(values);
-    IDynamicTupleEncoder IDynamicTupleEncoder.BytesArray(params byte[][] values)
+    IDynamicTupleEncoder IDynamicTupleEncoder.BytesArray(params ReadOnlyMemory<byte>[] values)
         => BytesArray(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
         => Array(values, func);

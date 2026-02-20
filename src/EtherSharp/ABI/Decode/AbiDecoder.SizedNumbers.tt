@@ -1,6 +1,5 @@
 <#@ template language="C#" #>
 <#@ output extension=".cs" #>
-<#@ import namespace="System" #>
 using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.Numerics;
@@ -8,6 +7,10 @@ using EtherSharp.Numerics;
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
+    /// <summary>
+    /// Reads an int8 value from the input.
+    /// </summary>
+    /// <returns>The decoded signed byte value.</returns>
     public sbyte Int8()
     {
         var result = AbiTypes.SByte.Decode(CurrentSlot);
@@ -19,6 +22,10 @@ public partial class AbiDecoder
     sbyte IDynamicTupleDecoder.Int8() 
         => Int8();
 
+    /// <summary>
+    /// Reads a uint8 value from the input.
+    /// </summary>
+    /// <returns>The decoded byte value.</returns>
     public byte UInt8()
     {
         var result = AbiTypes.Byte.Decode(CurrentSlot);
@@ -30,6 +37,10 @@ public partial class AbiDecoder
     byte IDynamicTupleDecoder.UInt8() 
         => UInt8();
 
+    /// <summary>
+    /// Reads an int16 value from the input.
+    /// </summary>
+    /// <returns>The decoded short value.</returns>
     public short Int16()
     {
         var result = AbiTypes.Short.Decode(CurrentSlot);
@@ -41,6 +52,10 @@ public partial class AbiDecoder
     short IDynamicTupleDecoder.Int16() 
         => Int16();
 
+    /// <summary>
+    /// Reads a uint16 value from the input.
+    /// </summary>
+    /// <returns>The decoded unsigned short value.</returns>
     public ushort UInt16()
     {
         var result = AbiTypes.UShort.Decode(CurrentSlot);
@@ -55,6 +70,10 @@ public partial class AbiDecoder
 <#
     for (var i = 24; i <= 32; i += 8) {
 #>
+    /// <summary>
+    /// Reads an int<#=i#> value from the input.
+    /// </summary>
+    /// <returns>The decoded int value.</returns>
     public int Int<#=i#>()
     {
         var result = AbiTypes.Int.Decode(CurrentSlot);
@@ -66,6 +85,10 @@ public partial class AbiDecoder
     int IDynamicTupleDecoder.Int<#=i#>() 
         => Int<#=i#>();
 
+    /// <summary>
+    /// Reads a uint<#=i#> value from the input.
+    /// </summary>
+    /// <returns>The decoded uint value.</returns>
     public uint UInt<#=i#>()
     {
         var result = AbiTypes.UInt.Decode(CurrentSlot);
@@ -83,6 +106,10 @@ public partial class AbiDecoder
 <#
     for (var i = 40; i <= 64; i += 8) {
 #>
+    /// <summary>
+    /// Reads an int<#=i#> value from the input.
+    /// </summary>
+    /// <returns>The decoded long value.</returns>
     public long Int<#=i#>()
     {
         var result = AbiTypes.Long.Decode(CurrentSlot);
@@ -94,6 +121,10 @@ public partial class AbiDecoder
     long IDynamicTupleDecoder.Int<#=i#>() 
         => Int<#=i#>();
 
+    /// <summary>
+    /// Reads a uint<#=i#> value from the input.
+    /// </summary>
+    /// <returns>The decoded ulong value.</returns>
     public ulong UInt<#=i#>()
     {
         var result = AbiTypes.ULong.Decode(CurrentSlot);
@@ -111,6 +142,10 @@ public partial class AbiDecoder
 <#
     for (var i = 72; i <= 256; i += 8) {
 #>
+    /// <summary>
+    /// Reads an int<#=i#> value from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 value.</returns>
     public Int256 Int<#=i#>()
     {
         var result = AbiTypes.Int256.Decode(CurrentSlot);
@@ -122,6 +157,10 @@ public partial class AbiDecoder
     Int256 IDynamicTupleDecoder.Int<#=i#>() 
         => Int<#=i#>();
 
+    /// <summary>
+    /// Reads a uint<#=i#> value from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 value.</returns>
     public UInt256 UInt<#=i#>()
     {
         var result = AbiTypes.UInt256.Decode(CurrentSlot);

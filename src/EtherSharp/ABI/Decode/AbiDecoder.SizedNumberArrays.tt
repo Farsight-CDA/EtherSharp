@@ -1,6 +1,5 @@
 <#@ template language="C#" #>
 <#@ output extension=".cs" #>
-<#@ import namespace="System"#>
 using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.Numerics;
@@ -8,6 +7,10 @@ using EtherSharp.Numerics;
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
+    /// <summary>
+    /// Reads an int8 array from the input.
+    /// </summary>
+    /// <returns>The decoded signed byte array.</returns>
     public sbyte[] Int8Array()
     {
         sbyte[] result = AbiTypes.SizedNumberArray<sbyte>.Decode(_bytes, BytesRead);
@@ -19,6 +22,10 @@ public partial class AbiDecoder
     sbyte[] IDynamicTupleDecoder.Int8Array()
         => Int8Array();
 
+    /// <summary>
+    /// Reads a uint8 array from the input.
+    /// </summary>
+    /// <returns>The decoded byte array.</returns>
     public byte[] UInt8Array()
     {
         byte[] result = AbiTypes.SizedNumberArray<byte>.Decode(_bytes, BytesRead);
@@ -30,6 +37,10 @@ public partial class AbiDecoder
     byte[] IDynamicTupleDecoder.UInt8Array()
         => UInt8Array();
 
+    /// <summary>
+    /// Reads an int16 array from the input.
+    /// </summary>
+    /// <returns>The decoded short array.</returns>
     public short[] Int16Array()
     {
         short[] result = AbiTypes.SizedNumberArray<short>.Decode(_bytes, BytesRead);
@@ -41,6 +52,10 @@ public partial class AbiDecoder
     short[] IDynamicTupleDecoder.Int16Array()
         => Int16Array();
 
+    /// <summary>
+    /// Reads a uint16 array from the input.
+    /// </summary>
+    /// <returns>The decoded unsigned short array.</returns>
     public ushort[] UInt16Array()
     {
         ushort[] result = AbiTypes.SizedNumberArray<ushort>.Decode(_bytes, BytesRead);
@@ -53,6 +68,10 @@ public partial class AbiDecoder
         => UInt16Array();
 
 <#  for(var i = 24; i <= 32; i += 8) { #>
+    /// <summary>
+    /// Reads an int<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded int array.</returns>
     public int[] Int<#=i#>Array()
     {
         int[] result = AbiTypes.SizedNumberArray<int>.Decode(_bytes, BytesRead);
@@ -64,6 +83,10 @@ public partial class AbiDecoder
     int[] IDynamicTupleDecoder.Int<#=i#>Array()
         => Int<#=i#>Array();
 
+    /// <summary>
+    /// Reads a uint<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded uint array.</returns>
     public uint[] UInt<#=i#>Array()
     {
         uint[] result = AbiTypes.SizedNumberArray<uint>.Decode(_bytes, BytesRead);
@@ -77,6 +100,10 @@ public partial class AbiDecoder
 <# } #>
 
 <#  for(var i = 40; i <= 64; i += 8) { #>
+    /// <summary>
+    /// Reads an int<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded long array.</returns>
     public long[] Int<#=i#>Array()
     {
         long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, BytesRead);
@@ -88,6 +115,10 @@ public partial class AbiDecoder
     long[] IDynamicTupleDecoder.Int<#=i#>Array()
         => Int<#=i#>Array();
 
+    /// <summary>
+    /// Reads a uint<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded ulong array.</returns>
     public ulong[] UInt<#=i#>Array()
     {
         ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, BytesRead);
@@ -101,6 +132,10 @@ public partial class AbiDecoder
 <# } #>
 
 <#  for(var i = 72; i <= 256; i += 8) { #>
+    /// <summary>
+    /// Reads an int<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int<#=i#>Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, <#=i#>);
@@ -112,6 +147,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int<#=i#>Array()
         => Int<#=i#>Array();
 
+    /// <summary>
+    /// Reads a uint<#=i#> array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt<#=i#>Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, <#=i#>);

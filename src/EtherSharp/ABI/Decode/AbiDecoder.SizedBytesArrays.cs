@@ -1,325 +1,326 @@
 using EtherSharp.ABI.Types;
+using EtherSharp.ABI.Decode.Interfaces;
 
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
     /// <summary>
-    /// Reads a bytes1 from the input.
+    /// Reads a bytes1 array from the input.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The decoded byte array.</returns>
     public byte[] Bytes1Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 1);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 1);
         ConsumeBytes();
-        return result[0];
+        return [.. result[0].Span];
     }
     /// <summary>
     /// Reads a bytes2 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes2Array()
+    /// <returns>The decoded array of 2-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes2Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 2);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 2);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes3 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes3Array()
+    /// <returns>The decoded array of 3-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes3Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 3);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 3);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes4 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes4Array()
+    /// <returns>The decoded array of 4-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes4Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 4);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 4);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes5 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes5Array()
+    /// <returns>The decoded array of 5-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes5Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 5);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 5);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes6 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes6Array()
+    /// <returns>The decoded array of 6-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes6Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 6);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 6);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes7 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes7Array()
+    /// <returns>The decoded array of 7-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes7Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 7);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 7);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes8 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes8Array()
+    /// <returns>The decoded array of 8-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes8Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 8);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 8);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes9 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes9Array()
+    /// <returns>The decoded array of 9-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes9Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 9);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 9);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes10 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes10Array()
+    /// <returns>The decoded array of 10-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes10Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 10);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 10);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes11 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes11Array()
+    /// <returns>The decoded array of 11-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes11Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 11);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 11);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes12 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes12Array()
+    /// <returns>The decoded array of 12-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes12Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 12);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 12);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes13 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes13Array()
+    /// <returns>The decoded array of 13-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes13Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 13);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 13);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes14 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes14Array()
+    /// <returns>The decoded array of 14-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes14Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 14);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 14);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes15 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes15Array()
+    /// <returns>The decoded array of 15-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes15Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 15);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 15);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes16 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes16Array()
+    /// <returns>The decoded array of 16-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes16Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 16);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 16);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes17 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes17Array()
+    /// <returns>The decoded array of 17-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes17Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 17);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 17);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes18 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes18Array()
+    /// <returns>The decoded array of 18-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes18Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 18);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 18);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes19 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes19Array()
+    /// <returns>The decoded array of 19-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes19Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 19);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 19);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes20 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes20Array()
+    /// <returns>The decoded array of 20-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes20Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 20);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 20);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes21 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes21Array()
+    /// <returns>The decoded array of 21-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes21Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 21);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 21);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes22 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes22Array()
+    /// <returns>The decoded array of 22-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes22Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 22);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 22);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes23 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes23Array()
+    /// <returns>The decoded array of 23-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes23Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 23);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 23);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes24 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes24Array()
+    /// <returns>The decoded array of 24-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes24Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 24);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 24);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes25 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes25Array()
+    /// <returns>The decoded array of 25-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes25Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 25);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 25);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes26 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes26Array()
+    /// <returns>The decoded array of 26-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes26Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 26);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 26);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes27 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes27Array()
+    /// <returns>The decoded array of 27-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes27Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 27);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 27);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes28 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes28Array()
+    /// <returns>The decoded array of 28-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes28Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 28);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 28);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes29 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes29Array()
+    /// <returns>The decoded array of 29-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes29Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 29);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 29);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes30 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes30Array()
+    /// <returns>The decoded array of 30-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes30Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 30);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 30);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes31 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes31Array()
+    /// <returns>The decoded array of 31-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes31Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 31);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 31);
         ConsumeBytes();
         return result;
     }
     /// <summary>
     /// Reads a bytes32 array from the input.
     /// </summary>
-    /// <returns></returns>
-    public byte[][] Bytes32Array()
+    /// <returns>The decoded array of 32-byte values.</returns>
+    public ReadOnlyMemory<byte>[] Bytes32Array()
     {
-        byte[][] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 32);
+        ReadOnlyMemory<byte>[] result = AbiTypes.SizedBytesArray.Decode(_bytes, BytesRead, 32);
         ConsumeBytes();
         return result;
     }

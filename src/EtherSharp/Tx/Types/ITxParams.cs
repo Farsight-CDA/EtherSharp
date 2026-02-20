@@ -1,4 +1,5 @@
 ﻿namespace EtherSharp.Tx.Types;
+
 public interface ITxParams<TSelf> : ITxParams
     where TSelf : ITxParams<TSelf>
 {

@@ -5,6 +5,10 @@ using EtherSharp.Numerics;
 namespace EtherSharp.ABI;
 public partial class AbiDecoder
 {
+    /// <summary>
+    /// Reads an int8 array from the input.
+    /// </summary>
+    /// <returns>The decoded signed byte array.</returns>
     public sbyte[] Int8Array()
     {
         sbyte[] result = AbiTypes.SizedNumberArray<sbyte>.Decode(_bytes, BytesRead);
@@ -16,6 +20,10 @@ public partial class AbiDecoder
     sbyte[] IDynamicTupleDecoder.Int8Array()
         => Int8Array();
 
+    /// <summary>
+    /// Reads a uint8 array from the input.
+    /// </summary>
+    /// <returns>The decoded byte array.</returns>
     public byte[] UInt8Array()
     {
         byte[] result = AbiTypes.SizedNumberArray<byte>.Decode(_bytes, BytesRead);
@@ -27,6 +35,10 @@ public partial class AbiDecoder
     byte[] IDynamicTupleDecoder.UInt8Array()
         => UInt8Array();
 
+    /// <summary>
+    /// Reads an int16 array from the input.
+    /// </summary>
+    /// <returns>The decoded short array.</returns>
     public short[] Int16Array()
     {
         short[] result = AbiTypes.SizedNumberArray<short>.Decode(_bytes, BytesRead);
@@ -38,6 +50,10 @@ public partial class AbiDecoder
     short[] IDynamicTupleDecoder.Int16Array()
         => Int16Array();
 
+    /// <summary>
+    /// Reads a uint16 array from the input.
+    /// </summary>
+    /// <returns>The decoded unsigned short array.</returns>
     public ushort[] UInt16Array()
     {
         ushort[] result = AbiTypes.SizedNumberArray<ushort>.Decode(_bytes, BytesRead);
@@ -49,6 +65,10 @@ public partial class AbiDecoder
     ushort[] IDynamicTupleDecoder.UInt16Array()
         => UInt16Array();
 
+    /// <summary>
+    /// Reads an int24 array from the input.
+    /// </summary>
+    /// <returns>The decoded int array.</returns>
     public int[] Int24Array()
     {
         int[] result = AbiTypes.SizedNumberArray<int>.Decode(_bytes, BytesRead);
@@ -60,6 +80,10 @@ public partial class AbiDecoder
     int[] IDynamicTupleDecoder.Int24Array()
         => Int24Array();
 
+    /// <summary>
+    /// Reads a uint24 array from the input.
+    /// </summary>
+    /// <returns>The decoded uint array.</returns>
     public uint[] UInt24Array()
     {
         uint[] result = AbiTypes.SizedNumberArray<uint>.Decode(_bytes, BytesRead);
@@ -70,6 +94,10 @@ public partial class AbiDecoder
         => UInt24Array();
     uint[] IDynamicTupleDecoder.UInt24Array()
         => UInt24Array();
+    /// <summary>
+    /// Reads an int32 array from the input.
+    /// </summary>
+    /// <returns>The decoded int array.</returns>
     public int[] Int32Array()
     {
         int[] result = AbiTypes.SizedNumberArray<int>.Decode(_bytes, BytesRead);
@@ -81,6 +109,10 @@ public partial class AbiDecoder
     int[] IDynamicTupleDecoder.Int32Array()
         => Int32Array();
 
+    /// <summary>
+    /// Reads a uint32 array from the input.
+    /// </summary>
+    /// <returns>The decoded uint array.</returns>
     public uint[] UInt32Array()
     {
         uint[] result = AbiTypes.SizedNumberArray<uint>.Decode(_bytes, BytesRead);
@@ -92,6 +124,10 @@ public partial class AbiDecoder
     uint[] IDynamicTupleDecoder.UInt32Array()
         => UInt32Array();
 
+    /// <summary>
+    /// Reads an int40 array from the input.
+    /// </summary>
+    /// <returns>The decoded long array.</returns>
     public long[] Int40Array()
     {
         long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, BytesRead);
@@ -103,6 +139,10 @@ public partial class AbiDecoder
     long[] IDynamicTupleDecoder.Int40Array()
         => Int40Array();
 
+    /// <summary>
+    /// Reads a uint40 array from the input.
+    /// </summary>
+    /// <returns>The decoded ulong array.</returns>
     public ulong[] UInt40Array()
     {
         ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, BytesRead);
@@ -113,6 +153,10 @@ public partial class AbiDecoder
         => UInt40Array();
     ulong[] IDynamicTupleDecoder.UInt40Array()
         => UInt40Array();
+    /// <summary>
+    /// Reads an int48 array from the input.
+    /// </summary>
+    /// <returns>The decoded long array.</returns>
     public long[] Int48Array()
     {
         long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, BytesRead);
@@ -124,6 +168,10 @@ public partial class AbiDecoder
     long[] IDynamicTupleDecoder.Int48Array()
         => Int48Array();
 
+    /// <summary>
+    /// Reads a uint48 array from the input.
+    /// </summary>
+    /// <returns>The decoded ulong array.</returns>
     public ulong[] UInt48Array()
     {
         ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, BytesRead);
@@ -134,6 +182,10 @@ public partial class AbiDecoder
         => UInt48Array();
     ulong[] IDynamicTupleDecoder.UInt48Array()
         => UInt48Array();
+    /// <summary>
+    /// Reads an int56 array from the input.
+    /// </summary>
+    /// <returns>The decoded long array.</returns>
     public long[] Int56Array()
     {
         long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, BytesRead);
@@ -145,6 +197,10 @@ public partial class AbiDecoder
     long[] IDynamicTupleDecoder.Int56Array()
         => Int56Array();
 
+    /// <summary>
+    /// Reads a uint56 array from the input.
+    /// </summary>
+    /// <returns>The decoded ulong array.</returns>
     public ulong[] UInt56Array()
     {
         ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, BytesRead);
@@ -155,6 +211,10 @@ public partial class AbiDecoder
         => UInt56Array();
     ulong[] IDynamicTupleDecoder.UInt56Array()
         => UInt56Array();
+    /// <summary>
+    /// Reads an int64 array from the input.
+    /// </summary>
+    /// <returns>The decoded long array.</returns>
     public long[] Int64Array()
     {
         long[] result = AbiTypes.SizedNumberArray<long>.Decode(_bytes, BytesRead);
@@ -166,6 +226,10 @@ public partial class AbiDecoder
     long[] IDynamicTupleDecoder.Int64Array()
         => Int64Array();
 
+    /// <summary>
+    /// Reads a uint64 array from the input.
+    /// </summary>
+    /// <returns>The decoded ulong array.</returns>
     public ulong[] UInt64Array()
     {
         ulong[] result = AbiTypes.SizedNumberArray<ulong>.Decode(_bytes, BytesRead);
@@ -177,6 +241,10 @@ public partial class AbiDecoder
     ulong[] IDynamicTupleDecoder.UInt64Array()
         => UInt64Array();
 
+    /// <summary>
+    /// Reads an int72 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int72Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 72);
@@ -188,6 +256,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int72Array()
         => Int72Array();
 
+    /// <summary>
+    /// Reads a uint72 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt72Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 72);
@@ -198,6 +270,10 @@ public partial class AbiDecoder
         => UInt72Array();
     UInt256[] IDynamicTupleDecoder.UInt72Array()
         => UInt72Array();
+    /// <summary>
+    /// Reads an int80 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int80Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 80);
@@ -209,6 +285,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int80Array()
         => Int80Array();
 
+    /// <summary>
+    /// Reads a uint80 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt80Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 80);
@@ -219,6 +299,10 @@ public partial class AbiDecoder
         => UInt80Array();
     UInt256[] IDynamicTupleDecoder.UInt80Array()
         => UInt80Array();
+    /// <summary>
+    /// Reads an int88 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int88Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 88);
@@ -230,6 +314,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int88Array()
         => Int88Array();
 
+    /// <summary>
+    /// Reads a uint88 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt88Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 88);
@@ -240,6 +328,10 @@ public partial class AbiDecoder
         => UInt88Array();
     UInt256[] IDynamicTupleDecoder.UInt88Array()
         => UInt88Array();
+    /// <summary>
+    /// Reads an int96 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int96Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 96);
@@ -251,6 +343,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int96Array()
         => Int96Array();
 
+    /// <summary>
+    /// Reads a uint96 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt96Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 96);
@@ -261,6 +357,10 @@ public partial class AbiDecoder
         => UInt96Array();
     UInt256[] IDynamicTupleDecoder.UInt96Array()
         => UInt96Array();
+    /// <summary>
+    /// Reads an int104 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int104Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 104);
@@ -272,6 +372,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int104Array()
         => Int104Array();
 
+    /// <summary>
+    /// Reads a uint104 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt104Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 104);
@@ -282,6 +386,10 @@ public partial class AbiDecoder
         => UInt104Array();
     UInt256[] IDynamicTupleDecoder.UInt104Array()
         => UInt104Array();
+    /// <summary>
+    /// Reads an int112 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int112Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 112);
@@ -293,6 +401,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int112Array()
         => Int112Array();
 
+    /// <summary>
+    /// Reads a uint112 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt112Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 112);
@@ -303,6 +415,10 @@ public partial class AbiDecoder
         => UInt112Array();
     UInt256[] IDynamicTupleDecoder.UInt112Array()
         => UInt112Array();
+    /// <summary>
+    /// Reads an int120 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int120Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 120);
@@ -314,6 +430,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int120Array()
         => Int120Array();
 
+    /// <summary>
+    /// Reads a uint120 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt120Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 120);
@@ -324,6 +444,10 @@ public partial class AbiDecoder
         => UInt120Array();
     UInt256[] IDynamicTupleDecoder.UInt120Array()
         => UInt120Array();
+    /// <summary>
+    /// Reads an int128 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int128Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 128);
@@ -335,6 +459,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int128Array()
         => Int128Array();
 
+    /// <summary>
+    /// Reads a uint128 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt128Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 128);
@@ -345,6 +473,10 @@ public partial class AbiDecoder
         => UInt128Array();
     UInt256[] IDynamicTupleDecoder.UInt128Array()
         => UInt128Array();
+    /// <summary>
+    /// Reads an int136 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int136Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 136);
@@ -356,6 +488,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int136Array()
         => Int136Array();
 
+    /// <summary>
+    /// Reads a uint136 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt136Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 136);
@@ -366,6 +502,10 @@ public partial class AbiDecoder
         => UInt136Array();
     UInt256[] IDynamicTupleDecoder.UInt136Array()
         => UInt136Array();
+    /// <summary>
+    /// Reads an int144 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int144Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 144);
@@ -377,6 +517,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int144Array()
         => Int144Array();
 
+    /// <summary>
+    /// Reads a uint144 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt144Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 144);
@@ -387,6 +531,10 @@ public partial class AbiDecoder
         => UInt144Array();
     UInt256[] IDynamicTupleDecoder.UInt144Array()
         => UInt144Array();
+    /// <summary>
+    /// Reads an int152 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int152Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 152);
@@ -398,6 +546,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int152Array()
         => Int152Array();
 
+    /// <summary>
+    /// Reads a uint152 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt152Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 152);
@@ -408,6 +560,10 @@ public partial class AbiDecoder
         => UInt152Array();
     UInt256[] IDynamicTupleDecoder.UInt152Array()
         => UInt152Array();
+    /// <summary>
+    /// Reads an int160 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int160Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 160);
@@ -419,6 +575,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int160Array()
         => Int160Array();
 
+    /// <summary>
+    /// Reads a uint160 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt160Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 160);
@@ -429,6 +589,10 @@ public partial class AbiDecoder
         => UInt160Array();
     UInt256[] IDynamicTupleDecoder.UInt160Array()
         => UInt160Array();
+    /// <summary>
+    /// Reads an int168 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int168Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 168);
@@ -440,6 +604,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int168Array()
         => Int168Array();
 
+    /// <summary>
+    /// Reads a uint168 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt168Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 168);
@@ -450,6 +618,10 @@ public partial class AbiDecoder
         => UInt168Array();
     UInt256[] IDynamicTupleDecoder.UInt168Array()
         => UInt168Array();
+    /// <summary>
+    /// Reads an int176 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int176Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 176);
@@ -461,6 +633,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int176Array()
         => Int176Array();
 
+    /// <summary>
+    /// Reads a uint176 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt176Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 176);
@@ -471,6 +647,10 @@ public partial class AbiDecoder
         => UInt176Array();
     UInt256[] IDynamicTupleDecoder.UInt176Array()
         => UInt176Array();
+    /// <summary>
+    /// Reads an int184 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int184Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 184);
@@ -482,6 +662,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int184Array()
         => Int184Array();
 
+    /// <summary>
+    /// Reads a uint184 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt184Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 184);
@@ -492,6 +676,10 @@ public partial class AbiDecoder
         => UInt184Array();
     UInt256[] IDynamicTupleDecoder.UInt184Array()
         => UInt184Array();
+    /// <summary>
+    /// Reads an int192 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int192Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 192);
@@ -503,6 +691,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int192Array()
         => Int192Array();
 
+    /// <summary>
+    /// Reads a uint192 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt192Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 192);
@@ -513,6 +705,10 @@ public partial class AbiDecoder
         => UInt192Array();
     UInt256[] IDynamicTupleDecoder.UInt192Array()
         => UInt192Array();
+    /// <summary>
+    /// Reads an int200 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int200Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 200);
@@ -524,6 +720,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int200Array()
         => Int200Array();
 
+    /// <summary>
+    /// Reads a uint200 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt200Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 200);
@@ -534,6 +734,10 @@ public partial class AbiDecoder
         => UInt200Array();
     UInt256[] IDynamicTupleDecoder.UInt200Array()
         => UInt200Array();
+    /// <summary>
+    /// Reads an int208 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int208Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 208);
@@ -545,6 +749,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int208Array()
         => Int208Array();
 
+    /// <summary>
+    /// Reads a uint208 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt208Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 208);
@@ -555,6 +763,10 @@ public partial class AbiDecoder
         => UInt208Array();
     UInt256[] IDynamicTupleDecoder.UInt208Array()
         => UInt208Array();
+    /// <summary>
+    /// Reads an int216 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int216Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 216);
@@ -566,6 +778,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int216Array()
         => Int216Array();
 
+    /// <summary>
+    /// Reads a uint216 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt216Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 216);
@@ -576,6 +792,10 @@ public partial class AbiDecoder
         => UInt216Array();
     UInt256[] IDynamicTupleDecoder.UInt216Array()
         => UInt216Array();
+    /// <summary>
+    /// Reads an int224 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int224Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 224);
@@ -587,6 +807,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int224Array()
         => Int224Array();
 
+    /// <summary>
+    /// Reads a uint224 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt224Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 224);
@@ -597,6 +821,10 @@ public partial class AbiDecoder
         => UInt224Array();
     UInt256[] IDynamicTupleDecoder.UInt224Array()
         => UInt224Array();
+    /// <summary>
+    /// Reads an int232 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int232Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 232);
@@ -608,6 +836,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int232Array()
         => Int232Array();
 
+    /// <summary>
+    /// Reads a uint232 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt232Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 232);
@@ -618,6 +850,10 @@ public partial class AbiDecoder
         => UInt232Array();
     UInt256[] IDynamicTupleDecoder.UInt232Array()
         => UInt232Array();
+    /// <summary>
+    /// Reads an int240 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int240Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 240);
@@ -629,6 +865,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int240Array()
         => Int240Array();
 
+    /// <summary>
+    /// Reads a uint240 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt240Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 240);
@@ -639,6 +879,10 @@ public partial class AbiDecoder
         => UInt240Array();
     UInt256[] IDynamicTupleDecoder.UInt240Array()
         => UInt240Array();
+    /// <summary>
+    /// Reads an int248 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int248Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 248);
@@ -650,6 +894,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int248Array()
         => Int248Array();
 
+    /// <summary>
+    /// Reads a uint248 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt248Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 248);
@@ -660,6 +908,10 @@ public partial class AbiDecoder
         => UInt248Array();
     UInt256[] IDynamicTupleDecoder.UInt248Array()
         => UInt248Array();
+    /// <summary>
+    /// Reads an int256 array from the input.
+    /// </summary>
+    /// <returns>The decoded Int256 array.</returns>
     public Int256[] Int256Array()
     {
         var result = AbiTypes.Int256Array.Decode(_bytes, BytesRead, 256);
@@ -671,6 +923,10 @@ public partial class AbiDecoder
     Int256[] IDynamicTupleDecoder.Int256Array()
         => Int256Array();
 
+    /// <summary>
+    /// Reads a uint256 array from the input.
+    /// </summary>
+    /// <returns>The decoded UInt256 array.</returns>
     public UInt256[] UInt256Array()
     {
         var result = AbiTypes.UInt256Array.Decode(_bytes, BytesRead, 256);

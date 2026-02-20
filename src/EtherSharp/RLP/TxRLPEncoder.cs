@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Tx;
 
 namespace EtherSharp.RLP;
+
 internal static class TxRLPEncoder
 {
     public static int GetAccessListLength(ReadOnlySpan<StateAccess> accessList)

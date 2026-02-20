@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Tx.PendingHandler;
+
 internal class CompletedPendingHandler<TTxParams, TTxGasParams>(
     uint nonce,
     IEnumerable<TxSubmission<TTxParams, TTxGasParams>> txSubmissions,

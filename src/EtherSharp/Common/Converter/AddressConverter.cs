@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Common.Converter;
+
 public class AddressConverter : JsonConverter<Address>
 {
     public override Address? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

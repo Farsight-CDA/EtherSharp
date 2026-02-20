@@ -1,12 +1,22 @@
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
 namespace EtherSharp.ABI.Decode.Interfaces;
 public partial interface IDynamicTupleDecoder
 {
+    /// <summary>
+    /// Reads a bytes1 value from the input.
+    /// </summary>
+    /// <returns>The decoded byte value.</returns>
     public byte Bytes1();
 <#
     for(var i = 2; i <= 32;i=i+1)
     {
 #>
-    public ReadOnlySpan<byte> Bytes<#=i#>();
+    /// <summary>
+    /// Reads a bytes<#=i#> value from the input.
+    /// </summary>
+    /// <returns>The decoded <#=i#>-byte value.</returns>
+    public ReadOnlyMemory<byte> Bytes<#=i#>();
 <#
     }
 #>

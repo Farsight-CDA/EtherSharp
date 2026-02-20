@@ -25,10 +25,9 @@ internal static class PrimitiveTypeWriter
                 abiFunctionName = "String";
                 break;
             case "bytes":
-                csharpTypeName = typeof(byte[]).FullName;
+                csharpTypeName = "System.ReadOnlyMemory<byte>";
                 isDynamic = true;
                 abiFunctionName = "Bytes";
-                decodeSuffix = ".ToArray()";
                 break;
             case "bool":
                 csharpTypeName = typeof(bool).FullName;
@@ -65,13 +64,9 @@ internal static class PrimitiveTypeWriter
                 && bitSize >= 1 && bitSize <= 32:
                 csharpTypeName = bitSize == 1
                     ? typeof(byte).FullName
-                    : typeof(byte[]).FullName;
+                    : "System.ReadOnlyMemory<byte>";
                 isDynamic = false;
                 abiFunctionName = $"Bytes{bitSize}";
-                if(bitSize > 1)
-                {
-                    decodeSuffix = ".ToArray()";
-                }
                 break;
             default:
                 csharpTypeName = null!;

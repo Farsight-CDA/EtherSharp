@@ -1,19 +1,45 @@
-﻿using EtherSharp.Numerics;
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
 public partial interface IArrayAbiEncoder 
 {
+    /// <summary>
+    /// Encodes an int8 array value.
+    /// </summary>
+    /// <param name="value">The signed byte array to encode.</param>
     public void Int8Array(params sbyte[] value);
+    /// <summary>
+    /// Encodes a uint8 array value.
+    /// </summary>
+    /// <param name="value">The byte array to encode.</param>
     public void UInt8Array(params byte[] value);
 
+    /// <summary>
+    /// Encodes an int16 array value.
+    /// </summary>
+    /// <param name="value">The short array to encode.</param>
     public void Int16Array(params short[] value);
+    /// <summary>
+    /// Encodes a uint16 array value.
+    /// </summary>
+    /// <param name="value">The unsigned short array to encode.</param>
     public void UInt16Array(params ushort[] value);
 
 <#
     for(var i = 24; i <= 32;i=i+8)
     {
 #>
+    /// <summary>
+    /// Encodes an int<#=i#> array value.
+    /// </summary>
+    /// <param name="value">The int array to encode.</param>
     public void Int<#=i#>Array(params int[] value);
+    /// <summary>
+    /// Encodes a uint<#=i#> array value.
+    /// </summary>
+    /// <param name="value">The uint array to encode.</param>
     public void UInt<#=i#>Array(params uint[] value);
 <#
     }
@@ -22,7 +48,15 @@ public partial interface IArrayAbiEncoder
     for(var i = 40; i <= 64;i=i+8)
     {
 #>
+    /// <summary>
+    /// Encodes an int<#=i#> array value.
+    /// </summary>
+    /// <param name="value">The long array to encode.</param>
     public void Int<#=i#>Array(params long[] value);
+    /// <summary>
+    /// Encodes a uint<#=i#> array value.
+    /// </summary>
+    /// <param name="value">The ulong array to encode.</param>
     public void UInt<#=i#>Array(params ulong[] value);
 <#
     }
@@ -31,10 +65,17 @@ public partial interface IArrayAbiEncoder
     for(var i = 72; i <= 256;i=i+8)
     {
 #>
+    /// <summary>
+    /// Encodes an int<#=i#> array value.
+    /// </summary>
+    /// <param name="value">The Int256 array to encode.</param>
     public void Int<#=i#>Array(params Int256[] value);
+    /// <summary>
+    /// Encodes a uint<#=i#> array value.
+    /// </summary>
+    /// <param name="value">The UInt256 array to encode.</param>
     public void UInt<#=i#>Array(params UInt256[] value);
 <#
     }
 #>
 }
-

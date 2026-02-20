@@ -1,4 +1,5 @@
 ﻿namespace EtherSharp.Generator.Abi;
+
 public enum StateMutability
 {
     Pure,

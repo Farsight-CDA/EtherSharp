@@ -1,6 +1,7 @@
 ﻿using EtherSharp.ABI;
 
 namespace EtherSharp.Tests.ABI.Encoder;
+
 public class StringAbiEncoderTests
 {
     private readonly AbiEncoder _encoder;

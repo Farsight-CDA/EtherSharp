@@ -2,6 +2,7 @@
 using EtherSharp.ABI;
 
 namespace EtherSharp.Bench;
+
 public class ABIDecoderBenchmarks
 {
 

@@ -2,6 +2,7 @@
 using System.Text;
 
 namespace EtherSharp.Tests.Crypto;
+
 public class Keccak256Tests
 {
     [Theory]

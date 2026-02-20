@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
+
 public static partial class AbiTypes
 {
     public class Short : FixedType<short>, IPackedEncodeType

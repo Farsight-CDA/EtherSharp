@@ -4,6 +4,7 @@ using EtherSharp.Types;
 using System.Runtime.CompilerServices;
 
 namespace EtherSharp.Client.Modules.Events;
+
 public interface IEventsModule<TLog> : IConfiguredEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {

@@ -1,6 +1,7 @@
 ﻿using EtherSharp.ABI.Types.Base;
 
 namespace EtherSharp.ABI.Types;
+
 public static partial class AbiTypes
 {
     public class Address : FixedType<EtherSharp.Types.Address>, IPackedEncodeType

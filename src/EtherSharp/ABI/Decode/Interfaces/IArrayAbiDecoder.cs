@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Types;
 
 namespace EtherSharp.ABI.Decode.Interfaces;
+
 public partial interface IArrayAbiDecoder
 {
     public bool[] BoolArray();

@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Types;
 
 namespace EtherSharp.Common.Comparer;
+
 public class EventComparer : IComparer<Log>
 {
     public static EventComparer Instance { get; } = new EventComparer();

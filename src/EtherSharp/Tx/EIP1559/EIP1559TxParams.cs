@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 
 namespace EtherSharp.Tx.EIP1559;
+
 public record EIP1559TxParams(
     StateAccess[] AccessList
 ) : ITxParams<EIP1559TxParams>

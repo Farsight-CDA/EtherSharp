@@ -61,8 +61,8 @@ public partial class PackedAbiEncoder
         => AddElement(new AbiTypes.Address(value));
 
     public PackedAbiEncoder String(string value)
-        => AddElement(new AbiTypes.String(value));
-    public PackedAbiEncoder Bytes(byte[] arr)
+            => AddElement(new AbiTypes.String(value));
+    public PackedAbiEncoder Bytes(ReadOnlyMemory<byte> arr)
         => AddElement(new AbiTypes.Bytes(arr));
 
     public bool TryWritoTo(Span<byte> outputBuffer)
