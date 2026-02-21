@@ -55,7 +55,7 @@ public record CallTrace(
         public readonly void Reset() => throw new NotSupportedException();
         public readonly void Dispose() { }
         public readonly Enumerator GetEnumerator() => this;
-        IEnumerator<CallTrace> IEnumerable<CallTrace>.GetEnumerator() => this;
-        IEnumerator IEnumerable.GetEnumerator() => this;
+        readonly IEnumerator<CallTrace> IEnumerable<CallTrace>.GetEnumerator() => this;
+        readonly IEnumerator IEnumerable.GetEnumerator() => this;
     }
 }
