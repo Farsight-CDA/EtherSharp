@@ -4,8 +4,18 @@ using System.Text.Json.Serialization;
 
 namespace EtherSharp.Common;
 
+/// <summary>
+/// Central JSON serializer configuration for Ethereum JSON-RPC payloads.
+/// </summary>
 public static class ParsingUtils
 {
+    /// <summary>
+    /// Serializer options used for RPC request/response and subscription payloads.
+    /// </summary>
+    /// <remarks>
+    /// Includes EtherSharp converters for hex-encoded numeric, byte, and block-selector fields used by EVM nodes,
+    /// writes camelCase request payloads, and keeps response parsing case-insensitive across providers.
+    /// </remarks>
     public static readonly JsonSerializerOptions EvmSerializerOptions = new JsonSerializerOptions()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,

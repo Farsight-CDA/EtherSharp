@@ -4,30 +4,32 @@ using EtherSharp.Types;
 namespace EtherSharp.Client.Services.FlashCallExecutor;
 
 /// <summary>
-/// Interface for flash call executor strategies.
+/// Executes read-only contract calls by routing them through a flash call strategy.
 /// </summary>
 public interface IFlashCallExecutor
 {
     /// <summary>
-    /// Gets the maximum amount of bytes that can be sent as a payload at the given target height.
+    /// Gets the maximum call payload size, in bytes, supported at the specified target block.
     /// </summary>
+    /// <param name="targetHeight">The block height context used to evaluate execution constraints.</param>
+    /// <returns>The maximum payload size, in bytes, accepted by this executor.</returns>
     public int GetMaxPayloadSize(TargetBlockNumber targetHeight);
 
     /// <summary>
-    /// Gets the maximum amount of bytes that can be returned from a call at the given target height.
+    /// Gets the maximum call result size, in bytes, that can be returned at the specified target block.
     /// </summary>
-    /// <param name="targetHeight"></param>
-    /// <returns></returns>
+    /// <param name="targetHeight">The block height context used to evaluate execution constraints.</param>
+    /// <returns>The maximum return data size, in bytes, supported by this executor.</returns>
     public int GetMaxResultSize(TargetBlockNumber targetHeight);
 
     /// <summary>
-    /// Executes a flash call with the given payload.
+    /// Executes a flash call against a deployed helper contract for the provided call payload.
     /// </summary>
-    /// <param name="deployment"></param>
-    /// <param name="call"></param>
-    /// <param name="targetHeight"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="deployment">The deployment descriptor of the helper contract used for flash execution.</param>
+    /// <param name="call">The contract call payload and target metadata to execute.</param>
+    /// <param name="targetHeight">The block number to execute the call against.</param>
+    /// <param name="cancellationToken">A token used to cancel the underlying RPC request.</param>
+    /// <returns>The execution result containing call success state and returned bytes.</returns>
     public Task<TxCallResult> ExecuteFlashCallAsync(
         IContractDeployment deployment,
         IContractCall call,

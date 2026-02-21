@@ -12,16 +12,12 @@ public static partial class AbiTypes
     /// </summary>
     public class DynamicTuple : DynamicType<IDynamicTupleEncoder>
     {
-        /// <summary>
-        /// Gets the encoded payload size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public override int PayloadSize => Value.MetadataSize + Value.PayloadSize;
 
         internal DynamicTuple(IDynamicTupleEncoder value) : base(value) { }
 
-        /// <summary>
-        /// Encodes tuple metadata and payload.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
             if(Value.PayloadSize == 0)

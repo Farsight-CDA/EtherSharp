@@ -10,21 +10,15 @@ public static partial class AbiTypes
     /// </summary>
     public class Bytes : DynamicType<ReadOnlyMemory<byte>>, IPackedEncodeType
     {
-        /// <summary>
-        /// Gets the encoded payload size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public override int PayloadSize => ((Value.Length + 31) / 32 * 32) + 32;
 
-        /// <summary>
-        /// Gets the packed encoded size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public int PackedSize => Value.Length;
 
         internal Bytes(ReadOnlyMemory<byte> value) : base(value) { }
 
-        /// <summary>
-        /// Encodes bytes metadata and payload.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);

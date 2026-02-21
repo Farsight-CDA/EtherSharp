@@ -10,9 +10,7 @@ public static partial class AbiTypes
     /// </summary>
     public class UShort : FixedType<ushort>, IPackedEncodeType
     {
-        /// <summary>
-        /// Gets the packed encoded size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public int PackedSize => 2;
 
         internal UShort(ushort value) : base(value)
@@ -20,9 +18,7 @@ public static partial class AbiTypes
 
         }
 
-        /// <summary>
-        /// Writes the value into the target buffer.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)

@@ -3,7 +3,7 @@
 internal interface IPackedEncodeType
 {
     /// <summary>
-    /// Byte count needed to ABI encode the value using packed mode.
+    /// Gets the packed encoded size in bytes.
     /// </summary>
     public int PackedSize { get; }
 

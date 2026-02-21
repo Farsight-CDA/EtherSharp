@@ -1,31 +1,32 @@
 ﻿using EtherSharp.RPC;
 
 namespace EtherSharp.Common.Exceptions;
+
 /// <summary>
-/// An exception thrown when RPC returns an error.
+/// Represents a JSON-RPC error returned by the node.
 /// </summary>
-/// <param name="code"></param>
-/// <param name="message"></param>
-/// <param name="data"></param>
+/// <param name="code">JSON-RPC error code.</param>
+/// <param name="message">JSON-RPC error message.</param>
+/// <param name="data">Optional JSON-RPC error data payload.</param>
 public class RPCException(int code, string message, string? data)
     : Exception($"RPC Error Code {code}: {message}{(data is not null ? $" ({data})" : "")}")
 {
     /// <summary>
-    /// Response status code of the error.
+    /// JSON-RPC error code returned by the node.
     /// </summary>
     public int Code { get; } = code;
 
     /// <summary>
-    /// The data field of the error.
+    /// Optional JSON-RPC error data payload.
     /// </summary>
     public string? ErrorData { get; } = data;
 
     /// <summary>
-    /// Creates a new instance of RPCException from the given RpcResult Error.
+    /// Creates an <see cref="RPCException"/> from a <see cref="RpcResult{TResult}.Error"/> payload.
     /// </summary>
-    /// <typeparam name="TResult"></typeparam>
-    /// <param name="errorResult"></param>
-    /// <returns></returns>
+    /// <typeparam name="TResult">Result type associated with the failed RPC method.</typeparam>
+    /// <param name="errorResult">Error payload returned by the RPC client.</param>
+    /// <returns>A populated <see cref="RPCException"/> instance.</returns>
     public static RPCException FromRPCError<TResult>(RpcResult<TResult>.Error errorResult)
     {
         ArgumentNullException.ThrowIfNull(errorResult, nameof(errorResult));

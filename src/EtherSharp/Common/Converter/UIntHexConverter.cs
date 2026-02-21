@@ -5,8 +5,12 @@ using System.Text.Json.Serialization;
 
 namespace EtherSharp.Common.Converter;
 
+/// <summary>
+/// Converts a <see cref="UInt32"/> to or from a hex-encoded JSON string.
+/// </summary>
 internal class UIntHexConverter : JsonConverter<uint>
 {
+    /// <inheritdoc/>
     public override uint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         switch(reader.TokenType)
@@ -34,6 +38,7 @@ internal class UIntHexConverter : JsonConverter<uint>
         }
     }
 
+    /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, uint value, JsonSerializerOptions options)
     {
         if(value == 0)

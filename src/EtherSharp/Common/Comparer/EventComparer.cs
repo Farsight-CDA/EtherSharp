@@ -4,8 +4,12 @@ namespace EtherSharp.Common.Comparer;
 
 public class EventComparer : IComparer<Log>
 {
+    /// <summary>
+    /// Shared static instance of <see cref="EventComparer"/>.
+    /// </summary>
     public static EventComparer Instance { get; } = new EventComparer();
 
+    /// <inheritdoc/>
     public int Compare(Log? x, Log? y)
     {
         ArgumentNullException.ThrowIfNull(x, nameof(x));

@@ -11,16 +11,12 @@ public static partial class AbiTypes
     /// </summary>
     public class FixedTuple : FixedType<IFixedTupleEncoder>
     {
-        /// <summary>
-        /// Gets the encoded size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public override int Size => Value.MetadataSize;
 
         internal FixedTuple(IFixedTupleEncoder value) : base(value) { }
 
-        /// <summary>
-        /// Writes the tuple into the target buffer.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 

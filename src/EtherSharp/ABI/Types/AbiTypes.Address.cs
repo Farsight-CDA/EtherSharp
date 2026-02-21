@@ -9,16 +9,12 @@ public static partial class AbiTypes
     /// </summary>
     public class Address : FixedType<EtherSharp.Types.Address>, IPackedEncodeType
     {
-        /// <summary>
-        /// Gets the packed encoded size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public int PackedSize => 20;
 
         internal Address(EtherSharp.Types.Address value) : base(value) { }
 
-        /// <summary>
-        /// Writes an address into the target buffer.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer, false);
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)

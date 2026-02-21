@@ -13,9 +13,7 @@ public static partial class AbiTypes
     {
         private readonly int _payloadSize;
 
-        /// <summary>
-        /// Gets the encoded payload size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public override int PayloadSize => _payloadSize;
 
         internal EncodeTypeArray(TInner[] value) : base(value)
@@ -32,9 +30,7 @@ public static partial class AbiTypes
             _payloadSize = total;
         }
 
-        /// <summary>
-        /// Encodes array metadata and payload.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);

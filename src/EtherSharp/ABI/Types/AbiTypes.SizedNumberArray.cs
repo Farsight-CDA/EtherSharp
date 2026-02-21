@@ -12,9 +12,7 @@ public static partial class AbiTypes
     public class SizedNumberArray<TInner> : DynamicType<TInner[]>
         where TInner : INumber<TInner>
     {
-        /// <summary>
-        /// Gets the encoded payload size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public override int PayloadSize => (32 * Value.Length) + 32;
 
         internal SizedNumberArray(TInner[] value, int length)
@@ -40,9 +38,7 @@ public static partial class AbiTypes
             }
         }
 
-        /// <summary>
-        /// Encodes array metadata and payload.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);

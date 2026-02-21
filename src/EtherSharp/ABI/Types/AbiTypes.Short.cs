@@ -10,16 +10,12 @@ public static partial class AbiTypes
     /// </summary>
     public class Short : FixedType<short>, IPackedEncodeType
     {
-        /// <summary>
-        /// Gets the packed encoded size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public int PackedSize => 2;
 
         internal Short(short value) : base(value) { }
 
-        /// <summary>
-        /// Writes the value into the target buffer.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)

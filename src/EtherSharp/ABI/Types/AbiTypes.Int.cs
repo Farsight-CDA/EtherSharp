@@ -10,9 +10,7 @@ public static partial class AbiTypes
     /// </summary>
     public class Int : FixedType<int>, IPackedEncodeType
     {
-        /// <summary>
-        /// Gets the packed encoded size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public int PackedSize { get; }
 
         internal Int(int value, int byteLength) : base(value)
@@ -31,9 +29,7 @@ public static partial class AbiTypes
             PackedSize = byteLength;
         }
 
-        /// <summary>
-        /// Writes the value into the target buffer.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer, false);
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)

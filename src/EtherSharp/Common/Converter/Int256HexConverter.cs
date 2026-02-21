@@ -5,8 +5,12 @@ using System.Text.Json.Serialization;
 
 namespace EtherSharp.Common.Converter;
 
+/// <summary>
+/// Converts an <see cref="Int256"/> to or from a hex-encoded JSON string.
+/// </summary>
 public class Int256HexConverter : JsonConverter<Int256>
 {
+    /// <inheritdoc/>
     public override Int256 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if(reader.TokenType != JsonTokenType.String)
@@ -50,6 +54,7 @@ public class Int256HexConverter : JsonConverter<Int256>
             : result;
     }
 
+    /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, Int256 value, JsonSerializerOptions options)
     {
         if(value == 0)

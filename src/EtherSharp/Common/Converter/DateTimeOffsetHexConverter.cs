@@ -4,8 +4,12 @@ using System.Text.Json.Serialization;
 
 namespace EtherSharp.Common.Converter;
 
+/// <summary>
+/// Converts a <see cref="DateTimeOffset"/> value to or from a hex-encoded Unix timestamp JSON string.
+/// </summary>
 internal class DateTimeOffsetHexConverter : JsonConverter<DateTimeOffset>
 {
+    /// <inheritdoc/>
     public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if(reader.TokenType != JsonTokenType.String)
@@ -31,6 +35,7 @@ internal class DateTimeOffsetHexConverter : JsonConverter<DateTimeOffset>
         return DateTimeOffset.FromUnixTimeSeconds(utcTimestamp);
     }
 
+    /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
     {
         Span<char> buffer = stackalloc char[10];

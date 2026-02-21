@@ -4,29 +4,29 @@ using EtherSharp.Types;
 namespace EtherSharp.Client.Modules.Blocks;
 
 /// <summary>
-/// Module used to interact with blocks.
+/// Provides block retrieval and block-head subscription operations.
 /// </summary>
 public interface IBlocksModule
 {
     /// <summary>
-    /// Fetches the current peak block number.
+    /// Gets the current canonical chain height.
     /// </summary>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="cancellationToken">Token used to cancel the RPC request.</param>
+    /// <returns>The latest block number.</returns>
     public Task<ulong> GetPeakHeightAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Fetches block information at the given height.
+    /// Gets a block by number.
     /// </summary>
-    /// <param name="targetHeight"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="targetHeight">Block number selector (explicit height or symbolic target such as latest).</param>
+    /// <param name="cancellationToken">Token used to cancel the RPC request.</param>
+    /// <returns>Block data with transaction hashes.</returns>
     public Task<BlockDataTrasactionAsString> GetBlockAtHeightAsync(TargetBlockNumber targetHeight, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Creates a subscription for listening to new block heads.
+    /// Creates and installs a live subscription for new block headers.
     /// </summary>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="cancellationToken">Token used to cancel subscription setup.</param>
+    /// <returns>An active blocks subscription.</returns>
     public Task<IBlocksSubscription> SubscribeNewHeadsAsync(CancellationToken cancellationToken = default);
 }

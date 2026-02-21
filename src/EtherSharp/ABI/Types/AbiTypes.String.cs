@@ -11,14 +11,10 @@ public static partial class AbiTypes
     /// </summary>
     public class String : DynamicType<string>, IPackedEncodeType
     {
-        /// <summary>
-        /// Gets the encoded payload size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public override int PayloadSize => ((PackedSize + 31) / 32 * 32) + 32;
 
-        /// <summary>
-        /// Gets the packed encoded size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public int PackedSize { get; }
 
         internal String(string value)
@@ -28,9 +24,7 @@ public static partial class AbiTypes
             PackedSize = Encoding.UTF8.GetByteCount(value);
         }
 
-        /// <summary>
-        /// Encodes string metadata and payload.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);

@@ -18,14 +18,10 @@ public static partial class AbiTypes
             }
         }
 
-        /// <summary>
-        /// Gets the packed encoded size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public int PackedSize => Value.Length;
 
-        /// <summary>
-        /// Writes the fixed bytes into the target buffer.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)

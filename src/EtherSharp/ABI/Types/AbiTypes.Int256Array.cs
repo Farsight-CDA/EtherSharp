@@ -10,9 +10,7 @@ public static partial class AbiTypes
     /// </summary>
     public class Int256Array : DynamicType<Numerics.Int256[]>
     {
-        /// <summary>
-        /// Gets the encoded payload size in bytes.
-        /// </summary>
+        /// <inheritdoc />
         public override int PayloadSize => (32 * Value.Length) + 32;
 
         internal Int256Array(Numerics.Int256[] value, int bitSize)
@@ -33,9 +31,7 @@ public static partial class AbiTypes
             }
         }
 
-        /// <summary>
-        /// Encodes array metadata and payload.
-        /// </summary>
+        /// <inheritdoc />
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);

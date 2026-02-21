@@ -4,8 +4,12 @@ using System.Text.Json.Serialization;
 
 namespace EtherSharp.Common.Converter;
 
+/// <summary>
+/// Converts a hex-encoded <see cref="Byte"/> array to or from JSON.
+/// </summary>
 internal class ByteArrayHexConverter : JsonConverter<byte[]>
 {
+    /// <inheritdoc/>
     public override byte[]? Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
@@ -47,6 +51,7 @@ internal class ByteArrayHexConverter : JsonConverter<byte[]>
         }
     }
 
+    /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, byte[] value, JsonSerializerOptions options)
     {
         int charCount = (value.Length * 2) + 2;
