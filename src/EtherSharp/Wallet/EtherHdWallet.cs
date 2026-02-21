@@ -7,22 +7,42 @@ using System.Security.Cryptography;
 
 namespace EtherSharp.Wallet;
 
+/// <summary>
+/// Represents an HD Ethereum wallet backed by a secp256k1 private key.
+/// </summary>
 public class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSigner
 {
+    /// <summary>
+    /// Gets the Ethereum address derived from the current wallet public key.
+    /// </summary>
     public Address Address { get; } = null!;
 
+    /// <summary>
+    /// Creates a new wallet using a cryptographically random private key.
+    /// </summary>
+    /// <returns>A new <see cref="EtherHdWallet"/> instance.</returns>
     public static EtherHdWallet Create()
     {
         byte[] key = RandomNumberGenerator.GetBytes(32);
         return new EtherHdWallet(key);
     }
 
+    /// <summary>
+    /// Initializes a wallet from a raw private key.
+    /// </summary>
+    /// <param name="privateKey">The 32-byte secp256k1 private key.</param>
     public EtherHdWallet(ReadOnlySpan<byte> privateKey)
         : base(Secp256k1.Instance, privateKey)
     {
         Address = GenerateAddress();
     }
 
+    /// <summary>
+    /// Initializes a wallet from a mnemonic using the default Ethereum account derivation path.
+    /// </summary>
+    /// <param name="mnemonic">The BIP-39 mnemonic phrase.</param>
+    /// <param name="accountIndex">The account index used in the derivation path.</param>
+    /// <param name="passphrase">The optional mnemonic passphrase.</param>
     public EtherHdWallet(string mnemonic, uint accountIndex = 0, string passphrase = "")
         : base(Secp256k1.Instance, mnemonic, passphrase,
             Slip10.HardenedOffset + 44,
@@ -34,6 +54,12 @@ public class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSigner
         Address = GenerateAddress();
     }
 
+    /// <summary>
+    /// Initializes a wallet from a mnemonic using a custom derivation path.
+    /// </summary>
+    /// <param name="mnemonic">The BIP-39 mnemonic phrase.</param>
+    /// <param name="derivationPath">The derivation path to use for key derivation.</param>
+    /// <param name="passphrase">The optional mnemonic passphrase.</param>
     public EtherHdWallet(string mnemonic, ReadOnlySpan<char> derivationPath, string passphrase = "")
         : base(Secp256k1.Instance, mnemonic, passphrase, derivationPath)
     {
