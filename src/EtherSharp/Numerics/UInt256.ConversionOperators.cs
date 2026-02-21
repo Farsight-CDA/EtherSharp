@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿#pragma warning disable CS1591
+
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 

@@ -26,7 +26,22 @@ public partial class QueryBuilder<TQuery>
         inputLines.Add($"_queries.AddRange(c{i}.Queries);");
     }
     string inputsCode = string.Join("\n        ", inputLines);
+    string querySummary = n == 1 ? "query" : "queries";
+    string resultSummary = n == 1 ? "result" : "results";
 #>
+    /// <summary>
+    /// Adds <#=n#> <#=querySummary#> and maps their decoded results into <typeparamref name="TQuery"/>.
+    /// </summary>
+<#
+    for(int i = 1; i <= n; i++)
+    {
+#>
+    /// <param name="c<#=i#>">The <#=i#><#=i == 1 ? "st" : i == 2 ? "nd" : i == 3 ? "rd" : "th"#> query to append.</param>
+<#
+    }
+#>
+    /// <param name="mapping">Projects the appended query <#=resultSummary#> into <typeparamref name="TQuery"/>.</param>
+    /// <returns>The current builder instance.</returns>
     public QueryBuilder<TQuery> AddQuery<<#=genericParams#>>(<#=queryableParams#>, <#=mapping#>)
     {
         <#=inputsCode#>

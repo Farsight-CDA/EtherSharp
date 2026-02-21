@@ -24,6 +24,7 @@ public class OpStackEIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSign
 
     public ulong GasWantedOffsetPercentage { get; set; } = 15;
 
+    /// <inheritdoc/>
     public ValueTask InitializeAsync(ulong chainId, CancellationToken cancellationToken = default)
     {
         _initialized = true;

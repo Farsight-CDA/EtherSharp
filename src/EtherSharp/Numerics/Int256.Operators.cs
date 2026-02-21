@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.Numerics;
+﻿#pragma warning disable CS1591
+
+namespace EtherSharp.Numerics;
 
 public readonly partial struct Int256
 {

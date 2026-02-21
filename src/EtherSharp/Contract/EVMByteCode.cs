@@ -1,6 +1,6 @@
 using EtherSharp.Contract.Sections;
 
-namespace EtherSharp.Types;
+namespace EtherSharp.Contract;
 
 /// <summary>
 /// Represents the source code of an EVM contract.

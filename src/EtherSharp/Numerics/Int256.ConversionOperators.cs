@@ -1,4 +1,6 @@
-﻿using System.Buffers.Binary;
+﻿#pragma warning disable CS1591
+
+using System.Buffers.Binary;
 using System.Numerics;
 
 namespace EtherSharp.Numerics;

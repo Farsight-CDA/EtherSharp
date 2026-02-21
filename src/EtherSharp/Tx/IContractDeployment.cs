@@ -1,5 +1,5 @@
-﻿using EtherSharp.Numerics;
-using EtherSharp.Types;
+﻿using EtherSharp.Contract;
+using EtherSharp.Numerics;
 
 namespace EtherSharp.Tx;
 /// <summary>

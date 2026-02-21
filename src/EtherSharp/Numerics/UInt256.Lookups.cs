@@ -1,5 +1,7 @@
-﻿// SPDX-FileCopyrightText: 2025 Demerzel Solutions Limited
+// SPDX-FileCopyrightText: 2025 Demerzel Solutions Limited
 // SPDX-License-Identifier: MIT
+
+#pragma warning disable CS1591
 
 namespace EtherSharp.Numerics;
 

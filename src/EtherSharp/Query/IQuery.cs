@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Query.Operations;
 using EtherSharp.Tx;

@@ -5,6 +5,12 @@ namespace EtherSharp.Client.Modules.Query;
 
 public partial class QueryBuilder<TQuery>
 {
+    /// <summary>
+    /// Adds 1 query and maps its decoded result into <typeparamref name="TQuery"/>.
+    /// </summary>
+    /// <param name="c1">The 1st query to append.</param>
+    /// <param name="mapping">Projects the appended query result into <typeparamref name="TQuery"/>.</param>
+    /// <returns>The current builder instance.</returns>
     public QueryBuilder<TQuery> AddQuery<T1>(IQuery<T1> c1, Func<T1, TQuery> mapping)
     {
         int o1 = _queries.Count;
@@ -12,6 +18,14 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..])));
         return this;
     }
+
+    /// <summary>
+    /// Adds 2 queries and maps their decoded results into <typeparamref name="TQuery"/>.
+    /// </summary>
+    /// <param name="c1">The 1st query to append.</param>
+    /// <param name="c2">The 2nd query to append.</param>
+    /// <param name="mapping">Projects the appended query results into <typeparamref name="TQuery"/>.</param>
+    /// <returns>The current builder instance.</returns>
     public QueryBuilder<TQuery> AddQuery<T1, T2>(IQuery<T1> c1, IQuery<T2> c2, Func<T1, T2, TQuery> mapping)
     {
         int o1 = _queries.Count;
@@ -21,6 +35,15 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..])));
         return this;
     }
+
+    /// <summary>
+    /// Adds 3 queries and maps their decoded results into <typeparamref name="TQuery"/>.
+    /// </summary>
+    /// <param name="c1">The 1st query to append.</param>
+    /// <param name="c2">The 2nd query to append.</param>
+    /// <param name="c3">The 3rd query to append.</param>
+    /// <param name="mapping">Projects the appended query results into <typeparamref name="TQuery"/>.</param>
+    /// <returns>The current builder instance.</returns>
     public QueryBuilder<TQuery> AddQuery<T1, T2, T3>(IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, Func<T1, T2, T3, TQuery> mapping)
     {
         int o1 = _queries.Count;
@@ -32,6 +55,16 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..])));
         return this;
     }
+
+    /// <summary>
+    /// Adds 4 queries and maps their decoded results into <typeparamref name="TQuery"/>.
+    /// </summary>
+    /// <param name="c1">The 1st query to append.</param>
+    /// <param name="c2">The 2nd query to append.</param>
+    /// <param name="c3">The 3rd query to append.</param>
+    /// <param name="c4">The 4th query to append.</param>
+    /// <param name="mapping">Projects the appended query results into <typeparamref name="TQuery"/>.</param>
+    /// <returns>The current builder instance.</returns>
     public QueryBuilder<TQuery> AddQuery<T1, T2, T3, T4>(IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, Func<T1, T2, T3, T4, TQuery> mapping)
     {
         int o1 = _queries.Count;
@@ -45,6 +78,17 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..]), c4.ReadResultFrom(x[o4..])));
         return this;
     }
+
+    /// <summary>
+    /// Adds 5 queries and maps their decoded results into <typeparamref name="TQuery"/>.
+    /// </summary>
+    /// <param name="c1">The 1st query to append.</param>
+    /// <param name="c2">The 2nd query to append.</param>
+    /// <param name="c3">The 3rd query to append.</param>
+    /// <param name="c4">The 4th query to append.</param>
+    /// <param name="c5">The 5th query to append.</param>
+    /// <param name="mapping">Projects the appended query results into <typeparamref name="TQuery"/>.</param>
+    /// <returns>The current builder instance.</returns>
     public QueryBuilder<TQuery> AddQuery<T1, T2, T3, T4, T5>(IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, Func<T1, T2, T3, T4, T5, TQuery> mapping)
     {
         int o1 = _queries.Count;
@@ -60,6 +104,18 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..]), c4.ReadResultFrom(x[o4..]), c5.ReadResultFrom(x[o5..])));
         return this;
     }
+
+    /// <summary>
+    /// Adds 6 queries and maps their decoded results into <typeparamref name="TQuery"/>.
+    /// </summary>
+    /// <param name="c1">The 1st query to append.</param>
+    /// <param name="c2">The 2nd query to append.</param>
+    /// <param name="c3">The 3rd query to append.</param>
+    /// <param name="c4">The 4th query to append.</param>
+    /// <param name="c5">The 5th query to append.</param>
+    /// <param name="c6">The 6th query to append.</param>
+    /// <param name="mapping">Projects the appended query results into <typeparamref name="TQuery"/>.</param>
+    /// <returns>The current builder instance.</returns>
     public QueryBuilder<TQuery> AddQuery<T1, T2, T3, T4, T5, T6>(IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, Func<T1, T2, T3, T4, T5, T6, TQuery> mapping)
     {
         int o1 = _queries.Count;
@@ -77,6 +133,19 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..]), c4.ReadResultFrom(x[o4..]), c5.ReadResultFrom(x[o5..]), c6.ReadResultFrom(x[o6..])));
         return this;
     }
+
+    /// <summary>
+    /// Adds 7 queries and maps their decoded results into <typeparamref name="TQuery"/>.
+    /// </summary>
+    /// <param name="c1">The 1st query to append.</param>
+    /// <param name="c2">The 2nd query to append.</param>
+    /// <param name="c3">The 3rd query to append.</param>
+    /// <param name="c4">The 4th query to append.</param>
+    /// <param name="c5">The 5th query to append.</param>
+    /// <param name="c6">The 6th query to append.</param>
+    /// <param name="c7">The 7th query to append.</param>
+    /// <param name="mapping">Projects the appended query results into <typeparamref name="TQuery"/>.</param>
+    /// <returns>The current builder instance.</returns>
     public QueryBuilder<TQuery> AddQuery<T1, T2, T3, T4, T5, T6, T7>(IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, Func<T1, T2, T3, T4, T5, T6, T7, TQuery> mapping)
     {
         int o1 = _queries.Count;
@@ -96,6 +165,20 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..]), c4.ReadResultFrom(x[o4..]), c5.ReadResultFrom(x[o5..]), c6.ReadResultFrom(x[o6..]), c7.ReadResultFrom(x[o7..])));
         return this;
     }
+
+    /// <summary>
+    /// Adds 8 queries and maps their decoded results into <typeparamref name="TQuery"/>.
+    /// </summary>
+    /// <param name="c1">The 1st query to append.</param>
+    /// <param name="c2">The 2nd query to append.</param>
+    /// <param name="c3">The 3rd query to append.</param>
+    /// <param name="c4">The 4th query to append.</param>
+    /// <param name="c5">The 5th query to append.</param>
+    /// <param name="c6">The 6th query to append.</param>
+    /// <param name="c7">The 7th query to append.</param>
+    /// <param name="c8">The 8th query to append.</param>
+    /// <param name="mapping">Projects the appended query results into <typeparamref name="TQuery"/>.</param>
+    /// <returns>The current builder instance.</returns>
     public QueryBuilder<TQuery> AddQuery<T1, T2, T3, T4, T5, T6, T7, T8>(IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8, Func<T1, T2, T3, T4, T5, T6, T7, T8, TQuery> mapping)
     {
         int o1 = _queries.Count;
@@ -117,6 +200,21 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..]), c4.ReadResultFrom(x[o4..]), c5.ReadResultFrom(x[o5..]), c6.ReadResultFrom(x[o6..]), c7.ReadResultFrom(x[o7..]), c8.ReadResultFrom(x[o8..])));
         return this;
     }
+
+    /// <summary>
+    /// Adds 9 queries and maps their decoded results into <typeparamref name="TQuery"/>.
+    /// </summary>
+    /// <param name="c1">The 1st query to append.</param>
+    /// <param name="c2">The 2nd query to append.</param>
+    /// <param name="c3">The 3rd query to append.</param>
+    /// <param name="c4">The 4th query to append.</param>
+    /// <param name="c5">The 5th query to append.</param>
+    /// <param name="c6">The 6th query to append.</param>
+    /// <param name="c7">The 7th query to append.</param>
+    /// <param name="c8">The 8th query to append.</param>
+    /// <param name="c9">The 9th query to append.</param>
+    /// <param name="mapping">Projects the appended query results into <typeparamref name="TQuery"/>.</param>
+    /// <returns>The current builder instance.</returns>
     public QueryBuilder<TQuery> AddQuery<T1, T2, T3, T4, T5, T6, T7, T8, T9>(IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8, IQuery<T9> c9, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TQuery> mapping)
     {
         int o1 = _queries.Count;

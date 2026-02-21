@@ -1,5 +1,7 @@
-﻿// SPDX-FileCopyrightText: 2025 Demerzel Solutions Limited
+// SPDX-FileCopyrightText: 2025 Demerzel Solutions Limited
 // SPDX-License-Identifier: MIT
+
+#pragma warning disable CS1591
 
 using System.Diagnostics;
 using System.Numerics;
@@ -11,6 +13,9 @@ using System.Runtime.Intrinsics.X86;
 
 namespace EtherSharp.Numerics;
 
+/// <summary>
+/// Represents an unsigned 256-bit integer used for EVM-compatible arithmetic.
+/// </summary>
 [StructLayout(LayoutKind.Explicit)]
 public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComparable<UInt256>
 {

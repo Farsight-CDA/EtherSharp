@@ -18,6 +18,7 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
     private bool _isInitialized;
     private ulong _chainId;
 
+    /// <inheritdoc/>
     public ValueTask InitializeAsync(ulong chainId, CancellationToken cancellationToken = default)
     {
         _chainId = chainId;

@@ -20,6 +20,7 @@ public class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
     private bool _isInitialized;
     private ulong _chainId;
 
+    /// <inheritdoc/>
     public ValueTask InitializeAsync(ulong chainId, CancellationToken cancellationToken = default)
     {
         _chainId = chainId;

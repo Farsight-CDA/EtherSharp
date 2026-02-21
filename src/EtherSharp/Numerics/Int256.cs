@@ -1,10 +1,15 @@
-﻿// SPDX-FileCopyrightText: 2025 Demerzel Solutions Limited
+// SPDX-FileCopyrightText: 2025 Demerzel Solutions Limited
 // SPDX-License-Identifier: MIT
+
+#pragma warning disable CS1591
 
 using System.Runtime.CompilerServices;
 
 namespace EtherSharp.Numerics;
 
+/// <summary>
+/// Represents a signed 256-bit integer with two's-complement semantics.
+/// </summary>
 public readonly partial struct Int256 : IEquatable<Int256>, IComparable, IComparable<Int256>
 {
     public static readonly Int256 Zero = (Int256) 0UL;

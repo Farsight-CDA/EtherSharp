@@ -5,6 +5,10 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Client.Services.ResiliencyLayer;
 
+/// <summary>
+/// Persisted snapshot of a transaction submission attempt used by the resiliency layer
+/// to recover pending nonce flows across process restarts.
+/// </summary>
 public record TxSubmissionStorage(
     ulong ChainId,
     uint Sequence,
@@ -18,7 +22,7 @@ public record TxSubmissionStorage(
     byte[] TxGasParams
 )
 {
-    public TxSubmission<TTxParams, TTxGasParams> ToTxSubmission<TTxParams, TTxGasParams>()
+    internal TxSubmission<TTxParams, TTxGasParams> ToTxSubmission<TTxParams, TTxGasParams>()
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
         => new TxSubmission<TTxParams, TTxGasParams>(

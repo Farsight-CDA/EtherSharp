@@ -409,7 +409,7 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
                 ?? service.ImplementationInstance?.GetType()
                 ?? service.ServiceType;
 
-            if(serviceType.GetInterface(nameof(IInitializableService)) is null)
+            if(!typeof(IInitializableService).IsAssignableFrom(serviceType))
             {
                 continue;
             }
