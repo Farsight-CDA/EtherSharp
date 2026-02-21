@@ -11,4 +11,3 @@ public interface IFunctionsSection
     /// <returns></returns>
     public abstract static ReadOnlyMemory<byte>[] GetSelectors();
 }
-

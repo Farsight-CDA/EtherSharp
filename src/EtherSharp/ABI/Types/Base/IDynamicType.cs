@@ -6,4 +6,3 @@ internal interface IDynamicType : IEncodeType
 
     public void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset);
 }
-

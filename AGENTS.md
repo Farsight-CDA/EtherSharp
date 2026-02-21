@@ -112,7 +112,7 @@ Everything below is non-silent and enforceable.
 
 ### Global/editor settings
 
-- `root = true`, `[*] end_of_line = lf`, `[*.{bat,cmd}] end_of_line = crlf`, `insert_final_newline = false`.
+- `root = true`, `[*] end_of_line = lf`, `[*.{bat,cmd}] end_of_line = crlf`, `insert_final_newline = true`.
 - `dotnet_hide_advanced_members = false`, `dotnet_member_insertion_location = with_other_members_of_the_same_kind`, `dotnet_property_generation_behavior = prefer_throwing_properties`, `dotnet_search_reference_assemblies = true`, `file_header_template = unset`.
 
 ### Imports and namespace placement

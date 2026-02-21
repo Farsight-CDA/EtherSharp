@@ -41,4 +41,3 @@ public record BlockDataTrasactionAsString(
     string ParentHash,
     IReadOnlyList<string> Transactions
 );
-
