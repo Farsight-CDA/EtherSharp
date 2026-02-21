@@ -37,7 +37,16 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\src\EtherSharp\EtherSharp.csproj" />
-		<ProjectReference Include="..\src\EtherSharp.Generator\EtherSharp.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+		<ProjectReference Include="..\src\EtherSharp.Generator\EtherSharp.Generator.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\EtherSharp.Generator.dll" />
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\Epoche.Keccak256.dll" />
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\Microsoft.Bcl.AsyncInterfaces.dll" />
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\Microsoft.Bcl.HashCode.dll" />
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\System.Text.Encodings.Web.dll" />
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\System.Text.Json.dll" />
 	</ItemGroup>
 
 </Project>
