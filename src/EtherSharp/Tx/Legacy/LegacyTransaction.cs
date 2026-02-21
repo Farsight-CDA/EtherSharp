@@ -14,7 +14,7 @@ public record LegacyTransaction(
 {
     public static int NestedListCount => 1;
 
-    public static LegacyTransaction Create(ulong chainId, LegacyTxParams txParams, LegacyGasParams gasParams, ITxInput txInput, uint nonce)
+    public static LegacyTransaction Create(ulong chainId, LegacyGasParams gasParams, ITxInput txInput, uint nonce)
         => new LegacyTransaction(
             chainId,
             gasParams.GasLimit,

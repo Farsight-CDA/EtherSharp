@@ -35,7 +35,7 @@ public class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
             throw new InvalidOperationException("Not initialized");
         }
 
-        var tx = LegacyTransaction.Create(_chainId, txParams, txGasParams, txInput, nonce);
+        var tx = LegacyTransaction.Create(_chainId, txGasParams, txInput, nonce);
 
         Span<int> lengthBuffer = stackalloc int[LegacyTransaction.NestedListCount];
         int signDataLength = tx.GetSignDataEncodedSize(lengthBuffer);

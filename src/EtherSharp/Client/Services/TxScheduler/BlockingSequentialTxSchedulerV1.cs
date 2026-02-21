@@ -3,7 +3,6 @@ using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common.Exceptions;
-using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Tx;
 using EtherSharp.Tx.PendingHandler;
@@ -51,7 +50,7 @@ public class BlockingSequentialTxSchedulerV1 : ITxScheduler, IInitializableServi
     /// </summary>
     private uint _peakNonce;
 
-    public BlockingSequentialTxSchedulerV1(IServiceProvider provider, IRpcClient rpcClient, IEthRpcModule ethRpcModule, IEtherSigner signer,
+    public BlockingSequentialTxSchedulerV1(IServiceProvider provider, IEthRpcModule ethRpcModule, IEtherSigner signer,
         ITxPublisher txPublisher)
     {
         _provider = provider;
@@ -148,7 +147,8 @@ public class BlockingSequentialTxSchedulerV1 : ITxScheduler, IInitializableServi
             ?? throw new InvalidOperationException(
                 $"No IGasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
 
-        await _nonceIncrementSemaphore.WaitAsync();
+        //No forwarding of cancellationToken to avoid incrementing nonce without actually submitting a transaction
+        await _nonceIncrementSemaphore.WaitAsync(cancellationToken: default);
 
         uint nextNonce = _peakNonce;
 

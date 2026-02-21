@@ -392,7 +392,7 @@ public interface IQuery
     {
         var queryList = queries.ToList();
         return new Query<IReadOnlyList<T>>(
-            queryList.SelectMany(q => q.Queries).ToList(),
+            [.. queryList.SelectMany(q => q.Queries)],
             results =>
             {
                 var resultsList = new List<T>(queryList.Count);
