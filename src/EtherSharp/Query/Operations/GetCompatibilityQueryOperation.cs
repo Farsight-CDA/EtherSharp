@@ -1,4 +1,5 @@
-﻿using EtherSharp.Tx;
+﻿using EtherSharp.Contract;
+using EtherSharp.Tx;
 using EtherSharp.Types;
 
 namespace EtherSharp.Query.Operations;

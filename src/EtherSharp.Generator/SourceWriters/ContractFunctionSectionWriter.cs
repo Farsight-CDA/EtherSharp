@@ -75,13 +75,13 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
 
             typeBuilder.AddRawContent(
                 $$"""
-                public static EtherSharp.Types.EVMByteCode ByteCode { get; } = new EtherSharp.Types.EVMByteCode(Convert.FromHexString("{{HexUtils.ToHexString(byteCode)}}"));
+                public static EtherSharp.Contract.EVMByteCode ByteCode { get; } = new EtherSharp.Contract.EVMByteCode(Convert.FromHexString("{{HexUtils.ToHexString(byteCode)}}"));
                 """
             );
 
             var createCodeFunction = new FunctionBuilder("CreateCode")
                 .WithIsStatic()
-                .WithReturnTypeRaw("EtherSharp.Types.EVMByteCode");
+                .WithReturnTypeRaw("EtherSharp.Contract.EVMByteCode");
             var createFunction = new FunctionBuilder("Create")
                 .WithIsStatic()
                 .WithReturnTypeRaw("EtherSharp.Tx.IContractDeployment");
@@ -118,7 +118,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                     var buffer = new byte[ByteCode.Length + encoder.Size];
                     ByteCode.ByteCode.Span.CopyTo(buffer);
                     encoder.TryWritoTo(buffer.AsSpan(ByteCode.Length));
-                    return new EtherSharp.Types.EVMByteCode(buffer)
+                    return new EtherSharp.Contract.EVMByteCode(buffer)
                     """
                 );
                 createFunction.AddStatement(
