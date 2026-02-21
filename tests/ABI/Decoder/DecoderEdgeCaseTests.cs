@@ -156,6 +156,17 @@ public class DecoderEdgeCaseTests
     }
 
     [Fact]
+    public void Should_Throw_When_Decoded_Int256Array_Value_Exceeds_BitSize()
+    {
+        byte[] input = Convert.FromHexString("000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000");
+
+        // 2^71 does not fit in int72 (max is 2^71 - 1).
+        input[64 + (32 - 9)] = 0x80;
+
+        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).NumberArray<Int256>(false, 72));
+    }
+
+    [Fact]
     public void Should_Throw_On_Wrong_Number_Type()
     {
         byte[] input = new byte[32];

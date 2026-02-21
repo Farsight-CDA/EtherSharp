@@ -6,10 +6,19 @@ namespace EtherSharp.ABI.Types;
 
 public static partial class AbiTypes
 {
+    /// <summary>
+    /// Represents a dynamic ABI UTF-8 string.
+    /// </summary>
     public class String : DynamicType<string>, IPackedEncodeType
     {
+        /// <summary>
+        /// Gets the encoded payload size in bytes.
+        /// </summary>
         public override int PayloadSize => ((PackedSize + 31) / 32 * 32) + 32;
-        /// <inheritdoc/>
+
+        /// <summary>
+        /// Gets the packed encoded size in bytes.
+        /// </summary>
         public int PackedSize { get; }
 
         internal String(string value)
@@ -19,6 +28,9 @@ public static partial class AbiTypes
             PackedSize = Encoding.UTF8.GetByteCount(value);
         }
 
+        /// <summary>
+        /// Encodes string metadata and payload.
+        /// </summary>
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
@@ -37,9 +49,12 @@ public static partial class AbiTypes
             }
         }
 
+        /// <summary>
+        /// Decodes a UTF-8 string value.
+        /// </summary>
         public static string Decode(ReadOnlySpan<byte> bytes, int metaDataOffset)
         {
-            int stringOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
+            int stringOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes[(metaDataOffset + 28)..(metaDataOffset + 32)]);
             int stringLength = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes[(stringOffset + 28)..(stringOffset + 32)]);
             var stringBytes = bytes[(stringOffset + 32)..(stringOffset + 32 + stringLength)];
 

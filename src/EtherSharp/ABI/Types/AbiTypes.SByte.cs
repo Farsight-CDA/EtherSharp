@@ -1,22 +1,32 @@
 ﻿using EtherSharp.ABI.Types.Base;
-using System.Buffers.Binary;
 
 namespace EtherSharp.ABI.Types;
 
 public static partial class AbiTypes
 {
+    /// <summary>
+    /// Represents an ABI signed 8-bit value.
+    /// </summary>
     public class SByte : FixedType<sbyte>, IPackedEncodeType
     {
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets the packed encoded size in bytes.
+        /// </summary>
         public int PackedSize => 1;
 
         internal SByte(sbyte value) : base(value) { }
 
+        /// <summary>
+        /// Writes the value into the target buffer.
+        /// </summary>
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 
+        /// <summary>
+        /// Encodes a signed byte value.
+        /// </summary>
         public static void EncodeInto(sbyte value, Span<byte> buffer)
         {
             buffer[^1] = (byte) value;
@@ -27,9 +37,10 @@ public static partial class AbiTypes
             }
         }
 
+        /// <summary>
+        /// Decodes a signed byte from an ABI word.
+        /// </summary>
         public static sbyte Decode(ReadOnlySpan<byte> bytes)
-            => BitConverter.IsLittleEndian
-                ? (sbyte) BinaryPrimitives.ReverseEndianness(bytes[^1]) : (sbyte) bytes[^1];
-
+            => unchecked((sbyte) bytes[^1]);
     }
 }

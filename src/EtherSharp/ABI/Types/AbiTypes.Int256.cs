@@ -6,9 +6,14 @@ namespace EtherSharp.ABI.Types;
 
 public static partial class AbiTypes
 {
+    /// <summary>
+    /// Represents an ABI signed 256-bit value.
+    /// </summary>
     public class Int256 : FixedType<Numerics.Int256>, IPackedEncodeType
     {
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets the packed encoded size in bytes.
+        /// </summary>
         public int PackedSize { get; }
 
         internal Int256(Numerics.Int256 value, int byteLength) : base(value)
@@ -27,11 +32,17 @@ public static partial class AbiTypes
             PackedSize = byteLength;
         }
 
+        /// <summary>
+        /// Writes the value into the target buffer.
+        /// </summary>
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer, false);
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer, true);
 
+        /// <summary>
+        /// Encodes a signed 256-bit value into ABI or packed form.
+        /// </summary>
         public static void EncodeInto(Numerics.Int256 value, Span<byte> buffer, bool isPacked)
         {
             if(isPacked)
@@ -46,6 +57,9 @@ public static partial class AbiTypes
             }
         }
 
+        /// <summary>
+        /// Decodes a signed 256-bit value from an ABI word.
+        /// </summary>
         public static Numerics.Int256 Decode(ReadOnlySpan<byte> bytes)
             => new Numerics.Int256(bytes, true);
     }

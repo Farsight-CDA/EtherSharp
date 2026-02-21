@@ -6,15 +6,27 @@ namespace EtherSharp.ABI.Types;
 
 public static partial class AbiTypes
 {
+    /// <summary>
+    /// Represents a fixed-size ABI tuple.
+    /// </summary>
     public class FixedTuple : FixedType<IFixedTupleEncoder>
     {
+        /// <summary>
+        /// Gets the encoded size in bytes.
+        /// </summary>
         public override int Size => Value.MetadataSize;
 
         internal FixedTuple(IFixedTupleEncoder value) : base(value) { }
 
+        /// <summary>
+        /// Writes the tuple into the target buffer.
+        /// </summary>
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 
+        /// <summary>
+        /// Encodes a fixed tuple value.
+        /// </summary>
         public static void EncodeInto(IFixedTupleEncoder value, Span<byte> buffer)
         {
             if(value.PayloadSize != 0)
@@ -25,8 +37,10 @@ public static partial class AbiTypes
             value.TryWriteTo(buffer);
         }
 
+        /// <summary>
+        /// Decodes a fixed tuple using the supplied decoder.
+        /// </summary>
         public static T Decode<T>(AbiDecoder decoder, Func<IFixedTupleDecoder, T> subDecoder)
             => subDecoder.Invoke(decoder);
-
     }
 }

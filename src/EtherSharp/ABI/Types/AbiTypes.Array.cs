@@ -7,8 +7,14 @@ namespace EtherSharp.ABI.Types;
 
 public static partial class AbiTypes
 {
+    /// <summary>
+    /// Represents a dynamic ABI array.
+    /// </summary>
     public class Array : DynamicType<IArrayAbiEncoder>
     {
+        /// <summary>
+        /// Gets the encoded payload size in bytes.
+        /// </summary>
         public override int PayloadSize => Value.MetadataSize + Value.PayloadSize + 32;
 
         private readonly uint _length;
@@ -18,6 +24,9 @@ public static partial class AbiTypes
             _length = length;
         }
 
+        /// <summary>
+        /// Encodes array metadata and payload.
+        /// </summary>
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
         {
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
@@ -29,6 +38,9 @@ public static partial class AbiTypes
             }
         }
 
+        /// <summary>
+        /// Decodes an ABI array using the supplied element decoder.
+        /// </summary>
         public static T[] Decode<T>(ReadOnlyMemory<byte> bytes, int metaDataOffset, Func<IArrayAbiDecoder, T> decoder)
         {
             int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(metaDataOffset + 28)..(metaDataOffset + 32)]);

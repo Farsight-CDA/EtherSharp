@@ -5,9 +5,14 @@ namespace EtherSharp.ABI.Types;
 
 public static partial class AbiTypes
 {
+    /// <summary>
+    /// Represents an ABI signed 64-bit value.
+    /// </summary>
     public class Long : FixedType<long>, IPackedEncodeType
     {
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets the packed encoded size in bytes.
+        /// </summary>
         public int PackedSize { get; }
 
         internal Long(long value, int byteLength) : base(value)
@@ -26,11 +31,17 @@ public static partial class AbiTypes
             PackedSize = byteLength;
         }
 
+        /// <summary>
+        /// Writes the value into the target buffer.
+        /// </summary>
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer, false);
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer, true);
 
+        /// <summary>
+        /// Encodes a signed long into ABI or packed form.
+        /// </summary>
         public static void EncodeInto(long value, Span<byte> buffer, bool isPacked)
         {
             if(isPacked)
@@ -50,6 +61,9 @@ public static partial class AbiTypes
             }
         }
 
+        /// <summary>
+        /// Decodes a signed long from an ABI word.
+        /// </summary>
         public static long Decode(ReadOnlySpan<byte> bytes)
             => BinaryPrimitives.ReadInt64BigEndian(bytes[(32 - 8)..]);
     }
