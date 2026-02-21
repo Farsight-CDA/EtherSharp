@@ -3,6 +3,8 @@
     <Project Path="bench/EtherSharp.Bench.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="AGENTS.md" />
     <File Path="version.props" />
   </Folder>
   <Folder Name="/tests/">
