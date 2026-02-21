@@ -7,6 +7,9 @@ namespace EtherSharp.Numerics;
 
 public readonly partial struct Int256
 {
+    private static readonly BigInteger _minValueAsBigInteger = -(BigInteger.One << 255);
+    private static readonly BigInteger _maxValueAsBigInteger = (BigInteger.One << 255) - BigInteger.One;
+
     public static explicit operator Int256(in UInt256 value) => new Int256(value);
 
     public static implicit operator Int256(byte a) => new Int256((UInt256) a);
@@ -96,4 +99,25 @@ public readonly partial struct Int256
         => !x.IsNegative
             ? (double) x._value
             : -(double) (-x)._value;
+
+    public static explicit operator decimal(in Int256 x)
+        => (decimal) (BigInteger) x;
+
+    public static explicit operator Int256(decimal value)
+    {
+        var integer = (BigInteger) value;
+        if(integer < _minValueAsBigInteger || integer > _maxValueAsBigInteger)
+        {
+            throw new OverflowException("Cannot convert decimal value to Int256.");
+        }
+
+        if(integer >= 0)
+        {
+            return new Int256((UInt256) integer);
+        }
+
+        var abs = BigInteger.Abs(integer);
+        var absValue = new Int256((UInt256) abs);
+        return Negate(absValue);
+    }
 }

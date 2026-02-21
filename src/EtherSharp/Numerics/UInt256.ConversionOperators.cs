@@ -105,6 +105,9 @@ public readonly partial struct UInt256
         return (((((a._u3 * multiplier) + a._u2) * multiplier) + a._u1) * multiplier) + a._u0;
     }
 
+    public static explicit operator decimal(in UInt256 a)
+        => (decimal) (BigInteger) a;
+
     public static explicit operator UInt256(double a)
     {
         if(a < 0)
@@ -135,4 +138,9 @@ public readonly partial struct UInt256
 
         return c;
     }
+
+    public static explicit operator UInt256(decimal a)
+        => a < 0
+            ? throw new ArgumentException($"Expected a positive number and got {a}", nameof(a))
+            : (UInt256) (BigInteger) a;
 }
