@@ -414,7 +414,6 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         res = new Int256(new UInt256(z0, z1, z2, z3));
     }
 
-
     [OverloadResolutionPriority(1)]
     public bool Equals(in Int256 other)
         => _value.Equals(other._value);

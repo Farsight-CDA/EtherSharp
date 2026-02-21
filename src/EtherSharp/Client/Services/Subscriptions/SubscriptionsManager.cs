@@ -20,7 +20,6 @@ internal class SubscriptionsManager : ISubscriptionsManager
     private readonly Lock _subscriptionsLock = new Lock();
     private readonly List<ISubscription> _subscriptions = [];
 
-    private readonly OTELCounter<long>? _subscriptionMessageCounter;
     private readonly ObservableUpDownCounter<int>? _subscriptionsCounter;
 
     public SubscriptionsManager(IRpcClient rpcClient, IEthRpcModule ethRpcModule, IServiceProvider serviceProvider)

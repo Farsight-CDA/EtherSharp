@@ -557,15 +557,8 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         Unsafe.SkipInit(out res);
         Unsafe.As<UInt256, Vector256<ulong>>(ref res) = finalResult;
 
-        /// <summary>
-        /// Adds two 512-bit vectors that conceptually contain four independent 128-bit unsigned integers.
-        /// Within each 128-bit chunk, propagates an overflow (carry) from the lower 64-bit lane to the higher lane.
-        /// </summary>
-        /// <param name="left">The first 512-bit vector operand.</param>
-        /// <param name="right">The second 512-bit vector operand.</param>
-        /// <returns>
-        /// The sum of <paramref name="left"/> and <paramref name="right"/>, with carries propagated within each 128-bit chunk.
-        /// </returns>
+        // Adds two 512-bit vectors that conceptually contain four independent 128-bit unsigned integers.
+        // Within each 128-bit chunk, propagates an overflow (carry) from the lower 64-bit lane to the higher lane.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static Vector512<ulong> Add128(Vector512<ulong> left, Vector512<ulong> right)
         {

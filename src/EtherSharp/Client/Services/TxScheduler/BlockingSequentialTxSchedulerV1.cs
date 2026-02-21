@@ -136,7 +136,7 @@ public class BlockingSequentialTxSchedulerV1 : ITxScheduler, IInitializableServi
     }
 
     async ValueTask<IPendingTxHandler<TTxParams, TTxGasParams>> ITxScheduler.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams, CancellationToken cancellationToken = default
+        ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams, CancellationToken cancellationToken
     )
         where TTxParams : class
         where TTxGasParams : class
