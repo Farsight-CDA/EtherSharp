@@ -19,15 +19,6 @@ jobs:
         with:
           dotnet-version: "10.x"
 
-      - name: Create local NuGet source directory
-        run: mkdir ./local-nuget
-
-      - name: Add local NuGet source
-        run: dotnet nuget add source ${{ github.workspace }}/local-nuget --name LocalNuGetSource
-
-      - name: Build EtherSharp.Generator
-        run: cd src/EtherSharp.Generator && dotnet build --configuration Release && dotnet pack --configuration Release --output ${{ github.workspace }}/local-nuget
-
       - name: Restore dependencies
         run: dotnet restore
 
@@ -37,10 +28,13 @@ jobs:
       - name: Build the project
         run: dotnet build --configuration Release --no-restore
 
-      - name: Pack the project
-        run: dotnet pack --configuration Release --no-build --output ./nupkgs
+      - name: Pack EtherSharp
+        run: dotnet pack src/EtherSharp/EtherSharp.csproj --configuration Release --no-build --output ./nupkgs
+
+      - name: Pack EtherSharp.ERC
+        run: dotnet pack src/EtherSharp.ERC/EtherSharp.ERC.csproj --configuration Release --no-build --output ./nupkgs
 
       - name: Publish to NuGet
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: dotnet nuget push ./nupkgs/*.nupkg --source https://api.nuget.org/v3/index.json --api-key $NUGET_API_KEY --skip-duplicate
+          API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: dotnet nuget push ./nupkgs/*.nupkg --source https://api.nuget.org/v3/index.json --api-key $API_KEY --skip-duplicate

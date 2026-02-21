@@ -23,7 +23,7 @@
 
 	<PropertyGroup>
 		<WarningsAsErrors>$(WarningsAsErrors);NU1605;CS8604</WarningsAsErrors>
-		<NoWarn>1701;1702;CA1720;CA1716</NoWarn>
+		<NoWarn>1701;1702;CA1720;CA1716;NU1510</NoWarn>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
@@ -33,6 +33,19 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Diagnostics.Abstractions" Version="10.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\EtherSharp.Generator\EtherSharp.Generator.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\EtherSharp.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="..\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\Epoche.Keccak256.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="..\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\Microsoft.Bcl.AsyncInterfaces.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="..\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\Microsoft.Bcl.HashCode.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="..\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\System.Text.Encodings.Web.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="..\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\System.Text.Json.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -8,12 +8,11 @@
 		<Version>$(AssemblyVersion)</Version>
 		
 		<OutputType>Library</OutputType>
-		<IsPackable>true</IsPackable>
+		<IsPackable>false</IsPackable>
 		
 		<IsRoslynComponent>true</IsRoslynComponent>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-
-		<IncludeBuildOutput>False</IncludeBuildOutput>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
 		<PackageIcon>logo.png</PackageIcon>
 	</PropertyGroup>
@@ -53,22 +52,14 @@
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <NoWarn>NU5128;CA1822</NoWarn>
+	  <NoWarn>NU5128;CA1822;NU1510</NoWarn>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <NoWarn>NU5128;CA1822</NoWarn>
+	  <NoWarn>NU5128;CA1822;NU1510</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-
-		<None Include="$(PKGKeccak256)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PKGMicrosoft_Bcl_AsyncInterfaces)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PKGMicrosoft_Bcl_HashCode)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PKGSystem_Text_Encodings_Web)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PKGSystem_Text_Json)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-
 		<None Include="../../resources/logo.png" Pack="true" PackagePath="" />
 	</ItemGroup>
 </Project>

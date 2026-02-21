@@ -11,7 +11,7 @@ Operational guide for agentic coding tools in `G:\Farsight\EtherSharp`.
 ## Repository layout
 
 - `src/EtherSharp` - main runtime library (`net10.0`).
-- `src/EtherSharp.Generator` - Roslyn incremental source generator (`netstandard2.0`).
+- `src/EtherSharp.Generator` - Roslyn incremental source generator (`netstandard2.0`), bundled via the `EtherSharp` package analyzer assets.
 - `src/EtherSharp.ERC` - ERC package built on top of generator outputs.
 - `tests` - xUnit test project (`tests/EtherSharp.Tests.csproj`).
 - `bench` - BenchmarkDotNet project (`bench/EtherSharp.Bench.csproj`).
@@ -78,16 +78,16 @@ Run commands from repo root.
 
 - `dotnet pack --configuration Release --output ./nupkgs`
 - `dotnet pack --configuration Release --no-build --output ./nupkgs`
-- `dotnet pack src/EtherSharp.Generator/EtherSharp.Generator.csproj --configuration Release`
+- `dotnet pack src/EtherSharp/EtherSharp.csproj --configuration Release --no-build --output ./nupkgs`
+- `dotnet pack src/EtherSharp.ERC/EtherSharp.ERC.csproj --configuration Release --no-build --output ./nupkgs`
 - `dotnet run --project bench/EtherSharp.Bench.csproj -c Release`
 
 ## CI sequence to mirror locally
 
-- Build and pack `src/EtherSharp.Generator` first.
 - Restore dependencies.
 - Run full tests.
 - Build Release with `--no-restore`.
-- Pack artifacts to `./nupkgs`.
+- Pack `src/EtherSharp` and `src/EtherSharp.ERC` artifacts to `./nupkgs`.
 
 ## Generated code policy
 

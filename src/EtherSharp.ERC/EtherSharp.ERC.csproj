@@ -41,11 +41,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="EtherSharp.Generator" Version="$(EthersharpVersion)" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\EtherSharp\EtherSharp.csproj" />
+		<ProjectReference Include="..\EtherSharp\EtherSharp.csproj" PrivateAssets="" />
+		<ProjectReference Include="..\EtherSharp.Generator\EtherSharp.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup>

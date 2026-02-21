@@ -46,6 +46,8 @@ await txClient.InitializeAsync();
 
 ### Generating Contract Interfaces
 
+The source generator is bundled with the `EtherSharp` package, so no separate generator package is required.
+
 Define a partial interface and decorate it with `[AbiFile]`. Add `[BytecodeFile]` if you also want generated deployment helpers and flash-call deployment payloads.
 
 ```csharp
