@@ -1,5 +1,7 @@
 ﻿using System.Buffers.Binary;
 using System.Diagnostics;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace EtherSharp.Crypto;
 
@@ -44,7 +46,7 @@ public ref struct Keccak256
             return false;
         }
 
-        Span<byte> dataQueue = stackalloc byte[192];
+        Span<byte> dataQueue = stackalloc byte[RATE / 8];
         Span<ulong> state = stackalloc ulong[25];
 
         var keccak = new Keccak256(dataQueue, state);
@@ -198,6 +200,7 @@ public ref struct Keccak256
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private readonly void KeccakAbsorb(ReadOnlySpan<byte> data)
     {
         int count = RATE >> 6;
@@ -221,6 +224,7 @@ public ref struct Keccak256
         _bitsInQueue = RATE;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private readonly void KeccakPermutation()
     {
         ulong a00 = _state[0], a01 = _state[1], a02 = _state[2], a03 = _state[3], a04 = _state[4];
@@ -238,11 +242,11 @@ public ref struct Keccak256
             ulong c3 = a03 ^ a08 ^ a13 ^ a18 ^ a23;
             ulong c4 = a04 ^ a09 ^ a14 ^ a19 ^ a24;
 
-            ulong d1 = ((c1 << 1) | (c1 >> -1)) ^ c4;
-            ulong d2 = ((c2 << 1) | (c2 >> -1)) ^ c0;
-            ulong d3 = ((c3 << 1) | (c3 >> -1)) ^ c1;
-            ulong d4 = ((c4 << 1) | (c4 >> -1)) ^ c2;
-            ulong d0 = ((c0 << 1) | (c0 >> -1)) ^ c3;
+            ulong d1 = BitOperations.RotateLeft(c1, 1) ^ c4;
+            ulong d2 = BitOperations.RotateLeft(c2, 1) ^ c0;
+            ulong d3 = BitOperations.RotateLeft(c3, 1) ^ c1;
+            ulong d4 = BitOperations.RotateLeft(c4, 1) ^ c2;
+            ulong d0 = BitOperations.RotateLeft(c0, 1) ^ c3;
 
             a00 ^= d1;
             a05 ^= d1;
@@ -271,30 +275,30 @@ public ref struct Keccak256
             a24 ^= d0;
 
             // rho/pi
-            c1 = (a01 << 1) | (a01 >> 63);
-            a01 = (a06 << 44) | (a06 >> 20);
-            a06 = (a09 << 20) | (a09 >> 44);
-            a09 = (a22 << 61) | (a22 >> 3);
-            a22 = (a14 << 39) | (a14 >> 25);
-            a14 = (a20 << 18) | (a20 >> 46);
-            a20 = (a02 << 62) | (a02 >> 2);
-            a02 = (a12 << 43) | (a12 >> 21);
-            a12 = (a13 << 25) | (a13 >> 39);
-            a13 = (a19 << 8) | (a19 >> 56);
-            a19 = (a23 << 56) | (a23 >> 8);
-            a23 = (a15 << 41) | (a15 >> 23);
-            a15 = (a04 << 27) | (a04 >> 37);
-            a04 = (a24 << 14) | (a24 >> 50);
-            a24 = (a21 << 2) | (a21 >> 62);
-            a21 = (a08 << 55) | (a08 >> 9);
-            a08 = (a16 << 45) | (a16 >> 19);
-            a16 = (a05 << 36) | (a05 >> 28);
-            a05 = (a03 << 28) | (a03 >> 36);
-            a03 = (a18 << 21) | (a18 >> 43);
-            a18 = (a17 << 15) | (a17 >> 49);
-            a17 = (a11 << 10) | (a11 >> 54);
-            a11 = (a07 << 6) | (a07 >> 58);
-            a07 = (a10 << 3) | (a10 >> 61);
+            c1 = BitOperations.RotateLeft(a01, 1);
+            a01 = BitOperations.RotateLeft(a06, 44);
+            a06 = BitOperations.RotateLeft(a09, 20);
+            a09 = BitOperations.RotateLeft(a22, 61);
+            a22 = BitOperations.RotateLeft(a14, 39);
+            a14 = BitOperations.RotateLeft(a20, 18);
+            a20 = BitOperations.RotateLeft(a02, 62);
+            a02 = BitOperations.RotateLeft(a12, 43);
+            a12 = BitOperations.RotateLeft(a13, 25);
+            a13 = BitOperations.RotateLeft(a19, 8);
+            a19 = BitOperations.RotateLeft(a23, 56);
+            a23 = BitOperations.RotateLeft(a15, 41);
+            a15 = BitOperations.RotateLeft(a04, 27);
+            a04 = BitOperations.RotateLeft(a24, 14);
+            a24 = BitOperations.RotateLeft(a21, 2);
+            a21 = BitOperations.RotateLeft(a08, 55);
+            a08 = BitOperations.RotateLeft(a16, 45);
+            a16 = BitOperations.RotateLeft(a05, 36);
+            a05 = BitOperations.RotateLeft(a03, 28);
+            a03 = BitOperations.RotateLeft(a18, 21);
+            a18 = BitOperations.RotateLeft(a17, 15);
+            a17 = BitOperations.RotateLeft(a11, 10);
+            a11 = BitOperations.RotateLeft(a07, 6);
+            a07 = BitOperations.RotateLeft(a10, 3);
             a10 = c1;
 
             // chi
