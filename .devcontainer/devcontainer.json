@@ -4,11 +4,18 @@
 	"features": {
 		"ghcr.io/devcontainers/features/node:1": {
 			"version": "lts"
+		},
+		"ghcr.io/devcontainers/features/python:1": {
+			"version": "3.12"
 		}
 	},
-	"postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/ && curl -fsSL https://opencode.ai/install | bash",
+	"remoteEnv": {
+		"PATH": "${containerEnv:PATH}:/home/vscode/.local/share/opencode/bin:/mnt/opencode/bin"
+	},
+	"postCreateCommand": "mkdir -p $HOME/.local/share/opencode && ln -sfn /mnt/opencode/bin $HOME/.local/share/opencode/bin && ln -sfn /mnt/opencode/log $HOME/.local/share/opencode/log && sudo chown -R $(id -u):$(id -g) $HOME && curl -fsSL https://opencode.ai/install | bash",
 	"mounts": [
-		"source=${localEnv:USERPROFILE}/.local/share/opencode/auth.json,target=/home/vscode/.local/share/opencode/auth.json,type=bind,consistency=cached"
+		"source=${localEnv:USERPROFILE}/.local/share/opencode/,target=/mnt/opencode/,type=bind",
+		"source=${localEnv:USERPROFILE}/.local/share/opencode/log,target=/mnt/opencode/log,type=bind"
 	],
 	"customizations": {
 		"vscode": {
