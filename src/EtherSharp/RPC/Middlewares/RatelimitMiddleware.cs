@@ -1,5 +1,8 @@
-﻿namespace EtherSharp.RPC.Middlewares;
+namespace EtherSharp.RPC.Middlewares;
 
+/// <summary>
+/// Limits the number of RPC requests that can execute within a configured time window.
+/// </summary>
 public class RatelimitMiddleware : IRpcMiddleware, IDisposable
 {
     private readonly TimeSpan _windowSize;
@@ -8,6 +11,11 @@ public class RatelimitMiddleware : IRpcMiddleware, IDisposable
     private readonly SemaphoreSlim _requestSemaphore;
     private readonly CancellationTokenSource _disposeCts = new CancellationTokenSource();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RatelimitMiddleware"/> class.
+    /// </summary>
+    /// <param name="windowSize">The duration of each rate-limit window.</param>
+    /// <param name="requestsPerWindow">The maximum number of requests allowed per window.</param>
     public RatelimitMiddleware(TimeSpan windowSize, int requestsPerWindow)
     {
         _windowSize = windowSize;
@@ -29,13 +37,14 @@ public class RatelimitMiddleware : IRpcMiddleware, IDisposable
         });
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         _disposeCts.Cancel();
         GC.SuppressFinalize(this);
     }
 
-    public async Task<RpcResult<TResult>> HandleAsync<TResult>(Func<CancellationToken, Task<RpcResult<TResult>>> onNext, CancellationToken cancellationToken)
+    async Task<RpcResult<TResult>> IRpcMiddleware.HandleAsync<TResult>(Func<CancellationToken, Task<RpcResult<TResult>>> onNext, CancellationToken cancellationToken)
     {
         await _requestSemaphore.WaitAsync(cancellationToken);
         return await onNext(cancellationToken);
