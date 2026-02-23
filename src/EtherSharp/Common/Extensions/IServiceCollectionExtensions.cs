@@ -41,4 +41,16 @@ internal static class IServiceCollectionExtensions
 
         services.AddSingleton(instance);
     }
+
+    internal static void AddOrReplaceSingleton<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
+        where TService : class
+    {
+        var descriptor = services.FirstOrDefault(x => x.ServiceType == typeof(TService));
+        if(descriptor is not null)
+        {
+            services.Remove(descriptor);
+        }
+
+        services.AddSingleton(implementationFactory);
+    }
 }

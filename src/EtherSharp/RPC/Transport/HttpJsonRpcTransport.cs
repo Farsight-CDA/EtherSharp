@@ -3,6 +3,7 @@ using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Common.Instrumentation;
 using EtherSharp.Types;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -23,6 +24,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     private int _id;
 
     private readonly OTELCounter<long>? _rpcRequestsCounter;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     /// <inheritdoc />
     public event Action? OnConnectionEstablished
@@ -37,6 +39,12 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         remove => throw new NotSupportedException();
     }
 
+    /// <summary>
+    /// Creates an HTTP JSON-RPC transport bound to the provided endpoint URI.
+    /// </summary>
+    /// <param name="rpcUri">HTTP RPC endpoint URI.</param>
+    /// <param name="provider">Service provider used for instrumentation and serializer configuration.</param>
+    /// <param name="additionalTags">Additional OpenTelemetry tags.</param>
     public HttpJsonRpcTransport(Uri rpcUri, IServiceProvider provider, TagList additionalTags = default)
     {
         _client = new HttpClient()
@@ -44,11 +52,20 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             BaseAddress = rpcUri
         };
 
+        _jsonSerializerOptions = provider.GetService<JsonSerializerOptions>()
+            ?? ParsingUtils.EvmSerializerOptions;
+
         _rpcRequestsCounter = provider.CreateOTELCounter<long>("evm_rpc_requests", tags: additionalTags);
         _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "success"));
         _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "failure"));
     }
 
+    /// <summary>
+    /// Creates an HTTP JSON-RPC transport bound to the provided endpoint URL.
+    /// </summary>
+    /// <param name="rpcUrl">HTTP RPC endpoint URL.</param>
+    /// <param name="provider">Service provider used for instrumentation and serializer configuration.</param>
+    /// <param name="additionalTags">Additional OpenTelemetry tags.</param>
     public HttpJsonRpcTransport(string rpcUrl, IServiceProvider provider, TagList additionalTags = default)
         : this(new Uri(rpcUrl, UriKind.Absolute), provider, additionalTags)
     {
@@ -71,7 +88,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         {
             Content = JsonContent.Create(
                 new JsonRpcRequest(id, method, parameters),
-                options: ParsingUtils.EvmSerializerOptions
+                options: _jsonSerializerOptions
             )
         };
 
@@ -89,7 +106,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         try
         {
             var jsonRpcResponse = await response.Content.ReadFromJsonAsync<JsonRpcResponse<TResult>>(
-                ParsingUtils.EvmSerializerOptions, cancellationToken
+                _jsonSerializerOptions, cancellationToken
             );
 
             if(jsonRpcResponse is null)

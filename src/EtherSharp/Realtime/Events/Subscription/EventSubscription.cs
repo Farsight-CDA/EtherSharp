@@ -1,5 +1,4 @@
-﻿using EtherSharp.Client.Services.Subscriptions;
-using EtherSharp.Common;
+using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
@@ -10,7 +9,8 @@ using System.Threading.Channels;
 namespace EtherSharp.Realtime.Events.Subscription;
 
 internal class EventSubscription<TLog>(
-    IRpcClient client, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager, Address[]? contractAddresses, string[]?[]? topics
+    IRpcClient client, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+    JsonSerializerOptions jsonSerializerOptions, Address[]? contractAddresses, string[]?[]? topics
 )
     : IEventSubscription<TLog>, ISubscription
     where TLog : ITxLog<TLog>
@@ -20,6 +20,7 @@ internal class EventSubscription<TLog>(
     private readonly IRpcClient _client = client;
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
+    private readonly JsonSerializerOptions _jsonSerializerOptions = jsonSerializerOptions;
 
     private readonly Address[]? _contractAddresses = contractAddresses;
     private readonly string[]?[]? _topics = topics;
@@ -46,7 +47,7 @@ internal class EventSubscription<TLog>(
     private record LogResponse(Log Result);
     public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload)
     {
-        var p = JsonSerializer.Deserialize<LogParams>(payload, ParsingUtils.EvmSerializerOptions)!;
+        var p = JsonSerializer.Deserialize<LogParams>(payload, _jsonSerializerOptions)!;
         _channel.Writer.TryWrite(p.Params.Result);
         return true;
     }

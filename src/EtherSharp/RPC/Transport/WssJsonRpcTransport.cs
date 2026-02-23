@@ -36,6 +36,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
 
     private readonly Uri _uri;
     private readonly TimeSpan _requestTimeout;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
     private ClientWebSocket? _socket = null!;
 
     private readonly CancellationTokenSource _connectionHandlerCts = new CancellationTokenSource();
@@ -47,10 +48,19 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
     private readonly OTELCounter<long>? _rpcRequestsCounter;
     private readonly OTELCounter<long>? _subscriptionMessageCounter;
 
+    /// <summary>
+    /// Creates a websocket JSON-RPC transport bound to the provided endpoint URI.
+    /// </summary>
+    /// <param name="uri">Websocket RPC endpoint URI.</param>
+    /// <param name="requestTimeout">Request timeout used for pending RPC calls.</param>
+    /// <param name="provider">Service provider used for logging, instrumentation, and serializer configuration.</param>
+    /// <param name="additionalTags">Additional OpenTelemetry tags.</param>
     public WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, IServiceProvider provider, TagList additionalTags = default)
     {
         _uri = uri;
         _requestTimeout = requestTimeout;
+        _jsonSerializerOptions = provider.GetService<JsonSerializerOptions>()
+            ?? ParsingUtils.EvmSerializerOptions;
         _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<WssJsonRpcTransport>();
 
         _websocketConnectedGauge = provider.CreateOTELObservableGauge("wss_connection_up",
@@ -203,7 +213,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                     {
                         object? response = JsonSerializer.Deserialize(
                             msBuffer, responseType,
-                            options: ParsingUtils.EvmSerializerOptions
+                            options: _jsonSerializerOptions
                         )!;
 
                         tcs.SetResult(response);
@@ -342,7 +352,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
 
         byte[] payload = JsonSerializer.SerializeToUtf8Bytes(
             new JsonRpcRequest(requestId, method, parameters),
-            options: ParsingUtils.EvmSerializerOptions
+            options: _jsonSerializerOptions
         );
 
         var tcs = new TaskCompletionSource<object>();

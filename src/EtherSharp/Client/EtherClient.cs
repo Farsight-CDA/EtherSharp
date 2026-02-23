@@ -24,6 +24,7 @@ using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Buffers.Binary;
+using System.Text.Json;
 
 namespace EtherSharp.Client;
 
@@ -48,6 +49,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     private IFlashCallExecutor _flashCallExecutor = null!;
     private ISubscriptionsManager _subscriptionsManager = null!;
     private ContractFactory _contractFactory = null!;
+    private JsonSerializerOptions _jsonSerializerOptions = null!;
 
     private bool _initialized;
     private ulong _chainId;
@@ -168,7 +170,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     IEventsModule<TEvent> IEtherClient.Events<TEvent>()
     {
         AssertReady();
-        return new EventsModule<TEvent>(_rpcClient, _ethRpcModule, _subscriptionsManager);
+        return new EventsModule<TEvent>(_rpcClient, _ethRpcModule, _subscriptionsManager, _jsonSerializerOptions);
     }
 
     internal EtherClient(IServiceProvider provider, bool isTxClient)
@@ -215,6 +217,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         _flashCallExecutor = _provider.GetRequiredService<IFlashCallExecutor>();
         _subscriptionsManager = _provider.GetRequiredService<ISubscriptionsManager>();
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
+        _jsonSerializerOptions = _provider.GetRequiredService<JsonSerializerOptions>();
 
         if(_isTxClient)
         {

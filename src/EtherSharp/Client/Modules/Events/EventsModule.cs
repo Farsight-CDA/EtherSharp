@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client.Services.Subscriptions;
+using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common.Comparer;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
@@ -8,15 +8,18 @@ using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
+using System.Text.Json;
 
 namespace EtherSharp.Client.Modules.Events;
 
-internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager) : IEventsModule<TLog>
+internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+    JsonSerializerOptions jsonSerializerOptions) : IEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {
     private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
+    private readonly JsonSerializerOptions _jsonSerializerOptions = jsonSerializerOptions;
 
     protected Dictionary<int, string[]?> _topics = [];
     protected Address[]? _contractAddresses;
@@ -136,7 +139,8 @@ internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModu
 
     public async Task<IEventSubscription<TLog>> CreateSubscriptionAsync(CancellationToken cancellationToken = default)
     {
-        var subscription = new EventSubscription<TLog>(_rpcClient, _ethRpcModule, _subscriptionsManager, _contractAddresses, CreateTopicsArray());
+        var subscription = new EventSubscription<TLog>(_rpcClient, _ethRpcModule, _subscriptionsManager,
+            _jsonSerializerOptions, _contractAddresses, CreateTopicsArray());
         await _subscriptionsManager.InstallSubscriptionAsync(subscription, cancellationToken);
         return subscription;
     }

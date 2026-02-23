@@ -10,7 +10,7 @@ namespace EtherSharp.Common;
 public static class ParsingUtils
 {
     /// <summary>
-    /// Serializer options used for RPC request/response and subscription payloads.
+    /// Default serializer options used for RPC request/response and subscription payloads.
     /// </summary>
     /// <remarks>
     /// Includes EtherSharp converters for hex-encoded numeric, byte, and block-selector fields used by EVM nodes,
@@ -33,4 +33,11 @@ public static class ParsingUtils
             new Int256HexConverter()
         }
     };
+
+    /// <summary>
+    /// Creates a copy of <see cref="EvmSerializerOptions"/> for per-client customization.
+    /// </summary>
+    /// <returns>A new serializer options instance initialized from the default EVM options.</returns>
+    public static JsonSerializerOptions CreateDefaultEvmSerializerOptions()
+        => new JsonSerializerOptions(EvmSerializerOptions);
 }

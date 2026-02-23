@@ -27,6 +27,7 @@ using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.Metrics;
+using System.Text.Json;
 
 namespace EtherSharp.Client;
 
@@ -235,6 +236,21 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
+    /// Configures the JSON serializer options used by this client instance.
+    /// </summary>
+    /// <remarks>
+    /// Use <see cref="ParsingUtils.CreateDefaultEvmSerializerOptions"/> as a baseline when only minor customization is required.
+    /// </remarks>
+    /// <param name="jsonSerializerOptions"></param>
+    /// <returns></returns>
+    public EtherClientBuilder WithJsonSerializerOptions(JsonSerializerOptions jsonSerializerOptions)
+    {
+        ArgumentNullException.ThrowIfNull(jsonSerializerOptions);
+        _services.AddOrReplaceSingleton(jsonSerializerOptions);
+        return this;
+    }
+
+    /// <summary>
     /// Configures the TxScheduler.
     /// </summary>
     /// <typeparam name="TTxScheduler"></typeparam>
@@ -401,6 +417,10 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
         if(!_services.Any(x => x.ServiceType == typeof(IFlashCallExecutor)))
         {
             _services.AddSingleton<IFlashCallExecutor, ConstructorFlashCallExecutor>();
+        }
+        if(!_services.Any(x => x.ServiceType == typeof(JsonSerializerOptions)))
+        {
+            _services.AddSingleton(ParsingUtils.CreateDefaultEvmSerializerOptions());
         }
 
         foreach(var service in _services.ToArray())
