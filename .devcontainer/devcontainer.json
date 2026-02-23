@@ -12,7 +12,7 @@
 	"remoteEnv": {
 		"PATH": "${containerEnv:PATH}:/home/vscode/.local/share/opencode/bin:/mnt/opencode/bin"
 	},
-	"postCreateCommand": "mkdir -p $HOME/.local/share/opencode && ln -sfn /mnt/opencode/bin $HOME/.local/share/opencode/bin && ln -sfn /mnt/opencode/log $HOME/.local/share/opencode/log && sudo chown -R $(id -u):$(id -g) $HOME && curl -fsSL https://opencode.ai/install | bash",
+	"postCreateCommand": "mkdir -p $HOME/.local/share/opencode && ln -s /mnt/opencode/* $HOME/.local/share/opencode/ && sudo chown -R $(id -u):$(id -g) $HOME && curl -fsSL https://opencode.ai/install | bash",
 	"mounts": [
 		"source=${localEnv:USERPROFILE}/.local/share/opencode/,target=/mnt/opencode/,type=bind",
 		"source=${localEnv:USERPROFILE}/.local/share/opencode/log,target=/mnt/opencode/log,type=bind"
