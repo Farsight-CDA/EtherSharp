@@ -20,6 +20,10 @@
 Important style guides to remember:
 - Place the body of expression body methods onto a new line 
 
+## Benchmarks
+
+- When running benchmarks only run the ones relevant to your change and default to using very short runs unless specified differently.
+
 ## Completion checklist for agents
 
 - Apply smallest safe change.
