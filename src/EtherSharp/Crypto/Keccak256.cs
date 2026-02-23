@@ -11,8 +11,9 @@ namespace EtherSharp.Crypto;
 public ref struct Keccak256
 {
     private const int OUTPUT_LENGTH_BYTES = 32;
-    private const int OUTPUT_LENGTH_BITS = OUTPUT_LENGTH_BYTES * 8;
     private const int RATE = 1088;
+    private const int RATE_BYTES = RATE / 8;
+    private const int RATE_64 = RATE >> 6;
 
     private static readonly ulong[] _keccakRoundConstants = [
         0x0000000000000001UL, 0x0000000000008082UL, 0x800000000000808aUL, 0x8000000080008000UL,
@@ -46,7 +47,7 @@ public ref struct Keccak256
             return false;
         }
 
-        Span<byte> dataQueue = stackalloc byte[RATE / 8];
+        Span<byte> dataQueue = stackalloc byte[RATE_BYTES];
         Span<ulong> state = stackalloc ulong[25];
 
         var keccak = new Keccak256(dataQueue, state);
@@ -99,7 +100,7 @@ public ref struct Keccak256
         }
 
         int bytesInQueue = _bitsInQueue / 8;
-        int rateBytes = RATE / 8;
+        int rateBytes = RATE_BYTES;
 
         int available = rateBytes - bytesInQueue;
 
@@ -163,7 +164,6 @@ public ref struct Keccak256
 
         int full = _bitsInQueue >> 6;
         int partial = _bitsInQueue & 63;
-
         for(int i = 0; i < full; i++)
         {
             _state[i] ^= BinaryPrimitives.ReadUInt64LittleEndian(_dataQueue[(i * 8)..]);
@@ -182,46 +182,25 @@ public ref struct Keccak256
 
     private void Squeeze(Span<byte> output)
     {
+        Debug.Assert(output.Length == OUTPUT_LENGTH_BYTES);
         PadAndSwitchToSqueezingPhase();
+        KeccakPermutation();
 
-        int i = 0;
-        while(i < output.Length)
-        {
-            if(_bitsInQueue == 0)
-            {
-                KeccakExtract();
-            }
-
-            int partialBlock = Math.Min(_bitsInQueue, OUTPUT_LENGTH_BITS - i);
-
-            _dataQueue.Slice((RATE - _bitsInQueue) >> 3, partialBlock >> 3).CopyTo(output[(i >> 3)..]);
-            _bitsInQueue -= partialBlock;
-            i += partialBlock;
-        }
+        BinaryPrimitives.WriteUInt64LittleEndian(output, _state[0]);
+        BinaryPrimitives.WriteUInt64LittleEndian(output[8..], _state[1]);
+        BinaryPrimitives.WriteUInt64LittleEndian(output[16..], _state[2]);
+        BinaryPrimitives.WriteUInt64LittleEndian(output[24..], _state[3]);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private readonly void KeccakAbsorb(ReadOnlySpan<byte> data)
     {
-        int count = RATE >> 6;
-        for(int i = 0; i < count; ++i)
+        for(int i = 0; i < RATE_64; ++i)
         {
             _state[i] ^= BinaryPrimitives.ReadUInt64LittleEndian(data[(i * 8)..]);
         }
 
         KeccakPermutation();
-    }
-
-    private void KeccakExtract()
-    {
-        KeccakPermutation();
-
-        for(int i = 0; i < RATE >> 6; ++i)
-        {
-            BinaryPrimitives.WriteUInt64LittleEndian(_dataQueue[(8 * i)..], _state[i]);
-        }
-
-        _bitsInQueue = RATE;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
