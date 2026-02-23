@@ -9,6 +9,11 @@ using System.Buffers;
 
 namespace EtherSharp.Tx.EIP1559;
 
+/// <summary>
+/// Encodes and signs EIP-1559 transactions.
+/// </summary>
+/// <param name="signer">Signer used to produce recoverable transaction signatures.</param>
+/// <param name="rpcClient">RPC client used by the tx handler lifecycle.</param>
 public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
     : IInitializableService, ITxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>
 {
@@ -26,6 +31,7 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
         return ValueTask.CompletedTask;
     }
 
+    /// <inheritdoc/>
     string ITxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>.EncodeTxToBytes(
         ITxInput txInput, EIP1559TxParams txParams, EIP1559GasParams txGasParams, uint nonce, out string txHash)
     {

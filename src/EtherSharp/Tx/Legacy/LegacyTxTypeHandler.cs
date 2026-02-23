@@ -9,6 +9,11 @@ using System.Buffers;
 
 namespace EtherSharp.Tx.Legacy;
 
+/// <summary>
+/// Encodes and signs legacy Ethereum transactions.
+/// </summary>
+/// <param name="signer">Signer used to produce recoverable transaction signatures.</param>
+/// <param name="rpcClient">RPC client used by the tx handler lifecycle.</param>
 public class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
     : IInitializableService, ITxTypeHandler<LegacyTransaction, LegacyTxParams, LegacyGasParams>
 {
@@ -28,6 +33,7 @@ public class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
         return ValueTask.CompletedTask;
     }
 
+    /// <inheritdoc/>
     public string EncodeTxToBytes(ITxInput txInput, LegacyTxParams txParams, LegacyGasParams txGasParams, uint nonce, out string txHash)
     {
         if(!_isInitialized)
