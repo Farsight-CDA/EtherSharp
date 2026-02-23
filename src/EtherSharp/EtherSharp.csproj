@@ -19,6 +19,7 @@
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageIcon>logo.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -50,6 +51,7 @@
 
 	<ItemGroup>
 		<None Include="../../resources/logo.png" Pack="true" PackagePath="" />
+		<None Include="../../README.md" Pack="true" PackagePath="" />
 	</ItemGroup>
 
 	<ItemGroup>
