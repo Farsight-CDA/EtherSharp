@@ -37,6 +37,6 @@ public static partial class AbiTypes
         /// Decodes a fixed-size byte array value.
         /// </summary>
         public static ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> bytes, int byteCount)
-            => bytes.Slice(0, byteCount);
+            => bytes[..byteCount];
     }
 }

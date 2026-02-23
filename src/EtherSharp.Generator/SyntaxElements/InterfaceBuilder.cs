@@ -118,7 +118,7 @@ public class InterfaceBuilder(string name)
             """;
     }
 
-    private string PrintVisibility(InterfaceVisibility visibility)
+    private static string PrintVisibility(InterfaceVisibility visibility)
         => visibility switch
         {
             InterfaceVisibility.None => "",

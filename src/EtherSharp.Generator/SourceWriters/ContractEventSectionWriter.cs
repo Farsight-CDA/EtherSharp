@@ -10,8 +10,8 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
 {
     private readonly EventTypeWriter _eventTypeWriter = eventTypeWriter;
 
-    public void GenerateContractEventSection(InterfaceBuilder interfaceBuilder, ClassBuilder implementationBuilder,
-        string @namespace, string contractName, IEnumerable<EventAbiMember> eventMembers)
+    public void GenerateContractEventSection(InterfaceBuilder interfaceBuilder, string @namespace,
+        string contractName, IEnumerable<EventAbiMember> eventMembers)
     {
         var sectionBuilder = new ClassBuilder("Logs")
             .AddBaseType("EtherSharp.Contract.Sections.ILogsSection", true)
@@ -133,7 +133,7 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
         interfaceBuilder.AddInnerType(sectionBuilder);
     }
 
-    private IEnumerable<EventAbiMember> GetDistinctEvents(IEnumerable<EventAbiMember> eventMembers)
+    private static IEnumerable<EventAbiMember> GetDistinctEvents(IEnumerable<EventAbiMember> eventMembers)
     {
         var mappedMembers = eventMembers
             .Select(x =>

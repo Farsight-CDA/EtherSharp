@@ -14,7 +14,7 @@ namespace EtherSharp.RLP;
 public ref struct RLPEncoder
 {
     /// <summary>
-    /// Gets the encoded RLP length for a <see cref="uint"/> value.
+    /// Gets the encoded RLP length for a <see cref="UInt32"/> value.
     /// </summary>
     public static int GetIntSize(uint value)
         => value < 128
@@ -22,7 +22,7 @@ public ref struct RLPEncoder
             : GetEncodedStringLength(GetSignificantByteCount(value));
 
     /// <summary>
-    /// Gets the encoded RLP length for a <see cref="ulong"/> value.
+    /// Gets the encoded RLP length for a <see cref="UInt64"/> value.
     /// </summary>
     public static int GetIntSize(ulong value)
         => value < 128
@@ -70,7 +70,7 @@ public ref struct RLPEncoder
             : 1 + GetSignificantByteCount((uint) byteCount);
 
     /// <summary>
-    /// Gets the number of non-leading-zero bytes required to represent a <see cref="uint"/>.
+    /// Gets the number of non-leading-zero bytes required to represent a <see cref="UInt32"/>.
     /// </summary>
     public static int GetSignificantByteCount(uint value)
     {
@@ -80,7 +80,7 @@ public ref struct RLPEncoder
     }
 
     /// <summary>
-    /// Gets the number of non-leading-zero bytes required to represent a <see cref="ulong"/>.
+    /// Gets the number of non-leading-zero bytes required to represent a <see cref="UInt64"/>.
     /// </summary>
     public static int GetSignificantByteCount(ulong value)
     {
@@ -111,7 +111,7 @@ public ref struct RLPEncoder
     }
 
     /// <summary>
-    /// Encodes a <see cref="uint"/> as an RLP string element.
+    /// Encodes a <see cref="UInt32"/> as an RLP string element.
     /// </summary>
     public RLPEncoder EncodeInt(uint value)
     {
@@ -139,7 +139,7 @@ public ref struct RLPEncoder
     }
 
     /// <summary>
-    /// Encodes a <see cref="ulong"/> as an RLP string element.
+    /// Encodes a <see cref="UInt64"/> as an RLP string element.
     /// </summary>
     public RLPEncoder EncodeInt(ulong value)
     {

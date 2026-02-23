@@ -9,7 +9,7 @@ internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
 {
     private readonly ErrorTypeWriter _errorTypeWriter = errorTypeWriter;
 
-    public void GenerateContractErrorSection(InterfaceBuilder interfaceBuilder, ClassBuilder implementationBuilder, IEnumerable<ErrorAbiMember> errorMembers)
+    public void GenerateContractErrorSection(InterfaceBuilder interfaceBuilder, IEnumerable<ErrorAbiMember> errorMembers)
     {
         var sectionBuilder = new ClassBuilder("Errors")
             .AddBaseType("EtherSharp.Contract.Sections.IErrorsSection", true)
@@ -73,7 +73,7 @@ internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
         interfaceBuilder.AddInnerType(sectionBuilder);
     }
 
-    private IEnumerable<ErrorAbiMember> GetDistinctErrors(IEnumerable<ErrorAbiMember> errorMembers)
+    private static IEnumerable<ErrorAbiMember> GetDistinctErrors(IEnumerable<ErrorAbiMember> errorMembers)
     {
         var mappedMembers = errorMembers
             .Select(x =>

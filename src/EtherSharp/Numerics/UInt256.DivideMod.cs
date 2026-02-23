@@ -607,7 +607,7 @@ public readonly partial struct UInt256
         // We run Knuth D (base 2^64) specialised to a 2-limb divisor, using a 3-limb rolling window.
         // Dividend is treated as n[0..5] with n5 == 0 (extra top limb), and here n4 == 1 from the 257th bit.
         // Result is a 2-limb remainder in remainder.u0..remainder.u1
-        const ulong topLimb = 1;
+        const ulong TOPLIMB = 1;
         Debug.Assert(mod128._u3 == 0 && mod128._u2 == 0 && mod128._u1 != 0);
 
         // D1 - Normalise divisor: shift so vHi has its MSB set.
@@ -635,7 +635,7 @@ public readonly partial struct UInt256
             n1 = dividendLo256._u1;
             n2 = dividendLo256._u2;
             n3 = dividendLo256._u3;
-            n4 = topLimb; // top limb
+            n4 = TOPLIMB; // top limb
         }
         else
         {
@@ -645,9 +645,9 @@ public readonly partial struct UInt256
             n2 = shifted._u2;
             n3 = shifted._u3;
 
-            // n4 = (topLimb:dividendLo256.u3) << normShift, but topLimb == 1 so we fold
+            // n4 = (TOPLIMB:dividendLo256.u3) << normShift, but TOPLIMB == 1 so we fold
             // the carry from dividendLo256.u3
-            n4 = (topLimb << normShift) | (dividendLo256._u3 >> (64 - normShift));
+            n4 = (TOPLIMB << normShift) | (dividendLo256._u3 >> (64 - normShift));
         }
 
         // Top-step shortcut: only possible quotient from the topmost pair (n4:n3) is q3 in {0,1}.
@@ -793,7 +793,7 @@ public readonly partial struct UInt256
         // - Modulus is 192-bit: 3 limbs (mod2:mod1:mod0), with mod2 != 0 and mod3 == 0.
         // Uses Knuth D in base 2^64, specialised to a 3-limb divisor.
         // We operate on a 5-limb dividend window (u0..u4); the implicit u5 is provably 0 here.
-        const ulong implicitTopLimb = 1;
+        const ulong IMPLICITTOPLIMB = 1;
         Debug.Assert(modulus192._u3 == 0 && modulus192._u2 != 0);
 
         // D1 - Normalise modulus so its top limb has the MSB set.
@@ -816,7 +816,7 @@ public readonly partial struct UInt256
             u1 = valueLo256._u1;
             u2 = valueLo256._u2;
             u3 = valueLo256._u3;
-            u4 = implicitTopLimb;
+            u4 = IMPLICITTOPLIMB;
         }
         else
         {
@@ -825,8 +825,8 @@ public readonly partial struct UInt256
             u1 = (valueLo256._u1 << normShiftBits) | (valueLo256._u0 >> inv);
             u2 = (valueLo256._u2 << normShiftBits) | (valueLo256._u1 >> inv);
             u3 = (valueLo256._u3 << normShiftBits) | (valueLo256._u2 >> inv);
-            u4 = (implicitTopLimb << normShiftBits) | (valueLo256._u3 >> inv);
-            // u5 would be (implicitTopLimb >> inv) which is always 0 for inv in 1..63.
+            u4 = (IMPLICITTOPLIMB << normShiftBits) | (valueLo256._u3 >> inv);
+            // u5 would be (IMPLICITTOPLIMB >> inv) which is always 0 for inv in 1..63.
         }
 
         // j = 2 (top digit) specialisation:
@@ -1022,7 +1022,7 @@ public readonly partial struct UInt256
         // - Dividend is 257-bit: 4 explicit limbs plus an implicit top limb == 1.
         // - Modulus is up to 256-bit (4 limbs), and must have a non-zero top limb.
         // Uses Knuth D in base 2^64, specialised to a 4-limb divisor, with the top dividend limb u5 == 0.
-        const ulong implicitTopLimb = 1;
+        const ulong IMPLICITTOPLIMB = 1;
         Debug.Assert(modulus256._u3 != 0);
 
         // D1 - Normalise modulus so its high limb has the top bit set.
@@ -1039,8 +1039,8 @@ public readonly partial struct UInt256
         ulong u2 = normValue._u2;
         ulong u3 = normValue._u3;
         ulong u4 = (normShiftBits == 0)
-            ? implicitTopLimb
-            : (implicitTopLimb << normShiftBits) | (valueLo256._u3 >> (64 - normShiftBits));
+            ? IMPLICITTOPLIMB
+            : (IMPLICITTOPLIMB << normShiftBits) | (valueLo256._u3 >> (64 - normShiftBits));
 
         ulong mod0 = normMod._u0;
         ulong mod1 = normMod._u1;
@@ -1608,15 +1608,15 @@ public readonly partial struct UInt256
 
         if(sh == 0)
         {
-            unBuf.w0 = u0;
-            unBuf.w1 = u1;
-            unBuf.w2 = u2;
-            unBuf.w3 = u3;
-            unBuf.w4 = u4;
-            unBuf.w5 = u5;
-            unBuf.w6 = u6;
-            unBuf.w7 = u7;
-            unBuf.w8 = 0;
+            unBuf.W0 = u0;
+            unBuf.W1 = u1;
+            unBuf.W2 = u2;
+            unBuf.W3 = u3;
+            unBuf.W4 = u4;
+            unBuf.W5 = u5;
+            unBuf.W6 = u6;
+            unBuf.W7 = u7;
+            unBuf.W8 = 0;
 
             nd0 = d0;
             nd1 = d1;
@@ -1625,21 +1625,21 @@ public readonly partial struct UInt256
         {
             int rsh = 64 - sh;
 
-            unBuf.w8 = u7 >> rsh;
-            unBuf.w7 = (u7 << sh) | (u6 >> rsh);
-            unBuf.w6 = (u6 << sh) | (u5 >> rsh);
-            unBuf.w5 = (u5 << sh) | (u4 >> rsh);
-            unBuf.w4 = (u4 << sh) | (u3 >> rsh);
-            unBuf.w3 = (u3 << sh) | (u2 >> rsh);
-            unBuf.w2 = (u2 << sh) | (u1 >> rsh);
-            unBuf.w1 = (u1 << sh) | (u0 >> rsh);
-            unBuf.w0 = u0 << sh;
+            unBuf.W8 = u7 >> rsh;
+            unBuf.W7 = (u7 << sh) | (u6 >> rsh);
+            unBuf.W6 = (u6 << sh) | (u5 >> rsh);
+            unBuf.W5 = (u5 << sh) | (u4 >> rsh);
+            unBuf.W4 = (u4 << sh) | (u3 >> rsh);
+            unBuf.W3 = (u3 << sh) | (u2 >> rsh);
+            unBuf.W2 = (u2 << sh) | (u1 >> rsh);
+            unBuf.W1 = (u1 << sh) | (u0 >> rsh);
+            unBuf.W0 = u0 << sh;
 
             nd0 = d0 << sh;
             nd1 = (d1 << sh) | (d0 >> rsh);
         }
 
-        ref ulong un0 = ref unBuf.w0;
+        ref ulong un0 = ref unBuf.W0;
 
         // dLen is fixed at 2 here.
         URemKnuth2(ref un0, uLen - 2, nd0, nd1);
@@ -1647,14 +1647,14 @@ public readonly partial struct UInt256
         // Denormalise remainder from un[0..1].
         if(sh == 0)
         {
-            rem = new UInt256(unBuf.w0, unBuf.w1, 0, 0);
+            rem = new UInt256(unBuf.W0, unBuf.W1, 0, 0);
             return;
         }
         else
         {
             int rsh = 64 - sh;
-            ulong r0 = (unBuf.w0 >> sh) | (unBuf.w1 << rsh);
-            ulong r1 = unBuf.w1 >> sh;
+            ulong r0 = (unBuf.W0 >> sh) | (unBuf.W1 << rsh);
+            ulong r1 = unBuf.W1 >> sh;
             rem = new UInt256(r0, r1, 0, 0);
             return;
         }
@@ -1705,15 +1705,15 @@ public readonly partial struct UInt256
         if(shift == 0)
         {
             // un[0..7] = u[0..7], un[8] = 0
-            unBuf.w0 = u0;
-            unBuf.w1 = u1n;
-            unBuf.w2 = u2n;
-            unBuf.w3 = u3n;
-            unBuf.w4 = u4;
-            unBuf.w5 = u5;
-            unBuf.w6 = u6;
-            unBuf.w7 = u7;
-            unBuf.w8 = 0;
+            unBuf.W0 = u0;
+            unBuf.W1 = u1n;
+            unBuf.W2 = u2n;
+            unBuf.W3 = u3n;
+            unBuf.W4 = u4;
+            unBuf.W5 = u5;
+            unBuf.W6 = u6;
+            unBuf.W7 = u7;
+            unBuf.W8 = 0;
 
             nd0 = d0;
             nd1 = d1;
@@ -1724,15 +1724,15 @@ public readonly partial struct UInt256
         {
             int rshift = 64 - shift; // 1..63
 
-            unBuf.w8 = u7 >> rshift;
-            unBuf.w7 = (u7 << shift) | (u6 >> rshift);
-            unBuf.w6 = (u6 << shift) | (u5 >> rshift);
-            unBuf.w5 = (u5 << shift) | (u4 >> rshift);
-            unBuf.w4 = (u4 << shift) | (u3n >> rshift);
-            unBuf.w3 = (u3n << shift) | (u2n >> rshift);
-            unBuf.w2 = (u2n << shift) | (u1n >> rshift);
-            unBuf.w1 = (u1n << shift) | (u0 >> rshift);
-            unBuf.w0 = u0 << shift;
+            unBuf.W8 = u7 >> rshift;
+            unBuf.W7 = (u7 << shift) | (u6 >> rshift);
+            unBuf.W6 = (u6 << shift) | (u5 >> rshift);
+            unBuf.W5 = (u5 << shift) | (u4 >> rshift);
+            unBuf.W4 = (u4 << shift) | (u3n >> rshift);
+            unBuf.W3 = (u3n << shift) | (u2n >> rshift);
+            unBuf.W2 = (u2n << shift) | (u1n >> rshift);
+            unBuf.W1 = (u1n << shift) | (u0 >> rshift);
+            unBuf.W0 = u0 << shift;
 
             nd0 = d0 << shift;
             nd1 = (d1 << shift) | (d0 >> rshift);
@@ -1740,7 +1740,7 @@ public readonly partial struct UInt256
             nd3v = (d3 << shift) | (d2 >> rshift);
         }
 
-        ref ulong un0 = ref unBuf.w0;
+        ref ulong un0 = ref unBuf.W0;
 
         // Divide (remainder only). m = uLen - dLen, loop j = m..0.
         int mQ = uLen - dLen;
@@ -1793,9 +1793,9 @@ public readonly partial struct UInt256
         {
             rem = dLen switch
             {
-                2 => new UInt256(unBuf.w0, unBuf.w1, 0, 0),
-                3 => new UInt256(unBuf.w0, unBuf.w1, unBuf.w2, 0),
-                _ => new UInt256(unBuf.w0, unBuf.w1, unBuf.w2, unBuf.w3),
+                2 => new UInt256(unBuf.W0, unBuf.W1, 0, 0),
+                3 => new UInt256(unBuf.W0, unBuf.W1, unBuf.W2, 0),
+                _ => new UInt256(unBuf.W0, unBuf.W1, unBuf.W2, unBuf.W3),
             };
             return;
         }
@@ -1805,26 +1805,26 @@ public readonly partial struct UInt256
 
             if(dLen == 2)
             {
-                ulong r0 = (unBuf.w0 >> shift) | (unBuf.w1 << rshift);
-                ulong r1 = unBuf.w1 >> shift;
+                ulong r0 = (unBuf.W0 >> shift) | (unBuf.W1 << rshift);
+                ulong r1 = unBuf.W1 >> shift;
                 rem = new UInt256(r0, r1, 0, 0);
                 return;
             }
 
             if(dLen == 3)
             {
-                ulong r0 = (unBuf.w0 >> shift) | (unBuf.w1 << rshift);
-                ulong r1 = (unBuf.w1 >> shift) | (unBuf.w2 << rshift);
-                ulong r2 = unBuf.w2 >> shift;
+                ulong r0 = (unBuf.W0 >> shift) | (unBuf.W1 << rshift);
+                ulong r1 = (unBuf.W1 >> shift) | (unBuf.W2 << rshift);
+                ulong r2 = unBuf.W2 >> shift;
                 rem = new UInt256(r0, r1, r2, 0);
                 return;
             }
 
             // dLen == 4
-            ulong rr0 = (unBuf.w0 >> shift) | (unBuf.w1 << rshift);
-            ulong rr1 = (unBuf.w1 >> shift) | (unBuf.w2 << rshift);
-            ulong rr2 = (unBuf.w2 >> shift) | (unBuf.w3 << rshift);
-            ulong rr3 = unBuf.w3 >> shift;
+            ulong rr0 = (unBuf.W0 >> shift) | (unBuf.W1 << rshift);
+            ulong rr1 = (unBuf.W1 >> shift) | (unBuf.W2 << rshift);
+            ulong rr2 = (unBuf.W2 >> shift) | (unBuf.W3 << rshift);
+            ulong rr3 = unBuf.W3 >> shift;
             rem = new UInt256(rr0, rr1, rr2, rr3);
         }
     }
@@ -1832,7 +1832,7 @@ public readonly partial struct UInt256
     [StructLayout(LayoutKind.Sequential)]
     private struct ULong9
     {
-        public ulong w0, w1, w2, w3, w4, w5, w6, w7, w8;
+        public ulong W0, W1, W2, W3, W4, W5, W6, W7, W8;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

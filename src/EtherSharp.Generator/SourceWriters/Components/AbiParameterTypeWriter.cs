@@ -8,7 +8,7 @@ namespace EtherSharp.Generator.SourceWriters.Components;
 
 internal partial class AbiParameterTypeWriter(ContractTypesSectionWriter typesSectionWriter)
 {
-    private static Regex _sizedArrayTypeRegex = new Regex("\\[\\d+\\]$", RegexOptions.Compiled);
+    private static readonly Regex _sizedArrayTypeRegex = new Regex("\\[\\d+\\]$", RegexOptions.Compiled);
     private readonly ContractTypesSectionWriter _typesSectionWriter = typesSectionWriter;
 
     public (string CSTypeName, bool isDynamic, Func<string, string> EncodeFunc, string DecodeFunc) CreateParameter(AbiParameter parameter)
@@ -37,7 +37,7 @@ internal partial class AbiParameterTypeWriter(ContractTypesSectionWriter typesSe
         throw new NotSupportedException($"Parameter {parameter.Name} of type {parameter.Type} not supported");
     }
 
-    private bool TryMatchPrimitiveType(AbiParameter parameter, out string csTypeName, out bool isDynamic, out Func<string, string> encodeFunc, out string decodeFunc)
+    private static bool TryMatchPrimitiveType(AbiParameter parameter, out string csTypeName, out bool isDynamic, out Func<string, string> encodeFunc, out string decodeFunc)
     {
         if(!PrimitiveTypeWriter.TryMatchPrimitiveType(parameter.Type, out csTypeName, out isDynamic, out string abiFunctionName, out string decodeSuffix))
         {

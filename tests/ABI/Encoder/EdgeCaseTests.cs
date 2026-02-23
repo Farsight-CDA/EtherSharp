@@ -241,9 +241,7 @@ public class EdgeCaseTests
 
     [Fact]
     public void Should_Throw_On_Empty_DynamicTuple()
-    {
-        Assert.Throws<InvalidOperationException>(() => _encoder.DynamicTuple(_ => { }).Build());
-    }
+        => Assert.Throws<InvalidOperationException>(() => _encoder.DynamicTuple(_ => { }).Build());
 
     [Fact]
     public void Should_Encode_DynamicTuple_With_DynamicElement()

@@ -46,7 +46,7 @@ public class TypedArgumentsBuilder : ISyntaxBuilder
         return sb.ToString();
     }
 
-    private string ArgumentToString(INamedTypeSymbol type, string variableName, bool hasExplicityDefaultValue, object? defaultValue)
+    private static string ArgumentToString(INamedTypeSymbol type, string variableName, bool hasExplicityDefaultValue, object? defaultValue)
     {
         string defaultValueSuffix = $"{(hasExplicityDefaultValue ? $" = {defaultValue ?? "default"}" : "")}";
 
@@ -60,7 +60,7 @@ public class TypedArgumentsBuilder : ISyntaxBuilder
         }
     }
 
-    private string ArgumentToString(string type, string variableName, bool hasExplicityDefaultValue, object? defaultValue)
+    private static string ArgumentToString(string type, string variableName, bool hasExplicityDefaultValue, object? defaultValue)
     {
         string defaultValueSuffix = $"{(hasExplicityDefaultValue ? $" = {defaultValue ?? "default"}" : "")}";
         return $"{type} {variableName}{defaultValueSuffix}";

@@ -61,7 +61,7 @@ public class PendingTxHandler<TTxParams, TTxGasParams>(
         {
             if(_isConfirmCalled)
             {
-                throw new InvalidOperationException($"{nameof(IPendingTxHandler<TTxParams, TTxGasParams>.PublishAndConfirmAsync)} already called on this instance");
+                throw new InvalidOperationException($"{nameof(IPendingTxHandler<,>.PublishAndConfirmAsync)} already called on this instance");
             }
 
             _isConfirmCalled = true;

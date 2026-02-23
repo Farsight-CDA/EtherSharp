@@ -30,17 +30,12 @@ public class TupleBuilder : ITypeBuilder
     }
 
     public string Build()
-    {
-        if(_elements.Count == 0)
-        {
-            throw new InvalidOperationException("Tuple requires at least one element");
-        }
+        => _elements.Count == 0
+            ? throw new InvalidOperationException("Tuple requires at least one element")
+            : $"({String.Join(",", _elements.Select(element => $"{element.Type}{(element.Name is null ? "" : $" {element.Name}")}"))})";
 
-        return
-            $"({String.Join(",", _elements.Select(element => $"{element.Type}{(element.Name is null ? "" : $" {element.Name}")}"))})";
-    }
     public SyntaxId GetSyntaxId()
-           => GetContentId().Combine(new SyntaxId(HashCode.Combine(TypeName)));
+        => GetContentId().Combine(new SyntaxId(HashCode.Combine(TypeName)));
 
     public SyntaxId GetContentId()
     {

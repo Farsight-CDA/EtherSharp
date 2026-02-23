@@ -81,11 +81,14 @@ internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, ISer
             buffer = buffer[sliceLength..];
         }
 
-        _logger?.LogTrace("Batch query processing completed using {requests} request(s)", requestCount);
-
-        if(requestCount > 1)
+        if(_logger?.IsEnabled(LogLevel.Trace) == true)
         {
-            _logger?.LogDebug("Batch query processing too expensive, required {requests} requests", requestCount);
+            _logger.LogTrace("Batch query processing completed using {requests} request(s)", requestCount);
+        }
+
+        if(requestCount > 1 && _logger?.IsEnabled(LogLevel.Debug) == true)
+        {
+            _logger.LogDebug("Batch query processing too expensive, required {requests} requests", requestCount);
         }
 
         return query.ReadResultFrom(outputs);

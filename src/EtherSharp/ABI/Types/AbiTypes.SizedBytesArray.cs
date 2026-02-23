@@ -48,7 +48,7 @@ public static partial class AbiTypes
             int length = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(arrayOffest + 28)..(arrayOffest + 32)]);
             var data = bytes[(arrayOffest + 32)..];
 
-            ReadOnlyMemory<byte>[] results = new ReadOnlyMemory<byte>[length];
+            var results = new ReadOnlyMemory<byte>[length];
 
             for(int i = 0; i < length; i++)
             {

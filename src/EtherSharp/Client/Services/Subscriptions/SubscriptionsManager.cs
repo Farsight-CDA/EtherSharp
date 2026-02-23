@@ -64,12 +64,21 @@ internal class SubscriptionsManager : ISubscriptionsManager
                 {
                     try
                     {
-                        _logger?.LogDebug("Reinstalling subscription of type {type}, oldId={oldId}", subscription.GetType().Name, subscription.Id);
+                        if(_logger?.IsEnabled(LogLevel.Debug) == true)
+                        {
+                            string subscriptionType = subscription.GetType().Name;
+                            _logger.LogDebug("Reinstalling subscription of type {type}, oldId={oldId}", subscriptionType, subscription.Id);
+                        }
+
                         await subscription.InstallAsync();
                     }
                     catch(Exception ex)
                     {
-                        _logger?.LogCritical(ex, "Failed to reinstall subscription id {id} of type {type}", subscription.Id, subscription.GetType().Name);
+                        if(_logger?.IsEnabled(LogLevel.Critical) == true)
+                        {
+                            string subscriptionType = subscription.GetType().Name;
+                            _logger.LogCritical(ex, "Failed to reinstall subscription id {id} of type {type}", subscription.Id, subscriptionType);
+                        }
                     }
                 });
             }
@@ -102,7 +111,11 @@ internal class SubscriptionsManager : ISubscriptionsManager
         {
             try
             {
-                _logger?.LogDebug("Uninstalling unknown active subscription with id {id}", subscriptionId);
+                if(_logger?.IsEnabled(LogLevel.Debug) == true)
+                {
+                    _logger.LogDebug("Uninstalling unknown active subscription with id {id}", subscriptionId);
+                }
+
                 await _ethRpcModule.UnsubscribeAsync(subscriptionId);
             }
             catch(RPCException ex) when(ex.Message.Contains("not found"))
@@ -111,7 +124,10 @@ internal class SubscriptionsManager : ISubscriptionsManager
             }
             catch(Exception ex)
             {
-                _logger?.LogCritical(ex, "Failed to uninstall unknown subscription with id {id}", subscriptionId);
+                if(_logger?.IsEnabled(LogLevel.Critical) == true)
+                {
+                    _logger.LogCritical(ex, "Failed to uninstall unknown subscription with id {id}", subscriptionId);
+                }
             }
         });
     }

@@ -12,7 +12,7 @@ namespace EtherSharp.ABI;
 /// <param name="bytes">ABI-encoded payload to decode.</param>
 public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder, IDynamicTupleDecoder, IArrayAbiDecoder
 {
-    private ReadOnlyMemory<byte> _bytes = bytes;
+    private readonly ReadOnlyMemory<byte> _bytes = bytes;
 
     private ReadOnlySpan<byte> CurrentSlot => _bytes.Span.Slice(BytesRead, 32);
 
@@ -287,7 +287,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
         uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload.Span[28..32]);
 
-        ReadOnlyMemory<byte>[] values = new ReadOnlyMemory<byte>[arrayLength];
+        var values = new ReadOnlyMemory<byte>[arrayLength];
 
         var decoder = new AbiDecoder(payload[32..]);
 

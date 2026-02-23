@@ -3,23 +3,15 @@ using System.Text.Json.Serialization;
 
 namespace EtherSharp.Generator.Abi.Parameters;
 
-public class AbiParameter
+public class AbiParameter(string name, string type, string? internalType, AbiParameter[]? components)
 {
     [JsonRequired]
-    public string Name { get; set; } = null!;
+    public string Name { get; set; } = name;
     [JsonRequired]
-    public string Type { get; set; } = null!;
+    public string Type { get; set; } = type;
 
-    public string? InternalType { get; set; }
-    public AbiParameter[]? Components { get; set; }
-
-    public AbiParameter(string name, string type, string? internalType, AbiParameter[]? components)
-    {
-        Name = name;
-        Type = type;
-        InternalType = internalType;
-        Components = components;
-    }
+    public string? InternalType { get; set; } = internalType;
+    public AbiParameter[]? Components { get; set; } = components;
 
     public string GetSignatureTypeString()
     {

@@ -97,7 +97,10 @@ public class BlockingSequentialTxSchedulerV2(
                     {
                         for(uint i = _confirmedNonce; i < actualNonce; i++)
                         {
-                            _logger?.LogInformation("Transaction with nonce {nonce} confirmed on-chain", i);
+                            if(_logger?.IsEnabled(LogLevel.Information) == true)
+                            {
+                                _logger.LogInformation("Transaction with nonce {nonce} confirmed on-chain", i);
+                            }
 
                             if(_nonceGates.Remove(i, out var tcs))
                             {
@@ -117,7 +120,12 @@ public class BlockingSequentialTxSchedulerV2(
 
                 if(isActive != newIsActive)
                 {
-                    _logger?.LogDebug("Switching polling mode to {mode}", newIsActive ? "Fast" : "Slow");
+                    if(_logger?.IsEnabled(LogLevel.Debug) == true)
+                    {
+                        string mode = newIsActive ? "Fast" : "Slow";
+                        _logger.LogDebug("Switching polling mode to {mode}", mode);
+                    }
+
                     isActive = newIsActive;
                 }
 

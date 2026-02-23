@@ -4,16 +4,27 @@ namespace EtherSharp.Tests.ABI.Decoder;
 
 public class BytesAbiDecoderTests
 {
-    public static IEnumerable<object[]> BitSizes
-    => Enumerable.Range(1, 32)
-        .Select(x => new object[] { x * 8 });
+    public static TheoryData<int> BitSizes
+        => CreateBitSizesData(Enumerable.Range(1, 32).Select(x => x * 8));
 
-    public static IEnumerable<object[]> NonNativeBitSizes
-        => Enumerable.Range(1, 32)
-            .Select(x => x * 8)
-            .Where(x => x != 8 && x != 16 && x != 32 && x != 64)
-            .Select(x => new object[] { x }
+    public static TheoryData<int> NonNativeBitSizes
+        => CreateBitSizesData(
+            Enumerable.Range(1, 32)
+                .Select(x => x * 8)
+                .Where(x => x != 8 && x != 16 && x != 32 && x != 64)
         );
+
+    private static TheoryData<int> CreateBitSizesData(IEnumerable<int> bitSizes)
+    {
+        var data = new TheoryData<int>();
+
+        foreach(int bitSize in bitSizes)
+        {
+            data.Add(bitSize);
+        }
+
+        return data;
+    }
 
     [Fact]
     public void Should_Match()
