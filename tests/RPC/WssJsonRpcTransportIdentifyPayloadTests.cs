@@ -2,7 +2,7 @@ using EtherSharp.RPC.Transport;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 
-namespace EtherSharp.Tests.RPC.Transport;
+namespace EtherSharp.Tests.RPC;
 
 public class WssJsonRpcTransportIdentifyPayloadTests
 {
