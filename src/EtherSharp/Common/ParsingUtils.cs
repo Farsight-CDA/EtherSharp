@@ -23,6 +23,7 @@ public static class ParsingUtils
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         Converters = {
             new DateTimeOffsetHexConverter(),
+            new Hash32Converter(),
             new ByteArrayHexConverter(),
             new IntHexConverter(),
             new UIntHexConverter(),

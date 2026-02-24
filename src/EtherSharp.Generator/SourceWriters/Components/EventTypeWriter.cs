@@ -15,7 +15,7 @@ internal class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, MemberTy
             .WithIsStatic()
             .AddStatement(
                 $$"""
-                if (!log.Topics[0].AsSpan().SequenceEqual(TopicBytes.Span)) 
+                if (log.Topics[0] != Topic) 
                 {
                     return false;
                 }
@@ -144,7 +144,7 @@ internal class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, MemberTy
                 [parameter]
             );
 
-            statementBuilder.AppendLine($"decoder = new EtherSharp.ABI.AbiDecoder(log.Topics[{topicIndex}]);");
+            statementBuilder.AppendLine($"decoder = new EtherSharp.ABI.AbiDecoder(log.Topics[{topicIndex}].ToArray());");
             statementBuilder.AppendLine($"{outputTypeName} parameter{i} = {decodeFunc};");
             topicIndex++;
         }

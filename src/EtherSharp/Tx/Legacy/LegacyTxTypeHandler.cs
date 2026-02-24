@@ -4,6 +4,7 @@ using EtherSharp.Common;
 using EtherSharp.Crypto;
 using EtherSharp.RLP;
 using EtherSharp.RPC;
+using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Buffers;
 
@@ -34,7 +35,7 @@ public class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
     }
 
     /// <inheritdoc/>
-    public string EncodeTxToBytes(ITxInput txInput, LegacyTxParams txParams, LegacyGasParams txGasParams, uint nonce, out string txHash)
+    public string EncodeTxToBytes(ITxInput txInput, LegacyTxParams txParams, LegacyGasParams txGasParams, uint nonce, out Hash32 txHash)
     {
         if(!_isInitialized)
         {
@@ -89,7 +90,7 @@ public class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
                 throw new InvalidOperationException("Failed to calculate tx hash");
             }
 
-            txHash = HexUtils.ToPrefixedHexString(txHashBuffer);
+            txHash = Hash32.FromBytes(txHashBuffer);
             return HexUtils.ToPrefixedHexString(txBuffer);
         }
         finally

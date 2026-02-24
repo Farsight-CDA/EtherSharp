@@ -8,7 +8,6 @@ using System.Text;
 namespace EtherSharp.Bench.Rlp;
 
 [MemoryDiagnoser]
-[ShortRunJob]
 public class RLPEncoderBenchmarks
 {
     private readonly ulong _chainId = 137;

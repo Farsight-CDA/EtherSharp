@@ -13,5 +13,5 @@ public interface IDebugModule
     /// <param name="transactionHash">Transaction hash to trace.</param>
     /// <param name="cancellationToken">Token used to cancel the RPC request.</param>
     /// <returns>A call trace rooted at the transaction entry call.</returns>
-    public Task<CallTrace> TraceTransactionCallsAsync(string transactionHash, CancellationToken cancellationToken = default);
+    public Task<CallTrace> TraceTransactionCallsAsync(Hash32 transactionHash, CancellationToken cancellationToken = default);
 }

@@ -12,7 +12,7 @@ public class Keccak256Tests
     public void Should_Match_Keccak256_Output(string input, string expected)
     {
         string actual = Convert.ToHexString(
-            Keccak256.HashData(Encoding.UTF8.GetBytes(input))
+            Keccak256.HashData(Encoding.UTF8.GetBytes(input)).Bytes
         );
 
         Assert.Equal(expected, actual, ignoreCase: true);
@@ -46,7 +46,7 @@ public class Keccak256Tests
             byte[] input = new byte[1 << i];
 
             string actual = Convert.ToHexString(
-                Keccak256.HashData(input)
+                Keccak256.HashData(input).Bytes
             );
 
             Assert.Equal(expected[i - 1], actual, ignoreCase: true);

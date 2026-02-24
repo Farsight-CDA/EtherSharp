@@ -24,8 +24,8 @@ namespace EtherSharp.Types;
 /// <param name="R">Signature R component.</param>
 /// <param name="S">Signature S component.</param>
 public record TxData(
-    string Hash,
-    string? BlockHash,
+    Hash32 Hash,
+    Hash32? BlockHash,
     ulong? BlockNumber,
     Address From,
     ulong Gas,

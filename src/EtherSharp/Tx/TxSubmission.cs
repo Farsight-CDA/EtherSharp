@@ -1,5 +1,6 @@
-﻿using EtherSharp.Client.Services.ResiliencyLayer;
+using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Tx.Types;
+using EtherSharp.Types;
 
 namespace EtherSharp.Tx;
 
@@ -18,7 +19,7 @@ namespace EtherSharp.Tx;
 public record TxSubmission<TTxParams, TTxGasParams>(
     ulong ChainId,
     uint Sequence,
-    string TxHash,
+    Hash32 TxHash,
     string SignedTx,
     ITxInput Call,
     TTxParams Params,

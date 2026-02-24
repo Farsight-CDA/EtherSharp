@@ -43,7 +43,7 @@ public interface IEthRpcModule
     /// Gets a transaction by hash.
     /// </summary>
     public Task<TxData?> TransactionByHashAsync(
-        string hash, CancellationToken cancellationToken
+        Hash32 hash, CancellationToken cancellationToken
     );
 
     /// <summary>
@@ -95,7 +95,7 @@ public interface IEthRpcModule
     /// Gets a transaction receipt by transaction hash.
     /// </summary>
     public Task<TxReceipt?> GetTransactionReceiptAsync(
-        string transactionHash, CancellationToken cancellationToken = default
+        Hash32 transactionHash, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -110,7 +110,7 @@ public interface IEthRpcModule
     /// </summary>
     public Task<Log[]> GetLogsAsync(
         TargetHeight fromBlock, TargetHeight toBlock,
-        Address[]? addresses, string[]?[]? topics, string? blockHash,
+        Address[]? addresses, string[]?[]? topics, Hash32? blockHash,
         CancellationToken cancellationToken = default
     );
 

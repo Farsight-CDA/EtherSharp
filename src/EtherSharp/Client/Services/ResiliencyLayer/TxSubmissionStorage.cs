@@ -14,7 +14,7 @@ public record TxSubmissionStorage(
     ulong ChainId,
     uint Sequence,
     uint Nonce,
-    string TxHash,
+    Hash32 TxHash,
     string SignedTx,
     string? To,
     UInt256 Value,

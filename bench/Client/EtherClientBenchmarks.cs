@@ -7,7 +7,6 @@ using EtherSharp.Wallet;
 namespace EtherSharp.Bench.Client;
 
 [MemoryDiagnoser]
-[ShortRunJob]
 public class EtherClientBenchmarks
 {
     private readonly IEtherTxClient _client;

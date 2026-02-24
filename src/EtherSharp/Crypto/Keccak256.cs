@@ -1,4 +1,5 @@
-﻿using System.Buffers.Binary;
+using EtherSharp.Types;
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -63,12 +64,12 @@ public ref struct Keccak256
     /// <param name="data"></param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
-    public static byte[] HashData(ReadOnlySpan<byte> data)
+    public static Hash32 HashData(ReadOnlySpan<byte> data)
     {
-        byte[] outputBuffer = new byte[OUTPUT_LENGTH_BYTES];
+        Span<byte> outputBuffer = stackalloc byte[OUTPUT_LENGTH_BYTES];
         return !TryHashData(data, outputBuffer)
             ? throw new NotSupportedException()
-            : outputBuffer;
+            : Hash32.FromBytes(outputBuffer);
     }
 
     private void BlockUpdate(ReadOnlySpan<byte> input)

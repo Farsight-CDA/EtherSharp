@@ -6,7 +6,6 @@ using System.Text.Json;
 namespace EtherSharp.Bench.Rpc;
 
 [MemoryDiagnoser]
-[ShortRunJob]
 public class RpcRequestSerializationBenchmarks
 {
     private static readonly JsonSerializerOptions _options = ParsingUtils.EvmSerializerOptions;

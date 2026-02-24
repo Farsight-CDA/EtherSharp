@@ -70,10 +70,10 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
     }
 
     public async Task<TxSubmissionResult> SendRawTransactionAsync(string transaction, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<string, string>("eth_sendRawTransaction", transaction, TargetHeight.Latest, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<string, Hash32>("eth_sendRawTransaction", transaction, TargetHeight.Latest, cancellationToken) switch
         {
-            RpcResult<string>.Success result => new TxSubmissionResult.Success(result.Result),
-            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<Hash32>.Success result => new TxSubmissionResult.Success(result.Result),
+            RpcResult<Hash32>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
 
@@ -145,8 +145,8 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<TxData?> TransactionByHashAsync(string hash, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<string, TxData>(
+    public async Task<TxData?> TransactionByHashAsync(Hash32 hash, CancellationToken cancellationToken)
+        => await _rpcClient.SendRpcRequestAsync<Hash32, TxData>(
             //ToDo: Add notion of unspecified required block height
             "eth_getTransactionByHash", hash, TargetHeight.Latest, cancellationToken) switch
         {
@@ -156,8 +156,8 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<TxReceipt?> GetTransactionReceiptAsync(string transactionHash, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<string, TxReceipt>(
+    public async Task<TxReceipt?> GetTransactionReceiptAsync(Hash32 transactionHash, CancellationToken cancellationToken)
+        => await _rpcClient.SendRpcRequestAsync<Hash32, TxReceipt>(
             "eth_getTransactionReceipt", transactionHash, TargetHeight.Latest, cancellationToken) switch
         {
             RpcResult<TxReceipt>.Success result => result.Result,
@@ -252,11 +252,11 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
         TargetHeight ToBlock,
         Address[]? Address,
         string[]?[]? Topics,
-        string? BlockHash
+        Hash32? BlockHash
     );
     public async Task<Log[]> GetLogsAsync(
         TargetHeight fromBlock, TargetHeight toBlock,
-        Address[]? addresses, string[]?[]? topics, string? blockHash,
+        Address[]? addresses, string[]?[]? topics, Hash32? blockHash,
         CancellationToken cancellationToken)
     {
         var filterOptions = new GetLogsRequest(fromBlock, toBlock, addresses, topics, blockHash);

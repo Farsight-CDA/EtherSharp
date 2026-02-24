@@ -94,6 +94,10 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
                     /// </summary>
                     public const string TopicHex = "0x{{HexUtils.ToHexString(topicBytes)}}";
                     /// <summary>
+                    /// Parsed 32-byte event topic based on signature: {{eventSignature}}
+                    /// </summary>
+                    public static EtherSharp.Types.Hash32 Topic { get; } = EtherSharp.Types.Hash32.Parse(TopicHex);
+                    /// <summary>
                     /// Supported topic counts when decoding event.
                     /// </summary>
                     public static ReadOnlyMemory<int> SupportedTopicCounts { get; } 

@@ -10,5 +10,5 @@ public interface IDebugRpcModule
     /// <summary>
     /// Traces calls executed by a mined transaction.
     /// </summary>
-    public Task<CallTrace> TraceTransactionCallsAsync(string transactionHash, CancellationToken cancellationToken = default);
+    public Task<CallTrace> TraceTransactionCallsAsync(Hash32 transactionHash, CancellationToken cancellationToken = default);
 }

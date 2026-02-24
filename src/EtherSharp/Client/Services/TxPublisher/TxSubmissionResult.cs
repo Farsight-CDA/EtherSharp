@@ -1,3 +1,5 @@
+using EtherSharp.Types;
+
 namespace EtherSharp.Client.Services.TxPublisher;
 
 /// <summary>
@@ -13,7 +15,7 @@ public abstract record TxSubmissionResult
     /// The transaction payload was accepted by the node and returned a transaction hash.
     /// </summary>
     /// <param name="TxHash">The hash returned by <c>eth_sendRawTransaction</c>.</param>
-    public record Success(string TxHash) : TxSubmissionResult;
+    public record Success(Hash32 TxHash) : TxSubmissionResult;
 
     /// <summary>
     /// The node reports the same transaction is already known.

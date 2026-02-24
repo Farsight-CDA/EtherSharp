@@ -16,12 +16,12 @@ namespace EtherSharp.Types;
 /// <param name="Removed"><see langword="true"/> when this log was removed due to a chain reorganization.</param>
 public record Log(
     Address Address,
-    string BlockHash,
+    Hash32 BlockHash,
     ulong BlockNumber,
     uint LogIndex,
-    string TransactionHash,
+    Hash32 TransactionHash,
     uint TransactionIndex,
-    byte[][] Topics,
+    Hash32[] Topics,
     byte[] Data,
     bool Removed
 ) : ITxLog<Log>

@@ -1,15 +1,15 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 using EtherSharp.Crypto;
+using EtherSharp.Types;
 using Nethereum.Util;
 
 namespace EtherSharp.Bench.Crypto;
 
-[ShortRunJob]
 [MemoryDiagnoser]
 public class Keccak256Benchmarks
 {
     private const int SEED = 123456789;
-    private static readonly int[] _inputDataLenghts = [0, 32, 512, 4096, 32768];
+    private static readonly int[] _inputDataLenghts = [0, 128, 4096, 65536];
     public static IEnumerable<byte[]> Values
         => _inputDataLenghts.Select(size =>
         {
@@ -22,15 +22,12 @@ public class Keccak256Benchmarks
     public byte[] InputData = null!;
 
     [Benchmark]
-    public byte[] EtherSharp_Keccak256_Output_Heap()
+    public Hash32 EtherSharp_Keccak256_Output_Hash32()
         => Keccak256.HashData(InputData);
 
     [Benchmark]
-    public bool EtherSharp_Keccak256_Output_Stack()
-    {
-        Span<byte> buffer = stackalloc byte[32];
-        return Keccak256.TryHashData(InputData, buffer);
-    }
+    public byte[] EtherSharp_Keccak256_Output_Hash32_ToArray()
+        => Keccak256.HashData(InputData).ToArray();
 
     [Benchmark]
     public byte[] NEthereum_Keccak256()

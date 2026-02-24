@@ -301,12 +301,12 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     IInternalEtherClient IEtherClient.AsInternal() => this;
 
-    Task<TxData?> IEtherClient.GetTransactionAsync(string hash, CancellationToken cancellationToken)
+    Task<TxData?> IEtherClient.GetTransactionAsync(Hash32 hash, CancellationToken cancellationToken)
     {
         AssertReady();
         return _ethRpcModule.TransactionByHashAsync(hash, cancellationToken);
     }
-    Task<TxReceipt?> IEtherClient.GetTransactionReceiptAsync(string hash, CancellationToken cancellationToken)
+    Task<TxReceipt?> IEtherClient.GetTransactionReceiptAsync(Hash32 hash, CancellationToken cancellationToken)
     {
         AssertReady();
         return _ethRpcModule.GetTransactionReceiptAsync(hash, cancellationToken);

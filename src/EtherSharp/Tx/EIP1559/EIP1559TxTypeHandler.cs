@@ -4,6 +4,7 @@ using EtherSharp.Common;
 using EtherSharp.Crypto;
 using EtherSharp.RLP;
 using EtherSharp.RPC;
+using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Buffers;
 
@@ -33,7 +34,7 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
 
     /// <inheritdoc/>
     string ITxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>.EncodeTxToBytes(
-        ITxInput txInput, EIP1559TxParams txParams, EIP1559GasParams txGasParams, uint nonce, out string txHash)
+        ITxInput txInput, EIP1559TxParams txParams, EIP1559GasParams txGasParams, uint nonce, out Hash32 txHash)
     {
         if(!_isInitialized)
         {
@@ -84,7 +85,7 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
                 throw new InvalidOperationException("Failed to calculate tx hash");
             }
 
-            txHash = HexUtils.ToPrefixedHexString(txHashBuffer);
+            txHash = Hash32.FromBytes(txHashBuffer);
             return HexUtils.ToPrefixedHexString(signedTxBuffer);
         }
         finally
