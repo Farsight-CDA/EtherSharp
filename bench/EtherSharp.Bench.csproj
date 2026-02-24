@@ -28,10 +28,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
-		<PackageReference Include="Nethereum.HdWallet" Version="4.29.0" />
-		<PackageReference Include="Nethereum.RLP" Version="4.29.0" />
-		<PackageReference Include="Nethereum.Util" Version="4.29.0" />
+		<PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+		<PackageReference Include="Nethereum.HdWallet" Version="5.8.0" />
+		<PackageReference Include="Nethereum.RLP" Version="5.8.0" />
+		<PackageReference Include="Nethereum.Util" Version="5.8.0" />
 		<PackageReference Include="Secp256k1.Native" Version="0.1.23" />
 	</ItemGroup>
 
