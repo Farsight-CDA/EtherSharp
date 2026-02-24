@@ -26,10 +26,12 @@ public class EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, IEtherSigner sign
 
     private async Task<EIP1559GasParams> SendEstimationRequestsAsync(ITxInput txInput, CancellationToken cancellationToken)
     {
-        ulong gasEstimation = await _ethRpcModule.EstimateGasAsync(
+        var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
             _signer.Address, txInput.To, txInput.Value, HexUtils.ToPrefixedHexString(txInput.Data.Span), cancellationToken);
+        var feeHistoryTask = _ethRpcModule.GetFeeHistoryAsync(FeeHistoryRange, TargetBlockNumber.Latest, [PriorityFeePercentile], cancellationToken);
 
-        var feeHistory = await _ethRpcModule.GetFeeHistoryAsync(FeeHistoryRange, TargetBlockNumber.Latest, [PriorityFeePercentile], default);
+        ulong gasEstimation = await gasEstimationTask;
+        var feeHistory = await feeHistoryTask;
 
         UInt256 baseFee;
         UInt256 priorityFee;
