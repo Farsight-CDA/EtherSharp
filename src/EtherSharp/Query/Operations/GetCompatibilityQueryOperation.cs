@@ -22,11 +22,11 @@ internal class GetCompatibilityQueryOperation : IQuery<CompatibilityReport>
 
     IReadOnlyList<IQuery> IQuery<CompatibilityReport>.Queries => _queries;
 
-    CompatibilityReport IQuery<CompatibilityReport>.ReadResultFrom(params scoped ReadOnlySpan<byte[]> queryResults)
+    CompatibilityReport IQuery<CompatibilityReport>.ReadResultFrom(params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
         => new CompatibilityReport(
-            queryResults[0][0] != 0,
-            queryResults[1][0] != 0,
-            queryResults[2][0] != 0,
-            queryResults[3][0] != 0
+            queryResults[0].Span[0] != 0,
+            queryResults[1].Span[0] != 0,
+            queryResults[2].Span[0] != 0,
+            queryResults[3].Span[0] != 0
         );
 }

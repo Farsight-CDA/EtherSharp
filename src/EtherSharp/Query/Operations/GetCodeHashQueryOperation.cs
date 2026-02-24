@@ -18,6 +18,6 @@ internal class GetCodeHashQueryOperation(Address address) : IQuery, IQuery<byte[
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 32;
-    byte[] IQuery<byte[]>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
-        => queryResults[0];
+    byte[] IQuery<byte[]>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
+        => queryResults[0].ToArray();
 }

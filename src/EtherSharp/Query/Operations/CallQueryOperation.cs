@@ -34,11 +34,11 @@ internal class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<
         int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
         return dataLength + 4;
     }
-    QueryResult<T> IQuery<QueryResult<T>>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
+    QueryResult<T> IQuery<QueryResult<T>>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
-        byte[] queryResult = queryResults[0];
-        bool success = queryResult[0] == 0x01;
-        var returnData = queryResult.AsMemory(4);
+        var queryResult = queryResults[0];
+        bool success = queryResult.Span[0] == 0x01;
+        var returnData = queryResult[4..];
 
         return success switch
         {

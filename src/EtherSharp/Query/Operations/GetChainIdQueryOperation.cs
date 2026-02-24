@@ -14,6 +14,6 @@ internal class GetChainIdQueryOperation : IQuery, IQuery<ulong>
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 8;
 
-    ulong IQuery<ulong>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
-        => BinaryPrimitives.ReadUInt64BigEndian(queryResults[0]);
+    ulong IQuery<ulong>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
+        => BinaryPrimitives.ReadUInt64BigEndian(queryResults[0].Span);
 }

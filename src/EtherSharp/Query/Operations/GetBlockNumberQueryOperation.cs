@@ -13,6 +13,6 @@ internal class GetBlockNumberQueryOperation : IQuery, IQuery<ulong>
         => buffer[0] = (byte) QueryOperationId.GetBlockNumber;
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 8;
-    ulong IQuery<ulong>.ReadResultFrom(params scoped ReadOnlySpan<byte[]> queryResults)
-        => BinaryPrimitives.ReadUInt64BigEndian(queryResults[0]);
+    ulong IQuery<ulong>.ReadResultFrom(params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
+        => BinaryPrimitives.ReadUInt64BigEndian(queryResults[0].Span);
 }

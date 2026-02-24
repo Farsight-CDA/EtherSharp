@@ -9,7 +9,7 @@ namespace EtherSharp.Client.Modules.Query;
 public partial class QueryBuilder<TQuery> : IQuery<List<TQuery>>
 {
     private readonly List<IQuery> _queries = [];
-    private readonly List<Func<ReadOnlySpan<byte[]>, TQuery>> _resultSelectorFunctions = [];
+    private readonly List<Func<ReadOnlySpan<ReadOnlyMemory<byte>>, TQuery>> _resultSelectorFunctions = [];
 
     /// <summary>
     /// Gets the flattened low-level operations that will be executed by the query executor.
@@ -17,7 +17,7 @@ public partial class QueryBuilder<TQuery> : IQuery<List<TQuery>>
     public IReadOnlyList<IQuery> Queries => _queries;
     IReadOnlyList<IQuery> IQuery<List<TQuery>>.Queries => _queries;
 
-    List<TQuery> IQuery<List<TQuery>>.ReadResultFrom(params scoped ReadOnlySpan<byte[]> queryResults)
+    List<TQuery> IQuery<List<TQuery>>.ReadResultFrom(params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
         var results = new List<TQuery>(_resultSelectorFunctions.Count);
         foreach(var selectorFunc in _resultSelectorFunctions)

@@ -416,7 +416,7 @@ public interface IQuery
 public interface IQuery<TQuery>
 {
     internal IReadOnlyList<IQuery> Queries { get; }
-    internal TQuery ReadResultFrom(params ReadOnlySpan<byte[]> queryResults);
+    internal TQuery ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults);
 
     /// <summary>
     /// Creates a query by mapping the output of <paramref name="query"/> to <typeparamref name="TQuery"/>.

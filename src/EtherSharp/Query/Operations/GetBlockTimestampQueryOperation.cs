@@ -13,9 +13,9 @@ internal class GetBlockTimestampQueryOperation : IQuery, IQuery<DateTimeOffset>
         => buffer[0] = (byte) QueryOperationId.GetBlockTimestamp;
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 8;
-    DateTimeOffset IQuery<DateTimeOffset>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
+    DateTimeOffset IQuery<DateTimeOffset>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
-        long seconds = (long) BinaryPrimitives.ReadUInt64BigEndian(queryResults[0]);
+        long seconds = (long) BinaryPrimitives.ReadUInt64BigEndian(queryResults[0].Span);
         return DateTimeOffset.FromUnixTimeSeconds(seconds);
     }
 }

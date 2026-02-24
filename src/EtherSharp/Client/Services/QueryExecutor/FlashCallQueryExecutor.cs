@@ -19,8 +19,8 @@ internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, ISer
 
     public async Task<TQuery> ExecuteQueryAsync<TQuery>(IQuery<TQuery> query, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
     {
-        ReadOnlySpan<byte> buffer = [];
-        byte[][] outputs = new byte[query.Queries.Count][];
+        var buffer = ReadOnlyMemory<byte>.Empty;
+        var outputs = new ReadOnlyMemory<byte>[query.Queries.Count];
         int requestCount = 0;
 
         bool supportsCancun = _client.IsInitialized && _client.CompatibilityReport is not null && _client.CompatibilityReport.SupportsPush0;
@@ -66,7 +66,7 @@ internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, ISer
                         throw new InvalidOperationException("Call is too expensive to be executed within batch");
                     }
 
-                    buffer = output.Span;
+                    buffer = output;
                 }
                 finally
                 {
@@ -74,10 +74,8 @@ internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, ISer
                 }
             }
 
-            int sliceLength = q.ParseResultLength(buffer);
-            //ToDo: use array pool or figure out how we can use Spans here
-            byte[] sliceData = buffer[0..sliceLength].ToArray();
-            outputs[i] = sliceData;
+            int sliceLength = q.ParseResultLength(buffer.Span);
+            outputs[i] = buffer[0..sliceLength];
             buffer = buffer[sliceLength..];
         }
 

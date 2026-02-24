@@ -14,6 +14,6 @@ internal class GetBlockBaseFeeQueryOperation : IQuery, IQuery<UInt256>
 
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 32;
-    UInt256 IQuery<UInt256>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
-        => BinaryPrimitives.ReadUInt256BigEndian(queryResults[0]);
+    UInt256 IQuery<UInt256>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
+        => BinaryPrimitives.ReadUInt256BigEndian(queryResults[0].Span);
 }

@@ -25,6 +25,6 @@ internal class GetCodeQueryOperation(Address address) : IQuery, IQuery<EVMByteCo
         int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
         return dataLength + 3;
     }
-    EVMByteCode IQuery<EVMByteCode>.ReadResultFrom(params ReadOnlySpan<byte[]> queryResults)
-        => new EVMByteCode(queryResults[0].AsMemory()[3..]);
+    EVMByteCode IQuery<EVMByteCode>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
+        => new EVMByteCode(queryResults[0][3..]);
 }

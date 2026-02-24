@@ -13,6 +13,6 @@ internal class NoopQueryOperation<T>(T value) : IQuery, IQuery<T>
     public void Encode(Span<byte> buffer) { }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 0;
-    T IQuery<T>.ReadResultFrom(params scoped ReadOnlySpan<byte[]> queryResults)
+    T IQuery<T>.ReadResultFrom(params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
         => _value;
 }
