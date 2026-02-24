@@ -1,6 +1,8 @@
-﻿namespace EtherSharp.Tx;
+﻿using EtherSharp.Types;
+
+namespace EtherSharp.Tx;
 
 public record StateAccess(
-    byte[] Address,
+    Address Address,
     byte[][] StorageKeys
 );

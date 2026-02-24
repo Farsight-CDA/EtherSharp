@@ -11,7 +11,7 @@ internal static class TxRLPEncoder
         foreach(var access in accessList)
         {
             totalSize += RLPEncoder.GetListSize(
-                RLPEncoder.GetStringSize(access.Address) +
+                RLPEncoder.GetStringSize(access.Address.Bytes) +
                 RLPEncoder.GetListSize(GetStorageKeysLength(access))
             );
         }
@@ -35,7 +35,7 @@ internal static class TxRLPEncoder
     {
         foreach(var access in accessList)
         {
-            encoder = encoder.EncodeString(access.Address)
+            encoder = encoder.EncodeString(access.Address.Bytes)
                 .EncodeList(GetStorageKeysLength(access));
 
             foreach(byte[] storageKey in access.StorageKeys)
