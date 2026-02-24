@@ -4,7 +4,7 @@ using EtherSharp.Client;
 using EtherSharp.Contract;
 using EtherSharp.Wallet;
 
-namespace EtherSharp.Bench;
+namespace EtherSharp.Bench.Client;
 
 [MemoryDiagnoser]
 [ShortRunJob]

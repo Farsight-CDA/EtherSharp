@@ -5,7 +5,7 @@ using Nethereum.RLP;
 using System.Numerics;
 using System.Text;
 
-namespace EtherSharp.Bench;
+namespace EtherSharp.Bench.Rlp;
 
 [MemoryDiagnoser]
 [ShortRunJob]

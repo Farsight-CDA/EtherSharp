@@ -1,7 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using EtherSharp.ABI;
 
-namespace EtherSharp.Bench;
+namespace EtherSharp.Bench.Abi;
 
 [MemoryDiagnoser]
 public class ABIEncoderBenchmarks
@@ -18,7 +18,7 @@ public class ABIEncoderBenchmarks
             .UInt8(Byte.MaxValue)
             .UInt8(Byte.MaxValue)
             .UInt8(Byte.MaxValue);
-        ;
+
         _buffer = new byte[32 * 5];
     }
 

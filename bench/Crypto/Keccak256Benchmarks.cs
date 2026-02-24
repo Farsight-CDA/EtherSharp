@@ -2,7 +2,7 @@
 using EtherSharp.Crypto;
 using Nethereum.Util;
 
-namespace EtherSharp.Bench;
+namespace EtherSharp.Bench.Crypto;
 
 [ShortRunJob]
 [MemoryDiagnoser]
