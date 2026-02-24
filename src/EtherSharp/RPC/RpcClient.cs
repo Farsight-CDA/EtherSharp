@@ -31,25 +31,14 @@ internal class RpcClient : IRpcClient
         }
     }
 
-    public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
-        string method, object?[] parameters, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
+    private Task<RpcResult<TResult>> ExecuteWithMiddlewareAsync<TResult>(
+        Func<CancellationToken, Task<RpcResult<TResult>>> onNext,
+        CancellationToken cancellationToken)
     {
-        Func<CancellationToken, Task<RpcResult<TResult>>> onNext = (ct) =>
+        if(_middlewares.Length == 0)
         {
-            try
-            {
-                return _transport.SendRpcRequestAsync<TResult>(method, parameters, requiredBlockNumber, ct);
-            }
-            catch(Exception ex)
-            {
-                if(ex is RPCTransportException || (ex is OperationCanceledException && cancellationToken.IsCancellationRequested))
-                {
-                    throw;
-                }
-
-                throw new RPCTransportException("Exception while calling RPC transport", ex);
-            }
-        };
+            return onNext(cancellationToken);
+        }
 
         foreach(var middleware in _middlewares)
         {
@@ -59,4 +48,89 @@ internal class RpcClient : IRpcClient
 
         return onNext(cancellationToken);
     }
+
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
+        string method, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+        => ExecuteWithMiddlewareAsync(
+            (ct) => SendTransportRequestAsync<TResult>(method, requiredBlockNumber, ct),
+            cancellationToken
+        );
+
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, TResult>(
+        string method, T1 t1, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+        => ExecuteWithMiddlewareAsync(
+            (ct) => SendTransportRequestAsync<T1, TResult>(method, t1, requiredBlockNumber, ct),
+            cancellationToken
+        );
+
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, TResult>(
+        string method, T1 t1, T2 t2, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+        => ExecuteWithMiddlewareAsync(
+            (ct) => SendTransportRequestAsync<T1, T2, TResult>(method, t1, t2, requiredBlockNumber, ct),
+            cancellationToken
+        );
+
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, T3, TResult>(
+        string method, T1 t1, T2 t2, T3 t3, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+        => ExecuteWithMiddlewareAsync(
+            (ct) => SendTransportRequestAsync<T1, T2, T3, TResult>(method, t1, t2, t3, requiredBlockNumber, ct),
+            cancellationToken
+        );
+
+    private async Task<RpcResult<TResult>> SendTransportRequestAsync<TResult>(
+        string method, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _transport.SendRpcRequestAsync<TResult>(method, requiredBlockNumber, cancellationToken);
+        }
+        catch(Exception ex)
+        {
+            throw WrapTransportException(ex, cancellationToken);
+        }
+    }
+
+    private async Task<RpcResult<TResult>> SendTransportRequestAsync<T1, TResult>(
+        string method, T1 t1, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _transport.SendRpcRequestAsync<T1, TResult>(method, t1, requiredBlockNumber, cancellationToken);
+        }
+        catch(Exception ex)
+        {
+            throw WrapTransportException(ex, cancellationToken);
+        }
+    }
+
+    private async Task<RpcResult<TResult>> SendTransportRequestAsync<T1, T2, TResult>(
+        string method, T1 t1, T2 t2, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _transport.SendRpcRequestAsync<T1, T2, TResult>(method, t1, t2, requiredBlockNumber, cancellationToken);
+        }
+        catch(Exception ex)
+        {
+            throw WrapTransportException(ex, cancellationToken);
+        }
+    }
+
+    private async Task<RpcResult<TResult>> SendTransportRequestAsync<T1, T2, T3, TResult>(
+        string method, T1 t1, T2 t2, T3 t3, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _transport.SendRpcRequestAsync<T1, T2, T3, TResult>(method, t1, t2, t3, requiredBlockNumber, cancellationToken);
+        }
+        catch(Exception ex)
+        {
+            throw WrapTransportException(ex, cancellationToken);
+        }
+    }
+
+    private static Exception WrapTransportException(Exception ex, CancellationToken cancellationToken)
+        => ex is RPCTransportException || (ex is OperationCanceledException && cancellationToken.IsCancellationRequested)
+            ? ex
+            : new RPCTransportException("Exception while calling RPC transport", ex);
 }

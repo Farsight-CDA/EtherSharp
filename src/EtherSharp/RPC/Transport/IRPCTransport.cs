@@ -33,17 +33,43 @@ public interface IRPCTransport
     public ValueTask InitializeAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Sends a request to this RPCTransport and returns its response.
+    /// Sends a request without parameters.
     /// </summary>
-    /// <typeparam name="TResult">Expected result type.</typeparam>
-    /// <param name="method">Rpc method name.</param>
-    /// <param name="parameters">List of parameters for this call.</param>
-    /// <param name="requiredBlockNumber">The minimum target block required by the node in order to fulfil this request.</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
         string method,
-        object?[] parameters,
+        TargetBlockNumber requiredBlockNumber,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Sends a request with one parameter.
+    /// </summary>
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, TResult>(
+        string method,
+        T1 t1,
+        TargetBlockNumber requiredBlockNumber,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Sends a request with two parameters.
+    /// </summary>
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, TResult>(
+        string method,
+        T1 t1,
+        T2 t2,
+        TargetBlockNumber requiredBlockNumber,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Sends a request with three parameters.
+    /// </summary>
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, T3, TResult>(
+        string method,
+        T1 t1,
+        T2 t2,
+        T3 t3,
         TargetBlockNumber requiredBlockNumber,
         CancellationToken cancellationToken = default
     );

@@ -75,21 +75,61 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     public ValueTask InitializeAsync(CancellationToken cancellationToken = default)
         => ValueTask.CompletedTask;
 
-    private record RpcError(int Code, string Message, string? Data);
-    private record JsonRpcResponse<T>([property: JsonRequired] int? Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
-
-    private record JsonRpcRequest(int Id, string Method, object?[] Params, string Jsonrpc = "2.0");
-    /// <inheritdoc />
-    public async Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, object?[] parameters, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
+    /// <inheritdoc/>
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
     {
         int id = Interlocked.Increment(ref _id);
+        return SendRpcRequestCoreAsync<TResult>(
+            id,
+            JsonContent.Create(new JsonRpcRequestPayload.Request0(id, method), options: _jsonSerializerOptions),
+            cancellationToken
+        );
+    }
 
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, (string?) null)
+    /// <inheritdoc/>
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, TResult>(
+        string method, T1 t1, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+    {
+        int id = Interlocked.Increment(ref _id);
+        return SendRpcRequestCoreAsync<TResult>(
+            id,
+            JsonContent.Create(new JsonRpcRequestPayload.Request1<T1>(id, method, t1), options: _jsonSerializerOptions),
+            cancellationToken
+        );
+    }
+
+    /// <inheritdoc/>
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, TResult>(
+        string method, T1 t1, T2 t2, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+    {
+        int id = Interlocked.Increment(ref _id);
+        return SendRpcRequestCoreAsync<TResult>(
+            id,
+            JsonContent.Create(new JsonRpcRequestPayload.Request2<T1, T2>(id, method, t1, t2), options: _jsonSerializerOptions),
+            cancellationToken
+        );
+    }
+
+    /// <inheritdoc/>
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, T3, TResult>(
+        string method, T1 t1, T2 t2, T3 t3, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+    {
+        int id = Interlocked.Increment(ref _id);
+        return SendRpcRequestCoreAsync<TResult>(
+            id,
+            JsonContent.Create(new JsonRpcRequestPayload.Request3<T1, T2, T3>(id, method, t1, t2, t3), options: _jsonSerializerOptions),
+            cancellationToken
+        );
+    }
+
+    private record RpcError(int Code, string Message, string? Data);
+    private record JsonRpcResponse<T>([property: JsonRequired] int? Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
+    private async Task<RpcResult<TResult>> SendRpcRequestCoreAsync<TResult>(int id, HttpContent requestContent, CancellationToken cancellationToken)
+    {
+        using var httpRequestMessage = new HttpRequestMessage()
         {
-            Content = JsonContent.Create(
-                new JsonRpcRequest(id, method, parameters),
-                options: _jsonSerializerOptions
-            )
+            Method = HttpMethod.Post,
+            Content = requestContent
         };
 
         HttpResponseMessage response;
