@@ -2,6 +2,9 @@
 
 namespace EtherSharp.Common.Comparer;
 
+/// <summary>
+/// Compares logs by block number and then by log index.
+/// </summary>
 public class EventComparer : IComparer<Log>
 {
     /// <summary>

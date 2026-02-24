@@ -1,5 +1,6 @@
 ﻿namespace EtherSharp.Tx;
 
-public record StateAccess(byte[] Address, byte[][] StorageKeys)
-{
-}
+public record StateAccess(
+    byte[] Address,
+    byte[][] StorageKeys
+);

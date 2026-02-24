@@ -24,6 +24,11 @@ public struct EVMByteCode
     private const byte SUB_OPCODE = 0x03;
     private static ReadOnlySpan<byte> ComparisonOpcodes => [LT_OPCODE, GT_OPCODE, EQ_OPCODE, SUB_OPCODE];
 
+    /// <summary>
+    /// Creates an EVM bytecode wrapper from the provided raw bytes.
+    /// </summary>
+    /// <param name="byteCode">The runtime bytecode bytes.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="byteCode"/> exceeds the maximum runtime length.</exception>
     public EVMByteCode(ReadOnlyMemory<byte> byteCode)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(byteCode.Length, MAX_RUNTIME_LENGTH, nameof(byteCode));

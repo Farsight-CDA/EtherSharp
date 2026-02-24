@@ -7,5 +7,10 @@ namespace EtherSharp.Realtime.Events.Subscription;
 public interface IEventSubscription<TLog> : IAsyncDisposable
     where TLog : ITxLog<TLog>
 {
+    /// <summary>
+    /// Listens for decoded realtime log events.
+    /// </summary>
+    /// <param name="cancellationToken">Token used to stop listening.</param>
+    /// <returns>An async stream of decoded logs.</returns>
     public IAsyncEnumerable<TLog> ListenAsync(CancellationToken cancellationToken = default);
 }

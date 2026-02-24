@@ -7,5 +7,10 @@ namespace EtherSharp.Realtime.Events.Filter;
 public interface IEventFilter<TLog> : IAsyncDisposable
     where TLog : ITxLog<TLog>
 {
+    /// <summary>
+    /// Gets new event log changes since the previous poll.
+    /// </summary>
+    /// <param name="cancellationToken">Token used to cancel the poll request.</param>
+    /// <returns>The decoded log changes.</returns>
     public Task<TLog[]> GetChangesAsync(CancellationToken cancellationToken = default);
 }
