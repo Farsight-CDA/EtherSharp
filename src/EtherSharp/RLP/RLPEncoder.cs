@@ -1,6 +1,7 @@
 using EtherSharp.Numerics;
 using System.Buffers.Binary;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace EtherSharp.RLP;
 
@@ -121,7 +122,8 @@ public ref struct RLPEncoder
         }
         else if(value < 128)
         {
-            return EncodeString((byte) value);
+            _destination[0] = (byte) value;
+            _destination = _destination[1..];
         }
         else
         {
@@ -149,7 +151,8 @@ public ref struct RLPEncoder
         }
         else if(value < 128)
         {
-            return EncodeString((byte) value);
+            _destination[0] = (byte) value;
+            _destination = _destination[1..];
         }
         else
         {
@@ -178,7 +181,8 @@ public ref struct RLPEncoder
         }
         else if(value < 128)
         {
-            return EncodeString((byte) value);
+            _destination[0] = (byte) value;
+            _destination = _destination[1..];
         }
         else
         {
@@ -190,6 +194,38 @@ public ref struct RLPEncoder
             _destination[0] = (byte) (0x80 + buffer.Length);
             buffer.CopyTo(_destination[1..]);
             _destination = _destination[(1 + buffer.Length)..];
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Encodes an empty byte string as an RLP string element.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RLPEncoder EncodeString()
+    {
+        _destination[0] = 0x80;
+        _destination = _destination[1..];
+        return this;
+    }
+
+    /// <summary>
+    /// Encodes a single byte as an RLP string element.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RLPEncoder EncodeString(byte data)
+    {
+        if(data < 128)
+        {
+            _destination[0] = data;
+            _destination = _destination[1..];
+        }
+        else
+        {
+            _destination[0] = 0x81;
+            _destination[1] = data;
+            _destination = _destination[2..];
         }
 
         return this;
