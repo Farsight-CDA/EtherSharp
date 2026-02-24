@@ -13,14 +13,14 @@ public interface IFlashCallExecutor
     /// </summary>
     /// <param name="targetHeight">The block height context used to evaluate execution constraints.</param>
     /// <returns>The maximum payload size, in bytes, accepted by this executor.</returns>
-    public int GetMaxPayloadSize(TargetBlockNumber targetHeight);
+    public int GetMaxPayloadSize(TargetHeight targetHeight);
 
     /// <summary>
     /// Gets the maximum call result size, in bytes, that can be returned at the specified target block.
     /// </summary>
     /// <param name="targetHeight">The block height context used to evaluate execution constraints.</param>
     /// <returns>The maximum return data size, in bytes, supported by this executor.</returns>
-    public int GetMaxResultSize(TargetBlockNumber targetHeight);
+    public int GetMaxResultSize(TargetHeight targetHeight);
 
     /// <summary>
     /// Executes a flash call against a deployed helper contract for the provided call payload.
@@ -33,7 +33,7 @@ public interface IFlashCallExecutor
     public Task<TxCallResult> ExecuteFlashCallAsync(
         IContractDeployment deployment,
         IContractCall call,
-        TargetBlockNumber targetHeight,
+        TargetHeight targetHeight,
         CancellationToken cancellationToken
     );
 }

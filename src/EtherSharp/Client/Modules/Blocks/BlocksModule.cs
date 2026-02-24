@@ -13,7 +13,7 @@ internal class BlocksModule(IEthRpcModule ethRpcModule, ISubscriptionsManager su
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
     private readonly JsonSerializerOptions _jsonSerializerOptions = jsonSerializerOptions;
 
-    public Task<BlockDataTransactionAsString> GetBlockAtHeightAsync(TargetBlockNumber targetHeight, CancellationToken cancellationToken = default)
+    public Task<Block> GetBlockAtHeightAsync(TargetHeight targetHeight, CancellationToken cancellationToken = default)
         => _ethRpcModule.GetBlockByNumberAsync(targetHeight, cancellationToken);
     public Task<ulong> GetPeakHeightAsync(CancellationToken cancellationToken = default)
         => _ethRpcModule.BlockNumberAsync(cancellationToken);

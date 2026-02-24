@@ -16,7 +16,7 @@ public interface IEtherModule
     /// <param name="targetHeight">Block to evaluate the balance at. Uses the latest block by default.</param>
     /// <param name="cancellationToken">Token used to cancel the RPC request.</param>
     /// <returns>Balance in wei.</returns>
-    public Task<UInt256> GetBalanceAsync(Address address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<UInt256> GetBalanceAsync(Address address, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the native currency balance for a contract address.
@@ -25,5 +25,5 @@ public interface IEtherModule
     /// <param name="targetHeight">Block to evaluate the balance at. Uses the latest block by default.</param>
     /// <param name="cancellationToken">Token used to cancel the RPC request.</param>
     /// <returns>Balance in wei.</returns>
-    public Task<UInt256> GetBalanceAsync(IEVMContract contract, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<UInt256> GetBalanceAsync(IEVMContract contract, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
 }

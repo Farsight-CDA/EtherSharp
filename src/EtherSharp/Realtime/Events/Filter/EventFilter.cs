@@ -5,7 +5,7 @@ using EtherSharp.Types;
 namespace EtherSharp.Realtime.Events.Filter;
 
 internal class EventFilter<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule,
-    TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
+    TargetHeight fromBlock, TargetHeight toBlock,
     Address[]? addresses, string[]?[]? topics
 ) : IEventFilter<TLog>
     where TLog : ITxLog<TLog>
@@ -15,8 +15,8 @@ internal class EventFilter<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModul
     private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
-    private readonly TargetBlockNumber _fromBlock = fromBlock;
-    private readonly TargetBlockNumber _toBlock = toBlock;
+    private readonly TargetHeight _fromBlock = fromBlock;
+    private readonly TargetHeight _toBlock = toBlock;
 
     private readonly Address[]? _addresses = addresses;
     private readonly string[]?[]? _topics = topics;

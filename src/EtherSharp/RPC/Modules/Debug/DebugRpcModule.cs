@@ -9,7 +9,7 @@ internal class DebugRpcModule(IRpcClient rpcClient) : IDebugRpcModule
 
     public async Task<CallTrace> TraceTransactionCallsAsync(string transactionHash, CancellationToken cancellationToken = default)
         => await _rpcClient.SendRpcRequestAsync<string, object, CallTrace>(
-            "debug_traceTransaction", transactionHash, new { tracer = "callTracer" }, TargetBlockNumber.Latest, cancellationToken) switch
+            "debug_traceTransaction", transactionHash, new { tracer = "callTracer" }, TargetHeight.Latest, cancellationToken) switch
         {
             RpcResult<CallTrace>.Success result => result.Result,
             RpcResult<CallTrace>.Error error => throw RPCException.FromRPCError(error),

@@ -21,13 +21,13 @@ internal class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlash
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
-    public int GetMaxPayloadSize(TargetBlockNumber targetHeight)
+    public int GetMaxPayloadSize(TargetHeight targetHeight)
         => MAX_PAYLOAD_SIZE;
 
-    public int GetMaxResultSize(TargetBlockNumber targetHeight)
+    public int GetMaxResultSize(TargetHeight targetHeight)
         => MAX_RUNTIMECODE_SIZE;
 
-    public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IContractCall call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IContractCall call, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         if(deployment.Value > 0)
         {

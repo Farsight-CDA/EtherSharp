@@ -5,15 +5,15 @@ using System.Text.Json.Serialization;
 namespace EtherSharp.Common.Converter;
 
 /// <summary>
-/// Converts a <see cref="TargetBlockNumber"/> to a JSON block selector string.
+/// Converts a <see cref="TargetHeight"/> to a JSON block selector string.
 /// </summary>
-public class TargetBlockNumberConverter : JsonConverter<TargetBlockNumber>
+public class TargetBlockNumberConverter : JsonConverter<TargetHeight>
 {
     /// <inheritdoc/>
-    public override TargetBlockNumber Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override TargetHeight Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         => throw new NotSupportedException();
 
     /// <inheritdoc/>
-    public override void Write(Utf8JsonWriter writer, TargetBlockNumber value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, TargetHeight value, JsonSerializerOptions options)
         => writer.WriteStringValue(value.ToString());
 }

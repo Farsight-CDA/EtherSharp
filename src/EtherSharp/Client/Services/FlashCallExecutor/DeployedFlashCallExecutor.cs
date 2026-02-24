@@ -21,14 +21,14 @@ internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFla
     public void SetDeploymentHeight(ulong deploymentHeight)
         => _deploymentHeight = deploymentHeight;
 
-    public int GetMaxPayloadSize(TargetBlockNumber targetHeight)
+    public int GetMaxPayloadSize(TargetHeight targetHeight)
     {
         bool useFallback = targetHeight.Value > 0 && targetHeight.Value <= _deploymentHeight;
         return useFallback
             ? _constructorFlashCallExecutor.GetMaxPayloadSize(targetHeight)
             : _configuration.MaxPayloadSize;
     }
-    public int GetMaxResultSize(TargetBlockNumber targetHeight)
+    public int GetMaxResultSize(TargetHeight targetHeight)
     {
         bool useFallback = targetHeight.Value > 0 && targetHeight.Value <= _deploymentHeight;
         return useFallback
@@ -36,7 +36,7 @@ internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFla
             : _configuration.MaxResultSize;
     }
 
-    public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IContractCall call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IContractCall call, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         if(deployment.Value > 0)
         {

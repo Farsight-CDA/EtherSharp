@@ -124,52 +124,52 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
         };
     }
 
-    public async Task<BlockData?> GetFullBlockByNumberAsync(
+    public async Task<DetailedBlockData?> GetFullBlockByNumberAsync(
         TargetBlockNumber targetHeight, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<TargetBlockNumber, bool, BlockData>(
+        => await _rpcClient.SendRpcRequestAsync<TargetBlockNumber, bool, DetailedBlockData>(
             "eth_getBlockByNumber", targetHeight, true, targetHeight, cancellationToken) switch
         {
-            RpcResult<BlockData>.Success result => result.Result,
-            RpcResult<BlockData>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<DetailedBlockData>.Success result => result.Result,
+            RpcResult<DetailedBlockData>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<BlockDataTransactionAsString> GetBlockByNumberAsync(
+    public async Task<Block> GetBlockByNumberAsync(
         TargetBlockNumber targetHeight, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<TargetBlockNumber, bool, BlockDataTransactionAsString>(
+        => await _rpcClient.SendRpcRequestAsync<TargetBlockNumber, bool, Block>(
             "eth_getBlockByNumber", targetHeight, false, targetHeight, cancellationToken) switch
         {
-            RpcResult<BlockDataTransactionAsString>.Success result => result.Result,
-            RpcResult<BlockDataTransactionAsString>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<BlockDataTransactionAsString>.Null => throw new RPCException(-1, "block not found, rpc returned null", null),
+            RpcResult<Block>.Success result => result.Result,
+            RpcResult<Block>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<Block>.Null => throw new RPCException(-1, "block not found, rpc returned null", null),
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<Transaction?> TransactionByHashAsync(string hash, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<string, Transaction>(
+    public async Task<TxData?> TransactionByHashAsync(string hash, CancellationToken cancellationToken)
+        => await _rpcClient.SendRpcRequestAsync<string, TxData>(
             //ToDo: Add notion of unspecified required block height
             "eth_getTransactionByHash", hash, TargetBlockNumber.Latest, cancellationToken) switch
         {
-            RpcResult<Transaction>.Success result => result.Result,
-            RpcResult<Transaction>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<Transaction>.Null => null,
+            RpcResult<TxData>.Success result => result.Result,
+            RpcResult<TxData>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<TxData>.Null => null,
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<TransactionReceipt?> GetTransactionReceiptAsync(string transactionHash, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<string, TransactionReceipt>(
+    public async Task<TxReceipt?> GetTransactionReceiptAsync(string transactionHash, CancellationToken cancellationToken)
+        => await _rpcClient.SendRpcRequestAsync<string, TxReceipt>(
             "eth_getTransactionReceipt", transactionHash, TargetBlockNumber.Latest, cancellationToken) switch
         {
-            RpcResult<TransactionReceipt>.Success result => result.Result,
-            RpcResult<TransactionReceipt>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<TransactionReceipt>.Null => null,
+            RpcResult<TxReceipt>.Success result => result.Result,
+            RpcResult<TxReceipt>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<TxReceipt>.Null => null,
             _ => throw new NotImplementedException(),
         };
 
     public async Task<byte[]> GetStorageAtAsync(
         Address address, byte[] slot, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default)
         => await _rpcClient.SendRpcRequestAsync<string, byte[], TargetBlockNumber, byte[]>(
-            "eth_getStorageAt", address.String, slot, targetHeight, targetHeight, cancellationToken) switch
+            "eth_getStorageAt", address.Hex, slot, targetHeight, targetHeight, cancellationToken) switch
         {
             RpcResult<byte[]>.Success result => result.Result,
             RpcResult<byte[]>.Error error => throw RPCException.FromRPCError(error),

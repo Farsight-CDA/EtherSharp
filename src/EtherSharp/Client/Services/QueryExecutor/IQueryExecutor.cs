@@ -16,5 +16,5 @@ public interface IQueryExecutor
     /// <param name="targetHeight">The block number context used for query execution.</param>
     /// <param name="cancellationToken">A token used to cancel the underlying RPC call.</param>
     /// <returns>The decoded result for the supplied query.</returns>
-    public Task<TQuery> ExecuteQueryAsync<TQuery>(IQuery<TQuery> query, TargetBlockNumber targetHeight, CancellationToken cancellationToken);
+    public Task<TQuery> ExecuteQueryAsync<TQuery>(IQuery<TQuery> query, TargetHeight targetHeight, CancellationToken cancellationToken);
 }

@@ -15,7 +15,7 @@ public interface IEtherTxModule : IEtherModule
     /// <param name="targetHeight">Block to evaluate the balance at. Uses the latest block by default.</param>
     /// <param name="cancellationToken">Token used to cancel the RPC request.</param>
     /// <returns>Balance in wei.</returns>
-    public Task<UInt256> GetMyBalanceAsync(TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<UInt256> GetMyBalanceAsync(TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a transaction input that transfers native currency to an address.

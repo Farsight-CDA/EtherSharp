@@ -21,7 +21,7 @@ public interface IConfiguredEventsModule<TLog>
     /// <param name="cancellationToken">Token used to cancel the RPC request.</param>
     /// <returns>Decoded logs ordered by block/transaction/log index.</returns>
     public Task<TLog[]> GetAllAsync(
-        TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, string? blockHash = null, CancellationToken cancellationToken = default);
+        TargetHeight fromBlock = default, TargetHeight toBlock = default, string? blockHash = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a poll-based event filter that can be queried incrementally.
@@ -31,7 +31,7 @@ public interface IConfiguredEventsModule<TLog>
     /// <param name="cancellationToken">Token used to cancel filter creation.</param>
     /// <returns>An initialized event filter handle.</returns>
     public Task<IEventFilter<TLog>> CreateFilterAsync(
-        TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, CancellationToken cancellationToken = default);
+        TargetHeight fromBlock = default, TargetHeight toBlock = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a push-based subscription for matching future logs.

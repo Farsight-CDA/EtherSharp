@@ -10,7 +10,7 @@ internal class TraceRpcModule(IRpcClient rpcClient) : ITraceRpcModule
 
     public async Task<TransactionTraceResult> ReplayTransactionAsync(string txHash, string[] traceTypes, CancellationToken cancellationToken = default)
         => await _rpcClient.SendRpcRequestAsync<string, string[], TransactionTraceResult>(
-            "trace_replayTransaction", txHash, traceTypes, TargetBlockNumber.Latest, cancellationToken) switch
+            "trace_replayTransaction", txHash, traceTypes, TargetHeight.Latest, cancellationToken) switch
         {
             RpcResult<TransactionTraceResult>.Success result => result.Result,
             RpcResult<TransactionTraceResult>.Error error => throw RPCException.FromRPCError(error),

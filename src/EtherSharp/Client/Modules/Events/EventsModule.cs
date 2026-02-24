@@ -108,12 +108,12 @@ internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModu
         return this;
     }
 
-    public async Task<TLog[]> GetAllAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default, string? blockHash = null,
+    public async Task<TLog[]> GetAllAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default, string? blockHash = null,
         CancellationToken cancellationToken = default)
     {
         if(fromBlock == default)
         {
-            fromBlock = TargetBlockNumber.Earliest;
+            fromBlock = TargetHeight.Earliest;
         }
 
         var rawResults = await _ethRpcModule.GetLogsAsync(fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), blockHash, cancellationToken);
@@ -129,7 +129,7 @@ internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModu
         return [.. rawResults.Select(TLog.Decode)];
     }
 
-    public async Task<IEventFilter<TLog>> CreateFilterAsync(TargetBlockNumber fromBlock = default, TargetBlockNumber toBlock = default,
+    public async Task<IEventFilter<TLog>> CreateFilterAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default,
         CancellationToken cancellationToken = default)
     {
         var filter = new EventFilter<TLog>(_rpcClient, _ethRpcModule, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());

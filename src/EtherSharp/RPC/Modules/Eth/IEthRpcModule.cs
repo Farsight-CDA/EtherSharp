@@ -35,21 +35,21 @@ public interface IEthRpcModule
     /// <summary>
     /// Gets a block by number with transaction hashes only.
     /// </summary>
-    public Task<BlockDataTransactionAsString> GetBlockByNumberAsync(
-        TargetBlockNumber targetHeight, CancellationToken cancellationToken
+    public Task<Block> GetBlockByNumberAsync(
+        TargetHeight targetHeight, CancellationToken cancellationToken
     );
 
     /// <summary>
     /// Gets a transaction by hash.
     /// </summary>
-    public Task<Transaction?> TransactionByHashAsync(
+    public Task<TxData?> TransactionByHashAsync(
         string hash, CancellationToken cancellationToken
     );
 
     /// <summary>
     /// Gets fee history data.
     /// </summary>
-    public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
+    public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetHeight newestBlock,
         double[] rewardPercentiles, CancellationToken cancellationToken
     );
 
@@ -67,7 +67,7 @@ public interface IEthRpcModule
     /// Gets account balance at a target block.
     /// </summary>
     public Task<UInt256> GetBalanceAsync(
-        Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken = default
+        Address address, TargetHeight targetHeight, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -75,13 +75,13 @@ public interface IEthRpcModule
     /// </summary>
     public Task<TxCallResult> CallAsync(
         Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, string? data,
-        TargetBlockNumber blockNumber, CancellationToken cancellationToken = default);
+        TargetHeight blockNumber, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets transaction count (nonce) at a target block.
     /// </summary>
     public Task<uint> GetTransactionCountAsync(
-        Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken = default
+        Address address, TargetHeight targetHeight, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -94,7 +94,7 @@ public interface IEthRpcModule
     /// <summary>
     /// Gets a transaction receipt by transaction hash.
     /// </summary>
-    public Task<TransactionReceipt?> GetTransactionReceiptAsync(
+    public Task<TxReceipt?> GetTransactionReceiptAsync(
         string transactionHash, CancellationToken cancellationToken = default
     );
 
@@ -102,14 +102,14 @@ public interface IEthRpcModule
     /// Reads a contract storage slot.
     /// </summary>
     public Task<byte[]> GetStorageAtAsync(
-        Address address, byte[] slot, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
+        Address address, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
     /// Gets logs matching filter parameters.
     /// </summary>
     public Task<Log[]> GetLogsAsync(
-        TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
+        TargetHeight fromBlock, TargetHeight toBlock,
         Address[]? addresses, string[]?[]? topics, string? blockHash,
         CancellationToken cancellationToken = default
     );
@@ -118,7 +118,7 @@ public interface IEthRpcModule
     /// Creates a log filter.
     /// </summary>
     public Task<string> NewFilterAsync(
-        TargetBlockNumber fromBlock, TargetBlockNumber toBlock,
+        TargetHeight fromBlock, TargetHeight toBlock,
         Address[]? address, string[]?[]? topics,
         CancellationToken cancellationToken = default
     );
