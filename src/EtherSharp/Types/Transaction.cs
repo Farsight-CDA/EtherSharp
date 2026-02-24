@@ -13,7 +13,7 @@ public record Transaction(
     ulong Gas,
     ulong Nonce,
     Address From,
-    Address To,
+    Address? To,
     byte[] Input,
     UInt256 Value
 );

@@ -21,7 +21,7 @@ public interface IBlocksModule
     /// <param name="targetHeight">Block number selector (explicit height or symbolic target such as latest).</param>
     /// <param name="cancellationToken">Token used to cancel the RPC request.</param>
     /// <returns>Block data with transaction hashes.</returns>
-    public Task<BlockDataTrasactionAsString> GetBlockAtHeightAsync(TargetBlockNumber targetHeight, CancellationToken cancellationToken = default);
+    public Task<BlockDataTransactionAsString> GetBlockAtHeightAsync(TargetBlockNumber targetHeight, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates and installs a live subscription for new block headers.

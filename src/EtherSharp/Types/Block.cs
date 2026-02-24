@@ -33,7 +33,7 @@ public record BlockData(
     List<TransactionData>? Transactions
 );
 
-public record BlockDataTrasactionAsString(
+public record BlockDataTransactionAsString(
     ulong Number,
     DateTimeOffset Timestamp,
     UInt256? BaseFeePerGas,

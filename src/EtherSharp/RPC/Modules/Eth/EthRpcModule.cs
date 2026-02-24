@@ -134,14 +134,14 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<BlockDataTrasactionAsString> GetBlockByNumberAsync(
+    public async Task<BlockDataTransactionAsString> GetBlockByNumberAsync(
         TargetBlockNumber targetHeight, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<TargetBlockNumber, bool, BlockDataTrasactionAsString>(
+        => await _rpcClient.SendRpcRequestAsync<TargetBlockNumber, bool, BlockDataTransactionAsString>(
             "eth_getBlockByNumber", targetHeight, false, targetHeight, cancellationToken) switch
         {
-            RpcResult<BlockDataTrasactionAsString>.Success result => result.Result,
-            RpcResult<BlockDataTrasactionAsString>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<BlockDataTrasactionAsString>.Null => throw new RPCException(-1, "block not found, rpc returned null", null),
+            RpcResult<BlockDataTransactionAsString>.Success result => result.Result,
+            RpcResult<BlockDataTransactionAsString>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<BlockDataTransactionAsString>.Null => throw new RPCException(-1, "block not found, rpc returned null", null),
             _ => throw new NotImplementedException(),
         };
 

@@ -35,7 +35,7 @@ public interface IEthRpcModule
     /// <summary>
     /// Gets a block by number with transaction hashes only.
     /// </summary>
-    public Task<BlockDataTrasactionAsString> GetBlockByNumberAsync(
+    public Task<BlockDataTransactionAsString> GetBlockByNumberAsync(
         TargetBlockNumber targetHeight, CancellationToken cancellationToken
     );
 
