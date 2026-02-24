@@ -1,4 +1,4 @@
-﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,9 +35,36 @@ internal class RpcClient : IRpcClient
         Func<CancellationToken, Task<RpcResult<TResult>>> onNext,
         CancellationToken cancellationToken)
     {
-        if(_middlewares.Length == 0)
+        switch(_middlewares.Length)
         {
-            return onNext(cancellationToken);
+            case 0:
+                return onNext(cancellationToken);
+            case 1:
+                return _middlewares[0].HandleAsync(onNext, cancellationToken);
+            case 2:
+                return _middlewares[1].HandleAsync(
+                    (ct) => _middlewares[0].HandleAsync(onNext, ct),
+                    cancellationToken
+                );
+            case 3:
+                return _middlewares[2].HandleAsync(
+                    (ct) => _middlewares[1].HandleAsync(
+                        (innerCt) => _middlewares[0].HandleAsync(onNext, innerCt),
+                        ct
+                    ),
+                    cancellationToken
+                );
+            case 4:
+                return _middlewares[3].HandleAsync(
+                    (ct) => _middlewares[2].HandleAsync(
+                        (innerCt) => _middlewares[1].HandleAsync(
+                            (innerInnerCt) => _middlewares[0].HandleAsync(onNext, innerInnerCt),
+                            innerCt
+                        ),
+                        ct
+                    ),
+                    cancellationToken
+                );
         }
 
         foreach(var middleware in _middlewares)
