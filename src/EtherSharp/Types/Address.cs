@@ -71,7 +71,7 @@ public class Address
     /// </summary>
     /// <returns></returns>
     public string ToEIP55String()
-        => EIP55.FormatAddress(String);
+        => EIP55.FormatAddress(this);
 
     /// <summary>
     /// Copies the Bytes of this address to a new Byte Array.
