@@ -136,11 +136,16 @@ public struct Hash32 : IEquatable<Hash32>, IComparable<Hash32>
         => HexUtils.ToPrefixedHexString(Bytes);
 
     /// <inheritdoc/>
-    public bool Equals(Hash32 other)
+    [OverloadResolutionPriority(1)]
+    public bool Equals(in Hash32 other)
         => ((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(24) ^ other.LoadU64Raw(24))) == 0;
+
+    /// <inheritdoc/>
+    public bool Equals(Hash32 other)
+        => Equals(in other);
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)
@@ -151,7 +156,8 @@ public struct Hash32 : IEquatable<Hash32>, IComparable<Hash32>
         => HashCode.Combine(LoadU64BE(0), LoadU64BE(8), LoadU64BE(16), LoadU64BE(24));
 
     /// <inheritdoc/>
-    public int CompareTo(Hash32 other)
+    [OverloadResolutionPriority(1)]
+    public int CompareTo(in Hash32 other)
     {
         int cmp = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp != 0)
@@ -170,12 +176,16 @@ public struct Hash32 : IEquatable<Hash32>, IComparable<Hash32>
     }
 
     /// <inheritdoc/>
-    public static bool operator ==(Hash32 left, Hash32 right)
-        => left.Equals(right);
+    public int CompareTo(Hash32 other)
+        => CompareTo(in other);
 
     /// <inheritdoc/>
-    public static bool operator !=(Hash32 left, Hash32 right)
-        => !left.Equals(right);
+    public static bool operator ==(in Hash32 left, in Hash32 right)
+        => left.Equals(in right);
+
+    /// <inheritdoc/>
+    public static bool operator !=(in Hash32 left, in Hash32 right)
+        => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ulong LoadU64Raw(int offset)

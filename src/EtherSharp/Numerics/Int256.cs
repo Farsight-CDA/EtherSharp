@@ -307,7 +307,7 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
     //   Abs(1)        = 1
     //   Abs(2**255)   = -2**255
     //   Abs(2**256-1) = -1
-    public static Int256 Abs(Int256 value)
+    public static Int256 Abs(in Int256 value)
         => value.Sign >= 0
             ? value
             : -value;

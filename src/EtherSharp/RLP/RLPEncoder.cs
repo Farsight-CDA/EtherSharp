@@ -33,10 +33,10 @@ public ref struct RLPEncoder
     /// <summary>
     /// Gets the encoded RLP length for a <see cref="UInt256"/> value.
     /// </summary>
-    public static int GetIntSize(UInt256 value)
+    public static int GetIntSize(in UInt256 value)
         => value._u3 == 0 && value._u2 == 0 && value._u1 == 0 && value._u0 < 128
             ? 1
-            : GetEncodedStringLength(GetSignificantByteCount(value));
+            : GetEncodedStringLength(GetSignificantByteCount(in value));
 
     /// <summary>
     /// Gets the encoded RLP length for a byte string payload of the specified size.
@@ -93,9 +93,9 @@ public ref struct RLPEncoder
     /// <summary>
     /// Gets the number of non-leading-zero bytes required to represent a <see cref="UInt256"/>.
     /// </summary>
-    public static int GetSignificantByteCount(UInt256 value)
+    public static int GetSignificantByteCount(in UInt256 value)
     {
-        int lengthBits = 256 - UInt256.LeadingZeroCount(value);
+        int lengthBits = 256 - UInt256.LeadingZeroCount(in value);
         int lengthBytes = (lengthBits + 7) / 8;
         return lengthBytes;
     }
@@ -190,7 +190,7 @@ public ref struct RLPEncoder
         }
 
         Span<byte> buffer = stackalloc byte[32];
-        BinaryPrimitives.WriteUInt256BigEndian(buffer, value);
+        BinaryPrimitives.WriteUInt256BigEndian(buffer, in value);
 
         buffer = buffer.TrimStart((byte) 0);
 

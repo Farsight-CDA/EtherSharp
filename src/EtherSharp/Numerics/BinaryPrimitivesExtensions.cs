@@ -34,7 +34,7 @@ public static class BinaryPrimitivesExtensions
         /// </summary>
         /// <param name="destination">Destination span that must be exactly 32 bytes long.</param>
         /// <param name="value">Value to write.</param>
-        public static void WriteUInt256LittleEndian(Span<byte> destination, UInt256 value)
+        public static void WriteUInt256LittleEndian(Span<byte> destination, in UInt256 value)
         {
             if(destination.Length != 32)
             {
@@ -59,7 +59,7 @@ public static class BinaryPrimitivesExtensions
         /// </summary>
         /// <param name="destination">Destination span that must be exactly 32 bytes long.</param>
         /// <param name="value">Value to write.</param>
-        public static void WriteUInt256BigEndian(Span<byte> destination, UInt256 value)
+        public static void WriteUInt256BigEndian(Span<byte> destination, in UInt256 value)
         {
             if(destination.Length != 32)
             {
@@ -93,15 +93,15 @@ public static class BinaryPrimitivesExtensions
         /// </summary>
         /// <param name="destination">Destination span that must be exactly 32 bytes long.</param>
         /// <param name="value">Value to write.</param>
-        public static void WriteInt256LittleEndian(Span<byte> destination, Int256 value)
-            => WriteUInt256LittleEndian(destination, value._value);
+        public static void WriteInt256LittleEndian(Span<byte> destination, in Int256 value)
+            => WriteUInt256LittleEndian(destination, in value._value);
 
         /// <summary>
         /// Writes an <see cref="Int256"/> to a 32-byte span in big-endian order.
         /// </summary>
         /// <param name="destination">Destination span that must be exactly 32 bytes long.</param>
         /// <param name="value">Value to write.</param>
-        public static void WriteInt256BigEndian(Span<byte> destination, Int256 value)
-            => WriteUInt256BigEndian(destination, value._value);
+        public static void WriteInt256BigEndian(Span<byte> destination, in Int256 value)
+            => WriteUInt256BigEndian(destination, in value._value);
     }
 }

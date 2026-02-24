@@ -45,7 +45,7 @@ public readonly partial struct UInt256
     public static bool operator <=(in UInt256 a, long b) => !LessThan(b, in a);
     public static bool operator <=(long a, in UInt256 b) => !LessThan(in b, a);
     public static bool operator <=(in UInt256 a, ulong b) => !LessThan(b, in a);
-    public static bool operator <=(ulong a, UInt256 b) => !LessThan(in b, a);
+    public static bool operator <=(ulong a, in UInt256 b) => !LessThan(in b, a);
 
     public static bool operator >(in UInt256 a, in UInt256 b) => LessThan(in b, in a);
     public static bool operator >(in UInt256 a, int b) => LessThan(b, in a);

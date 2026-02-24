@@ -54,7 +54,7 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
                 ? Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0)) == Vector256.CreateScalar(1UL)
                 : ((_u0 ^ 1UL) | _u1 | _u2 | _u3) == 0;
 
-    public static int LeadingZeroCount(UInt256 value)
+    public static int LeadingZeroCount(in UInt256 value)
         => value._u3 != 0
             ? BitOperations.LeadingZeroCount(value._u3)
             : value._u2 != 0
@@ -596,7 +596,7 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
 
     public static bool MultiplyOverflow(in UInt256 x, in UInt256 y, out UInt256 res)
     {
-        Multiply256To512Bit(x, y, out res, out var high);
+        Multiply256To512Bit(in x, in y, out res, out var high);
         return !high.IsZero;
     }
 
