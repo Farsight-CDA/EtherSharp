@@ -8,9 +8,14 @@ internal class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
 {
     private readonly ITraceRpcModule _traceRpcModule = traceRpcModule;
 
-    public async Task<CallTrace> TraceTransactionCallsAsync(Hash32 transactionHash, CancellationToken cancellationToken = default)
+    public async Task<CallTrace?> TraceTransactionCallsAsync(Hash32 transactionHash, CancellationToken cancellationToken = default)
     {
         var result = await _traceRpcModule.ReplayTransactionAsync(transactionHash, ["trace"], cancellationToken);
+
+        if(result is null)
+        {
+            return null;
+        }
 
         if(result.Trace is null || result.Trace.Length == 0)
         {
@@ -44,6 +49,6 @@ internal class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
         );
     }
 
-    public Task<TransactionTraceResult> ReplayTransactionAsync(Hash32 transactionHash, string[] traceTypes, CancellationToken cancellationToken = default)
+    public Task<TransactionTraceResult?> ReplayTransactionAsync(Hash32 transactionHash, string[] traceTypes, CancellationToken cancellationToken = default)
         => _traceRpcModule.ReplayTransactionAsync(transactionHash, traceTypes, cancellationToken);
 }

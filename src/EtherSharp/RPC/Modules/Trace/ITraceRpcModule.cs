@@ -11,5 +11,8 @@ public interface ITraceRpcModule
     /// <summary>
     /// Replays a transaction and returns requested trace payloads.
     /// </summary>
-    public Task<TransactionTraceResult> ReplayTransactionAsync(Hash32 txHash, string[] traceTypes, CancellationToken cancellationToken = default);
+    /// <returns>
+    /// The raw trace payload returned by the node, or <see langword="null"/> when the node returns a null result (for example, transaction not found).
+    /// </returns>
+    public Task<TransactionTraceResult?> ReplayTransactionAsync(Hash32 txHash, string[] traceTypes, CancellationToken cancellationToken = default);
 }
