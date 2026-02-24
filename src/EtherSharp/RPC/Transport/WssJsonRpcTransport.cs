@@ -235,7 +235,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
         }
     }
 
-    private void IdentifyPayload(ReadOnlySpan<byte> jsonSpan, out PayloadType payloadType, out int requestId, out string subscriptionId)
+    internal void IdentifyPayload(ReadOnlySpan<byte> jsonSpan, out PayloadType payloadType, out int requestId, out string subscriptionId)
     {
         requestId = -1;
         subscriptionId = null!;
@@ -346,7 +346,7 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
         }
     }
 
-    private enum PayloadType
+    internal enum PayloadType
     {
         Response,
         Subscription,
