@@ -179,8 +179,8 @@ var erc20 = readClient.Contract<IERC20>("0x123...");
 
 // Fetch all Transfer events for this contract within a block range
 var transfers = await erc20.Events.TransferEvent.GetAllAsync(
-    fromBlock: TargetBlockNumber.Height(18000000),
-    toBlock: TargetBlockNumber.Latest
+    fromBlock: TargetHeight.Height(18000000),
+    toBlock: TargetHeight.Latest
 );
 
 foreach (var transfer in transfers)

@@ -28,7 +28,7 @@ public static class ParsingUtils
             new UIntHexConverter(),
             new LongHexConverter(),
             new ULongHexConverter(),
-            new TargetBlockNumberConverter(),
+            new TargetHeightConverter(),
             new UInt256HexConverter(),
             new Int256HexConverter()
         }

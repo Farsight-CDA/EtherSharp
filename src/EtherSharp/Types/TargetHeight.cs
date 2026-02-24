@@ -6,7 +6,7 @@ namespace EtherSharp.Types;
 /// A struct used to specify the block number to use for certain client calls.
 /// </summary>
 /// <remarks>
-/// Not all available TargetBlockNumbers are supported on every blockchain network.
+/// Not all available TargetHeights are supported on every blockchain network.
 /// </remarks>
 public readonly struct TargetHeight(ulong value, string rawValue)
 {

@@ -30,10 +30,11 @@ public record CallTrace(
             _current = null;
         }
 
+        /// <inheritdoc/>
         public readonly CallTrace Current => _current!;
-
         readonly object IEnumerator.Current => Current;
 
+        /// <inheritdoc/>
         public bool MoveNext()
         {
             if(!_stack.TryPop(out _current))
@@ -52,10 +53,17 @@ public record CallTrace(
             return true;
         }
 
-        public readonly void Reset() => throw new NotSupportedException();
+        /// <inheritdoc/>
+        public readonly void Reset()
+            => throw new NotSupportedException();
+        /// <inheritdoc/>
         public readonly void Dispose() { }
-        public readonly Enumerator GetEnumerator() => this;
-        readonly IEnumerator<CallTrace> IEnumerable<CallTrace>.GetEnumerator() => this;
-        readonly IEnumerator IEnumerable.GetEnumerator() => this;
+        /// <inheritdoc/>
+        public readonly Enumerator GetEnumerator()
+            => this;
+        readonly IEnumerator<CallTrace> IEnumerable<CallTrace>.GetEnumerator()
+            => this;
+        readonly IEnumerator IEnumerable.GetEnumerator()
+            => this;
     }
 }

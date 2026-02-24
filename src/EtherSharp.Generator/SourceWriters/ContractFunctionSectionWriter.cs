@@ -293,7 +293,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                 {
                     interfaceFunction
                         .WithReturnTypeRaw($"System.Threading.Tasks.Task<{outputTypeName}>")
-                        .AddArgument("EtherSharp.Types.TargetBlockNumber", "targetHeight", true, "default")
+                        .AddArgument("EtherSharp.Types.TargetHeight", "targetHeight", true, "default")
                         .AddArgument("System.Threading.CancellationToken", "cancellationToken", true, "default")
                         .AddStatement(
                             $"""
