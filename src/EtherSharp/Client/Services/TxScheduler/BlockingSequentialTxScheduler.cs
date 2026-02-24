@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EtherSharp.Client.Services.TxScheduler;
 
-public class BlockingSequentialTxSchedulerV2(
+public class BlockingSequentialTxScheduler(
     IServiceProvider provider,
     IEthRpcModule ethRpcModule,
     IEtherSigner signer,
@@ -22,7 +22,7 @@ public class BlockingSequentialTxSchedulerV2(
 ) : ITxScheduler, IInitializableService, IDisposable
 {
     private readonly IResiliencyLayer? _resiliencyLayer = provider.GetService<IResiliencyLayer>();
-    private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<BlockingSequentialTxSchedulerV2>();
+    private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<BlockingSequentialTxScheduler>();
 
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
