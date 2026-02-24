@@ -36,8 +36,8 @@ internal class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscriptionsMana
     public async ValueTask DisposeAsync()
         => await _subscriptionsManager.UninstallSubscription(this);
 
-    private record HeadsParams(HeadsResponse Params);
-    private record HeadsResponse(BlockHeader Result);
+    private record struct HeadsParams(HeadsResponse Params);
+    private record struct HeadsResponse(BlockHeader Result);
     public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload)
     {
         var p = JsonSerializer.Deserialize<HeadsParams>(payload, _jsonSerializerOptions)!;

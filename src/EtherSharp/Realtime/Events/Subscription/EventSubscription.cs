@@ -43,8 +43,8 @@ internal class EventSubscription<TLog>(
     public async Task InstallAsync(CancellationToken cancellationToken = default)
         => Id = await _ethRpcModule.SubscribeLogsAsync(_contractAddresses, _topics, cancellationToken);
 
-    private record LogParams(LogResponse Params);
-    private record LogResponse(Log Result);
+    private record struct LogParams(LogResponse Params);
+    private record struct LogResponse(Log Result);
     public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload)
     {
         var p = JsonSerializer.Deserialize<LogParams>(payload, _jsonSerializerOptions)!;
