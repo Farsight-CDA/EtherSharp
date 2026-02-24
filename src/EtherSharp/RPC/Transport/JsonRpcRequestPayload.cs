@@ -32,7 +32,8 @@ internal static class JsonRpcRequestPayload
         public override void Write(Utf8JsonWriter writer, Request0 value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
-            writer.WriteNumber("id", value.Id);
+            writer.WritePropertyName("id");
+            JsonSerializer.Serialize(writer, value.Id, options);
             writer.WriteString("method", value.Method);
             writer.WritePropertyName("params");
             writer.WriteStartArray();
@@ -63,7 +64,8 @@ internal static class JsonRpcRequestPayload
         public override void Write(Utf8JsonWriter writer, Request1<T1> value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
-            writer.WriteNumber("id", value.Id);
+            writer.WritePropertyName("id");
+            JsonSerializer.Serialize(writer, value.Id, options);
             writer.WriteString("method", value.Method);
             writer.WritePropertyName("params");
             writer.WriteStartArray();
@@ -95,7 +97,8 @@ internal static class JsonRpcRequestPayload
         public override void Write(Utf8JsonWriter writer, Request2<T1, T2> value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
-            writer.WriteNumber("id", value.Id);
+            writer.WritePropertyName("id");
+            JsonSerializer.Serialize(writer, value.Id, options);
             writer.WriteString("method", value.Method);
             writer.WritePropertyName("params");
             writer.WriteStartArray();
@@ -128,7 +131,8 @@ internal static class JsonRpcRequestPayload
         public override void Write(Utf8JsonWriter writer, Request3<T1, T2, T3> value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
-            writer.WriteNumber("id", value.Id);
+            writer.WritePropertyName("id");
+            JsonSerializer.Serialize(writer, value.Id, options);
             writer.WriteString("method", value.Method);
             writer.WritePropertyName("params");
             writer.WriteStartArray();

@@ -256,13 +256,25 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                         if(reader.ValueTextEquals("id"))
                         {
                             reader.Read();
-                            Span<char> buffer = stackalloc char[16];
-                            int written = reader.CopyString(buffer);
-                            requestId = Int32.Parse(
-                                buffer[2..written],
-                                System.Globalization.NumberStyles.HexNumber,
-                                System.Globalization.CultureInfo.InvariantCulture
-                            );
+                            if(reader.TokenType == JsonTokenType.Number)
+                            {
+                                requestId = reader.GetInt32();
+                            }
+                            else
+                            {
+                                Span<char> buffer = stackalloc char[16];
+                                int written = reader.CopyString(buffer);
+                                var valueSpan = buffer[..written];
+
+                                requestId = valueSpan.StartsWith("0x", StringComparison.Ordinal)
+                                    ? Int32.Parse(
+                                        valueSpan[2..],
+                                        System.Globalization.NumberStyles.HexNumber,
+                                        System.Globalization.CultureInfo.InvariantCulture
+                                    )
+                                    : Int32.Parse(valueSpan, System.Globalization.CultureInfo.InvariantCulture);
+                            }
+
                             payloadType = PayloadType.Response;
                             return;
                         }
