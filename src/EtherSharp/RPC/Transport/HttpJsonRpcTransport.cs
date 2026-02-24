@@ -76,7 +76,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         => ValueTask.CompletedTask;
 
     /// <inheritdoc/>
-    public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(string method, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
     {
         int id = Interlocked.Increment(ref _id);
         return SendRpcRequestCoreAsync<TResult>(
@@ -88,7 +88,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 
     /// <inheritdoc/>
     public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, TResult>(
-        string method, T1 t1, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+        string method, T1 t1, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
     {
         int id = Interlocked.Increment(ref _id);
         return SendRpcRequestCoreAsync<TResult>(
@@ -100,7 +100,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 
     /// <inheritdoc/>
     public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, TResult>(
-        string method, T1 t1, T2 t2, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+        string method, T1 t1, T2 t2, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
     {
         int id = Interlocked.Increment(ref _id);
         return SendRpcRequestCoreAsync<TResult>(
@@ -112,7 +112,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 
     /// <inheritdoc/>
     public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, T3, TResult>(
-        string method, T1 t1, T2 t2, T3 t3, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+        string method, T1 t1, T2 t2, T3 t3, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
     {
         int id = Interlocked.Increment(ref _id);
         return SendRpcRequestCoreAsync<TResult>(

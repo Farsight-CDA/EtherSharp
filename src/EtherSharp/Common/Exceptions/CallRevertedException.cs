@@ -8,7 +8,7 @@ namespace EtherSharp.Common.Exceptions;
 /// <param name="callAddress">Contract address the call was sent to, when available.</param>
 /// <param name="message">Human-readable revert description used to build the exception message.</param>
 public abstract class CallRevertedException(Address? callAddress, string message)
-    : Exception(callAddress is null ? $"Call {message}" : $"Call to {callAddress.String} {message}")
+    : Exception(callAddress is null ? $"Call {message}" : $"Call to {callAddress.Hex} {message}")
 {
     private static ReadOnlySpan<byte> ErrorStringSignature => [0x08, 0xc3, 0x79, 0xa0];
     private static ReadOnlySpan<byte> PanicSignature => [0x4e, 0x48, 0x7b, 0x71];

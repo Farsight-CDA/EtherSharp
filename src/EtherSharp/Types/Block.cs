@@ -1,39 +1,16 @@
-﻿using EtherSharp.Numerics;
+using EtherSharp.Numerics;
 namespace EtherSharp.Types;
 
-public record BlockData(
-    UInt256? Number,
-    UInt256? BaseFeePerGas,
-    UInt256? BlobGasUsed,
-    UInt256? ExcessBlobGas,
-    byte[]? ParentBeaconBlockRoot,
-    string? WithdrawalsRoot,
-    Withdrawal[]? Withdrawals,
-    ulong? L1BlockNumber,
-    ulong? SendCount,
-    byte[]? SendRoot,
-    byte[]? MixHash,
-    UInt256? Difficulty,
-    string? ExtraData,
-    ulong? GasLimit,
-    ulong? GasUsed,
-    string Hash,
-    string? LogsBloom,
-    Address? Miner,
-    ulong? Nonce,
-
-    string? ParentHash,
-    byte[]? ReceiptsRoot,
-    byte[]? Sha3Uncles,
-    ulong Size,
-    byte[]? StateRoot,
-    DateTimeOffset? Timestamp,
-    UInt256? TotalDifficulty,
-    byte[]? TransactionsRoot,
-    List<TransactionData>? Transactions
-);
-
-public record BlockDataTransactionAsString(
+/// <summary>
+/// Represents a block with its identifying fields and transaction hashes.
+/// </summary>
+/// <param name="Number">The block height.</param>
+/// <param name="Timestamp">The timestamp when the block was produced.</param>
+/// <param name="BaseFeePerGas">The base fee per gas unit for EIP-1559 blocks.</param>
+/// <param name="Hash">The block hash.</param>
+/// <param name="ParentHash">The parent block hash.</param>
+/// <param name="Transactions">The transaction hashes included in the block.</param>
+public record Block(
     ulong Number,
     DateTimeOffset Timestamp,
     UInt256? BaseFeePerGas,

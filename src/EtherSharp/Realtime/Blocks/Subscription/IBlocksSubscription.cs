@@ -1,6 +1,4 @@
-﻿using EtherSharp.Types;
-
-namespace EtherSharp.Realtime.Blocks.Subscription;
+﻿namespace EtherSharp.Realtime.Blocks.Subscription;
 
 /// <summary>
 /// Represents a realtime stream of newly produced block headers.

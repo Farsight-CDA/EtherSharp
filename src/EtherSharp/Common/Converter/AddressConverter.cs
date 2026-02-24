@@ -14,5 +14,5 @@ public class AddressConverter : JsonConverter<Address>
         => Address.FromString(reader.GetString() ?? throw new InvalidOperationException("Cannot read null as an address"));
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, Address value, JsonSerializerOptions options)
-        => writer.WriteStringValue(value.String);
+        => writer.WriteStringValue(value.Hex);
 }

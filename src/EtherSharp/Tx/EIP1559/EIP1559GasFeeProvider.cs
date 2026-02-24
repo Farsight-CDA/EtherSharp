@@ -80,7 +80,7 @@ public class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP1559Gas
     {
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
             _signer.Address, txInput.To, txInput.Value, HexUtils.ToPrefixedHexString(txInput.Data.Span), cancellationToken);
-        var feeHistoryTask = _ethRpcModule.GetFeeHistoryAsync(_feeHistoryRange, TargetBlockNumber.Latest, [_priorityFeePercentile], cancellationToken);
+        var feeHistoryTask = _ethRpcModule.GetFeeHistoryAsync(_feeHistoryRange, TargetHeight.Latest, [_priorityFeePercentile], cancellationToken);
 
         ulong gasEstimation = await gasEstimationTask;
         var feeHistory = await feeHistoryTask;

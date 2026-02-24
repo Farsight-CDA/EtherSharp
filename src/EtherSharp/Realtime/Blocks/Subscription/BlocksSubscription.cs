@@ -1,6 +1,5 @@
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.RPC.Modules.Eth;
-using EtherSharp.Types;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Channels;

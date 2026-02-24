@@ -122,7 +122,7 @@ public class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFeeProvid
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
             _signer.Address, txInput.To, txInput.Value, HexUtils.ToPrefixedHexString(txInput.Data.Span), cancellationToken);
         var l1FeeTask = _ethRpcModule.CallAsync(
-            null, _opGasOracleAddress, null, null, 0, getL1FeePayloadHex, TargetBlockNumber.Pending, cancellationToken
+            null, _opGasOracleAddress, null, null, 0, getL1FeePayloadHex, TargetHeight.Pending, cancellationToken
         );
 
         ulong gasEstimation = await gasEstimationTask;

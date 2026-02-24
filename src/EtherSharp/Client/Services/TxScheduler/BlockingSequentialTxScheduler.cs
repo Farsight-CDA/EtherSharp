@@ -51,7 +51,7 @@ public class BlockingSequentialTxScheduler(
         _chainId = chainId;
 
         _confirmedNonce = await ethRpcModule.GetTransactionCountAsync(
-            signer.Address, TargetBlockNumber.Latest, cancellationToken
+            signer.Address, TargetHeight.Latest, cancellationToken
         );
 
         if(_resiliencyLayer is null)
@@ -95,7 +95,7 @@ public class BlockingSequentialTxScheduler(
         {
             try
             {
-                uint actualNonce = await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetBlockNumber.Latest, cancellationToken);
+                uint actualNonce = await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Latest, cancellationToken);
                 bool newIsActive;
 
                 lock(_stateLock)

@@ -77,35 +77,35 @@ internal class RpcClient : IRpcClient
     }
 
     public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
-        string method, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+        string method, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
         => ExecuteWithMiddlewareAsync(
             (ct) => SendTransportRequestAsync<TResult>(method, requiredBlockNumber, ct),
             cancellationToken
         );
 
     public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, TResult>(
-        string method, T1 t1, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+        string method, T1 t1, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
         => ExecuteWithMiddlewareAsync(
             (ct) => SendTransportRequestAsync<T1, TResult>(method, t1, requiredBlockNumber, ct),
             cancellationToken
         );
 
     public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, TResult>(
-        string method, T1 t1, T2 t2, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+        string method, T1 t1, T2 t2, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
         => ExecuteWithMiddlewareAsync(
             (ct) => SendTransportRequestAsync<T1, T2, TResult>(method, t1, t2, requiredBlockNumber, ct),
             cancellationToken
         );
 
     public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, T3, TResult>(
-        string method, T1 t1, T2 t2, T3 t3, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken = default)
+        string method, T1 t1, T2 t2, T3 t3, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
         => ExecuteWithMiddlewareAsync(
             (ct) => SendTransportRequestAsync<T1, T2, T3, TResult>(method, t1, t2, t3, requiredBlockNumber, ct),
             cancellationToken
         );
 
     private async Task<RpcResult<TResult>> SendTransportRequestAsync<TResult>(
-        string method, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
+        string method, TargetHeight requiredBlockNumber, CancellationToken cancellationToken)
     {
         try
         {
@@ -118,7 +118,7 @@ internal class RpcClient : IRpcClient
     }
 
     private async Task<RpcResult<TResult>> SendTransportRequestAsync<T1, TResult>(
-        string method, T1 t1, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
+        string method, T1 t1, TargetHeight requiredBlockNumber, CancellationToken cancellationToken)
     {
         try
         {
@@ -131,7 +131,7 @@ internal class RpcClient : IRpcClient
     }
 
     private async Task<RpcResult<TResult>> SendTransportRequestAsync<T1, T2, TResult>(
-        string method, T1 t1, T2 t2, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
+        string method, T1 t1, T2 t2, TargetHeight requiredBlockNumber, CancellationToken cancellationToken)
     {
         try
         {
@@ -144,7 +144,7 @@ internal class RpcClient : IRpcClient
     }
 
     private async Task<RpcResult<TResult>> SendTransportRequestAsync<T1, T2, T3, TResult>(
-        string method, T1 t1, T2 t2, T3 t3, TargetBlockNumber requiredBlockNumber, CancellationToken cancellationToken)
+        string method, T1 t1, T2 t2, T3 t3, TargetHeight requiredBlockNumber, CancellationToken cancellationToken)
     {
         try
         {

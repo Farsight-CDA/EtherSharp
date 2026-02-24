@@ -15,7 +15,7 @@ public record TxConfirmationResult
     /// The transaction was confirmed and a receipt was found.
     /// </summary>
     /// <param name="Receipt">The confirmed transaction receipt.</param>
-    public record Success(TransactionReceipt Receipt) : TxConfirmationResult;
+    public record Success(TxReceipt Receipt) : TxConfirmationResult;
 
     /// <summary>
     /// The nonce was consumed, but no receipt was found for tracked submissions.
@@ -38,7 +38,7 @@ public record TxConfirmationResult
     /// </summary>
     /// <returns>The confirmed transaction receipt.</returns>
     /// <exception cref="InvalidOperationException">Thrown when this result is not <see cref="Success"/>.</exception>
-    public TransactionReceipt GetReceipt()
+    public TxReceipt GetReceipt()
         => this is Success successResult
             ? successResult.Receipt
             : throw new InvalidOperationException($"{nameof(TxConfirmationResult)} is of type {GetType().Name}");

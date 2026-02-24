@@ -61,7 +61,7 @@ public interface IEtherClient
     /// <returns>The query result.</returns>
     public Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
-        TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
+        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -76,7 +76,7 @@ public interface IEtherClient
     /// <returns>A tuple containing both query results.</returns>
     public Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
-        TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
+        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -84,7 +84,7 @@ public interface IEtherClient
     /// </summary>
     public Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
-        TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
+        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -92,7 +92,7 @@ public interface IEtherClient
     /// </summary>
     public Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
-        TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
+        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -100,7 +100,7 @@ public interface IEtherClient
     /// </summary>
     public Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
-        TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
+        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -145,7 +145,7 @@ public interface IEtherClient
     /// <param name="hash">Transaction hash.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The transaction if found; otherwise <see langword="null"/>.</returns>
-    public Task<Transaction?> GetTransactionAsync(string hash, CancellationToken cancellationToken = default);
+    public Task<TxData?> GetTransactionAsync(string hash, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Fetches a transaction receipt by hash.
@@ -153,7 +153,7 @@ public interface IEtherClient
     /// <param name="hash">Transaction hash.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The receipt if available; otherwise <see langword="null"/>.</returns>
-    public Task<TransactionReceipt?> GetTransactionReceiptAsync(string hash, CancellationToken cancellationToken = default);
+    public Task<TxReceipt?> GetTransactionReceiptAsync(string hash, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the account nonce (transaction count) for an address at a specific block context.
@@ -162,7 +162,7 @@ public interface IEtherClient
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The account nonce.</returns>
-    public Task<uint> GetTransactionCount(Address address, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<uint> GetTransactionCount(Address address, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reads a storage slot from contract storage.
@@ -172,7 +172,7 @@ public interface IEtherClient
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The slot value as bytes.</returns>
-    public Task<byte[]> GetStorageAtAsync(Address address, byte[] slot, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<byte[]> GetStorageAtAsync(Address address, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reads a storage slot from a contract instance.
@@ -182,7 +182,7 @@ public interface IEtherClient
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The slot value as bytes.</returns>
-    public Task<byte[]> GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<byte[]> GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Binds a contract interface to a specific on-chain address.
@@ -201,7 +201,7 @@ public interface IEtherClient
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert information when applicable.</returns>
-    public Task<TxCallResult> SafeCallAsync<T>(ITxInput<T> call, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<TxCallResult> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes a read-only call and returns the decoded result.
@@ -211,7 +211,7 @@ public interface IEtherClient
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
-    public Task<T> CallAsync<T>(ITxInput<T> call, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<T> CallAsync<T>(ITxInput<T> call, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes a safe flash-call against a temporary deployment and captures success/failure details.
@@ -223,7 +223,7 @@ public interface IEtherClient
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert information when applicable.</returns>
     public Task<TxCallResult> SafeFlashCallAsync<T>(
-        IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
+        IContractDeployment deployment, IContractCall<T> call, TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -236,7 +236,7 @@ public interface IEtherClient
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
     public Task<T> FlashCallAsync<T>(
-        IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight = default, CancellationToken cancellationToken = default
+        IContractDeployment deployment, IContractCall<T> call, TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -247,7 +247,7 @@ public interface IEtherClient
     /// <param name="rewardPercentiles">Reward percentiles to calculate per block.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Fee history snapshot from the node.</returns>
-    public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
+    public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetHeight newestBlock,
         double[] rewardPercentiles, CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -17,14 +17,14 @@ internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, ISer
     private readonly IContractDeployment _londonDeployment = IContractDeployment.Create(QuerierUtils.LondonQuerierCode, 0);
     private readonly IContractDeployment _cancunDeployment = IContractDeployment.Create(QuerierUtils.CancunQuerierCode, 0);
 
-    public async Task<TQuery> ExecuteQueryAsync<TQuery>(IQuery<TQuery> query, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    public async Task<TQuery> ExecuteQueryAsync<TQuery>(IQuery<TQuery> query, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         var buffer = ReadOnlyMemory<byte>.Empty;
         var outputs = new ReadOnlyMemory<byte>[query.Queries.Count];
         int requestCount = 0;
 
         bool supportsCancun = _client.IsInitialized && _client.CompatibilityReport is not null && _client.CompatibilityReport.SupportsPush0;
-        var querierDeployment = !supportsCancun || targetHeight.Value != 0 || targetHeight == TargetBlockNumber.Earliest
+        var querierDeployment = !supportsCancun || targetHeight.Value != 0 || targetHeight == TargetHeight.Earliest
             ? _londonDeployment
             : _cancunDeployment;
 

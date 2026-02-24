@@ -8,7 +8,7 @@ namespace EtherSharp.Types;
 /// <remarks>
 /// Not all available TargetBlockNumbers are supported on every blockchain network.
 /// </remarks>
-public readonly struct TargetBlockNumber(ulong value, string rawValue)
+public readonly struct TargetHeight(ulong value, string rawValue)
 {
     /// <summary>
     /// The block height or 0 if it is a string based one.
@@ -19,27 +19,27 @@ public readonly struct TargetBlockNumber(ulong value, string rawValue)
     /// <summary>
     /// Targets the latest block.
     /// </summary>
-    public static TargetBlockNumber Latest { get; } = new(0, "latest");
+    public static TargetHeight Latest { get; } = new(0, "latest");
     /// <summary>
     /// Targets the earliest available block on the node.
     /// </summary>
-    public static TargetBlockNumber Earliest { get; } = new(0, "earliest");
+    public static TargetHeight Earliest { get; } = new(0, "earliest");
     /// <summary>
     /// Targets the latest safe block.
     /// </summary>
-    public static TargetBlockNumber Safe { get; } = new(0, "safe");
+    public static TargetHeight Safe { get; } = new(0, "safe");
     /// <summary>
     /// Targets the latest finalized block.
     /// </summary>
-    public static TargetBlockNumber Finalized { get; } = new(0, "finalized");
+    public static TargetHeight Finalized { get; } = new(0, "finalized");
     /// <summary>
     /// Targets the pending block.
     /// </summary>
-    public static TargetBlockNumber Pending { get; } = new(0, "pending");
+    public static TargetHeight Pending { get; } = new(0, "pending");
     /// <summary>
     /// Targets the block at a given height.
     /// </summary>
-    public static TargetBlockNumber Height(ulong value)
+    public static TargetHeight Height(ulong value)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(value, (ulong) 1);
 
@@ -60,7 +60,7 @@ public readonly struct TargetBlockNumber(ulong value, string rawValue)
         hexBuffer[0] = '0';
         hexBuffer[1] = 'x';
 
-        return new TargetBlockNumber(value, hexBuffer.ToString());
+        return new TargetHeight(value, hexBuffer.ToString());
     }
 
     /// <inheritdoc/>
@@ -68,16 +68,16 @@ public readonly struct TargetBlockNumber(ulong value, string rawValue)
 
     /// <inheritdoc/>
     public override bool Equals([NotNullWhen(true)] object? obj)
-        => obj is TargetBlockNumber tbn && _rawValue == tbn._rawValue;
+        => obj is TargetHeight tbn && _rawValue == tbn._rawValue;
 
     /// <inheritdoc/>
     public override int GetHashCode()
         => HashCode.Combine(_rawValue);
 
     /// <inheritdoc/>
-    public static bool operator ==(TargetBlockNumber left, TargetBlockNumber right)
+    public static bool operator ==(TargetHeight left, TargetHeight right)
         => left.Equals(right);
     /// <inheritdoc/>
-    public static bool operator !=(TargetBlockNumber left, TargetBlockNumber right)
+    public static bool operator !=(TargetHeight left, TargetHeight right)
         => !left.Equals(right);
 }

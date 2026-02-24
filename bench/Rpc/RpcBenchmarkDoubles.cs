@@ -32,7 +32,7 @@ internal sealed class BenchTransport : IRPCTransport
 
     public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
         string method,
-        TargetBlockNumber requiredBlockNumber,
+        TargetHeight requiredBlockNumber,
         CancellationToken cancellationToken = default)
         => typeof(TResult) == typeof(ulong)
             ? (Task<RpcResult<TResult>>) (object) _chainIdResult
@@ -43,7 +43,7 @@ internal sealed class BenchTransport : IRPCTransport
     public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, TResult>(
         string method,
         T1 t1,
-        TargetBlockNumber requiredBlockNumber,
+        TargetHeight requiredBlockNumber,
         CancellationToken cancellationToken = default)
         => throw new NotSupportedException("One-parameter RPC calls are not used by this benchmark.");
 
@@ -51,7 +51,7 @@ internal sealed class BenchTransport : IRPCTransport
         string method,
         T1 t1,
         T2 t2,
-        TargetBlockNumber requiredBlockNumber,
+        TargetHeight requiredBlockNumber,
         CancellationToken cancellationToken = default)
         => typeof(TResult) == typeof(int)
             ? (Task<RpcResult<TResult>>) (object) _intResult
@@ -62,7 +62,7 @@ internal sealed class BenchTransport : IRPCTransport
         T1 t1,
         T2 t2,
         T3 t3,
-        TargetBlockNumber requiredBlockNumber,
+        TargetHeight requiredBlockNumber,
         CancellationToken cancellationToken = default)
         => throw new NotSupportedException("Three-parameter RPC calls are not used by this benchmark.");
 }

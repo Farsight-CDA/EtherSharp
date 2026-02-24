@@ -39,7 +39,7 @@ public record TxSubmission<TTxParams, TTxGasParams>(
             nonce,
             TxHash,
             SignedTx,
-            Call.To?.String,
+            Call.To?.Hex,
             Call.Value,
             Call.Data.ToArray(),
             Params.Encode(),

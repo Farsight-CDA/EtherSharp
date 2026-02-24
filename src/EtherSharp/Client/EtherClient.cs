@@ -97,7 +97,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     public async Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
-        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return await _queryExecutor.ExecuteQueryAsync(c1, targetHeight, cancellationToken);
@@ -105,7 +105,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     public async Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
-        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2), targetHeight, cancellationToken);
@@ -113,7 +113,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     public async Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
-        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), targetHeight, cancellationToken);
@@ -121,7 +121,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     public async Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
-        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), targetHeight, cancellationToken);
@@ -129,7 +129,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     public async Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
-        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), targetHeight, cancellationToken);
@@ -137,7 +137,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     public async Task<(T1, T2, T3, T4, T5, T6)> QueryAsync<T1, T2, T3, T4, T5, T6>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6,
-        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), targetHeight, cancellationToken);
@@ -145,7 +145,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7)> QueryAsync<T1, T2, T3, T4, T5, T6, T7>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7,
-        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), targetHeight, cancellationToken);
@@ -153,7 +153,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7, T8)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8,
-        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), targetHeight, cancellationToken);
@@ -161,7 +161,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8, IQuery<T9> c9,
-        TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), targetHeight, cancellationToken);
@@ -242,7 +242,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
                 null,
                 0,
                 "0x217CD3E1",
-                TargetBlockNumber.Latest,
+                TargetHeight.Latest,
                 cancellationToken
             );
 
@@ -273,7 +273,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
         (_chainId, _compatibilityReport, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
             IQuery.Combine(IQuery.GetChainId(), IQuery.GetCompatibilityReport(), initQuery, flashCallSetupQuery),
-            TargetBlockNumber.Latest,
+            TargetHeight.Latest,
             cancellationToken
         );
 
@@ -301,30 +301,30 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     IInternalEtherClient IEtherClient.AsInternal() => this;
 
-    Task<Transaction?> IEtherClient.GetTransactionAsync(string hash, CancellationToken cancellationToken)
+    Task<TxData?> IEtherClient.GetTransactionAsync(string hash, CancellationToken cancellationToken)
     {
         AssertReady();
         return _ethRpcModule.TransactionByHashAsync(hash, cancellationToken);
     }
-    Task<TransactionReceipt?> IEtherClient.GetTransactionReceiptAsync(string hash, CancellationToken cancellationToken)
+    Task<TxReceipt?> IEtherClient.GetTransactionReceiptAsync(string hash, CancellationToken cancellationToken)
     {
         AssertReady();
         return _ethRpcModule.GetTransactionReceiptAsync(hash, cancellationToken);
     }
 
     Task<uint> IEtherClient.GetTransactionCount(
-        Address address, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+        Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return _ethRpcModule.GetTransactionCountAsync(address, targetHeight, cancellationToken);
     }
 
-    Task<byte[]> IEtherClient.GetStorageAtAsync(Address address, byte[] slot, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    Task<byte[]> IEtherClient.GetStorageAtAsync(Address address, byte[] slot, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return _ethRpcModule.GetStorageAtAsync(address, slot, targetHeight, cancellationToken);
     }
-    Task<byte[]> IEtherClient.GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    Task<byte[]> IEtherClient.GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return _ethRpcModule.GetStorageAtAsync(contract.Address, slot, targetHeight, cancellationToken);
@@ -337,7 +337,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return _contractFactory.Create<TContract>(address);
     }
 
-    Task<FeeHistory> IEtherClient.GetFeeHistoryAsync(int blockCount, TargetBlockNumber newestBlock,
+    Task<FeeHistory> IEtherClient.GetFeeHistoryAsync(int blockCount, TargetHeight newestBlock,
         double[] rewardPercentiles, CancellationToken cancellationToken)
     {
         AssertReady();
@@ -382,7 +382,7 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
     TContract IEtherClient.Contract<TContract>(Address address)
         => Contract<TContract>(address);
 
-    public async Task<TxCallResult> SafeCallAsync<T>(ITxInput<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    public async Task<TxCallResult> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
 
@@ -404,19 +404,19 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return result;
     }
 
-    async Task<T> IEtherClient.CallAsync<T>(ITxInput<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    async Task<T> IEtherClient.CallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         var result = await SafeCallAsync(call, targetHeight, cancellationToken);
         return call.ReadResultFrom(result.Unwrap(call.To));
     }
 
-    public Task<TxCallResult> SafeFlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    public Task<TxCallResult> SafeFlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, targetHeight, cancellationToken);
     }
 
-    async Task<T> IEtherClient.FlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetBlockNumber targetHeight, CancellationToken cancellationToken)
+    async Task<T> IEtherClient.FlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         var result = await SafeFlashCallAsync(deployment, call, targetHeight, cancellationToken);
         return call.ReadResultFrom(result.Unwrap(call.To));

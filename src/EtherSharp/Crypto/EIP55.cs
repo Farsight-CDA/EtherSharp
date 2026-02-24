@@ -18,7 +18,7 @@ public static class EIP55
         Span<char> lowercaseHex = stackalloc char[40];
         Span<byte> asciiBytes = stackalloc byte[40];
 
-        address.String.AsSpan(2).ToLowerInvariant(lowercaseHex);
+        address.Hex.AsSpan(2).ToLowerInvariant(lowercaseHex);
         Encoding.ASCII.TryGetBytes(lowercaseHex, asciiBytes, out _);
 
         Span<byte> hash = stackalloc byte[32];
@@ -33,7 +33,7 @@ public static class EIP55
 
                 for(int i = 0; i < 40; i++)
                 {
-                    char c = address.String[i + 2];
+                    char c = address.Hex[i + 2];
                     byte hashByte = hashBytes[i / 2];
                     int shift = 4 * (1 - (i % 2));
 

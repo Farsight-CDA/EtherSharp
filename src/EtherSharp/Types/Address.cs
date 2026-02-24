@@ -30,7 +30,7 @@ public class Address
     /// <summary>
     /// Returns the string representation of the address.
     /// </summary>
-    public string String { get; }
+    public string Hex { get; }
 
     /// <summary>
     /// Returns the binary representation of the address.
@@ -44,7 +44,7 @@ public class Address
             throw new ArgumentException("Bad address length");
         }
 
-        String = s;
+        Hex = s;
         _addressBytes = b;
     }
 
@@ -102,7 +102,7 @@ public class Address
 
     /// <inheritdoc/>
     public override string ToString()
-        => String;
+        => Hex;
 
     /// <inheritdoc/>
     public static bool operator ==(Address? a, Address? b)
@@ -121,8 +121,8 @@ public class Address
         }
         //
         return b.StartsWith("0x")
-                ? String.Equals(a.String, b, StringComparison.OrdinalIgnoreCase)
-                : a.String.AsSpan(2).Equals(b, StringComparison.OrdinalIgnoreCase);
+                ? String.Equals(a.Hex, b, StringComparison.OrdinalIgnoreCase)
+                : a.Hex.AsSpan(2).Equals(b, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <inheritdoc/>

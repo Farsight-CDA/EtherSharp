@@ -52,7 +52,7 @@ public class RpcClientPathBenchmarks
             "eth_test",
             "0xabc",
             7,
-            TargetBlockNumber.Latest,
+            TargetHeight.Latest,
             cancellationToken: default
         );
 
@@ -62,7 +62,7 @@ public class RpcClientPathBenchmarks
             "eth_test",
             "0xabc",
             7,
-            TargetBlockNumber.Latest,
+            TargetHeight.Latest,
             cancellationToken: default
         );
 
@@ -72,7 +72,7 @@ public class RpcClientPathBenchmarks
             "eth_test",
             "0xabc",
             7,
-            TargetBlockNumber.Latest,
+            TargetHeight.Latest,
             cancellationToken: default
         );
 
@@ -82,7 +82,7 @@ public class RpcClientPathBenchmarks
             "eth_test",
             "0xabc",
             7,
-            TargetBlockNumber.Latest,
+            TargetHeight.Latest,
             cancellationToken: default
         );
 
@@ -92,7 +92,7 @@ public class RpcClientPathBenchmarks
             "eth_test",
             "0xabc",
             7,
-            TargetBlockNumber.Latest,
+            TargetHeight.Latest,
             cancellationToken: default
         );
 
@@ -102,7 +102,7 @@ public class RpcClientPathBenchmarks
             "eth_test",
             "0xabc",
             7,
-            TargetBlockNumber.Latest,
+            TargetHeight.Latest,
             cancellationToken: default
         );
 
