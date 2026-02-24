@@ -14,6 +14,13 @@ using Microsoft.Extensions.Logging;
 
 namespace EtherSharp.Client.Services.TxScheduler;
 
+/// <summary>
+/// Schedules transactions sequentially by nonce and drives their lifecycle until confirmation.
+/// </summary>
+/// <param name="provider">Service provider used to resolve tx handlers and optional services.</param>
+/// <param name="ethRpcModule">RPC module used for nonce, receipt, and chain state queries.</param>
+/// <param name="signer">Signer representing the sender account for scheduled transactions.</param>
+/// <param name="txPublisher">Publisher used to submit signed transactions to the network.</param>
 public class BlockingSequentialTxScheduler(
     IServiceProvider provider,
     IEthRpcModule ethRpcModule,

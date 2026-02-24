@@ -3,6 +3,10 @@ using EtherSharp.RPC.Modules.Eth;
 
 namespace EtherSharp.Client.Services.TxPublisher;
 
+/// <summary>
+/// Publishes signed transactions through the configured Ethereum RPC module.
+/// </summary>
+/// <param name="ethRpcModule">RPC module used to submit raw transactions.</param>
 public class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
