@@ -132,7 +132,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             Content = requestContent
         };
 
-        HttpResponseMessage response;
+        HttpResponseMessage? response = null;
 
         try
         {
@@ -184,6 +184,10 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
             string s = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new RPCTransportException($"Error: {s}", ex);
+        }
+        finally
+        {
+            response?.Dispose();
         }
     }
 
