@@ -34,7 +34,7 @@ public ref struct RLPEncoder
     /// Gets the encoded RLP length for a <see cref="UInt256"/> value.
     /// </summary>
     public static int GetIntSize(UInt256 value)
-        => value < 128
+        => value._u3 == 0 && value._u2 == 0 && value._u1 == 0 && value._u0 < 128
             ? 1
             : GetEncodedStringLength(GetSignificantByteCount(value));
 
@@ -175,26 +175,28 @@ public ref struct RLPEncoder
     /// </summary>
     public RLPEncoder EncodeInt(UInt256 value)
     {
-        if(value == 0)
+        if(value._u3 == 0 && value._u2 == 0 && value._u1 == 0)
         {
-            return EncodeString();
+            if(value._u0 == 0)
+            {
+                return EncodeString();
+            }
+            else if(value._u0 < 128)
+            {
+                _destination[0] = (byte) value._u0;
+                _destination = _destination[1..];
+                return this;
+            }
         }
-        else if(value < 128)
-        {
-            _destination[0] = (byte) value;
-            _destination = _destination[1..];
-        }
-        else
-        {
-            Span<byte> buffer = stackalloc byte[32];
-            BinaryPrimitives.WriteUInt256BigEndian(buffer, value);
 
-            buffer = buffer.TrimStart((byte) 0);
+        Span<byte> buffer = stackalloc byte[32];
+        BinaryPrimitives.WriteUInt256BigEndian(buffer, value);
 
-            _destination[0] = (byte) (0x80 + buffer.Length);
-            buffer.CopyTo(_destination[1..]);
-            _destination = _destination[(1 + buffer.Length)..];
-        }
+        buffer = buffer.TrimStart((byte) 0);
+
+        _destination[0] = (byte) (0x80 + buffer.Length);
+        buffer.CopyTo(_destination[1..]);
+        _destination = _destination[(1 + buffer.Length)..];
 
         return this;
     }
