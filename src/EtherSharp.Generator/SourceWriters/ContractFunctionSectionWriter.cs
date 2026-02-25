@@ -117,7 +117,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                     $"""
                     var buffer = new byte[ByteCode.Length + encoder.Size];
                     ByteCode.ByteCode.Span.CopyTo(buffer);
-                    encoder.TryWritoTo(buffer.AsSpan(ByteCode.Length));
+                    encoder.TryWriteTo(buffer.AsSpan(ByteCode.Length));
                     return new EtherSharp.Contract.EVMByteCode(buffer)
                     """
                 );
