@@ -103,7 +103,23 @@ internal class SubscriptionsManager : ISubscriptionsManager
 
         if(subscription is not null)
         {
-            subscription.HandleSubscriptionMessage(payload);
+            try
+            {
+                _ = subscription.HandleSubscriptionMessage(payload);
+            }
+            catch(Exception ex)
+            {
+                if(_logger?.IsEnabled(LogLevel.Warning) == true)
+                {
+                    string subscriptionType = subscription.GetType().Name;
+                    _logger.LogWarning(ex,
+                        "Failed to process payload for subscription id {id} of type {type}",
+                        subscription.Id,
+                        subscriptionType
+                    );
+                }
+            }
+
             return;
         }
 

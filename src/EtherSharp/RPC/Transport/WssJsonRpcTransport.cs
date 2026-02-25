@@ -225,12 +225,33 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
                     break;
                 case PayloadType.Subscription:
                     _subscriptionMessageCounter?.Add(1);
-                    OnSubscriptionMessage?.Invoke(subscriptionId, msBuffer);
+                    DispatchSubscriptionMessage(subscriptionId, msBuffer);
                     break;
                 default:
                     string payload = System.Text.Encoding.UTF8.GetString(msBuffer);
                     _logger?.LogWarning("Received unidentified websocket payload: {payload}", payload);
                     break;
+            }
+        }
+    }
+
+    private void DispatchSubscriptionMessage(string subscriptionId, ReadOnlySpan<byte> payload)
+    {
+        var handlers = OnSubscriptionMessage;
+        if(handlers is null)
+        {
+            return;
+        }
+
+        foreach(var handler in handlers.GetInvocationList())
+        {
+            try
+            {
+                ((Action<string, ReadOnlySpan<byte>>) handler)(subscriptionId, payload);
+            }
+            catch(Exception ex)
+            {
+                _logger?.LogWarning(ex, "Subscription handler threw for subscription {SubscriptionId}", subscriptionId);
             }
         }
     }
