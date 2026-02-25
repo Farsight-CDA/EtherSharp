@@ -14,13 +14,17 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
 
     public TContract Create<TContract>(Address address)
     {
-        if(!_factoryDelegates.TryGetValue(typeof(TContract), out var factoryDelegate))
+        Func<Address, IEVMContract> factoryDelegate;
+
+        lock(_lock)
         {
-            factoryDelegate = GetContractFactoryDelegate(typeof(TContract));
-            lock(_lock)
+            if(!_factoryDelegates.TryGetValue(typeof(TContract), out var cachedFactoryDelegate) || cachedFactoryDelegate is null)
             {
-                _factoryDelegates.TryAdd(typeof(TContract), factoryDelegate);
+                cachedFactoryDelegate = GetContractFactoryDelegate(typeof(TContract));
+                _factoryDelegates.TryAdd(typeof(TContract), cachedFactoryDelegate);
             }
+
+            factoryDelegate = cachedFactoryDelegate;
         }
 
         return (TContract) factoryDelegate(address);
@@ -45,8 +49,12 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
     private Func<Address, IEVMContract> GetContractFactoryDelegate(Type contractInterfaceType)
     {
         var assembly = contractInterfaceType.Assembly;
+        string expectedName = $"{contractInterfaceType.Name}_Generated_Implementation";
+        string? expectedNamespace = contractInterfaceType.Namespace;
+
         var contractType = assembly.GetTypes()
-            .Where(x => x.Name == $"{contractInterfaceType.Name}_Generated_Implementation")
+            .Where(x => x.Name == expectedName)
+            .Where(x => String.Equals(x.Namespace, expectedNamespace, StringComparison.Ordinal))
             .SingleOrDefault() ?? throw new NotSupportedException($"Could not find implementation for contract interface {contractInterfaceType}");
 
         if(RuntimeFeature.IsDynamicCodeCompiled)
