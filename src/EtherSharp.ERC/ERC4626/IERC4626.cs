@@ -1,6 +1,6 @@
 ﻿using EtherSharp.Contract;
 
-namespace EtherSharp.ERC.ERC721;
+namespace EtherSharp.ERC.ERC4626;
 
 /// <summary>
 /// ERC-4626 vault contract interface.
