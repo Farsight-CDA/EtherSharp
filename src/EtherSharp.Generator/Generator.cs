@@ -17,46 +17,49 @@ namespace EtherSharp.Generator;
 [Generator]
 public class Generator : IIncrementalGenerator
 {
+    private const string ABI_FILE_ATTRIBUTE_METADATA_NAME = "EtherSharp.Contract.AbiFileAttribute";
+
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var contractTypesProvider = context.SyntaxProvider
-            .CreateSyntaxProvider(
-                IsCandidateNode,
-                (ctx, cancellationToken) => (
-                    Node: (InterfaceDeclarationSyntax) ctx.Node,
-                    Symbol: ctx.SemanticModel.GetDeclaredSymbol((InterfaceDeclarationSyntax) ctx.Node, cancellationToken: cancellationToken)
-                )
+            .ForAttributeWithMetadataName(
+                ABI_FILE_ATTRIBUTE_METADATA_NAME,
+                static (node, _) => node is InterfaceDeclarationSyntax,
+                static (ctx, _) => ctx.TargetSymbol is INamedTypeSymbol symbol && symbol.AllInterfaces.Any(TypeIdentificationUtils.IsIEVMContract)
+                    ? symbol
+                    : null
             )
-            .Where(ctx =>
-                ctx.Symbol is not null &&
-                ctx.Symbol.AllInterfaces.Any(TypeIdentificationUtils.IsIEVMContract)
-            )
-            .Select((ctx, _) => (
-                ctx.Symbol!,
-                ctx.Node
-            ));
+            .Where(symbol => symbol is not null)
+            .Select((symbol, _) => symbol!);
 
-        var combined = contractTypesProvider.Combine(context.AdditionalTextsProvider.Collect());
+        var additionalFilesByNameProvider = context.AdditionalTextsProvider
+            .Select((file, _) => (FileName: Path.GetFileName(file.Path), File: file))
+            .Collect()
+            .Select((files, _) =>
+            {
+                var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<AdditionalText>>(StringComparer.OrdinalIgnoreCase);
+
+                foreach(var group in files.GroupBy(file => file.FileName, StringComparer.OrdinalIgnoreCase))
+                {
+                    builder[group.Key] = [.. group.Select(file => file.File)];
+                }
+
+                return builder.ToImmutable();
+            });
+
+        var combined = contractTypesProvider.Combine(additionalFilesByNameProvider);
         context.RegisterSourceOutput(combined, GenerateSource);
     }
 
-    private static bool IsCandidateNode(SyntaxNode node, CancellationToken _)
-        => node is InterfaceDeclarationSyntax cd &&
-            cd.BaseList is not null &&
-            cd.BaseList.Types.Any(baseType =>
-                baseType.Type is IdentifierNameSyntax identifier &&
-                identifier.Identifier.Text == "IEVMContract"
-            );
-
     private static void GenerateSource(SourceProductionContext context,
-        ((INamedTypeSymbol, InterfaceDeclarationSyntax), ImmutableArray<AdditionalText> additionalFiles) combined)
+        (INamedTypeSymbol contractSymbol, ImmutableDictionary<string, ImmutableArray<AdditionalText>> additionalFilesByName) combined)
     {
-        var ((contractSymbol, contractNode), additionalFiles) = combined;
+        var (contractSymbol, additionalFilesByName) = combined;
 
         try
         {
-            if(!TryGetContractDetails(context, contractSymbol, contractNode, additionalFiles,
+            if(!TryGetContractDetails(context, contractSymbol, additionalFilesByName,
                 out var abiMembers, out byte[]? bytecode))
             {
                 return;
@@ -87,13 +90,16 @@ public class Generator : IIncrementalGenerator
     }
 
     private static bool TryGetContractDetails(
-        SourceProductionContext context, INamedTypeSymbol contractSymbol, InterfaceDeclarationSyntax contractInterface, ImmutableArray<AdditionalText> additionalFiles,
+        SourceProductionContext context, INamedTypeSymbol contractSymbol, ImmutableDictionary<string, ImmutableArray<AdditionalText>> additionalFilesByName,
         out AbiMember[] abiMembers, out byte[]? byteCode)
     {
         abiMembers = null!;
         byteCode = null!;
 
-        bool isPartial = contractInterface.Modifiers.Any(SyntaxKind.PartialKeyword);
+        bool isPartial = contractSymbol.DeclaringSyntaxReferences
+            .Select(reference => reference.GetSyntax())
+            .OfType<InterfaceDeclarationSyntax>()
+            .Any(declaration => declaration.Modifiers.Any(SyntaxKind.PartialKeyword));
 
         if(!isPartial)
         {
@@ -132,11 +138,9 @@ public class Generator : IIncrementalGenerator
             return false;
         }
 
-        var abiFiles = additionalFiles
-            .Where(file => Path.GetFileName(file.Path).Equals(abiFileName, StringComparison.OrdinalIgnoreCase))
-            .ToArray();
+        additionalFilesByName.TryGetValue(abiFileName, out var abiFiles);
 
-        if(abiFiles.Length == 0)
+        if(abiFiles.IsDefaultOrEmpty)
         {
             ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contractSymbol, abiFileName);
             return false;
@@ -184,18 +188,16 @@ public class Generator : IIncrementalGenerator
                 return false;
             }
 
-            var bytecodeFiles = additionalFiles
-                .Where(file => Path.GetFileName(file.Path).Equals(bytecodeFileName, StringComparison.OrdinalIgnoreCase))
-                .ToArray();
+            additionalFilesByName.TryGetValue(bytecodeFileName, out var bytecodeFiles);
 
-            if(bytecodeFiles.Length == 0)
+            if(bytecodeFiles.IsDefaultOrEmpty)
             {
                 ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contractSymbol, bytecodeFileName);
                 return false;
             }
             if(bytecodeFiles.Length > 1)
             {
-                ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFileAttributeFound, contractSymbol, bytecodeFileName);
+                ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFilesWithNameFound, contractSymbol, bytecodeFileName);
                 return false;
             }
 
