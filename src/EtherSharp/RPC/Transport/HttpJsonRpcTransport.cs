@@ -138,6 +138,10 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         {
             response = await _client.SendAsync(httpRequestMessage, cancellationToken);
         }
+        catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch(Exception ex)
         {
             throw new RPCTransportException($"Exception while sending HTTP request", ex);
@@ -178,6 +182,11 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
             string s = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new RPCTransportException($"Error: {s}", ex);
+        }
+        catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested)
+        {
+            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
+            throw;
         }
         catch(Exception ex)
         {
