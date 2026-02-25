@@ -59,11 +59,11 @@ public class LegacyGasFeeProvider : IGasFeeProvider<LegacyTxParams, LegacyGasPar
         ulong gasUsed = await _ethRpcModule.EstimateGasAsync(_signer.Address, txInput.To, txInput.Value, HexUtils.ToPrefixedHexString(txInput.Data.Span), cancellationToken);
         var gasPrice = await _ethRpcModule.GasPriceAsync(cancellationToken);
 
-        var adjustedGasPrice = gasPrice * (UInt256) ((100 + _gasPriceOffsetPercentage) / 100);
+        var adjustedGasPrice = gasPrice * (UInt256) (100 + _gasPriceOffsetPercentage) / 100;
 
         return new LegacyGasParams(
             gasUsed * (100 + _gasWantedOffsetPercentage) / 100,
-            gasPrice + adjustedGasPrice
+            adjustedGasPrice
         );
     }
 }

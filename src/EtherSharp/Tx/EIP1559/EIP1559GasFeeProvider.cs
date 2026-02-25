@@ -109,8 +109,8 @@ public class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP1559Gas
             priorityFee = summedPriorityFees / (uint) nonZeroRewards.Length;
         }
 
-        var adjustedBaseFee = baseFee * (uint) ((100 + _baseFeeOffsetPercentage) / 100);
-        var adjustedPriorityFee = priorityFee * (uint) ((100 + _priorityFeeOffsetPercentage) / 100);
+        var adjustedBaseFee = baseFee * (UInt256) (100 + _baseFeeOffsetPercentage) / 100;
+        var adjustedPriorityFee = priorityFee * (UInt256) (100 + _priorityFeeOffsetPercentage) / 100;
 
         return new EIP1559GasParams(
             gasEstimation * (100 + _gasWantedOffsetPercentage) / 100,
