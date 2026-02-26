@@ -47,7 +47,7 @@ public record DetailedBlockData(
     Address? Miner,
     Hash32 MixHash,
     ulong? Nonce,
-    UInt256? Number,
+    ulong? Number,
     Hash32? ParentBeaconBlockRoot,
     Hash32 ParentHash,
     Hash32 ReceiptsRoot,
