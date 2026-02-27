@@ -19,7 +19,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                 return false;
             }
 
-            return data.Slice(0, 4).SequenceEqual(SelectorBytes.Span);
+            return data.Slice(0, 4).SequenceEqual(Selector.Bytes);
             """
         );
 
@@ -286,6 +286,10 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                     /// Hex encoded function signature bytes based on function signature: {{signature}}
                     /// </summary>
                     public const string SelectorHex = "0x{{HexUtils.ToHexString(selectorBytes)}}";
+                    /// <summary>
+                    /// Parsed bytes4 function selector based on function signature: {{signature}}
+                    /// </summary>
+                    public static EtherSharp.Types.Bytes4 Selector { get; } = EtherSharp.Types.Bytes4.Parse(SelectorHex);
                     """
                 );
 

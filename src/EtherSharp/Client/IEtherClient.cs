@@ -145,7 +145,7 @@ public interface IEtherClient
     /// <param name="hash">Transaction hash.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The transaction if found; otherwise <see langword="null"/>.</returns>
-    public Task<TxData?> GetTransactionAsync(Hash32 hash, CancellationToken cancellationToken = default);
+    public Task<TxData?> GetTransactionAsync(Bytes32 hash, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Fetches a transaction receipt by hash.
@@ -153,7 +153,7 @@ public interface IEtherClient
     /// <param name="hash">Transaction hash.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The receipt if available; otherwise <see langword="null"/>.</returns>
-    public Task<TxReceipt?> GetTransactionReceiptAsync(Hash32 hash, CancellationToken cancellationToken = default);
+    public Task<TxReceipt?> GetTransactionReceiptAsync(Bytes32 hash, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the account nonce (transaction count) for an address at a specific block context.

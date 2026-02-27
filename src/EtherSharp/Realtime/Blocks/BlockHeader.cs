@@ -16,8 +16,8 @@ namespace EtherSharp.Realtime.Blocks;
 public record BlockHeader(
     ulong Number,
     DateTimeOffset Timestamp,
-    Hash32 Hash,
-    Hash32 ParentHash,
+    Bytes32 Hash,
+    Bytes32 ParentHash,
     ulong Nonce,
     Address Miner,
     ulong GasLimit,

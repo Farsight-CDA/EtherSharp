@@ -175,6 +175,10 @@
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		  <LastGenOutput>QueryBuilder.AddQuery.generated.cs</LastGenOutput>
 		</None>
+		<None Update="Types\Bytes.tt">
+		  <Generator>TextTemplatingFileGenerator</Generator>
+		  <LastGenOutput>Bytes.generated.cs</LastGenOutput>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -312,6 +316,11 @@
 		  <DesignTime>True</DesignTime>
 		  <AutoGen>True</AutoGen>
 		  <DependentUpon>QueryBuilder.AddQuery.tt</DependentUpon>
+		</Compile>
+		<Compile Update="Types\Bytes.generated.cs">
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>Bytes.tt</DependentUpon>
 		</Compile>
 	</ItemGroup>
 

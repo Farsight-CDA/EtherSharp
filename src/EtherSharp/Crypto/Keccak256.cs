@@ -64,12 +64,12 @@ public ref struct Keccak256
     /// <param name="data"></param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
-    public static Hash32 HashData(ReadOnlySpan<byte> data)
+    public static Bytes32 HashData(ReadOnlySpan<byte> data)
     {
         Span<byte> outputBuffer = stackalloc byte[OUTPUT_LENGTH_BYTES];
         return !TryHashData(data, outputBuffer)
             ? throw new NotSupportedException()
-            : Hash32.FromBytes(outputBuffer);
+            : Bytes32.FromBytes(outputBuffer);
     }
 
     private void BlockUpdate(ReadOnlySpan<byte> input)

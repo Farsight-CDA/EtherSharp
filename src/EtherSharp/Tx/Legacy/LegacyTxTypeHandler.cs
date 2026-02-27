@@ -35,7 +35,7 @@ public class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
     }
 
     /// <inheritdoc/>
-    public string EncodeTxToBytes(ITxInput txInput, LegacyTxParams txParams, LegacyGasParams txGasParams, uint nonce, out Hash32 txHash)
+    public string EncodeTxToBytes(ITxInput txInput, LegacyTxParams txParams, LegacyGasParams txGasParams, uint nonce, out Bytes32 txHash)
     {
         if(!_isInitialized)
         {
@@ -90,7 +90,7 @@ public class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
                 throw new InvalidOperationException("Failed to calculate tx hash");
             }
 
-            txHash = Hash32.FromBytes(txHashBuffer);
+            txHash = Bytes32.FromBytes(txHashBuffer);
             return HexUtils.ToPrefixedHexString(txBuffer);
         }
         finally

@@ -22,11 +22,11 @@ public class Keccak256Benchmarks
     public byte[] InputData = null!;
 
     [Benchmark]
-    public Hash32 EtherSharp_Keccak256_Output_Hash32()
+    public Bytes32 EtherSharp_Keccak256_Output_Bytes32()
         => Keccak256.HashData(InputData);
 
     [Benchmark]
-    public byte[] EtherSharp_Keccak256_Output_Hash32_ToArray()
+    public byte[] EtherSharp_Keccak256_Output_Bytes32_ToArray()
         => Keccak256.HashData(InputData).ToArray();
 
     [Benchmark]

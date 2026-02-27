@@ -108,7 +108,7 @@ internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModu
         return this;
     }
 
-    public async Task<TLog[]> GetAllAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default, Hash32? blockHash = null,
+    public async Task<TLog[]> GetAllAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default, Bytes32? blockHash = null,
         CancellationToken cancellationToken = default)
     {
         if(fromBlock == default)

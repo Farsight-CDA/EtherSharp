@@ -24,5 +24,5 @@ public interface ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
     /// <param name="nonce">The nonce to embed in the encoded transaction.</param>
     /// <param name="txHash">When this method returns, contains the computed transaction hash.</param>
     /// <returns>The encoded signed transaction represented as a hexadecimal string.</returns>
-    public string EncodeTxToBytes(ITxInput txInput, TTxParams txParams, TTxGasParams txGasParams, uint nonce, out Hash32 txHash);
+    public string EncodeTxToBytes(ITxInput txInput, TTxParams txParams, TTxGasParams txGasParams, uint nonce, out Bytes32 txHash);
 }

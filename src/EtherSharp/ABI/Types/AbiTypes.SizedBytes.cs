@@ -1,4 +1,5 @@
-﻿using EtherSharp.ABI.Types.Base;
+using EtherSharp.ABI.Types.Base;
+using EtherSharp.Types;
 
 namespace EtherSharp.ABI.Types;
 
@@ -7,19 +8,15 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents an ABI fixed-size byte array value.
     /// </summary>
-    public class SizedBytes : FixedType<ReadOnlyMemory<byte>>, IPackedEncodeType
+    public class SizedBytes<TBytes> : FixedType<TBytes>, IPackedEncodeType
+        where TBytes : struct, IFixedBytes<TBytes>
     {
-        internal SizedBytes(ReadOnlyMemory<byte> value, int byteCount)
+        internal SizedBytes(TBytes value)
             : base(value)
-        {
-            if(value.Length != byteCount)
-            {
-                throw new ArgumentException($"Expected array of length {byteCount}, but got {value.Length}");
-            }
-        }
+        { }
 
         /// <inheritdoc />
-        public int PackedSize => Value.Length;
+        public int PackedSize => TBytes.BYTE_LENGTH;
 
         /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
@@ -30,13 +27,13 @@ public static partial class AbiTypes
         /// <summary>
         /// Encodes a fixed-size byte array value.
         /// </summary>
-        public static void EncodeInto(ReadOnlyMemory<byte> value, Span<byte> buffer)
-            => value.Span.CopyTo(buffer[0..value.Length]);
+        public static void EncodeInto(TBytes value, Span<byte> buffer)
+            => value.Bytes.CopyTo(buffer[..TBytes.BYTE_LENGTH]);
 
         /// <summary>
         /// Decodes a fixed-size byte array value.
         /// </summary>
-        public static ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> bytes, int byteCount)
-            => bytes[..byteCount];
+        public static TBytes Decode(ReadOnlyMemory<byte> bytes)
+            => TBytes.FromBytes(bytes.Span[..TBytes.BYTE_LENGTH]);
     }
 }

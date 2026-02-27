@@ -15,5 +15,5 @@ public interface IDebugModule
     /// <returns>
     /// A call trace rooted at the transaction entry call, or <see langword="null"/> when the transaction cannot be traced.
     /// </returns>
-    public Task<CallTrace?> TraceTransactionCallsAsync(Hash32 transactionHash, CancellationToken cancellationToken = default);
+    public Task<CallTrace?> TraceTransactionCallsAsync(Bytes32 transactionHash, CancellationToken cancellationToken = default);
 }

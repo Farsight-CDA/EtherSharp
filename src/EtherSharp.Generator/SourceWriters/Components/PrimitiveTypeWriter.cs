@@ -62,9 +62,7 @@ internal static class PrimitiveTypeWriter
                 break;
             case string s when s.StartsWith("bytes", StringComparison.Ordinal) && Int32.TryParse(s.Substring(5), out int bitSize)
                 && bitSize >= 1 && bitSize <= 32:
-                csharpTypeName = bitSize == 1
-                    ? typeof(byte).FullName
-                    : "System.ReadOnlyMemory<byte>";
+                csharpTypeName = $"EtherSharp.Types.Bytes{bitSize}";
                 isDynamic = false;
                 abiFunctionName = $"Bytes{bitSize}";
                 break;

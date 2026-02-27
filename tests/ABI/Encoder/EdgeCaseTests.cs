@@ -185,8 +185,8 @@ public class EdgeCaseTests
     [Fact]
     public void Should_Encode_Bytes1_AllOnes()
     {
-        byte[] actual = _encoder.Bytes1(0xFF).Build();
-        Assert.Equal(0xFF, actual[31]);
+        byte[] actual = _encoder.Bytes1(Bytes1.FromBytes([0xFF])).Build();
+        Assert.Equal(0xFF, actual[0]);
     }
 
     [Fact]
@@ -194,7 +194,7 @@ public class EdgeCaseTests
     {
         byte[] bytes = new byte[32];
         bytes.AsSpan().Fill(0xFF);
-        byte[] actual = _encoder.Bytes32(bytes).Build();
+        byte[] actual = _encoder.Bytes32(Bytes32.FromBytes(bytes)).Build();
         Assert.Equal(0xFF, actual[31]);
         Assert.Equal(0xFF, actual[0]);
     }

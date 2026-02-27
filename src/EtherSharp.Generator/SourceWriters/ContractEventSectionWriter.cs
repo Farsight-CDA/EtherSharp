@@ -96,7 +96,7 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
                     /// <summary>
                     /// Parsed 32-byte event topic based on signature: {{eventSignature}}
                     /// </summary>
-                    public static EtherSharp.Types.Hash32 Topic { get; } = EtherSharp.Types.Hash32.Parse(TopicHex);
+                    public static EtherSharp.Types.Bytes32 Topic { get; } = EtherSharp.Types.Bytes32.Parse(TopicHex);
                     /// <summary>
                     /// Supported topic counts when decoding event.
                     /// </summary>

@@ -1,4 +1,5 @@
 using EtherSharp.ABI;
+using EtherSharp.Types;
 
 namespace EtherSharp.Tests.ABI.Encoder;
 
@@ -13,7 +14,7 @@ public class SizedBytesArrayAbiEncoderTests
             "1200000000000000000000000000000000000000000000000000000000000000" +
             "3400000000000000000000000000000000000000000000000000000000000000");
 
-        byte[] actual = new AbiEncoder().Bytes1Array(0x12, 0x34).Build();
+        byte[] actual = new AbiEncoder().Bytes1Array(Bytes1.FromBytes([0x12]), Bytes1.FromBytes([0x34])).Build();
 
         Assert.Equal(expected, actual);
     }

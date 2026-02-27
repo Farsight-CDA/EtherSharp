@@ -34,7 +34,7 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
 
     /// <inheritdoc/>
     string ITxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>.EncodeTxToBytes(
-        ITxInput txInput, EIP1559TxParams txParams, EIP1559GasParams txGasParams, uint nonce, out Hash32 txHash)
+        ITxInput txInput, EIP1559TxParams txParams, EIP1559GasParams txGasParams, uint nonce, out Bytes32 txHash)
     {
         if(!_isInitialized)
         {
@@ -85,7 +85,7 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClie
                 throw new InvalidOperationException("Failed to calculate tx hash");
             }
 
-            txHash = Hash32.FromBytes(txHashBuffer);
+            txHash = Bytes32.FromBytes(txHashBuffer);
             return HexUtils.ToPrefixedHexString(signedTxBuffer);
         }
         finally

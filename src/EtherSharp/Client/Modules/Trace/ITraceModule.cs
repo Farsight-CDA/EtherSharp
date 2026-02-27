@@ -16,7 +16,7 @@ public interface ITraceModule
     /// <returns>
     /// The root call trace with nested child calls, or <see langword="null"/> when the transaction cannot be traced.
     /// </returns>
-    public Task<CallTrace?> TraceTransactionCallsAsync(Hash32 transactionHash, CancellationToken cancellationToken = default);
+    public Task<CallTrace?> TraceTransactionCallsAsync(Bytes32 transactionHash, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Replays a transaction and returns the raw trace payload for the requested trace types.
@@ -27,5 +27,5 @@ public interface ITraceModule
     /// <returns>
     /// Raw transaction trace result as returned by the node, or <see langword="null"/> when the transaction cannot be replayed.
     /// </returns>
-    public Task<TransactionTraceResult?> ReplayTransactionAsync(Hash32 transactionHash, string[] traceTypes, CancellationToken cancellationToken = default);
+    public Task<TransactionTraceResult?> ReplayTransactionAsync(Bytes32 transactionHash, string[] traceTypes, CancellationToken cancellationToken = default);
 }

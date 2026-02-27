@@ -24,7 +24,7 @@ namespace EtherSharp.Types;
 /// <param name="L1GasPrice">Layer-1 gas price used for L1 data fee accounting.</param>
 /// <param name="L1GasUsed">Layer-1 gas units attributed to this transaction.</param>
 public record TxReceipt(
-    Hash32 BlockHash,
+    Bytes32 BlockHash,
     ulong BlockNumber,
     Address? ContractAddress,
     ulong CumulativeGasUsed,
@@ -35,7 +35,7 @@ public record TxReceipt(
     string? LogsBloom,
     uint Status,
     Address? To,
-    Hash32 TransactionHash,
+    Bytes32 TransactionHash,
     uint? TransactionIndex,
     TxType? Type,
     UInt256? L1Fee,

@@ -19,7 +19,7 @@ namespace EtherSharp.Tx;
 public record TxSubmission<TTxParams, TTxGasParams>(
     ulong ChainId,
     uint Sequence,
-    Hash32 TxHash,
+    Bytes32 TxHash,
     string SignedTx,
     ITxInput Call,
     TTxParams Params,

@@ -81,7 +81,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
             throw new ArgumentException("Invalid bitLength", nameof(bitLength));
         }
 
-        var result = AbiTypes.SizedBytes.Decode(_bytes.Slice(BytesRead, 32), bitLength / 8);
+        var result = _bytes.Slice(BytesRead, bitLength / 8);
         ConsumeBytes();
         return result;
     }

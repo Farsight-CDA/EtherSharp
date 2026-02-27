@@ -49,6 +49,10 @@ internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
                     /// Hex encoded error signature bytes based on function signature: {{signature}}
                     /// </summary>
                     public const string SignatureHex = "0x{{HexUtils.ToHexString(signatureBytes)}}";
+                    /// <summary>
+                    /// Parsed bytes4 error selector based on signature: {{signature}}
+                    /// </summary>
+                    public static EtherSharp.Types.Bytes4 Signature { get; } = EtherSharp.Types.Bytes4.Parse(SignatureHex);
                     """
                 );
 
