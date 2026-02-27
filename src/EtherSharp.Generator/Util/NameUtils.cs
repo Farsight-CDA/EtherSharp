@@ -55,6 +55,22 @@ internal static class NameUtils
         return name;
     }
 
+    public static string MakeUniquePropertyName(string name, HashSet<string> usedNames)
+    {
+        if(usedNames.Add(name))
+        {
+            return name;
+        }
+
+        name = $"_{name}";
+        while(!usedNames.Add(name))
+        {
+            name = $"_{name}";
+        }
+
+        return name;
+    }
+
     private static readonly HashSet<string> _reservedKeywords = new(
         StringComparer.Ordinal)
     {

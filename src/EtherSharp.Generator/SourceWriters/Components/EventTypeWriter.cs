@@ -54,7 +54,21 @@ internal class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, MemberTy
                 """
             );
 
-        _memberTypeWriter.AddInputProperties(classBuilder, eventMembers[0].Inputs);
+        _memberTypeWriter.AddInputProperties(
+            classBuilder,
+            eventMembers[0].Inputs,
+            [
+                "Event",
+                "Decode",
+                "TryDecode",
+                "IsMatchingEvent",
+                "Signature",
+                "TopicBytes",
+                "TopicHex",
+                "Topic",
+                "SupportedTopicCounts"
+            ]
+        );
         bool isFirst = true;
 
         foreach(var eventMember in eventMembers)

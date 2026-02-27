@@ -200,7 +200,20 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                         """
                     );
 
-                _memberTypeWriter.AddInputProperties(typeBuilder, functionMember.Inputs);
+                _memberTypeWriter.AddInputProperties(
+                    typeBuilder,
+                    functionMember.Inputs,
+                    [
+                        "IsMatchingSelector",
+                        "Decode",
+                        "TryDecode",
+                        "Create",
+                        "FunctionSignature",
+                        "SelectorBytes",
+                        "SelectorHex",
+                        "Selector"
+                    ]
+                );
                 typeBuilder.AddFunction(decodeMethod);
                 typeBuilder.AddFunction(tryDecodeMethod);
 

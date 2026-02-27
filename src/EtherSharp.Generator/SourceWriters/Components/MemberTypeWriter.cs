@@ -9,8 +9,18 @@ internal class MemberTypeWriter(ParamEncodingWriter paramEncodingWriter)
 {
     private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
 
-    public void AddInputProperties(ClassBuilder classBuilder, AbiParameter[] inputs)
+    public void AddInputProperties(ClassBuilder classBuilder, AbiParameter[] inputs, IReadOnlyCollection<string>? reservedPropertyNames = null)
     {
+        var usedNames = new HashSet<string>(StringComparer.Ordinal);
+
+        if(reservedPropertyNames is not null)
+        {
+            foreach(string reservedPropertyName in reservedPropertyNames)
+            {
+                usedNames.Add(reservedPropertyName);
+            }
+        }
+
         for(int i = 0; i < inputs.Length; i++)
         {
             var (outputTypeName, _, _) = _paramEncodingWriter.GetOutputDecoding(
@@ -25,6 +35,8 @@ internal class MemberTypeWriter(ParamEncodingWriter paramEncodingWriter)
                 parameterName = $"anonymousArgument{i + 1}";
             }
 
+            parameterName = NameUtils.MakeUniquePropertyName(parameterName, usedNames);
+
             classBuilder.AddProperty(
                 new PropertyBuilder(outputTypeName, parameterName)
                     .WithVisibility(PropertyVisibility.Public)
@@ -35,7 +47,6 @@ internal class MemberTypeWriter(ParamEncodingWriter paramEncodingWriter)
 
     public string GenerateDecodeStatements(string typeName, AbiParameter[] inputs, string dataExpression, string? extraCtorArg = null)
     {
-        // Unique comment to verify generator update
         var ctorBuilder = new ConstructorCallBuilder(typeName);
         if(extraCtorArg != null)
         {

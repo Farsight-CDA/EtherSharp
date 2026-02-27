@@ -16,6 +16,16 @@ internal class ErrorTypeWriter
     {
         var errorTypeBuilder = new ClassBuilder(errorTypeName)
             .WithAutoConstructor();
+        var usedNames = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "Decode",
+            "IsMatchingSignature",
+            "TryDecode",
+            "ErrorSignature",
+            "SignatureBytes",
+            "SignatureHex",
+            "Signature"
+        };
 
         var decodeMethod = new FunctionBuilder("Decode")
             .WithReturnTypeRaw(errorTypeName)
@@ -39,6 +49,8 @@ internal class ErrorTypeWriter
             {
                 throw new NotSupportedException("ABI Error member must all have a name");
             }
+
+            parameterName = NameUtils.MakeUniquePropertyName(parameterName, usedNames);
 
             errorTypeBuilder.AddProperty(
                 new PropertyBuilder(primitiveType, parameterName)

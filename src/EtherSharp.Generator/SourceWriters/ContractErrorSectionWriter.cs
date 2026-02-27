@@ -39,12 +39,7 @@ internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
                     /// <summary>
                     /// Error signature used to calculate the signature bytes.
                     /// </summary>
-                    public const string Signature = "{{signature}}";
-                    /// <summary>
-                    /// Error signature bytes based on function signature: {{signature}}
-                    /// </summary>
-                    public static ReadOnlyMemory<byte> SignatureBytes { get; } 
-                        = new byte[] { {{String.Join(",", signatureBytes)}} };
+                    public const string ErrorSignature = "{{signature}}";
                     /// <summary>
                     /// Hex encoded error signature bytes based on function signature: {{signature}}
                     /// </summary>
