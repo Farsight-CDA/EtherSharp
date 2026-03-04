@@ -58,12 +58,12 @@ internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
         var getAllSignaturesFunction = new FunctionBuilder("GetSignatures")
             .WithIsStatic(true)
             .WithVisibility(FunctionVisibility.Public)
-            .WithReturnTypeRaw("System.ReadOnlyMemory<byte>[]");
+            .WithReturnTypeRaw("EtherSharp.Types.Bytes4[]");
 
         getAllSignaturesFunction.AddStatement(
             $"""
                 return [
-            {String.Join(",\n", errorTypeNames.Select(x => $"       {x}.SignatureBytes"))}
+            {String.Join(",\n", errorTypeNames.Select(x => $"       {x}.Signature"))}
                 ]
             """
         );
