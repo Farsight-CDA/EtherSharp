@@ -21,7 +21,7 @@ public interface IFixedBytes<TSelf>
     static abstract TSelf FromBytes(ReadOnlySpan<byte> bytes);
 }
 
-public struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedBytes<Bytes1>
+public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedBytes<Bytes1>
 {
     public const int BYTE_LENGTH = 1;
 
@@ -33,14 +33,20 @@ public struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedBytes<Byte
         private byte _element0;
     }
 
-    private ByteStorage1 _bytes;
+    private readonly ByteStorage1 _bytes;
 
     public static Bytes1 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes1>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes1(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes1 Parse(string value)
         => Parse(value.AsSpan());
@@ -89,7 +95,7 @@ public struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedBytes<Byte
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes1(bytes);
         return true;
     }
 
@@ -100,9 +106,7 @@ public struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedBytes<Byte
             throw new ArgumentException("Bytes1 requires exactly 1 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes1);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes1(bytes);
     }
 
     public byte[] ToArray()
@@ -112,20 +116,20 @@ public struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedBytes<Byte
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes1 other)
+    public readonly bool Equals(in Bytes1 other)
         => LoadU8Raw(0) == other.LoadU8Raw(0);
 
-    public bool Equals(Bytes1 other)
+    public readonly bool Equals(Bytes1 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes1 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU8Raw(0));
@@ -133,7 +137,7 @@ public struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedBytes<Byte
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes1 other)
+    public readonly int CompareTo(in Bytes1 other)
     {
         int byteCmp0 = LoadU8Raw(0).CompareTo(other.LoadU8Raw(0));
         if(byteCmp0 != 0)
@@ -144,7 +148,7 @@ public struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedBytes<Byte
         return 0;
     }
 
-    public int CompareTo(Bytes1 other)
+    public readonly int CompareTo(Bytes1 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes1 left, in Bytes1 right)
@@ -154,15 +158,15 @@ public struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedBytes<Byte
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -171,7 +175,7 @@ public struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedBytes<Byte
     }
 }
 
-public struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedBytes<Bytes2>
+public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedBytes<Bytes2>
 {
     public const int BYTE_LENGTH = 2;
 
@@ -183,14 +187,20 @@ public struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedBytes<Byte
         private byte _element0;
     }
 
-    private ByteStorage2 _bytes;
+    private readonly ByteStorage2 _bytes;
 
     public static Bytes2 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes2>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes2(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes2 Parse(string value)
         => Parse(value.AsSpan());
@@ -239,7 +249,7 @@ public struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedBytes<Byte
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes2(bytes);
         return true;
     }
 
@@ -250,9 +260,7 @@ public struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedBytes<Byte
             throw new ArgumentException("Bytes2 requires exactly 2 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes2);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes2(bytes);
     }
 
     public byte[] ToArray()
@@ -262,23 +270,23 @@ public struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedBytes<Byte
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes2 other)
+    public readonly bool Equals(in Bytes2 other)
         => ((
             ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
             | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
         )) == 0;
 
-    public bool Equals(Bytes2 other)
+    public readonly bool Equals(Bytes2 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes2 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU8Raw(0));
@@ -287,7 +295,7 @@ public struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedBytes<Byte
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes2 other)
+    public readonly int CompareTo(in Bytes2 other)
     {
         int byteCmp0 = LoadU8Raw(0).CompareTo(other.LoadU8Raw(0));
         if(byteCmp0 != 0)
@@ -304,7 +312,7 @@ public struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedBytes<Byte
         return 0;
     }
 
-    public int CompareTo(Bytes2 other)
+    public readonly int CompareTo(Bytes2 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes2 left, in Bytes2 right)
@@ -314,15 +322,15 @@ public struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedBytes<Byte
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -331,7 +339,7 @@ public struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedBytes<Byte
     }
 }
 
-public struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedBytes<Bytes3>
+public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedBytes<Bytes3>
 {
     public const int BYTE_LENGTH = 3;
 
@@ -343,14 +351,20 @@ public struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedBytes<Byte
         private byte _element0;
     }
 
-    private ByteStorage3 _bytes;
+    private readonly ByteStorage3 _bytes;
 
     public static Bytes3 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes3>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes3(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes3 Parse(string value)
         => Parse(value.AsSpan());
@@ -399,7 +413,7 @@ public struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedBytes<Byte
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes3(bytes);
         return true;
     }
 
@@ -410,9 +424,7 @@ public struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedBytes<Byte
             throw new ArgumentException("Bytes3 requires exactly 3 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes3);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes3(bytes);
     }
 
     public byte[] ToArray()
@@ -422,24 +434,24 @@ public struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedBytes<Byte
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes3 other)
+    public readonly bool Equals(in Bytes3 other)
         => ((
             ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
             | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
             | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2)))
         )) == 0;
 
-    public bool Equals(Bytes3 other)
+    public readonly bool Equals(Bytes3 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes3 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU8Raw(0));
@@ -449,7 +461,7 @@ public struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedBytes<Byte
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes3 other)
+    public readonly int CompareTo(in Bytes3 other)
     {
         int byteCmp0 = LoadU8Raw(0).CompareTo(other.LoadU8Raw(0));
         if(byteCmp0 != 0)
@@ -472,7 +484,7 @@ public struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedBytes<Byte
         return 0;
     }
 
-    public int CompareTo(Bytes3 other)
+    public readonly int CompareTo(Bytes3 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes3 left, in Bytes3 right)
@@ -482,15 +494,15 @@ public struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedBytes<Byte
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -499,7 +511,7 @@ public struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedBytes<Byte
     }
 }
 
-public struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Bytes4>
+public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Bytes4>
 {
     public const int BYTE_LENGTH = 4;
 
@@ -511,14 +523,20 @@ public struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Byte
         private byte _element0;
     }
 
-    private ByteStorage4 _bytes;
+    private readonly ByteStorage4 _bytes;
 
     public static Bytes4 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes4>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes4(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes4 Parse(string value)
         => Parse(value.AsSpan());
@@ -567,7 +585,7 @@ public struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Byte
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes4(bytes);
         return true;
     }
 
@@ -578,9 +596,7 @@ public struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Byte
             throw new ArgumentException("Bytes4 requires exactly 4 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes4);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes4(bytes);
     }
 
     public byte[] ToArray()
@@ -590,11 +606,11 @@ public struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Byte
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes4 other)
+    public readonly bool Equals(in Bytes4 other)
         => ((
             ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
             | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
@@ -602,13 +618,13 @@ public struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Byte
             | ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3)))
         )) == 0;
 
-    public bool Equals(Bytes4 other)
+    public readonly bool Equals(Bytes4 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes4 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU8Raw(0));
@@ -619,7 +635,7 @@ public struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Byte
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes4 other)
+    public readonly int CompareTo(in Bytes4 other)
     {
         int byteCmp0 = LoadU8Raw(0).CompareTo(other.LoadU8Raw(0));
         if(byteCmp0 != 0)
@@ -648,7 +664,7 @@ public struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Byte
         return 0;
     }
 
-    public int CompareTo(Bytes4 other)
+    public readonly int CompareTo(Bytes4 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes4 left, in Bytes4 right)
@@ -658,15 +674,15 @@ public struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Byte
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -675,7 +691,7 @@ public struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Byte
     }
 }
 
-public struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Bytes5>
+public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Bytes5>
 {
     public const int BYTE_LENGTH = 5;
 
@@ -687,14 +703,20 @@ public struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Byte
         private byte _element0;
     }
 
-    private ByteStorage5 _bytes;
+    private readonly ByteStorage5 _bytes;
 
     public static Bytes5 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes5>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes5(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes5 Parse(string value)
         => Parse(value.AsSpan());
@@ -743,7 +765,7 @@ public struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Byte
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes5(bytes);
         return true;
     }
 
@@ -754,9 +776,7 @@ public struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Byte
             throw new ArgumentException("Bytes5 requires exactly 5 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes5);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes5(bytes);
     }
 
     public byte[] ToArray()
@@ -766,11 +786,11 @@ public struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Byte
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes5 other)
+    public readonly bool Equals(in Bytes5 other)
         => ((
             ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
             | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
@@ -779,13 +799,13 @@ public struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Byte
             | ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4)))
         )) == 0;
 
-    public bool Equals(Bytes5 other)
+    public readonly bool Equals(Bytes5 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes5 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU8Raw(0));
@@ -797,7 +817,7 @@ public struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Byte
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes5 other)
+    public readonly int CompareTo(in Bytes5 other)
     {
         int byteCmp0 = LoadU8Raw(0).CompareTo(other.LoadU8Raw(0));
         if(byteCmp0 != 0)
@@ -832,7 +852,7 @@ public struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Byte
         return 0;
     }
 
-    public int CompareTo(Bytes5 other)
+    public readonly int CompareTo(Bytes5 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes5 left, in Bytes5 right)
@@ -842,15 +862,15 @@ public struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Byte
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -859,7 +879,7 @@ public struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Byte
     }
 }
 
-public struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Bytes6>
+public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Bytes6>
 {
     public const int BYTE_LENGTH = 6;
 
@@ -871,14 +891,20 @@ public struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Byte
         private byte _element0;
     }
 
-    private ByteStorage6 _bytes;
+    private readonly ByteStorage6 _bytes;
 
     public static Bytes6 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes6>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes6(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes6 Parse(string value)
         => Parse(value.AsSpan());
@@ -927,7 +953,7 @@ public struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Byte
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes6(bytes);
         return true;
     }
 
@@ -938,9 +964,7 @@ public struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Byte
             throw new ArgumentException("Bytes6 requires exactly 6 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes6);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes6(bytes);
     }
 
     public byte[] ToArray()
@@ -950,11 +974,11 @@ public struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Byte
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes6 other)
+    public readonly bool Equals(in Bytes6 other)
         => ((
             ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
             | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
@@ -964,13 +988,13 @@ public struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Byte
             | ((ulong) (LoadU8Raw(5) ^ other.LoadU8Raw(5)))
         )) == 0;
 
-    public bool Equals(Bytes6 other)
+    public readonly bool Equals(Bytes6 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes6 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU8Raw(0));
@@ -983,7 +1007,7 @@ public struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Byte
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes6 other)
+    public readonly int CompareTo(in Bytes6 other)
     {
         int byteCmp0 = LoadU8Raw(0).CompareTo(other.LoadU8Raw(0));
         if(byteCmp0 != 0)
@@ -1024,7 +1048,7 @@ public struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Byte
         return 0;
     }
 
-    public int CompareTo(Bytes6 other)
+    public readonly int CompareTo(Bytes6 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes6 left, in Bytes6 right)
@@ -1034,15 +1058,15 @@ public struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Byte
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -1051,7 +1075,7 @@ public struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Byte
     }
 }
 
-public struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Bytes7>
+public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Bytes7>
 {
     public const int BYTE_LENGTH = 7;
 
@@ -1063,14 +1087,20 @@ public struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Byte
         private byte _element0;
     }
 
-    private ByteStorage7 _bytes;
+    private readonly ByteStorage7 _bytes;
 
     public static Bytes7 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes7>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes7(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes7 Parse(string value)
         => Parse(value.AsSpan());
@@ -1119,7 +1149,7 @@ public struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Byte
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes7(bytes);
         return true;
     }
 
@@ -1130,9 +1160,7 @@ public struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Byte
             throw new ArgumentException("Bytes7 requires exactly 7 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes7);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes7(bytes);
     }
 
     public byte[] ToArray()
@@ -1142,11 +1170,11 @@ public struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Byte
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes7 other)
+    public readonly bool Equals(in Bytes7 other)
         => ((
             ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
             | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
@@ -1157,13 +1185,13 @@ public struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Byte
             | ((ulong) (LoadU8Raw(6) ^ other.LoadU8Raw(6)))
         )) == 0;
 
-    public bool Equals(Bytes7 other)
+    public readonly bool Equals(Bytes7 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes7 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU8Raw(0));
@@ -1177,7 +1205,7 @@ public struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Byte
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes7 other)
+    public readonly int CompareTo(in Bytes7 other)
     {
         int byteCmp0 = LoadU8Raw(0).CompareTo(other.LoadU8Raw(0));
         if(byteCmp0 != 0)
@@ -1224,7 +1252,7 @@ public struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Byte
         return 0;
     }
 
-    public int CompareTo(Bytes7 other)
+    public readonly int CompareTo(Bytes7 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes7 left, in Bytes7 right)
@@ -1234,15 +1262,15 @@ public struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Byte
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -1251,7 +1279,7 @@ public struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Byte
     }
 }
 
-public struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedBytes<Bytes8>
+public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedBytes<Bytes8>
 {
     public const int BYTE_LENGTH = 8;
 
@@ -1263,14 +1291,20 @@ public struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedBytes<Byte
         private byte _element0;
     }
 
-    private ByteStorage8 _bytes;
+    private readonly ByteStorage8 _bytes;
 
     public static Bytes8 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes8>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes8(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes8 Parse(string value)
         => Parse(value.AsSpan());
@@ -1319,7 +1353,7 @@ public struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedBytes<Byte
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes8(bytes);
         return true;
     }
 
@@ -1330,9 +1364,7 @@ public struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedBytes<Byte
             throw new ArgumentException("Bytes8 requires exactly 8 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes8);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes8(bytes);
     }
 
     public byte[] ToArray()
@@ -1342,22 +1374,22 @@ public struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedBytes<Byte
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes8 other)
+    public readonly bool Equals(in Bytes8 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
         )) == 0;
 
-    public bool Equals(Bytes8 other)
+    public readonly bool Equals(Bytes8 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes8 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -1365,7 +1397,7 @@ public struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedBytes<Byte
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes8 other)
+    public readonly int CompareTo(in Bytes8 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -1376,7 +1408,7 @@ public struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedBytes<Byte
         return 0;
     }
 
-    public int CompareTo(Bytes8 other)
+    public readonly int CompareTo(Bytes8 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes8 left, in Bytes8 right)
@@ -1386,15 +1418,15 @@ public struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedBytes<Byte
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -1403,7 +1435,7 @@ public struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedBytes<Byte
     }
 }
 
-public struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedBytes<Bytes9>
+public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedBytes<Bytes9>
 {
     public const int BYTE_LENGTH = 9;
 
@@ -1415,14 +1447,20 @@ public struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedBytes<Byte
         private byte _element0;
     }
 
-    private ByteStorage9 _bytes;
+    private readonly ByteStorage9 _bytes;
 
     public static Bytes9 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes9>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes9(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes9 Parse(string value)
         => Parse(value.AsSpan());
@@ -1471,7 +1509,7 @@ public struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedBytes<Byte
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes9(bytes);
         return true;
     }
 
@@ -1482,9 +1520,7 @@ public struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedBytes<Byte
             throw new ArgumentException("Bytes9 requires exactly 9 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes9);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes9(bytes);
     }
 
     public byte[] ToArray()
@@ -1494,23 +1530,23 @@ public struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedBytes<Byte
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes9 other)
+    public readonly bool Equals(in Bytes9 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
-            | ((ulong) (LoadU8Raw(8) ^ other.LoadU8Raw(8)))
+            | (LoadU64Raw(1) ^ other.LoadU64Raw(1))
         )) == 0;
 
-    public bool Equals(Bytes9 other)
+    public readonly bool Equals(Bytes9 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes9 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -1519,7 +1555,7 @@ public struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedBytes<Byte
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes9 other)
+    public readonly int CompareTo(in Bytes9 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -1536,7 +1572,7 @@ public struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedBytes<Byte
         return 0;
     }
 
-    public int CompareTo(Bytes9 other)
+    public readonly int CompareTo(Bytes9 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes9 left, in Bytes9 right)
@@ -1546,15 +1582,15 @@ public struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedBytes<Byte
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -1563,7 +1599,7 @@ public struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedBytes<Byte
     }
 }
 
-public struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFixedBytes<Bytes10>
+public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFixedBytes<Bytes10>
 {
     public const int BYTE_LENGTH = 10;
 
@@ -1575,14 +1611,20 @@ public struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage10 _bytes;
+    private readonly ByteStorage10 _bytes;
 
     public static Bytes10 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes10>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes10(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes10 Parse(string value)
         => Parse(value.AsSpan());
@@ -1631,7 +1673,7 @@ public struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes10(bytes);
         return true;
     }
 
@@ -1642,9 +1684,7 @@ public struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFixedBytes<B
             throw new ArgumentException("Bytes10 requires exactly 10 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes10);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes10(bytes);
     }
 
     public byte[] ToArray()
@@ -1654,24 +1694,23 @@ public struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes10 other)
+    public readonly bool Equals(in Bytes10 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
-            | ((ulong) (LoadU8Raw(8) ^ other.LoadU8Raw(8)))
-            | ((ulong) (LoadU8Raw(9) ^ other.LoadU8Raw(9)))
+            | (LoadU64Raw(2) ^ other.LoadU64Raw(2))
         )) == 0;
 
-    public bool Equals(Bytes10 other)
+    public readonly bool Equals(Bytes10 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes10 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -1681,7 +1720,7 @@ public struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes10 other)
+    public readonly int CompareTo(in Bytes10 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -1704,7 +1743,7 @@ public struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes10 other)
+    public readonly int CompareTo(Bytes10 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes10 left, in Bytes10 right)
@@ -1714,15 +1753,15 @@ public struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -1731,7 +1770,7 @@ public struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFixedBytes<B
     }
 }
 
-public struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFixedBytes<Bytes11>
+public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFixedBytes<Bytes11>
 {
     public const int BYTE_LENGTH = 11;
 
@@ -1743,14 +1782,20 @@ public struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage11 _bytes;
+    private readonly ByteStorage11 _bytes;
 
     public static Bytes11 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes11>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes11(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes11 Parse(string value)
         => Parse(value.AsSpan());
@@ -1799,7 +1844,7 @@ public struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes11(bytes);
         return true;
     }
 
@@ -1810,9 +1855,7 @@ public struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFixedBytes<B
             throw new ArgumentException("Bytes11 requires exactly 11 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes11);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes11(bytes);
     }
 
     public byte[] ToArray()
@@ -1822,25 +1865,23 @@ public struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes11 other)
+    public readonly bool Equals(in Bytes11 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
-            | ((ulong) (LoadU8Raw(8) ^ other.LoadU8Raw(8)))
-            | ((ulong) (LoadU8Raw(9) ^ other.LoadU8Raw(9)))
-            | ((ulong) (LoadU8Raw(10) ^ other.LoadU8Raw(10)))
+            | (LoadU64Raw(3) ^ other.LoadU64Raw(3))
         )) == 0;
 
-    public bool Equals(Bytes11 other)
+    public readonly bool Equals(Bytes11 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes11 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -1851,7 +1892,7 @@ public struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes11 other)
+    public readonly int CompareTo(in Bytes11 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -1880,7 +1921,7 @@ public struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes11 other)
+    public readonly int CompareTo(Bytes11 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes11 left, in Bytes11 right)
@@ -1890,15 +1931,15 @@ public struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -1907,7 +1948,7 @@ public struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFixedBytes<B
     }
 }
 
-public struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFixedBytes<Bytes12>
+public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFixedBytes<Bytes12>
 {
     public const int BYTE_LENGTH = 12;
 
@@ -1919,14 +1960,20 @@ public struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage12 _bytes;
+    private readonly ByteStorage12 _bytes;
 
     public static Bytes12 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes12>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes12(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes12 Parse(string value)
         => Parse(value.AsSpan());
@@ -1975,7 +2022,7 @@ public struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes12(bytes);
         return true;
     }
 
@@ -1986,9 +2033,7 @@ public struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFixedBytes<B
             throw new ArgumentException("Bytes12 requires exactly 12 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes12);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes12(bytes);
     }
 
     public byte[] ToArray()
@@ -1998,26 +2043,23 @@ public struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes12 other)
+    public readonly bool Equals(in Bytes12 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
-            | ((ulong) (LoadU8Raw(8) ^ other.LoadU8Raw(8)))
-            | ((ulong) (LoadU8Raw(9) ^ other.LoadU8Raw(9)))
-            | ((ulong) (LoadU8Raw(10) ^ other.LoadU8Raw(10)))
-            | ((ulong) (LoadU8Raw(11) ^ other.LoadU8Raw(11)))
+            | (LoadU64Raw(4) ^ other.LoadU64Raw(4))
         )) == 0;
 
-    public bool Equals(Bytes12 other)
+    public readonly bool Equals(Bytes12 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes12 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -2029,7 +2071,7 @@ public struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes12 other)
+    public readonly int CompareTo(in Bytes12 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -2064,7 +2106,7 @@ public struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes12 other)
+    public readonly int CompareTo(Bytes12 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes12 left, in Bytes12 right)
@@ -2074,15 +2116,15 @@ public struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -2091,7 +2133,7 @@ public struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFixedBytes<B
     }
 }
 
-public struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFixedBytes<Bytes13>
+public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFixedBytes<Bytes13>
 {
     public const int BYTE_LENGTH = 13;
 
@@ -2103,14 +2145,20 @@ public struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage13 _bytes;
+    private readonly ByteStorage13 _bytes;
 
     public static Bytes13 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes13>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes13(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes13 Parse(string value)
         => Parse(value.AsSpan());
@@ -2159,7 +2207,7 @@ public struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes13(bytes);
         return true;
     }
 
@@ -2170,9 +2218,7 @@ public struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFixedBytes<B
             throw new ArgumentException("Bytes13 requires exactly 13 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes13);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes13(bytes);
     }
 
     public byte[] ToArray()
@@ -2182,27 +2228,23 @@ public struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes13 other)
+    public readonly bool Equals(in Bytes13 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
-            | ((ulong) (LoadU8Raw(8) ^ other.LoadU8Raw(8)))
-            | ((ulong) (LoadU8Raw(9) ^ other.LoadU8Raw(9)))
-            | ((ulong) (LoadU8Raw(10) ^ other.LoadU8Raw(10)))
-            | ((ulong) (LoadU8Raw(11) ^ other.LoadU8Raw(11)))
-            | ((ulong) (LoadU8Raw(12) ^ other.LoadU8Raw(12)))
+            | (LoadU64Raw(5) ^ other.LoadU64Raw(5))
         )) == 0;
 
-    public bool Equals(Bytes13 other)
+    public readonly bool Equals(Bytes13 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes13 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -2215,7 +2257,7 @@ public struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes13 other)
+    public readonly int CompareTo(in Bytes13 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -2256,7 +2298,7 @@ public struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes13 other)
+    public readonly int CompareTo(Bytes13 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes13 left, in Bytes13 right)
@@ -2266,15 +2308,15 @@ public struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -2283,7 +2325,7 @@ public struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFixedBytes<B
     }
 }
 
-public struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFixedBytes<Bytes14>
+public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFixedBytes<Bytes14>
 {
     public const int BYTE_LENGTH = 14;
 
@@ -2295,14 +2337,20 @@ public struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage14 _bytes;
+    private readonly ByteStorage14 _bytes;
 
     public static Bytes14 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes14>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes14(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes14 Parse(string value)
         => Parse(value.AsSpan());
@@ -2351,7 +2399,7 @@ public struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes14(bytes);
         return true;
     }
 
@@ -2362,9 +2410,7 @@ public struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFixedBytes<B
             throw new ArgumentException("Bytes14 requires exactly 14 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes14);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes14(bytes);
     }
 
     public byte[] ToArray()
@@ -2374,28 +2420,23 @@ public struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes14 other)
+    public readonly bool Equals(in Bytes14 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
-            | ((ulong) (LoadU8Raw(8) ^ other.LoadU8Raw(8)))
-            | ((ulong) (LoadU8Raw(9) ^ other.LoadU8Raw(9)))
-            | ((ulong) (LoadU8Raw(10) ^ other.LoadU8Raw(10)))
-            | ((ulong) (LoadU8Raw(11) ^ other.LoadU8Raw(11)))
-            | ((ulong) (LoadU8Raw(12) ^ other.LoadU8Raw(12)))
-            | ((ulong) (LoadU8Raw(13) ^ other.LoadU8Raw(13)))
+            | (LoadU64Raw(6) ^ other.LoadU64Raw(6))
         )) == 0;
 
-    public bool Equals(Bytes14 other)
+    public readonly bool Equals(Bytes14 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes14 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -2409,7 +2450,7 @@ public struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes14 other)
+    public readonly int CompareTo(in Bytes14 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -2456,7 +2497,7 @@ public struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes14 other)
+    public readonly int CompareTo(Bytes14 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes14 left, in Bytes14 right)
@@ -2466,15 +2507,15 @@ public struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -2483,7 +2524,7 @@ public struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFixedBytes<B
     }
 }
 
-public struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFixedBytes<Bytes15>
+public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFixedBytes<Bytes15>
 {
     public const int BYTE_LENGTH = 15;
 
@@ -2495,14 +2536,20 @@ public struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage15 _bytes;
+    private readonly ByteStorage15 _bytes;
 
     public static Bytes15 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes15>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes15(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes15 Parse(string value)
         => Parse(value.AsSpan());
@@ -2551,7 +2598,7 @@ public struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes15(bytes);
         return true;
     }
 
@@ -2562,9 +2609,7 @@ public struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFixedBytes<B
             throw new ArgumentException("Bytes15 requires exactly 15 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes15);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes15(bytes);
     }
 
     public byte[] ToArray()
@@ -2574,29 +2619,23 @@ public struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes15 other)
+    public readonly bool Equals(in Bytes15 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
-            | ((ulong) (LoadU8Raw(8) ^ other.LoadU8Raw(8)))
-            | ((ulong) (LoadU8Raw(9) ^ other.LoadU8Raw(9)))
-            | ((ulong) (LoadU8Raw(10) ^ other.LoadU8Raw(10)))
-            | ((ulong) (LoadU8Raw(11) ^ other.LoadU8Raw(11)))
-            | ((ulong) (LoadU8Raw(12) ^ other.LoadU8Raw(12)))
-            | ((ulong) (LoadU8Raw(13) ^ other.LoadU8Raw(13)))
-            | ((ulong) (LoadU8Raw(14) ^ other.LoadU8Raw(14)))
+            | (LoadU64Raw(7) ^ other.LoadU64Raw(7))
         )) == 0;
 
-    public bool Equals(Bytes15 other)
+    public readonly bool Equals(Bytes15 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes15 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -2611,7 +2650,7 @@ public struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes15 other)
+    public readonly int CompareTo(in Bytes15 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -2664,7 +2703,7 @@ public struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes15 other)
+    public readonly int CompareTo(Bytes15 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes15 left, in Bytes15 right)
@@ -2674,15 +2713,15 @@ public struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -2691,7 +2730,7 @@ public struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFixedBytes<B
     }
 }
 
-public struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFixedBytes<Bytes16>
+public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFixedBytes<Bytes16>
 {
     public const int BYTE_LENGTH = 16;
 
@@ -2703,14 +2742,20 @@ public struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage16 _bytes;
+    private readonly ByteStorage16 _bytes;
 
     public static Bytes16 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes16>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes16(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes16 Parse(string value)
         => Parse(value.AsSpan());
@@ -2759,7 +2804,7 @@ public struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes16(bytes);
         return true;
     }
 
@@ -2770,9 +2815,7 @@ public struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFixedBytes<B
             throw new ArgumentException("Bytes16 requires exactly 16 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes16);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes16(bytes);
     }
 
     public byte[] ToArray()
@@ -2782,23 +2825,23 @@ public struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes16 other)
+    public readonly bool Equals(in Bytes16 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
         )) == 0;
 
-    public bool Equals(Bytes16 other)
+    public readonly bool Equals(Bytes16 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes16 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -2807,7 +2850,7 @@ public struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes16 other)
+    public readonly int CompareTo(in Bytes16 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -2824,7 +2867,7 @@ public struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes16 other)
+    public readonly int CompareTo(Bytes16 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes16 left, in Bytes16 right)
@@ -2834,15 +2877,15 @@ public struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -2851,7 +2894,7 @@ public struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFixedBytes<B
     }
 }
 
-public struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFixedBytes<Bytes17>
+public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFixedBytes<Bytes17>
 {
     public const int BYTE_LENGTH = 17;
 
@@ -2863,14 +2906,20 @@ public struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage17 _bytes;
+    private readonly ByteStorage17 _bytes;
 
     public static Bytes17 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes17>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes17(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes17 Parse(string value)
         => Parse(value.AsSpan());
@@ -2919,7 +2968,7 @@ public struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes17(bytes);
         return true;
     }
 
@@ -2930,9 +2979,7 @@ public struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFixedBytes<B
             throw new ArgumentException("Bytes17 requires exactly 17 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes17);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes17(bytes);
     }
 
     public byte[] ToArray()
@@ -2942,24 +2989,24 @@ public struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes17 other)
+    public readonly bool Equals(in Bytes17 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
-            | ((ulong) (LoadU8Raw(16) ^ other.LoadU8Raw(16)))
+            | (LoadU64Raw(9) ^ other.LoadU64Raw(9))
         )) == 0;
 
-    public bool Equals(Bytes17 other)
+    public readonly bool Equals(Bytes17 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes17 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -2969,7 +3016,7 @@ public struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes17 other)
+    public readonly int CompareTo(in Bytes17 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -2992,7 +3039,7 @@ public struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes17 other)
+    public readonly int CompareTo(Bytes17 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes17 left, in Bytes17 right)
@@ -3002,15 +3049,15 @@ public struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -3019,7 +3066,7 @@ public struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFixedBytes<B
     }
 }
 
-public struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFixedBytes<Bytes18>
+public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFixedBytes<Bytes18>
 {
     public const int BYTE_LENGTH = 18;
 
@@ -3031,14 +3078,20 @@ public struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage18 _bytes;
+    private readonly ByteStorage18 _bytes;
 
     public static Bytes18 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes18>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes18(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes18 Parse(string value)
         => Parse(value.AsSpan());
@@ -3087,7 +3140,7 @@ public struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes18(bytes);
         return true;
     }
 
@@ -3098,9 +3151,7 @@ public struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFixedBytes<B
             throw new ArgumentException("Bytes18 requires exactly 18 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes18);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes18(bytes);
     }
 
     public byte[] ToArray()
@@ -3110,25 +3161,24 @@ public struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes18 other)
+    public readonly bool Equals(in Bytes18 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
-            | ((ulong) (LoadU8Raw(16) ^ other.LoadU8Raw(16)))
-            | ((ulong) (LoadU8Raw(17) ^ other.LoadU8Raw(17)))
+            | (LoadU64Raw(10) ^ other.LoadU64Raw(10))
         )) == 0;
 
-    public bool Equals(Bytes18 other)
+    public readonly bool Equals(Bytes18 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes18 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -3139,7 +3189,7 @@ public struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes18 other)
+    public readonly int CompareTo(in Bytes18 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -3168,7 +3218,7 @@ public struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes18 other)
+    public readonly int CompareTo(Bytes18 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes18 left, in Bytes18 right)
@@ -3178,15 +3228,15 @@ public struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -3195,7 +3245,7 @@ public struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFixedBytes<B
     }
 }
 
-public struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFixedBytes<Bytes19>
+public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFixedBytes<Bytes19>
 {
     public const int BYTE_LENGTH = 19;
 
@@ -3207,14 +3257,20 @@ public struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage19 _bytes;
+    private readonly ByteStorage19 _bytes;
 
     public static Bytes19 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes19>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes19(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes19 Parse(string value)
         => Parse(value.AsSpan());
@@ -3263,7 +3319,7 @@ public struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes19(bytes);
         return true;
     }
 
@@ -3274,9 +3330,7 @@ public struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFixedBytes<B
             throw new ArgumentException("Bytes19 requires exactly 19 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes19);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes19(bytes);
     }
 
     public byte[] ToArray()
@@ -3286,26 +3340,24 @@ public struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes19 other)
+    public readonly bool Equals(in Bytes19 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
-            | ((ulong) (LoadU8Raw(16) ^ other.LoadU8Raw(16)))
-            | ((ulong) (LoadU8Raw(17) ^ other.LoadU8Raw(17)))
-            | ((ulong) (LoadU8Raw(18) ^ other.LoadU8Raw(18)))
+            | (LoadU64Raw(11) ^ other.LoadU64Raw(11))
         )) == 0;
 
-    public bool Equals(Bytes19 other)
+    public readonly bool Equals(Bytes19 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes19 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -3317,7 +3369,7 @@ public struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes19 other)
+    public readonly int CompareTo(in Bytes19 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -3352,7 +3404,7 @@ public struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes19 other)
+    public readonly int CompareTo(Bytes19 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes19 left, in Bytes19 right)
@@ -3362,15 +3414,15 @@ public struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -3379,7 +3431,7 @@ public struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFixedBytes<B
     }
 }
 
-public struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFixedBytes<Bytes20>
+public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFixedBytes<Bytes20>
 {
     public const int BYTE_LENGTH = 20;
 
@@ -3391,14 +3443,20 @@ public struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage20 _bytes;
+    private readonly ByteStorage20 _bytes;
 
     public static Bytes20 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes20>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes20(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes20 Parse(string value)
         => Parse(value.AsSpan());
@@ -3447,7 +3505,7 @@ public struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes20(bytes);
         return true;
     }
 
@@ -3458,9 +3516,7 @@ public struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFixedBytes<B
             throw new ArgumentException("Bytes20 requires exactly 20 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes20);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes20(bytes);
     }
 
     public byte[] ToArray()
@@ -3470,27 +3526,24 @@ public struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes20 other)
+    public readonly bool Equals(in Bytes20 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
-            | ((ulong) (LoadU8Raw(16) ^ other.LoadU8Raw(16)))
-            | ((ulong) (LoadU8Raw(17) ^ other.LoadU8Raw(17)))
-            | ((ulong) (LoadU8Raw(18) ^ other.LoadU8Raw(18)))
-            | ((ulong) (LoadU8Raw(19) ^ other.LoadU8Raw(19)))
+            | (LoadU64Raw(12) ^ other.LoadU64Raw(12))
         )) == 0;
 
-    public bool Equals(Bytes20 other)
+    public readonly bool Equals(Bytes20 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes20 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -3503,7 +3556,7 @@ public struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes20 other)
+    public readonly int CompareTo(in Bytes20 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -3544,7 +3597,7 @@ public struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes20 other)
+    public readonly int CompareTo(Bytes20 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes20 left, in Bytes20 right)
@@ -3554,15 +3607,15 @@ public struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -3571,7 +3624,7 @@ public struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFixedBytes<B
     }
 }
 
-public struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFixedBytes<Bytes21>
+public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFixedBytes<Bytes21>
 {
     public const int BYTE_LENGTH = 21;
 
@@ -3583,14 +3636,20 @@ public struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage21 _bytes;
+    private readonly ByteStorage21 _bytes;
 
     public static Bytes21 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes21>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes21(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes21 Parse(string value)
         => Parse(value.AsSpan());
@@ -3639,7 +3698,7 @@ public struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes21(bytes);
         return true;
     }
 
@@ -3650,9 +3709,7 @@ public struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFixedBytes<B
             throw new ArgumentException("Bytes21 requires exactly 21 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes21);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes21(bytes);
     }
 
     public byte[] ToArray()
@@ -3662,28 +3719,24 @@ public struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes21 other)
+    public readonly bool Equals(in Bytes21 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
-            | ((ulong) (LoadU8Raw(16) ^ other.LoadU8Raw(16)))
-            | ((ulong) (LoadU8Raw(17) ^ other.LoadU8Raw(17)))
-            | ((ulong) (LoadU8Raw(18) ^ other.LoadU8Raw(18)))
-            | ((ulong) (LoadU8Raw(19) ^ other.LoadU8Raw(19)))
-            | ((ulong) (LoadU8Raw(20) ^ other.LoadU8Raw(20)))
+            | (LoadU64Raw(13) ^ other.LoadU64Raw(13))
         )) == 0;
 
-    public bool Equals(Bytes21 other)
+    public readonly bool Equals(Bytes21 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes21 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -3697,7 +3750,7 @@ public struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes21 other)
+    public readonly int CompareTo(in Bytes21 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -3744,7 +3797,7 @@ public struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes21 other)
+    public readonly int CompareTo(Bytes21 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes21 left, in Bytes21 right)
@@ -3754,15 +3807,15 @@ public struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -3771,7 +3824,7 @@ public struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFixedBytes<B
     }
 }
 
-public struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFixedBytes<Bytes22>
+public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFixedBytes<Bytes22>
 {
     public const int BYTE_LENGTH = 22;
 
@@ -3783,14 +3836,20 @@ public struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage22 _bytes;
+    private readonly ByteStorage22 _bytes;
 
     public static Bytes22 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes22>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes22(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes22 Parse(string value)
         => Parse(value.AsSpan());
@@ -3839,7 +3898,7 @@ public struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes22(bytes);
         return true;
     }
 
@@ -3850,9 +3909,7 @@ public struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFixedBytes<B
             throw new ArgumentException("Bytes22 requires exactly 22 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes22);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes22(bytes);
     }
 
     public byte[] ToArray()
@@ -3862,29 +3919,24 @@ public struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes22 other)
+    public readonly bool Equals(in Bytes22 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
-            | ((ulong) (LoadU8Raw(16) ^ other.LoadU8Raw(16)))
-            | ((ulong) (LoadU8Raw(17) ^ other.LoadU8Raw(17)))
-            | ((ulong) (LoadU8Raw(18) ^ other.LoadU8Raw(18)))
-            | ((ulong) (LoadU8Raw(19) ^ other.LoadU8Raw(19)))
-            | ((ulong) (LoadU8Raw(20) ^ other.LoadU8Raw(20)))
-            | ((ulong) (LoadU8Raw(21) ^ other.LoadU8Raw(21)))
+            | (LoadU64Raw(14) ^ other.LoadU64Raw(14))
         )) == 0;
 
-    public bool Equals(Bytes22 other)
+    public readonly bool Equals(Bytes22 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes22 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -3899,7 +3951,7 @@ public struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes22 other)
+    public readonly int CompareTo(in Bytes22 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -3952,7 +4004,7 @@ public struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes22 other)
+    public readonly int CompareTo(Bytes22 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes22 left, in Bytes22 right)
@@ -3962,15 +4014,15 @@ public struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -3979,7 +4031,7 @@ public struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFixedBytes<B
     }
 }
 
-public struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFixedBytes<Bytes23>
+public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFixedBytes<Bytes23>
 {
     public const int BYTE_LENGTH = 23;
 
@@ -3991,14 +4043,20 @@ public struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage23 _bytes;
+    private readonly ByteStorage23 _bytes;
 
     public static Bytes23 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes23>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes23(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes23 Parse(string value)
         => Parse(value.AsSpan());
@@ -4047,7 +4105,7 @@ public struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes23(bytes);
         return true;
     }
 
@@ -4058,9 +4116,7 @@ public struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFixedBytes<B
             throw new ArgumentException("Bytes23 requires exactly 23 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes23);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes23(bytes);
     }
 
     public byte[] ToArray()
@@ -4070,30 +4126,24 @@ public struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes23 other)
+    public readonly bool Equals(in Bytes23 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
-            | ((ulong) (LoadU8Raw(16) ^ other.LoadU8Raw(16)))
-            | ((ulong) (LoadU8Raw(17) ^ other.LoadU8Raw(17)))
-            | ((ulong) (LoadU8Raw(18) ^ other.LoadU8Raw(18)))
-            | ((ulong) (LoadU8Raw(19) ^ other.LoadU8Raw(19)))
-            | ((ulong) (LoadU8Raw(20) ^ other.LoadU8Raw(20)))
-            | ((ulong) (LoadU8Raw(21) ^ other.LoadU8Raw(21)))
-            | ((ulong) (LoadU8Raw(22) ^ other.LoadU8Raw(22)))
+            | (LoadU64Raw(15) ^ other.LoadU64Raw(15))
         )) == 0;
 
-    public bool Equals(Bytes23 other)
+    public readonly bool Equals(Bytes23 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes23 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -4109,7 +4159,7 @@ public struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes23 other)
+    public readonly int CompareTo(in Bytes23 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -4168,7 +4218,7 @@ public struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes23 other)
+    public readonly int CompareTo(Bytes23 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes23 left, in Bytes23 right)
@@ -4178,15 +4228,15 @@ public struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -4195,7 +4245,7 @@ public struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFixedBytes<B
     }
 }
 
-public struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFixedBytes<Bytes24>
+public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFixedBytes<Bytes24>
 {
     public const int BYTE_LENGTH = 24;
 
@@ -4207,14 +4257,20 @@ public struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage24 _bytes;
+    private readonly ByteStorage24 _bytes;
 
     public static Bytes24 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes24>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes24(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes24 Parse(string value)
         => Parse(value.AsSpan());
@@ -4263,7 +4319,7 @@ public struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes24(bytes);
         return true;
     }
 
@@ -4274,9 +4330,7 @@ public struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFixedBytes<B
             throw new ArgumentException("Bytes24 requires exactly 24 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes24);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes24(bytes);
     }
 
     public byte[] ToArray()
@@ -4286,24 +4340,24 @@ public struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes24 other)
+    public readonly bool Equals(in Bytes24 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
         )) == 0;
 
-    public bool Equals(Bytes24 other)
+    public readonly bool Equals(Bytes24 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes24 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -4313,7 +4367,7 @@ public struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes24 other)
+    public readonly int CompareTo(in Bytes24 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -4336,7 +4390,7 @@ public struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes24 other)
+    public readonly int CompareTo(Bytes24 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes24 left, in Bytes24 right)
@@ -4346,15 +4400,15 @@ public struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -4363,7 +4417,7 @@ public struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFixedBytes<B
     }
 }
 
-public struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFixedBytes<Bytes25>
+public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFixedBytes<Bytes25>
 {
     public const int BYTE_LENGTH = 25;
 
@@ -4375,14 +4429,20 @@ public struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage25 _bytes;
+    private readonly ByteStorage25 _bytes;
 
     public static Bytes25 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes25>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes25(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes25 Parse(string value)
         => Parse(value.AsSpan());
@@ -4431,7 +4491,7 @@ public struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes25(bytes);
         return true;
     }
 
@@ -4442,9 +4502,7 @@ public struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFixedBytes<B
             throw new ArgumentException("Bytes25 requires exactly 25 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes25);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes25(bytes);
     }
 
     public byte[] ToArray()
@@ -4454,25 +4512,25 @@ public struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes25 other)
+    public readonly bool Equals(in Bytes25 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
-            | ((ulong) (LoadU8Raw(24) ^ other.LoadU8Raw(24)))
+            | (LoadU64Raw(17) ^ other.LoadU64Raw(17))
         )) == 0;
 
-    public bool Equals(Bytes25 other)
+    public readonly bool Equals(Bytes25 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes25 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -4483,7 +4541,7 @@ public struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes25 other)
+    public readonly int CompareTo(in Bytes25 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -4512,7 +4570,7 @@ public struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes25 other)
+    public readonly int CompareTo(Bytes25 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes25 left, in Bytes25 right)
@@ -4522,15 +4580,15 @@ public struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -4539,7 +4597,7 @@ public struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFixedBytes<B
     }
 }
 
-public struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFixedBytes<Bytes26>
+public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFixedBytes<Bytes26>
 {
     public const int BYTE_LENGTH = 26;
 
@@ -4551,14 +4609,20 @@ public struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage26 _bytes;
+    private readonly ByteStorage26 _bytes;
 
     public static Bytes26 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes26>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes26(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes26 Parse(string value)
         => Parse(value.AsSpan());
@@ -4607,7 +4671,7 @@ public struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes26(bytes);
         return true;
     }
 
@@ -4618,9 +4682,7 @@ public struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFixedBytes<B
             throw new ArgumentException("Bytes26 requires exactly 26 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes26);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes26(bytes);
     }
 
     public byte[] ToArray()
@@ -4630,26 +4692,25 @@ public struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes26 other)
+    public readonly bool Equals(in Bytes26 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
-            | ((ulong) (LoadU8Raw(24) ^ other.LoadU8Raw(24)))
-            | ((ulong) (LoadU8Raw(25) ^ other.LoadU8Raw(25)))
+            | (LoadU64Raw(18) ^ other.LoadU64Raw(18))
         )) == 0;
 
-    public bool Equals(Bytes26 other)
+    public readonly bool Equals(Bytes26 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes26 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -4661,7 +4722,7 @@ public struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes26 other)
+    public readonly int CompareTo(in Bytes26 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -4696,7 +4757,7 @@ public struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes26 other)
+    public readonly int CompareTo(Bytes26 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes26 left, in Bytes26 right)
@@ -4706,15 +4767,15 @@ public struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -4723,7 +4784,7 @@ public struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFixedBytes<B
     }
 }
 
-public struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFixedBytes<Bytes27>
+public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFixedBytes<Bytes27>
 {
     public const int BYTE_LENGTH = 27;
 
@@ -4735,14 +4796,20 @@ public struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage27 _bytes;
+    private readonly ByteStorage27 _bytes;
 
     public static Bytes27 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes27>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes27(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes27 Parse(string value)
         => Parse(value.AsSpan());
@@ -4791,7 +4858,7 @@ public struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes27(bytes);
         return true;
     }
 
@@ -4802,9 +4869,7 @@ public struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFixedBytes<B
             throw new ArgumentException("Bytes27 requires exactly 27 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes27);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes27(bytes);
     }
 
     public byte[] ToArray()
@@ -4814,27 +4879,25 @@ public struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes27 other)
+    public readonly bool Equals(in Bytes27 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
-            | ((ulong) (LoadU8Raw(24) ^ other.LoadU8Raw(24)))
-            | ((ulong) (LoadU8Raw(25) ^ other.LoadU8Raw(25)))
-            | ((ulong) (LoadU8Raw(26) ^ other.LoadU8Raw(26)))
+            | (LoadU64Raw(19) ^ other.LoadU64Raw(19))
         )) == 0;
 
-    public bool Equals(Bytes27 other)
+    public readonly bool Equals(Bytes27 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes27 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -4847,7 +4910,7 @@ public struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes27 other)
+    public readonly int CompareTo(in Bytes27 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -4888,7 +4951,7 @@ public struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes27 other)
+    public readonly int CompareTo(Bytes27 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes27 left, in Bytes27 right)
@@ -4898,15 +4961,15 @@ public struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -4915,7 +4978,7 @@ public struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFixedBytes<B
     }
 }
 
-public struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFixedBytes<Bytes28>
+public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFixedBytes<Bytes28>
 {
     public const int BYTE_LENGTH = 28;
 
@@ -4927,14 +4990,20 @@ public struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage28 _bytes;
+    private readonly ByteStorage28 _bytes;
 
     public static Bytes28 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes28>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes28(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes28 Parse(string value)
         => Parse(value.AsSpan());
@@ -4983,7 +5052,7 @@ public struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes28(bytes);
         return true;
     }
 
@@ -4994,9 +5063,7 @@ public struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFixedBytes<B
             throw new ArgumentException("Bytes28 requires exactly 28 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes28);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes28(bytes);
     }
 
     public byte[] ToArray()
@@ -5006,28 +5073,25 @@ public struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes28 other)
+    public readonly bool Equals(in Bytes28 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
-            | ((ulong) (LoadU8Raw(24) ^ other.LoadU8Raw(24)))
-            | ((ulong) (LoadU8Raw(25) ^ other.LoadU8Raw(25)))
-            | ((ulong) (LoadU8Raw(26) ^ other.LoadU8Raw(26)))
-            | ((ulong) (LoadU8Raw(27) ^ other.LoadU8Raw(27)))
+            | (LoadU64Raw(20) ^ other.LoadU64Raw(20))
         )) == 0;
 
-    public bool Equals(Bytes28 other)
+    public readonly bool Equals(Bytes28 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes28 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -5041,7 +5105,7 @@ public struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes28 other)
+    public readonly int CompareTo(in Bytes28 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -5088,7 +5152,7 @@ public struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes28 other)
+    public readonly int CompareTo(Bytes28 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes28 left, in Bytes28 right)
@@ -5098,15 +5162,15 @@ public struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -5115,7 +5179,7 @@ public struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFixedBytes<B
     }
 }
 
-public struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFixedBytes<Bytes29>
+public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFixedBytes<Bytes29>
 {
     public const int BYTE_LENGTH = 29;
 
@@ -5127,14 +5191,20 @@ public struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage29 _bytes;
+    private readonly ByteStorage29 _bytes;
 
     public static Bytes29 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes29>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes29(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes29 Parse(string value)
         => Parse(value.AsSpan());
@@ -5183,7 +5253,7 @@ public struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes29(bytes);
         return true;
     }
 
@@ -5194,9 +5264,7 @@ public struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFixedBytes<B
             throw new ArgumentException("Bytes29 requires exactly 29 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes29);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes29(bytes);
     }
 
     public byte[] ToArray()
@@ -5206,29 +5274,25 @@ public struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes29 other)
+    public readonly bool Equals(in Bytes29 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
-            | ((ulong) (LoadU8Raw(24) ^ other.LoadU8Raw(24)))
-            | ((ulong) (LoadU8Raw(25) ^ other.LoadU8Raw(25)))
-            | ((ulong) (LoadU8Raw(26) ^ other.LoadU8Raw(26)))
-            | ((ulong) (LoadU8Raw(27) ^ other.LoadU8Raw(27)))
-            | ((ulong) (LoadU8Raw(28) ^ other.LoadU8Raw(28)))
+            | (LoadU64Raw(21) ^ other.LoadU64Raw(21))
         )) == 0;
 
-    public bool Equals(Bytes29 other)
+    public readonly bool Equals(Bytes29 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes29 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -5243,7 +5307,7 @@ public struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes29 other)
+    public readonly int CompareTo(in Bytes29 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -5296,7 +5360,7 @@ public struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes29 other)
+    public readonly int CompareTo(Bytes29 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes29 left, in Bytes29 right)
@@ -5306,15 +5370,15 @@ public struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -5323,7 +5387,7 @@ public struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFixedBytes<B
     }
 }
 
-public struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFixedBytes<Bytes30>
+public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFixedBytes<Bytes30>
 {
     public const int BYTE_LENGTH = 30;
 
@@ -5335,14 +5399,20 @@ public struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage30 _bytes;
+    private readonly ByteStorage30 _bytes;
 
     public static Bytes30 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes30>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes30(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes30 Parse(string value)
         => Parse(value.AsSpan());
@@ -5391,7 +5461,7 @@ public struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes30(bytes);
         return true;
     }
 
@@ -5402,9 +5472,7 @@ public struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFixedBytes<B
             throw new ArgumentException("Bytes30 requires exactly 30 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes30);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes30(bytes);
     }
 
     public byte[] ToArray()
@@ -5414,30 +5482,25 @@ public struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes30 other)
+    public readonly bool Equals(in Bytes30 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
-            | ((ulong) (LoadU8Raw(24) ^ other.LoadU8Raw(24)))
-            | ((ulong) (LoadU8Raw(25) ^ other.LoadU8Raw(25)))
-            | ((ulong) (LoadU8Raw(26) ^ other.LoadU8Raw(26)))
-            | ((ulong) (LoadU8Raw(27) ^ other.LoadU8Raw(27)))
-            | ((ulong) (LoadU8Raw(28) ^ other.LoadU8Raw(28)))
-            | ((ulong) (LoadU8Raw(29) ^ other.LoadU8Raw(29)))
+            | (LoadU64Raw(22) ^ other.LoadU64Raw(22))
         )) == 0;
 
-    public bool Equals(Bytes30 other)
+    public readonly bool Equals(Bytes30 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes30 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -5453,7 +5516,7 @@ public struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes30 other)
+    public readonly int CompareTo(in Bytes30 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -5512,7 +5575,7 @@ public struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes30 other)
+    public readonly int CompareTo(Bytes30 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes30 left, in Bytes30 right)
@@ -5522,15 +5585,15 @@ public struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -5539,7 +5602,7 @@ public struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFixedBytes<B
     }
 }
 
-public struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFixedBytes<Bytes31>
+public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFixedBytes<Bytes31>
 {
     public const int BYTE_LENGTH = 31;
 
@@ -5551,14 +5614,20 @@ public struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage31 _bytes;
+    private readonly ByteStorage31 _bytes;
 
     public static Bytes31 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes31>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes31(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes31 Parse(string value)
         => Parse(value.AsSpan());
@@ -5607,7 +5676,7 @@ public struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes31(bytes);
         return true;
     }
 
@@ -5618,9 +5687,7 @@ public struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFixedBytes<B
             throw new ArgumentException("Bytes31 requires exactly 31 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes31);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes31(bytes);
     }
 
     public byte[] ToArray()
@@ -5630,31 +5697,25 @@ public struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes31 other)
+    public readonly bool Equals(in Bytes31 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
-            | ((ulong) (LoadU8Raw(24) ^ other.LoadU8Raw(24)))
-            | ((ulong) (LoadU8Raw(25) ^ other.LoadU8Raw(25)))
-            | ((ulong) (LoadU8Raw(26) ^ other.LoadU8Raw(26)))
-            | ((ulong) (LoadU8Raw(27) ^ other.LoadU8Raw(27)))
-            | ((ulong) (LoadU8Raw(28) ^ other.LoadU8Raw(28)))
-            | ((ulong) (LoadU8Raw(29) ^ other.LoadU8Raw(29)))
-            | ((ulong) (LoadU8Raw(30) ^ other.LoadU8Raw(30)))
+            | (LoadU64Raw(23) ^ other.LoadU64Raw(23))
         )) == 0;
 
-    public bool Equals(Bytes31 other)
+    public readonly bool Equals(Bytes31 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes31 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -5671,7 +5732,7 @@ public struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes31 other)
+    public readonly int CompareTo(in Bytes31 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -5736,7 +5797,7 @@ public struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes31 other)
+    public readonly int CompareTo(Bytes31 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes31 left, in Bytes31 right)
@@ -5746,15 +5807,15 @@ public struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -5764,7 +5825,7 @@ public struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFixedBytes<B
 }
 
 [JsonConverter(typeof(Bytes32Converter))]
-public struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<Bytes32>
+public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<Bytes32>
 {
     public const int BYTE_LENGTH = 32;
 
@@ -5776,14 +5837,20 @@ public struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<B
         private byte _element0;
     }
 
-    private ByteStorage32 _bytes;
+    private readonly ByteStorage32 _bytes;
 
     public static Bytes32 Zero => default;
 
-    public ReadOnlySpan<byte> Bytes
-        => MemoryMarshal.CreateReadOnlySpan(ref _bytes[0], BYTE_LENGTH);
+    public readonly ReadOnlySpan<byte> Bytes
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes32>.BYTE_LENGTH => BYTE_LENGTH;
+
+    private Bytes32(ReadOnlySpan<byte> bytes)
+    {
+        _bytes = default;
+        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
+    }
 
     public static Bytes32 Parse(string value)
         => Parse(value.AsSpan());
@@ -5832,7 +5899,7 @@ public struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<B
             return false;
         }
 
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref parsed._bytes[0], BYTE_LENGTH));
+        parsed = new Bytes32(bytes);
         return true;
     }
 
@@ -5843,9 +5910,7 @@ public struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<B
             throw new ArgumentException("Bytes32 requires exactly 32 bytes", nameof(bytes));
         }
 
-        var result = default(Bytes32);
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref result._bytes[0], BYTE_LENGTH));
-        return result;
+        return new Bytes32(bytes);
     }
 
     public byte[] ToArray()
@@ -5855,11 +5920,11 @@ public struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<B
         return copy;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(Bytes);
 
     [OverloadResolutionPriority(1)]
-    public bool Equals(in Bytes32 other)
+    public readonly bool Equals(in Bytes32 other)
         => ((
             (LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
@@ -5867,13 +5932,13 @@ public struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<B
             | (LoadU64Raw(24) ^ other.LoadU64Raw(24))
         )) == 0;
 
-    public bool Equals(Bytes32 other)
+    public readonly bool Equals(Bytes32 other)
         => Equals(in other);
 
-    public override bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
         => obj is Bytes32 other && Equals(other);
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(LoadU64BE(0));
@@ -5884,7 +5949,7 @@ public struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<B
     }
 
     [OverloadResolutionPriority(1)]
-    public int CompareTo(in Bytes32 other)
+    public readonly int CompareTo(in Bytes32 other)
     {
         int cmp0 = LoadU64BE(0).CompareTo(other.LoadU64BE(0));
         if(cmp0 != 0)
@@ -5913,7 +5978,7 @@ public struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<B
         return 0;
     }
 
-    public int CompareTo(Bytes32 other)
+    public readonly int CompareTo(Bytes32 other)
         => CompareTo(in other);
 
     public static bool operator ==(in Bytes32 left, in Bytes32 right)
@@ -5923,15 +5988,15 @@ public struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<B
         => !left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64Raw(int offset)
-        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref _bytes[0], offset));
+    private readonly ulong LoadU64Raw(int offset)
+        => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private byte LoadU8Raw(int offset)
-        => Unsafe.Add(ref _bytes[0], offset);
+    private readonly byte LoadU8Raw(int offset)
+        => Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ulong LoadU64BE(int offset)
+    private readonly ulong LoadU64BE(int offset)
     {
         ulong value = LoadU64Raw(offset);
         return BitConverter.IsLittleEndian
@@ -5939,4 +6004,5 @@ public struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<B
             : value;
     }
 }
+
 #pragma warning restore CS1591, CS0675
