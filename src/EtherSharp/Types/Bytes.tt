@@ -115,6 +115,9 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
         return new Bytes<#= i #>(bytes);
     }
 
+    public static implicit operator ReadOnlySpan<byte>(in Bytes<#= i #> value)
+        => value.Bytes;
+
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];

@@ -109,6 +109,9 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
         return new Bytes1(bytes);
     }
 
+    public static implicit operator ReadOnlySpan<byte>(in Bytes1 value)
+        => value.Bytes;
+
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -262,6 +265,9 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
 
         return new Bytes2(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes2 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -426,6 +432,9 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
 
         return new Bytes3(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes3 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -598,6 +607,9 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
 
         return new Bytes4(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes4 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -778,6 +790,9 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
 
         return new Bytes5(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes5 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -966,6 +981,9 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
 
         return new Bytes6(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes6 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -1162,6 +1180,9 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
 
         return new Bytes7(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes7 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -1367,6 +1388,9 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
         return new Bytes8(bytes);
     }
 
+    public static implicit operator ReadOnlySpan<byte>(in Bytes8 value)
+        => value.Bytes;
+
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -1522,6 +1546,9 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
 
         return new Bytes9(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes9 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -1686,6 +1713,9 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
 
         return new Bytes10(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes10 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -1857,6 +1887,9 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
 
         return new Bytes11(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes11 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -2035,6 +2068,9 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
 
         return new Bytes12(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes12 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -2220,6 +2256,9 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
 
         return new Bytes13(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes13 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -2412,6 +2451,9 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
 
         return new Bytes14(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes14 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -2611,6 +2653,9 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
 
         return new Bytes15(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes15 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -2818,6 +2863,9 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
         return new Bytes16(bytes);
     }
 
+    public static implicit operator ReadOnlySpan<byte>(in Bytes16 value)
+        => value.Bytes;
+
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -2981,6 +3029,9 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
 
         return new Bytes17(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes17 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -3153,6 +3204,9 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
 
         return new Bytes18(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes18 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -3332,6 +3386,9 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
 
         return new Bytes19(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes19 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -3518,6 +3575,9 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
 
         return new Bytes20(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes20 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -3711,6 +3771,9 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
 
         return new Bytes21(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes21 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -3911,6 +3974,9 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
 
         return new Bytes22(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes22 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -4118,6 +4184,9 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
 
         return new Bytes23(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes23 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -4333,6 +4402,9 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
         return new Bytes24(bytes);
     }
 
+    public static implicit operator ReadOnlySpan<byte>(in Bytes24 value)
+        => value.Bytes;
+
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -4504,6 +4576,9 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
 
         return new Bytes25(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes25 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -4684,6 +4759,9 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
 
         return new Bytes26(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes26 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -4871,6 +4949,9 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
 
         return new Bytes27(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes27 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -5065,6 +5146,9 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
 
         return new Bytes28(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes28 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -5266,6 +5350,9 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
 
         return new Bytes29(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes29 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -5474,6 +5561,9 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
 
         return new Bytes30(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes30 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -5689,6 +5779,9 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
 
         return new Bytes31(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes31 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
@@ -5912,6 +6005,9 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
 
         return new Bytes32(bytes);
     }
+
+    public static implicit operator ReadOnlySpan<byte>(in Bytes32 value)
+        => value.Bytes;
 
     public byte[] ToArray()
     {
