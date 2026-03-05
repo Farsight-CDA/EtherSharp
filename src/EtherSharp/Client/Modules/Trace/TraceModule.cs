@@ -8,10 +8,21 @@ internal class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
 {
     private readonly ITraceRpcModule _traceRpcModule = traceRpcModule;
 
+    public async Task<CallTrace?> TraceTransactionCallsAsync(string transactionHash, CancellationToken cancellationToken = default)
+    {
+        var result = await _traceRpcModule.ReplayTransactionAsync(transactionHash, ["trace"], cancellationToken);
+        return BuildCallTrace(result);
+    }
+
     public async Task<CallTrace?> TraceTransactionCallsAsync(Bytes32 transactionHash, CancellationToken cancellationToken = default)
     {
         var result = await _traceRpcModule.ReplayTransactionAsync(transactionHash, ["trace"], cancellationToken);
 
+        return BuildCallTrace(result);
+    }
+
+    private static CallTrace? BuildCallTrace(TransactionTraceResult? result)
+    {
         if(result is null)
         {
             return null;
@@ -50,5 +61,8 @@ internal class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
     }
 
     public Task<TransactionTraceResult?> ReplayTransactionAsync(Bytes32 transactionHash, string[] traceTypes, CancellationToken cancellationToken = default)
+        => _traceRpcModule.ReplayTransactionAsync(transactionHash, traceTypes, cancellationToken);
+
+    public Task<TransactionTraceResult?> ReplayTransactionAsync(string transactionHash, string[] traceTypes, CancellationToken cancellationToken = default)
         => _traceRpcModule.ReplayTransactionAsync(transactionHash, traceTypes, cancellationToken);
 }

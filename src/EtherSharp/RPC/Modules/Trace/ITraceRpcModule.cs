@@ -15,4 +15,12 @@ public interface ITraceRpcModule
     /// The raw trace payload returned by the node, or <see langword="null"/> when the node returns a null result (for example, transaction not found).
     /// </returns>
     public Task<TransactionTraceResult?> ReplayTransactionAsync(Bytes32 txHash, string[] traceTypes, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Replays a transaction and returns requested trace payloads.
+    /// </summary>
+    /// <returns>
+    /// The raw trace payload returned by the node, or <see langword="null"/> when the node returns a null result (for example, transaction not found).
+    /// </returns>
+    public Task<TransactionTraceResult?> ReplayTransactionAsync(string txHash, string[] traceTypes, CancellationToken cancellationToken = default);
 }

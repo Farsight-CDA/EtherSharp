@@ -16,4 +16,14 @@ public interface IDebugModule
     /// A call trace rooted at the transaction entry call, or <see langword="null"/> when the transaction cannot be traced.
     /// </returns>
     public Task<CallTrace?> TraceTransactionCallsAsync(Bytes32 transactionHash, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Traces call execution for a mined transaction.
+    /// </summary>
+    /// <param name="transactionHash">Hex-encoded transaction hash to trace.</param>
+    /// <param name="cancellationToken">Token used to cancel the RPC request.</param>
+    /// <returns>
+    /// A call trace rooted at the transaction entry call, or <see langword="null"/> when the transaction cannot be traced.
+    /// </returns>
+    public Task<CallTrace?> TraceTransactionCallsAsync(string transactionHash, CancellationToken cancellationToken = default);
 }
