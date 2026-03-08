@@ -167,6 +167,22 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>
         => !(a == b);
 
     /// <inheritdoc/>
+    public static bool operator <(in Address a, in Address b)
+        => a.CompareTo(in b) < 0;
+
+    /// <inheritdoc/>
+    public static bool operator <=(in Address a, in Address b)
+        => a.CompareTo(in b) <= 0;
+
+    /// <inheritdoc/>
+    public static bool operator >(in Address a, in Address b)
+        => a.CompareTo(in b) > 0;
+
+    /// <inheritdoc/>
+    public static bool operator >=(in Address a, in Address b)
+        => a.CompareTo(in b) >= 0;
+
+    /// <inheritdoc/>
     public static implicit operator Address(string a)
         => FromString(a);
 }
