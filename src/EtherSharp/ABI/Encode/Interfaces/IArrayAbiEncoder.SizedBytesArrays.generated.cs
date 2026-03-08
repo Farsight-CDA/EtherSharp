@@ -3,12 +3,12 @@ using EtherSharp.Types;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
 
-public partial interface IArrayAbiEncoder
+public partial interface IArrayAbiEncoder 
 {
     /// <summary>
     /// Encodes a bytes1 array value.
     /// </summary>
-    /// <param name="value">The byte array to encode.</param>
+    /// <param name="value">The array of 1-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public IArrayAbiEncoder Bytes1Array(params Bytes1[] value);
     /// <summary>

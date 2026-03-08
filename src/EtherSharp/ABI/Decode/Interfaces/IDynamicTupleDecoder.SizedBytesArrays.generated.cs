@@ -8,8 +8,8 @@ public partial interface IDynamicTupleDecoder
     /// <summary>
     /// Reads a bytes1 array from the input.
     /// </summary>
-    /// <returns>The decoded byte array.</returns>
-    public Bytes1[] Bytes1Array();
+    /// <returns>The decoded array of 1-byte values.</returns>
+    public Bytes1[] Bytes1Array();    
     /// <summary>
     /// Reads a bytes2 array from the input.
     /// </summary>

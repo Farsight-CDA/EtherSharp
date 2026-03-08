@@ -2,9 +2,16 @@
 
 internal class HexUtils
 {
-    private const string HEX_ALPHABET = "0123456789ABCDEF";
+    private const string HEX_ALPHABET_UPPER = "0123456789ABCDEF";
+    private const string HEX_ALPHABET_LOWER = "0123456789abcdef";
 
-    public static string ToHexString(Span<byte> bytes)
+    public static string ToHexStringUpper(Span<byte> bytes)
+        => ToHexString(bytes, HEX_ALPHABET_UPPER);
+
+    public static string ToHexStringLower(Span<byte> bytes)
+        => ToHexString(bytes, HEX_ALPHABET_LOWER);
+
+    private static string ToHexString(Span<byte> bytes, string alphabet)
     {
         if(bytes.Length == 0)
         {
@@ -16,8 +23,8 @@ internal class HexUtils
         for(int i = 0; i < bytes.Length; i++)
         {
             byte b = bytes[i];
-            hexChars[i * 2] = HEX_ALPHABET[b >> 4];
-            hexChars[(i * 2) + 1] = HEX_ALPHABET[b & 0x0F];
+            hexChars[i * 2] = alphabet[b >> 4];
+            hexChars[(i * 2) + 1] = alphabet[b & 0x0F];
         }
 
         return new string(hexChars);

@@ -91,6 +91,12 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>
     public readonly string ToEIP55String()
         => EIP55.FormatAddress(this);
 
+    /// <summary>
+    /// Returns the address as uppercase hexadecimal without the 0x prefix.
+    /// </summary>
+    public readonly string ToHex()
+        => _bytes.ToHex();
+
     /// <inheritdoc/>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(_bytes.DangerousGetReadOnlySpan());

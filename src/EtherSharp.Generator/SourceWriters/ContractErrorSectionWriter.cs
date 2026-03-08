@@ -23,7 +23,7 @@ internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
             {
                 byte[] signatureBytes = errorMember.GetSignatureBytes(out string signature);
                 string errorTypeName = errorMemberGroup.Count() > 1
-                    ? $"{errorMemberGroup.Key}_{HexUtils.ToHexString(signatureBytes)}"
+                    ? $"{errorMemberGroup.Key}_{HexUtils.ToHexStringUpper(signatureBytes)}"
                     : errorMemberGroup.Key;
 
                 if(!errorTypeName.EndsWith("Error"))
@@ -43,7 +43,7 @@ internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
                     /// <summary>
                     /// Hex encoded error signature bytes based on function signature: {{signature}}
                     /// </summary>
-                    public const string SignatureHex = "0x{{HexUtils.ToHexString(signatureBytes)}}";
+                    public const string SignatureHex = "0x{{HexUtils.ToHexStringLower(signatureBytes)}}";
                     /// <summary>
                     /// Parsed bytes4 error selector based on signature: {{signature}}
                     /// </summary>

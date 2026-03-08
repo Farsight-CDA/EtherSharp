@@ -23,6 +23,15 @@ public class AddressTests
     }
 
     [Fact]
+    public void Should_Format_With_Expected_Hex_Casing()
+    {
+        var address = Address.Parse("0x00112233445566778899AABBCCDDEEFF00112233");
+
+        Assert.Equal("0x00112233445566778899aabbccddeeff00112233", address.ToString());
+        Assert.Equal("00112233445566778899AABBCCDDEEFF00112233", address.ToHex());
+    }
+
+    [Fact]
     public void Should_Compare_Using_Solidity_Address_Order()
     {
         var low = Address.Parse("0x0000000000000000000000000000000000000001");

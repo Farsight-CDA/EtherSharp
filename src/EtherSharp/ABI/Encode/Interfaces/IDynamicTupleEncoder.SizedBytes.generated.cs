@@ -3,12 +3,12 @@ using EtherSharp.Types;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
 
-public partial interface IDynamicTupleEncoder
+public partial interface IDynamicTupleEncoder 
 {
     /// <summary>
     /// Encodes a bytes1 value.
     /// </summary>
-    /// <param name="value">The byte value to encode.</param>
+    /// <param name="value">The 1-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public IDynamicTupleEncoder Bytes1(Bytes1 value);
     /// <summary>

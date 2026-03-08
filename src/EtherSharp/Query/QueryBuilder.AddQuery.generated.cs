@@ -6,7 +6,7 @@ namespace EtherSharp.Client.Modules.Query;
 public partial class QueryBuilder<TQuery>
 {
     /// <summary>
-    /// Adds 1 query and maps its decoded result into <typeparamref name="TQuery"/>.
+    /// Adds 1 query and maps their decoded results into <typeparamref name="TQuery"/>.
     /// </summary>
     /// <param name="c1">The 1st query to append.</param>
     /// <param name="mapping">Projects the appended query result into <typeparamref name="TQuery"/>.</param>
@@ -18,7 +18,6 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..])));
         return this;
     }
-
     /// <summary>
     /// Adds 2 queries and maps their decoded results into <typeparamref name="TQuery"/>.
     /// </summary>
@@ -35,7 +34,6 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..])));
         return this;
     }
-
     /// <summary>
     /// Adds 3 queries and maps their decoded results into <typeparamref name="TQuery"/>.
     /// </summary>
@@ -55,7 +53,6 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..])));
         return this;
     }
-
     /// <summary>
     /// Adds 4 queries and maps their decoded results into <typeparamref name="TQuery"/>.
     /// </summary>
@@ -78,7 +75,6 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..]), c4.ReadResultFrom(x[o4..])));
         return this;
     }
-
     /// <summary>
     /// Adds 5 queries and maps their decoded results into <typeparamref name="TQuery"/>.
     /// </summary>
@@ -104,7 +100,6 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..]), c4.ReadResultFrom(x[o4..]), c5.ReadResultFrom(x[o5..])));
         return this;
     }
-
     /// <summary>
     /// Adds 6 queries and maps their decoded results into <typeparamref name="TQuery"/>.
     /// </summary>
@@ -133,7 +128,6 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..]), c4.ReadResultFrom(x[o4..]), c5.ReadResultFrom(x[o5..]), c6.ReadResultFrom(x[o6..])));
         return this;
     }
-
     /// <summary>
     /// Adds 7 queries and maps their decoded results into <typeparamref name="TQuery"/>.
     /// </summary>
@@ -165,7 +159,6 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..]), c4.ReadResultFrom(x[o4..]), c5.ReadResultFrom(x[o5..]), c6.ReadResultFrom(x[o6..]), c7.ReadResultFrom(x[o7..])));
         return this;
     }
-
     /// <summary>
     /// Adds 8 queries and maps their decoded results into <typeparamref name="TQuery"/>.
     /// </summary>
@@ -200,7 +193,6 @@ public partial class QueryBuilder<TQuery>
         _resultSelectorFunctions.Add(x => mapping(c1.ReadResultFrom(x[o1..]), c2.ReadResultFrom(x[o2..]), c3.ReadResultFrom(x[o3..]), c4.ReadResultFrom(x[o4..]), c5.ReadResultFrom(x[o5..]), c6.ReadResultFrom(x[o6..]), c7.ReadResultFrom(x[o7..]), c8.ReadResultFrom(x[o8..])));
         return this;
     }
-
     /// <summary>
     /// Adds 9 queries and maps their decoded results into <typeparamref name="TQuery"/>.
     /// </summary>

@@ -62,7 +62,7 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
             byte[] topicBytes = eventMember.GetEventTopic(out _);
             string name = eventNameTopics[rawEventTypeName].Count == 1
                 ? rawEventTypeName
-                : $"{rawEventTypeName}_{HexUtils.ToHexString(topicBytes.AsSpan(0, 4))}";
+                : $"{rawEventTypeName}_{HexUtils.ToHexStringUpper(topicBytes.AsSpan(0, 4))}";
             return name.EndsWith("Event")
                 ? name
                 : $"{name}Event";
@@ -70,7 +70,7 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
 
         var topicClassNames = new List<string>();
 
-        foreach(var eventMembersGroup in eventMembers.GroupBy(x => HexUtils.ToHexString(x.GetEventTopic(out _))))
+        foreach(var eventMembersGroup in eventMembers.GroupBy(x => HexUtils.ToHexStringUpper(x.GetEventTopic(out _))))
         {
             string eventTypeName = GetEventName(eventMembersGroup.First());
             topicClassNames.Add(eventTypeName);
@@ -92,7 +92,7 @@ internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
                     /// <summary>
                     /// Hex encoded event topic based on signature: {{eventSignature}}
                     /// </summary>
-                    public const string TopicHex = "0x{{HexUtils.ToHexString(topicBytes)}}";
+                    public const string TopicHex = "0x{{HexUtils.ToHexStringLower(topicBytes)}}";
                     /// <summary>
                     /// Parsed 32-byte event topic based on signature: {{eventSignature}}
                     /// </summary>

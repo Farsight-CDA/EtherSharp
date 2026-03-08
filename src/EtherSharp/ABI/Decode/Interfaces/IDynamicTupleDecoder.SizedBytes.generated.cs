@@ -8,7 +8,7 @@ public partial interface IDynamicTupleDecoder
     /// <summary>
     /// Reads a bytes1 value from the input.
     /// </summary>
-    /// <returns>The decoded byte value.</returns>
+    /// <returns>The decoded 1-byte value.</returns>
     public Bytes1 Bytes1();
     /// <summary>
     /// Reads a bytes2 value from the input.

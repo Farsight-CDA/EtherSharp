@@ -3,7 +3,7 @@ using EtherSharp.Numerics;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
 
-public partial interface IDynamicTupleEncoder
+public partial interface IDynamicTupleEncoder 
 {
     /// <summary>
     /// Encodes an int8 array value.

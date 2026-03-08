@@ -66,7 +66,8 @@ public class BytesTypeExhaustiveTests
 
         firstValue.CopyTo(copied);
         Assert.Equal(first, copied.ToArray());
-        Assert.Equal(Convert.ToHexString(first), firstValue.ToString());
+        Assert.Equal(Convert.ToHexString(first), firstValue.ToHex());
+        Assert.Equal($"0x{Convert.ToHexStringLower(first)}", firstValue.ToString());
 
         string expectedJson = $"\"0x{Convert.ToHexString(first)}\"";
         string defaultJson = JsonSerializer.Serialize(firstValue);

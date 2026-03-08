@@ -16,12 +16,13 @@ public interface IFixedBytes<TSelf>
 {
     static abstract int BYTE_LENGTH { get; }
 
-
     void CopyTo(Span<byte> destination);
 
     bool TryWriteTo(Span<byte> destination);
 
     byte[] ToArray();
+
+    string ToHex();
 
     static abstract TSelf FromBytes(ReadOnlySpan<byte> bytes);
 }
@@ -143,8 +144,11 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes1 other)
@@ -335,15 +339,16 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes2 other)
-        => ((
-            ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0))) |
-            ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
-        )) == 0;
+        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
+            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1))))) == 0;
 
     public readonly bool Equals(Bytes2 other)
         => Equals(in other);
@@ -537,16 +542,17 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes3 other)
-        => ((
-            ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0))) |
-            ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1))) |
-            ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2)))
-        )) == 0;
+        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
+            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
+            | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2))))) == 0;
 
     public readonly bool Equals(Bytes3 other)
         => Equals(in other);
@@ -747,17 +753,18 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes4 other)
-        => ((
-            ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0))) |
-            ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1))) |
-            ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2))) |
-            ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3)))
-        )) == 0;
+        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
+            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
+            | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2)))
+            | ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3))))) == 0;
 
     public readonly bool Equals(Bytes4 other)
         => Equals(in other);
@@ -965,18 +972,19 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes5 other)
-        => ((
-            ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0))) |
-            ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1))) |
-            ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2))) |
-            ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3))) |
-            ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4)))
-        )) == 0;
+        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
+            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
+            | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2)))
+            | ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3)))
+            | ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4))))) == 0;
 
     public readonly bool Equals(Bytes5 other)
         => Equals(in other);
@@ -1191,19 +1199,20 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes6 other)
-        => ((
-            ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0))) |
-            ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1))) |
-            ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2))) |
-            ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3))) |
-            ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4))) |
-            ((ulong) (LoadU8Raw(5) ^ other.LoadU8Raw(5)))
-        )) == 0;
+        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
+            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
+            | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2)))
+            | ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3)))
+            | ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4)))
+            | ((ulong) (LoadU8Raw(5) ^ other.LoadU8Raw(5))))) == 0;
 
     public readonly bool Equals(Bytes6 other)
         => Equals(in other);
@@ -1425,20 +1434,21 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes7 other)
-        => ((
-            ((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0))) |
-            ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1))) |
-            ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2))) |
-            ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3))) |
-            ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4))) |
-            ((ulong) (LoadU8Raw(5) ^ other.LoadU8Raw(5))) |
-            ((ulong) (LoadU8Raw(6) ^ other.LoadU8Raw(6)))
-        )) == 0;
+        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
+            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
+            | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2)))
+            | ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3)))
+            | ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4)))
+            | ((ulong) (LoadU8Raw(5) ^ other.LoadU8Raw(5)))
+            | ((ulong) (LoadU8Raw(6) ^ other.LoadU8Raw(6))))) == 0;
 
     public readonly bool Equals(Bytes7 other)
         => Equals(in other);
@@ -1667,14 +1677,15 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes8 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0)))) == 0;
 
     public readonly bool Equals(Bytes8 other)
         => Equals(in other);
@@ -1861,15 +1872,16 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes9 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(1) ^ other.LoadU64Raw(1))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(1) ^ other.LoadU64Raw(1)))) == 0;
 
     public readonly bool Equals(Bytes9 other)
         => Equals(in other);
@@ -2063,15 +2075,16 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes10 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(2) ^ other.LoadU64Raw(2))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(2) ^ other.LoadU64Raw(2)))) == 0;
 
     public readonly bool Equals(Bytes10 other)
         => Equals(in other);
@@ -2272,15 +2285,16 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes11 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(3) ^ other.LoadU64Raw(3))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(3) ^ other.LoadU64Raw(3)))) == 0;
 
     public readonly bool Equals(Bytes11 other)
         => Equals(in other);
@@ -2488,15 +2502,16 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes12 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(4) ^ other.LoadU64Raw(4))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(4) ^ other.LoadU64Raw(4)))) == 0;
 
     public readonly bool Equals(Bytes12 other)
         => Equals(in other);
@@ -2711,15 +2726,16 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes13 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(5) ^ other.LoadU64Raw(5))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(5) ^ other.LoadU64Raw(5)))) == 0;
 
     public readonly bool Equals(Bytes13 other)
         => Equals(in other);
@@ -2941,15 +2957,16 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes14 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(6) ^ other.LoadU64Raw(6))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(6) ^ other.LoadU64Raw(6)))) == 0;
 
     public readonly bool Equals(Bytes14 other)
         => Equals(in other);
@@ -3178,15 +3195,16 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes15 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(7) ^ other.LoadU64Raw(7))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(7) ^ other.LoadU64Raw(7)))) == 0;
 
     public readonly bool Equals(Bytes15 other)
         => Equals(in other);
@@ -3422,15 +3440,16 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes16 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8)))) == 0;
 
     public readonly bool Equals(Bytes16 other)
         => Equals(in other);
@@ -3624,16 +3643,17 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes17 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(9) ^ other.LoadU64Raw(9))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(9) ^ other.LoadU64Raw(9)))) == 0;
 
     public readonly bool Equals(Bytes17 other)
         => Equals(in other);
@@ -3834,16 +3854,17 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes18 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(10) ^ other.LoadU64Raw(10))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(10) ^ other.LoadU64Raw(10)))) == 0;
 
     public readonly bool Equals(Bytes18 other)
         => Equals(in other);
@@ -4051,16 +4072,17 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes19 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(11) ^ other.LoadU64Raw(11))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(11) ^ other.LoadU64Raw(11)))) == 0;
 
     public readonly bool Equals(Bytes19 other)
         => Equals(in other);
@@ -4272,20 +4294,20 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
         return copy;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes20 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(12) ^ other.LoadU64Raw(12))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(12) ^ other.LoadU64Raw(12)))) == 0;
 
     public readonly bool Equals(Bytes20 other)
         => Equals(in other);
@@ -4507,16 +4529,17 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes21 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(13) ^ other.LoadU64Raw(13))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(13) ^ other.LoadU64Raw(13)))) == 0;
 
     public readonly bool Equals(Bytes21 other)
         => Equals(in other);
@@ -4745,16 +4768,17 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes22 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(14) ^ other.LoadU64Raw(14))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(14) ^ other.LoadU64Raw(14)))) == 0;
 
     public readonly bool Equals(Bytes22 other)
         => Equals(in other);
@@ -4990,16 +5014,17 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes23 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(15) ^ other.LoadU64Raw(15))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(15) ^ other.LoadU64Raw(15)))) == 0;
 
     public readonly bool Equals(Bytes23 other)
         => Equals(in other);
@@ -5242,16 +5267,17 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes24 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(16) ^ other.LoadU64Raw(16))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(16) ^ other.LoadU64Raw(16)))) == 0;
 
     public readonly bool Equals(Bytes24 other)
         => Equals(in other);
@@ -5452,17 +5478,18 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes25 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(16) ^ other.LoadU64Raw(16)) |
-            (LoadU64Raw(17) ^ other.LoadU64Raw(17))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
+            | (LoadU64Raw(17) ^ other.LoadU64Raw(17)))) == 0;
 
     public readonly bool Equals(Bytes25 other)
         => Equals(in other);
@@ -5670,17 +5697,18 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes26 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(16) ^ other.LoadU64Raw(16)) |
-            (LoadU64Raw(18) ^ other.LoadU64Raw(18))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
+            | (LoadU64Raw(18) ^ other.LoadU64Raw(18)))) == 0;
 
     public readonly bool Equals(Bytes26 other)
         => Equals(in other);
@@ -5895,17 +5923,18 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes27 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(16) ^ other.LoadU64Raw(16)) |
-            (LoadU64Raw(19) ^ other.LoadU64Raw(19))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
+            | (LoadU64Raw(19) ^ other.LoadU64Raw(19)))) == 0;
 
     public readonly bool Equals(Bytes27 other)
         => Equals(in other);
@@ -6127,17 +6156,18 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes28 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(16) ^ other.LoadU64Raw(16)) |
-            (LoadU64Raw(20) ^ other.LoadU64Raw(20))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
+            | (LoadU64Raw(20) ^ other.LoadU64Raw(20)))) == 0;
 
     public readonly bool Equals(Bytes28 other)
         => Equals(in other);
@@ -6366,17 +6396,18 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes29 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(16) ^ other.LoadU64Raw(16)) |
-            (LoadU64Raw(21) ^ other.LoadU64Raw(21))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
+            | (LoadU64Raw(21) ^ other.LoadU64Raw(21)))) == 0;
 
     public readonly bool Equals(Bytes29 other)
         => Equals(in other);
@@ -6612,17 +6643,18 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes30 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(16) ^ other.LoadU64Raw(16)) |
-            (LoadU64Raw(22) ^ other.LoadU64Raw(22))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
+            | (LoadU64Raw(22) ^ other.LoadU64Raw(22)))) == 0;
 
     public readonly bool Equals(Bytes30 other)
         => Equals(in other);
@@ -6865,17 +6897,18 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes31 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(16) ^ other.LoadU64Raw(16)) |
-            (LoadU64Raw(23) ^ other.LoadU64Raw(23))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
+            | (LoadU64Raw(23) ^ other.LoadU64Raw(23)))) == 0;
 
     public readonly bool Equals(Bytes31 other)
         => Equals(in other);
@@ -7125,17 +7158,18 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
-    public readonly override string ToString()
+    public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes32 other)
-        => ((
-            (LoadU64Raw(0) ^ other.LoadU64Raw(0)) |
-            (LoadU64Raw(8) ^ other.LoadU64Raw(8)) |
-            (LoadU64Raw(16) ^ other.LoadU64Raw(16)) |
-            (LoadU64Raw(24) ^ other.LoadU64Raw(24))
-        )) == 0;
+        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+            | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
+            | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
+            | (LoadU64Raw(24) ^ other.LoadU64Raw(24)))) == 0;
 
     public readonly bool Equals(Bytes32 other)
         => Equals(in other);
@@ -7227,3 +7261,4 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
 }
 
 #pragma warning restore CS1591, CS0675
+

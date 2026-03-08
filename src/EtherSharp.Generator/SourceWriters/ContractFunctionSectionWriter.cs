@@ -91,7 +91,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
 
             typeBuilder.AddRawContent(
                 $$"""
-                public static EtherSharp.Contract.EVMByteCode ByteCode { get; } = new EtherSharp.Contract.EVMByteCode(Convert.FromHexString("{{HexUtils.ToHexString(byteCode)}}"));
+                public static EtherSharp.Contract.EVMByteCode ByteCode { get; } = new EtherSharp.Contract.EVMByteCode(Convert.FromHexString("{{HexUtils.ToHexStringUpper(byteCode)}}"));
                 """
             );
 
@@ -183,7 +183,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
             {
                 byte[] selectorBytes = functionMember.GetSignatureBytes(out string signature);
                 string functionTypeName = functionMembersGroup.Count() > 1
-                    ? $"{functionMembersGroup.Key}_{HexUtils.ToHexString(selectorBytes)}"
+                    ? $"{functionMembersGroup.Key}_{HexUtils.ToHexStringUpper(selectorBytes)}"
                     : functionMembersGroup.Key;
                 functionClassNames.Add(functionTypeName);
 
@@ -342,7 +342,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                     /// <summary>
                     /// Hex encoded function signature bytes based on function signature: {{signature}}
                     /// </summary>
-                    public const string SelectorHex = "0x{{HexUtils.ToHexString(selectorBytes)}}";
+                    public const string SelectorHex = "0x{{HexUtils.ToHexStringLower(selectorBytes)}}";
                     /// <summary>
                     /// Parsed bytes4 function selector based on function signature: {{signature}}
                     /// </summary>
