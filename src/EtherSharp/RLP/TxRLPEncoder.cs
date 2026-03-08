@@ -4,7 +4,7 @@ namespace EtherSharp.RLP;
 
 internal static class TxRLPEncoder
 {
-    public static int AddressStringSize => RLPEncoder.GetEncodedStringLength(Types.Address.BYTES_LENGTH);
+    public static int AddressStringSize { get; } = RLPEncoder.GetEncodedStringLength(Types.Address.BYTES_LENGTH);
 
     public static int GetAddressStringSize(Types.Address? address)
         => address is null ? RLPEncoder.GetStringSize([]) : AddressStringSize;
@@ -53,11 +53,7 @@ internal static class TxRLPEncoder
     }
 
     public static RLPEncoder EncodeAddress(this RLPEncoder encoder, Types.Address address)
-    {
-        Span<byte> addressBytes = stackalloc byte[Types.Address.BYTES_LENGTH];
-        address.CopyTo(addressBytes);
-        return encoder.EncodeString(addressBytes);
-    }
+        => encoder.EncodeString(address.DangerousGetReadOnlySpan());
 
     public static int MaxEncodedSignatureLength => 33 + 33 + 1;
 

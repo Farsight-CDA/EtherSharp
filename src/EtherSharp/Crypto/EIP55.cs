@@ -16,7 +16,7 @@ public static class EIP55
     /// <returns></returns>
     public static string FormatAddress(in Address address)
     {
-        var addressBytes = address._bytes.DangerousGetReadOnlySpan();
+        var addressBytes = address.DangerousGetReadOnlySpan();
         Span<byte> asciiBytes = stackalloc byte[40];
         WriteLowercaseAsciiHex(addressBytes, asciiBytes);
 

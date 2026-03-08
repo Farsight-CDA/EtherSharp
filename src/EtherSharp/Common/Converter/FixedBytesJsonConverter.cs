@@ -20,9 +20,10 @@ public abstract class FixedBytesJsonConverter<TBytes> : JsonConverter<TBytes>
 
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, TBytes value, JsonSerializerOptions options)
-    {
-        Span<byte> bytes = stackalloc byte[TBytes.BYTE_LENGTH];
-        value.CopyTo(bytes);
-        HexJsonConverter.WriteBytes(writer, bytes);
-    }
+        => WriteUnsafe(writer, value);
+
+    /// <summary>
+    /// Writes the value using its internal byte span without copying.
+    /// </summary>
+    protected abstract void WriteUnsafe(Utf8JsonWriter writer, TBytes value);
 }

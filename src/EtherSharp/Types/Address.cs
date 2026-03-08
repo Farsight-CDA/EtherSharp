@@ -95,6 +95,9 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(_bytes.DangerousGetReadOnlySpan());
 
+    internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
+        => _bytes.DangerousGetReadOnlySpan();
+
     /// <summary>
     /// Copies the address bytes into the destination span.
     /// </summary>

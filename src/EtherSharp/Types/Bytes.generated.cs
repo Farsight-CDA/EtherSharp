@@ -16,6 +16,7 @@ public interface IFixedBytes<TSelf>
 {
     static abstract int BYTE_LENGTH { get; }
 
+
     void CopyTo(Span<byte> destination);
 
     bool TryWriteTo(Span<byte> destination);

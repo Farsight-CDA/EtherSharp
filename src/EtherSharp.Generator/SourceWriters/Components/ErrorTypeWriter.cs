@@ -10,7 +10,7 @@ internal class ErrorTypeWriter
         .AddArgument("System.ReadOnlySpan<byte>", "errorData")
         .WithReturnType<bool>()
         .WithIsStatic()
-        .AddStatement($"return errorData.Length >= 4 && SignatureBytes.Span.SequenceEqual(errorData[0..4])");
+        .AddStatement($"return errorData.Length >= 4 && Signature.Span.SequenceEqual(errorData[0..4])");
 
     public ClassBuilder GenerateErrorType(string errorTypeName, ErrorAbiMember errorMember)
     {
@@ -22,7 +22,6 @@ internal class ErrorTypeWriter
             "IsMatchingSignature",
             "TryDecode",
             "ErrorSignature",
-            "SignatureBytes",
             "SignatureHex",
             "Signature"
         };
