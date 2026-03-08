@@ -1,4 +1,4 @@
-﻿using EtherSharp.Contract;
+using EtherSharp.Contract;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 
@@ -11,7 +11,7 @@ internal class GetCompatibilityQueryOperation : IQuery<CompatibilityReport>
     private static readonly IContractDeployment _tStore = IContractDeployment.Create(new EVMByteCode(Convert.FromHexString("600b380380600b3d393df3600060005d")), 0);
     private static readonly IContractDeployment _baseFee = IContractDeployment.Create(new EVMByteCode(Convert.FromHexString("600b380380600b3d393df348")), 0);
 
-    private static readonly IContractCall<bool> _call = new TxInput<bool>(Address.Zero, 0, Array.Empty<byte>(), x => true);
+    private static readonly IFlashCall<bool> _call = IFlashCall.ForRawFlashCall(0, Array.Empty<byte>(), x => true);
 
     private static readonly IQuery[] _queries = [
         new SafeFlashCallQueryOperation<bool>(_push0, _call),

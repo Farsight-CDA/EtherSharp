@@ -26,13 +26,13 @@ public interface IFlashCallExecutor
     /// Executes a flash call against a deployed helper contract for the provided call payload.
     /// </summary>
     /// <param name="deployment">The deployment descriptor of the helper contract used for flash execution.</param>
-    /// <param name="call">The contract call payload and target metadata to execute.</param>
+    /// <param name="call">The flash-call payload to execute.</param>
     /// <param name="targetHeight">The block number to execute the call against.</param>
     /// <param name="cancellationToken">A token used to cancel the underlying RPC request.</param>
     /// <returns>The execution result containing call success state and returned bytes.</returns>
     public Task<TxCallResult> ExecuteFlashCallAsync(
         IContractDeployment deployment,
-        IContractCall call,
+        IFlashCall call,
         TargetHeight targetHeight,
         CancellationToken cancellationToken
     );

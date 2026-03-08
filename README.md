@@ -163,7 +163,7 @@ Flash calling executes a temporary deployment plus a follow-up call in a single 
 ```csharp
 var simulationResult = await readClient.FlashCallAsync(
     IFlashCaller.Functions.Constructor.Create(), // Deployment payload
-    IFlashCaller.Functions.DeploymentHeight.Create(Address.Zero) // Target address is ignored in flash context
+    IFlashCaller.Functions.DeploymentHeight.Create()
 );
 ```
 

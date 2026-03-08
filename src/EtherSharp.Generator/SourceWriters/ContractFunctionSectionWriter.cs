@@ -45,6 +45,10 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                 .WithReturnTypeRaw("EtherSharp.Tx.IContractCall<System.ReadOnlyMemory<byte>>")
                 .AddArgument("EtherSharp.Types.Address", "contractAddress")
                 .AddArgument("System.ReadOnlyMemory<byte>", "calldata");
+            var createFlashFunction = new FunctionBuilder("Create")
+                .WithIsStatic()
+                .WithReturnTypeRaw("EtherSharp.Tx.IFlashCall<System.ReadOnlyMemory<byte>>")
+                .AddArgument("System.ReadOnlyMemory<byte>", "calldata");
 
             if(fallbackMember.StateMutability == StateMutability.NonPayable)
             {
@@ -53,18 +57,30 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                     return EtherSharp.Tx.IContractCall.ForRawContractCall(contractAddress, 0, calldata);
                     """
                 );
+                createFlashFunction.AddStatement(
+                    $"""
+                    return EtherSharp.Tx.IFlashCall.ForRawFlashCall(0, calldata);
+                    """
+                );
             }
             else
             {
                 createFunction.AddArgument("EtherSharp.Numerics.UInt256", "ethValue");
+                createFlashFunction.AddArgument("EtherSharp.Numerics.UInt256", "ethValue");
                 createFunction.AddStatement(
                     $"""
                     return EtherSharp.Tx.IContractCall.ForRawContractCall(contractAddress, ethValue, calldata);
                     """
                 );
+                createFlashFunction.AddStatement(
+                    $"""
+                    return EtherSharp.Tx.IFlashCall.ForRawFlashCall(ethValue, calldata);
+                    """
+                );
             }
 
             typeBuilder.AddFunction(createFunction);
+            typeBuilder.AddFunction(createFlashFunction);
             sectionBuilder.AddInnerType(typeBuilder);
         }
 
@@ -221,6 +237,9 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                     .WithIsStatic()
                     .AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()")
                     .AddArgument("EtherSharp.Types.Address", "contractAddress");
+                var createFlashFunction = new FunctionBuilder("Create")
+                    .WithIsStatic()
+                    .AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()");
 
                 bool isQuery = functionMember.Outputs.Length > 0
                     && (functionMember.StateMutability == StateMutability.Pure || functionMember.StateMutability == StateMutability.View);
@@ -238,12 +257,15 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
 
                     interfaceFunction.AddArgument(paramType, paramName);
                     createTxFunction.AddArgument(paramType, paramName);
+                    createFlashFunction.AddArgument(paramType, paramName);
                     createTxFunction.AddStatement(encodeFunc(paramName));
+                    createFlashFunction.AddStatement(encodeFunc(paramName));
                 }
 
                 if(isPayable)
                 {
                     createTxFunction.AddArgument("EtherSharp.Numerics.UInt256", "ethValue");
+                    createFlashFunction.AddArgument("EtherSharp.Numerics.UInt256", "ethValue");
                 }
 
                 string? outputTypeName = null;
@@ -256,6 +278,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                     );
 
                     createTxFunction.WithReturnTypeRaw($"EtherSharp.Tx.IContractCall<{outputTypeName}>");
+                    createFlashFunction.WithReturnTypeRaw($"EtherSharp.Tx.IFlashCall<{outputTypeName}>");
                     createTxFunction.AddStatement(
                         $"""
                         return EtherSharp.Tx.IContractCall<{outputTypeName}>.ForContractCall(
@@ -267,10 +290,21 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                         )
                         """
                     );
+                    createFlashFunction.AddStatement(
+                        $"""
+                        return EtherSharp.Tx.IFlashCall<{outputTypeName}>.ForFlashCall(
+                            {(isPayable ? "ethValue" : "0")},
+                            SelectorBytes,
+                            encoder,
+                            decoder => {decodeFunc}
+                        )
+                        """
+                    );
                 }
                 else
                 {
                     createTxFunction.WithReturnTypeRaw("EtherSharp.Tx.IContractCall");
+                    createFlashFunction.WithReturnTypeRaw("EtherSharp.Tx.IFlashCall");
                     createTxFunction.AddStatement(
                         $"""
                         return EtherSharp.Tx.IContractCall.ForContractCall(
@@ -281,9 +315,19 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                         )
                         """
                     );
+                    createFlashFunction.AddStatement(
+                        $"""
+                        return EtherSharp.Tx.IFlashCall.ForFlashCall(
+                            {(isPayable ? "ethValue" : "0")},
+                            SelectorBytes,
+                            encoder
+                        )
+                        """
+                    );
                 }
 
                 typeBuilder.AddFunction(createTxFunction);
+                typeBuilder.AddFunction(createFlashFunction);
                 typeBuilder.AddRawContent(
                     $$"""
                     /// <summary>

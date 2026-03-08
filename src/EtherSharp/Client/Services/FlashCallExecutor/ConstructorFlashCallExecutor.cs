@@ -27,7 +27,7 @@ internal class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlash
     public int GetMaxResultSize(TargetHeight targetHeight)
         => MAX_RUNTIMECODE_SIZE;
 
-    public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IContractCall call, TargetHeight targetHeight, CancellationToken cancellationToken)
+    public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IFlashCall call, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         if(deployment.Value > 0)
         {

@@ -36,7 +36,7 @@ internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFla
             : _configuration.MaxResultSize;
     }
 
-    public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IContractCall call, TargetHeight targetHeight, CancellationToken cancellationToken)
+    public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IFlashCall call, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         if(deployment.Value > 0)
         {

@@ -218,12 +218,12 @@ public interface IEtherClient
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="deployment">Deployment definition used for the temporary execution context.</param>
-    /// <param name="call">Call to execute against the temporary deployment.</param>
+    /// <param name="call">Flash-call payload to execute against the temporary deployment.</param>
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert information when applicable.</returns>
     public Task<TxCallResult> SafeFlashCallAsync<T>(
-        IContractDeployment deployment, IContractCall<T> call, TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        IContractDeployment deployment, IFlashCall<T> call, TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -231,12 +231,12 @@ public interface IEtherClient
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="deployment">Deployment definition used for the temporary execution context.</param>
-    /// <param name="call">Call to execute against the temporary deployment.</param>
+    /// <param name="call">Flash-call payload to execute against the temporary deployment.</param>
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
     public Task<T> FlashCallAsync<T>(
-        IContractDeployment deployment, IContractCall<T> call, TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        IContractDeployment deployment, IFlashCall<T> call, TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>

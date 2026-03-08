@@ -410,16 +410,16 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return call.ReadResultFrom(result.Unwrap(call.To));
     }
 
-    public Task<TxCallResult> SafeFlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
+    public Task<TxCallResult> SafeFlashCallAsync<T>(IContractDeployment deployment, IFlashCall<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
         return _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, targetHeight, cancellationToken);
     }
 
-    async Task<T> IEtherClient.FlashCallAsync<T>(IContractDeployment deployment, IContractCall<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
+    async Task<T> IEtherClient.FlashCallAsync<T>(IContractDeployment deployment, IFlashCall<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         var result = await SafeFlashCallAsync(deployment, call, targetHeight, cancellationToken);
-        return call.ReadResultFrom(result.Unwrap(call.To));
+        return call.ReadResultFrom(result.Unwrap(null));
     }
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(

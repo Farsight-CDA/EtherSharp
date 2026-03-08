@@ -21,6 +21,27 @@ internal class TxInput<T>(Address to, UInt256 value, ReadOnlyMemory<byte> data, 
     private readonly Func<ReadOnlyMemory<byte>, T> _decoder = decoder;
 
     public T ReadResultFrom(ReadOnlyMemory<byte> data)
+        => TxInputDecoder.ReadResultFrom(data, _decoder);
+}
+
+internal class FlashCallInput(UInt256 value, ReadOnlyMemory<byte> data) : IFlashCall
+{
+    public UInt256 Value { get; } = value;
+    public ReadOnlyMemory<byte> Data { get; } = data;
+}
+
+internal class FlashCallInput<T>(UInt256 value, ReadOnlyMemory<byte> data, Func<ReadOnlyMemory<byte>, T> decoder)
+    : FlashCallInput(value, data), IFlashCall<T>
+{
+    private readonly Func<ReadOnlyMemory<byte>, T> _decoder = decoder;
+
+    public T ReadResultFrom(ReadOnlyMemory<byte> data)
+        => TxInputDecoder.ReadResultFrom(data, _decoder);
+}
+
+internal static class TxInputDecoder
+{
+    public static T ReadResultFrom<T>(ReadOnlyMemory<byte> data, Func<ReadOnlyMemory<byte>, T> decoder)
     {
         if(data.Length == 0)
         {
@@ -29,7 +50,7 @@ internal class TxInput<T>(Address to, UInt256 value, ReadOnlyMemory<byte> data, 
 
         try
         {
-            var result = _decoder.Invoke(data);
+            var result = decoder.Invoke(data);
             //ToDo: Check for remaining data
             return result;
         }

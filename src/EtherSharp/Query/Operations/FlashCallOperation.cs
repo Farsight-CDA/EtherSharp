@@ -5,9 +5,9 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IContractCall<T> txInput) : IQuery, IQuery<QueryResult<T>>
+internal class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IFlashCall<T> txInput) : IQuery, IQuery<QueryResult<T>>
 {
-    private readonly ITxInput<T> _txInput = txInput;
+    private readonly IFlashCall<T> _txInput = txInput;
     private readonly IContractDeployment _deployment = deployment;
 
     public int CallDataLength => 1 + 37 + _deployment.ByteCode.Length + _txInput.Data.Length;

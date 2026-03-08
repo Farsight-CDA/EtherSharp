@@ -93,9 +93,9 @@ public interface IQuery
     /// </summary>
     /// <typeparam name="T">The decoded return type of the contract call.</typeparam>
     /// <param name="deployment">The contract deployment to execute for the flash call.</param>
-    /// <param name="input">The contract call input to execute against the deployed code.</param>
+    /// <param name="input">The flash-call input to execute against the deployed code.</param>
     /// <returns>A query that never throws for EVM reverts and returns a <see cref="QueryResult{T}"/>.</returns>
-    public static IQuery<QueryResult<T>> SafeFlashCall<T>(IContractDeployment deployment, IContractCall<T> input)
+    public static IQuery<QueryResult<T>> SafeFlashCall<T>(IContractDeployment deployment, IFlashCall<T> input)
         => new SafeFlashCallQueryOperation<T>(deployment, input);
 
     /// <summary>
@@ -103,14 +103,14 @@ public interface IQuery
     /// </summary>
     /// <typeparam name="T">The decoded return type of the contract call.</typeparam>
     /// <param name="deployment">The contract deployment to execute for the flash call.</param>
-    /// <param name="input">The contract call input to execute against the deployed code.</param>
+    /// <param name="input">The flash-call input to execute against the deployed code.</param>
     /// <returns>A query that yields the decoded return value.</returns>
     /// <exception cref="CallRevertedException">Thrown when the call reverts.</exception>
-    public static IQuery<T> FlashCall<T>(IContractDeployment deployment, IContractCall<T> input)
+    public static IQuery<T> FlashCall<T>(IContractDeployment deployment, IFlashCall<T> input)
         => SafeFlashCall(deployment, input).Map(x => x switch
         {
             QueryResult<T>.Success s => s.Value,
-            QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data.Span),
+            QueryResult<T>.Reverted r => throw CallRevertedException.Parse(null, r.Data.Span),
             _ => throw new ImpossibleException()
         });
 
