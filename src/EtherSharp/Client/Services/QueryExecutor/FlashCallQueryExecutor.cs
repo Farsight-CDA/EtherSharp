@@ -54,7 +54,7 @@ internal class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, ISer
                 {
                     var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
                         querierDeployment,
-                        IContractCall.ForRawContractCall(null!, ethValue, payloadBytes.AsMemory(0, payloadSize)),
+                        IContractCall.ForRawContractCall(Address.Zero, ethValue, payloadBytes.AsMemory(0, payloadSize)),
                         targetHeight,
                         cancellationToken
                     );
