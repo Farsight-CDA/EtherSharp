@@ -44,6 +44,6 @@ public class BytesAbiDecoderTests
 
         var output = new AbiDecoder(input).SizedBytes(bitSize);
 
-        Assert.Equal(input.AsSpan()[0..(bitSize / 8)], output.Span);
+        Assert.Equal(input.AsSpan()[0..(bitSize / 8)].ToArray(), output.ToArray());
     }
 }

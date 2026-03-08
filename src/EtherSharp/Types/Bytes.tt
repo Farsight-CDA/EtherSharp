@@ -17,7 +17,11 @@ public interface IFixedBytes<TSelf>
 {
     static abstract int BYTE_LENGTH { get; }
 
-    ReadOnlySpan<byte> Span { get; }
+    void CopyTo(Span<byte> destination);
+
+    bool TryWriteTo(Span<byte> destination);
+
+    byte[] ToArray();
 
     static abstract TSelf FromBytes(ReadOnlySpan<byte> bytes);
 }
@@ -42,9 +46,6 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
     private readonly ByteStorage<#= i #> _bytes;
 
     public static Bytes<#= i #> Zero => default;
-
-    public readonly ReadOnlySpan<byte> Span
-        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes<#= i #>>.BYTE_LENGTH => BYTE_LENGTH;
 
@@ -115,18 +116,39 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
         return new Bytes<#= i #>(bytes);
     }
 
-    public static implicit operator ReadOnlySpan<byte>(in Bytes<#= i #> value)
-        => value.Span;
+    public readonly void CopyTo(Span<byte> destination)
+    {
+        if(destination.Length < BYTE_LENGTH)
+        {
+            throw new ArgumentException("Destination too small", nameof(destination));
+        }
 
-    public byte[] ToArray()
+        AsReadOnlySpan().CopyTo(destination);
+    }
+
+    public readonly bool TryWriteTo(Span<byte> destination)
+    {
+        if(destination.Length < BYTE_LENGTH)
+        {
+            return false;
+        }
+
+        AsReadOnlySpan().CopyTo(destination);
+        return true;
+    }
+
+    public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Span.CopyTo(copy);
+        AsReadOnlySpan().CopyTo(copy);
         return copy;
     }
 
+    internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
+        => AsReadOnlySpan();
+
     public readonly override string ToString()
-        => Convert.ToHexString(Span);
+        => Convert.ToHexString(AsReadOnlySpan());
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes<#= i #> other)
@@ -199,6 +221,22 @@ for off in range((i//8)*8, i):
 
     public static bool operator !=(in Bytes<#= i #> left, in Bytes<#= i #> right)
         => !left.Equals(in right);
+
+    public static bool operator <(in Bytes<#= i #> left, in Bytes<#= i #> right)
+        => left.CompareTo(in right) < 0;
+
+    public static bool operator <=(in Bytes<#= i #> left, in Bytes<#= i #> right)
+        => left.CompareTo(in right) <= 0;
+
+    public static bool operator >(in Bytes<#= i #> left, in Bytes<#= i #> right)
+        => left.CompareTo(in right) > 0;
+
+    public static bool operator >=(in Bytes<#= i #> left, in Bytes<#= i #> right)
+        => left.CompareTo(in right) >= 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly ReadOnlySpan<byte> AsReadOnlySpan()
+        => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)

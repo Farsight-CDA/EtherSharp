@@ -28,7 +28,7 @@ public static partial class AbiTypes
         /// Encodes a fixed-size byte array value.
         /// </summary>
         public static void EncodeInto(in TBytes value, Span<byte> buffer)
-            => value.Span.CopyTo(buffer[..TBytes.BYTE_LENGTH]);
+            => value.CopyTo(buffer[..TBytes.BYTE_LENGTH]);
 
         /// <summary>
         /// Decodes a fixed-size byte array value.

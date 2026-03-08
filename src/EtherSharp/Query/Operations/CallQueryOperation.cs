@@ -23,7 +23,7 @@ internal class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<
 
         buffer[0] = (byte) QueryOperationId.Call;
 
-        _txInput.To.Span.CopyTo(buffer[4..24]);
+        _txInput.To.CopyTo(buffer[4..24]);
         BinaryPrimitives.WriteUInt256BigEndian(buffer[24..56], EthValue);
         _txInput.Data.Span.CopyTo(buffer[56..]);
     }

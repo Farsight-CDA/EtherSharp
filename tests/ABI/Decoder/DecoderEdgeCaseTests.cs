@@ -114,7 +114,7 @@ public class DecoderEdgeCaseTests
     {
         byte[] input = new byte[32];
         var result = new AbiDecoder(input).Address();
-        Assert.Equal(new byte[20], result.Span.ToArray());
+        Assert.Equal(new byte[20], result.ToArray());
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class DecoderEdgeCaseTests
         var result = new AbiDecoder(input).Address();
         byte[] expectedAddress = new byte[20];
         expectedAddress.AsSpan().Fill(0xFF);
-        Assert.Equal(expectedAddress, result.Span.ToArray());
+        Assert.Equal(expectedAddress, result.ToArray());
     }
 
     [Fact]

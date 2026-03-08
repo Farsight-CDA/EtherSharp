@@ -25,13 +25,7 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>
     /// </summary>
     public static Address Zero => default;
 
-    private readonly Bytes20 _bytes;
-
-    /// <summary>
-    /// Returns the binary representation of the address.
-    /// </summary>
-    public readonly ReadOnlySpan<byte> Span
-        => _bytes.Span;
+    internal readonly Bytes20 _bytes;
 
     private Address(in Bytes20 bytes)
     {
@@ -99,13 +93,24 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>
 
     /// <inheritdoc/>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(Span);
+        => HexUtils.ToPrefixedHexString(_bytes.DangerousGetReadOnlySpan());
 
     /// <summary>
-    /// Copies the address bytes to a new Byte Array.
+    /// Copies the address bytes into the destination span.
     /// </summary>
-    /// <returns></returns>
-    public readonly byte[] ToByteArray()
+    public readonly void CopyTo(Span<byte> destination)
+        => _bytes.CopyTo(destination);
+
+    /// <summary>
+    /// Tries to copy the address bytes into the destination span.
+    /// </summary>
+    public readonly bool TryWriteTo(Span<byte> destination)
+        => _bytes.TryWriteTo(destination);
+
+    /// <summary>
+    /// Copies the address bytes into a new array.
+    /// </summary>
+    public readonly byte[] ToArray()
         => _bytes.ToArray();
 
     /// <summary>

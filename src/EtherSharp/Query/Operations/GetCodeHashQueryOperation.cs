@@ -14,7 +14,7 @@ internal class GetCodeHashQueryOperation(in Address address) : IQuery, IQuery<by
     public void Encode(Span<byte> buffer)
     {
         buffer[0] = (byte) QueryOperationId.GetCodeHash;
-        _address.Span.CopyTo(buffer[1..]);
+        _address.CopyTo(buffer[1..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 32;

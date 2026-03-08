@@ -16,7 +16,7 @@ internal class GetCodeQueryOperation(in Address address) : IQuery, IQuery<EVMByt
     public void Encode(Span<byte> buffer)
     {
         buffer[0] = (byte) QueryOperationId.GetCode;
-        _address.Span.CopyTo(buffer[1..]);
+        _address.CopyTo(buffer[1..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
     {

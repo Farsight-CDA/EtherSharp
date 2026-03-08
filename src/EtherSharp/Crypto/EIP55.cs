@@ -16,29 +16,25 @@ public static class EIP55
     /// <returns></returns>
     public static string FormatAddress(in Address address)
     {
-        var addressValue = address;
+        var addressBytes = address._bytes.DangerousGetReadOnlySpan();
         Span<byte> asciiBytes = stackalloc byte[40];
-        WriteLowercaseAsciiHex(addressValue.Span, asciiBytes);
+        WriteLowercaseAsciiHex(addressBytes, asciiBytes);
 
         Span<byte> hash = stackalloc byte[32];
         Keccak256.TryHashData(asciiBytes, hash);
 
-        return String.Create(
-            42,
-            hash,
-            (span, hashBytes) =>
-            {
-                "0x".CopyTo(span);
+        Span<char> chars = stackalloc char[42];
+        chars[0] = '0';
+        chars[1] = 'x';
 
-                var bytes = addressValue.Span;
-                for(int i = 0; i < bytes.Length; i++)
-                {
-                    byte value = bytes[i];
-                    span[(i * 2) + 2] = ApplyChecksumCase(ToLowerHexChar(value >> 4), hashBytes[i], 4);
-                    span[(i * 2) + 3] = ApplyChecksumCase(ToLowerHexChar(value & 0x0F), hashBytes[i], 0);
-                }
-            }
-        );
+        for(int i = 0; i < addressBytes.Length; i++)
+        {
+            byte value = addressBytes[i];
+            chars[(i * 2) + 2] = ApplyChecksumCase(ToLowerHexChar(value >> 4), hash[i], 4);
+            chars[(i * 2) + 3] = ApplyChecksumCase(ToLowerHexChar(value & 0x0F), hash[i], 0);
+        }
+
+        return new string(chars);
     }
 
     private static void WriteLowercaseAsciiHex(ReadOnlySpan<byte> bytes, Span<byte> destination)

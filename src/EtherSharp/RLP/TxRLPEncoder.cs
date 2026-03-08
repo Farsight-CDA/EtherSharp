@@ -4,6 +4,11 @@ namespace EtherSharp.RLP;
 
 internal static class TxRLPEncoder
 {
+    public static int AddressStringSize => RLPEncoder.GetEncodedStringLength(Types.Address.BYTES_LENGTH);
+
+    public static int GetAddressStringSize(Types.Address? address)
+        => address is null ? RLPEncoder.GetStringSize([]) : AddressStringSize;
+
     public static int GetAccessListLength(ReadOnlySpan<StateAccess> accessList)
     {
         int totalSize = 0;
@@ -11,7 +16,7 @@ internal static class TxRLPEncoder
         foreach(var access in accessList)
         {
             totalSize += RLPEncoder.GetListSize(
-                RLPEncoder.GetStringSize(access.Address.Span) +
+                AddressStringSize +
                 RLPEncoder.GetListSize(GetStorageKeysLength(access))
             );
         }
@@ -35,7 +40,7 @@ internal static class TxRLPEncoder
     {
         foreach(var access in accessList)
         {
-            encoder = encoder.EncodeString(access.Address.Span)
+            encoder = encoder.EncodeAddress(access.Address)
                 .EncodeList(GetStorageKeysLength(access));
 
             foreach(byte[] storageKey in access.StorageKeys)
@@ -45,6 +50,13 @@ internal static class TxRLPEncoder
         }
 
         return encoder;
+    }
+
+    public static RLPEncoder EncodeAddress(this RLPEncoder encoder, Types.Address address)
+    {
+        Span<byte> addressBytes = stackalloc byte[Types.Address.BYTES_LENGTH];
+        address.CopyTo(addressBytes);
+        return encoder.EncodeString(addressBytes);
     }
 
     public static int MaxEncodedSignatureLength => 33 + 33 + 1;

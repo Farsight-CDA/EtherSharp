@@ -14,7 +14,7 @@ public class Bytes32Tests
     {
         var bytes32 = Bytes32.Parse(SAMPLE_BYTES32);
         Assert.Equal(_sampleBytes32ToString, bytes32.ToString());
-        Assert.Equal(Bytes32.BYTE_LENGTH, bytes32.Span.Length);
+        Assert.Equal(Bytes32.BYTE_LENGTH, bytes32.ToArray().Length);
     }
 
     [Fact]
@@ -81,6 +81,7 @@ public class Bytes32Tests
     public void Should_Compare_And_Order_By_BigEndian_Byte_Order()
     {
         var low = Bytes32.Parse("0x0000000000000000000000000000000000000000000000000000000000000001");
+        var sameAsLow = Bytes32.Parse("0x0000000000000000000000000000000000000000000000000000000000000001");
         var high = Bytes32.Parse("0x0000000000000000000000000000000000000000000000000000000000000002");
         var muchHigher = Bytes32.Parse("0x0100000000000000000000000000000000000000000000000000000000000000");
 
@@ -88,6 +89,12 @@ public class Bytes32Tests
         Assert.True(high.CompareTo(low) > 0);
         Assert.True(muchHigher.CompareTo(high) > 0);
         Assert.Equal(0, low.CompareTo(low));
+        Assert.True(low == sameAsLow);
+        Assert.True(low != high);
+        Assert.True(low < high);
+        Assert.True(low <= sameAsLow);
+        Assert.True(high > low);
+        Assert.True(high >= sameAsLow);
     }
 
     [Fact]

@@ -55,7 +55,17 @@ public class BytesTypeExhaustiveTests
         var sameValue = TBytes.FromBytes(same);
         var higherValue = TBytes.FromBytes(higher);
 
-        Assert.True(firstValue.Span.SequenceEqual(first));
+        Assert.Equal(first, firstValue.ToArray());
+
+        Span<byte> copied = stackalloc byte[length];
+        Assert.True(firstValue.TryWriteTo(copied));
+        Assert.Equal(first, copied.ToArray());
+
+        Span<byte> tooSmall = stackalloc byte[length - 1];
+        Assert.False(firstValue.TryWriteTo(tooSmall));
+
+        firstValue.CopyTo(copied);
+        Assert.Equal(first, copied.ToArray());
         Assert.Equal(Convert.ToHexString(first), firstValue.ToString());
 
         string expectedJson = $"\"0x{Convert.ToHexString(first)}\"";

@@ -19,5 +19,9 @@ public sealed class AddressConverter : JsonConverter<Address>
 
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, Address value, JsonSerializerOptions options)
-        => HexJsonConverter.WriteBytes(writer, value.Span);
+    {
+        Span<byte> bytes = stackalloc byte[Address.BYTES_LENGTH];
+        value.CopyTo(bytes);
+        HexJsonConverter.WriteBytes(writer, bytes);
+    }
 }

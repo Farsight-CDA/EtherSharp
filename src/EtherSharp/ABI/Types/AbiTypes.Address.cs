@@ -30,7 +30,7 @@ public static partial class AbiTypes
                 buffer = buffer[12..];
             }
 
-            value.Span.CopyTo(buffer);
+            value.CopyTo(buffer);
         }
 
         /// <summary>

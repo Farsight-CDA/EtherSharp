@@ -113,7 +113,7 @@ public class AbiRoundTripTests
         Assert.Equal(input.Length, output.Length);
         for(int i = 0; i < input.Length; i++)
         {
-            Assert.Equal(input[i].Span.ToArray(), output[i].Span.ToArray());
+            Assert.Equal(input[i].ToArray(), output[i].ToArray());
         }
     }
 
@@ -163,7 +163,7 @@ public class AbiRoundTripTests
         Assert.Equal(bytes32Input.Length, outputBytes32.Length);
         for(int i = 0; i < bytes32Input.Length; i++)
         {
-            Assert.Equal(bytes32Input[i].Span.ToArray(), outputBytes32[i].Span.ToArray());
+            Assert.Equal(bytes32Input[i].ToArray(), outputBytes32[i].ToArray());
         }
         Assert.Equal(str, outputStr);
         Assert.Equal(address, outputAddress);

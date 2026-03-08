@@ -49,13 +49,11 @@ public record LegacyTransaction(
     /// <returns>Total RLP-encoded byte count of the signable payload.</returns>
     public int GetSignDataEncodedSize(Span<int> listLengths)
     {
-        var toBytes = Input.To is { } to ? to.Span : [];
-
         int contentSize =
             RLPEncoder.GetIntSize(Nonce) +
             RLPEncoder.GetIntSize(GasPrice) +
             RLPEncoder.GetIntSize(Gas) +
-            RLPEncoder.GetStringSize(toBytes) +
+            TxRLPEncoder.GetAddressStringSize(Input.To) +
             RLPEncoder.GetIntSize(Input.Value) +
             RLPEncoder.GetStringSize(Input.Data.Span) +
             RLPEncoder.GetIntSize(ChainId) +
@@ -73,13 +71,11 @@ public record LegacyTransaction(
     /// <returns>Total RLP-encoded byte count of the unsigned payload.</returns>
     public int GetEncodedSize(Span<int> listLengths)
     {
-        var toBytes = Input.To is { } to ? to.Span : [];
-
         int contentSize =
             RLPEncoder.GetIntSize(Nonce) +
             RLPEncoder.GetIntSize(GasPrice) +
             RLPEncoder.GetIntSize(Gas) +
-            RLPEncoder.GetStringSize(toBytes) +
+            TxRLPEncoder.GetAddressStringSize(Input.To) +
             RLPEncoder.GetIntSize(Input.Value) +
             RLPEncoder.GetStringSize(Input.Data.Span);
 
@@ -95,19 +91,22 @@ public record LegacyTransaction(
     /// <param name="destination">Destination span to receive encoded bytes.</param>
     public void EncodeSignData(ReadOnlySpan<int> listLengths, Span<byte> destination)
     {
-        var toBytes = Input.To is { } to ? to.Span : [];
-
-        new RLPEncoder(destination)
+        var encoder = new RLPEncoder(destination)
             .EncodeList(listLengths[0])
                 .EncodeInt(Nonce)
                 .EncodeInt(GasPrice)
-                .EncodeInt(Gas)
-                .EncodeString(toBytes)
-                .EncodeInt(Input.Value)
-                .EncodeString(Input.Data.Span)
-                .EncodeInt(ChainId)
-                .EncodeInt(0)
-                .EncodeInt(0);
+                .EncodeInt(Gas);
+
+        encoder = Input.To is { } to
+            ? encoder.EncodeAddress(to)
+            : encoder.EncodeString();
+
+        encoder
+            .EncodeInt(Input.Value)
+            .EncodeString(Input.Data.Span)
+            .EncodeInt(ChainId)
+            .EncodeInt(0)
+            .EncodeInt(0);
     }
 
     /// <summary>
@@ -118,15 +117,18 @@ public record LegacyTransaction(
     /// <param name="signatureLength">Encoded length of the signature fields that will be appended.</param>
     public void Encode(ReadOnlySpan<int> listLengths, Span<byte> destination, int signatureLength)
     {
-        var toBytes = Input.To is { } to ? to.Span : [];
-
-        new RLPEncoder(destination)
+        var encoder = new RLPEncoder(destination)
             .EncodeList(listLengths[0] + signatureLength)
                 .EncodeInt(Nonce)
                 .EncodeInt(GasPrice)
-                .EncodeInt(Gas)
-                .EncodeString(toBytes)
-                .EncodeInt(Input.Value)
-                .EncodeString(Input.Data.Span);
+                .EncodeInt(Gas);
+
+        encoder = Input.To is { } to
+            ? encoder.EncodeAddress(to)
+            : encoder.EncodeString();
+
+        encoder
+            .EncodeInt(Input.Value)
+            .EncodeString(Input.Data.Span);
     }
 }

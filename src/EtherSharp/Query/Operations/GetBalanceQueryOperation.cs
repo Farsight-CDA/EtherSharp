@@ -15,7 +15,7 @@ internal class GetBalanceQueryOperation(in Address user) : IQuery, IQuery<UInt25
     public void Encode(Span<byte> buffer)
     {
         buffer[0] = (byte) QueryOperationId.GetBalance;
-        _user.Span.CopyTo(buffer[1..]);
+        _user.CopyTo(buffer[1..]);
     }
 
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
