@@ -7,12 +7,13 @@ namespace EtherSharp.Tests.Types;
 public class Bytes32Tests
 {
     private const string SAMPLE_BYTES32 = "0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff";
+    private static readonly string _sampleBytes32ToString = SAMPLE_BYTES32[2..].ToUpperInvariant();
 
     [Fact]
     public void Should_Parse_From_Prefixed_Hex()
     {
         var bytes32 = Bytes32.Parse(SAMPLE_BYTES32);
-        Assert.Equal(SAMPLE_BYTES32, bytes32.ToString(), ignoreCase: true);
+        Assert.Equal(_sampleBytes32ToString, bytes32.ToString());
         Assert.Equal(Bytes32.BYTE_LENGTH, bytes32.Bytes.Length);
     }
 
@@ -20,7 +21,7 @@ public class Bytes32Tests
     public void Should_Parse_From_Unprefixed_Hex()
     {
         var bytes32 = Bytes32.Parse(SAMPLE_BYTES32[2..]);
-        Assert.Equal(SAMPLE_BYTES32, bytes32.ToString(), ignoreCase: true);
+        Assert.Equal(_sampleBytes32ToString, bytes32.ToString());
     }
 
     [Fact]
@@ -29,7 +30,7 @@ public class Bytes32Tests
         var span = SAMPLE_BYTES32.AsSpan();
         var bytes32 = Bytes32.Parse(span);
 
-        Assert.Equal(SAMPLE_BYTES32, bytes32.ToString(), ignoreCase: true);
+        Assert.Equal(_sampleBytes32ToString, bytes32.ToString());
     }
 
     [Theory]
@@ -53,7 +54,7 @@ public class Bytes32Tests
     {
         bool parsed = Bytes32.TryParse(SAMPLE_BYTES32.AsSpan(), out var bytes32);
         Assert.True(parsed);
-        Assert.Equal(SAMPLE_BYTES32, bytes32.ToString(), ignoreCase: true);
+        Assert.Equal(_sampleBytes32ToString, bytes32.ToString());
     }
 
     [Fact]

@@ -1,4 +1,6 @@
+using EtherSharp.Common;
 using EtherSharp.Types;
+using System.Text.Json;
 
 namespace EtherSharp.Tests.Types;
 
@@ -54,6 +56,18 @@ public class BytesTypeExhaustiveTests
         var higherValue = TBytes.FromBytes(higher);
 
         Assert.True(firstValue.Bytes.SequenceEqual(first));
+        Assert.Equal(Convert.ToHexString(first), firstValue.ToString());
+
+        string expectedJson = $"\"0x{Convert.ToHexString(first)}\"";
+        string defaultJson = JsonSerializer.Serialize(firstValue);
+        var defaultRoundtrip = JsonSerializer.Deserialize<TBytes>(defaultJson);
+        string evmJson = JsonSerializer.Serialize(firstValue, ParsingUtils.EvmSerializerOptions);
+        var evmRoundtrip = JsonSerializer.Deserialize<TBytes>(evmJson, ParsingUtils.EvmSerializerOptions);
+
+        Assert.Equal(expectedJson, defaultJson);
+        Assert.Equal(firstValue, defaultRoundtrip);
+        Assert.Equal(expectedJson, evmJson);
+        Assert.Equal(firstValue, evmRoundtrip);
 
         Assert.True(firstValue.Equals(sameValue));
         Assert.Equal(firstValue.GetHashCode(), sameValue.GetHashCode());

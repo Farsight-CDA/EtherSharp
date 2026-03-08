@@ -179,6 +179,10 @@
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		  <LastGenOutput>Bytes.generated.cs</LastGenOutput>
 		</None>
+		<None Update="Common\Converter\BytesConverters.tt">
+		  <Generator>TextTemplatingFileGenerator</Generator>
+		  <LastGenOutput>BytesConverters.generated.cs</LastGenOutput>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -321,6 +325,11 @@
 		  <DesignTime>True</DesignTime>
 		  <AutoGen>True</AutoGen>
 		  <DependentUpon>Bytes.tt</DependentUpon>
+		</Compile>
+		<Compile Update="Common\Converter\BytesConverters.generated.cs">
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>BytesConverters.tt</DependentUpon>
 		</Compile>
 	</ItemGroup>
 
