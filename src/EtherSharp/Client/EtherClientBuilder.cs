@@ -373,7 +373,7 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="maxPayloadSize"></param>
     /// <param name="maxResultSize"></param>
     /// <returns></returns>
-    public EtherClientBuilder WithFlashCallContract(Address contractAddress, bool allowFallback = true,
+    public EtherClientBuilder WithFlashCallContract(in Address contractAddress, bool allowFallback = true,
         int maxPayloadSize = 3 * 1024 * 1024, int maxResultSize = 3 * 1024 * 1024)
     {
         _services.AddOrReplaceSingleton(new DeployedFlashCallExecutorConfiguration(contractAddress, allowFallback, maxPayloadSize, maxResultSize));

@@ -17,7 +17,13 @@ internal class DebugRpcModule(IRpcClient rpcClient) : IDebugRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<CallTrace?> TraceTransactionCallsAsync(Bytes32 transactionHash, CancellationToken cancellationToken = default)
+    public Task<CallTrace?> TraceTransactionCallsAsync(in Bytes32 transactionHash, CancellationToken cancellationToken = default)
+    {
+        var transactionHashValue = transactionHash;
+        return TraceTransactionCallsCoreAsync(transactionHashValue, cancellationToken);
+    }
+
+    private async Task<CallTrace?> TraceTransactionCallsCoreAsync(Bytes32 transactionHash, CancellationToken cancellationToken = default)
         => await _rpcClient.SendRpcRequestAsync<Bytes32, object, CallTrace>(
             "debug_traceTransaction", transactionHash, new { tracer = "callTracer" }, TargetHeight.Latest, cancellationToken) switch
         {

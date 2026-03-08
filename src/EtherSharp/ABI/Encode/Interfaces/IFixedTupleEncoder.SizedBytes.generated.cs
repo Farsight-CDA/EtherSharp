@@ -106,96 +106,96 @@ public partial interface IFixedTupleEncoder
     /// </summary>
     /// <param name="value">The 17-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes17(Bytes17 value);
+    public IFixedTupleEncoder Bytes17(in Bytes17 value);
     /// <summary>
     /// Encodes a bytes18 value.
     /// </summary>
     /// <param name="value">The 18-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes18(Bytes18 value);
+    public IFixedTupleEncoder Bytes18(in Bytes18 value);
     /// <summary>
     /// Encodes a bytes19 value.
     /// </summary>
     /// <param name="value">The 19-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes19(Bytes19 value);
+    public IFixedTupleEncoder Bytes19(in Bytes19 value);
     /// <summary>
     /// Encodes a bytes20 value.
     /// </summary>
     /// <param name="value">The 20-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes20(Bytes20 value);
+    public IFixedTupleEncoder Bytes20(in Bytes20 value);
     /// <summary>
     /// Encodes a bytes21 value.
     /// </summary>
     /// <param name="value">The 21-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes21(Bytes21 value);
+    public IFixedTupleEncoder Bytes21(in Bytes21 value);
     /// <summary>
     /// Encodes a bytes22 value.
     /// </summary>
     /// <param name="value">The 22-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes22(Bytes22 value);
+    public IFixedTupleEncoder Bytes22(in Bytes22 value);
     /// <summary>
     /// Encodes a bytes23 value.
     /// </summary>
     /// <param name="value">The 23-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes23(Bytes23 value);
+    public IFixedTupleEncoder Bytes23(in Bytes23 value);
     /// <summary>
     /// Encodes a bytes24 value.
     /// </summary>
     /// <param name="value">The 24-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes24(Bytes24 value);
+    public IFixedTupleEncoder Bytes24(in Bytes24 value);
     /// <summary>
     /// Encodes a bytes25 value.
     /// </summary>
     /// <param name="value">The 25-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes25(Bytes25 value);
+    public IFixedTupleEncoder Bytes25(in Bytes25 value);
     /// <summary>
     /// Encodes a bytes26 value.
     /// </summary>
     /// <param name="value">The 26-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes26(Bytes26 value);
+    public IFixedTupleEncoder Bytes26(in Bytes26 value);
     /// <summary>
     /// Encodes a bytes27 value.
     /// </summary>
     /// <param name="value">The 27-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes27(Bytes27 value);
+    public IFixedTupleEncoder Bytes27(in Bytes27 value);
     /// <summary>
     /// Encodes a bytes28 value.
     /// </summary>
     /// <param name="value">The 28-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes28(Bytes28 value);
+    public IFixedTupleEncoder Bytes28(in Bytes28 value);
     /// <summary>
     /// Encodes a bytes29 value.
     /// </summary>
     /// <param name="value">The 29-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes29(Bytes29 value);
+    public IFixedTupleEncoder Bytes29(in Bytes29 value);
     /// <summary>
     /// Encodes a bytes30 value.
     /// </summary>
     /// <param name="value">The 30-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes30(Bytes30 value);
+    public IFixedTupleEncoder Bytes30(in Bytes30 value);
     /// <summary>
     /// Encodes a bytes31 value.
     /// </summary>
     /// <param name="value">The 31-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes31(Bytes31 value);
+    public IFixedTupleEncoder Bytes31(in Bytes31 value);
     /// <summary>
     /// Encodes a bytes32 value.
     /// </summary>
     /// <param name="value">The 32-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes32(Bytes32 value);
+    public IFixedTupleEncoder Bytes32(in Bytes32 value);
 
 }

@@ -11,8 +11,8 @@ public static partial class AbiTypes
     public class SizedBytes<TBytes> : FixedType<TBytes>, IPackedEncodeType
         where TBytes : struct, IFixedBytes<TBytes>
     {
-        internal SizedBytes(TBytes value)
-            : base(value)
+        internal SizedBytes(in TBytes value)
+            : base(in value)
         { }
 
         /// <inheritdoc />
@@ -27,8 +27,8 @@ public static partial class AbiTypes
         /// <summary>
         /// Encodes a fixed-size byte array value.
         /// </summary>
-        public static void EncodeInto(TBytes value, Span<byte> buffer)
-            => value.Bytes.CopyTo(buffer[..TBytes.BYTE_LENGTH]);
+        public static void EncodeInto(in TBytes value, Span<byte> buffer)
+            => value.Span.CopyTo(buffer[..TBytes.BYTE_LENGTH]);
 
         /// <summary>
         /// Decodes a fixed-size byte array value.

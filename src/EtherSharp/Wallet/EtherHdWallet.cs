@@ -15,7 +15,7 @@ public class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSigner
     /// <summary>
     /// Gets the Ethereum address derived from the current wallet public key.
     /// </summary>
-    public Address Address { get; } = null!;
+    public Address Address { get; }
 
     /// <summary>
     /// Creates a new wallet using a cryptographically random private key.

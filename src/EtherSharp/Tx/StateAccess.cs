@@ -12,7 +12,7 @@ public record StateAccess
     /// </summary>
     /// <param name="address">The contract address whose storage is accessed.</param>
     /// <param name="storageKeys">The storage slot keys accessed for <paramref name="address"/>.</param>
-    public StateAccess(Address address, byte[][] storageKeys)
+    public StateAccess(in Address address, byte[][] storageKeys)
     {
         Address = address;
         StorageKeys = storageKeys;

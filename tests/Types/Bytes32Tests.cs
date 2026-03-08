@@ -14,7 +14,7 @@ public class Bytes32Tests
     {
         var bytes32 = Bytes32.Parse(SAMPLE_BYTES32);
         Assert.Equal(_sampleBytes32ToString, bytes32.ToString());
-        Assert.Equal(Bytes32.BYTE_LENGTH, bytes32.Bytes.Length);
+        Assert.Equal(Bytes32.BYTE_LENGTH, bytes32.Span.Length);
     }
 
     [Fact]

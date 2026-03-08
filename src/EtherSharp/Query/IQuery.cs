@@ -117,14 +117,14 @@ public interface IQuery
     /// <summary>
     /// Creates a query that returns deployed bytecode for <paramref name="contract"/>.
     /// </summary>
-    public static IQuery<EVMByteCode> GetCode(Address contract)
-        => new GetCodeQueryOperation(contract);
+    public static IQuery<EVMByteCode> GetCode(in Address contract)
+        => new GetCodeQueryOperation(in contract);
 
     /// <summary>
     /// Creates a query that returns the code hash for <paramref name="contract"/>.
     /// </summary>
-    public static IQuery<byte[]> GetCodeHash(Address contract)
-        => new GetCodeHashQueryOperation(contract);
+    public static IQuery<byte[]> GetCodeHash(in Address contract)
+        => new GetCodeHashQueryOperation(in contract);
 
     /// <summary>
     /// Creates a query that returns the current block number.
@@ -159,8 +159,8 @@ public interface IQuery
     /// <summary>
     /// Creates a query that returns the ETH balance for <paramref name="user"/>.
     /// </summary>
-    public static IQuery<UInt256> GetBalance(Address user)
-        => new GetBalanceQueryOperation(user);
+    public static IQuery<UInt256> GetBalance(in Address user)
+        => new GetBalanceQueryOperation(in user);
 
     /// <summary>
     /// Creates a query that returns the current chain id.

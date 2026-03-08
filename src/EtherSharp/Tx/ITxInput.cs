@@ -28,7 +28,7 @@ public interface ITxInput
     /// <param name="receiver"></param>
     /// <param name="amount"></param>
     /// <returns></returns>
-    public static ITxInput ForEthTransfer(Address receiver, UInt256 amount)
+    public static ITxInput ForEthTransfer(in Address receiver, UInt256 amount)
         => new TxInput(receiver, amount, Array.Empty<byte>());
 }
 

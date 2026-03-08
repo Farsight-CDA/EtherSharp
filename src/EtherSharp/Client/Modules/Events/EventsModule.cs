@@ -49,7 +49,7 @@ internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModu
         _contractAddresses = [contract.Address];
         return this;
     }
-    public IEventsModule<TLog> HasContractAddress(Address contractAddress)
+    public IEventsModule<TLog> HasContractAddress(in Address contractAddress)
     {
         AssertNoContractAddresses();
         _contractAddresses = [contractAddress];

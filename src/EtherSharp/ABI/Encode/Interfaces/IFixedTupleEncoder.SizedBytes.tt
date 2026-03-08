@@ -15,13 +15,14 @@ public partial interface IFixedTupleEncoder
 <#
     for(var i = 2; i <= 32;i=i+1)
     {
+        var modifier = i >= 17 ? "in " : String.Empty;
 #>
     /// <summary>
     /// Encodes a bytes<#=i#> value.
     /// </summary>
     /// <param name="value">The <#=i#>-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Bytes<#=i#>(Bytes<#=i#> value);
+    public IFixedTupleEncoder Bytes<#=i#>(<#=modifier#>Bytes<#=i#> value);
 <#
     }
 #>

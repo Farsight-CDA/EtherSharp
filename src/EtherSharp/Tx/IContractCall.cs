@@ -19,7 +19,7 @@ public interface IContractCall : ITxInput
     /// <param name="functionSignature"></param>
     /// <param name="encoder"></param>
     /// <returns></returns>
-    public static IContractCall ForContractCall(Address contractAddress, UInt256 value, ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder)
+    public static IContractCall ForContractCall(in Address contractAddress, UInt256 value, ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder)
     {
         byte[] data = new byte[functionSignature.Length + encoder.Size];
         functionSignature.CopyTo(data);
@@ -34,7 +34,7 @@ public interface IContractCall : ITxInput
     /// <param name="value"></param>
     /// <param name="data"></param>
     /// <returns></returns>
-    public static IContractCall<ReadOnlyMemory<byte>> ForRawContractCall(Address contractAddress, UInt256 value, ReadOnlyMemory<byte> data)
+    public static IContractCall<ReadOnlyMemory<byte>> ForRawContractCall(in Address contractAddress, UInt256 value, ReadOnlyMemory<byte> data)
         => new TxInput<ReadOnlyMemory<byte>>(contractAddress, value, data, x => x);
 
     /// <summary>
@@ -45,7 +45,7 @@ public interface IContractCall : ITxInput
     /// <param name="data"></param>
     /// <param name="decodeFunc"></param>
     /// <returns></returns>
-    public static IContractCall<T> ForRawContractCall<T>(Address contractAddress, UInt256 value, ReadOnlyMemory<byte> data, Func<ReadOnlyMemory<byte>, T> decodeFunc)
+    public static IContractCall<T> ForRawContractCall<T>(in Address contractAddress, UInt256 value, ReadOnlyMemory<byte> data, Func<ReadOnlyMemory<byte>, T> decodeFunc)
         => new TxInput<T>(contractAddress, value, data, x => decodeFunc(x));
 
     /// <summary>
@@ -95,7 +95,7 @@ public interface IContractCall<T> : IContractCall, ITxInput<T>
     /// <param name="encoder"></param>
     /// <param name="decoder"></param>
     /// <returns></returns>
-    public static IContractCall<T> ForContractCall(Address contractAddress, UInt256 value, ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder, Func<AbiDecoder, T> decoder)
+    public static IContractCall<T> ForContractCall(in Address contractAddress, UInt256 value, ReadOnlyMemory<byte> functionSignature, AbiEncoder encoder, Func<AbiDecoder, T> decoder)
     {
         byte[] data = new byte[functionSignature.Length + encoder.Size];
         functionSignature.CopyTo(data);

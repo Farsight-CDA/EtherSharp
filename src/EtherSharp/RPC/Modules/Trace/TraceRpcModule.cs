@@ -18,7 +18,13 @@ internal class TraceRpcModule(IRpcClient rpcClient) : ITraceRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<TransactionTraceResult?> ReplayTransactionAsync(Bytes32 txHash, string[] traceTypes, CancellationToken cancellationToken = default)
+    public Task<TransactionTraceResult?> ReplayTransactionAsync(in Bytes32 txHash, string[] traceTypes, CancellationToken cancellationToken = default)
+    {
+        var txHashValue = txHash;
+        return ReplayTransactionCoreAsync(txHashValue, traceTypes, cancellationToken);
+    }
+
+    private async Task<TransactionTraceResult?> ReplayTransactionCoreAsync(Bytes32 txHash, string[] traceTypes, CancellationToken cancellationToken = default)
         => await _rpcClient.SendRpcRequestAsync<Bytes32, string[], TransactionTraceResult>(
             "trace_replayTransaction", txHash, traceTypes, TargetHeight.Latest, cancellationToken) switch
         {

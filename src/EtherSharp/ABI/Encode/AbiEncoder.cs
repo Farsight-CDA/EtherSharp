@@ -105,8 +105,8 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// </summary>
     /// <param name="value">Address to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
-    public AbiEncoder Address(Address value)
-        => AddElement(new AbiTypes.Address(value));
+    public AbiEncoder Address(in Address value)
+        => AddElement(new AbiTypes.Address(in value));
 
     /// <summary>
     /// Encodes a UTF-8 string as a dynamic ABI value.
@@ -242,8 +242,8 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
 
     IFixedTupleEncoder IFixedTupleEncoder.Bool(bool value)
         => Bool(value);
-    IFixedTupleEncoder IFixedTupleEncoder.Address(Address value)
-        => Address(value);
+    IFixedTupleEncoder IFixedTupleEncoder.Address(in Address value)
+        => Address(in value);
 
     IDynamicTupleEncoder IDynamicTupleEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
         => FixedTuple(func);
@@ -254,8 +254,8 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
 
     IDynamicTupleEncoder IDynamicTupleEncoder.Bool(bool value)
         => Bool(value);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Address(Address value)
-        => Address(value);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Address(in Address value)
+        => Address(in value);
     IDynamicTupleEncoder IDynamicTupleEncoder.String(string value)
         => String(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(ReadOnlyMemory<byte> arr)

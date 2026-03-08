@@ -13,13 +13,13 @@ internal class EtherModule(IEthRpcModule ethRpcModule, IServiceProvider provider
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly IServiceProvider _provider = provider;
 
-    public ITxInput Transfer(Address receiver, UInt256 amount)
-        => ITxInput.ForEthTransfer(receiver, amount);
+    public ITxInput Transfer(in Address receiver, UInt256 amount)
+        => ITxInput.ForEthTransfer(in receiver, amount);
     public ITxInput Transfer(IPayableContract contract, UInt256 amount)
         => ITxInput.ForEthTransfer(contract.Address, amount);
 
-    public Task<UInt256> GetBalanceAsync(Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
-        => _ethRpcModule.GetBalanceAsync(address, targetHeight, cancellationToken);
+    public Task<UInt256> GetBalanceAsync(in Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
+        => _ethRpcModule.GetBalanceAsync(in address, targetHeight, cancellationToken);
     public Task<UInt256> GetBalanceAsync(IEVMContract contract, TargetHeight targetHeight, CancellationToken cancellationToken)
         => _ethRpcModule.GetBalanceAsync(contract.Address, targetHeight, cancellationToken);
 

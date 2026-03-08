@@ -145,7 +145,7 @@ public interface IEtherClient
     /// <param name="hash">Transaction hash.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The transaction if found; otherwise <see langword="null"/>.</returns>
-    public Task<TxData?> GetTransactionAsync(Bytes32 hash, CancellationToken cancellationToken = default);
+    public Task<TxData?> GetTransactionAsync(in Bytes32 hash, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Fetches a transaction receipt by hash.
@@ -153,7 +153,7 @@ public interface IEtherClient
     /// <param name="hash">Transaction hash.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The receipt if available; otherwise <see langword="null"/>.</returns>
-    public Task<TxReceipt?> GetTransactionReceiptAsync(Bytes32 hash, CancellationToken cancellationToken = default);
+    public Task<TxReceipt?> GetTransactionReceiptAsync(in Bytes32 hash, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the account nonce (transaction count) for an address at a specific block context.
@@ -162,7 +162,7 @@ public interface IEtherClient
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The account nonce.</returns>
-    public Task<uint> GetTransactionCount(Address address, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<uint> GetTransactionCount(in Address address, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reads a storage slot from contract storage.
@@ -172,7 +172,7 @@ public interface IEtherClient
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The slot value as bytes.</returns>
-    public Task<byte[]> GetStorageAtAsync(Address address, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<byte[]> GetStorageAtAsync(in Address address, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reads a storage slot from a contract instance.
@@ -190,7 +190,7 @@ public interface IEtherClient
     /// <typeparam name="TContract">Contract interface/type implementing <see cref="IEVMContract"/>.</typeparam>
     /// <param name="address">Contract address.</param>
     /// <returns>A contract proxy bound to <paramref name="address"/>.</returns>
-    public TContract Contract<TContract>(Address address)
+    public TContract Contract<TContract>(in Address address)
         where TContract : IEVMContract;
 
     /// <summary>

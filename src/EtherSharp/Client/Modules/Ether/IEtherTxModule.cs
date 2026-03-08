@@ -23,7 +23,7 @@ public interface IEtherTxModule : IEtherModule
     /// <param name="receiver">Destination address.</param>
     /// <param name="amount">Transfer amount in wei.</param>
     /// <returns>An unsigned transaction input ready to estimate or send.</returns>
-    public ITxInput Transfer(Address receiver, UInt256 amount);
+    public ITxInput Transfer(in Address receiver, UInt256 amount);
 
     /// <summary>
     /// Creates a transaction input that transfers native currency to a payable contract.

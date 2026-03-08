@@ -106,96 +106,96 @@ public partial interface IDynamicTupleEncoder
     /// </summary>
     /// <param name="value">The 17-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes17(Bytes17 value);
+    public IDynamicTupleEncoder Bytes17(in Bytes17 value);
     /// <summary>
     /// Encodes a bytes18 value.
     /// </summary>
     /// <param name="value">The 18-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes18(Bytes18 value);
+    public IDynamicTupleEncoder Bytes18(in Bytes18 value);
     /// <summary>
     /// Encodes a bytes19 value.
     /// </summary>
     /// <param name="value">The 19-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes19(Bytes19 value);
+    public IDynamicTupleEncoder Bytes19(in Bytes19 value);
     /// <summary>
     /// Encodes a bytes20 value.
     /// </summary>
     /// <param name="value">The 20-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes20(Bytes20 value);
+    public IDynamicTupleEncoder Bytes20(in Bytes20 value);
     /// <summary>
     /// Encodes a bytes21 value.
     /// </summary>
     /// <param name="value">The 21-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes21(Bytes21 value);
+    public IDynamicTupleEncoder Bytes21(in Bytes21 value);
     /// <summary>
     /// Encodes a bytes22 value.
     /// </summary>
     /// <param name="value">The 22-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes22(Bytes22 value);
+    public IDynamicTupleEncoder Bytes22(in Bytes22 value);
     /// <summary>
     /// Encodes a bytes23 value.
     /// </summary>
     /// <param name="value">The 23-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes23(Bytes23 value);
+    public IDynamicTupleEncoder Bytes23(in Bytes23 value);
     /// <summary>
     /// Encodes a bytes24 value.
     /// </summary>
     /// <param name="value">The 24-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes24(Bytes24 value);
+    public IDynamicTupleEncoder Bytes24(in Bytes24 value);
     /// <summary>
     /// Encodes a bytes25 value.
     /// </summary>
     /// <param name="value">The 25-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes25(Bytes25 value);
+    public IDynamicTupleEncoder Bytes25(in Bytes25 value);
     /// <summary>
     /// Encodes a bytes26 value.
     /// </summary>
     /// <param name="value">The 26-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes26(Bytes26 value);
+    public IDynamicTupleEncoder Bytes26(in Bytes26 value);
     /// <summary>
     /// Encodes a bytes27 value.
     /// </summary>
     /// <param name="value">The 27-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes27(Bytes27 value);
+    public IDynamicTupleEncoder Bytes27(in Bytes27 value);
     /// <summary>
     /// Encodes a bytes28 value.
     /// </summary>
     /// <param name="value">The 28-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes28(Bytes28 value);
+    public IDynamicTupleEncoder Bytes28(in Bytes28 value);
     /// <summary>
     /// Encodes a bytes29 value.
     /// </summary>
     /// <param name="value">The 29-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes29(Bytes29 value);
+    public IDynamicTupleEncoder Bytes29(in Bytes29 value);
     /// <summary>
     /// Encodes a bytes30 value.
     /// </summary>
     /// <param name="value">The 30-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes30(Bytes30 value);
+    public IDynamicTupleEncoder Bytes30(in Bytes30 value);
     /// <summary>
     /// Encodes a bytes31 value.
     /// </summary>
     /// <param name="value">The 31-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes31(Bytes31 value);
+    public IDynamicTupleEncoder Bytes31(in Bytes31 value);
     /// <summary>
     /// Encodes a bytes32 value.
     /// </summary>
     /// <param name="value">The 32-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Bytes32(Bytes32 value);
+    public IDynamicTupleEncoder Bytes32(in Bytes32 value);
 
 }

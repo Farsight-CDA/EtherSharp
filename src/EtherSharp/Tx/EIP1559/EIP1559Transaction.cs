@@ -62,6 +62,7 @@ public record EIP1559Transaction(
     public int GetEncodedSize(Span<int> listLengths)
     {
         listLengths[1] = TxRLPEncoder.GetAccessListLength(AccessList);
+        var toBytes = Input.To is { } to ? to.Span : [];
 
         int contentSize =
             RLPEncoder.GetIntSize(ChainId) +
@@ -69,7 +70,7 @@ public record EIP1559Transaction(
             RLPEncoder.GetIntSize(MaxPriorityFeePerGas) +
             RLPEncoder.GetIntSize(MaxFeePerGas) +
             RLPEncoder.GetIntSize(Gas) +
-            RLPEncoder.GetStringSize(Input.To is null ? [] : Input.To.Bytes) +
+            RLPEncoder.GetStringSize(toBytes) +
             RLPEncoder.GetIntSize(Input.Value) +
             RLPEncoder.GetStringSize(Input.Data.Span) +
             RLPEncoder.GetListSize(listLengths[1]);
@@ -85,16 +86,20 @@ public record EIP1559Transaction(
     /// <param name="listLengths">Precomputed list content lengths from <see cref="GetEncodedSize"/>.</param>
     /// <param name="destination">Destination span to receive encoded bytes.</param>
     public void Encode(ReadOnlySpan<int> listLengths, Span<byte> destination)
-        => new RLPEncoder(destination)
+    {
+        var toBytes = Input.To is { } to ? to.Span : [];
+
+        new RLPEncoder(destination)
             .EncodeList(listLengths[0])
                 .EncodeInt(ChainId)
                 .EncodeInt(Nonce)
                 .EncodeInt(MaxPriorityFeePerGas)
                 .EncodeInt(MaxFeePerGas)
                 .EncodeInt(Gas)
-                .EncodeString(Input.To is null ? [] : Input.To.Bytes)
+                .EncodeString(toBytes)
                 .EncodeInt(Input.Value)
                 .EncodeString(Input.Data.Span)
                 .EncodeList(listLengths[1])
                     .EncodeAccessList(AccessList);
+    }
 }

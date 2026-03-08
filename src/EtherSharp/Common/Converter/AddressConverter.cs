@@ -7,12 +7,17 @@ namespace EtherSharp.Common.Converter;
 /// <summary>
 /// Converts an <see cref="Address"/> to or from JSON.
 /// </summary>
-public class AddressConverter : JsonConverter<Address>
+public sealed class AddressConverter : JsonConverter<Address>
 {
     /// <inheritdoc/>
-    public override Address? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        => Address.FromString(reader.GetString() ?? throw new InvalidOperationException("Cannot read null as an address"));
+    public override Address Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        Span<byte> buffer = stackalloc byte[Address.BYTES_LENGTH];
+        HexJsonConverter.ReadBytes(ref reader, buffer, nameof(Address));
+        return Address.FromBytes(buffer);
+    }
+
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, Address value, JsonSerializerOptions options)
-        => writer.WriteStringValue(value.Hex);
+        => HexJsonConverter.WriteBytes(writer, value.Span);
 }

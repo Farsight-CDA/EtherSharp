@@ -82,8 +82,8 @@ public partial class PackedAbiEncoder
     /// </summary>
     /// <param name="value">Address to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
-    public PackedAbiEncoder Address(Address value)
-        => AddElement(new AbiTypes.Address(value));
+    public PackedAbiEncoder Address(in Address value)
+        => AddElement(new AbiTypes.Address(in value));
 
     /// <summary>
     /// Encodes a UTF-8 string in packed format.

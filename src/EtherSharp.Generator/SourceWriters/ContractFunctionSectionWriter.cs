@@ -19,7 +19,7 @@ internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWr
                 return false;
             }
 
-            return data.Slice(0, 4).SequenceEqual(Selector.Bytes);
+            return data.Slice(0, 4).SequenceEqual(Selector.Span);
             """
         );
 

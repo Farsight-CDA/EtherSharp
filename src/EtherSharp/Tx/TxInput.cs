@@ -9,6 +9,8 @@ internal class TxInput(Address to, UInt256 value, ReadOnlyMemory<byte> data)
 {
     public Address To { get; } = to;
 
+    Address? ITxInput.To => To;
+
     public UInt256 Value { get; } = value;
     public ReadOnlyMemory<byte> Data { get; } = data;
 }

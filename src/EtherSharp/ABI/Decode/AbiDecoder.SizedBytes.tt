@@ -37,9 +37,9 @@ public partial class AbiDecoder
         ConsumeBytes();
         return result;
     }
-    Bytes<#=i#> IFixedTupleDecoder.Bytes<#=i#>()
+    Bytes<#=i#> IFixedTupleDecoder.Span<#=i#>()
         => Bytes<#=i#>();
-    Bytes<#=i#> IDynamicTupleDecoder.Bytes<#=i#>()
+    Bytes<#=i#> IDynamicTupleDecoder.Span<#=i#>()
         => Bytes<#=i#>();
 
 <#

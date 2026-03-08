@@ -301,28 +301,28 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 
     IInternalEtherClient IEtherClient.AsInternal() => this;
 
-    Task<TxData?> IEtherClient.GetTransactionAsync(Bytes32 hash, CancellationToken cancellationToken)
+    Task<TxData?> IEtherClient.GetTransactionAsync(in Bytes32 hash, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.TransactionByHashAsync(hash, cancellationToken);
+        return _ethRpcModule.TransactionByHashAsync(in hash, cancellationToken);
     }
-    Task<TxReceipt?> IEtherClient.GetTransactionReceiptAsync(Bytes32 hash, CancellationToken cancellationToken)
+    Task<TxReceipt?> IEtherClient.GetTransactionReceiptAsync(in Bytes32 hash, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.GetTransactionReceiptAsync(hash, cancellationToken);
+        return _ethRpcModule.GetTransactionReceiptAsync(in hash, cancellationToken);
     }
 
     Task<uint> IEtherClient.GetTransactionCount(
-        Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
+        in Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.GetTransactionCountAsync(address, targetHeight, cancellationToken);
+        return _ethRpcModule.GetTransactionCountAsync(in address, targetHeight, cancellationToken);
     }
 
-    Task<byte[]> IEtherClient.GetStorageAtAsync(Address address, byte[] slot, TargetHeight targetHeight, CancellationToken cancellationToken)
+    Task<byte[]> IEtherClient.GetStorageAtAsync(in Address address, byte[] slot, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.GetStorageAtAsync(address, slot, targetHeight, cancellationToken);
+        return _ethRpcModule.GetStorageAtAsync(in address, slot, targetHeight, cancellationToken);
     }
     Task<byte[]> IEtherClient.GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
@@ -330,11 +330,11 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return _ethRpcModule.GetStorageAtAsync(contract.Address, slot, targetHeight, cancellationToken);
     }
 
-    private TContract Contract<TContract>(Address address)
+    private TContract Contract<TContract>(in Address address)
         where TContract : IEVMContract
     {
         AssertReady();
-        return _contractFactory.Create<TContract>(address);
+        return _contractFactory.Create<TContract>(in address);
     }
 
     Task<FeeHistory> IEtherClient.GetFeeHistoryAsync(int blockCount, TargetHeight newestBlock,
@@ -379,16 +379,16 @@ internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
         return await gasFeeProvider.EstimateGasParamsAsync(call, txParams ?? TTxParams.Default, cancellationToken);
     }
 
-    TContract IEtherClient.Contract<TContract>(Address address)
-        => Contract<TContract>(address);
+    TContract IEtherClient.Contract<TContract>(in Address address)
+        => Contract<TContract>(in address);
 
     public async Task<TxCallResult> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         AssertReady();
 
-        var sender = _isTxClient
+        Address? sender = _isTxClient
             ? _signer.Address
-            : null;
+            : default;
 
         var result = await _ethRpcModule.CallAsync(
             sender,

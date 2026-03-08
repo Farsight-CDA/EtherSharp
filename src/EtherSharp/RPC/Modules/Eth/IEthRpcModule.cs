@@ -43,7 +43,7 @@ public interface IEthRpcModule
     /// Gets a transaction by hash.
     /// </summary>
     public Task<TxData?> TransactionByHashAsync(
-        Bytes32 hash, CancellationToken cancellationToken
+        in Bytes32 hash, CancellationToken cancellationToken
     );
 
     /// <summary>
@@ -67,7 +67,7 @@ public interface IEthRpcModule
     /// Gets account balance at a target block.
     /// </summary>
     public Task<UInt256> GetBalanceAsync(
-        Address address, TargetHeight targetHeight, CancellationToken cancellationToken = default
+        in Address address, TargetHeight targetHeight, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -81,7 +81,7 @@ public interface IEthRpcModule
     /// Gets transaction count (nonce) at a target block.
     /// </summary>
     public Task<uint> GetTransactionCountAsync(
-        Address address, TargetHeight targetHeight, CancellationToken cancellationToken = default
+        in Address address, TargetHeight targetHeight, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -95,14 +95,14 @@ public interface IEthRpcModule
     /// Gets a transaction receipt by transaction hash.
     /// </summary>
     public Task<TxReceipt?> GetTransactionReceiptAsync(
-        Bytes32 transactionHash, CancellationToken cancellationToken = default
+        in Bytes32 transactionHash, CancellationToken cancellationToken = default
     );
 
     /// <summary>
     /// Reads a contract storage slot.
     /// </summary>
     public Task<byte[]> GetStorageAtAsync(
-        Address address, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        in Address address, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>

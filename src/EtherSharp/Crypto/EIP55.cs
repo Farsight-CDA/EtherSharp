@@ -1,5 +1,4 @@
 ﻿using EtherSharp.Types;
-using System.Text;
 
 namespace EtherSharp.Crypto;
 /// <summary>
@@ -8,18 +7,18 @@ namespace EtherSharp.Crypto;
 /// </summary>
 public static class EIP55
 {
+    private const string LOWER_HEX_ALPHABET = "0123456789abcdef";
+
     /// <summary>
     /// Formats the address to an EIP55 checksummed address string.
     /// </summary>
     /// <param name="address"></param>
     /// <returns></returns>
-    public static string FormatAddress(Address address)
+    public static string FormatAddress(in Address address)
     {
-        Span<char> lowercaseHex = stackalloc char[40];
+        var addressValue = address;
         Span<byte> asciiBytes = stackalloc byte[40];
-
-        address.Hex.AsSpan(2).ToLowerInvariant(lowercaseHex);
-        Encoding.ASCII.TryGetBytes(lowercaseHex, asciiBytes, out _);
+        WriteLowercaseAsciiHex(addressValue.Span, asciiBytes);
 
         Span<byte> hash = stackalloc byte[32];
         Keccak256.TryHashData(asciiBytes, hash);
@@ -31,18 +30,32 @@ public static class EIP55
             {
                 "0x".CopyTo(span);
 
-                for(int i = 0; i < 40; i++)
+                var bytes = addressValue.Span;
+                for(int i = 0; i < bytes.Length; i++)
                 {
-                    char c = address.Hex[i + 2];
-                    byte hashByte = hashBytes[i / 2];
-                    int shift = 4 * (1 - (i % 2));
-
-                    span[i + 2] = Char.IsLetter(c) &&
-                        ((hashByte >> shift) & 0x0F) >= 8
-                        ? Char.ToUpperInvariant(c)
-                        : Char.ToLowerInvariant(c);
+                    byte value = bytes[i];
+                    span[(i * 2) + 2] = ApplyChecksumCase(ToLowerHexChar(value >> 4), hashBytes[i], 4);
+                    span[(i * 2) + 3] = ApplyChecksumCase(ToLowerHexChar(value & 0x0F), hashBytes[i], 0);
                 }
             }
         );
     }
+
+    private static void WriteLowercaseAsciiHex(ReadOnlySpan<byte> bytes, Span<byte> destination)
+    {
+        for(int i = 0; i < bytes.Length; i++)
+        {
+            byte value = bytes[i];
+            destination[i * 2] = (byte) ToLowerHexChar(value >> 4);
+            destination[(i * 2) + 1] = (byte) ToLowerHexChar(value & 0x0F);
+        }
+    }
+
+    private static char ApplyChecksumCase(char c, byte hashByte, int shift)
+        => c is >= 'a' and <= 'f' && ((hashByte >> shift) & 0x0F) >= 8
+            ? Char.ToUpperInvariant(c)
+            : c;
+
+    private static char ToLowerHexChar(int value)
+        => LOWER_HEX_ALPHABET[value];
 }

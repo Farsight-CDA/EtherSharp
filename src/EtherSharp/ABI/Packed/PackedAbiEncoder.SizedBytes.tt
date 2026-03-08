@@ -18,14 +18,15 @@ public partial class PackedAbiEncoder
 <#
     for(var i = 2; i <= 32;i=i+1)
     {
+        var modifier = i >= 17 ? "in " : String.Empty;
 #>
     /// <summary>
     /// Encodes a bytes<#=i#> value in packed format.
     /// </summary>
     /// <param name="value">The <#=i#>-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes<#=i#>(Bytes<#=i#> value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes<#=i#>>(value));
+    public PackedAbiEncoder Bytes<#=i#>(<#=modifier#>Bytes<#=i#> value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes<#=i#>>(<#=modifier#>value));
 <#
     }
 #>

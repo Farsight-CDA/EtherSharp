@@ -55,7 +55,7 @@ public class BytesTypeExhaustiveTests
         var sameValue = TBytes.FromBytes(same);
         var higherValue = TBytes.FromBytes(higher);
 
-        Assert.True(firstValue.Bytes.SequenceEqual(first));
+        Assert.True(firstValue.Span.SequenceEqual(first));
         Assert.Equal(Convert.ToHexString(first), firstValue.ToString());
 
         string expectedJson = $"\"0x{Convert.ToHexString(first)}\"";

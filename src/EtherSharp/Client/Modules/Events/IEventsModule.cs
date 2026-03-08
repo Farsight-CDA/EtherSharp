@@ -45,7 +45,7 @@ public interface IEventsModule<TLog> : IConfiguredEventsModule<TLog>
     /// </summary>
     /// <param name="contractAddress">Contract address to match.</param>
     /// <returns>The same module instance for fluent chaining.</returns>
-    public IEventsModule<TLog> HasContractAddress(Address contractAddress);
+    public IEventsModule<TLog> HasContractAddress(in Address contractAddress);
 
     /// <summary>
     /// Restricts logs to any of the provided emitting contract addresses.

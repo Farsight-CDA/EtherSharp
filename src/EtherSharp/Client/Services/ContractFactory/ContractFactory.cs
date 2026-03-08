@@ -12,7 +12,7 @@ internal class ContractFactory(IEtherClient etherClient) : IContractFactory
     private readonly IEtherClient _etherClient = etherClient;
     private readonly Dictionary<Type, Func<Address, IEVMContract>> _factoryDelegates = [];
 
-    public TContract Create<TContract>(Address address)
+    public TContract Create<TContract>(in Address address)
     {
         Func<Address, IEVMContract> factoryDelegate;
 

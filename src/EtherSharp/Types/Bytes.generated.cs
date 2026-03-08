@@ -16,7 +16,7 @@ public interface IFixedBytes<TSelf>
 {
     static abstract int BYTE_LENGTH { get; }
 
-    ReadOnlySpan<byte> Bytes { get; }
+    ReadOnlySpan<byte> Span { get; }
 
     static abstract TSelf FromBytes(ReadOnlySpan<byte> bytes);
 }
@@ -38,7 +38,7 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
 
     public static Bytes1 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes1>.BYTE_LENGTH => BYTE_LENGTH;
@@ -111,17 +111,17 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes1 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes1 other)
@@ -196,7 +196,7 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
 
     public static Bytes2 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes2>.BYTE_LENGTH => BYTE_LENGTH;
@@ -269,17 +269,17 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes2 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes2 other)
@@ -364,7 +364,7 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
 
     public static Bytes3 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes3>.BYTE_LENGTH => BYTE_LENGTH;
@@ -437,17 +437,17 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes3 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes3 other)
@@ -540,7 +540,7 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
 
     public static Bytes4 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes4>.BYTE_LENGTH => BYTE_LENGTH;
@@ -613,17 +613,17 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes4 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes4 other)
@@ -724,7 +724,7 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
 
     public static Bytes5 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes5>.BYTE_LENGTH => BYTE_LENGTH;
@@ -797,17 +797,17 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes5 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes5 other)
@@ -916,7 +916,7 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
 
     public static Bytes6 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes6>.BYTE_LENGTH => BYTE_LENGTH;
@@ -989,17 +989,17 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes6 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes6 other)
@@ -1116,7 +1116,7 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
 
     public static Bytes7 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes7>.BYTE_LENGTH => BYTE_LENGTH;
@@ -1189,17 +1189,17 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes7 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes7 other)
@@ -1324,7 +1324,7 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
 
     public static Bytes8 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes8>.BYTE_LENGTH => BYTE_LENGTH;
@@ -1397,17 +1397,17 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes8 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes8 other)
@@ -1484,7 +1484,7 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
 
     public static Bytes9 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes9>.BYTE_LENGTH => BYTE_LENGTH;
@@ -1557,17 +1557,17 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes9 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes9 other)
@@ -1652,7 +1652,7 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
 
     public static Bytes10 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes10>.BYTE_LENGTH => BYTE_LENGTH;
@@ -1725,17 +1725,17 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes10 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes10 other)
@@ -1827,7 +1827,7 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
 
     public static Bytes11 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes11>.BYTE_LENGTH => BYTE_LENGTH;
@@ -1900,17 +1900,17 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes11 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes11 other)
@@ -2009,7 +2009,7 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
 
     public static Bytes12 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes12>.BYTE_LENGTH => BYTE_LENGTH;
@@ -2082,17 +2082,17 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes12 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes12 other)
@@ -2198,7 +2198,7 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
 
     public static Bytes13 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes13>.BYTE_LENGTH => BYTE_LENGTH;
@@ -2271,17 +2271,17 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes13 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes13 other)
@@ -2394,7 +2394,7 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
 
     public static Bytes14 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes14>.BYTE_LENGTH => BYTE_LENGTH;
@@ -2467,17 +2467,17 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes14 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes14 other)
@@ -2597,7 +2597,7 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
 
     public static Bytes15 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes15>.BYTE_LENGTH => BYTE_LENGTH;
@@ -2670,17 +2670,17 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes15 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes15 other)
@@ -2807,7 +2807,7 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
 
     public static Bytes16 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes16>.BYTE_LENGTH => BYTE_LENGTH;
@@ -2880,17 +2880,17 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes16 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes16 other)
@@ -2975,7 +2975,7 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
 
     public static Bytes17 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes17>.BYTE_LENGTH => BYTE_LENGTH;
@@ -3048,17 +3048,17 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes17 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes17 other)
@@ -3151,7 +3151,7 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
 
     public static Bytes18 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes18>.BYTE_LENGTH => BYTE_LENGTH;
@@ -3224,17 +3224,17 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes18 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes18 other)
@@ -3334,7 +3334,7 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
 
     public static Bytes19 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes19>.BYTE_LENGTH => BYTE_LENGTH;
@@ -3407,17 +3407,17 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes19 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes19 other)
@@ -3524,7 +3524,7 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
 
     public static Bytes20 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes20>.BYTE_LENGTH => BYTE_LENGTH;
@@ -3597,17 +3597,17 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes20 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes20 other)
@@ -3721,7 +3721,7 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
 
     public static Bytes21 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes21>.BYTE_LENGTH => BYTE_LENGTH;
@@ -3794,17 +3794,17 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes21 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes21 other)
@@ -3925,7 +3925,7 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
 
     public static Bytes22 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes22>.BYTE_LENGTH => BYTE_LENGTH;
@@ -3998,17 +3998,17 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes22 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes22 other)
@@ -4136,7 +4136,7 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
 
     public static Bytes23 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes23>.BYTE_LENGTH => BYTE_LENGTH;
@@ -4209,17 +4209,17 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes23 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes23 other)
@@ -4354,7 +4354,7 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
 
     public static Bytes24 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes24>.BYTE_LENGTH => BYTE_LENGTH;
@@ -4427,17 +4427,17 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes24 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes24 other)
@@ -4530,7 +4530,7 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
 
     public static Bytes25 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes25>.BYTE_LENGTH => BYTE_LENGTH;
@@ -4603,17 +4603,17 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes25 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes25 other)
@@ -4714,7 +4714,7 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
 
     public static Bytes26 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes26>.BYTE_LENGTH => BYTE_LENGTH;
@@ -4787,17 +4787,17 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes26 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes26 other)
@@ -4905,7 +4905,7 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
 
     public static Bytes27 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes27>.BYTE_LENGTH => BYTE_LENGTH;
@@ -4978,17 +4978,17 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes27 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes27 other)
@@ -5103,7 +5103,7 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
 
     public static Bytes28 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes28>.BYTE_LENGTH => BYTE_LENGTH;
@@ -5176,17 +5176,17 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes28 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes28 other)
@@ -5308,7 +5308,7 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
 
     public static Bytes29 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes29>.BYTE_LENGTH => BYTE_LENGTH;
@@ -5381,17 +5381,17 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes29 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes29 other)
@@ -5520,7 +5520,7 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
 
     public static Bytes30 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes30>.BYTE_LENGTH => BYTE_LENGTH;
@@ -5593,17 +5593,17 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes30 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes30 other)
@@ -5739,7 +5739,7 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
 
     public static Bytes31 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes31>.BYTE_LENGTH => BYTE_LENGTH;
@@ -5812,17 +5812,17 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes31 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes31 other)
@@ -5965,7 +5965,7 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
 
     public static Bytes32 Zero => default;
 
-    public readonly ReadOnlySpan<byte> Bytes
+    public readonly ReadOnlySpan<byte> Span
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
 
     static int IFixedBytes<Bytes32>.BYTE_LENGTH => BYTE_LENGTH;
@@ -6038,17 +6038,17 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
     }
 
     public static implicit operator ReadOnlySpan<byte>(in Bytes32 value)
-        => value.Bytes;
+        => value.Span;
 
     public byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
-        Bytes.CopyTo(copy);
+        Span.CopyTo(copy);
         return copy;
     }
 
     public readonly override string ToString()
-        => Convert.ToHexString(Bytes);
+        => Convert.ToHexString(Span);
 
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes32 other)

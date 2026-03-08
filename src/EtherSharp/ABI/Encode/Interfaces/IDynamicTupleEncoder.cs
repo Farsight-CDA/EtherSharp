@@ -36,7 +36,7 @@ public partial interface IDynamicTupleEncoder
     /// </summary>
     /// <param name="value">The address to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder Address(Address value);
+    public IDynamicTupleEncoder Address(in Address value);
 
     /// <summary>
     /// Encodes a string value.

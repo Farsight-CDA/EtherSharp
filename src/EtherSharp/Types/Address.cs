@@ -1,7 +1,7 @@
-﻿using EtherSharp.Common;
+using EtherSharp.Common;
 using EtherSharp.Common.Converter;
 using EtherSharp.Crypto;
-using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Types;
@@ -9,7 +9,7 @@ namespace EtherSharp.Types;
 /// Represents an Ethereum compatible address.
 /// </summary>
 [JsonConverter(typeof(AddressConverter))]
-public class Address
+public readonly struct Address : IEquatable<Address>, IComparable<Address>
 {
     /// <summary>
     /// Character length of an address including 0x prefix.
@@ -23,29 +23,19 @@ public class Address
     /// <summary>
     /// Returns the Zero address.
     /// </summary>
-    public static Address Zero { get; } = new Address("0x0000000000000000000000000000000000000000", new byte[20]);
+    public static Address Zero => default;
 
-    private readonly byte[] _addressBytes;
-
-    /// <summary>
-    /// Returns the string representation of the address.
-    /// </summary>
-    public string Hex { get; }
+    private readonly Bytes20 _bytes;
 
     /// <summary>
     /// Returns the binary representation of the address.
     /// </summary>
-    public ReadOnlySpan<byte> Bytes => _addressBytes;
+    public readonly ReadOnlySpan<byte> Span
+        => _bytes.Span;
 
-    private Address(string s, byte[] b)
+    private Address(in Bytes20 bytes)
     {
-        if(s.Length != STRING_LENGTH || b.Length != BYTES_LENGTH)
-        {
-            throw new ArgumentException("Bad address length");
-        }
-
-        Hex = s;
-        _addressBytes = b;
+        _bytes = bytes;
     }
 
     /// <summary>
@@ -54,31 +44,69 @@ public class Address
     /// <param name="s"></param>
     /// <returns></returns>
     public static Address FromString(string s)
+        => new(Bytes20.Parse(s));
+
+    /// <summary>
+    /// Creates an <see cref="Address"/> instance given its string representation.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static Address Parse(string value)
+        => FromString(value);
+
+    /// <summary>
+    /// Attempts to parse an address string.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="parsed"></param>
+    /// <returns></returns>
+    public static bool TryParse(string? value, out Address parsed)
     {
-        if(s.StartsWith("0x", false, CultureInfo.InvariantCulture))
+        if(Bytes20.TryParse(value, out var bytes))
         {
-            //
-            return new Address(s, Convert.FromHexString(s.AsSpan()[2..]));
+            parsed = new Address(bytes);
+            return true;
         }
-        else
+
+        parsed = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Attempts to parse an address string.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="parsed"></param>
+    /// <returns></returns>
+    public static bool TryParse(ReadOnlySpan<char> value, out Address parsed)
+    {
+        if(Bytes20.TryParse(value, out var bytes))
         {
-            return new Address($"0x{s}", Convert.FromHexString(s));
+            parsed = new Address(bytes);
+            return true;
         }
+
+        parsed = default;
+        return false;
     }
 
     /// <summary>
     /// Calculates the EIP55 formatted string representation of this address.
     /// </summary>
     /// <returns></returns>
-    public string ToEIP55String()
+    public readonly string ToEIP55String()
         => EIP55.FormatAddress(this);
 
+    /// <inheritdoc/>
+    public readonly override string ToString()
+        => HexUtils.ToPrefixedHexString(Span);
+
     /// <summary>
-    /// Copies the Bytes of this address to a new Byte Array.
+    /// Copies the address bytes to a new Byte Array.
     /// </summary>
     /// <returns></returns>
-    public byte[] ToByteArray()
-        => Bytes.ToArray();
+    public readonly byte[] ToByteArray()
+        => _bytes.ToArray();
 
     /// <summary>
     /// Creates an <see cref="Address"/> instance given its binary representation.
@@ -86,59 +114,56 @@ public class Address
     /// <param name="b"></param>
     /// <returns></returns>
     public static Address FromBytes(ReadOnlySpan<byte> b)
-        => new Address(HexUtils.ToPrefixedHexString(b), b.ToArray());
+        => new(Bytes20.FromBytes(b));
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj)
-        => obj is Address other && other._addressBytes.AsSpan().SequenceEqual(_addressBytes);
+    [OverloadResolutionPriority(1)]
+    public readonly bool Equals(in Address other)
+        => _bytes.Equals(other._bytes);
 
     /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        var hashCode = new HashCode();
-        hashCode.AddBytes(_addressBytes);
-        return hashCode.ToHashCode();
-    }
+    public readonly bool Equals(Address other)
+        => Equals(in other);
 
     /// <inheritdoc/>
-    public override string ToString()
-        => Hex;
+    public readonly override bool Equals(object? obj)
+        => obj is Address other && Equals(other);
 
     /// <inheritdoc/>
-    public static bool operator ==(Address? a, Address? b)
-        => Equals(a, b);
+    public readonly override int GetHashCode()
+        => _bytes.GetHashCode();
 
     /// <inheritdoc/>
-    public static bool operator ==(Address? a, string? b)
-    {
-        if(a is null && b is null)
-        {
-            return true;
-        }
-        if(a is null || b is null)
-        {
-            return false;
-        }
-        //
-        return b.StartsWith("0x")
-                ? String.Equals(a.Hex, b, StringComparison.OrdinalIgnoreCase)
-                : a.Hex.AsSpan(2).Equals(b, StringComparison.OrdinalIgnoreCase);
-    }
+    [OverloadResolutionPriority(1)]
+    public readonly int CompareTo(in Address other)
+        => _bytes.CompareTo(other._bytes);
 
     /// <inheritdoc/>
-    public static bool operator ==(string? a, Address? b)
+    public readonly int CompareTo(Address other)
+        => CompareTo(in other);
+
+    /// <inheritdoc/>
+    public static bool operator ==(in Address a, in Address b)
+        => a.Equals(in b);
+
+    /// <inheritdoc/>
+    public static bool operator ==(in Address a, string? b)
+        => b is not null && TryParse(b, out var parsed) && a == parsed;
+
+    /// <inheritdoc/>
+    public static bool operator ==(string? a, in Address b)
         => b == a;
 
     /// <inheritdoc/>
-    public static bool operator !=(Address? a, Address? b)
-        => !Equals(a, b);
+    public static bool operator !=(in Address a, in Address b)
+        => !a.Equals(in b);
 
     /// <inheritdoc/>
-    public static bool operator !=(Address? a, string? b)
+    public static bool operator !=(in Address a, string? b)
         => !(a == b);
 
     /// <inheritdoc/>
-    public static bool operator !=(string a, Address b)
+    public static bool operator !=(string? a, in Address b)
         => !(a == b);
 
     /// <inheritdoc/>

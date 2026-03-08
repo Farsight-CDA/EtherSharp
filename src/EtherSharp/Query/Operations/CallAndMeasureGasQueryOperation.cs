@@ -23,7 +23,7 @@ internal class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQ
 
         buffer[0] = (byte) QueryOperationId.CallAndMeasureGas;
 
-        _txInput.To.Bytes.CopyTo(buffer[4..24]);
+        _txInput.To.Span.CopyTo(buffer[4..24]);
         BinaryPrimitives.WriteUInt256BigEndian(buffer[24..56], EthValue);
         _txInput.Data.Span.CopyTo(buffer[56..]);
     }

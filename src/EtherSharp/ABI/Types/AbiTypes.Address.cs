@@ -12,7 +12,7 @@ public static partial class AbiTypes
         /// <inheritdoc />
         public int PackedSize => 20;
 
-        internal Address(EtherSharp.Types.Address value) : base(value) { }
+        internal Address(in EtherSharp.Types.Address value) : base(in value) { }
 
         /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
@@ -23,14 +23,14 @@ public static partial class AbiTypes
         /// <summary>
         /// Encodes an address into ABI or packed form.
         /// </summary>
-        public static void EncodeInto(EtherSharp.Types.Address value, Span<byte> buffer, bool isPacked)
+        public static void EncodeInto(in EtherSharp.Types.Address value, Span<byte> buffer, bool isPacked)
         {
             if(!isPacked)
             {
                 buffer = buffer[12..];
             }
 
-            value.Bytes.CopyTo(buffer);
+            value.Span.CopyTo(buffer);
         }
 
         /// <summary>

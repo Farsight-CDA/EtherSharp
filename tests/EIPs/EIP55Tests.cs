@@ -10,7 +10,7 @@ public class EIP55Tests
     {
         var address = Address.Zero;
 
-        string expected = address.Hex;
+        string expected = address.ToString();
         string actual = EIP55.FormatAddress(address);
 
         Assert.Equal(expected, actual);
@@ -27,7 +27,7 @@ public class EIP55Tests
             rnd.NextBytes(buffer);
             var address = Address.FromBytes(buffer);
 
-            string expected = address.Hex;
+            string expected = address.ToString();
             string actual = EIP55.FormatAddress(address);
 
             Assert.Equal(expected, actual, true);

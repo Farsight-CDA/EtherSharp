@@ -29,7 +29,7 @@ public partial interface IFixedTupleEncoder
     /// </summary>
     /// <param name="value">The address to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IFixedTupleEncoder Address(Address value);
+    public IFixedTupleEncoder Address(in Address value);
 
     /// <summary>
     /// Encodes a fixed-size tuple.

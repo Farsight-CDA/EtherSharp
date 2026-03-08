@@ -30,9 +30,9 @@ public partial class AbiEncoder
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes<#=i#>Array(params Bytes<#=i#>[] values)
         => AddElement(new AbiTypes.SizedBytesArray<Bytes<#=i#>>(values));
-    IArrayAbiEncoder IArrayAbiEncoder.Bytes<#=i#>Array(params Bytes<#=i#>[] values)
+    IArrayAbiEncoder IArrayAbiEncoder.Span<#=i#>Array(params Bytes<#=i#>[] values)
         => Bytes<#=i#>Array(values);
-    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes<#=i#>Array(params Bytes<#=i#>[] values)
+    IDynamicTupleEncoder IDynamicTupleEncoder.Span<#=i#>Array(params Bytes<#=i#>[] values)
         => Bytes<#=i#>Array(values);
 <#
     }

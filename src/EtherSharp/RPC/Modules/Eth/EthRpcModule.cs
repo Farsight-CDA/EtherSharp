@@ -28,7 +28,13 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<UInt256> GetBalanceAsync(Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
+    public Task<UInt256> GetBalanceAsync(in Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
+    {
+        var addressValue = address;
+        return GetBalanceCoreAsync(addressValue, targetHeight, cancellationToken);
+    }
+
+    private async Task<UInt256> GetBalanceCoreAsync(Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<Address, TargetHeight, UInt256>(
             "eth_getBalance", address, targetHeight, targetHeight, cancellationToken) switch
         {
@@ -37,7 +43,13 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<uint> GetTransactionCountAsync(Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
+    public Task<uint> GetTransactionCountAsync(in Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
+    {
+        var addressValue = address;
+        return GetTransactionCountCoreAsync(addressValue, targetHeight, cancellationToken);
+    }
+
+    private async Task<uint> GetTransactionCountCoreAsync(Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<Address, TargetHeight, uint>(
             "eth_getTransactionCount", address, targetHeight, targetHeight, cancellationToken) switch
         {
@@ -145,7 +157,13 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<TxData?> TransactionByHashAsync(Bytes32 hash, CancellationToken cancellationToken)
+    public Task<TxData?> TransactionByHashAsync(in Bytes32 hash, CancellationToken cancellationToken)
+    {
+        var hashValue = hash;
+        return TransactionByHashCoreAsync(hashValue, cancellationToken);
+    }
+
+    private async Task<TxData?> TransactionByHashCoreAsync(Bytes32 hash, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<Bytes32, TxData>(
             //ToDo: Add notion of unspecified required block height
             "eth_getTransactionByHash", hash, TargetHeight.Latest, cancellationToken) switch
@@ -156,7 +174,13 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<TxReceipt?> GetTransactionReceiptAsync(Bytes32 transactionHash, CancellationToken cancellationToken)
+    public Task<TxReceipt?> GetTransactionReceiptAsync(in Bytes32 transactionHash, CancellationToken cancellationToken)
+    {
+        var transactionHashValue = transactionHash;
+        return GetTransactionReceiptCoreAsync(transactionHashValue, cancellationToken);
+    }
+
+    private async Task<TxReceipt?> GetTransactionReceiptCoreAsync(Bytes32 transactionHash, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<Bytes32, TxReceipt>(
             "eth_getTransactionReceipt", transactionHash, TargetHeight.Latest, cancellationToken) switch
         {
@@ -166,10 +190,17 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    public async Task<byte[]> GetStorageAtAsync(
+    public Task<byte[]> GetStorageAtAsync(
+        in Address address, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default)
+    {
+        var addressValue = address;
+        return GetStorageAtCoreAsync(addressValue, slot, targetHeight, cancellationToken);
+    }
+
+    private async Task<byte[]> GetStorageAtCoreAsync(
         Address address, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default)
         => await _rpcClient.SendRpcRequestAsync<string, byte[], TargetHeight, byte[]>(
-            "eth_getStorageAt", address.Hex, slot, targetHeight, targetHeight, cancellationToken) switch
+            "eth_getStorageAt", address.ToString(), slot, targetHeight, targetHeight, cancellationToken) switch
         {
             RpcResult<byte[]>.Success result => result.Result,
             RpcResult<byte[]>.Error error => throw RPCException.FromRPCError(error),

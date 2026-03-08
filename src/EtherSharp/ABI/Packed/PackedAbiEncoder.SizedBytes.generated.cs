@@ -123,112 +123,112 @@ public partial class PackedAbiEncoder
     /// </summary>
     /// <param name="value">The 17-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes17(Bytes17 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes17>(value));
+    public PackedAbiEncoder Bytes17(in Bytes17 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes17>(in value));
     /// <summary>
     /// Encodes a bytes18 value in packed format.
     /// </summary>
     /// <param name="value">The 18-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes18(Bytes18 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes18>(value));
+    public PackedAbiEncoder Bytes18(in Bytes18 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes18>(in value));
     /// <summary>
     /// Encodes a bytes19 value in packed format.
     /// </summary>
     /// <param name="value">The 19-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes19(Bytes19 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes19>(value));
+    public PackedAbiEncoder Bytes19(in Bytes19 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes19>(in value));
     /// <summary>
     /// Encodes a bytes20 value in packed format.
     /// </summary>
     /// <param name="value">The 20-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes20(Bytes20 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes20>(value));
+    public PackedAbiEncoder Bytes20(in Bytes20 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes20>(in value));
     /// <summary>
     /// Encodes a bytes21 value in packed format.
     /// </summary>
     /// <param name="value">The 21-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes21(Bytes21 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes21>(value));
+    public PackedAbiEncoder Bytes21(in Bytes21 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes21>(in value));
     /// <summary>
     /// Encodes a bytes22 value in packed format.
     /// </summary>
     /// <param name="value">The 22-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes22(Bytes22 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes22>(value));
+    public PackedAbiEncoder Bytes22(in Bytes22 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes22>(in value));
     /// <summary>
     /// Encodes a bytes23 value in packed format.
     /// </summary>
     /// <param name="value">The 23-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes23(Bytes23 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes23>(value));
+    public PackedAbiEncoder Bytes23(in Bytes23 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes23>(in value));
     /// <summary>
     /// Encodes a bytes24 value in packed format.
     /// </summary>
     /// <param name="value">The 24-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes24(Bytes24 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes24>(value));
+    public PackedAbiEncoder Bytes24(in Bytes24 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes24>(in value));
     /// <summary>
     /// Encodes a bytes25 value in packed format.
     /// </summary>
     /// <param name="value">The 25-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes25(Bytes25 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes25>(value));
+    public PackedAbiEncoder Bytes25(in Bytes25 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes25>(in value));
     /// <summary>
     /// Encodes a bytes26 value in packed format.
     /// </summary>
     /// <param name="value">The 26-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes26(Bytes26 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes26>(value));
+    public PackedAbiEncoder Bytes26(in Bytes26 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes26>(in value));
     /// <summary>
     /// Encodes a bytes27 value in packed format.
     /// </summary>
     /// <param name="value">The 27-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes27(Bytes27 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes27>(value));
+    public PackedAbiEncoder Bytes27(in Bytes27 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes27>(in value));
     /// <summary>
     /// Encodes a bytes28 value in packed format.
     /// </summary>
     /// <param name="value">The 28-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes28(Bytes28 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes28>(value));
+    public PackedAbiEncoder Bytes28(in Bytes28 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes28>(in value));
     /// <summary>
     /// Encodes a bytes29 value in packed format.
     /// </summary>
     /// <param name="value">The 29-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes29(Bytes29 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes29>(value));
+    public PackedAbiEncoder Bytes29(in Bytes29 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes29>(in value));
     /// <summary>
     /// Encodes a bytes30 value in packed format.
     /// </summary>
     /// <param name="value">The 30-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes30(Bytes30 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes30>(value));
+    public PackedAbiEncoder Bytes30(in Bytes30 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes30>(in value));
     /// <summary>
     /// Encodes a bytes31 value in packed format.
     /// </summary>
     /// <param name="value">The 31-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes31(Bytes31 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes31>(value));
+    public PackedAbiEncoder Bytes31(in Bytes31 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes31>(in value));
     /// <summary>
     /// Encodes a bytes32 value in packed format.
     /// </summary>
     /// <param name="value">The 32-byte value to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public PackedAbiEncoder Bytes32(Bytes32 value)
-        => AddElement(new AbiTypes.SizedBytes<Bytes32>(value));
+    public PackedAbiEncoder Bytes32(in Bytes32 value)
+        => AddElement(new AbiTypes.SizedBytes<Bytes32>(in value));
 
 }
