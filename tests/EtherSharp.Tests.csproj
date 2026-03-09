@@ -13,6 +13,7 @@
 
   <ItemGroup>
 	  <ProjectReference Include="..\src\EtherSharp\EtherSharp.csproj" />
+	  <ProjectReference Include="..\src\EtherSharp.ERC\EtherSharp.ERC.csproj" />
     <PackageReference Include="coverlet.collector" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -24,10 +25,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\src\EtherSharp\EtherSharp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

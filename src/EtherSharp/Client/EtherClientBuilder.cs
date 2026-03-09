@@ -42,8 +42,6 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
     private Func<IServiceProvider, IRPCTransport>? _transportRegistration;
 
     private readonly List<(Type ServiceType, Type ActionType, Action<object> Action)> _configureActions = [];
-    private Action<IContractFactory>? _contractConfigurationAction;
-
     private EtherClientBuilder() { }
 
     private void AddConfigureAction<TService, TActionParam>(Action<TActionParam>? configureAction)
@@ -355,17 +353,6 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
-    /// Configures the ContractFactory.
-    /// </summary>
-    /// <param name="contractSetupAction"></param>
-    /// <returns></returns>
-    public EtherClientBuilder WithContractConfiguration(Action<IContractFactory> contractSetupAction)
-    {
-        _contractConfigurationAction = contractSetupAction;
-        return this;
-    }
-
-    /// <summary>
     /// Configures the client to use a deployed FlashCall contract.
     /// </summary>
     /// <param name="contractAddress"></param>
@@ -455,7 +442,6 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
 
         var provider = _services.BuildServiceProvider();
 
-        _contractConfigurationAction?.Invoke(provider.GetRequiredService<ContractFactory>());
         RunConfigureActions(provider);
 
         return provider.GetRequiredService<IEtherClient>();
@@ -492,7 +478,6 @@ public class EtherClientBuilder : IInternalEtherClientBuilder
 
         var provider = _services.BuildServiceProvider();
 
-        _contractConfigurationAction?.Invoke(provider.GetRequiredService<ContractFactory>());
         RunConfigureActions(provider);
 
         return provider.GetRequiredService<IEtherTxClient>();

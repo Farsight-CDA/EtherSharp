@@ -63,6 +63,17 @@ internal class ContractSourceWriter(
 
             {{contractInterface.Build()}}
             {{contractImplementation.WithAutoConstructor().Build()}}
+
+            file static class {{implementationName}}_Registration
+            {
+                [global::System.Runtime.CompilerServices.ModuleInitializer]
+                internal static void RegisterContract()
+                {
+                    global::EtherSharp.Client.Services.ContractFactory.GeneratedContractRegistry.Register<global::{{@namespace}}.{{contractName}}>(
+                        static (client, address) => new global::{{@namespace}}.{{implementationName}}(client, address)
+                    );
+                }
+            }
             """
         );
 
