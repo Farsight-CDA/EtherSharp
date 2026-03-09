@@ -12,11 +12,13 @@ namespace EtherSharp.Numerics;
 /// </summary>
 public readonly partial struct Int256 : IEquatable<Int256>, IComparable, IComparable<Int256>
 {
-    public static readonly Int256 Zero = (Int256) 0UL;
-    public static readonly Int256 One = (Int256) 1UL;
-    public static readonly Int256 MinusOne = new Int256(-1);
-    public static readonly Int256 MinValue = new Int256(UInt256.One << 255);
-    public static readonly Int256 MaxValue = new Int256((UInt256.One << 255) - 1);
+    public static Int256 Zero { get; } = (Int256) 0UL;
+    public static Int256 One { get; } = (Int256) 1UL;
+    public static Int256 MinValue { get; } = new Int256(UInt256.One << 255);
+    public static Int256 MaxValue { get; } = new Int256((UInt256.One << 255) - 1);
+
+    public static Int256 WAD { get; } = Pow(10, 18);
+    public static Int256 RAY { get; } = Pow(10, 27);
 
     internal readonly UInt256 _value;
 
