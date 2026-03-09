@@ -25,6 +25,9 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
     public static UInt256 MinValue { get; } = Zero;
     public static UInt256 MaxValue { get; } = ~Zero;
 
+    public static UInt256 WAD { get; } = Pow(10, 18);
+    public static UInt256 RAY { get; } = Pow(10, 27);
+
     /* in little endian order so u3 is the most significant ulong */
     [FieldOffset(0)]
     internal readonly ulong _u0;
