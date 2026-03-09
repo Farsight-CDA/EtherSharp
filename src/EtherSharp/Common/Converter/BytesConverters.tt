@@ -25,6 +25,7 @@ internal static class FixedBytesJsonConverters
 /// </summary>
 public sealed class Bytes<#= i #>Converter : FixedBytesJsonConverter<Bytes<#= i #>>
 {
+    /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes<#= i #> value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
 }

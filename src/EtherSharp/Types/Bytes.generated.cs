@@ -11,27 +11,66 @@ using System.Text.Json.Serialization;
 
 namespace EtherSharp.Types;
 
+/// <summary>
+/// Defines the members shared by fixed-size byte value types.
+/// </summary>
+/// <typeparam name="TSelf">The implementing fixed-size byte type.</typeparam>
 public interface IFixedBytes<TSelf>
     where TSelf : struct, IFixedBytes<TSelf>
 {
+    /// <summary>
+    /// Gets the fixed-length size of the type, in bytes.
+    /// </summary>
     static abstract int BYTE_LENGTH { get; }
 
+    /// <summary>
+    /// Copies the bytes in this value into <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">The destination span.</param>
     void CopyTo(Span<byte> destination);
 
+    /// <summary>
+    /// Tries to write the bytes in this value into <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">The destination span.</param>
+    /// <returns>True if the bytes were successfully written; otherwise false.</returns>
     bool TryWriteTo(Span<byte> destination);
 
+    /// <summary>
+    /// Returns a newly allocated byte array that contains this value.
+    /// </summary>
+    /// <returns>A byte array copy of the value.</returns>
     byte[] ToArray();
 
+    /// <summary>
+    /// Returns this value as an uppercase hex string without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation of this value.</returns>
     string ToHex();
 
+    /// <summary>
+    /// Converts a byte span into an instance of the fixed-size byte type.
+    /// </summary>
+    /// <param name="bytes">The bytes that represent the full value.</param>
+    /// <returns>The parsed value.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="bytes"/> is not the expected length.</exception>
     static abstract TSelf FromBytes(ReadOnlySpan<byte> bytes);
 }
 
+/// <summary>
+/// Represents an immutable 1-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes1Converter))]
 public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedBytes<Bytes1>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 1;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 4;
 
     [InlineArray(BYTE_LENGTH)]
@@ -42,6 +81,9 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
 
     private readonly ByteStorage1 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes1"/>.
+    /// </summary>
     public static Bytes1 Zero => default;
 
     static int IFixedBytes<Bytes1>.BYTE_LENGTH => BYTE_LENGTH;
@@ -52,14 +94,32 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 1-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes1"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes1 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 1-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes1"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes1 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 1-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes1 parsed)
     {
         if(value is null)
@@ -71,6 +131,12 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes1 parsed)
     {
         parsed = default;
@@ -103,6 +169,12 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 1 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes1"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 1 bytes long.</exception>
     public static Bytes1 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -113,6 +185,11 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
         return new Bytes1(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -123,6 +200,11 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -134,6 +216,10 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -144,16 +230,34 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes1 other)
         => LoadU8Raw(0) == other.LoadU8Raw(0);
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes1 other)
         => Equals(in other);
 
@@ -167,6 +271,11 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes1 other)
     {
@@ -179,24 +288,65 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes1 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes1 left, in Bytes1 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes1 left, in Bytes1 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes1 left, in Bytes1 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes1 left, in Bytes1 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes1 left, in Bytes1 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes1 left, in Bytes1 right)
         => left.CompareTo(in right) >= 0;
 
@@ -222,11 +372,20 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
     }
 }
 
+/// <summary>
+/// Represents an immutable 2-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes2Converter))]
 public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedBytes<Bytes2>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 2;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 6;
 
     [InlineArray(BYTE_LENGTH)]
@@ -237,6 +396,9 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
 
     private readonly ByteStorage2 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes2"/>.
+    /// </summary>
     public static Bytes2 Zero => default;
 
     static int IFixedBytes<Bytes2>.BYTE_LENGTH => BYTE_LENGTH;
@@ -247,14 +409,32 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 2-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes2"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes2 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 2-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes2"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes2 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 2-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes2 parsed)
     {
         if(value is null)
@@ -266,6 +446,12 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes2 parsed)
     {
         parsed = default;
@@ -298,6 +484,12 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 2 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes2"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 2 bytes long.</exception>
     public static Bytes2 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -308,6 +500,11 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
         return new Bytes2(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -318,6 +515,11 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -329,6 +531,10 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -339,17 +545,35 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes2 other)
         => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
             | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1))))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes2 other)
         => Equals(in other);
 
@@ -364,6 +588,11 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes2 other)
     {
@@ -382,24 +611,65 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes2 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes2 left, in Bytes2 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes2 left, in Bytes2 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes2 left, in Bytes2 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes2 left, in Bytes2 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes2 left, in Bytes2 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes2 left, in Bytes2 right)
         => left.CompareTo(in right) >= 0;
 
@@ -425,11 +695,20 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
     }
 }
 
+/// <summary>
+/// Represents an immutable 3-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes3Converter))]
 public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedBytes<Bytes3>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 3;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 8;
 
     [InlineArray(BYTE_LENGTH)]
@@ -440,6 +719,9 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
 
     private readonly ByteStorage3 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes3"/>.
+    /// </summary>
     public static Bytes3 Zero => default;
 
     static int IFixedBytes<Bytes3>.BYTE_LENGTH => BYTE_LENGTH;
@@ -450,14 +732,32 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 3-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes3"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes3 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 3-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes3"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes3 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 3-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes3 parsed)
     {
         if(value is null)
@@ -469,6 +769,12 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes3 parsed)
     {
         parsed = default;
@@ -501,6 +807,12 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 3 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes3"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 3 bytes long.</exception>
     public static Bytes3 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -511,6 +823,11 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
         return new Bytes3(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -521,6 +838,11 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -532,6 +854,10 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -542,18 +868,36 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes3 other)
         => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
             | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
             | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2))))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes3 other)
         => Equals(in other);
 
@@ -569,6 +913,11 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes3 other)
     {
@@ -593,24 +942,65 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes3 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes3 left, in Bytes3 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes3 left, in Bytes3 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes3 left, in Bytes3 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes3 left, in Bytes3 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes3 left, in Bytes3 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes3 left, in Bytes3 right)
         => left.CompareTo(in right) >= 0;
 
@@ -636,11 +1026,20 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
     }
 }
 
+/// <summary>
+/// Represents an immutable 4-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes4Converter))]
 public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedBytes<Bytes4>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 4;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 10;
 
     [InlineArray(BYTE_LENGTH)]
@@ -651,6 +1050,9 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
 
     private readonly ByteStorage4 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes4"/>.
+    /// </summary>
     public static Bytes4 Zero => default;
 
     static int IFixedBytes<Bytes4>.BYTE_LENGTH => BYTE_LENGTH;
@@ -661,14 +1063,32 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 4-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes4"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes4 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 4-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes4"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes4 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 4-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes4 parsed)
     {
         if(value is null)
@@ -680,6 +1100,12 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes4 parsed)
     {
         parsed = default;
@@ -712,6 +1138,12 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 4 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes4"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 4 bytes long.</exception>
     public static Bytes4 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -722,6 +1154,11 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
         return new Bytes4(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -732,6 +1169,11 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -743,6 +1185,10 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -753,12 +1199,25 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes4 other)
         => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
@@ -766,6 +1225,11 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
             | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2)))
             | ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3))))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes4 other)
         => Equals(in other);
 
@@ -782,6 +1246,11 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes4 other)
     {
@@ -812,24 +1281,65 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes4 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes4 left, in Bytes4 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes4 left, in Bytes4 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes4 left, in Bytes4 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes4 left, in Bytes4 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes4 left, in Bytes4 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes4 left, in Bytes4 right)
         => left.CompareTo(in right) >= 0;
 
@@ -855,11 +1365,20 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
     }
 }
 
+/// <summary>
+/// Represents an immutable 5-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes5Converter))]
 public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedBytes<Bytes5>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 5;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 12;
 
     [InlineArray(BYTE_LENGTH)]
@@ -870,6 +1389,9 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
 
     private readonly ByteStorage5 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes5"/>.
+    /// </summary>
     public static Bytes5 Zero => default;
 
     static int IFixedBytes<Bytes5>.BYTE_LENGTH => BYTE_LENGTH;
@@ -880,14 +1402,32 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 5-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes5"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes5 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 5-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes5"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes5 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 5-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes5 parsed)
     {
         if(value is null)
@@ -899,6 +1439,12 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes5 parsed)
     {
         parsed = default;
@@ -931,6 +1477,12 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 5 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes5"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 5 bytes long.</exception>
     public static Bytes5 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -941,6 +1493,11 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
         return new Bytes5(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -951,6 +1508,11 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -962,6 +1524,10 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -972,12 +1538,25 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes5 other)
         => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
@@ -986,6 +1565,11 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
             | ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3)))
             | ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4))))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes5 other)
         => Equals(in other);
 
@@ -1003,6 +1587,11 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes5 other)
     {
@@ -1039,24 +1628,65 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes5 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes5 left, in Bytes5 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes5 left, in Bytes5 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes5 left, in Bytes5 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes5 left, in Bytes5 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes5 left, in Bytes5 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes5 left, in Bytes5 right)
         => left.CompareTo(in right) >= 0;
 
@@ -1082,11 +1712,20 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
     }
 }
 
+/// <summary>
+/// Represents an immutable 6-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes6Converter))]
 public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedBytes<Bytes6>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 6;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 14;
 
     [InlineArray(BYTE_LENGTH)]
@@ -1097,6 +1736,9 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
 
     private readonly ByteStorage6 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes6"/>.
+    /// </summary>
     public static Bytes6 Zero => default;
 
     static int IFixedBytes<Bytes6>.BYTE_LENGTH => BYTE_LENGTH;
@@ -1107,14 +1749,32 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 6-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes6"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes6 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 6-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes6"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes6 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 6-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes6 parsed)
     {
         if(value is null)
@@ -1126,6 +1786,12 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes6 parsed)
     {
         parsed = default;
@@ -1158,6 +1824,12 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 6 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes6"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 6 bytes long.</exception>
     public static Bytes6 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -1168,6 +1840,11 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
         return new Bytes6(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -1178,6 +1855,11 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -1189,6 +1871,10 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -1199,12 +1885,25 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes6 other)
         => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
@@ -1214,6 +1913,11 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
             | ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4)))
             | ((ulong) (LoadU8Raw(5) ^ other.LoadU8Raw(5))))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes6 other)
         => Equals(in other);
 
@@ -1232,6 +1936,11 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes6 other)
     {
@@ -1274,24 +1983,65 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes6 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes6 left, in Bytes6 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes6 left, in Bytes6 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes6 left, in Bytes6 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes6 left, in Bytes6 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes6 left, in Bytes6 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes6 left, in Bytes6 right)
         => left.CompareTo(in right) >= 0;
 
@@ -1317,11 +2067,20 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
     }
 }
 
+/// <summary>
+/// Represents an immutable 7-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes7Converter))]
 public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedBytes<Bytes7>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 7;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 16;
 
     [InlineArray(BYTE_LENGTH)]
@@ -1332,6 +2091,9 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
 
     private readonly ByteStorage7 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes7"/>.
+    /// </summary>
     public static Bytes7 Zero => default;
 
     static int IFixedBytes<Bytes7>.BYTE_LENGTH => BYTE_LENGTH;
@@ -1342,14 +2104,32 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 7-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes7"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes7 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 7-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes7"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes7 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 7-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes7 parsed)
     {
         if(value is null)
@@ -1361,6 +2141,12 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes7 parsed)
     {
         parsed = default;
@@ -1393,6 +2179,12 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 7 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes7"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 7 bytes long.</exception>
     public static Bytes7 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -1403,6 +2195,11 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
         return new Bytes7(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -1413,6 +2210,11 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -1424,6 +2226,10 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -1434,12 +2240,25 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes7 other)
         => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
@@ -1450,6 +2269,11 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
             | ((ulong) (LoadU8Raw(5) ^ other.LoadU8Raw(5)))
             | ((ulong) (LoadU8Raw(6) ^ other.LoadU8Raw(6))))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes7 other)
         => Equals(in other);
 
@@ -1469,6 +2293,11 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes7 other)
     {
@@ -1517,24 +2346,65 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes7 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes7 left, in Bytes7 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes7 left, in Bytes7 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes7 left, in Bytes7 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes7 left, in Bytes7 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes7 left, in Bytes7 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes7 left, in Bytes7 right)
         => left.CompareTo(in right) >= 0;
 
@@ -1560,11 +2430,20 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
     }
 }
 
+/// <summary>
+/// Represents an immutable 8-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes8Converter))]
 public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedBytes<Bytes8>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 8;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 18;
 
     [InlineArray(BYTE_LENGTH)]
@@ -1575,6 +2454,9 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
 
     private readonly ByteStorage8 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes8"/>.
+    /// </summary>
     public static Bytes8 Zero => default;
 
     static int IFixedBytes<Bytes8>.BYTE_LENGTH => BYTE_LENGTH;
@@ -1585,14 +2467,32 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 8-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes8"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes8 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 8-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes8"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes8 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 8-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes8 parsed)
     {
         if(value is null)
@@ -1604,6 +2504,12 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes8 parsed)
     {
         parsed = default;
@@ -1636,6 +2542,12 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 8 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes8"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 8 bytes long.</exception>
     public static Bytes8 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -1646,6 +2558,11 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
         return new Bytes8(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -1656,6 +2573,11 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -1667,6 +2589,10 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -1677,16 +2603,34 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes8 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes8 other)
         => Equals(in other);
 
@@ -1700,6 +2644,11 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes8 other)
     {
@@ -1712,24 +2661,65 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes8 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes8 left, in Bytes8 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes8 left, in Bytes8 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes8 left, in Bytes8 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes8 left, in Bytes8 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes8 left, in Bytes8 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes8 left, in Bytes8 right)
         => left.CompareTo(in right) >= 0;
 
@@ -1755,11 +2745,20 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
     }
 }
 
+/// <summary>
+/// Represents an immutable 9-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes9Converter))]
 public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedBytes<Bytes9>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 9;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 20;
 
     [InlineArray(BYTE_LENGTH)]
@@ -1770,6 +2769,9 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
 
     private readonly ByteStorage9 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes9"/>.
+    /// </summary>
     public static Bytes9 Zero => default;
 
     static int IFixedBytes<Bytes9>.BYTE_LENGTH => BYTE_LENGTH;
@@ -1780,14 +2782,32 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 9-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes9"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes9 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 9-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes9"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes9 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 9-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes9 parsed)
     {
         if(value is null)
@@ -1799,6 +2819,12 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes9 parsed)
     {
         parsed = default;
@@ -1831,6 +2857,12 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 9 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes9"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 9 bytes long.</exception>
     public static Bytes9 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -1841,6 +2873,11 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
         return new Bytes9(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -1851,6 +2888,11 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -1862,6 +2904,10 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -1872,17 +2918,35 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes9 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(1) ^ other.LoadU64Raw(1)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes9 other)
         => Equals(in other);
 
@@ -1897,6 +2961,11 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes9 other)
     {
@@ -1915,24 +2984,65 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes9 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes9 left, in Bytes9 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes9 left, in Bytes9 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes9 left, in Bytes9 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes9 left, in Bytes9 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes9 left, in Bytes9 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes9 left, in Bytes9 right)
         => left.CompareTo(in right) >= 0;
 
@@ -1958,11 +3068,20 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
     }
 }
 
+/// <summary>
+/// Represents an immutable 10-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes10Converter))]
 public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFixedBytes<Bytes10>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 10;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 22;
 
     [InlineArray(BYTE_LENGTH)]
@@ -1973,6 +3092,9 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
 
     private readonly ByteStorage10 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes10"/>.
+    /// </summary>
     public static Bytes10 Zero => default;
 
     static int IFixedBytes<Bytes10>.BYTE_LENGTH => BYTE_LENGTH;
@@ -1983,14 +3105,32 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 10-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes10"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes10 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 10-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes10"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes10 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 10-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes10 parsed)
     {
         if(value is null)
@@ -2002,6 +3142,12 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes10 parsed)
     {
         parsed = default;
@@ -2034,6 +3180,12 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 10 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes10"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 10 bytes long.</exception>
     public static Bytes10 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -2044,6 +3196,11 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
         return new Bytes10(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -2054,6 +3211,11 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -2065,6 +3227,10 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -2075,17 +3241,35 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes10 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(2) ^ other.LoadU64Raw(2)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes10 other)
         => Equals(in other);
 
@@ -2101,6 +3285,11 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes10 other)
     {
@@ -2125,24 +3314,65 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes10 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes10 left, in Bytes10 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes10 left, in Bytes10 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes10 left, in Bytes10 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes10 left, in Bytes10 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes10 left, in Bytes10 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes10 left, in Bytes10 right)
         => left.CompareTo(in right) >= 0;
 
@@ -2168,11 +3398,20 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 11-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes11Converter))]
 public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFixedBytes<Bytes11>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 11;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 24;
 
     [InlineArray(BYTE_LENGTH)]
@@ -2183,6 +3422,9 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
 
     private readonly ByteStorage11 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes11"/>.
+    /// </summary>
     public static Bytes11 Zero => default;
 
     static int IFixedBytes<Bytes11>.BYTE_LENGTH => BYTE_LENGTH;
@@ -2193,14 +3435,32 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 11-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes11"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes11 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 11-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes11"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes11 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 11-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes11 parsed)
     {
         if(value is null)
@@ -2212,6 +3472,12 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes11 parsed)
     {
         parsed = default;
@@ -2244,6 +3510,12 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 11 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes11"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 11 bytes long.</exception>
     public static Bytes11 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -2254,6 +3526,11 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
         return new Bytes11(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -2264,6 +3541,11 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -2275,6 +3557,10 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -2285,17 +3571,35 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes11 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(3) ^ other.LoadU64Raw(3)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes11 other)
         => Equals(in other);
 
@@ -2312,6 +3616,11 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes11 other)
     {
@@ -2342,24 +3651,65 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes11 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes11 left, in Bytes11 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes11 left, in Bytes11 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes11 left, in Bytes11 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes11 left, in Bytes11 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes11 left, in Bytes11 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes11 left, in Bytes11 right)
         => left.CompareTo(in right) >= 0;
 
@@ -2385,11 +3735,20 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 12-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes12Converter))]
 public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFixedBytes<Bytes12>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 12;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 26;
 
     [InlineArray(BYTE_LENGTH)]
@@ -2400,6 +3759,9 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
 
     private readonly ByteStorage12 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes12"/>.
+    /// </summary>
     public static Bytes12 Zero => default;
 
     static int IFixedBytes<Bytes12>.BYTE_LENGTH => BYTE_LENGTH;
@@ -2410,14 +3772,32 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 12-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes12"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes12 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 12-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes12"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes12 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 12-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes12 parsed)
     {
         if(value is null)
@@ -2429,6 +3809,12 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes12 parsed)
     {
         parsed = default;
@@ -2461,6 +3847,12 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 12 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes12"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 12 bytes long.</exception>
     public static Bytes12 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -2471,6 +3863,11 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
         return new Bytes12(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -2481,6 +3878,11 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -2492,6 +3894,10 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -2502,17 +3908,35 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes12 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(4) ^ other.LoadU64Raw(4)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes12 other)
         => Equals(in other);
 
@@ -2530,6 +3954,11 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes12 other)
     {
@@ -2566,24 +3995,65 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes12 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes12 left, in Bytes12 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes12 left, in Bytes12 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes12 left, in Bytes12 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes12 left, in Bytes12 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes12 left, in Bytes12 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes12 left, in Bytes12 right)
         => left.CompareTo(in right) >= 0;
 
@@ -2609,11 +4079,20 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 13-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes13Converter))]
 public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFixedBytes<Bytes13>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 13;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 28;
 
     [InlineArray(BYTE_LENGTH)]
@@ -2624,6 +4103,9 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
 
     private readonly ByteStorage13 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes13"/>.
+    /// </summary>
     public static Bytes13 Zero => default;
 
     static int IFixedBytes<Bytes13>.BYTE_LENGTH => BYTE_LENGTH;
@@ -2634,14 +4116,32 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 13-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes13"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes13 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 13-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes13"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes13 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 13-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes13 parsed)
     {
         if(value is null)
@@ -2653,6 +4153,12 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes13 parsed)
     {
         parsed = default;
@@ -2685,6 +4191,12 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 13 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes13"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 13 bytes long.</exception>
     public static Bytes13 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -2695,6 +4207,11 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
         return new Bytes13(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -2705,6 +4222,11 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -2716,6 +4238,10 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -2726,17 +4252,35 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes13 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(5) ^ other.LoadU64Raw(5)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes13 other)
         => Equals(in other);
 
@@ -2755,6 +4299,11 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes13 other)
     {
@@ -2797,24 +4346,65 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes13 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes13 left, in Bytes13 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes13 left, in Bytes13 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes13 left, in Bytes13 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes13 left, in Bytes13 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes13 left, in Bytes13 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes13 left, in Bytes13 right)
         => left.CompareTo(in right) >= 0;
 
@@ -2840,11 +4430,20 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 14-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes14Converter))]
 public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFixedBytes<Bytes14>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 14;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 30;
 
     [InlineArray(BYTE_LENGTH)]
@@ -2855,6 +4454,9 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
 
     private readonly ByteStorage14 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes14"/>.
+    /// </summary>
     public static Bytes14 Zero => default;
 
     static int IFixedBytes<Bytes14>.BYTE_LENGTH => BYTE_LENGTH;
@@ -2865,14 +4467,32 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 14-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes14"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes14 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 14-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes14"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes14 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 14-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes14 parsed)
     {
         if(value is null)
@@ -2884,6 +4504,12 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes14 parsed)
     {
         parsed = default;
@@ -2916,6 +4542,12 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 14 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes14"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 14 bytes long.</exception>
     public static Bytes14 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -2926,6 +4558,11 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
         return new Bytes14(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -2936,6 +4573,11 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -2947,6 +4589,10 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -2957,17 +4603,35 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes14 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(6) ^ other.LoadU64Raw(6)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes14 other)
         => Equals(in other);
 
@@ -2987,6 +4651,11 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes14 other)
     {
@@ -3035,24 +4704,65 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes14 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes14 left, in Bytes14 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes14 left, in Bytes14 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes14 left, in Bytes14 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes14 left, in Bytes14 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes14 left, in Bytes14 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes14 left, in Bytes14 right)
         => left.CompareTo(in right) >= 0;
 
@@ -3078,11 +4788,20 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 15-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes15Converter))]
 public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFixedBytes<Bytes15>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 15;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 32;
 
     [InlineArray(BYTE_LENGTH)]
@@ -3093,6 +4812,9 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
 
     private readonly ByteStorage15 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes15"/>.
+    /// </summary>
     public static Bytes15 Zero => default;
 
     static int IFixedBytes<Bytes15>.BYTE_LENGTH => BYTE_LENGTH;
@@ -3103,14 +4825,32 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 15-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes15"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes15 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 15-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes15"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes15 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 15-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes15 parsed)
     {
         if(value is null)
@@ -3122,6 +4862,12 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes15 parsed)
     {
         parsed = default;
@@ -3154,6 +4900,12 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 15 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes15"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 15 bytes long.</exception>
     public static Bytes15 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -3164,6 +4916,11 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
         return new Bytes15(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -3174,6 +4931,11 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -3185,6 +4947,10 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -3195,17 +4961,35 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes15 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(7) ^ other.LoadU64Raw(7)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes15 other)
         => Equals(in other);
 
@@ -3226,6 +5010,11 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes15 other)
     {
@@ -3280,24 +5069,65 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes15 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes15 left, in Bytes15 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes15 left, in Bytes15 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes15 left, in Bytes15 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes15 left, in Bytes15 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes15 left, in Bytes15 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes15 left, in Bytes15 right)
         => left.CompareTo(in right) >= 0;
 
@@ -3323,11 +5153,20 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 16-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes16Converter))]
 public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFixedBytes<Bytes16>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 16;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 34;
 
     [InlineArray(BYTE_LENGTH)]
@@ -3338,6 +5177,9 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
 
     private readonly ByteStorage16 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes16"/>.
+    /// </summary>
     public static Bytes16 Zero => default;
 
     static int IFixedBytes<Bytes16>.BYTE_LENGTH => BYTE_LENGTH;
@@ -3348,14 +5190,32 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 16-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes16"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes16 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 16-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes16"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes16 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 16-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes16 parsed)
     {
         if(value is null)
@@ -3367,6 +5227,12 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes16 parsed)
     {
         parsed = default;
@@ -3399,6 +5265,12 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 16 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes16"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 16 bytes long.</exception>
     public static Bytes16 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -3409,6 +5281,11 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
         return new Bytes16(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -3419,6 +5296,11 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -3430,6 +5312,10 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -3440,17 +5326,35 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes16 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes16 other)
         => Equals(in other);
 
@@ -3465,6 +5369,11 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes16 other)
     {
@@ -3483,24 +5392,65 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes16 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes16 left, in Bytes16 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes16 left, in Bytes16 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes16 left, in Bytes16 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes16 left, in Bytes16 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes16 left, in Bytes16 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes16 left, in Bytes16 right)
         => left.CompareTo(in right) >= 0;
 
@@ -3526,11 +5476,20 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 17-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes17Converter))]
 public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFixedBytes<Bytes17>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 17;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 36;
 
     [InlineArray(BYTE_LENGTH)]
@@ -3541,6 +5500,9 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
 
     private readonly ByteStorage17 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes17"/>.
+    /// </summary>
     public static Bytes17 Zero => default;
 
     static int IFixedBytes<Bytes17>.BYTE_LENGTH => BYTE_LENGTH;
@@ -3551,14 +5513,32 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 17-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes17"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes17 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 17-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes17"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes17 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 17-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes17 parsed)
     {
         if(value is null)
@@ -3570,6 +5550,12 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes17 parsed)
     {
         parsed = default;
@@ -3602,6 +5588,12 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 17 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes17"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 17 bytes long.</exception>
     public static Bytes17 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -3612,6 +5604,11 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
         return new Bytes17(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -3622,6 +5619,11 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -3633,6 +5635,10 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -3643,18 +5649,36 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes17 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(9) ^ other.LoadU64Raw(9)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes17 other)
         => Equals(in other);
 
@@ -3670,6 +5694,11 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes17 other)
     {
@@ -3694,24 +5723,65 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes17 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes17 left, in Bytes17 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes17 left, in Bytes17 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes17 left, in Bytes17 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes17 left, in Bytes17 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes17 left, in Bytes17 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes17 left, in Bytes17 right)
         => left.CompareTo(in right) >= 0;
 
@@ -3737,11 +5807,20 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 18-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes18Converter))]
 public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFixedBytes<Bytes18>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 18;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 38;
 
     [InlineArray(BYTE_LENGTH)]
@@ -3752,6 +5831,9 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
 
     private readonly ByteStorage18 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes18"/>.
+    /// </summary>
     public static Bytes18 Zero => default;
 
     static int IFixedBytes<Bytes18>.BYTE_LENGTH => BYTE_LENGTH;
@@ -3762,14 +5844,32 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 18-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes18"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes18 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 18-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes18"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes18 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 18-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes18 parsed)
     {
         if(value is null)
@@ -3781,6 +5881,12 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes18 parsed)
     {
         parsed = default;
@@ -3813,6 +5919,12 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 18 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes18"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 18 bytes long.</exception>
     public static Bytes18 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -3823,6 +5935,11 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
         return new Bytes18(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -3833,6 +5950,11 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -3844,6 +5966,10 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -3854,18 +5980,36 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes18 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(10) ^ other.LoadU64Raw(10)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes18 other)
         => Equals(in other);
 
@@ -3882,6 +6026,11 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes18 other)
     {
@@ -3912,24 +6061,65 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes18 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes18 left, in Bytes18 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes18 left, in Bytes18 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes18 left, in Bytes18 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes18 left, in Bytes18 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes18 left, in Bytes18 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes18 left, in Bytes18 right)
         => left.CompareTo(in right) >= 0;
 
@@ -3955,11 +6145,20 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 19-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes19Converter))]
 public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFixedBytes<Bytes19>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 19;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 40;
 
     [InlineArray(BYTE_LENGTH)]
@@ -3970,6 +6169,9 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
 
     private readonly ByteStorage19 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes19"/>.
+    /// </summary>
     public static Bytes19 Zero => default;
 
     static int IFixedBytes<Bytes19>.BYTE_LENGTH => BYTE_LENGTH;
@@ -3980,14 +6182,32 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 19-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes19"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes19 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 19-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes19"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes19 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 19-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes19 parsed)
     {
         if(value is null)
@@ -3999,6 +6219,12 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes19 parsed)
     {
         parsed = default;
@@ -4031,6 +6257,12 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 19 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes19"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 19 bytes long.</exception>
     public static Bytes19 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -4041,6 +6273,11 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
         return new Bytes19(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -4051,6 +6288,11 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -4062,6 +6304,10 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -4072,18 +6318,36 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes19 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(11) ^ other.LoadU64Raw(11)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes19 other)
         => Equals(in other);
 
@@ -4101,6 +6365,11 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes19 other)
     {
@@ -4137,24 +6406,65 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes19 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes19 left, in Bytes19 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes19 left, in Bytes19 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes19 left, in Bytes19 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes19 left, in Bytes19 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes19 left, in Bytes19 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes19 left, in Bytes19 right)
         => left.CompareTo(in right) >= 0;
 
@@ -4180,11 +6490,20 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 20-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes20Converter))]
 public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFixedBytes<Bytes20>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 20;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 42;
 
     [InlineArray(BYTE_LENGTH)]
@@ -4195,6 +6514,9 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
 
     private readonly ByteStorage20 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes20"/>.
+    /// </summary>
     public static Bytes20 Zero => default;
 
     static int IFixedBytes<Bytes20>.BYTE_LENGTH => BYTE_LENGTH;
@@ -4205,14 +6527,32 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 20-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes20"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes20 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 20-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes20"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes20 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 20-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes20 parsed)
     {
         if(value is null)
@@ -4224,6 +6564,12 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes20 parsed)
     {
         parsed = default;
@@ -4256,6 +6602,12 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 20 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes20"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 20 bytes long.</exception>
     public static Bytes20 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -4266,6 +6618,11 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
         return new Bytes20(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -4276,6 +6633,11 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -4287,6 +6649,10 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -4297,18 +6663,36 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes20 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(12) ^ other.LoadU64Raw(12)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes20 other)
         => Equals(in other);
 
@@ -4327,6 +6711,11 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes20 other)
     {
@@ -4369,24 +6758,65 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes20 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes20 left, in Bytes20 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes20 left, in Bytes20 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes20 left, in Bytes20 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes20 left, in Bytes20 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes20 left, in Bytes20 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes20 left, in Bytes20 right)
         => left.CompareTo(in right) >= 0;
 
@@ -4412,11 +6842,20 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 21-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes21Converter))]
 public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFixedBytes<Bytes21>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 21;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 44;
 
     [InlineArray(BYTE_LENGTH)]
@@ -4427,6 +6866,9 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
 
     private readonly ByteStorage21 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes21"/>.
+    /// </summary>
     public static Bytes21 Zero => default;
 
     static int IFixedBytes<Bytes21>.BYTE_LENGTH => BYTE_LENGTH;
@@ -4437,14 +6879,32 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 21-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes21"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes21 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 21-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes21"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes21 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 21-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes21 parsed)
     {
         if(value is null)
@@ -4456,6 +6916,12 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes21 parsed)
     {
         parsed = default;
@@ -4488,6 +6954,12 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 21 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes21"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 21 bytes long.</exception>
     public static Bytes21 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -4498,6 +6970,11 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
         return new Bytes21(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -4508,6 +6985,11 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -4519,6 +7001,10 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -4529,18 +7015,36 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes21 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(13) ^ other.LoadU64Raw(13)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes21 other)
         => Equals(in other);
 
@@ -4560,6 +7064,11 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes21 other)
     {
@@ -4608,24 +7117,65 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes21 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes21 left, in Bytes21 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes21 left, in Bytes21 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes21 left, in Bytes21 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes21 left, in Bytes21 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes21 left, in Bytes21 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes21 left, in Bytes21 right)
         => left.CompareTo(in right) >= 0;
 
@@ -4651,11 +7201,20 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 22-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes22Converter))]
 public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFixedBytes<Bytes22>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 22;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 46;
 
     [InlineArray(BYTE_LENGTH)]
@@ -4666,6 +7225,9 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
 
     private readonly ByteStorage22 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes22"/>.
+    /// </summary>
     public static Bytes22 Zero => default;
 
     static int IFixedBytes<Bytes22>.BYTE_LENGTH => BYTE_LENGTH;
@@ -4676,14 +7238,32 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 22-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes22"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes22 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 22-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes22"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes22 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 22-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes22 parsed)
     {
         if(value is null)
@@ -4695,6 +7275,12 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes22 parsed)
     {
         parsed = default;
@@ -4727,6 +7313,12 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 22 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes22"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 22 bytes long.</exception>
     public static Bytes22 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -4737,6 +7329,11 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
         return new Bytes22(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -4747,6 +7344,11 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -4758,6 +7360,10 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -4768,18 +7374,36 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes22 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(14) ^ other.LoadU64Raw(14)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes22 other)
         => Equals(in other);
 
@@ -4800,6 +7424,11 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes22 other)
     {
@@ -4854,24 +7483,65 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes22 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes22 left, in Bytes22 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes22 left, in Bytes22 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes22 left, in Bytes22 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes22 left, in Bytes22 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes22 left, in Bytes22 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes22 left, in Bytes22 right)
         => left.CompareTo(in right) >= 0;
 
@@ -4897,11 +7567,20 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 23-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes23Converter))]
 public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFixedBytes<Bytes23>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 23;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 48;
 
     [InlineArray(BYTE_LENGTH)]
@@ -4912,6 +7591,9 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
 
     private readonly ByteStorage23 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes23"/>.
+    /// </summary>
     public static Bytes23 Zero => default;
 
     static int IFixedBytes<Bytes23>.BYTE_LENGTH => BYTE_LENGTH;
@@ -4922,14 +7604,32 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 23-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes23"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes23 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 23-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes23"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes23 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 23-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes23 parsed)
     {
         if(value is null)
@@ -4941,6 +7641,12 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes23 parsed)
     {
         parsed = default;
@@ -4973,6 +7679,12 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 23 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes23"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 23 bytes long.</exception>
     public static Bytes23 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -4983,6 +7695,11 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
         return new Bytes23(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -4993,6 +7710,11 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -5004,6 +7726,10 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -5014,18 +7740,36 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes23 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(15) ^ other.LoadU64Raw(15)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes23 other)
         => Equals(in other);
 
@@ -5047,6 +7791,11 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes23 other)
     {
@@ -5107,24 +7856,65 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes23 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes23 left, in Bytes23 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes23 left, in Bytes23 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes23 left, in Bytes23 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes23 left, in Bytes23 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes23 left, in Bytes23 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes23 left, in Bytes23 right)
         => left.CompareTo(in right) >= 0;
 
@@ -5150,11 +7940,20 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 24-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes24Converter))]
 public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFixedBytes<Bytes24>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 24;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 50;
 
     [InlineArray(BYTE_LENGTH)]
@@ -5165,6 +7964,9 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
 
     private readonly ByteStorage24 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes24"/>.
+    /// </summary>
     public static Bytes24 Zero => default;
 
     static int IFixedBytes<Bytes24>.BYTE_LENGTH => BYTE_LENGTH;
@@ -5175,14 +7977,32 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 24-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes24"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes24 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 24-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes24"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes24 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 24-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes24 parsed)
     {
         if(value is null)
@@ -5194,6 +8014,12 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes24 parsed)
     {
         parsed = default;
@@ -5226,6 +8052,12 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 24 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes24"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 24 bytes long.</exception>
     public static Bytes24 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -5236,6 +8068,11 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
         return new Bytes24(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -5246,6 +8083,11 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -5257,6 +8099,10 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -5267,18 +8113,36 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes24 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes24 other)
         => Equals(in other);
 
@@ -5294,6 +8158,11 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes24 other)
     {
@@ -5318,24 +8187,65 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes24 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes24 left, in Bytes24 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes24 left, in Bytes24 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes24 left, in Bytes24 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes24 left, in Bytes24 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes24 left, in Bytes24 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes24 left, in Bytes24 right)
         => left.CompareTo(in right) >= 0;
 
@@ -5361,11 +8271,20 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 25-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes25Converter))]
 public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFixedBytes<Bytes25>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 25;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 52;
 
     [InlineArray(BYTE_LENGTH)]
@@ -5376,6 +8295,9 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
 
     private readonly ByteStorage25 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes25"/>.
+    /// </summary>
     public static Bytes25 Zero => default;
 
     static int IFixedBytes<Bytes25>.BYTE_LENGTH => BYTE_LENGTH;
@@ -5386,14 +8308,32 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 25-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes25"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes25 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 25-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes25"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes25 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 25-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes25 parsed)
     {
         if(value is null)
@@ -5405,6 +8345,12 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes25 parsed)
     {
         parsed = default;
@@ -5437,6 +8383,12 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 25 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes25"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 25 bytes long.</exception>
     public static Bytes25 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -5447,6 +8399,11 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
         return new Bytes25(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -5457,6 +8414,11 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -5468,6 +8430,10 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -5478,12 +8444,25 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes25 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
@@ -5491,6 +8470,11 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(17) ^ other.LoadU64Raw(17)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes25 other)
         => Equals(in other);
 
@@ -5507,6 +8491,11 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes25 other)
     {
@@ -5537,24 +8526,65 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes25 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes25 left, in Bytes25 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes25 left, in Bytes25 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes25 left, in Bytes25 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes25 left, in Bytes25 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes25 left, in Bytes25 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes25 left, in Bytes25 right)
         => left.CompareTo(in right) >= 0;
 
@@ -5580,11 +8610,20 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 26-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes26Converter))]
 public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFixedBytes<Bytes26>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 26;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 54;
 
     [InlineArray(BYTE_LENGTH)]
@@ -5595,6 +8634,9 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
 
     private readonly ByteStorage26 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes26"/>.
+    /// </summary>
     public static Bytes26 Zero => default;
 
     static int IFixedBytes<Bytes26>.BYTE_LENGTH => BYTE_LENGTH;
@@ -5605,14 +8647,32 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 26-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes26"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes26 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 26-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes26"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes26 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 26-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes26 parsed)
     {
         if(value is null)
@@ -5624,6 +8684,12 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes26 parsed)
     {
         parsed = default;
@@ -5656,6 +8722,12 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 26 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes26"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 26 bytes long.</exception>
     public static Bytes26 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -5666,6 +8738,11 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
         return new Bytes26(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -5676,6 +8753,11 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -5687,6 +8769,10 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -5697,12 +8783,25 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes26 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
@@ -5710,6 +8809,11 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(18) ^ other.LoadU64Raw(18)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes26 other)
         => Equals(in other);
 
@@ -5727,6 +8831,11 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes26 other)
     {
@@ -5763,24 +8872,65 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes26 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes26 left, in Bytes26 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes26 left, in Bytes26 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes26 left, in Bytes26 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes26 left, in Bytes26 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes26 left, in Bytes26 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes26 left, in Bytes26 right)
         => left.CompareTo(in right) >= 0;
 
@@ -5806,11 +8956,20 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 27-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes27Converter))]
 public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFixedBytes<Bytes27>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 27;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 56;
 
     [InlineArray(BYTE_LENGTH)]
@@ -5821,6 +8980,9 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
 
     private readonly ByteStorage27 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes27"/>.
+    /// </summary>
     public static Bytes27 Zero => default;
 
     static int IFixedBytes<Bytes27>.BYTE_LENGTH => BYTE_LENGTH;
@@ -5831,14 +8993,32 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 27-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes27"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes27 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 27-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes27"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes27 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 27-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes27 parsed)
     {
         if(value is null)
@@ -5850,6 +9030,12 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes27 parsed)
     {
         parsed = default;
@@ -5882,6 +9068,12 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 27 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes27"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 27 bytes long.</exception>
     public static Bytes27 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -5892,6 +9084,11 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
         return new Bytes27(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -5902,6 +9099,11 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -5913,6 +9115,10 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -5923,12 +9129,25 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes27 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
@@ -5936,6 +9155,11 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(19) ^ other.LoadU64Raw(19)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes27 other)
         => Equals(in other);
 
@@ -5954,6 +9178,11 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes27 other)
     {
@@ -5996,24 +9225,65 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes27 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes27 left, in Bytes27 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes27 left, in Bytes27 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes27 left, in Bytes27 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes27 left, in Bytes27 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes27 left, in Bytes27 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes27 left, in Bytes27 right)
         => left.CompareTo(in right) >= 0;
 
@@ -6039,11 +9309,20 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 28-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes28Converter))]
 public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFixedBytes<Bytes28>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 28;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 58;
 
     [InlineArray(BYTE_LENGTH)]
@@ -6054,6 +9333,9 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
 
     private readonly ByteStorage28 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes28"/>.
+    /// </summary>
     public static Bytes28 Zero => default;
 
     static int IFixedBytes<Bytes28>.BYTE_LENGTH => BYTE_LENGTH;
@@ -6064,14 +9346,32 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 28-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes28"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes28 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 28-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes28"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes28 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 28-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes28 parsed)
     {
         if(value is null)
@@ -6083,6 +9383,12 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes28 parsed)
     {
         parsed = default;
@@ -6115,6 +9421,12 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 28 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes28"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 28 bytes long.</exception>
     public static Bytes28 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -6125,6 +9437,11 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
         return new Bytes28(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -6135,6 +9452,11 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -6146,6 +9468,10 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -6156,12 +9482,25 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes28 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
@@ -6169,6 +9508,11 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(20) ^ other.LoadU64Raw(20)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes28 other)
         => Equals(in other);
 
@@ -6188,6 +9532,11 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes28 other)
     {
@@ -6236,24 +9585,65 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes28 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes28 left, in Bytes28 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes28 left, in Bytes28 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes28 left, in Bytes28 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes28 left, in Bytes28 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes28 left, in Bytes28 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes28 left, in Bytes28 right)
         => left.CompareTo(in right) >= 0;
 
@@ -6279,11 +9669,20 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 29-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes29Converter))]
 public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFixedBytes<Bytes29>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 29;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 60;
 
     [InlineArray(BYTE_LENGTH)]
@@ -6294,6 +9693,9 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
 
     private readonly ByteStorage29 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes29"/>.
+    /// </summary>
     public static Bytes29 Zero => default;
 
     static int IFixedBytes<Bytes29>.BYTE_LENGTH => BYTE_LENGTH;
@@ -6304,14 +9706,32 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 29-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes29"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes29 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 29-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes29"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes29 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 29-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes29 parsed)
     {
         if(value is null)
@@ -6323,6 +9743,12 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes29 parsed)
     {
         parsed = default;
@@ -6355,6 +9781,12 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 29 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes29"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 29 bytes long.</exception>
     public static Bytes29 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -6365,6 +9797,11 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
         return new Bytes29(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -6375,6 +9812,11 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -6386,6 +9828,10 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -6396,12 +9842,25 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes29 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
@@ -6409,6 +9868,11 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(21) ^ other.LoadU64Raw(21)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes29 other)
         => Equals(in other);
 
@@ -6429,6 +9893,11 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes29 other)
     {
@@ -6483,24 +9952,65 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes29 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes29 left, in Bytes29 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes29 left, in Bytes29 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes29 left, in Bytes29 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes29 left, in Bytes29 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes29 left, in Bytes29 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes29 left, in Bytes29 right)
         => left.CompareTo(in right) >= 0;
 
@@ -6526,11 +10036,20 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 30-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes30Converter))]
 public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFixedBytes<Bytes30>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 30;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 62;
 
     [InlineArray(BYTE_LENGTH)]
@@ -6541,6 +10060,9 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
 
     private readonly ByteStorage30 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes30"/>.
+    /// </summary>
     public static Bytes30 Zero => default;
 
     static int IFixedBytes<Bytes30>.BYTE_LENGTH => BYTE_LENGTH;
@@ -6551,14 +10073,32 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 30-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes30"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes30 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 30-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes30"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes30 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 30-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes30 parsed)
     {
         if(value is null)
@@ -6570,6 +10110,12 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes30 parsed)
     {
         parsed = default;
@@ -6602,6 +10148,12 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 30 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes30"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 30 bytes long.</exception>
     public static Bytes30 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -6612,6 +10164,11 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
         return new Bytes30(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -6622,6 +10179,11 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -6633,6 +10195,10 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -6643,12 +10209,25 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes30 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
@@ -6656,6 +10235,11 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(22) ^ other.LoadU64Raw(22)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes30 other)
         => Equals(in other);
 
@@ -6677,6 +10261,11 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes30 other)
     {
@@ -6737,24 +10326,65 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes30 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes30 left, in Bytes30 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes30 left, in Bytes30 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes30 left, in Bytes30 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes30 left, in Bytes30 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes30 left, in Bytes30 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes30 left, in Bytes30 right)
         => left.CompareTo(in right) >= 0;
 
@@ -6780,11 +10410,20 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 31-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes31Converter))]
 public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFixedBytes<Bytes31>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 31;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 64;
 
     [InlineArray(BYTE_LENGTH)]
@@ -6795,6 +10434,9 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
 
     private readonly ByteStorage31 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes31"/>.
+    /// </summary>
     public static Bytes31 Zero => default;
 
     static int IFixedBytes<Bytes31>.BYTE_LENGTH => BYTE_LENGTH;
@@ -6805,14 +10447,32 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 31-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes31"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes31 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 31-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes31"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes31 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 31-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes31 parsed)
     {
         if(value is null)
@@ -6824,6 +10484,12 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes31 parsed)
     {
         parsed = default;
@@ -6856,6 +10522,12 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 31 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes31"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 31 bytes long.</exception>
     public static Bytes31 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -6866,6 +10538,11 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
         return new Bytes31(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -6876,6 +10553,11 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -6887,6 +10569,10 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -6897,12 +10583,25 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes31 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
@@ -6910,6 +10609,11 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(23) ^ other.LoadU64Raw(23)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes31 other)
         => Equals(in other);
 
@@ -6932,6 +10636,11 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes31 other)
     {
@@ -6998,24 +10707,65 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes31 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes31 left, in Bytes31 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes31 left, in Bytes31 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes31 left, in Bytes31 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes31 left, in Bytes31 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes31 left, in Bytes31 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes31 left, in Bytes31 right)
         => left.CompareTo(in right) >= 0;
 
@@ -7041,11 +10791,20 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
     }
 }
 
+/// <summary>
+/// Represents an immutable 32-byte fixed-size value.
+/// </summary>
 [JsonConverter(typeof(Bytes32Converter))]
 public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFixedBytes<Bytes32>
 {
+    /// <summary>
+    /// Gets the fixed length of the value, in bytes.
+    /// </summary>
     public const int BYTE_LENGTH = 32;
 
+    /// <summary>
+    /// Gets the number of characters in the <c>0x</c>-prefixed hexadecimal representation.
+    /// </summary>
     public const int STRING_LENGTH = 66;
 
     [InlineArray(BYTE_LENGTH)]
@@ -7056,6 +10815,9 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
 
     private readonly ByteStorage32 _bytes;
 
+    /// <summary>
+    /// Gets the zero value for <see cref="Bytes32"/>.
+    /// </summary>
     public static Bytes32 Zero => default;
 
     static int IFixedBytes<Bytes32>.BYTE_LENGTH => BYTE_LENGTH;
@@ -7066,14 +10828,32 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
         bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
     }
 
+    /// <summary>
+    /// Parses a 32-byte value from a hex string. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes32"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes32 Parse(string value)
         => Parse(value.AsSpan());
 
+    /// <summary>
+    /// Parses a 32-byte value from a hex character span. The prefix <c>0x</c> is optional.
+    /// </summary>
+    /// <param name="value">The encoded value to parse.</param>
+    /// <returns>The parsed <see cref="Bytes32"/> value.</returns>
+    /// <exception cref="FormatException">Thrown when <paramref name="value"/> is not valid.</exception>
     public static Bytes32 Parse(ReadOnlySpan<char> value)
         => !TryParse(value, out var parsed)
             ? throw new FormatException("Expected a 32-byte value with optional 0x prefix.")
             : parsed;
 
+    /// <summary>
+    /// Tries to parse a hex string into a value.
+    /// </summary>
+    /// <param name="value">The input string.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(string? value, out Bytes32 parsed)
     {
         if(value is null)
@@ -7085,6 +10865,12 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
         return TryParse(value.AsSpan(), out parsed);
     }
 
+    /// <summary>
+    /// Tries to parse a hex character span into a value.
+    /// </summary>
+    /// <param name="value">The input span.</param>
+    /// <param name="parsed">The parsed value, if successful.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid value.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out Bytes32 parsed)
     {
         parsed = default;
@@ -7117,6 +10903,12 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a value from a byte span.
+    /// </summary>
+    /// <param name="bytes">A span containing exactly 32 bytes.</param>
+    /// <returns>The parsed <see cref="Bytes32"/> value.</returns>
+    /// <exception cref="ArgumentException">Thrown when the span is not 32 bytes long.</exception>
     public static Bytes32 FromBytes(ReadOnlySpan<byte> bytes)
     {
         if(bytes.Length != BYTE_LENGTH)
@@ -7127,6 +10919,11 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
         return new Bytes32(bytes);
     }
 
+    /// <summary>
+    /// Copies this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <exception cref="ArgumentException">The destination span is too small.</exception>
     public readonly void CopyTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -7137,6 +10934,11 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
         AsReadOnlySpan().CopyTo(destination);
     }
 
+    /// <summary>
+    /// Tries to write this value to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">Destination span that receives the bytes.</param>
+    /// <returns>True when the write succeeded; otherwise false.</returns>
     public readonly bool TryWriteTo(Span<byte> destination)
     {
         if(destination.Length < BYTE_LENGTH)
@@ -7148,6 +10950,10 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
         return true;
     }
 
+    /// <summary>
+    /// Creates a heap-allocated byte array containing this value.
+    /// </summary>
+    /// <returns>A new byte array that is exactly <see cref="BYTE_LENGTH"/> bytes long.</returns>
     public readonly byte[] ToArray()
     {
         byte[] copy = new byte[BYTE_LENGTH];
@@ -7158,12 +10964,25 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
     internal readonly ReadOnlySpan<byte> DangerousGetReadOnlySpan()
         => AsReadOnlySpan();
 
+    /// <summary>
+    /// Returns the uppercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The uppercase hexadecimal representation.</returns>
     public readonly string ToHex()
         => Convert.ToHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
         => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Bytes32 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
@@ -7171,6 +10990,11 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(24) ^ other.LoadU64Raw(24)))) == 0;
 
+    /// <summary>
+    /// Checks equality with another value by value.
+    /// </summary>
+    /// <param name="other">The value to compare with.</param>
+    /// <returns>True if both values are equal.</returns>
     public readonly bool Equals(Bytes32 other)
         => Equals(in other);
 
@@ -7187,6 +11011,11 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     [OverloadResolutionPriority(1)]
     public readonly int CompareTo(in Bytes32 other)
     {
@@ -7217,24 +11046,65 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
         return 0;
     }
 
+    /// <summary>
+    /// Compares this value with another value.
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><c>&lt; 0</c> when this value is smaller, <c>0</c> when equal, and <c>&gt; 0</c> when larger.</returns>
     public readonly int CompareTo(Bytes32 other)
         => CompareTo(in other);
 
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are equal.</returns>
     public static bool operator ==(in Bytes32 left, in Bytes32 right)
         => left.Equals(in right);
 
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when both values are not equal.</returns>
     public static bool operator !=(in Bytes32 left, in Bytes32 right)
         => !left.Equals(in right);
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than <paramref name="right"/>.</returns>
     public static bool operator <(in Bytes32 left, in Bytes32 right)
         => left.CompareTo(in right) < 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is less than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is less than or equal to <paramref name="right"/>.</returns>
     public static bool operator <=(in Bytes32 left, in Bytes32 right)
         => left.CompareTo(in right) <= 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than <paramref name="right"/>.</returns>
     public static bool operator >(in Bytes32 left, in Bytes32 right)
         => left.CompareTo(in right) > 0;
 
+    /// <summary>
+    /// Compares whether <paramref name="left"/> is greater than or equal to <paramref name="right"/>.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes32 left, in Bytes32 right)
         => left.CompareTo(in right) >= 0;
 
@@ -7261,4 +11131,5 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
 }
 
 #pragma warning restore CS1591, CS0675
+
 
