@@ -1,4 +1,5 @@
-﻿using EtherSharp.Tx.Types;
+﻿using EtherSharp.Common;
+using EtherSharp.Tx.Types;
 using System.Text;
 using System.Text.Json;
 
@@ -19,13 +20,13 @@ public record EIP1559TxParams(
     static EIP1559TxParams ITxParams<EIP1559TxParams>.Decode(ReadOnlySpan<byte> data)
     {
         string json = Encoding.UTF8.GetString(data);
-        return JsonSerializer.Deserialize<EIP1559TxParams>(json)!;
+        return JsonSerializer.Deserialize<EIP1559TxParams>(json, ParsingUtils.EvmSerializerOptions)!;
     }
 
     /// <inheritdoc/>
     byte[] ITxParams<EIP1559TxParams>.Encode()
     {
-        string json = JsonSerializer.Serialize(this);
+        string json = JsonSerializer.Serialize(this, ParsingUtils.EvmSerializerOptions);
         return Encoding.UTF8.GetBytes(json);
     }
 }

@@ -14,5 +14,6 @@ public record LegacyTxParams : ITxParams<LegacyTxParams>
     public byte[] Encode() => [];
 
     /// <inheritdoc/>
-    public static LegacyTxParams Decode(ReadOnlySpan<byte> data) => Default;
+    public static LegacyTxParams Decode(ReadOnlySpan<byte> data)
+        => Default;
 }
