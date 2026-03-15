@@ -9,6 +9,11 @@ namespace EtherSharp.Common.Converter;
 /// </summary>
 public sealed class AddressConverter : JsonConverter<Address>
 {
+    /// <summary>
+    /// Shared converter instance.
+    /// </summary>
+    public static AddressConverter Instance { get; } = new();
+
     /// <inheritdoc/>
     public override Address Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

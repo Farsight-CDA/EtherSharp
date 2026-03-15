@@ -10,6 +10,8 @@ namespace EtherSharp.Common.Converter;
 /// </summary>
 internal class LongHexConverter : JsonConverter<long>
 {
+    public static LongHexConverter Instance { get; } = new();
+
     /// <inheritdoc/>
     public override long Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

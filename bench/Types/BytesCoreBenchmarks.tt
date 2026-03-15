@@ -187,12 +187,14 @@ public class Bytes<#= i #>CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes<#= i #>Converter());
+        options.Converters.Add(Bytes<#= i #>Converter.Instance);
         return options;
     }
 
     private sealed class Bytes<#= i #>Converter : JsonConverter<Bytes<#= i #>>
     {
+        public static Bytes<#= i #>Converter Instance { get; } = new();
+
         public override Bytes<#= i #> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)

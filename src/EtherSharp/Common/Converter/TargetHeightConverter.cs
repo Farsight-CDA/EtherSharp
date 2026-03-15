@@ -9,6 +9,11 @@ namespace EtherSharp.Common.Converter;
 /// </summary>
 public class TargetHeightConverter : JsonConverter<TargetHeight>
 {
+    /// <summary>
+    /// Shared converter instance.
+    /// </summary>
+    public static TargetHeightConverter Instance { get; } = new();
+
     /// <inheritdoc/>
     public override TargetHeight Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         => throw new NotSupportedException();

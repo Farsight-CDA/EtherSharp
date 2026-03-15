@@ -7,6 +7,8 @@ namespace EtherSharp.Common.Converter;
 
 internal class TransactionTypeHexConverter : JsonConverter<TxType>
 {
+    public static TransactionTypeHexConverter Instance { get; } = new();
+
     public override TxType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         => reader.TokenType switch
         {

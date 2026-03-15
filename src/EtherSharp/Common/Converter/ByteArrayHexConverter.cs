@@ -9,6 +9,8 @@ namespace EtherSharp.Common.Converter;
 /// </summary>
 internal class ByteArrayHexConverter : JsonConverter<byte[]>
 {
+    public static ByteArrayHexConverter Instance { get; } = new();
+
     /// <inheritdoc/>
     public override byte[]? Read(
         ref Utf8JsonReader reader,

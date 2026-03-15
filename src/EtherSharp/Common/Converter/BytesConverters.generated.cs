@@ -12,38 +12,38 @@ internal static class FixedBytesJsonConverters
 {
     public static void Register(IList<JsonConverter> converters)
     {
-        converters.Add(new Bytes1Converter());
-        converters.Add(new Bytes2Converter());
-        converters.Add(new Bytes3Converter());
-        converters.Add(new Bytes4Converter());
-        converters.Add(new Bytes5Converter());
-        converters.Add(new Bytes6Converter());
-        converters.Add(new Bytes7Converter());
-        converters.Add(new Bytes8Converter());
-        converters.Add(new Bytes9Converter());
-        converters.Add(new Bytes10Converter());
-        converters.Add(new Bytes11Converter());
-        converters.Add(new Bytes12Converter());
-        converters.Add(new Bytes13Converter());
-        converters.Add(new Bytes14Converter());
-        converters.Add(new Bytes15Converter());
-        converters.Add(new Bytes16Converter());
-        converters.Add(new Bytes17Converter());
-        converters.Add(new Bytes18Converter());
-        converters.Add(new Bytes19Converter());
-        converters.Add(new Bytes20Converter());
-        converters.Add(new Bytes21Converter());
-        converters.Add(new Bytes22Converter());
-        converters.Add(new Bytes23Converter());
-        converters.Add(new Bytes24Converter());
-        converters.Add(new Bytes25Converter());
-        converters.Add(new Bytes26Converter());
-        converters.Add(new Bytes27Converter());
-        converters.Add(new Bytes28Converter());
-        converters.Add(new Bytes29Converter());
-        converters.Add(new Bytes30Converter());
-        converters.Add(new Bytes31Converter());
-        converters.Add(new Bytes32Converter());
+        converters.Add(Bytes1Converter.Instance);
+        converters.Add(Bytes2Converter.Instance);
+        converters.Add(Bytes3Converter.Instance);
+        converters.Add(Bytes4Converter.Instance);
+        converters.Add(Bytes5Converter.Instance);
+        converters.Add(Bytes6Converter.Instance);
+        converters.Add(Bytes7Converter.Instance);
+        converters.Add(Bytes8Converter.Instance);
+        converters.Add(Bytes9Converter.Instance);
+        converters.Add(Bytes10Converter.Instance);
+        converters.Add(Bytes11Converter.Instance);
+        converters.Add(Bytes12Converter.Instance);
+        converters.Add(Bytes13Converter.Instance);
+        converters.Add(Bytes14Converter.Instance);
+        converters.Add(Bytes15Converter.Instance);
+        converters.Add(Bytes16Converter.Instance);
+        converters.Add(Bytes17Converter.Instance);
+        converters.Add(Bytes18Converter.Instance);
+        converters.Add(Bytes19Converter.Instance);
+        converters.Add(Bytes20Converter.Instance);
+        converters.Add(Bytes21Converter.Instance);
+        converters.Add(Bytes22Converter.Instance);
+        converters.Add(Bytes23Converter.Instance);
+        converters.Add(Bytes24Converter.Instance);
+        converters.Add(Bytes25Converter.Instance);
+        converters.Add(Bytes26Converter.Instance);
+        converters.Add(Bytes27Converter.Instance);
+        converters.Add(Bytes28Converter.Instance);
+        converters.Add(Bytes29Converter.Instance);
+        converters.Add(Bytes30Converter.Instance);
+        converters.Add(Bytes31Converter.Instance);
+        converters.Add(Bytes32Converter.Instance);
     }
 }
 
@@ -52,6 +52,8 @@ internal static class FixedBytesJsonConverters
 /// </summary>
 public sealed class Bytes1Converter : FixedBytesJsonConverter<Bytes1>
 {
+    public static Bytes1Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes1 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -62,6 +64,8 @@ public sealed class Bytes1Converter : FixedBytesJsonConverter<Bytes1>
 /// </summary>
 public sealed class Bytes2Converter : FixedBytesJsonConverter<Bytes2>
 {
+    public static Bytes2Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes2 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -72,6 +76,8 @@ public sealed class Bytes2Converter : FixedBytesJsonConverter<Bytes2>
 /// </summary>
 public sealed class Bytes3Converter : FixedBytesJsonConverter<Bytes3>
 {
+    public static Bytes3Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes3 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -82,6 +88,8 @@ public sealed class Bytes3Converter : FixedBytesJsonConverter<Bytes3>
 /// </summary>
 public sealed class Bytes4Converter : FixedBytesJsonConverter<Bytes4>
 {
+    public static Bytes4Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes4 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -92,6 +100,8 @@ public sealed class Bytes4Converter : FixedBytesJsonConverter<Bytes4>
 /// </summary>
 public sealed class Bytes5Converter : FixedBytesJsonConverter<Bytes5>
 {
+    public static Bytes5Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes5 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -102,6 +112,8 @@ public sealed class Bytes5Converter : FixedBytesJsonConverter<Bytes5>
 /// </summary>
 public sealed class Bytes6Converter : FixedBytesJsonConverter<Bytes6>
 {
+    public static Bytes6Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes6 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -112,6 +124,8 @@ public sealed class Bytes6Converter : FixedBytesJsonConverter<Bytes6>
 /// </summary>
 public sealed class Bytes7Converter : FixedBytesJsonConverter<Bytes7>
 {
+    public static Bytes7Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes7 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -122,6 +136,8 @@ public sealed class Bytes7Converter : FixedBytesJsonConverter<Bytes7>
 /// </summary>
 public sealed class Bytes8Converter : FixedBytesJsonConverter<Bytes8>
 {
+    public static Bytes8Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes8 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -132,6 +148,8 @@ public sealed class Bytes8Converter : FixedBytesJsonConverter<Bytes8>
 /// </summary>
 public sealed class Bytes9Converter : FixedBytesJsonConverter<Bytes9>
 {
+    public static Bytes9Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes9 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -142,6 +160,8 @@ public sealed class Bytes9Converter : FixedBytesJsonConverter<Bytes9>
 /// </summary>
 public sealed class Bytes10Converter : FixedBytesJsonConverter<Bytes10>
 {
+    public static Bytes10Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes10 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -152,6 +172,8 @@ public sealed class Bytes10Converter : FixedBytesJsonConverter<Bytes10>
 /// </summary>
 public sealed class Bytes11Converter : FixedBytesJsonConverter<Bytes11>
 {
+    public static Bytes11Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes11 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -162,6 +184,8 @@ public sealed class Bytes11Converter : FixedBytesJsonConverter<Bytes11>
 /// </summary>
 public sealed class Bytes12Converter : FixedBytesJsonConverter<Bytes12>
 {
+    public static Bytes12Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes12 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -172,6 +196,8 @@ public sealed class Bytes12Converter : FixedBytesJsonConverter<Bytes12>
 /// </summary>
 public sealed class Bytes13Converter : FixedBytesJsonConverter<Bytes13>
 {
+    public static Bytes13Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes13 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -182,6 +208,8 @@ public sealed class Bytes13Converter : FixedBytesJsonConverter<Bytes13>
 /// </summary>
 public sealed class Bytes14Converter : FixedBytesJsonConverter<Bytes14>
 {
+    public static Bytes14Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes14 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -192,6 +220,8 @@ public sealed class Bytes14Converter : FixedBytesJsonConverter<Bytes14>
 /// </summary>
 public sealed class Bytes15Converter : FixedBytesJsonConverter<Bytes15>
 {
+    public static Bytes15Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes15 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -202,6 +232,8 @@ public sealed class Bytes15Converter : FixedBytesJsonConverter<Bytes15>
 /// </summary>
 public sealed class Bytes16Converter : FixedBytesJsonConverter<Bytes16>
 {
+    public static Bytes16Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes16 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -212,6 +244,8 @@ public sealed class Bytes16Converter : FixedBytesJsonConverter<Bytes16>
 /// </summary>
 public sealed class Bytes17Converter : FixedBytesJsonConverter<Bytes17>
 {
+    public static Bytes17Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes17 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -222,6 +256,8 @@ public sealed class Bytes17Converter : FixedBytesJsonConverter<Bytes17>
 /// </summary>
 public sealed class Bytes18Converter : FixedBytesJsonConverter<Bytes18>
 {
+    public static Bytes18Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes18 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -232,6 +268,8 @@ public sealed class Bytes18Converter : FixedBytesJsonConverter<Bytes18>
 /// </summary>
 public sealed class Bytes19Converter : FixedBytesJsonConverter<Bytes19>
 {
+    public static Bytes19Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes19 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -242,6 +280,8 @@ public sealed class Bytes19Converter : FixedBytesJsonConverter<Bytes19>
 /// </summary>
 public sealed class Bytes20Converter : FixedBytesJsonConverter<Bytes20>
 {
+    public static Bytes20Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes20 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -252,6 +292,8 @@ public sealed class Bytes20Converter : FixedBytesJsonConverter<Bytes20>
 /// </summary>
 public sealed class Bytes21Converter : FixedBytesJsonConverter<Bytes21>
 {
+    public static Bytes21Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes21 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -262,6 +304,8 @@ public sealed class Bytes21Converter : FixedBytesJsonConverter<Bytes21>
 /// </summary>
 public sealed class Bytes22Converter : FixedBytesJsonConverter<Bytes22>
 {
+    public static Bytes22Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes22 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -272,6 +316,8 @@ public sealed class Bytes22Converter : FixedBytesJsonConverter<Bytes22>
 /// </summary>
 public sealed class Bytes23Converter : FixedBytesJsonConverter<Bytes23>
 {
+    public static Bytes23Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes23 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -282,6 +328,8 @@ public sealed class Bytes23Converter : FixedBytesJsonConverter<Bytes23>
 /// </summary>
 public sealed class Bytes24Converter : FixedBytesJsonConverter<Bytes24>
 {
+    public static Bytes24Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes24 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -292,6 +340,8 @@ public sealed class Bytes24Converter : FixedBytesJsonConverter<Bytes24>
 /// </summary>
 public sealed class Bytes25Converter : FixedBytesJsonConverter<Bytes25>
 {
+    public static Bytes25Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes25 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -302,6 +352,8 @@ public sealed class Bytes25Converter : FixedBytesJsonConverter<Bytes25>
 /// </summary>
 public sealed class Bytes26Converter : FixedBytesJsonConverter<Bytes26>
 {
+    public static Bytes26Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes26 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -312,6 +364,8 @@ public sealed class Bytes26Converter : FixedBytesJsonConverter<Bytes26>
 /// </summary>
 public sealed class Bytes27Converter : FixedBytesJsonConverter<Bytes27>
 {
+    public static Bytes27Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes27 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -322,6 +376,8 @@ public sealed class Bytes27Converter : FixedBytesJsonConverter<Bytes27>
 /// </summary>
 public sealed class Bytes28Converter : FixedBytesJsonConverter<Bytes28>
 {
+    public static Bytes28Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes28 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -332,6 +388,8 @@ public sealed class Bytes28Converter : FixedBytesJsonConverter<Bytes28>
 /// </summary>
 public sealed class Bytes29Converter : FixedBytesJsonConverter<Bytes29>
 {
+    public static Bytes29Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes29 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -342,6 +400,8 @@ public sealed class Bytes29Converter : FixedBytesJsonConverter<Bytes29>
 /// </summary>
 public sealed class Bytes30Converter : FixedBytesJsonConverter<Bytes30>
 {
+    public static Bytes30Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes30 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -352,6 +412,8 @@ public sealed class Bytes30Converter : FixedBytesJsonConverter<Bytes30>
 /// </summary>
 public sealed class Bytes31Converter : FixedBytesJsonConverter<Bytes31>
 {
+    public static Bytes31Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes31 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
@@ -362,6 +424,8 @@ public sealed class Bytes31Converter : FixedBytesJsonConverter<Bytes31>
 /// </summary>
 public sealed class Bytes32Converter : FixedBytesJsonConverter<Bytes32>
 {
+    public static Bytes32Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes32 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());

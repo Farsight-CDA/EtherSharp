@@ -34,16 +34,16 @@ public static class ParsingUtils
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        options.Converters.Add(new DateTimeOffsetHexConverter());
+        options.Converters.Add(DateTimeOffsetHexConverter.Instance);
         FixedBytesJsonConverters.Register(options.Converters);
-        options.Converters.Add(new ByteArrayHexConverter());
-        options.Converters.Add(new IntHexConverter());
-        options.Converters.Add(new UIntHexConverter());
-        options.Converters.Add(new LongHexConverter());
-        options.Converters.Add(new ULongHexConverter());
-        options.Converters.Add(new TargetHeightConverter());
-        options.Converters.Add(new UInt256HexConverter());
-        options.Converters.Add(new Int256HexConverter());
+        options.Converters.Add(ByteArrayHexConverter.Instance);
+        options.Converters.Add(IntHexConverter.Instance);
+        options.Converters.Add(UIntHexConverter.Instance);
+        options.Converters.Add(LongHexConverter.Instance);
+        options.Converters.Add(ULongHexConverter.Instance);
+        options.Converters.Add(TargetHeightConverter.Instance);
+        options.Converters.Add(UInt256HexConverter.Instance);
+        options.Converters.Add(Int256HexConverter.Instance);
         return options;
     }
 }

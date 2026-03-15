@@ -14,7 +14,7 @@ internal static class FixedBytesJsonConverters
     public static void Register(IList<JsonConverter> converters)
     {
 <# for(var i = 1; i <= 32; i++) { #>
-        converters.Add(new Bytes<#= i #>Converter());
+        converters.Add(Bytes<#= i #>Converter.Instance);
 <# } #>
     }
 }
@@ -25,6 +25,8 @@ internal static class FixedBytesJsonConverters
 /// </summary>
 public sealed class Bytes<#= i #>Converter : FixedBytesJsonConverter<Bytes<#= i #>>
 {
+    public static Bytes<#= i #>Converter Instance { get; } = new();
+
     /// <inheritdoc/>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes<#= i #> value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());

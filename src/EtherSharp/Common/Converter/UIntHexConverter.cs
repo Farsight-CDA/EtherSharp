@@ -10,6 +10,8 @@ namespace EtherSharp.Common.Converter;
 /// </summary>
 internal class UIntHexConverter : JsonConverter<uint>
 {
+    public static UIntHexConverter Instance { get; } = new();
+
     /// <inheritdoc/>
     public override uint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

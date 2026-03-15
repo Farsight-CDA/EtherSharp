@@ -185,12 +185,14 @@ public class Bytes1CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes1Converter());
+        options.Converters.Add(Bytes1Converter.Instance);
         return options;
     }
 
     private sealed class Bytes1Converter : JsonConverter<Bytes1>
     {
+        public static Bytes1Converter Instance { get; } = new();
+
         public override Bytes1 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -377,12 +379,14 @@ public class Bytes2CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes2Converter());
+        options.Converters.Add(Bytes2Converter.Instance);
         return options;
     }
 
     private sealed class Bytes2Converter : JsonConverter<Bytes2>
     {
+        public static Bytes2Converter Instance { get; } = new();
+
         public override Bytes2 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -569,12 +573,14 @@ public class Bytes3CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes3Converter());
+        options.Converters.Add(Bytes3Converter.Instance);
         return options;
     }
 
     private sealed class Bytes3Converter : JsonConverter<Bytes3>
     {
+        public static Bytes3Converter Instance { get; } = new();
+
         public override Bytes3 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -761,12 +767,14 @@ public class Bytes4CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes4Converter());
+        options.Converters.Add(Bytes4Converter.Instance);
         return options;
     }
 
     private sealed class Bytes4Converter : JsonConverter<Bytes4>
     {
+        public static Bytes4Converter Instance { get; } = new();
+
         public override Bytes4 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -953,12 +961,14 @@ public class Bytes5CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes5Converter());
+        options.Converters.Add(Bytes5Converter.Instance);
         return options;
     }
 
     private sealed class Bytes5Converter : JsonConverter<Bytes5>
     {
+        public static Bytes5Converter Instance { get; } = new();
+
         public override Bytes5 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -1145,12 +1155,14 @@ public class Bytes6CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes6Converter());
+        options.Converters.Add(Bytes6Converter.Instance);
         return options;
     }
 
     private sealed class Bytes6Converter : JsonConverter<Bytes6>
     {
+        public static Bytes6Converter Instance { get; } = new();
+
         public override Bytes6 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -1337,12 +1349,14 @@ public class Bytes7CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes7Converter());
+        options.Converters.Add(Bytes7Converter.Instance);
         return options;
     }
 
     private sealed class Bytes7Converter : JsonConverter<Bytes7>
     {
+        public static Bytes7Converter Instance { get; } = new();
+
         public override Bytes7 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -1529,12 +1543,14 @@ public class Bytes8CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes8Converter());
+        options.Converters.Add(Bytes8Converter.Instance);
         return options;
     }
 
     private sealed class Bytes8Converter : JsonConverter<Bytes8>
     {
+        public static Bytes8Converter Instance { get; } = new();
+
         public override Bytes8 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -1721,12 +1737,14 @@ public class Bytes9CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes9Converter());
+        options.Converters.Add(Bytes9Converter.Instance);
         return options;
     }
 
     private sealed class Bytes9Converter : JsonConverter<Bytes9>
     {
+        public static Bytes9Converter Instance { get; } = new();
+
         public override Bytes9 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -1913,12 +1931,14 @@ public class Bytes10CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes10Converter());
+        options.Converters.Add(Bytes10Converter.Instance);
         return options;
     }
 
     private sealed class Bytes10Converter : JsonConverter<Bytes10>
     {
+        public static Bytes10Converter Instance { get; } = new();
+
         public override Bytes10 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -2105,12 +2125,14 @@ public class Bytes11CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes11Converter());
+        options.Converters.Add(Bytes11Converter.Instance);
         return options;
     }
 
     private sealed class Bytes11Converter : JsonConverter<Bytes11>
     {
+        public static Bytes11Converter Instance { get; } = new();
+
         public override Bytes11 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -2297,12 +2319,14 @@ public class Bytes12CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes12Converter());
+        options.Converters.Add(Bytes12Converter.Instance);
         return options;
     }
 
     private sealed class Bytes12Converter : JsonConverter<Bytes12>
     {
+        public static Bytes12Converter Instance { get; } = new();
+
         public override Bytes12 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -2489,12 +2513,14 @@ public class Bytes13CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes13Converter());
+        options.Converters.Add(Bytes13Converter.Instance);
         return options;
     }
 
     private sealed class Bytes13Converter : JsonConverter<Bytes13>
     {
+        public static Bytes13Converter Instance { get; } = new();
+
         public override Bytes13 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -2681,12 +2707,14 @@ public class Bytes14CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes14Converter());
+        options.Converters.Add(Bytes14Converter.Instance);
         return options;
     }
 
     private sealed class Bytes14Converter : JsonConverter<Bytes14>
     {
+        public static Bytes14Converter Instance { get; } = new();
+
         public override Bytes14 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -2873,12 +2901,14 @@ public class Bytes15CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes15Converter());
+        options.Converters.Add(Bytes15Converter.Instance);
         return options;
     }
 
     private sealed class Bytes15Converter : JsonConverter<Bytes15>
     {
+        public static Bytes15Converter Instance { get; } = new();
+
         public override Bytes15 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -3065,12 +3095,14 @@ public class Bytes16CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes16Converter());
+        options.Converters.Add(Bytes16Converter.Instance);
         return options;
     }
 
     private sealed class Bytes16Converter : JsonConverter<Bytes16>
     {
+        public static Bytes16Converter Instance { get; } = new();
+
         public override Bytes16 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -3257,12 +3289,14 @@ public class Bytes17CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes17Converter());
+        options.Converters.Add(Bytes17Converter.Instance);
         return options;
     }
 
     private sealed class Bytes17Converter : JsonConverter<Bytes17>
     {
+        public static Bytes17Converter Instance { get; } = new();
+
         public override Bytes17 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -3449,12 +3483,14 @@ public class Bytes18CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes18Converter());
+        options.Converters.Add(Bytes18Converter.Instance);
         return options;
     }
 
     private sealed class Bytes18Converter : JsonConverter<Bytes18>
     {
+        public static Bytes18Converter Instance { get; } = new();
+
         public override Bytes18 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -3641,12 +3677,14 @@ public class Bytes19CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes19Converter());
+        options.Converters.Add(Bytes19Converter.Instance);
         return options;
     }
 
     private sealed class Bytes19Converter : JsonConverter<Bytes19>
     {
+        public static Bytes19Converter Instance { get; } = new();
+
         public override Bytes19 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -3833,12 +3871,14 @@ public class Bytes20CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes20Converter());
+        options.Converters.Add(Bytes20Converter.Instance);
         return options;
     }
 
     private sealed class Bytes20Converter : JsonConverter<Bytes20>
     {
+        public static Bytes20Converter Instance { get; } = new();
+
         public override Bytes20 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -4025,12 +4065,14 @@ public class Bytes21CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes21Converter());
+        options.Converters.Add(Bytes21Converter.Instance);
         return options;
     }
 
     private sealed class Bytes21Converter : JsonConverter<Bytes21>
     {
+        public static Bytes21Converter Instance { get; } = new();
+
         public override Bytes21 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -4217,12 +4259,14 @@ public class Bytes22CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes22Converter());
+        options.Converters.Add(Bytes22Converter.Instance);
         return options;
     }
 
     private sealed class Bytes22Converter : JsonConverter<Bytes22>
     {
+        public static Bytes22Converter Instance { get; } = new();
+
         public override Bytes22 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -4409,12 +4453,14 @@ public class Bytes23CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes23Converter());
+        options.Converters.Add(Bytes23Converter.Instance);
         return options;
     }
 
     private sealed class Bytes23Converter : JsonConverter<Bytes23>
     {
+        public static Bytes23Converter Instance { get; } = new();
+
         public override Bytes23 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -4601,12 +4647,14 @@ public class Bytes24CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes24Converter());
+        options.Converters.Add(Bytes24Converter.Instance);
         return options;
     }
 
     private sealed class Bytes24Converter : JsonConverter<Bytes24>
     {
+        public static Bytes24Converter Instance { get; } = new();
+
         public override Bytes24 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -4793,12 +4841,14 @@ public class Bytes25CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes25Converter());
+        options.Converters.Add(Bytes25Converter.Instance);
         return options;
     }
 
     private sealed class Bytes25Converter : JsonConverter<Bytes25>
     {
+        public static Bytes25Converter Instance { get; } = new();
+
         public override Bytes25 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -4985,12 +5035,14 @@ public class Bytes26CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes26Converter());
+        options.Converters.Add(Bytes26Converter.Instance);
         return options;
     }
 
     private sealed class Bytes26Converter : JsonConverter<Bytes26>
     {
+        public static Bytes26Converter Instance { get; } = new();
+
         public override Bytes26 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -5177,12 +5229,14 @@ public class Bytes27CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes27Converter());
+        options.Converters.Add(Bytes27Converter.Instance);
         return options;
     }
 
     private sealed class Bytes27Converter : JsonConverter<Bytes27>
     {
+        public static Bytes27Converter Instance { get; } = new();
+
         public override Bytes27 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -5369,12 +5423,14 @@ public class Bytes28CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes28Converter());
+        options.Converters.Add(Bytes28Converter.Instance);
         return options;
     }
 
     private sealed class Bytes28Converter : JsonConverter<Bytes28>
     {
+        public static Bytes28Converter Instance { get; } = new();
+
         public override Bytes28 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -5561,12 +5617,14 @@ public class Bytes29CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes29Converter());
+        options.Converters.Add(Bytes29Converter.Instance);
         return options;
     }
 
     private sealed class Bytes29Converter : JsonConverter<Bytes29>
     {
+        public static Bytes29Converter Instance { get; } = new();
+
         public override Bytes29 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -5753,12 +5811,14 @@ public class Bytes30CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes30Converter());
+        options.Converters.Add(Bytes30Converter.Instance);
         return options;
     }
 
     private sealed class Bytes30Converter : JsonConverter<Bytes30>
     {
+        public static Bytes30Converter Instance { get; } = new();
+
         public override Bytes30 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -5945,12 +6005,14 @@ public class Bytes31CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes31Converter());
+        options.Converters.Add(Bytes31Converter.Instance);
         return options;
     }
 
     private sealed class Bytes31Converter : JsonConverter<Bytes31>
     {
+        public static Bytes31Converter Instance { get; } = new();
+
         public override Bytes31 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -6137,12 +6199,14 @@ public class Bytes32CoreBenchmarks
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Bytes32Converter());
+        options.Converters.Add(Bytes32Converter.Instance);
         return options;
     }
 
     private sealed class Bytes32Converter : JsonConverter<Bytes32>
     {
+        public static Bytes32Converter Instance { get; } = new();
+
         public override Bytes32 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => reader.TokenType == JsonTokenType.String
                 ? ParseUtf8Hex(ref reader)
@@ -6152,5 +6216,6 @@ public class Bytes32CoreBenchmarks
             => writer.WriteStringValue(value.ToString());
     }
 }
+
 
 

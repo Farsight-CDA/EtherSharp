@@ -10,6 +10,11 @@ namespace EtherSharp.Common.Converter;
 /// </summary>
 public class UInt256HexConverter : JsonConverter<UInt256>
 {
+    /// <summary>
+    /// Shared converter instance.
+    /// </summary>
+    public static UInt256HexConverter Instance { get; } = new();
+
     /// <inheritdoc/>
     public override UInt256 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

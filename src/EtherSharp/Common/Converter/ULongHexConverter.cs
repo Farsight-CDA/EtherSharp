@@ -10,6 +10,8 @@ namespace EtherSharp.Common.Converter;
 /// </summary>
 internal class ULongHexConverter : JsonConverter<ulong>
 {
+    public static ULongHexConverter Instance { get; } = new();
+
     /// <inheritdoc/>
     public override ulong Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
