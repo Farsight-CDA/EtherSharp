@@ -8,7 +8,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents an array of encode types.
     /// </summary>
-    public class EncodeTypeArray<TInner> : DynamicType<TInner[]>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class EncodeTypeArray<TInner> : DynamicType<TInner[]>
         where TInner : IEncodeType
     {
         private readonly int _payloadSize;

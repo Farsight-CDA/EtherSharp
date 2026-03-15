@@ -14,7 +14,7 @@ namespace EtherSharp.Types;
 /// <param name="Topics">Indexed log topics; topic 0 is typically the event signature hash.</param>
 /// <param name="Data">ABI-encoded non-indexed event data payload.</param>
 /// <param name="Removed"><see langword="true"/> when this log was removed due to a chain reorganization.</param>
-public record Log(
+public sealed record Log(
     Address Address,
     Bytes32 BlockHash,
     ulong BlockNumber,

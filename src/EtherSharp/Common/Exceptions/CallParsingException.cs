@@ -10,14 +10,14 @@ public abstract class CallParsingException(string message, Exception? innerExcep
     /// <summary>
     /// Thrown when a call returns no bytes but return data was expected.
     /// </summary>
-    public class EmptyCallDataException() : CallParsingException("Call returned no data", null);
+    public sealed class EmptyCallDataException() : CallParsingException("Call returned no data", null);
 
     /// <summary>
     /// Thrown when a decoder leaves unconsumed bytes in the returned call data.
     /// </summary>
     /// <param name="calldata">Raw data returned by the call.</param>
     /// <param name="bytesConsumed">Number of bytes consumed by the decoder.</param>
-    public class RemainingCallDataException(ReadOnlyMemory<byte> calldata, int bytesConsumed)
+    public sealed class RemainingCallDataException(ReadOnlyMemory<byte> calldata, int bytesConsumed)
         : CallParsingException($"Call returned more data than expected, only consumed {bytesConsumed} out of {calldata.Length} bytes", null)
     {
         /// <summary>
@@ -36,7 +36,7 @@ public abstract class CallParsingException(string message, Exception? innerExcep
     /// </summary>
     /// <param name="calldata">Raw data returned by the call.</param>
     /// <param name="parsingException">Underlying exception produced by the decoder.</param>
-    public class MalformedCallDataException(ReadOnlyMemory<byte> calldata, Exception parsingException)
+    public sealed class MalformedCallDataException(ReadOnlyMemory<byte> calldata, Exception parsingException)
         : CallParsingException("Call returned malformed data. Check your ABI", parsingException)
     {
         /// <summary>

@@ -10,7 +10,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents a dynamic ABI tuple.
     /// </summary>
-    public class DynamicTuple : DynamicType<IDynamicTupleEncoder>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class DynamicTuple : DynamicType<IDynamicTupleEncoder>
     {
         /// <inheritdoc />
         public override int PayloadSize => Value.MetadataSize + Value.PayloadSize;

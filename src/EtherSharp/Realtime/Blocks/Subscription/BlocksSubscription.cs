@@ -6,7 +6,7 @@ using System.Threading.Channels;
 
 namespace EtherSharp.Realtime.Blocks.Subscription;
 
-internal class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
     JsonSerializerOptions jsonSerializerOptions) : IBlocksSubscription, ISubscription
 {
     public string Id { get; private set; } = null!;

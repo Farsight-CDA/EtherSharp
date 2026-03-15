@@ -2,11 +2,11 @@
 
 namespace EtherSharp.Generator.SyntaxElements;
 
-public class UntypedArgument(string sourceExpression)
+public sealed class UntypedArgument(string sourceExpression)
 {
     public string SourceExpression { get; } = sourceExpression;
 }
-public class CallArgumentsBuilder : ISyntaxBuilder
+public sealed class CallArgumentsBuilder : ISyntaxBuilder
 {
     private readonly List<UntypedArgument> _arguments;
 

@@ -4,7 +4,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Query.Operations;
 
-internal class GetCompatibilityQueryOperation : IQuery<CompatibilityReport>
+internal sealed class GetCompatibilityQueryOperation : IQuery<CompatibilityReport>
 {
     private static readonly IContractDeployment _push0 = IContractDeployment.Create(new EVMByteCode(Convert.FromHexString("600b380380600b3d393df35f")), 0);
     private static readonly IContractDeployment _mCopy = IContractDeployment.Create(new EVMByteCode(Convert.FromHexString("600b380380600b3d393df36001600060015e")), 0);

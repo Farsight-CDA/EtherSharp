@@ -1,6 +1,6 @@
 ﻿namespace EtherSharp.Generator.SyntaxElements;
 
-public class TupleElement(string type, string? name) : ISyntaxBuilder
+public sealed class TupleElement(string type, string? name) : ISyntaxBuilder
 {
     public string Type { get; } = type;
     public string? Name { get; } = name;
@@ -12,7 +12,7 @@ public class TupleElement(string type, string? name) : ISyntaxBuilder
         ));
 }
 
-public class TupleBuilder : ITypeBuilder
+public sealed class TupleBuilder : ITypeBuilder
 {
     public string TypeName => Build();
 

@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace EtherSharp.Client.Modules.Blocks;
 
-internal class BlocksModule(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+internal sealed class BlocksModule(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
     JsonSerializerOptions jsonSerializerOptions) : IBlocksModule
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;

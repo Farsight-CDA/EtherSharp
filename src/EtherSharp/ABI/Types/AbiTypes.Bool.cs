@@ -7,7 +7,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents an ABI <c>bool</c> value.
     /// </summary>
-    public class Bool : FixedType<bool>, IPackedEncodeType
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class Bool : FixedType<bool>, IPackedEncodeType
     {
         /// <inheritdoc />
         public int PackedSize => 1;

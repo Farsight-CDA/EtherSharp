@@ -8,7 +8,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents an ABI unsigned 64-bit value.
     /// </summary>
-    public class ULong : FixedType<ulong>, IPackedEncodeType
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class ULong : FixedType<ulong>, IPackedEncodeType
     {
         /// <inheritdoc />
         public int PackedSize { get; }

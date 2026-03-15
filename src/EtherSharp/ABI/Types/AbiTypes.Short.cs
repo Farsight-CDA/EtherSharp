@@ -8,7 +8,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents an ABI signed 16-bit value.
     /// </summary>
-    public class Short : FixedType<short>, IPackedEncodeType
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class Short : FixedType<short>, IPackedEncodeType
     {
         /// <inheritdoc />
         public int PackedSize => 2;

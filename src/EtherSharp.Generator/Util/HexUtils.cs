@@ -1,6 +1,6 @@
 ﻿namespace EtherSharp.Generator.Util;
 
-internal class HexUtils
+internal sealed class HexUtils
 {
     private const string HEX_ALPHABET_UPPER = "0123456789ABCDEF";
     private const string HEX_ALPHABET_LOWER = "0123456789abcdef";

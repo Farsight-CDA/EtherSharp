@@ -8,7 +8,7 @@ namespace EtherSharp.Common.Exceptions;
 /// <param name="code">JSON-RPC error code.</param>
 /// <param name="message">JSON-RPC error message.</param>
 /// <param name="data">Optional JSON-RPC error data payload.</param>
-public class RPCException(int code, string message, string? data)
+public sealed class RPCException(int code, string message, string? data)
     : Exception($"RPC Error Code {code}: {message}{(data is not null ? $" ({data})" : "")}")
 {
     /// <summary>

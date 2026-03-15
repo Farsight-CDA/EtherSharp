@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EtherSharp.Tests.ABI.Decoder;
 
-public class DecoderEdgeCaseTests
+public sealed class DecoderEdgeCaseTests
 {
     [Fact]
     public void Should_Decode_Empty_Bytes()

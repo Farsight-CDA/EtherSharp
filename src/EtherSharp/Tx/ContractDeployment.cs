@@ -4,7 +4,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Tx;
 
-internal class ContractDeployment(EVMByteCode byteCode, UInt256 value) : IContractDeployment
+internal sealed class ContractDeployment(EVMByteCode byteCode, UInt256 value) : IContractDeployment
 {
     public EVMByteCode ByteCode { get; } = byteCode;
     public Address? To => null;

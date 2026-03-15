@@ -16,7 +16,7 @@ namespace EtherSharp.Types;
 /// <param name="Type">EVM call/create operation used for this frame.</param>
 /// <param name="Calls">Direct child calls, ordered by execution path, or <see langword="null"/> when none exist.</param>
 /// <param name="Error">Node-reported execution error for this frame, if any.</param>
-public record CallTrace(
+public sealed record CallTrace(
     Address From,
     Address To,
     ulong Gas,

@@ -4,7 +4,7 @@ namespace EtherSharp.Tx.PendingHandler;
 /// <summary>
 /// Handler class for transactions that are still pending and not confirmed on the blockchain.
 /// </summary>
-public class PendingTxHandler<TTxParams, TTxGasParams>(
+public sealed class PendingTxHandler<TTxParams, TTxGasParams>(
     uint nonce,
     IEnumerable<TxSubmission<TTxParams, TTxGasParams>> txSubmissions,
     Func<

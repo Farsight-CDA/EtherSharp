@@ -7,7 +7,7 @@
 /// <param name="SupportsMCopy"></param>
 /// <param name="SupportsTStore"></param>
 /// <param name="SupportsBaseFee"></param>
-public record CompatibilityReport(
+public sealed record CompatibilityReport(
     bool SupportsPush0,
     bool SupportsMCopy,
     bool SupportsTStore,

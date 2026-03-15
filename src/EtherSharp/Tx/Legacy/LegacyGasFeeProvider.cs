@@ -9,7 +9,7 @@ namespace EtherSharp.Tx.Legacy;
 /// <summary>
 /// Provides gas fee estimates for legacy transactions.
 /// </summary>
-public class LegacyGasFeeProvider : IGasFeeProvider<LegacyTxParams, LegacyGasParams>
+public sealed class LegacyGasFeeProvider : IGasFeeProvider<LegacyTxParams, LegacyGasParams>
 {
     /// <summary>
     /// Configuration values used to tune legacy gas estimation.

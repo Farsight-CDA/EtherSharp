@@ -9,7 +9,7 @@ public enum ClassVisibility
     Public,
     Internal
 }
-public class BaseType(string name, bool isInterface) : ISyntaxBuilder
+public sealed class BaseType(string name, bool isInterface) : ISyntaxBuilder
 {
     public string Name { get; } = name;
     public bool IsInterface { get; } = isInterface;
@@ -20,7 +20,7 @@ public class BaseType(string name, bool isInterface) : ISyntaxBuilder
             IsInterface
         ));
 }
-public class ClassBuilder(string name) : ITypeBuilder
+public sealed class ClassBuilder(string name) : ITypeBuilder
 {
     private readonly List<FunctionBuilder> _functions = [];
     private readonly List<PropertyBuilder> _properties = [];

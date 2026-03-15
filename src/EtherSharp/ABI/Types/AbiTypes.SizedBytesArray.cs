@@ -9,7 +9,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents a dynamic array of fixed-size byte arrays.
     /// </summary>
-    public class SizedBytesArray<TBytes> : DynamicType<TBytes[]>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class SizedBytesArray<TBytes> : DynamicType<TBytes[]>
         where TBytes : struct, IFixedBytes<TBytes>
     {
         /// <inheritdoc />

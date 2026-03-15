@@ -15,7 +15,7 @@ namespace EtherSharp.Tx.Legacy;
 /// </summary>
 /// <param name="signer">Signer used to produce recoverable transaction signatures.</param>
 /// <param name="rpcClient">RPC client used by the tx handler lifecycle.</param>
-public class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
+public sealed class LegacyTxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
     : IInitializableService, ITxTypeHandler<LegacyTransaction, LegacyTxParams, LegacyGasParams>
 {
     private const int MAX_LEGACY_SIGNATURE_LENGTH = 10 + 32 + 32;

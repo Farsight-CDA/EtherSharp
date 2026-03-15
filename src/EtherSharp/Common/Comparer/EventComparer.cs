@@ -5,7 +5,7 @@ namespace EtherSharp.Common.Comparer;
 /// <summary>
 /// Compares logs by block number and then by log index.
 /// </summary>
-public class EventComparer : IComparer<Log>
+public sealed class EventComparer : IComparer<Log>
 {
     /// <summary>
     /// Shared static instance of <see cref="EventComparer"/>.

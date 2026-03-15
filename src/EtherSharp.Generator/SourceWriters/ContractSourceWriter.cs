@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
 
-internal class ContractSourceWriter(
+internal sealed class ContractSourceWriter(
     ContractErrorSectionWriter errorSectionWriter, ContractEventSectionWriter eventSectionWriter,
     ContractFunctionSectionWriter functionSectionWriter, ContractTypesSectionWriter typesSectionWriter
 )

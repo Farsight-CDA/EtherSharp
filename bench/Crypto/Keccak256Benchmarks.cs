@@ -6,7 +6,7 @@ using Nethereum.Util;
 namespace EtherSharp.Bench.Crypto;
 
 [MemoryDiagnoser]
-public class Keccak256Benchmarks
+public sealed class Keccak256Benchmarks
 {
     private const int SEED = 123456789;
     private static readonly int[] _inputDataLenghts = [0, 128, 4096, 65536];

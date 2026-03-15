@@ -9,7 +9,7 @@ namespace EtherSharp.Tx.Legacy;
 /// </summary>
 /// <param name="GasLimit">Gas limit to use for execution.</param>
 /// <param name="GasPrice">Gas price to pay per gas unit.</param>
-public record LegacyGasParams(
+public sealed record LegacyGasParams(
     ulong GasLimit,
     UInt256 GasPrice
 ) : ITxGasParams<LegacyGasParams>

@@ -5,7 +5,7 @@ namespace EtherSharp.Bench.Numerics;
 
 [MemoryDiagnoser]
 [ShortRunJob]
-public class UInt256AdditionBenchmarks
+public sealed class UInt256AdditionBenchmarks
 {
     private const int OPERATION_COUNT = 1024;
     private const string U64_NO_CARRY = "U64NoCarry";

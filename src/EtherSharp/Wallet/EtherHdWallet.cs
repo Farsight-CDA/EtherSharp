@@ -10,7 +10,7 @@ namespace EtherSharp.Wallet;
 /// <summary>
 /// Represents an HD Ethereum wallet backed by a secp256k1 private key.
 /// </summary>
-public class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSigner
+public sealed class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSigner
 {
     /// <summary>
     /// Gets the Ethereum address derived from the current wallet public key.

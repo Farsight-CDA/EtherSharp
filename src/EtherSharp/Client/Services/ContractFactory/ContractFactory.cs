@@ -4,7 +4,7 @@ using System.Collections.Frozen;
 
 namespace EtherSharp.Client.Services.ContractFactory;
 
-internal class ContractFactory(IEtherClient etherClient)
+internal sealed class ContractFactory(IEtherClient etherClient)
 {
     private readonly FrozenDictionary<Type, Func<Address, IEVMContract>> _factoryDelegates = GeneratedContractRegistry.CloneFor(etherClient);
 

@@ -3,7 +3,7 @@ using System.Text;
 
 namespace EtherSharp.Tests.Crypto;
 
-public class Keccak256Tests
+public sealed class Keccak256Tests
 {
     [Theory]
     [InlineData("", "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470")]

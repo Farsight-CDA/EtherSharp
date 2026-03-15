@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Generator.SourceWriters;
 
-public class ContractTypesSectionWriter(string @namespace, string contractInterfaceName)
+public sealed class ContractTypesSectionWriter(string @namespace, string contractInterfaceName)
 {
     private readonly Dictionary<SyntaxId, ITypeBuilder> _typeBuilders = [];
     private readonly string _namespace = @namespace;

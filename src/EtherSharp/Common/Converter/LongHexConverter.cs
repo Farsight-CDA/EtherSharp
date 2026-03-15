@@ -8,7 +8,7 @@ namespace EtherSharp.Common.Converter;
 /// <summary>
 /// Converts a <see cref="Int64"/> to or from a hex-encoded JSON string.
 /// </summary>
-internal class LongHexConverter : JsonConverter<long>
+internal sealed class LongHexConverter : JsonConverter<long>
 {
     public static LongHexConverter Instance { get; } = new();
 

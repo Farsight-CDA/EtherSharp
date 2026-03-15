@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Generator.Abi.Parameters;
 
-public class AbiEventParameter : AbiParameter
+public sealed class AbiEventParameter : AbiParameter
 {
     [JsonRequired]
     [JsonPropertyName("indexed")]

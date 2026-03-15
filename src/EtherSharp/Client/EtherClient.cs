@@ -28,7 +28,7 @@ using System.Text.Json;
 
 namespace EtherSharp.Client;
 
-internal class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
+internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 {
     private readonly IServiceProvider _provider;
     private readonly ILoggerFactory? _loggerFactory;

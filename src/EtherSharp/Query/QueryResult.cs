@@ -10,11 +10,11 @@ public abstract record QueryResult<T>
     /// Represents a successful call result.
     /// </summary>
     /// <param name="Value">The decoded return value.</param>
-    public record Success(T Value) : QueryResult<T>;
+    public sealed record Success(T Value) : QueryResult<T>;
 
     /// <summary>
     /// Represents a reverted call result.
     /// </summary>
     /// <param name="Data">The raw EVM revert data.</param>
-    public record Reverted(ReadOnlyMemory<byte> Data) : QueryResult<T>;
+    public sealed record Reverted(ReadOnlyMemory<byte> Data) : QueryResult<T>;
 }

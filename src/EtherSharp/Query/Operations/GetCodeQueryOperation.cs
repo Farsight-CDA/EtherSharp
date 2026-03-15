@@ -5,7 +5,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal class GetCodeQueryOperation(in Address address) : IQuery, IQuery<EVMByteCode>
+internal sealed class GetCodeQueryOperation(in Address address) : IQuery, IQuery<EVMByteCode>
 {
     private readonly Address _address = address;
 

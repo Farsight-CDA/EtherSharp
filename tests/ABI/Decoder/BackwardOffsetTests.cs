@@ -2,7 +2,7 @@ using EtherSharp.ABI;
 
 namespace EtherSharp.Tests.ABI.Decoder;
 
-public class BackwardOffsetTests
+public sealed class BackwardOffsetTests
 {
     [Fact]
     public void Should_Support_Backward_Offsets()

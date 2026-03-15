@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EtherSharp.Tests.RPC;
 
-public class WssJsonRpcTransportIdentifyPayloadTests
+public sealed class WssJsonRpcTransportIdentifyPayloadTests
 {
     [Fact]
     public void Should_Identify_Response_With_Numeric_Id()

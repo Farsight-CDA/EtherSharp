@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace EtherSharp.Tests.ABI.Decoder;
 
-public class AbiNumberEncodingTests
+public sealed class AbiNumberEncodingTests
 {
     public static TheoryData<int> BitSizes
         => [.. Enumerable.Range(1, 32).Select(x => x * 8)];

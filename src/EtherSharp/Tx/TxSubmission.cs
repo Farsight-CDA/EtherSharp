@@ -16,7 +16,7 @@ namespace EtherSharp.Tx;
 /// <param name="Call">Original call input this submission was built from.</param>
 /// <param name="Params">Transaction parameters used for encoding/signing.</param>
 /// <param name="GasParams">Gas parameters used for encoding/signing.</param>
-public record TxSubmission<TTxParams, TTxGasParams>(
+public sealed record TxSubmission<TTxParams, TTxGasParams>(
     ulong ChainId,
     uint Sequence,
     Bytes32 TxHash,

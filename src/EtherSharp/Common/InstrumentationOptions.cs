@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Common;
 
-internal record InstrumentationOptions(
+internal sealed record InstrumentationOptions(
     string InstrumentNamePrefix,
     TagList Tags
 );

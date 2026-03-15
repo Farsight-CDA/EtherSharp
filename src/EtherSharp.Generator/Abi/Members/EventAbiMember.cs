@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace EtherSharp.Generator.Abi.Members;
 
-public class EventAbiMember : AbiMember
+public sealed class EventAbiMember : AbiMember
 {
     [JsonRequired]
     public string Name { get; set; } = null!;

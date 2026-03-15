@@ -8,7 +8,7 @@ using Xunit;
 
 namespace EtherSharp.Tests.Tx;
 
-public class EIP1559TxParamsTests
+public sealed class EIP1559TxParamsTests
 {
     [Fact]
     public void Should_RoundTrip_Binary_EIP1559_TxParams()

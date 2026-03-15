@@ -15,23 +15,23 @@ public record TxConfirmationResult
     /// The transaction was confirmed and a receipt was found.
     /// </summary>
     /// <param name="Receipt">The confirmed transaction receipt.</param>
-    public record Success(TxReceipt Receipt) : TxConfirmationResult;
+    public sealed record Success(TxReceipt Receipt) : TxConfirmationResult;
 
     /// <summary>
     /// The nonce was consumed, but no receipt was found for tracked submissions.
     /// </summary>
-    public record NonceAlreadyUsed() : TxConfirmationResult;
+    public sealed record NonceAlreadyUsed() : TxConfirmationResult;
 
     /// <summary>
     /// The transaction was cancelled before it became non-cancellable.
     /// </summary>
-    public record Cancelled() : TxConfirmationResult;
+    public sealed record Cancelled() : TxConfirmationResult;
 
     /// <summary>
     /// An unexpected exception interrupted confirmation.
     /// </summary>
     /// <param name="Exception">The original exception.</param>
-    public record UnhandledException(Exception Exception) : TxConfirmationResult;
+    public sealed record UnhandledException(Exception Exception) : TxConfirmationResult;
 
     /// <summary>
     /// Gets the receipt for a successful confirmation result.

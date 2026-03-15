@@ -16,7 +16,7 @@ namespace EtherSharp.RPC.Transport;
 /// <summary>
 /// Transport for EVM Websocket RPC
 /// </summary>
-public class WssJsonRpcTransport : IRPCTransport, IDisposable
+public sealed class WssJsonRpcTransport : IRPCTransport, IDisposable
 {
     /// <inheritdoc />
     public bool SupportsFilters => true;
@@ -162,8 +162,8 @@ public class WssJsonRpcTransport : IRPCTransport, IDisposable
         _logger?.LogInformation("Websocket connection established...");
     }
 
-    private record RpcError(int Code, string Message, string? Data);
-    private record JsonRpcResponse<T>(
+    private sealed record RpcError(int Code, string Message, string? Data);
+    private sealed record JsonRpcResponse<T>(
         [property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
     private async Task MessageHandler()
     {

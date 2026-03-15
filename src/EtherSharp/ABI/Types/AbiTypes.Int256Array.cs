@@ -8,7 +8,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents a dynamic array of signed 256-bit values.
     /// </summary>
-    public class Int256Array : DynamicType<Numerics.Int256[]>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class Int256Array : DynamicType<Numerics.Int256[]>
     {
         /// <inheritdoc />
         public override int PayloadSize => (32 * Value.Length) + 32;

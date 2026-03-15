@@ -4,7 +4,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal class GetBalanceQueryOperation(in Address user) : IQuery, IQuery<UInt256>
+internal sealed class GetBalanceQueryOperation(in Address user) : IQuery, IQuery<UInt256>
 {
     private readonly Address _user = user;
 

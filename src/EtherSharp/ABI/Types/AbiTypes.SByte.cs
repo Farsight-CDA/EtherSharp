@@ -7,7 +7,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents an ABI signed 8-bit value.
     /// </summary>
-    public class SByte : FixedType<sbyte>, IPackedEncodeType
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class SByte : FixedType<sbyte>, IPackedEncodeType
     {
         /// <inheritdoc />
         public int PackedSize => 1;

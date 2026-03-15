@@ -2,7 +2,7 @@ using EtherSharp.Numerics;
 
 namespace EtherSharp.Tests.Numerics;
 
-public class DecimalConversionTests
+public sealed class DecimalConversionTests
 {
     [Fact]
     public void Should_Convert_Decimal_To_UInt256()

@@ -12,7 +12,7 @@ public enum FunctionVisibility
     Private,
 }
 
-public class FunctionBuilder(string name) : ISyntaxBuilder
+public sealed class FunctionBuilder(string name) : ISyntaxBuilder
 {
     private readonly List<string> _statements = [];
     private TypedArgumentsBuilder _argumentBuilder = new TypedArgumentsBuilder();

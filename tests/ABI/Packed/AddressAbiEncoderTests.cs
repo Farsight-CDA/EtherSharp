@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Tests.ABI.Packed;
 
-public class AddressAbiEncoderTests
+public sealed class AddressAbiEncoderTests
 {
     private readonly PackedAbiEncoder _encoder;
 

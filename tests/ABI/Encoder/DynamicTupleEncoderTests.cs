@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Tests.ABI.Encoder;
 
-public class DynamicTupleEncoderTests
+public sealed class DynamicTupleEncoderTests
 {
     private readonly AbiEncoder _encoder;
 

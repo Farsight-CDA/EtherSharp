@@ -3,7 +3,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Tests.ABI.Encoder;
 
-public class SizedBytesArrayAbiEncoderTests
+public sealed class SizedBytesArrayAbiEncoderTests
 {
     [Fact]
     public void Should_Encode_Bytes1_Array_With_Multiple_Elements()

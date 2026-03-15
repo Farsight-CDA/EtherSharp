@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Tests.ABI.Decoder;
 
-public class NonStrictAliasedOffsetTests
+public sealed class NonStrictAliasedOffsetTests
 {
     [Fact]
     public void Should_Decode_Aliased_Empty_String_And_Bytes()

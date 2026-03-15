@@ -3,7 +3,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Tests.EIPs;
 
-public class EIP55Tests
+public sealed class EIP55Tests
 {
     [Fact]
     public void Should_Match_Zero_Address()

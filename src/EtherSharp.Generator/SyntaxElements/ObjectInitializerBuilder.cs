@@ -3,14 +3,14 @@ using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
 
-public class InitializerArgument(string targetPropertyName, string sourceExpression, bool isReadonlyList)
+public sealed class InitializerArgument(string targetPropertyName, string sourceExpression, bool isReadonlyList)
 {
     public string TargetPropertyName { get; } = targetPropertyName;
     public string SourceExpression { get; } = sourceExpression;
 
     public bool IsReadonlyList { get; } = isReadonlyList;
 }
-public class ObjectInitializerBuilder
+public sealed class ObjectInitializerBuilder
 {
     private readonly List<InitializerArgument> _arguments;
 

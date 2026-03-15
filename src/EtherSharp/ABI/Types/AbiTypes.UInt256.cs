@@ -9,7 +9,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents an ABI unsigned 256-bit value.
     /// </summary>
-    public class UInt256 : FixedType<Numerics.UInt256>, IPackedEncodeType
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class UInt256 : FixedType<Numerics.UInt256>, IPackedEncodeType
     {
         /// <inheritdoc />
         public int PackedSize { get; }

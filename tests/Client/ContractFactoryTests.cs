@@ -5,7 +5,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Tests.Client;
 
-public class ContractFactoryTests
+public sealed class ContractFactoryTests
 {
     [Fact]
     public void Should_Create_Generated_Contract_Without_Manual_Registration()

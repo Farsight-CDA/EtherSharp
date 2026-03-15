@@ -23,7 +23,7 @@ namespace EtherSharp.Types;
 /// <param name="L1FeeScalar">Chain-specific scaling factor used in L1 fee calculation.</param>
 /// <param name="L1GasPrice">Layer-1 gas price used for L1 data fee accounting.</param>
 /// <param name="L1GasUsed">Layer-1 gas units attributed to this transaction.</param>
-public record TxReceipt(
+public sealed record TxReceipt(
     Bytes32 BlockHash,
     ulong BlockNumber,
     Address? ContractAddress,

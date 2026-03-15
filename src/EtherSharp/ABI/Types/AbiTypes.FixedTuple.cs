@@ -9,7 +9,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents a fixed-size ABI tuple.
     /// </summary>
-    public class FixedTuple : FixedType<IFixedTupleEncoder>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class FixedTuple : FixedType<IFixedTupleEncoder>
     {
         /// <inheritdoc />
         public override int Size => Value.MetadataSize;

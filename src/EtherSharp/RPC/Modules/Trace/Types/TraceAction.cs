@@ -12,7 +12,7 @@ namespace EtherSharp.RPC.Modules.Trace.Types;
 /// <param name="Input">Call input bytes.</param>
 /// <param name="To">Target address.</param>
 /// <param name="Value">Native value sent with this step.</param>
-public record TraceAction(
+public sealed record TraceAction(
     CallType CallType,
     Address From,
     ulong Gas,

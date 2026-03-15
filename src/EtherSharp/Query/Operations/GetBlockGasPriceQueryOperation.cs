@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal class GetBlockGasPriceQueryOperation : IQuery, IQuery<UInt256>
+internal sealed class GetBlockGasPriceQueryOperation : IQuery, IQuery<UInt256>
 {
     public int CallDataLength => 1;
     public UInt256 EthValue => 0;

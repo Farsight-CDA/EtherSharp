@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace EtherSharp.Tests.Types;
 
-public class Bytes32Tests
+public sealed class Bytes32Tests
 {
     private const string SAMPLE_BYTES32 = "0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff";
     private static readonly string _sampleBytes32ToHex = SAMPLE_BYTES32[2..].ToUpperInvariant();

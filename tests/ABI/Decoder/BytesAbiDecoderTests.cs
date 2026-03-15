@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Tests.ABI.Decoder;
 
-public class BytesAbiDecoderTests
+public sealed class BytesAbiDecoderTests
 {
     public static TheoryData<int> BitSizes
         => CreateBitSizesData(Enumerable.Range(1, 32).Select(x => x * 8));

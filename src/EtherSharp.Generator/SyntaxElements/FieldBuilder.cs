@@ -8,7 +8,7 @@ public enum FieldVisibility
     Private,
     Internal
 }
-public class FieldBuilder(string type, string name) : ISyntaxBuilder
+public sealed class FieldBuilder(string type, string name) : ISyntaxBuilder
 {
     public string Type { get; } = type;
     public string Name { get; } = name;

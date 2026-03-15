@@ -3,7 +3,7 @@ namespace EtherSharp.RPC.Middlewares;
 /// <summary>
 /// Limits the number of RPC requests that can execute within a configured time window.
 /// </summary>
-public class RatelimitMiddleware : IRpcMiddleware, IDisposable
+public sealed class RatelimitMiddleware : IRpcMiddleware, IDisposable
 {
     private readonly TimeSpan _windowSize;
     private readonly int _requestsPerWindow;

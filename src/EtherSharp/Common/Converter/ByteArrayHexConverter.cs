@@ -7,7 +7,7 @@ namespace EtherSharp.Common.Converter;
 /// <summary>
 /// Converts a hex-encoded <see cref="Byte"/> array to or from JSON.
 /// </summary>
-internal class ByteArrayHexConverter : JsonConverter<byte[]>
+internal sealed class ByteArrayHexConverter : JsonConverter<byte[]>
 {
     public static ByteArrayHexConverter Instance { get; } = new();
 

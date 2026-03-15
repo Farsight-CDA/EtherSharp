@@ -9,7 +9,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents a dynamic array of primitive numeric values.
     /// </summary>
-    public class SizedNumberArray<TInner> : DynamicType<TInner[]>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class SizedNumberArray<TInner> : DynamicType<TInner[]>
         where TInner : INumber<TInner>
     {
         /// <inheritdoc />

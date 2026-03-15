@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Tests.ABI.E2E;
 
-public class ComplexEncodingTests
+public sealed class ComplexEncodingTests
 {
     [Fact]
     public void Should_RoundTrip_Multiple_Numbers()

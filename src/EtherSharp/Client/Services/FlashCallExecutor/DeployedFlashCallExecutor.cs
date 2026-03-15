@@ -7,8 +7,8 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Client.Services.FlashCallExecutor;
 
-internal record DeployedFlashCallExecutorConfiguration(Address ContractAddress, bool AllowFallback, int MaxPayloadSize, int MaxResultSize);
-internal class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFlashCallExecutorConfiguration configuration) : IFlashCallExecutor
+internal sealed record DeployedFlashCallExecutorConfiguration(Address ContractAddress, bool AllowFallback, int MaxPayloadSize, int MaxResultSize);
+internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFlashCallExecutorConfiguration configuration) : IFlashCallExecutor
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly DeployedFlashCallExecutorConfiguration _configuration = configuration;

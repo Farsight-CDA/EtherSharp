@@ -8,7 +8,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents an ABI fixed-size byte array value.
     /// </summary>
-    public class SizedBytes<TBytes> : FixedType<TBytes>, IPackedEncodeType
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class SizedBytes<TBytes> : FixedType<TBytes>, IPackedEncodeType
         where TBytes : struct, IFixedBytes<TBytes>
     {
         internal SizedBytes(in TBytes value)

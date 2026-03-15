@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Tests.ABI.Decoder;
 
-public class StringAbiDecoderTest
+public sealed class StringAbiDecoderTest
 {
 
     [Fact]

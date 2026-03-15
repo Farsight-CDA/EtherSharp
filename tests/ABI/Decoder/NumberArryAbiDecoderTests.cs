@@ -2,7 +2,7 @@
 using EtherSharp.Numerics;
 namespace EtherSharp.Tests.ABI.Decoder;
 
-public class NumberArryAbiDecoderTests
+public sealed class NumberArryAbiDecoderTests
 {
     public static TheoryData<uint> BitSizes
         => CreateBitSizesData(Enumerable.Range(1, 32).Select(x => (uint) (x * 8)));

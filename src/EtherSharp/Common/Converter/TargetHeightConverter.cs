@@ -7,7 +7,7 @@ namespace EtherSharp.Common.Converter;
 /// <summary>
 /// Converts a <see cref="TargetHeight"/> to a JSON block selector string.
 /// </summary>
-public class TargetHeightConverter : JsonConverter<TargetHeight>
+public sealed class TargetHeightConverter : JsonConverter<TargetHeight>
 {
     /// <summary>
     /// Shared converter instance.

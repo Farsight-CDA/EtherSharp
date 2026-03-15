@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
 
-public class TypedArgumentsBuilder : ISyntaxBuilder
+public sealed class TypedArgumentsBuilder : ISyntaxBuilder
 {
     private readonly List<string> _arguments;
 

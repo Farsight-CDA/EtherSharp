@@ -17,7 +17,7 @@ public enum SetterVisibility
     Private,
     Init
 }
-public class PropertyBuilder(string type, string name) : ISyntaxBuilder
+public sealed class PropertyBuilder(string type, string name) : ISyntaxBuilder
 {
     public string Type { get; private set; } = type;
     public string Name { get; private set; } = name;

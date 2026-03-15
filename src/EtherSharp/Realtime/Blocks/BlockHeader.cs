@@ -13,7 +13,7 @@ namespace EtherSharp.Realtime.Blocks;
 /// <param name="Miner">The address of the block producer.</param>
 /// <param name="GasLimit">The maximum amount of gas allowed in the block.</param>
 /// <param name="GasUsed">The amount of gas consumed by transactions in the block.</param>
-public record BlockHeader(
+public sealed record BlockHeader(
     ulong Number,
     DateTimeOffset Timestamp,
     Bytes32 Hash,

@@ -5,7 +5,7 @@ using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters;
 
-internal class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
+internal sealed class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter)
 {
     private readonly ErrorTypeWriter _errorTypeWriter = errorTypeWriter;
 

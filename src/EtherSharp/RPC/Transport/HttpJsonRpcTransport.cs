@@ -122,8 +122,8 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         );
     }
 
-    private record RpcError(int Code, string Message, string? Data);
-    private record JsonRpcResponse<T>([property: JsonRequired] int? Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
+    private sealed record RpcError(int Code, string Message, string? Data);
+    private sealed record JsonRpcResponse<T>([property: JsonRequired] int? Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
     private async Task<RpcResult<TResult>> SendRpcRequestCoreAsync<TResult>(int id, HttpContent requestContent, CancellationToken cancellationToken)
     {
         using var httpRequestMessage = new HttpRequestMessage()

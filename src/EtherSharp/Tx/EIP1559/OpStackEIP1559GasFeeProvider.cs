@@ -13,7 +13,7 @@ namespace EtherSharp.Tx.EIP1559;
 /// <summary>
 /// Provides gas fee estimates for OP Stack EIP-1559 transactions.
 /// </summary>
-public class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
+public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
 {
     /// <summary>
     /// Configuration values used to tune OP Stack gas estimation.

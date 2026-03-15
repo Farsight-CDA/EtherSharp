@@ -14,7 +14,7 @@ namespace EtherSharp.Tx.EIP1559;
 /// <param name="MaxFeePerGas">Maximum total fee per gas unit.</param>
 /// <param name="MaxPriorityFeePerGas">Maximum miner tip per gas unit.</param>
 /// <param name="AccessList">Optional state access list (EIP-2930 style).</param>
-public record EIP1559Transaction(
+public sealed record EIP1559Transaction(
     ulong ChainId,
     ulong Gas,
     uint Nonce,

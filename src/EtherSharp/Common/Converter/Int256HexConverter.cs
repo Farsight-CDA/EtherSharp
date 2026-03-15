@@ -8,7 +8,7 @@ namespace EtherSharp.Common.Converter;
 /// <summary>
 /// Converts an <see cref="Int256"/> to or from a hex-encoded JSON string.
 /// </summary>
-public class Int256HexConverter : JsonConverter<Int256>
+public sealed class Int256HexConverter : JsonConverter<Int256>
 {
     /// <summary>
     /// Shared converter instance.

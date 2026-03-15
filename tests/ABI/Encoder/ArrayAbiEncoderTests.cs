@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Tests.ABI.Encoder;
 
-public class ArrayAbiEncoderTests
+public sealed class ArrayAbiEncoderTests
 {
     private readonly AbiEncoder _encoder;
 

@@ -3,7 +3,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Tests.ABI.Decoder;
 
-public class AddressAbiDecoderTests
+public sealed class AddressAbiDecoderTests
 {
     [Fact]
     public void Should_Match_Null_Address_Output()

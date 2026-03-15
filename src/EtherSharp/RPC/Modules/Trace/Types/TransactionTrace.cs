@@ -9,7 +9,7 @@ namespace EtherSharp.RPC.Modules.Trace.Types;
 /// <param name="TraceAddress">Address path that identifies this step inside the call tree.</param>
 /// <param name="Type">Node-reported trace type (for example <c>call</c> or <c>create</c>).</param>
 /// <param name="Error">Node-reported error for this step, when execution failed.</param>
-public record TransactionTrace(
+public sealed record TransactionTrace(
     TraceAction Action,
     TraceResult? Result,
     int Subtraces,

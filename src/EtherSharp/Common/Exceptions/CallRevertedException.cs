@@ -52,7 +52,7 @@ public abstract class CallRevertedException(Address? callAddress, string message
     /// <summary>
     /// Thrown when a call reverts without any error data.
     /// </summary>
-    public class CallRevertedWithNoDataException(Address? callAddress)
+    public sealed class CallRevertedWithNoDataException(Address? callAddress)
         : CallRevertedException(callAddress, "reverted with no data, this likely means that the contract does not implement the called method.")
     {
     }
@@ -62,7 +62,7 @@ public abstract class CallRevertedException(Address? callAddress, string message
     /// </summary>
     /// <param name="callAddress">Contract address the call targeted, when known.</param>
     /// <param name="message">Decoded Solidity <c>Error(string)</c> message.</param>
-    public class CallRevertedWithMessageException(Address? callAddress, string message)
+    public sealed class CallRevertedWithMessageException(Address? callAddress, string message)
         : CallRevertedException(callAddress, message)
     {
         /// <summary>
@@ -76,7 +76,7 @@ public abstract class CallRevertedException(Address? callAddress, string message
     /// </summary>
     /// <param name="callAddress">Contract address the call targeted, when known.</param>
     /// <param name="data">Raw revert bytes including selector and encoded arguments.</param>
-    public class CallRevertedWithCustomErrorException(Address? callAddress, byte[] data)
+    public sealed class CallRevertedWithCustomErrorException(Address? callAddress, byte[] data)
         : CallRevertedException(callAddress, $"reverted with custom error: 0x{Convert.ToHexStringLower(data.AsSpan(0, 4))}")
     {
         /// <summary>
@@ -90,7 +90,7 @@ public abstract class CallRevertedException(Address? callAddress, string message
     /// </summary>
     /// <param name="callAddress">Contract address the call targeted, when known.</param>
     /// <param name="type">Decoded Solidity panic reason.</param>
-    public class CallRevertedWithPanicException(Address? callAddress, PanicType type)
+    public sealed class CallRevertedWithPanicException(Address? callAddress, PanicType type)
         : CallRevertedException(callAddress, $"reverted with panic: {type}")
     {
         /// <summary>

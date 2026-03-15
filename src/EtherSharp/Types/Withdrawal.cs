@@ -10,7 +10,7 @@ namespace EtherSharp.Types;
 /// <param name="Amount">The withdrawn amount.</param>
 /// <param name="Index">The withdrawal index within the chain.</param>
 /// <param name="ValidatorIndex">The validator index associated with the withdrawal.</param>
-public record Withdrawal(
+public sealed record Withdrawal(
     [property: JsonRequired] Address Address,
     [property: JsonRequired] UInt256 Amount,
     [property: JsonRequired] ulong Index,

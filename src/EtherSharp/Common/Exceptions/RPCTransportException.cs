@@ -3,7 +3,7 @@ namespace EtherSharp.Common.Exceptions;
 /// <summary>
 /// Represents a transport-level RPC failure (for example timeout, disconnect, or protocol I/O failure).
 /// </summary>
-public class RPCTransportException : Exception
+public sealed class RPCTransportException : Exception
 {
     /// <summary>
     /// Initializes a new transport exception with a message.

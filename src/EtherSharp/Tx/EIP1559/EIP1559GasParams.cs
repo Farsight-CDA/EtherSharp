@@ -10,7 +10,7 @@ namespace EtherSharp.Tx.EIP1559;
 /// <param name="GasLimit">Gas limit to use for execution.</param>
 /// <param name="MaxFeePerGas">Maximum fee per gas unit.</param>
 /// <param name="MaxPriorityFeePerGas">Maximum priority fee per gas unit.</param>
-public record EIP1559GasParams(
+public sealed record EIP1559GasParams(
     ulong GasLimit,
     UInt256 MaxFeePerGas,
     UInt256 MaxPriorityFeePerGas

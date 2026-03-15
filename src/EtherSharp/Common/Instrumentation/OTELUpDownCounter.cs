@@ -3,7 +3,7 @@ using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Common.Instrumentation;
 
-internal record OTELUpDownCounter<T>(UpDownCounter<T> Counter, TagList Tags)
+internal sealed record OTELUpDownCounter<T>(UpDownCounter<T> Counter, TagList Tags)
     where T : struct
 {
     public void Add(T delta)

@@ -3,7 +3,7 @@ using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Common.Instrumentation;
 
-internal record OTELCounter<T>(Counter<T> Counter, TagList Tags)
+internal sealed record OTELCounter<T>(Counter<T> Counter, TagList Tags)
     where T : struct
 {
     public void Add(T delta)

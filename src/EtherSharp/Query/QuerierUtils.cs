@@ -5,7 +5,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query;
 
-internal class QuerierUtils
+internal sealed class QuerierUtils
 {
     public static readonly EVMByteCode LondonQuerierCode = new EVMByteCode(
         Convert.FromHexString(

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters;
 
-internal class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
+internal sealed class ContractEventSectionWriter(EventTypeWriter eventTypeWriter)
 {
     private readonly EventTypeWriter _eventTypeWriter = eventTypeWriter;
 

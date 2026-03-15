@@ -2,7 +2,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Tests.Types;
 
-public class AddressTests
+public sealed class AddressTests
 {
     [Fact]
     public void Should_Copy_Address_Bytes_Without_Exposing_Span()

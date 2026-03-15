@@ -5,7 +5,7 @@ namespace EtherSharp.RPC.Modules.Trace.Types;
 /// </summary>
 /// <param name="Output">Top-level return bytes from transaction execution.</param>
 /// <param name="Trace">Flat list of trace entries describing internal execution steps.</param>
-public record TransactionTraceResult(
+public sealed record TransactionTraceResult(
     byte[] Output,
     TransactionTrace[] Trace
 );

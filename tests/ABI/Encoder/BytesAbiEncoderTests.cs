@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 
 namespace EtherSharp.Tests.ABI.Encoder;
 
-public class BytesAbiEncoderTests
+public sealed class BytesAbiEncoderTests
 {
     private readonly AbiEncoder _encoder;
 

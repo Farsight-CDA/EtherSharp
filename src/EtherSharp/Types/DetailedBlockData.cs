@@ -33,7 +33,7 @@ namespace EtherSharp.Types;
 /// <param name="TransactionsRoot">Merkle root of the transactions trie.</param>
 /// <param name="Withdrawals">Consensus-layer withdrawals included in this block.</param>
 /// <param name="WithdrawalsRoot">Merkle root of the withdrawals list when provided by the node.</param>
-public record DetailedBlockData(
+public sealed record DetailedBlockData(
     UInt256? BaseFeePerGas,
     UInt256? BlobGasUsed,
     UInt256? Difficulty,

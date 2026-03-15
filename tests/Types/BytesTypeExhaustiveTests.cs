@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace EtherSharp.Tests.Types;
 
-public class BytesTypeExhaustiveTests
+public sealed class BytesTypeExhaustiveTests
 {
     [Fact]
     public void Should_Exercise_Core_Semantics_For_All_Bytes_Types()

@@ -34,7 +34,7 @@ namespace EtherSharp.Client;
 /// <summary>
 /// Builder for creating an EtherClient.
 /// </summary>
-public class EtherClientBuilder : IInternalEtherClientBuilder
+public sealed class EtherClientBuilder : IInternalEtherClientBuilder
 {
     private readonly IServiceCollection _services = new ServiceCollection();
     IServiceCollection IInternalEtherClientBuilder.Services => _services;

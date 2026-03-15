@@ -15,7 +15,7 @@ namespace EtherSharp.Generator;
 /// Contract Interface Source Generator.
 /// </summary>
 [Generator]
-public class Generator : IIncrementalGenerator
+public sealed class Generator : IIncrementalGenerator
 {
     private const string ABI_FILE_ATTRIBUTE_METADATA_NAME = "EtherSharp.Contract.AbiFileAttribute";
 

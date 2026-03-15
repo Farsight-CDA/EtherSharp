@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EtherSharp.Bench.Rpc;
 
 [MemoryDiagnoser]
-public class RpcClientPathBenchmarks
+public sealed class RpcClientPathBenchmarks
 {
     private readonly IRpcClient _noMiddlewareClient;
     private readonly IRpcClient _oneMiddlewareClient;

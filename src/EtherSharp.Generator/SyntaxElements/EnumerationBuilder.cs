@@ -3,12 +3,12 @@ using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
 
-public class EnumerationEntry(string value, string? summaryComment)
+public sealed class EnumerationEntry(string value, string? summaryComment)
 {
     public string Value { get; } = value;
     public string? SummaryComment { get; } = summaryComment;
 }
-public class EnumerationBuilder(string name) : ITypeBuilder
+public sealed class EnumerationBuilder(string name) : ITypeBuilder
 {
     private readonly List<EnumerationEntry> _enumerationValues = [];
     private string _name = name;

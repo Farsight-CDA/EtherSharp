@@ -6,7 +6,7 @@ using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.SourceWriters;
 
-internal class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWriter, MemberTypeWriter memberTypeWriter)
+internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEncodingWriter, MemberTypeWriter memberTypeWriter)
 {
     private readonly FunctionBuilder _isMatchingSelectorFunction = new FunctionBuilder("IsMatchingSelector")
         .AddArgument("System.ReadOnlySpan<byte>", "data")

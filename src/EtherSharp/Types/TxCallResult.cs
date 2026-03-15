@@ -12,13 +12,13 @@ public abstract record TxCallResult
     /// Indicates execution succeeded and returned raw call data.
     /// </summary>
     /// <param name="Data">The returned bytes from the call.</param>
-    public record Success(ReadOnlyMemory<byte> Data) : TxCallResult;
+    public sealed record Success(ReadOnlyMemory<byte> Data) : TxCallResult;
 
     /// <summary>
     /// Indicates execution reverted and returned raw revert data.
     /// </summary>
     /// <param name="Data">The EVM revert payload, if any.</param>
-    public record Reverted(ReadOnlyMemory<byte> Data) : TxCallResult;
+    public sealed record Reverted(ReadOnlyMemory<byte> Data) : TxCallResult;
 
     /// <summary>
     /// Returns call data for successful execution, or throws a parsed revert exception.

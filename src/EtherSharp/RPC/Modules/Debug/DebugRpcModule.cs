@@ -3,7 +3,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.RPC.Modules.Debug;
 
-internal class DebugRpcModule(IRpcClient rpcClient) : IDebugRpcModule
+internal sealed class DebugRpcModule(IRpcClient rpcClient) : IDebugRpcModule
 {
     private readonly IRpcClient _rpcClient = rpcClient;
 

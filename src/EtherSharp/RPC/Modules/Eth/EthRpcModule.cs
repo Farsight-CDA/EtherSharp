@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace EtherSharp.RPC.Modules.Eth;
 
-internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
+internal sealed class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
 {
     private readonly IRpcClient _rpcClient = rpcClient;
 
@@ -67,7 +67,7 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    private record TransactionCall(Address? From, Address? To, ulong? Gas, UInt256? GasPrice, UInt256 Value, string? Data);
+    private sealed record TransactionCall(Address? From, Address? To, ulong? Gas, UInt256? GasPrice, UInt256 Value, string? Data);
     public async Task<TxCallResult> CallAsync(
         Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, string? data,
         TargetHeight targetHeight, CancellationToken cancellationToken)
@@ -122,7 +122,7 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    private record EstimateGasRequest(Address? From, Address? To, UInt256 Value, string Data);
+    private sealed record EstimateGasRequest(Address? From, Address? To, UInt256 Value, string Data);
     public async Task<ulong> EstimateGasAsync(
         Address? from, Address? to, UInt256 value, string data, CancellationToken cancellationToken)
     {
@@ -207,7 +207,7 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    private record NewFilterRequest(
+    private sealed record NewFilterRequest(
         TargetHeight FromBlock,
         TargetHeight ToBlock,
         Address[]? Address,
@@ -278,7 +278,7 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
             _ => throw new NotImplementedException(),
         };
 
-    private record GetLogsRequest(
+    private sealed record GetLogsRequest(
         TargetHeight FromBlock,
         TargetHeight ToBlock,
         Address[]? Address,
@@ -300,7 +300,7 @@ internal class EthRpcModule(IRpcClient rpcClient) : IEthRpcModule
         };
     }
 
-    private record SubscribeLogsRequest(Address[]? Address, string[]?[]? Topics);
+    private sealed record SubscribeLogsRequest(Address[]? Address, string[]?[]? Topics);
     public async Task<string> SubscribeLogsAsync(Address[]? contracts, string[]?[]? topics, CancellationToken cancellationToken)
     {
         if(!_rpcClient.SupportsSubscriptions)

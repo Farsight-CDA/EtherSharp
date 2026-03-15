@@ -5,7 +5,7 @@
 /// </summary>
 /// <param name="file">The bytecode file name</param>
 [AttributeUsage(AttributeTargets.Interface)]
-public class BytecodeFileAttribute(string file) : Attribute
+public sealed class BytecodeFileAttribute(string file) : Attribute
 {
     /// <summary>
     /// The Abi file path.

@@ -10,7 +10,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents a dynamic ABI array.
     /// </summary>
-    public class Array : DynamicType<IArrayAbiEncoder>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class Array : DynamicType<IArrayAbiEncoder>
     {
         /// <inheritdoc />
         public override int PayloadSize => Value.MetadataSize + Value.PayloadSize + 32;

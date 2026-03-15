@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace EtherSharp.Tests.ABI.Encoder;
 
-public class EdgeCaseTests
+public sealed class EdgeCaseTests
 {
     private readonly AbiEncoder _encoder;
 

@@ -4,7 +4,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Trace;
 
-internal class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
+internal sealed class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
 {
     private readonly ITraceRpcModule _traceRpcModule = traceRpcModule;
 

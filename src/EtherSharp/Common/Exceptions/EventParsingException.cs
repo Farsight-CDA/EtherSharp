@@ -7,7 +7,7 @@ namespace EtherSharp.Common.Exceptions;
 /// </summary>
 /// <param name="log">Raw log that failed to decode.</param>
 /// <param name="reason">Human-readable reason explaining why decoding failed.</param>
-public class EventParsingException(Log log, string reason)
+public sealed class EventParsingException(Log log, string reason)
     : Exception($"Failed parsing event {log.TransactionHash}:{log.LogIndex}: {reason}")
 {
     /// <summary>

@@ -10,7 +10,7 @@ using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Client.Services.Subscriptions;
 
-internal class SubscriptionsManager : ISubscriptionsManager
+internal sealed class SubscriptionsManager : ISubscriptionsManager
 {
     private readonly IRpcClient _rpcClient;
     private readonly IEthRpcModule _ethRpcModule;

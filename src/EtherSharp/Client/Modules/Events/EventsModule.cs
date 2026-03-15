@@ -12,7 +12,7 @@ using System.Text.Json;
 
 namespace EtherSharp.Client.Modules.Events;
 
-internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+internal sealed class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
     JsonSerializerOptions jsonSerializerOptions) : IEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {
@@ -21,8 +21,8 @@ internal class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModu
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
     private readonly JsonSerializerOptions _jsonSerializerOptions = jsonSerializerOptions;
 
-    protected Dictionary<int, string[]?> _topics = [];
-    protected Address[]? _contractAddresses;
+    private readonly Dictionary<int, string[]?> _topics = [];
+    private Address[]? _contractAddresses;
 
     private void AssertNoTopics(int index)
     {

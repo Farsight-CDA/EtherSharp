@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
 
-public class ConstructorCallBuilder(string constructedType)
+public sealed class ConstructorCallBuilder(string constructedType)
 {
     private readonly CallArgumentsBuilder _argumentsBuilder = new CallArgumentsBuilder();
     private readonly ObjectInitializerBuilder _objectInitializerBuilder = new ObjectInitializerBuilder();

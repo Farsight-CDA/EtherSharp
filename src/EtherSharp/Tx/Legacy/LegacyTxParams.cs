@@ -5,7 +5,7 @@ namespace EtherSharp.Tx.Legacy;
 /// <summary>
 /// Defines additional transaction parameters for legacy transactions.
 /// </summary>
-public record LegacyTxParams : ITxParams<LegacyTxParams>
+public sealed record LegacyTxParams : ITxParams<LegacyTxParams>
 {
     /// <inheritdoc/>
     public static LegacyTxParams Default { get; } = new LegacyTxParams();

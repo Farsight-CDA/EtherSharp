@@ -3,7 +3,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Tests.ABI.E2E;
 
-public class AbiRoundTripTests
+public sealed class AbiRoundTripTests
 {
     [Fact]
     public void Should_Encode_And_Decode_Int8_Array()

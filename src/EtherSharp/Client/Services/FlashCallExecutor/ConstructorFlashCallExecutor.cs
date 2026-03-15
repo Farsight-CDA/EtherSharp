@@ -8,7 +8,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Client.Services.FlashCallExecutor;
 
-internal class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlashCallExecutor
+internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlashCallExecutor
 {
     private const string FLASHCALL_CONTRACT_HEX = "0x383d3d39602b5160f01c80602d3df03d3d3d84602d018038039034865af181533d8160013e3d60010181f3";
     private const int FLASHCALL_CONTRACT_LENGTH = 43;

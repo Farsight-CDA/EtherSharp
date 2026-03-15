@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EtherSharp.Tests.RLP;
 
-public class RLPEncoderTests
+public sealed class RLPEncoderTests
 {
     [Fact]
     public void Should_Encode_Empty_String()

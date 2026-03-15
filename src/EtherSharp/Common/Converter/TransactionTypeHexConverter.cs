@@ -8,7 +8,7 @@ namespace EtherSharp.Common.Converter;
 /// <summary>
 /// Converts a <see cref="TxType"/> value to or from a JSON number or hex-encoded string.
 /// </summary>
-public class TransactionTypeHexConverter : JsonConverter<TxType>
+public sealed class TransactionTypeHexConverter : JsonConverter<TxType>
 {
     /// <summary>
     /// Shared converter instance.

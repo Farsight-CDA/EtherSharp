@@ -9,7 +9,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents a dynamic ABI UTF-8 string.
     /// </summary>
-    public class String : DynamicType<string>, IPackedEncodeType
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class String : DynamicType<string>, IPackedEncodeType
     {
         /// <inheritdoc />
         public override int PayloadSize => ((PackedSize + 31) / 32 * 32) + 32;

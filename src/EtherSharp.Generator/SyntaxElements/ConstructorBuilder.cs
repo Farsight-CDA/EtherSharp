@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Generator.SyntaxElements;
 
-public class ConstructorBuilder(string className) : ISyntaxBuilder
+public sealed class ConstructorBuilder(string className) : ISyntaxBuilder
 {
     private readonly List<FieldBuilder> _fields = [];
     private readonly List<PropertyBuilder> _properties = [];

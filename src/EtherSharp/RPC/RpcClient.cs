@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EtherSharp.RPC;
 
-internal class RpcClient : IRpcClient
+internal sealed class RpcClient : IRpcClient
 {
     private readonly IRPCTransport _transport;
     private readonly IRpcMiddleware[] _middlewares;
@@ -16,8 +16,8 @@ internal class RpcClient : IRpcClient
     public bool SupportsFilters => _transport.SupportsFilters;
     public bool SupportsSubscriptions => _transport.SupportsSubscriptions;
 
-    private record LogParams(LogResponse Params);
-    private record LogResponse(Log Result);
+    private sealed record LogParams(LogResponse Params);
+    private sealed record LogResponse(Log Result);
 
     public RpcClient(IRPCTransport transport, IServiceProvider serviceProvider)
     {

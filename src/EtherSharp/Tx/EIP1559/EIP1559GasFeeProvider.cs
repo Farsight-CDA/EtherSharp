@@ -10,7 +10,7 @@ namespace EtherSharp.Tx.EIP1559;
 /// <summary>
 /// Provides gas fee estimates for EIP-1559 transactions.
 /// </summary>
-public class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
+public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
 {
     /// <summary>
     /// Configuration values used to tune EIP-1559 gas estimation.

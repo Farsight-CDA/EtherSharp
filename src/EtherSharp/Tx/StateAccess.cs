@@ -5,7 +5,7 @@ namespace EtherSharp.Tx;
 /// <summary>
 /// Represents state access metadata used for transaction access lists.
 /// </summary>
-public record StateAccess
+public sealed record StateAccess
 {
     /// <summary>
     /// Creates a new state access descriptor.

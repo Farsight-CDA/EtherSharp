@@ -15,7 +15,7 @@ public abstract record TxSubmissionResult
     /// The transaction payload was accepted by the node and returned a transaction hash.
     /// </summary>
     /// <param name="TxHash">The hash returned by <c>eth_sendRawTransaction</c>.</param>
-    public record Success(Bytes32 TxHash) : TxSubmissionResult;
+    public sealed record Success(Bytes32 TxHash) : TxSubmissionResult;
 
     /// <summary>
     /// The node reports the same transaction is already known.
@@ -23,7 +23,7 @@ public abstract record TxSubmissionResult
     /// <remarks>
     /// This is treated as a successful publish state because the transaction is already in the node's mempool.
     /// </remarks>
-    public record AlreadyExists() : TxSubmissionResult;
+    public sealed record AlreadyExists() : TxSubmissionResult;
 
     /// <summary>
     /// The node rejected the transaction because the effective gas price is too low.
@@ -31,7 +31,7 @@ public abstract record TxSubmissionResult
     /// <remarks>
     /// Schedulers can respond by increasing fees and submitting a replacement transaction with the same nonce.
     /// </remarks>
-    public record TransactionUnderpriced() : TxSubmissionResult;
+    public sealed record TransactionUnderpriced() : TxSubmissionResult;
 
     /// <summary>
     /// The submitted nonce is lower than the account nonce known by the node.
@@ -39,11 +39,11 @@ public abstract record TxSubmissionResult
     /// <remarks>
     /// This commonly means the nonce was already consumed by a mined or competing transaction.
     /// </remarks>
-    public record NonceTooLow() : TxSubmissionResult;
+    public sealed record NonceTooLow() : TxSubmissionResult;
 
     /// <summary>
     /// The publish attempt failed for a reason that is not mapped to a specialized submission status.
     /// </summary>
     /// <param name="Exception">The original exception raised while publishing.</param>
-    public record UnhandledException(Exception Exception) : TxSubmissionResult;
+    public sealed record UnhandledException(Exception Exception) : TxSubmissionResult;
 }

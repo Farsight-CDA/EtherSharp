@@ -4,7 +4,7 @@ using EtherSharp.ABI;
 namespace EtherSharp.Bench.Abi;
 
 [MemoryDiagnoser]
-public class ABIEncoderBenchmarks
+public sealed class ABIEncoderBenchmarks
 {
     private AbiEncoder _abiEncoder = null!;
     private byte[] _buffer = null!;

@@ -12,7 +12,7 @@ namespace EtherSharp.Tx.Legacy;
 /// <param name="Nonce">Sender account nonce.</param>
 /// <param name="Input">Transaction destination, value, and calldata.</param>
 /// <param name="GasPrice">Gas price to pay for each gas unit.</param>
-public record LegacyTransaction(
+public sealed record LegacyTransaction(
     ulong ChainId,
     ulong Gas,
     uint Nonce,

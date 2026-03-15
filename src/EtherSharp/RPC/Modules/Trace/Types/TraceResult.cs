@@ -5,7 +5,7 @@ namespace EtherSharp.RPC.Modules.Trace.Types;
 /// </summary>
 /// <param name="GasUsed">Gas consumed by this execution step.</param>
 /// <param name="Output">Return bytes produced by this execution step.</param>
-public record TraceResult(
+public sealed record TraceResult(
     ulong GasUsed,
     byte[] Output
 );

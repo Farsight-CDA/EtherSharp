@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace EtherSharp.Tests.ABI.Encoder;
 
-public class AbiNumberEncodingTests
+public sealed class AbiNumberEncodingTests
 {
     private readonly AbiEncoder _encoder;
 

@@ -23,7 +23,7 @@ namespace EtherSharp.Types;
 /// <param name="V">Signature recovery id / parity component.</param>
 /// <param name="R">Signature R component.</param>
 /// <param name="S">Signature S component.</param>
-public record TxData(
+public sealed record TxData(
     Bytes32 Hash,
     Bytes32? BlockHash,
     ulong? BlockNumber,

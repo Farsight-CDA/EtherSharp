@@ -8,7 +8,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents an ABI unsigned 32-bit value.
     /// </summary>
-    public class UInt : FixedType<uint>, IPackedEncodeType
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class UInt : FixedType<uint>, IPackedEncodeType
     {
         /// <inheritdoc />
         public int PackedSize { get; }

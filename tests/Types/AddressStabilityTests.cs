@@ -1,7 +1,7 @@
 ﻿using EtherSharp.Types;
 namespace EtherSharp.Tests.Types;
 
-public class AddressStabilityTests
+public sealed class AddressStabilityTests
 {
     private sealed record Row(Address User);
 

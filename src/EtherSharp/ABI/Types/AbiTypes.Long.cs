@@ -8,7 +8,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents an ABI signed 64-bit value.
     /// </summary>
-    public class Long : FixedType<long>, IPackedEncodeType
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class Long : FixedType<long>, IPackedEncodeType
     {
         /// <inheritdoc />
         public int PackedSize { get; }

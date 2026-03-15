@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace EtherSharp.Generator.Abi.Members;
 
-public class ConstructorAbiMember : AbiMember
+public sealed class ConstructorAbiMember : AbiMember
 {
     [JsonRequired]
     public StateMutability StateMutability { get; set; }

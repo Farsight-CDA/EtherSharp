@@ -8,7 +8,7 @@ public enum InterfaceVisibility
     Public,
     Internal
 }
-public class InterfaceBuilder(string name)
+public sealed class InterfaceBuilder(string name)
 {
     private readonly List<FunctionBuilder> _functions = [];
     private readonly List<string> _baseInterfaces = [];

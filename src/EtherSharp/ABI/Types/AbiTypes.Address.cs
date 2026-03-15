@@ -7,7 +7,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents an ABI <c>address</c> value.
     /// </summary>
-    public class Address : FixedType<EtherSharp.Types.Address>, IPackedEncodeType
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class Address : FixedType<EtherSharp.Types.Address>, IPackedEncodeType
     {
         /// <inheritdoc />
         public int PackedSize => 20;

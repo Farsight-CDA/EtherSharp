@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal class GetBlockTimestampQueryOperation : IQuery, IQuery<DateTimeOffset>
+internal sealed class GetBlockTimestampQueryOperation : IQuery, IQuery<DateTimeOffset>
 {
     public int CallDataLength => 1;
     public UInt256 EthValue => 0;

@@ -2,7 +2,7 @@
 
 namespace EtherSharp.Query.Operations;
 
-internal class NoopQueryOperation<T>(T value) : IQuery, IQuery<T>
+internal sealed class NoopQueryOperation<T>(T value) : IQuery, IQuery<T>
 {
     private readonly T _value = value;
 

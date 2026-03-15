@@ -5,7 +5,7 @@
 /// </summary>
 /// <param name="file">The ABI file name</param>
 [AttributeUsage(AttributeTargets.Interface)]
-public class AbiFileAttribute(string file) : Attribute
+public sealed class AbiFileAttribute(string file) : Attribute
 {
     /// <summary>
     /// The Abi file path.

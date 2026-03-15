@@ -1,6 +1,6 @@
 namespace EtherSharp.Common.Exceptions;
 
-internal class ImpossibleException()
+internal sealed class ImpossibleException()
     : Exception("An impossible code path was reached.")
 {
 }

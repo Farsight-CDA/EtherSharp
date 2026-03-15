@@ -3,7 +3,7 @@ using EtherSharp.Numerics;
 
 namespace EtherSharp.Tests.ABI.Encoder;
 
-public class OtherAbiEncoderTests
+public sealed class OtherAbiEncoderTests
 {
     private readonly AbiEncoder _encoder;
 

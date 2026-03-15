@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EtherSharp.Generator.SourceWriters.Components;
 
-internal class MemberTypeWriter(ParamEncodingWriter paramEncodingWriter)
+internal sealed class MemberTypeWriter(ParamEncodingWriter paramEncodingWriter)
 {
     private readonly ParamEncodingWriter _paramEncodingWriter = paramEncodingWriter;
 

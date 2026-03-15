@@ -3,7 +3,7 @@ using System.Text;
 
 namespace EtherSharp.Generator.SyntaxElements;
 
-public class MethodCallBuilder
+public sealed class MethodCallBuilder
 {
     private readonly CallArgumentsBuilder _typedArgumentsBuilder;
 

@@ -8,7 +8,7 @@ namespace EtherSharp.Tx.EIP1559;
 /// Defines additional transaction parameters for EIP-1559 transactions.
 /// </summary>
 /// <param name="AccessList">Optional access list used to predeclare state slots touched by the transaction.</param>
-public record EIP1559TxParams(
+public sealed record EIP1559TxParams(
     StateAccess[] AccessList
 ) : ITxParams<EIP1559TxParams>
 {

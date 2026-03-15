@@ -8,7 +8,7 @@ using System.Threading.Channels;
 
 namespace EtherSharp.Realtime.Events.Subscription;
 
-internal class EventSubscription<TLog>(
+internal sealed class EventSubscription<TLog>(
     IRpcClient client, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
     JsonSerializerOptions jsonSerializerOptions, Address[]? contractAddresses, string[]?[]? topics
 )

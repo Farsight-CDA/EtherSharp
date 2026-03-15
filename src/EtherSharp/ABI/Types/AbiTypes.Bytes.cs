@@ -8,7 +8,8 @@ public static partial class AbiTypes
     /// <summary>
     /// Represents a dynamic ABI <c>bytes</c> value.
     /// </summary>
-    public class Bytes : DynamicType<ReadOnlyMemory<byte>>, IPackedEncodeType
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class Bytes : DynamicType<ReadOnlyMemory<byte>>, IPackedEncodeType
     {
         /// <inheritdoc />
         public override int PayloadSize => ((Value.Length + 31) / 32 * 32) + 32;
