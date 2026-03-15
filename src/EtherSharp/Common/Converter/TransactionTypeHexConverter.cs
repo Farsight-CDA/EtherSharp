@@ -5,10 +5,17 @@ using System.Text.Json.Serialization;
 
 namespace EtherSharp.Common.Converter;
 
-internal class TransactionTypeHexConverter : JsonConverter<TxType>
+/// <summary>
+/// Converts a <see cref="TxType"/> value to or from a JSON number or hex-encoded string.
+/// </summary>
+public class TransactionTypeHexConverter : JsonConverter<TxType>
 {
+    /// <summary>
+    /// Shared converter instance.
+    /// </summary>
     public static TransactionTypeHexConverter Instance { get; } = new();
 
+    /// <inheritdoc/>
     public override TxType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         => reader.TokenType switch
         {
@@ -17,6 +24,7 @@ internal class TransactionTypeHexConverter : JsonConverter<TxType>
             _ => throw new JsonException($"Cannot parse {nameof(TxType)} from token of type {reader.TokenType}")
         };
 
+    /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, TxType value, JsonSerializerOptions options)
     {
         uint numericValue = (uint) value;

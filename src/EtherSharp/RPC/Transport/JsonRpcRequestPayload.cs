@@ -26,8 +26,6 @@ internal static class JsonRpcRequestPayload
 
     private sealed class Request0Converter : JsonConverter<Request0>
     {
-        public static Request0Converter Instance { get; } = new();
-
         public override Request0 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => throw new NotSupportedException();
 
@@ -47,8 +45,6 @@ internal static class JsonRpcRequestPayload
 
     private sealed class Request1ConverterFactory : JsonConverterFactory
     {
-        public static Request1ConverterFactory Instance { get; } = new();
-
         public override bool CanConvert(Type typeToConvert)
             => typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(Request1<>);
 
@@ -62,8 +58,6 @@ internal static class JsonRpcRequestPayload
 
     private sealed class Request1Converter<T1> : JsonConverter<Request1<T1>>
     {
-        public static Request1Converter<T1> Instance { get; } = new();
-
         public override Request1<T1> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => throw new NotSupportedException();
 
@@ -84,8 +78,6 @@ internal static class JsonRpcRequestPayload
 
     private sealed class Request2ConverterFactory : JsonConverterFactory
     {
-        public static Request2ConverterFactory Instance { get; } = new();
-
         public override bool CanConvert(Type typeToConvert)
             => typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(Request2<,>);
 
@@ -99,8 +91,6 @@ internal static class JsonRpcRequestPayload
 
     private sealed class Request2Converter<T1, T2> : JsonConverter<Request2<T1, T2>>
     {
-        public static Request2Converter<T1, T2> Instance { get; } = new();
-
         public override Request2<T1, T2> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => throw new NotSupportedException();
 
@@ -122,8 +112,6 @@ internal static class JsonRpcRequestPayload
 
     private sealed class Request3ConverterFactory : JsonConverterFactory
     {
-        public static Request3ConverterFactory Instance { get; } = new();
-
         public override bool CanConvert(Type typeToConvert)
             => typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(Request3<,,>);
 
@@ -137,8 +125,6 @@ internal static class JsonRpcRequestPayload
 
     private sealed class Request3Converter<T1, T2, T3> : JsonConverter<Request3<T1, T2, T3>>
     {
-        public static Request3Converter<T1, T2, T3> Instance { get; } = new();
-
         public override Request3<T1, T2, T3> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => throw new NotSupportedException();
 

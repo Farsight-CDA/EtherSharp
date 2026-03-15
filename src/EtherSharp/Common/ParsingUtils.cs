@@ -42,6 +42,7 @@ public static class ParsingUtils
         options.Converters.Add(LongHexConverter.Instance);
         options.Converters.Add(ULongHexConverter.Instance);
         options.Converters.Add(TargetHeightConverter.Instance);
+        options.Converters.Add(TransactionTypeHexConverter.Instance);
         options.Converters.Add(UInt256HexConverter.Instance);
         options.Converters.Add(Int256HexConverter.Instance);
         return options;
