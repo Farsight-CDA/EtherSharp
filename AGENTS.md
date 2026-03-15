@@ -12,6 +12,7 @@
 - `src/EtherSharp` uses `.tt` templates that emit checked-in `.cs` files.
 - Source generator emits compile-time `*.generated.cs`.
 - Fix source templates/writers, not generated outputs.
+- Never manually edit generated files, only ever touch their templates and run code generation after.
 
 ## EditorConfig enforcement (all non-silent rules)
 
