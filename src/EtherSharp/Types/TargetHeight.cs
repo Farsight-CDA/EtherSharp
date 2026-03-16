@@ -8,7 +8,7 @@ namespace EtherSharp.Types;
 /// <remarks>
 /// Not all available TargetHeights are supported on every blockchain network.
 /// </remarks>
-public readonly struct TargetHeight(ulong value, string rawValue)
+public readonly struct TargetHeight(ulong value, string rawValue) : IEquatable<TargetHeight>
 {
     /// <summary>
     /// The block height or 0 if it is a string based one.
@@ -64,15 +64,24 @@ public readonly struct TargetHeight(ulong value, string rawValue)
     }
 
     /// <inheritdoc/>
-    public override string ToString() => _rawValue ?? "latest";
+    private readonly string RawValueOrLatest
+        => _rawValue ?? "latest";
 
     /// <inheritdoc/>
-    public override bool Equals([NotNullWhen(true)] object? obj)
-        => obj is TargetHeight tbn && _rawValue == tbn._rawValue;
+    public readonly override string ToString()
+        => RawValueOrLatest;
 
     /// <inheritdoc/>
-    public override int GetHashCode()
-        => HashCode.Combine(_rawValue);
+    public readonly bool Equals(TargetHeight other)
+        => StringComparer.Ordinal.Equals(RawValueOrLatest, other.RawValueOrLatest);
+
+    /// <inheritdoc/>
+    public readonly override bool Equals([NotNullWhen(true)] object? obj)
+        => obj is TargetHeight targetHeight && Equals(targetHeight);
+
+    /// <inheritdoc/>
+    public readonly override int GetHashCode()
+        => StringComparer.Ordinal.GetHashCode(RawValueOrLatest);
 
     /// <inheritdoc/>
     public static bool operator ==(TargetHeight left, TargetHeight right)
