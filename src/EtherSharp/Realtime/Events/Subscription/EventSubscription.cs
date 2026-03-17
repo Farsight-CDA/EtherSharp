@@ -30,6 +30,9 @@ internal sealed class EventSubscription<TLog>(
         SingleReader = true,
         SingleWriter = true,
     });
+    private readonly Lock _statusLock = new Lock();
+    private bool _isClosed;
+    private bool _isDisposing;
 
     public async IAsyncEnumerable<TLog> ListenAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
@@ -41,7 +44,10 @@ internal sealed class EventSubscription<TLog>(
     }
 
     public async Task InstallAsync(CancellationToken cancellationToken = default)
-        => Id = await _ethRpcModule.SubscribeLogsAsync(_contractAddresses, _topics, cancellationToken);
+    {
+        ThrowIfClosed();
+        Id = await _ethRpcModule.SubscribeLogsAsync(_contractAddresses, _topics, cancellationToken);
+    }
 
     private record struct LogParams(LogResponse Params);
     private record struct LogResponse(Log Result);
@@ -53,5 +59,42 @@ internal sealed class EventSubscription<TLog>(
     }
 
     public async ValueTask DisposeAsync()
-        => await _subscriptionsManager.UninstallSubscription(this);
+    {
+        lock(_statusLock)
+        {
+            if(_isClosed || _isDisposing)
+            {
+                return;
+            }
+
+            _isDisposing = true;
+        }
+
+        try
+        {
+            await _subscriptionsManager.UninstallSubscription(this);
+        }
+        finally
+        {
+            Close();
+        }
+    }
+
+    public void Close()
+    {
+        lock(_statusLock)
+        {
+            if(_isClosed)
+            {
+                return;
+            }
+
+            _isClosed = true;
+        }
+
+        _channel.Writer.TryComplete();
+    }
+
+    private void ThrowIfClosed()
+        => ObjectDisposedException.ThrowIf(_isClosed, this);
 }

@@ -30,6 +30,9 @@ internal sealed class BenchTransport : IRPCTransport
     public ValueTask InitializeAsync(CancellationToken cancellationToken = default)
         => ValueTask.CompletedTask;
 
+    public ValueTask DisposeAsync()
+        => ValueTask.CompletedTask;
+
     public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
         string method,
         TargetHeight requiredBlockNumber,

@@ -17,7 +17,7 @@ namespace EtherSharp.Client;
 /// <summary>
 /// High-level Ethereum RPC client abstraction for reads, queries, contracts, and execution simulation.
 /// </summary>
-public interface IEtherClient
+public interface IEtherClient : IAsyncDisposable
 {
     internal bool IsInitialized { get; }
 

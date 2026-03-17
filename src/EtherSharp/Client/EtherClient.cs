@@ -40,6 +40,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private IDebugModule _debugModule = null!;
 
     private IRpcClient _rpcClient = null!;
+    private readonly IRPCTransport _rpcTransport;
     private IEthRpcModule _ethRpcModule = null!;
 
     private IEtherSigner _signer = null!;
@@ -52,8 +53,10 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private JsonSerializerOptions _jsonSerializerOptions = null!;
 
     private bool _initialized;
+    private bool _isDisposed;
     private ulong _chainId;
     private CompatibilityReport? _compatibilityReport = null!;
+    private readonly Lock _disposeLock = new Lock();
 
     IServiceProvider IInternalEtherClient.Provider => _provider;
     IRpcClient IInternalEtherClient.RPC => _rpcClient;
@@ -177,6 +180,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     {
         _provider = provider;
         _isTxClient = isTxClient;
+        _rpcTransport = provider.GetRequiredService<IRPCTransport>();
         _loggerFactory = provider.GetService<ILoggerFactory>();
     }
 
@@ -202,8 +206,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             throw new InvalidOperationException("Client already initialized");
         }
 
-        await _provider.GetRequiredService<IRPCTransport>()
-            .InitializeAsync(cancellationToken);
+        await _rpcTransport.InitializeAsync(cancellationToken);
 
         _etherModule = _provider.GetRequiredService<IEtherTxModule>();
         _traceModule = _provider.GetRequiredService<ITraceModule>();
@@ -293,9 +296,38 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
     private void AssertReady()
     {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+
         if(!_initialized)
         {
             throw new InvalidOperationException("Client not initialized");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        lock(_disposeLock)
+        {
+            if(_isDisposed)
+            {
+                return;
+            }
+
+            _isDisposed = true;
+            _initialized = false;
+        }
+
+        _subscriptionsManager?.CloseSubscriptions();
+
+        if(_provider is IAsyncDisposable asyncDisposable)
+        {
+            await asyncDisposable.DisposeAsync();
+            return;
+        }
+
+        if(_provider is IDisposable disposable)
+        {
+            disposable.Dispose();
         }
     }
 

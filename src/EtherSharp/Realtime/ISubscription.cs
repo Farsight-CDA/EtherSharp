@@ -22,4 +22,9 @@ public interface ISubscription : IAsyncDisposable
     /// </summary>
     /// <param name="cancellationToken">Token used to cancel the installation request.</param>
     public Task InstallAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Closes the local subscription state without sending an unsubscribe RPC.
+    /// </summary>
+    public void Close();
 }

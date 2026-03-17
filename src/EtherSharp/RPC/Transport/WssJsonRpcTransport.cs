@@ -16,7 +16,7 @@ namespace EtherSharp.RPC.Transport;
 /// <summary>
 /// Transport for EVM Websocket RPC
 /// </summary>
-public sealed class WssJsonRpcTransport : IRPCTransport, IDisposable
+public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 {
     /// <inheritdoc />
     public bool SupportsFilters => true;
@@ -40,6 +40,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IDisposable
     private ClientWebSocket? _socket = null!;
 
     private readonly CancellationTokenSource _connectionHandlerCts = new CancellationTokenSource();
+    private Task? _connectionHandlerTask;
 
     private int _requestIdCounter;
     private readonly ConcurrentDictionary<int, (Type RpcResponseType, TaskCompletionSource<object> Tcs)> _pendingRequests = [];
@@ -90,7 +91,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IDisposable
         }
 
         await ConnectSocketAsync(cancellationToken);
-        _ = ConnectionHandler();
+        _connectionHandlerTask = ConnectionHandler();
     }
 
     private async Task ConnectionHandler()
@@ -103,6 +104,12 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IDisposable
             try
             {
                 await MessageHandler();
+
+                if(_connectionHandlerCts.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 _logger?.LogWarning("Websocket connection lost, killing {RequestCount} pending requests...", _pendingRequests.Count);
 
                 var wssClosedException = new RPCTransportException("The WebSocket is not connected.");
@@ -112,8 +119,17 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IDisposable
                 }
                 _pendingRequests.Clear();
             }
+            catch(OperationCanceledException) when(_connectionHandlerCts.IsCancellationRequested)
+            {
+                break;
+            }
             catch(Exception ex)
             {
+                if(_connectionHandlerCts.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 _logger?.LogWarning(ex, "Websocket connection lost, killing {RequestCount} pending requests...", _pendingRequests.Count);
                 foreach(var r in _pendingRequests)
                 {
@@ -127,8 +143,17 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IDisposable
                 _socket?.Dispose();
                 await ConnectSocketAsync(_connectionHandlerCts.Token);
             }
+            catch(OperationCanceledException) when(_connectionHandlerCts.IsCancellationRequested)
+            {
+                break;
+            }
             catch(Exception ex)
             {
+                if(_connectionHandlerCts.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 _logger?.LogCritical(ex, "ConnectionHandler crashed");
             }
         }
@@ -488,8 +513,10 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IDisposable
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
+        Task? connectionHandlerTask;
+
         lock(_statusLock)
         {
             if(_isDisposed)
@@ -497,12 +524,52 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IDisposable
                 return;
             }
 
-            _connectionHandlerCts.Cancel();
-            _connectionHandlerCts.Dispose();
-            _socket?.Abort();
-            _socket?.Dispose();
             _isDisposed = true;
-            GC.SuppressFinalize(this);
+            _connectionHandlerCts.Cancel();
+            connectionHandlerTask = _connectionHandlerTask;
         }
+
+        if(_socket is not null)
+        {
+            try
+            {
+                if(_socket.State is WebSocketState.Open or WebSocketState.CloseReceived or WebSocketState.CloseSent)
+                {
+                    await _socket.CloseAsync(
+                        WebSocketCloseStatus.NormalClosure,
+                        "Disposing transport",
+                        CancellationToken.None
+                    );
+                }
+            }
+            catch(OperationCanceledException)
+            {
+            }
+            catch(WebSocketException)
+            {
+            }
+            catch(ObjectDisposedException)
+            {
+            }
+            finally
+            {
+                _socket.Abort();
+                _socket.Dispose();
+            }
+        }
+
+        if(connectionHandlerTask is not null)
+        {
+            try
+            {
+                await connectionHandlerTask;
+            }
+            catch(OperationCanceledException) when(_connectionHandlerCts.IsCancellationRequested)
+            {
+            }
+        }
+
+        _connectionHandlerCts.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

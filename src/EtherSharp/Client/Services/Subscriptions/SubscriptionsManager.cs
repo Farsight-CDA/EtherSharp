@@ -19,6 +19,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
     private readonly Lock _subscriptionsLock = new Lock();
     private readonly List<ISubscription> _subscriptions = [];
+    private bool _subscriptionsClosed;
 
     private readonly ObservableUpDownCounter<int>? _subscriptionsCounter;
 
@@ -36,26 +37,71 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
     public async Task InstallSubscriptionAsync(ISubscription subscription, CancellationToken cancellationToken)
     {
+        ThrowIfClosed();
         await subscription.InstallAsync(cancellationToken);
 
         lock(_subscriptionsLock)
         {
+            ThrowIfClosed();
             _subscriptions.Add(subscription);
         }
     }
 
     public async Task UninstallSubscription(ISubscription subscription)
     {
+        bool shouldUnsubscribe;
+
         lock(_subscriptionsLock)
         {
+            shouldUnsubscribe = !_subscriptionsClosed;
             _subscriptions.Remove(subscription);
         }
 
-        await _ethRpcModule.UnsubscribeAsync(subscription.Id);
+        try
+        {
+            if(shouldUnsubscribe)
+            {
+                await _ethRpcModule.UnsubscribeAsync(subscription.Id);
+            }
+        }
+        finally
+        {
+            subscription.Close();
+        }
+    }
+
+    public void CloseSubscriptions()
+    {
+        ISubscription[] subscriptions;
+
+        lock(_subscriptionsLock)
+        {
+            if(_subscriptionsClosed)
+            {
+                return;
+            }
+
+            _subscriptionsClosed = true;
+            subscriptions = [.. _subscriptions];
+            _subscriptions.Clear();
+        }
+
+        _rpcClient.OnConnectionEstablished -= HandleConnectionEstablished;
+        _rpcClient.OnSubscriptionMessage -= HandleSubscriptionMessage;
+
+        foreach(var subscription in subscriptions)
+        {
+            subscription.Close();
+        }
     }
 
     private void HandleConnectionEstablished()
     {
+        if(_subscriptionsClosed)
+        {
+            return;
+        }
+
         lock(_subscriptionsLock)
         {
             foreach(var subscription in _subscriptions)
@@ -87,6 +133,11 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
     private void HandleSubscriptionMessage(string subscriptionId, ReadOnlySpan<byte> payload)
     {
+        if(_subscriptionsClosed)
+        {
+            return;
+        }
+
         ISubscription? subscription = null;
 
         lock(_subscriptionsLock)
@@ -147,4 +198,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
             }
         });
     }
+
+    private void ThrowIfClosed()
+        => ObjectDisposedException.ThrowIf(_subscriptionsClosed, this);
 }

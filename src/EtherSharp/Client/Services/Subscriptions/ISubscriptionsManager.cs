@@ -21,4 +21,9 @@ public interface ISubscriptionsManager
     /// <param name="subscription">The subscription instance to uninstall.</param>
     /// <returns>A task that completes when the subscription has been removed.</returns>
     public Task UninstallSubscription(ISubscription subscription);
+
+    /// <summary>
+    /// Closes all active subscriptions locally without sending unsubscribe RPCs.
+    /// </summary>
+    public void CloseSubscriptions();
 }

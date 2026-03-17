@@ -20,6 +20,9 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
         SingleReader = true,
         SingleWriter = true,
     });
+    private readonly Lock _statusLock = new Lock();
+    private bool _isClosed;
+    private bool _isDisposing;
 
     public async IAsyncEnumerable<BlockHeader> ListenAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
@@ -30,10 +33,47 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
     }
 
     public async Task InstallAsync(CancellationToken cancellationToken = default)
-        => Id = await _ethRpcModule.SubscribeNewHeadsAsync(cancellationToken);
+    {
+        ThrowIfClosed();
+        Id = await _ethRpcModule.SubscribeNewHeadsAsync(cancellationToken);
+    }
 
     public async ValueTask DisposeAsync()
-        => await _subscriptionsManager.UninstallSubscription(this);
+    {
+        lock(_statusLock)
+        {
+            if(_isClosed || _isDisposing)
+            {
+                return;
+            }
+
+            _isDisposing = true;
+        }
+
+        try
+        {
+            await _subscriptionsManager.UninstallSubscription(this);
+        }
+        finally
+        {
+            Close();
+        }
+    }
+
+    public void Close()
+    {
+        lock(_statusLock)
+        {
+            if(_isClosed)
+            {
+                return;
+            }
+
+            _isClosed = true;
+        }
+
+        _channel.Writer.TryComplete();
+    }
 
     private record struct HeadsParams(HeadsResponse Params);
     private record struct HeadsResponse(BlockHeader Result);
@@ -43,4 +83,7 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
         _channel.Writer.TryWrite(p.Params.Result);
         return true;
     }
+
+    private void ThrowIfClosed()
+        => ObjectDisposedException.ThrowIf(_isClosed, this);
 }
