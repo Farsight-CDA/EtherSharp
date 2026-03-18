@@ -201,8 +201,8 @@ public sealed class Generator : IIncrementalGenerator
                 return false;
             }
 
-            string? bytecodeText = bytecodeFiles.Single().GetText()?.ToString();
-            if(String.IsNullOrEmpty(bytecodeText) || bytecodeText is null)
+            string bytecodeText = bytecodeFiles.Single().GetText()?.ToString()?.Trim() ?? String.Empty;
+            if(bytecodeText.Length == 0)
             {
                 ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contractSymbol);
                 return false;
