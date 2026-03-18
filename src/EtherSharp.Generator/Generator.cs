@@ -72,7 +72,7 @@ public sealed class Generator : IIncrementalGenerator
 
             if(!hasConstructor && bytecode is not null)
             {
-                ReportDiagnostic(context, GeneratorDiagnostics.MissingConstructorAbiMember, contractSymbol);
+                abiMembers.Add(ConstructorAbiMember.Empty);
             }
 
             var writer = CreateSourceWriter(@namespace, contractName);
@@ -91,7 +91,7 @@ public sealed class Generator : IIncrementalGenerator
 
     private static bool TryGetContractDetails(
         SourceProductionContext context, INamedTypeSymbol contractSymbol, ImmutableDictionary<string, ImmutableArray<AdditionalText>> additionalFilesByName,
-        out AbiMember[] abiMembers, out byte[]? byteCode)
+        out List<AbiMember> abiMembers, out byte[]? byteCode)
     {
         abiMembers = null!;
         byteCode = null!;
@@ -160,7 +160,7 @@ public sealed class Generator : IIncrementalGenerator
 
         try
         {
-            abiMembers = JsonSerializer.Deserialize<AbiMember[]>(schemaText, ParsingUtils.AbiJsonOptions)
+            abiMembers = JsonSerializer.Deserialize<List<AbiMember>>(schemaText, ParsingUtils.AbiJsonOptions)
                 ?? throw new NotSupportedException("Parsing schema file to ContractAPISchema failed");
         }
         catch(Exception ex)

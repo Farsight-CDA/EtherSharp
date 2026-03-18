@@ -5,6 +5,12 @@ namespace EtherSharp.Generator.Abi.Members;
 
 public sealed class ConstructorAbiMember : AbiMember
 {
+    public static ConstructorAbiMember Empty { get; } = new ConstructorAbiMember()
+    {
+        Inputs = [],
+        StateMutability = StateMutability.NonPayable
+    };
+
     [JsonRequired]
     public StateMutability StateMutability { get; set; }
 

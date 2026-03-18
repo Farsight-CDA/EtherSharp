@@ -48,7 +48,7 @@ internal sealed class ContractSourceWriter(
             contractImplementation,
             contractName,
             members.OfType<FunctionAbiMember>(),
-            members.OfType<ConstructorAbiMember>().SingleOrDefault(),
+            members.OfType<ConstructorAbiMember>().SingleOrDefault() ?? ConstructorAbiMember.Empty,
             byteCode,
             members.OfType<FallbackAbiMember>().SingleOrDefault()
         );

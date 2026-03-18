@@ -28,7 +28,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
 
     public void GenerateContractFunctionSection(InterfaceBuilder interfaceBuilder, ClassBuilder implementationBuilder,
         string contractName, IEnumerable<FunctionAbiMember> functionMembers,
-        ConstructorAbiMember? constructorMember, byte[]? byteCode,
+        ConstructorAbiMember constructorMember, byte[]? byteCode,
         FallbackAbiMember? fallbackMember)
     {
         var functionClassNames = new List<string>();
@@ -105,7 +105,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                 .WithIsStatic()
                 .WithReturnTypeRaw("EtherSharp.Tx.IContractCall<EtherSharp.Types.Address>");
 
-            if(constructorMember is not null && constructorMember.Inputs.Length > 0)
+            if(constructorMember.Inputs.Length > 0)
             {
                 var createCallBuilder = new CallArgumentsBuilder();
                 bool isPayable = constructorMember.StateMutability == StateMutability.Payable;
