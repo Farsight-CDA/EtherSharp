@@ -57,7 +57,7 @@ public sealed class WssJsonRpcTransportIdentifyPayloadTests
     private static (WssJsonRpcTransport.PayloadType PayloadType, int RequestId, string? SubscriptionId) Identify(string payload)
     {
         IServiceProvider provider = new ServiceCollection().BuildServiceProvider();
-        using var transport = new WssJsonRpcTransport(new Uri("ws://127.0.0.1:1/"), TimeSpan.FromSeconds(1), provider);
+        var transport = new WssJsonRpcTransport(new Uri("ws://127.0.0.1:1/"), TimeSpan.FromSeconds(1), provider);
         transport.IdentifyPayload(Encoding.UTF8.GetBytes(payload), out var payloadType, out int requestId, out string subscriptionId);
         return (payloadType, requestId, subscriptionId);
     }
