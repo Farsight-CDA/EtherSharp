@@ -6,10 +6,16 @@ namespace EtherSharp.Common.Converter;
 internal static class HexJsonConverter
 {
     public static void ReadBytes(scoped ref Utf8JsonReader reader, scoped Span<byte> buffer, string typeName)
+        => ReadBytes(ref reader, JsonTokenType.String, buffer, typeName);
+
+    public static void ReadPropertyNameBytes(scoped ref Utf8JsonReader reader, scoped Span<byte> buffer, string typeName)
+        => ReadBytes(ref reader, JsonTokenType.PropertyName, buffer, typeName);
+
+    private static void ReadBytes(scoped ref Utf8JsonReader reader, JsonTokenType tokenType, scoped Span<byte> buffer, string typeName)
     {
-        if(reader.TokenType != JsonTokenType.String)
+        if(reader.TokenType != tokenType)
         {
-            throw new JsonException($"Expected string token for {typeName}");
+            throw new JsonException($"Expected {tokenType} token for {typeName}");
         }
 
         int unprefixedCharCount = buffer.Length * 2;
@@ -43,14 +49,25 @@ internal static class HexJsonConverter
     public static void WriteBytes(Utf8JsonWriter writer, ReadOnlySpan<byte> bytes)
     {
         Span<char> buffer = stackalloc char[(bytes.Length * 2) + 2];
+        WriteHexBytes(buffer, bytes);
+        writer.WriteStringValue(buffer);
+    }
+
+    public static void WritePropertyNameBytes(Utf8JsonWriter writer, ReadOnlySpan<byte> bytes)
+    {
+        Span<char> buffer = stackalloc char[(bytes.Length * 2) + 2];
+        WriteHexBytes(buffer, bytes);
+        writer.WritePropertyName(buffer.ToString());
+    }
+
+    private static void WriteHexBytes(scoped Span<char> buffer, ReadOnlySpan<byte> bytes)
+    {
         buffer[0] = '0';
         buffer[1] = 'x';
 
-        if(!Convert.TryToHexString(bytes, buffer[2..], out int charsWritten))
+        if(!Convert.TryToHexString(bytes, buffer[2..], out _))
         {
             throw new InvalidOperationException("Failed to write hex string.");
         }
-
-        writer.WriteStringValue(buffer[..(charsWritten + 2)]);
     }
 }

@@ -23,6 +23,18 @@ public sealed class AddressConverter : JsonConverter<Address>
     }
 
     /// <inheritdoc/>
+    public override Address ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        Span<byte> buffer = stackalloc byte[Address.BYTES_LENGTH];
+        HexJsonConverter.ReadPropertyNameBytes(ref reader, buffer, nameof(Address));
+        return Address.FromBytes(buffer);
+    }
+
+    /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, Address value, JsonSerializerOptions options)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
+
+    /// <inheritdoc/>
+    public override void WriteAsPropertyName(Utf8JsonWriter writer, Address value, JsonSerializerOptions options)
+        => HexJsonConverter.WritePropertyNameBytes(writer, value.DangerousGetReadOnlySpan());
 }

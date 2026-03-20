@@ -17,11 +17,27 @@ public sealed class UInt256HexConverter : JsonConverter<UInt256>
 
     /// <inheritdoc/>
     public override UInt256 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        => ReadCore(ref reader, JsonTokenType.String);
+
+    /// <inheritdoc/>
+    public override UInt256 ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        => ReadCore(ref reader, JsonTokenType.PropertyName);
+
+    /// <inheritdoc/>
+    public override void Write(Utf8JsonWriter writer, UInt256 value, JsonSerializerOptions options)
+        => WriteCore(writer, value, isPropertyName: false);
+
+    /// <inheritdoc/>
+    public override void WriteAsPropertyName(Utf8JsonWriter writer, UInt256 value, JsonSerializerOptions options)
+        => WriteCore(writer, value, isPropertyName: true);
+
+    private static UInt256 ReadCore(scoped ref Utf8JsonReader reader, JsonTokenType tokenType)
     {
-        if(reader.TokenType != JsonTokenType.String)
+        if(reader.TokenType != tokenType)
         {
-            throw new JsonException("Expected string token.");
+            throw new JsonException($"Cannot parse {nameof(UInt256)} from token of type {reader.TokenType}");
         }
+
         int valueLength = reader.HasValueSequence
             ? (int) reader.ValueSequence.Length
             : reader.ValueSpan.Length;
@@ -59,13 +75,26 @@ public sealed class UInt256HexConverter : JsonConverter<UInt256>
             : result;
     }
 
-    /// <inheritdoc/>
-    public override void Write(Utf8JsonWriter writer, UInt256 value, JsonSerializerOptions options)
+    private static void WriteCore(Utf8JsonWriter writer, UInt256 value, bool isPropertyName)
+    {
+        Span<char> hexBuffer = stackalloc char[66];
+        int charsWritten = FormatHex(value, hexBuffer);
+
+        if(isPropertyName)
+        {
+            writer.WritePropertyName(hexBuffer[..charsWritten]);
+            return;
+        }
+
+        writer.WriteStringValue(hexBuffer[..charsWritten]);
+    }
+
+    private static int FormatHex(UInt256 value, scoped Span<char> hexBuffer)
     {
         if(value == 0)
         {
-            writer.WriteStringValue("0x0");
-            return;
+            "0x0".AsSpan().CopyTo(hexBuffer);
+            return 3;
         }
 
         Span<byte> byteBuffer = stackalloc byte[32];
@@ -75,16 +104,17 @@ public sealed class UInt256HexConverter : JsonConverter<UInt256>
         byteBuffer = byteBuffer.TrimStart((byte) 0);
 
         int dataIndex = byteBuffer[0] < 16 ? 1 : 2;
-        Span<char> hexBuffer = stackalloc char[(byteBuffer.Length * 2) + dataIndex];
+        int charCount = (byteBuffer.Length * 2) + dataIndex;
+        Span<char> destination = hexBuffer[..charCount];
 
-        if(!Convert.TryToHexString(byteBuffer, hexBuffer[dataIndex..], out _))
+        if(!Convert.TryToHexString(byteBuffer, destination[dataIndex..], out _))
         {
             throw new InvalidOperationException("Failed to convert to hex");
         }
 
-        hexBuffer[0] = '0';
-        hexBuffer[1] = 'x';
+        destination[0] = '0';
+        destination[1] = 'x';
 
-        writer.WriteStringValue(hexBuffer);
+        return charCount;
     }
 }
