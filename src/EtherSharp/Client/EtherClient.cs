@@ -414,13 +414,11 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     TContract IEtherClient.Contract<TContract>(in Address address)
         => Contract<TContract>(in address);
 
-    public async Task<TxCallResult> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
+    public async Task<TxCallResult> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, Address? from, CancellationToken cancellationToken)
     {
         AssertReady();
 
-        Address? sender = _isTxClient
-            ? _signer.Address
-            : default;
+        Address? sender = from ?? (_isTxClient ? _signer.Address : default);
 
         var result = await _ethRpcModule.CallAsync(
             sender,
@@ -436,9 +434,9 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         return result;
     }
 
-    async Task<T> IEtherClient.CallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
+    async Task<T> IEtherClient.CallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, Address? from, CancellationToken cancellationToken)
     {
-        var result = await SafeCallAsync(call, targetHeight, cancellationToken);
+        var result = await SafeCallAsync(call, targetHeight, from, cancellationToken);
         return call.ReadResultFrom(result.Unwrap(call.To));
     }
 

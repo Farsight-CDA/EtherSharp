@@ -355,6 +355,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                     interfaceFunction
                         .WithReturnTypeRaw($"System.Threading.Tasks.Task<{outputTypeName}>")
                         .AddArgument("EtherSharp.Types.TargetHeight", "targetHeight", true, "default")
+                        .AddArgument("EtherSharp.Types.Address?", "from", true, "null")
                         .AddArgument("System.Threading.CancellationToken", "cancellationToken", true, "default")
                         .AddStatement(
                             $"""
@@ -363,7 +364,8 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                                 Address{(inputNameList.Count > 0 ? "," : "")}
                                 {String.Join(",", inputNameList)}), 
                                 targetHeight,
-                                cancellationToken: cancellationToken
+                                from,
+                                cancellationToken
                             )
                             """
                         );
