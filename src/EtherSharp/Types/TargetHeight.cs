@@ -14,7 +14,6 @@ public readonly struct TargetHeight(ulong value, string rawValue) : IEquatable<T
     /// The block height or 0 if it is a string based one.
     /// </summary>
     public ulong Value { get; } = value;
-    private readonly string? _rawValue = rawValue;
 
     /// <summary>
     /// Targets the latest block.
@@ -64,8 +63,7 @@ public readonly struct TargetHeight(ulong value, string rawValue) : IEquatable<T
     }
 
     /// <inheritdoc/>
-    private readonly string RawValueOrLatest
-        => _rawValue ?? "latest";
+    private readonly string RawValueOrLatest { get => field ?? "latest"; } = rawValue;
 
     /// <inheritdoc/>
     public readonly override string ToString()

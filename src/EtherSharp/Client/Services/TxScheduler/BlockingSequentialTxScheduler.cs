@@ -181,7 +181,7 @@ public sealed class BlockingSequentialTxScheduler(
             }
 
             txParams ??= TTxParams.Default;
-            txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(call, txParams, cts.Token);
+            txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(call, txParams, signer.Address, cts.Token);
 
             string encodedTx = handler.EncodeTxToBytes(call, txParams, txGasParams, myNonce, out var txHash);
             var submission = new TxSubmission<TTxParams, TTxGasParams>(_chainId, 0, txHash, encodedTx, call, txParams, txGasParams);

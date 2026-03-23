@@ -280,10 +280,11 @@ public interface IEtherClient : IAsyncDisposable
     /// </summary>
     /// <param name="call">Transaction call definition.</param>
     /// <param name="txParams">Optional transaction parameters that influence estimation.</param>
+    /// <param name="from">Optional sender address override. If null, uses the signer address.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Estimated EIP-1559 gas parameters.</returns>
-    public Task<EIP1559GasParams> EstimateTxGasParamsAsync(ITxInput call, EIP1559TxParams? txParams = default, CancellationToken cancellationToken = default)
-        => EstimateTxGasParamsAsync<EIP1559TxParams, EIP1559GasParams>(call, txParams, cancellationToken);
+    public Task<EIP1559GasParams> EstimateTxGasParamsAsync(ITxInput call, EIP1559TxParams? txParams = default, Address? from = null, CancellationToken cancellationToken = default)
+        => EstimateTxGasParamsAsync<EIP1559TxParams, EIP1559GasParams>(call, txParams, from, cancellationToken);
 
     /// <summary>
     /// Estimates gas parameters for a transaction call using custom transaction and gas parameter types.
@@ -292,10 +293,11 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="TTxGasParams">Gas parameter result type.</typeparam>
     /// <param name="call">Transaction call definition.</param>
     /// <param name="txParams">Optional transaction parameters that influence estimation.</param>
+    /// <param name="from">Optional sender address override. If null, uses the signer address.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Estimated gas parameters.</returns>
     public Task<TTxGasParams> EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams = default, CancellationToken cancellationToken = default
+        ITxInput call, TTxParams? txParams = default, Address? from = null, CancellationToken cancellationToken = default
     )
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams;

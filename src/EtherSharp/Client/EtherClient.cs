@@ -400,7 +400,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     }
 
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams, CancellationToken cancellationToken)
+        ITxInput call, TTxParams? txParams, Address? from, CancellationToken cancellationToken)
         where TTxParams : class
     {
         AssertReady();
@@ -408,7 +408,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             ?? throw new InvalidOperationException(
                 $"No GasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
 
-        return await gasFeeProvider.EstimateGasParamsAsync(call, txParams ?? TTxParams.Default, cancellationToken);
+        return await gasFeeProvider.EstimateGasParamsAsync(call, txParams ?? TTxParams.Default, from ?? _signer.Address, cancellationToken);
     }
 
     TContract IEtherClient.Contract<TContract>(in Address address)

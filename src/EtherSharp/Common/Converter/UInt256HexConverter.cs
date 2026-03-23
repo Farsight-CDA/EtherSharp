@@ -105,7 +105,7 @@ public sealed class UInt256HexConverter : JsonConverter<UInt256>
 
         int dataIndex = byteBuffer[0] < 16 ? 1 : 2;
         int charCount = (byteBuffer.Length * 2) + dataIndex;
-        Span<char> destination = hexBuffer[..charCount];
+        var destination = hexBuffer[..charCount];
 
         if(!Convert.TryToHexString(byteBuffer, destination[dataIndex..], out _))
         {

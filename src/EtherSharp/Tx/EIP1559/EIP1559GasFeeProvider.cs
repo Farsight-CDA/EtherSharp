@@ -3,7 +3,6 @@ using EtherSharp.Common;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
-using EtherSharp.Wallet;
 
 namespace EtherSharp.Tx.EIP1559;
 
@@ -44,7 +43,6 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
     }
 
     private readonly IEthRpcModule _ethRpcModule;
-    private readonly IEtherSigner _signer;
 
     private readonly int _feeHistoryRange;
     private readonly double _priorityFeePercentile;
@@ -56,18 +54,15 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
     /// Creates a new <see cref="EIP1559GasFeeProvider"/>.
     /// </summary>
     /// <param name="ethRpcModule">RPC module used to query fee and gas data.</param>
-    /// <param name="signer">Signer used as the sender context for gas estimation.</param>
     /// <param name="configuration">Optional gas estimation tuning values.</param>
     public EIP1559GasFeeProvider(
         IEthRpcModule ethRpcModule,
-        IEtherSigner signer,
         EIP1559GasFeeProvider.Configuration? configuration = null
     )
     {
         var resolvedConfiguration = configuration ?? new EIP1559GasFeeProvider.Configuration();
 
         _ethRpcModule = ethRpcModule;
-        _signer = signer;
         _feeHistoryRange = resolvedConfiguration.FeeHistoryRange;
         _priorityFeePercentile = resolvedConfiguration.PriorityFeePercentile;
         _baseFeeOffsetPercentage = resolvedConfiguration.BaseFeeOffsetPercentage;
@@ -76,10 +71,10 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
     }
 
     /// <inheritdoc/>
-    public async Task<EIP1559GasParams> EstimateGasParamsAsync(ITxInput txInput, EIP1559TxParams txParams, CancellationToken cancellationToken)
+    public async Task<EIP1559GasParams> EstimateGasParamsAsync(ITxInput txInput, EIP1559TxParams txParams, Address from, CancellationToken cancellationToken)
     {
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
-            _signer.Address, txInput.To, txInput.Value, HexUtils.ToPrefixedHexString(txInput.Data.Span), cancellationToken);
+            from, txInput.To, txInput.Value, HexUtils.ToPrefixedHexString(txInput.Data.Span), cancellationToken);
         var feeHistoryTask = _ethRpcModule.GetFeeHistoryAsync(_feeHistoryRange, TargetHeight.Latest, [_priorityFeePercentile], cancellationToken);
 
         ulong gasEstimation = await gasEstimationTask;
