@@ -3,13 +3,16 @@
 
 #pragma warning disable CS1591
 
+using EtherSharp.Common.Converter;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace EtherSharp.Numerics;
 
 /// <summary>
 /// Represents a signed 256-bit integer with two's-complement semantics.
 /// </summary>
+[JsonConverter(typeof(Int256HexConverter))]
 public readonly partial struct Int256 : IEquatable<Int256>, IComparable, IComparable<Int256>
 {
     public static Int256 Zero { get; } = (Int256) 0UL;

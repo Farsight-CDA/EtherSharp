@@ -3,6 +3,7 @@
 
 #pragma warning disable CS1591
 
+using EtherSharp.Common.Converter;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -10,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
+using System.Text.Json.Serialization;
 
 namespace EtherSharp.Numerics;
 
@@ -17,6 +19,7 @@ namespace EtherSharp.Numerics;
 /// Represents an unsigned 256-bit integer used for EVM-compatible arithmetic.
 /// </summary>
 [StructLayout(LayoutKind.Explicit)]
+[JsonConverter(typeof(UInt256HexConverter))]
 public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComparable<UInt256>
 {
     public static UInt256 Zero { get; } = 0ul;

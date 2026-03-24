@@ -1,5 +1,7 @@
-﻿using System.Buffers.Binary;
+﻿using EtherSharp.Common.Converter;
+using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 namespace EtherSharp.Types;
 
 /// <summary>
@@ -8,6 +10,7 @@ namespace EtherSharp.Types;
 /// <remarks>
 /// Not all available TargetHeights are supported on every blockchain network.
 /// </remarks>
+[JsonConverter(typeof(TargetHeightConverter))]
 public readonly struct TargetHeight(ulong value, string rawValue) : IEquatable<TargetHeight>
 {
     /// <summary>
