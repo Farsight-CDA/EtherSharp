@@ -388,22 +388,25 @@ public interface IQuery
     /// <summary>
     /// Combines an arbitrary number of queries into a single query that returns an ordered result list.
     /// </summary>
-    public static IQuery<IReadOnlyList<T>> Range<T>(params IEnumerable<IQuery<T>> queries)
+    public static IQuery<T[]> Range<T>(params IEnumerable<IQuery<T>> queries)
     {
         var queryList = queries.ToList();
-        return new Query<IReadOnlyList<T>>(
+        return new Query<T[]>(
             [.. queryList.SelectMany(q => q.Queries)],
             results =>
             {
-                var resultsList = new List<T>(queryList.Count);
+                var queryResults = new T[queryList.Count];
                 int offset = 0;
-                foreach(var q in queryList)
+
+                for(int i = 0; i < queryList.Count; i++)
                 {
+                    var q = queryList[i];
                     int count = q.Queries.Count;
-                    resultsList.Add(q.ReadResultFrom(results[offset..(offset + count)]));
+                    queryResults[i] = q.ReadResultFrom(results[offset..(offset + count)]);
                     offset += count;
                 }
-                return resultsList;
+
+                return queryResults;
             }
         );
     }
