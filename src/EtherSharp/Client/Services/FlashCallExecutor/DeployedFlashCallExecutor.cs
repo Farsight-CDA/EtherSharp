@@ -21,12 +21,12 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
     public void SetDeploymentHeight(ulong deploymentHeight)
         => _deploymentHeight = deploymentHeight;
 
-    public int GetMaxPayloadSize(TargetHeight targetHeight)
+    public int GetMaxPayloadSize(ulong flashCallGasLimit, TargetHeight targetHeight)
     {
         bool useFallback = targetHeight.Value > 0 && targetHeight.Value <= _deploymentHeight;
         return useFallback
-            ? _constructorFlashCallExecutor.GetMaxPayloadSize(targetHeight)
-            : _configuration.MaxPayloadSize;
+            ? _constructorFlashCallExecutor.GetMaxPayloadSize(flashCallGasLimit, targetHeight)
+            : _configuration.MaxPayloadSize - 10;
     }
     public int GetMaxResultSize(TargetHeight targetHeight)
     {
@@ -36,7 +36,12 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
             : _configuration.MaxResultSize;
     }
 
-    public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IFlashCall call, TargetHeight targetHeight, CancellationToken cancellationToken)
+    public async Task<TxCallResult> ExecuteFlashCallAsync(
+        IContractDeployment deployment,
+        IFlashCall call,
+        ulong flashCallGasLimit,
+        TargetHeight targetHeight,
+        CancellationToken cancellationToken)
     {
         if(deployment.Value > 0)
         {
@@ -45,17 +50,17 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
 
         if(_deploymentHeight == 0)
         {
-            return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, targetHeight, cancellationToken);
+            return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
         }
 
         if(targetHeight.Value > 0 && targetHeight.Value <= _deploymentHeight)
         {
             return !_configuration.AllowFallback
                 ? throw new InvalidOperationException($"Missing FlashCall contract deployment at height {targetHeight.Value}")
-                : await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, targetHeight, cancellationToken);
+                : await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
         }
 
-        int argsLength = 2 + deployment.Data.Length + call.Data.Length;
+        int argsLength = 10 + deployment.Data.Length + call.Data.Length;
 
         byte[]? rented = null;
         var buffer = argsLength <= 4096
@@ -64,9 +69,10 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
 
         try
         {
-            BinaryPrimitives.WriteUInt16BigEndian(buffer, (ushort) deployment.Data.Length);
-            deployment.Data.Span.CopyTo(buffer[2..]);
-            call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 2)..]);
+            BinaryPrimitives.WriteUInt64BigEndian(buffer, flashCallGasLimit);
+            BinaryPrimitives.WriteUInt16BigEndian(buffer[8..], (ushort) deployment.Data.Length);
+            deployment.Data.Span.CopyTo(buffer[10..]);
+            call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 10)..]);
 
             string payload = String.Create(
                 2 + (argsLength * 2),

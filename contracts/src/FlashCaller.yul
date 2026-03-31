@@ -12,17 +12,23 @@ object "FlashCaller" {
                 return(0, 32)
             }
 
-            let codeLength := shr(240, calldataload(0))
-            calldatacopy(0, 2, codeLength)
+            let requestedGas := shr(192, calldataload(0))
+            let codeLength := shr(240, calldataload(8))
+            calldatacopy(0, 10, codeLength)
 
             let contractAddress := create(0, 0, codeLength)
-            let calldataOffset := add(2, codeLength)
+            let calldataOffset := add(10, codeLength)
             let calldataLength := sub(calldatasize(), calldataOffset)
 
             calldatacopy(0, calldataOffset, calldataLength)
 
+            let callGas := gas()
+            if requestedGas {
+                callGas := requestedGas
+            }
+
             let success := call(
-                gas(), 
+                callGas, 
                 contractAddress, 
                 callvalue(), 
                 0, 

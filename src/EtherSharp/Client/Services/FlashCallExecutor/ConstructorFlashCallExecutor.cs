@@ -10,35 +10,50 @@ namespace EtherSharp.Client.Services.FlashCallExecutor;
 
 internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlashCallExecutor
 {
-    private const string FLASHCALL_CONTRACT_HEX = "0x383d3d39602b5160f01c80602d3df03d3d3d84602d018038039034865af181533d8160013e3d60010181f3";
-    private const int FLASHCALL_CONTRACT_LENGTH = 43;
+    private const string FLASHCALL_CONTRACT_HEX_UNLIMITED = "0x383d3d39602b5160f01c80602d3df03d3d3d84602d018038039034865af181533d8160013e3d60010181f3";
+    private const int FLASHCALL_CONTRACT_LENGTH_UNLIMITED = 43;
+
+    private const string FLASHCALL_CONTRACT_HEX = "0x383d3d396035518060b01c61ffff169060c01c81603f3df0903d3d3d85603f0180380390348787f181533d8160013e3d60010181f3";
+    private const int FLASHCALL_CONTRACT_LENGTH = 53;
 
     //EIP-3860
     private const int MAX_INITCODE_SIZE = 48 * 1024;
-    private const int MAX_PAYLOAD_SIZE = MAX_INITCODE_SIZE - 2 - FLASHCALL_CONTRACT_LENGTH;
+    private const int MAX_PAYLOAD_SIZE = MAX_INITCODE_SIZE - 10 - FLASHCALL_CONTRACT_LENGTH;
+    private const int MAX_PAYLOAD_SIZE_UNLIMITED = MAX_INITCODE_SIZE - 2 - FLASHCALL_CONTRACT_LENGTH_UNLIMITED;
 
     private const int MAX_RUNTIMECODE_SIZE = 24 * 1024;
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
-    public int GetMaxPayloadSize(TargetHeight targetHeight)
-        => MAX_PAYLOAD_SIZE;
+    public int GetMaxPayloadSize(ulong flashCallGasLimit, TargetHeight targetHeight)
+        => flashCallGasLimit == 0
+            ? MAX_PAYLOAD_SIZE_UNLIMITED
+            : MAX_PAYLOAD_SIZE;
 
     public int GetMaxResultSize(TargetHeight targetHeight)
         => MAX_RUNTIMECODE_SIZE;
 
-    public async Task<TxCallResult> ExecuteFlashCallAsync(IContractDeployment deployment, IFlashCall call, TargetHeight targetHeight, CancellationToken cancellationToken)
+    public async Task<TxCallResult> ExecuteFlashCallAsync(
+        IContractDeployment deployment,
+        IFlashCall call,
+        ulong flashCallGasLimit,
+        TargetHeight targetHeight,
+        CancellationToken cancellationToken)
     {
         if(deployment.Value > 0)
         {
             throw new NotSupportedException("Contract deployment cannot contain any value");
         }
 
-        int argsLength = 2 + deployment.Data.Length + call.Data.Length;
+        bool useUnlimitedPayload = flashCallGasLimit == 0;
+        int prefixLength = useUnlimitedPayload ? 2 : 10;
+        int contractLength = useUnlimitedPayload ? FLASHCALL_CONTRACT_LENGTH_UNLIMITED : FLASHCALL_CONTRACT_LENGTH;
+        string contractHex = useUnlimitedPayload ? FLASHCALL_CONTRACT_HEX_UNLIMITED : FLASHCALL_CONTRACT_HEX;
+        int argsLength = prefixLength + deployment.Data.Length + call.Data.Length;
 
-        if(argsLength + FLASHCALL_CONTRACT_LENGTH > EVMByteCode.MAX_INIT_LENGTH)
+        if(argsLength + contractLength > EVMByteCode.MAX_INIT_LENGTH)
         {
-            throw new InvalidOperationException($"Maximum call length exceeded, {argsLength + FLASHCALL_CONTRACT_LENGTH} > {EVMByteCode.MAX_INIT_LENGTH}");
+            throw new InvalidOperationException($"Maximum call length exceeded, {argsLength + contractLength} > {EVMByteCode.MAX_INIT_LENGTH}");
         }
 
         byte[]? rented = null;
@@ -48,17 +63,27 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
 
         try
         {
-            BinaryPrimitives.WriteUInt16BigEndian(buffer, (ushort) deployment.Data.Length);
-            deployment.Data.Span.CopyTo(buffer[2..]);
-            call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 2)..]);
+            if(useUnlimitedPayload)
+            {
+                BinaryPrimitives.WriteUInt16BigEndian(buffer, (ushort) deployment.Data.Length);
+                deployment.Data.Span.CopyTo(buffer[2..]);
+                call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 2)..]);
+            }
+            else
+            {
+                BinaryPrimitives.WriteUInt64BigEndian(buffer, flashCallGasLimit);
+                BinaryPrimitives.WriteUInt16BigEndian(buffer[8..], (ushort) deployment.Data.Length);
+                deployment.Data.Span.CopyTo(buffer[10..]);
+                call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 10)..]);
+            }
 
             string payload = String.Create(
-                FLASHCALL_CONTRACT_HEX.Length + (argsLength * 2),
+                contractHex.Length + (argsLength * 2),
                 buffer,
-                (chars, buffer) =>
+                (chars, state) =>
                 {
-                    FLASHCALL_CONTRACT_HEX.AsSpan().CopyTo(chars);
-                    Convert.TryToHexString(buffer, chars[FLASHCALL_CONTRACT_HEX.Length..], out _);
+                    contractHex.AsSpan().CopyTo(chars);
+                    Convert.TryToHexString(state, chars[contractHex.Length..], out _);
                 }
             );
 

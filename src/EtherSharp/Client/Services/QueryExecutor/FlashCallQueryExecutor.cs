@@ -17,7 +17,11 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
     private readonly IContractDeployment _londonDeployment = IContractDeployment.Create(QuerierUtils.LondonQuerierCode, 0);
     private readonly IContractDeployment _cancunDeployment = IContractDeployment.Create(QuerierUtils.CancunQuerierCode, 0);
 
-    public async Task<TQuery> ExecuteQueryAsync<TQuery>(IQuery<TQuery> query, TargetHeight targetHeight, CancellationToken cancellationToken)
+    public async Task<TQuery> ExecuteQueryAsync<TQuery>(
+        IQuery<TQuery> query,
+        ulong flashCallGasLimit,
+        TargetHeight targetHeight,
+        CancellationToken cancellationToken)
     {
         var buffer = ReadOnlyMemory<byte>.Empty;
         var outputs = new ReadOnlyMemory<byte>[query.Queries.Count];
@@ -38,7 +42,7 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
                 byte[] payloadBytes = QuerierUtils.EncodeCalls(
                     querierDeployment.ByteCode,
                     query.Queries.Skip(i),
-                    _flashCallExecutor.GetMaxPayloadSize(targetHeight) - querierDeployment.ByteCode.Length,
+                    _flashCallExecutor.GetMaxPayloadSize(flashCallGasLimit, targetHeight) - querierDeployment.ByteCode.Length,
                     _flashCallExecutor.GetMaxResultSize(targetHeight),
                     out int payloadSize,
                     out int callCount,
@@ -55,6 +59,7 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
                     var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
                         querierDeployment,
                         IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
+                        flashCallGasLimit,
                         targetHeight,
                         cancellationToken
                     );

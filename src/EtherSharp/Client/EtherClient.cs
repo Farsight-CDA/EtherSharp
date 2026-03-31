@@ -100,74 +100,92 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
     public async Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
-        TargetHeight targetHeight, CancellationToken cancellationToken)
+        ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default,
+        CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(c1, targetHeight, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(c1, flashCallGasLimit, targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
-        TargetHeight targetHeight, CancellationToken cancellationToken)
+        ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default,
+        CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2), targetHeight, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2), flashCallGasLimit, targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
-        TargetHeight targetHeight, CancellationToken cancellationToken)
+        ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default,
+        CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), targetHeight, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), flashCallGasLimit, targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
-        TargetHeight targetHeight, CancellationToken cancellationToken)
+        ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default,
+        CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), targetHeight, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), flashCallGasLimit, targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
-        TargetHeight targetHeight, CancellationToken cancellationToken)
+        ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default,
+        CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), targetHeight, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), flashCallGasLimit, targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4, T5, T6)> QueryAsync<T1, T2, T3, T4, T5, T6>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6,
-        TargetHeight targetHeight, CancellationToken cancellationToken)
+        ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default,
+        CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), targetHeight, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), flashCallGasLimit, targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7)> QueryAsync<T1, T2, T3, T4, T5, T6, T7>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7,
-        TargetHeight targetHeight, CancellationToken cancellationToken)
+        ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default,
+        CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), targetHeight, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), flashCallGasLimit, targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7, T8)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8,
-        TargetHeight targetHeight, CancellationToken cancellationToken)
+        ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default,
+        CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), targetHeight, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), flashCallGasLimit, targetHeight, cancellationToken);
     }
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8, IQuery<T9> c9,
-        TargetHeight targetHeight, CancellationToken cancellationToken)
+        ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default,
+        CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), targetHeight, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), flashCallGasLimit, targetHeight, cancellationToken);
     }
 
     IEventsModule<TEvent> IEtherClient.Events<TEvent>()
@@ -276,6 +294,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         (_chainId, _compatibilityReport, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
             IQuery.Combine(IQuery.GetChainId(), IQuery.GetCompatibilityReport(), initQuery, flashCallSetupQuery),
+            0,
             TargetHeight.Latest,
             cancellationToken
         );
@@ -440,15 +459,25 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         return call.ReadResultFrom(result.Unwrap(call.To));
     }
 
-    public Task<TxCallResult> SafeFlashCallAsync<T>(IContractDeployment deployment, IFlashCall<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
+    public Task<TxCallResult> SafeFlashCallAsync<T>(
+        IContractDeployment deployment,
+        IFlashCall<T> call,
+        ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default,
+        CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, targetHeight, cancellationToken);
+        return _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
     }
 
-    async Task<T> IEtherClient.FlashCallAsync<T>(IContractDeployment deployment, IFlashCall<T> call, TargetHeight targetHeight, CancellationToken cancellationToken)
+    public async Task<T> FlashCallAsync<T>(
+        IContractDeployment deployment,
+        IFlashCall<T> call,
+        ulong flashCallGasLimit,
+        TargetHeight targetHeight,
+        CancellationToken cancellationToken)
     {
-        var result = await SafeFlashCallAsync(deployment, call, targetHeight, cancellationToken);
+        var result = await SafeFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
         return call.ReadResultFrom(result.Unwrap(null));
     }
 

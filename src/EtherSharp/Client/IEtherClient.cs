@@ -56,11 +56,13 @@ public interface IEtherClient : IAsyncDisposable
     /// </summary>
     /// <typeparam name="T1">Result type of the query.</typeparam>
     /// <param name="c1">Query to execute.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap applied to any flash-call helper execution performed while evaluating the query.</param>
     /// <param name="targetHeight">Target block context for query execution.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The query result.</returns>
     public Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
+        ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
@@ -71,11 +73,13 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="T2">Result type of the second query.</typeparam>
     /// <param name="c1">First query.</param>
     /// <param name="c2">Second query.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap applied to any flash-call helper execution performed while evaluating the query.</param>
     /// <param name="targetHeight">Target block context for query execution.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A tuple containing both query results.</returns>
     public Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
+        ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
@@ -84,6 +88,7 @@ public interface IEtherClient : IAsyncDisposable
     /// </summary>
     public Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
+        ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
@@ -92,6 +97,7 @@ public interface IEtherClient : IAsyncDisposable
     /// </summary>
     public Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
+        ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
@@ -100,6 +106,7 @@ public interface IEtherClient : IAsyncDisposable
     /// </summary>
     public Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
+        ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
@@ -221,11 +228,13 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="deployment">Deployment definition used for the temporary execution context.</param>
     /// <param name="call">Flash-call payload to execute against the temporary deployment.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call.</param>
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert information when applicable.</returns>
     public Task<TxCallResult> SafeFlashCallAsync<T>(
-        IContractDeployment deployment, IFlashCall<T> call, TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        IContractDeployment deployment, IFlashCall<T> call, ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -234,11 +243,13 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="deployment">Deployment definition used for the temporary execution context.</param>
     /// <param name="call">Flash-call payload to execute against the temporary deployment.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call.</param>
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
     public Task<T> FlashCallAsync<T>(
-        IContractDeployment deployment, IFlashCall<T> call, TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        IContractDeployment deployment, IFlashCall<T> call, ulong flashCallGasLimit = 0,
+        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
