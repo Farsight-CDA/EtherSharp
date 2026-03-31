@@ -5,8 +5,9 @@ object "FlashCaller" {
 
         let deploymentHeight := number()
         mstore(size, shl(224, 0xa3b1b31d))
+        let success := staticcall(gas(), 0x64, size, 4, size, 32)
 
-        if and(staticcall(gas(), 0x64, size, 4, size, 32), eq(returndatasize(), 32)) {
+        if and(success, eq(returndatasize(), 32)) {
             deploymentHeight := mload(size)
         }
 
