@@ -133,6 +133,21 @@ public interface IQuery
         => new GetBlockNumberQueryOperation();
 
     /// <summary>
+    /// Creates a query that calls Arbitrum's <c>ArbSys.arbBlockNumber()</c> precompile and returns the current L2 block number.
+    /// </summary>
+    /// <remarks>
+    /// This query is only supported on Arbitrum-based chains. On other EVM chains the underlying call will revert.
+    /// </remarks>
+    public static IQuery<ulong> GetArbitrumBlockNumber()
+        => Call(IContractCall<UInt256>.ForContractCall(
+            "0x0000000000000000000000000000000000000064",
+            0,
+            Convert.FromHexString("A3B1B31D"),
+            new ABI.AbiEncoder(),
+            x => x.UInt256())
+        ).Map(x => (ulong) x);
+
+    /// <summary>
     /// Creates a query that returns the current block timestamp as a <see cref="DateTimeOffset"/>.
     /// </summary>
     public static IQuery<DateTimeOffset> GetBlockTimestamp()
