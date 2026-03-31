@@ -55,14 +55,8 @@ public interface IContractCall : ITxInput
     /// <param name="salt"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
-    public static IContractCall<Address> ForCreate2Call(EVMByteCode byteCode, ReadOnlySpan<byte> salt, UInt256 value)
+    public static IContractCall<Address> ForCreate2Call(EVMByteCode byteCode, in Bytes32 salt, UInt256 value)
     {
-        if(salt.Length != 32)
-        {
-            throw new ArgumentException("Salt must be 32 bytes", nameof(salt));
-        }
-
         byte[] buffer = new byte[32 + byteCode.Length];
         salt.CopyTo(buffer);
         byteCode.ByteCode.Span.CopyTo(buffer.AsSpan(32));

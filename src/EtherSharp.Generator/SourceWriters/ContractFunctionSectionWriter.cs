@@ -143,7 +143,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                     return EtherSharp.Tx.IContractDeployment.Create(contractByteCode, ethValue)
                     """
                 );
-                create2Function.AddArgument("System.ReadOnlySpan<byte>", "salt");
+                create2Function.AddArgument("in EtherSharp.Types.Bytes32", "salt");
                 create2Function.AddStatement(
                     $"""
                     var contractByteCode = CreateCode({createCallBuilder.Build()});
@@ -163,7 +163,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                     return EtherSharp.Tx.IContractDeployment.Create(ByteCode, 0)
                     """
                 );
-                create2Function.AddArgument("System.ReadOnlySpan<byte>", "salt");
+                create2Function.AddArgument("in EtherSharp.Types.Bytes32", "salt");
                 create2Function.AddStatement(
                     $"""
                     return EtherSharp.Tx.IContractCall.ForCreate2Call(ByteCode, salt, 0)
