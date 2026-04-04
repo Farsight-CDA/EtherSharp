@@ -205,6 +205,15 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             {
                 receiveResult = await _socket.ReceiveAsync(buffer, _connectionHandlerCts.Token);
 
+                if(receiveResult.MessageType == WebSocketMessageType.Close)
+                {
+                    _logger?.LogWarning(
+                        "Websocket close frame received; closeStatus={CloseStatus}; description={CloseDescription}",
+                        receiveResult.CloseStatus,
+                        receiveResult.CloseStatusDescription);
+                    return;
+                }
+
                 if(receiveResult.Count != 0)
                 {
                     ms.Write(buffer.AsSpan(0, receiveResult.Count));
@@ -218,7 +227,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
             if(msBuffer.Length == 0)
             {
-                continue;
+                return;
             }
 
             IdentifyPayload(msBuffer, out var payloadType, out int requestId, out string subscriptionId);
@@ -250,7 +259,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                     break;
                 case PayloadType.Subscription:
                     _subscriptionMessageCounter?.Add(1);
-                    DispatchSubscriptionMessage(subscriptionId, msBuffer);
+                    DispatchSubscriptionMessage(subscriptionId!, msBuffer);
                     break;
                 default:
                     string payload = System.Text.Encoding.UTF8.GetString(msBuffer);
@@ -289,99 +298,51 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
         try
         {
-            var reader = new Utf8JsonReader(jsonSpan);
+            using var document = JsonDocument.Parse(jsonSpan.ToArray());
+            var root = document.RootElement;
 
-            reader.Read();
-            reader.Read();
-
-            while(reader.TokenType != JsonTokenType.None)
+            if(root.ValueKind != JsonValueKind.Object)
             {
-                switch(reader.TokenType)
+                return;
+            }
+
+            if(root.TryGetProperty("id", out var idProperty))
+            {
+                requestId = idProperty.ValueKind switch
                 {
-                    case JsonTokenType.PropertyName:
-                        if(reader.ValueTextEquals("id"))
-                        {
-                            reader.Read();
-                            if(reader.TokenType == JsonTokenType.Number)
-                            {
-                                requestId = reader.GetInt32();
-                            }
-                            else
-                            {
-                                Span<char> buffer = stackalloc char[16];
-                                int written = reader.CopyString(buffer);
-                                var valueSpan = buffer[..written];
+                    JsonValueKind.Number => idProperty.GetInt32(),
+                    JsonValueKind.String => ParseRequestId(idProperty.GetString()!),
+                    _ => -1
+                };
 
-                                requestId = valueSpan.StartsWith("0x", StringComparison.Ordinal)
-                                    ? Int32.Parse(
-                                        valueSpan[2..],
-                                        System.Globalization.NumberStyles.HexNumber,
-                                        System.Globalization.CultureInfo.InvariantCulture
-                                    )
-                                    : Int32.Parse(valueSpan, System.Globalization.CultureInfo.InvariantCulture);
-                            }
+                payloadType = PayloadType.Response;
+                return;
+            }
 
-                            payloadType = PayloadType.Response;
-                            return;
-                        }
-                        else if(reader.ValueTextEquals("method"))
-                        {
-                            reader.Read();
-
-                            if(!reader.ValueTextEquals("eth_subscription"))
-                            {
-                                _logger?.LogWarning("Failed to identify payload with method {Method}", reader.GetString());
-                                return;
-                            }
-
-                            reader.Read(); //eth_subscription string
-
-                            if(reader.TokenType != JsonTokenType.PropertyName || !reader.ValueTextEquals("params"))
-                            {
-                                _logger?.LogWarning("Failed to identify payload, eth_subscription not followed by params property");
-                                return;
-                            }
-
-                            reader.Read(); //params property name
-
-                            if(reader.TokenType != JsonTokenType.StartObject)
-                            {
-                                _logger?.LogWarning("Failed to identify payload, eth_subscription not followed by params object");
-                                return;
-                            }
-
-                            reader.Read(); //start params object
-
-                            while(reader.TokenType == JsonTokenType.PropertyName)
-                            {
-                                if(reader.ValueTextEquals("result"))
-                                {
-                                    reader.Skip();
-                                    reader.Read();
-                                }
-                                else if(reader.ValueTextEquals("subscription"))
-                                {
-                                    reader.Read();
-                                    subscriptionId = reader.GetString()!;
-                                    payloadType = PayloadType.Subscription;
-                                    return;
-                                }
-                            }
-
-                            _logger?.LogWarning("Failed to identify payload, eth_subscription params not containing subscription id");
-                            return;
-                        }
-
-                        reader.Skip();
-                        break;
-
-                    case JsonTokenType.StartObject or JsonTokenType.StartArray:
-                        reader.Skip();
-                        break;
-                    default:
-                        reader.Read();
-                        break;
+            if(root.TryGetProperty("method", out var methodProperty))
+            {
+                string? method = methodProperty.GetString();
+                if(!String.Equals(method, "eth_subscription", StringComparison.Ordinal))
+                {
+                    _logger?.LogWarning("Failed to identify payload with method {Method}", method);
+                    return;
                 }
+
+                if(!root.TryGetProperty("params", out var paramsProperty) || paramsProperty.ValueKind != JsonValueKind.Object)
+                {
+                    _logger?.LogWarning("Failed to identify payload, eth_subscription not followed by params object");
+                    return;
+                }
+
+                if(!paramsProperty.TryGetProperty("subscription", out var subscriptionProperty) || subscriptionProperty.ValueKind != JsonValueKind.String)
+                {
+                    _logger?.LogWarning("Failed to identify payload, eth_subscription params not containing subscription id");
+                    return;
+                }
+
+                subscriptionId = subscriptionProperty.GetString()!;
+                payloadType = PayloadType.Subscription;
+                return;
             }
 
             _logger?.LogWarning("Failed to identify payload, no marker found till end of payload");
@@ -391,6 +352,14 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             _logger?.LogWarning(ex, "Exception while trying to identify payload");
         }
     }
+
+    private static int ParseRequestId(string value)
+        => value.StartsWith("0x", StringComparison.Ordinal)
+            ? Int32.Parse(
+                value.AsSpan(2),
+                System.Globalization.NumberStyles.HexNumber,
+                System.Globalization.CultureInfo.InvariantCulture)
+            : Int32.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
 
     internal enum PayloadType
     {
