@@ -67,27 +67,37 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// </summary>
     /// <param name="websocketUrl"></param>
     /// <param name="requestTimeout"></param>
+    /// <param name="nonceMode"></param>
     /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForWebsocket(
-        string websocketUrl, TimeSpan? requestTimeout = null,
+        string websocketUrl, TimeSpan? requestTimeout = null, NonceMode nonceMode = NonceMode.ExclusiveLocal,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null
     )
-        => CreateForWebsocket(new Uri(websocketUrl, UriKind.Absolute), requestTimeout, signer, loggerFactory, configureGasProvider);
+        => CreateForWebsocket(
+            new Uri(websocketUrl, UriKind.Absolute),
+            requestTimeout,
+            nonceMode,
+            signer,
+            loggerFactory,
+            configureGasProvider
+        );
 
     /// <summary>
     /// Creates an EtherClientBuilder preconfigured for a websocket RPC.
     /// </summary>
     /// <param name="websocketUri"></param>
     /// <param name="requestTimeout"></param>
+    /// <param name="nonceMode"></param>
     /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
     /// <returns></returns>
-    public static EtherClientBuilder CreateForWebsocket(Uri websocketUri, TimeSpan? requestTimeout = null,
+    public static EtherClientBuilder CreateForWebsocket(
+        Uri websocketUri, TimeSpan? requestTimeout = null, NonceMode nonceMode = NonceMode.ExclusiveLocal,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null
     )
@@ -112,7 +122,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithBlockingSequentialTxScheduler(NonceMode.ExclusiveLocal)
+            .WithBlockingSequentialTxScheduler(nonceMode)
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
                 gasFeeProviderConfigurationAction: configureGasProvider
             )
@@ -122,16 +132,42 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <summary>
     /// Creates an EtherClientBuilder preconfigured for a HTTP RPC.
     /// </summary>
-    /// <param name="websocketUrl"></param>
+    /// <param name="rpcUrl"></param>
+    /// <param name="nonceMode"></param>
     /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
+    /// <param name="configureGasProvider"></param>
     /// <returns></returns>
-    public static EtherClientBuilder CreateForHttpRpc(string websocketUrl, IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null)
+    public static EtherClientBuilder CreateForHttpRpc(
+        string rpcUrl, NonceMode nonceMode = NonceMode.ExclusiveLocal,
+        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
+        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null)
+        => CreateForHttpRpc(
+            new Uri(rpcUrl, UriKind.Absolute),
+            nonceMode,
+            signer,
+            loggerFactory,
+            configureGasProvider
+        );
+
+    /// <summary>
+    /// Creates an EtherClientBuilder preconfigured for a HTTP RPC.
+    /// </summary>
+    /// <param name="rpcUri"></param>
+    /// <param name="nonceMode"></param>
+    /// <param name="signer"></param>
+    /// <param name="loggerFactory"></param>
+    /// <param name="configureGasProvider"></param>
+    /// <returns></returns>
+    public static EtherClientBuilder CreateForHttpRpc(
+        Uri rpcUri, NonceMode nonceMode = NonceMode.ExclusiveLocal,
+        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
+        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null)
     {
         var builder = new EtherClientBuilder()
         {
             _transportRegistration = provider =>
-                new HttpJsonRpcTransport(new Uri(websocketUrl, UriKind.Absolute), provider)
+                new HttpJsonRpcTransport(rpcUri, provider)
         };
 
         if(loggerFactory is not null)
@@ -146,8 +182,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithBlockingSequentialTxScheduler(NonceMode.ExclusiveLocal)
-            .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>()
+            .WithBlockingSequentialTxScheduler(nonceMode)
+            .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
+                gasFeeProviderConfigurationAction: configureGasProvider
+            )
             .AddTxTypeHandler<LegacyTxTypeHandler, LegacyGasFeeProvider, LegacyGasFeeProvider.Configuration, LegacyTransaction, LegacyTxParams, LegacyGasParams>();
     }
 
