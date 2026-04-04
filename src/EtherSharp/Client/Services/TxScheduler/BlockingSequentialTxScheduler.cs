@@ -56,7 +56,6 @@ public sealed class BlockingSequentialTxScheduler(
 
     private uint _confirmedNonce;
     private uint _peakNonce;
-    private uint _syncedPendingNonce;
 
     private readonly Dictionary<uint, TaskCompletionSource> _nonceGates = [];
 
@@ -79,23 +78,8 @@ public sealed class BlockingSequentialTxScheduler(
             _peakNonce = Math.Max(_confirmedNonce, dbNonce + 1);
         }
 
-        _syncedPendingNonce = _confirmedNonce;
-
-        if(_nonceMode == NonceMode.BackgroundSync)
-        {
-            _syncedPendingNonce = Math.Max(
-                _confirmedNonce,
-                await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Pending, cancellationToken)
-            );
-        }
-
         _ = Task.Run(() => AdaptiveNoncePollerAsync(_cts.Token), cancellationToken);
     }
-
-    private uint GetObservedPeakNonceLocked()
-        => _nonceMode == NonceMode.BackgroundSync
-            ? Math.Max(_peakNonce, _syncedPendingNonce)
-            : _peakNonce;
 
     private void AdvanceConfirmedNonceLocked(uint actualNonce)
     {
@@ -147,49 +131,39 @@ public sealed class BlockingSequentialTxScheduler(
 
     private async Task AdaptiveNoncePollerAsync(CancellationToken cancellationToken)
     {
-        bool isActive = false;
-
         while(!cancellationToken.IsCancellationRequested)
         {
             try
             {
+                bool isActive;
+
+                lock(_stateLock)
+                {
+                    isActive = _peakNonce > _confirmedNonce;
+                }
+
+                if(!isActive)
+                {
+                    if(_nonceMode == NonceMode.BackgroundSync)
+                    {
+                        await _workerSignal.WaitAsync(TimeSpan.FromSeconds(300), cancellationToken);
+                    }
+                    else
+                    {
+                        await _workerSignal.WaitAsync(cancellationToken);
+                    }
+
+                    continue;
+                }
+
                 uint actualNonce = await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Latest, cancellationToken);
-                uint? pendingNonce = _nonceMode == NonceMode.BackgroundSync
-                    ? await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Pending, cancellationToken)
-                    : null;
-                bool newIsActive;
 
                 lock(_stateLock)
                 {
                     AdvanceConfirmedNonceLocked(actualNonce);
-
-                    if(pendingNonce is uint value)
-                    {
-                        _syncedPendingNonce = Math.Max(_confirmedNonce, value);
-                    }
-
-                    newIsActive = GetObservedPeakNonceLocked() > _confirmedNonce;
                 }
 
-                if(isActive != newIsActive)
-                {
-                    if(_logger?.IsEnabled(LogLevel.Debug) == true)
-                    {
-                        string mode = newIsActive ? "Fast" : "Slow";
-                        _logger.LogDebug("Switching polling mode to {mode}", mode);
-                    }
-
-                    isActive = newIsActive;
-                }
-
-                if(isActive)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(1500), cancellationToken);
-                }
-                else
-                {
-                    await _workerSignal.WaitAsync(TimeSpan.FromSeconds(300), cancellationToken);
-                }
+                await Task.Delay(TimeSpan.FromMilliseconds(1500), cancellationToken);
             }
             catch(OperationCanceledException ex) when(ex.CancellationToken == cancellationToken)
             {
@@ -222,13 +196,13 @@ public sealed class BlockingSequentialTxScheduler(
         {
             if(_nonceMode == NonceMode.RefreshOnAllocate)
             {
-                uint pendingNonce = await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Pending, cts.Token);
+                uint latestNonce = await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Latest, cts.Token);
 
                 lock(_stateLock)
                 {
-                    if(_peakNonce < pendingNonce)
+                    if(_peakNonce < latestNonce)
                     {
-                        _peakNonce = pendingNonce;
+                        _peakNonce = latestNonce;
                     }
                 }
             }
@@ -236,7 +210,7 @@ public sealed class BlockingSequentialTxScheduler(
             uint myNonce;
             lock(_stateLock)
             {
-                myNonce = GetObservedPeakNonceLocked();
+                myNonce = _peakNonce;
             }
 
             txParams ??= TTxParams.Default;
@@ -329,6 +303,11 @@ public sealed class BlockingSequentialTxScheduler(
                     (_, _) => FetchConfirmationInternal(typedSubmissions, 1)
                 );
             }
+        }
+
+        if(_workerSignal.CurrentCount == 0)
+        {
+            _workerSignal.Release();
         }
 
         return new PendingTxHandler<TTxParams, TTxGasParams>(
