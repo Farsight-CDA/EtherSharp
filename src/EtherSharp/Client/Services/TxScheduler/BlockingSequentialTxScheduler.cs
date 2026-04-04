@@ -21,15 +21,29 @@ namespace EtherSharp.Client.Services.TxScheduler;
 /// <param name="ethRpcModule">RPC module used for nonce, receipt, and chain state queries.</param>
 /// <param name="signer">Signer representing the sender account for scheduled transactions.</param>
 /// <param name="txPublisher">Publisher used to submit signed transactions to the network.</param>
+/// <param name="options">Configuration for nonce synchronization behavior.</param>
 public sealed class BlockingSequentialTxScheduler(
     IServiceProvider provider,
     IEthRpcModule ethRpcModule,
     IEtherSigner signer,
-    ITxPublisher txPublisher
+    ITxPublisher txPublisher,
+    BlockingSequentialTxScheduler.Options options
 ) : ITxScheduler, IInitializableService, IDisposable
 {
+    /// <summary>
+    /// Configuration for <see cref="BlockingSequentialTxScheduler"/>.
+    /// </summary>
+    public sealed class Options
+    {
+        /// <summary>
+        /// Controls how nonce allocation is synchronized with the node.
+        /// </summary>
+        public NonceMode NonceMode { get; set; } = NonceMode.ExclusiveLocal;
+    }
+
     private readonly IResiliencyLayer? _resiliencyLayer = provider.GetService<IResiliencyLayer>();
     private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<BlockingSequentialTxScheduler>();
+    private readonly NonceMode _nonceMode = options.NonceMode;
 
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
@@ -42,6 +56,7 @@ public sealed class BlockingSequentialTxScheduler(
 
     private uint _confirmedNonce;
     private uint _peakNonce;
+    private uint _syncedPendingNonce;
 
     private readonly Dictionary<uint, TaskCompletionSource> _nonceGates = [];
 
@@ -64,7 +79,50 @@ public sealed class BlockingSequentialTxScheduler(
             _peakNonce = Math.Max(_confirmedNonce, dbNonce + 1);
         }
 
+        _syncedPendingNonce = _confirmedNonce;
+
+        if(_nonceMode == NonceMode.BackgroundSync)
+        {
+            _syncedPendingNonce = Math.Max(
+                _confirmedNonce,
+                await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Pending, cancellationToken)
+            );
+        }
+
         _ = Task.Run(() => AdaptiveNoncePollerAsync(_cts.Token), cancellationToken);
+    }
+
+    private uint GetObservedPeakNonceLocked()
+        => _nonceMode == NonceMode.BackgroundSync
+            ? Math.Max(_peakNonce, _syncedPendingNonce)
+            : _peakNonce;
+
+    private void AdvanceConfirmedNonceLocked(uint actualNonce)
+    {
+        if(actualNonce <= _confirmedNonce)
+        {
+            return;
+        }
+
+        for(uint i = _confirmedNonce; i < actualNonce; i++)
+        {
+            if(_logger?.IsEnabled(LogLevel.Information) == true)
+            {
+                _logger.LogInformation("Transaction with nonce {nonce} confirmed on-chain", i);
+            }
+
+            if(_nonceGates.Remove(i, out var tcs))
+            {
+                tcs.TrySetResult();
+            }
+        }
+
+        _confirmedNonce = actualNonce;
+
+        if(_peakNonce < _confirmedNonce)
+        {
+            _peakNonce = _confirmedNonce;
+        }
     }
 
     private Task WaitForNonceCompletionAsync(uint nonceToWaitFor)
@@ -96,33 +154,21 @@ public sealed class BlockingSequentialTxScheduler(
             try
             {
                 uint actualNonce = await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Latest, cancellationToken);
+                uint? pendingNonce = _nonceMode == NonceMode.BackgroundSync
+                    ? await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Pending, cancellationToken)
+                    : null;
                 bool newIsActive;
 
                 lock(_stateLock)
                 {
-                    if(actualNonce > _confirmedNonce)
-                    {
-                        for(uint i = _confirmedNonce; i < actualNonce; i++)
-                        {
-                            if(_logger?.IsEnabled(LogLevel.Information) == true)
-                            {
-                                _logger.LogInformation("Transaction with nonce {nonce} confirmed on-chain", i);
-                            }
+                    AdvanceConfirmedNonceLocked(actualNonce);
 
-                            if(_nonceGates.Remove(i, out var tcs))
-                            {
-                                tcs.TrySetResult();
-                            }
-                        }
-                        _confirmedNonce = actualNonce;
+                    if(pendingNonce is uint value)
+                    {
+                        _syncedPendingNonce = Math.Max(_confirmedNonce, value);
                     }
 
-                    if(_peakNonce < _confirmedNonce)
-                    {
-                        _peakNonce = _confirmedNonce;
-                    }
-
-                    newIsActive = _peakNonce > _confirmedNonce;
+                    newIsActive = GetObservedPeakNonceLocked() > _confirmedNonce;
                 }
 
                 if(isActive != newIsActive)
@@ -174,10 +220,23 @@ public sealed class BlockingSequentialTxScheduler(
 
         try
         {
+            if(_nonceMode == NonceMode.RefreshOnAllocate)
+            {
+                uint pendingNonce = await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Pending, cts.Token);
+
+                lock(_stateLock)
+                {
+                    if(_peakNonce < pendingNonce)
+                    {
+                        _peakNonce = pendingNonce;
+                    }
+                }
+            }
+
             uint myNonce;
             lock(_stateLock)
             {
-                myNonce = _peakNonce;
+                myNonce = GetObservedPeakNonceLocked();
             }
 
             txParams ??= TTxParams.Default;
@@ -188,11 +247,12 @@ public sealed class BlockingSequentialTxScheduler(
 
             lock(_stateLock)
             {
-                if(_peakNonce != myNonce)
+                if(_peakNonce > myNonce)
                 {
                     throw new ImpossibleException();
                 }
-                _peakNonce++;
+
+                _peakNonce = myNonce + 1;
             }
 
             if(_workerSignal.CurrentCount == 0)

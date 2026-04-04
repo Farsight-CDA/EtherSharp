@@ -112,7 +112,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithTxScheduler<BlockingSequentialTxScheduler>()
+            .WithBlockingSequentialTxScheduler(NonceMode.ExclusiveLocal)
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
                 gasFeeProviderConfigurationAction: configureGasProvider
             )
@@ -146,7 +146,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithTxScheduler<BlockingSequentialTxScheduler>()
+            .WithBlockingSequentialTxScheduler(NonceMode.ExclusiveLocal)
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>()
             .AddTxTypeHandler<LegacyTxTypeHandler, LegacyGasFeeProvider, LegacyGasFeeProvider.Configuration, LegacyTransaction, LegacyTxParams, LegacyGasParams>();
     }
@@ -261,6 +261,35 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         AddConfigureAction<ITxScheduler, TTxScheduler>(configureAction);
         return this;
     }
+
+    /// <summary>
+    /// Configures the TxScheduler using a registration-only options object.
+    /// </summary>
+    /// <typeparam name="TTxScheduler"></typeparam>
+    /// <typeparam name="TOptions"></typeparam>
+    /// <param name="configureAction"></param>
+    /// <returns></returns>
+    public EtherClientBuilder WithTxScheduler<TTxScheduler, TOptions>(Action<TOptions>? configureAction = null)
+        where TTxScheduler : class, ITxScheduler
+        where TOptions : class, new()
+    {
+        var options = new TOptions();
+        configureAction?.Invoke(options);
+
+        _services.AddOrReplaceSingleton<TTxScheduler, TTxScheduler>(provider => ActivatorUtilities.CreateInstance<TTxScheduler>(provider, options));
+        _services.AddOrReplaceSingleton<ITxScheduler>(provider => provider.GetRequiredService<TTxScheduler>());
+        return this;
+    }
+
+    /// <summary>
+    /// Configures the default blocking sequential tx scheduler.
+    /// </summary>
+    /// <param name="nonceMode"></param>
+    /// <returns></returns>
+    public EtherClientBuilder WithBlockingSequentialTxScheduler(NonceMode nonceMode)
+        => WithTxScheduler<BlockingSequentialTxScheduler, BlockingSequentialTxScheduler.Options>(
+            options => options.NonceMode = nonceMode
+        );
 
     /// <summary>
     /// Configures the SubscriptionsManager.
