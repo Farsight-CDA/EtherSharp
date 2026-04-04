@@ -15,7 +15,7 @@ public sealed class EtherClientBenchmarks
     {
         var wallet = EtherHdWallet.Create();
         _client = EtherClientBuilder
-            .CreateForHttpRpc("https://optimism.llamarpc.com", wallet)
+            .CreateForHttpRpc("https://optimism.llamarpc.com", signer: wallet)
             .BuildTxClient();
 
         _client.InitializeAsync().GetAwaiter().GetResult();
