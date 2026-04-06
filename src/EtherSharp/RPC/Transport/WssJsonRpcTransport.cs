@@ -290,8 +290,14 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         try
         {
             var reader = new Utf8JsonReader(jsonSpan);
-
             reader.Read();
+
+            if(reader.TokenType != JsonTokenType.StartObject)
+            {
+                _logger?.LogWarning("Failed to identify payload, JSON root is not an object");
+                return;
+            }
+
             reader.Read();
 
             while(reader.TokenType != JsonTokenType.None && reader.CurrentDepth > 0)
@@ -302,6 +308,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                         if(reader.ValueTextEquals("id"))
                         {
                             reader.Read();
+
                             if(reader.TokenType == JsonTokenType.Number)
                             {
                                 requestId = reader.GetInt32();
@@ -379,7 +386,11 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                         reader.Skip();
                         break;
                     default:
-                        reader.Read();
+                        if(!reader.Read())
+                        {
+                            _logger?.LogWarning("Failed to identify payload, failed to proceed reading");
+                            return;
+                        }
                         break;
                 }
             }
