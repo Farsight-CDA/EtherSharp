@@ -294,7 +294,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             reader.Read();
             reader.Read();
 
-            while(reader.TokenType != JsonTokenType.None)
+            while(reader.TokenType != JsonTokenType.None && reader.CurrentDepth > 0)
             {
                 switch(reader.TokenType)
                 {
