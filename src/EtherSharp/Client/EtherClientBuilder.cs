@@ -38,6 +38,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
 {
     private readonly IServiceCollection _services = new ServiceCollection();
     IServiceCollection IInternalEtherClientBuilder.Services => _services;
+    private EtherClientOptions _clientOptions = new();
 
     private Func<IServiceProvider, IRPCTransport>? _transportRegistration;
 
@@ -435,12 +436,19 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         {
             throw new ArgumentOutOfRangeException(nameof(flashCallGasLimit), "Configured flash-call gas limit must be greater than zero.");
         }
-        if(ethCallGasLimit is not null && flashCallGasLimit is not null && flashCallGasLimit > ethCallGasLimit)
+        if(
+            ethCallGasLimit is not null
+            && flashCallGasLimit is not null
+            && flashCallGasLimit > ethCallGasLimit)
         {
             throw new ArgumentOutOfRangeException(nameof(flashCallGasLimit), "Configured flash-call gas limit cannot exceed the configured eth_call gas limit.");
         }
 
-        _services.AddOrReplaceSingleton(new ClientCallGasLimits(ethCallGasLimit, flashCallGasLimit));
+        _clientOptions = _clientOptions with
+        {
+            EthCallGasLimit = ethCallGasLimit,
+            FlashCallGasLimit = flashCallGasLimit,
+        };
         return this;
     }
 
@@ -467,6 +475,9 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
             action(provider.GetRequiredService(serviceType));
         }
     }
+
+    private void RegisterClientOptions(bool isTxClient)
+        => _services.AddOrReplaceSingleton(_clientOptions with { IsTxClient = isTxClient });
 
     private void AssertReadClientConfiguration()
     {
@@ -506,11 +517,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         {
             _services.AddSingleton(ParsingUtils.CreateDefaultEvmSerializerOptions());
         }
-        if(!_services.Any(x => x.ServiceType == typeof(ClientCallGasLimits)))
-        {
-            _services.AddSingleton(new ClientCallGasLimits());
-        }
-
         foreach(var service in _services.ToArray())
         {
             var serviceType = service.ImplementationType
@@ -533,8 +539,9 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     public IEtherClient BuildReadClient()
     {
         AssertReadClientConfiguration();
+        RegisterClientOptions(false);
 
-        _services.AddSingleton<IEtherClient>(provider => new EtherClient(provider, false));
+        _services.AddSingleton<IEtherClient>(provider => new EtherClient(provider));
 
         var provider = _services.BuildServiceProvider();
 
@@ -568,9 +575,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     public IEtherTxClient BuildTxClient()
     {
         AssertTxClientConfiguration();
+        RegisterClientOptions(true);
 
         _services.AddSingleton<IEtherClient>(provider => provider.GetRequiredService<IEtherTxClient>());
-        _services.AddSingleton<IEtherTxClient>(provider => new EtherClient(provider, true));
+        _services.AddSingleton<IEtherTxClient>(provider => new EtherClient(provider));
 
         var provider = _services.BuildServiceProvider();
 

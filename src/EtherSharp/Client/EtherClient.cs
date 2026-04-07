@@ -30,9 +30,8 @@ namespace EtherSharp.Client;
 internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 {
     private readonly IServiceProvider _provider;
-    private readonly bool _isTxClient;
+    private readonly EtherClientOptions _options;
     private readonly IRPCTransport _rpcTransport;
-    private readonly ClientCallGasLimits _callGasLimits;
 
     private IEtherTxModule _etherModule = null!;
     private ITraceModule _traceModule = null!;
@@ -57,12 +56,11 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private CompatibilityReport? _compatibilityReport = null!;
     private readonly Lock _disposeLock = new Lock();
 
-    internal EtherClient(IServiceProvider provider, bool isTxClient)
+    internal EtherClient(IServiceProvider provider)
     {
         _provider = provider;
-        _isTxClient = isTxClient;
+        _options = provider.GetRequiredService<EtherClientOptions>();
         _rpcTransport = provider.GetRequiredService<IRPCTransport>();
-        _callGasLimits = provider.GetService<ClientCallGasLimits>() ?? new ClientCallGasLimits();
     }
 
     IServiceProvider IInternalEtherClient.Provider => _provider;
@@ -176,7 +174,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
     private ulong ResolveFlashCallGasLimit(ulong flashCallGasLimit)
         => flashCallGasLimit == 0
-            ? _callGasLimits.FlashCallGasLimit ?? 0
+            ? _options.FlashCallGasLimit ?? 0
             : flashCallGasLimit;
 
     private async Task<TQuery> ExecuteQueryAsync<TQuery>(
@@ -227,7 +225,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
         _jsonSerializerOptions = _provider.GetRequiredService<JsonSerializerOptions>();
 
-        if(_isTxClient)
+        if(_options.IsTxClient)
         {
             _signer = _provider.GetRequiredService<IEtherSigner>();
             _txScheduler = _provider.GetRequiredService<ITxScheduler>();
@@ -397,7 +395,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     {
         AssertReady();
 
-        if(from is null && _isTxClient)
+        if(from is null && _options.IsTxClient)
         {
             from = _signer.Address;
         }
@@ -424,7 +422,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     {
         AssertReady();
 
-        Address? sender = from ?? (_isTxClient ? _signer.Address : default);
+        Address? sender = from ?? (_options.IsTxClient ? _signer.Address : default);
 
         var result = await _ethRpcModule.CallAsync(
             sender,
