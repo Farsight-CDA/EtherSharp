@@ -22,7 +22,6 @@ using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System.Buffers.Binary;
 using System.Text.Json;
 
@@ -31,8 +30,9 @@ namespace EtherSharp.Client;
 internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 {
     private readonly IServiceProvider _provider;
-    private readonly ILoggerFactory? _loggerFactory;
     private readonly bool _isTxClient;
+    private readonly IRPCTransport _rpcTransport;
+    private readonly ClientCallGasLimits _callGasLimits;
 
     private IEtherTxModule _etherModule = null!;
     private ITraceModule _traceModule = null!;
@@ -40,7 +40,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private IDebugModule _debugModule = null!;
 
     private IRpcClient _rpcClient = null!;
-    private readonly IRPCTransport _rpcTransport;
     private IEthRpcModule _ethRpcModule = null!;
 
     private IEtherSigner _signer = null!;
@@ -57,6 +56,14 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private ulong _chainId;
     private CompatibilityReport? _compatibilityReport = null!;
     private readonly Lock _disposeLock = new Lock();
+
+    internal EtherClient(IServiceProvider provider, bool isTxClient)
+    {
+        _provider = provider;
+        _isTxClient = isTxClient;
+        _rpcTransport = provider.GetRequiredService<IRPCTransport>();
+        _callGasLimits = provider.GetService<ClientCallGasLimits>() ?? new ClientCallGasLimits();
+    }
 
     IServiceProvider IInternalEtherClient.Provider => _provider;
     IRpcClient IInternalEtherClient.RPC => _rpcClient;
@@ -103,90 +110,63 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default,
         CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(c1, flashCallGasLimit, targetHeight, cancellationToken);
-    }
+        => await ExecuteQueryAsync(c1, flashCallGasLimit, targetHeight, cancellationToken);
 
     public async Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
         ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default,
         CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2), flashCallGasLimit, targetHeight, cancellationToken);
-    }
+        => await ExecuteQueryAsync(IQuery.Combine(c1, c2), flashCallGasLimit, targetHeight, cancellationToken);
 
     public async Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
         ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default,
         CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), flashCallGasLimit, targetHeight, cancellationToken);
-    }
+        => await ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), flashCallGasLimit, targetHeight, cancellationToken);
 
     public async Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
         ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default,
         CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), flashCallGasLimit, targetHeight, cancellationToken);
-    }
+        => await ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), flashCallGasLimit, targetHeight, cancellationToken);
 
     public async Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
         ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default,
         CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), flashCallGasLimit, targetHeight, cancellationToken);
-    }
+        => await ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), flashCallGasLimit, targetHeight, cancellationToken);
 
     public async Task<(T1, T2, T3, T4, T5, T6)> QueryAsync<T1, T2, T3, T4, T5, T6>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6,
         ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default,
         CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), flashCallGasLimit, targetHeight, cancellationToken);
-    }
+        => await ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), flashCallGasLimit, targetHeight, cancellationToken);
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7)> QueryAsync<T1, T2, T3, T4, T5, T6, T7>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7,
         ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default,
         CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), flashCallGasLimit, targetHeight, cancellationToken);
-    }
+        => await ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), flashCallGasLimit, targetHeight, cancellationToken);
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7, T8)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8,
         ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default,
         CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), flashCallGasLimit, targetHeight, cancellationToken);
-    }
+        => await ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), flashCallGasLimit, targetHeight, cancellationToken);
 
     public async Task<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8, IQuery<T9> c9,
         ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default,
         CancellationToken cancellationToken = default)
-    {
-        AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), flashCallGasLimit, targetHeight, cancellationToken);
-    }
+        => await ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), flashCallGasLimit, targetHeight, cancellationToken);
 
     IEventsModule<TEvent> IEtherClient.Events<TEvent>()
     {
@@ -194,12 +174,19 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         return new EventsModule<TEvent>(_rpcClient, _ethRpcModule, _subscriptionsManager, _jsonSerializerOptions);
     }
 
-    internal EtherClient(IServiceProvider provider, bool isTxClient)
+    private ulong ResolveFlashCallGasLimit(ulong flashCallGasLimit)
+        => flashCallGasLimit == 0
+            ? _callGasLimits.FlashCallGasLimit ?? 0
+            : flashCallGasLimit;
+
+    private async Task<TQuery> ExecuteQueryAsync<TQuery>(
+        IQuery<TQuery> query,
+        ulong flashCallGasLimit,
+        TargetHeight targetHeight,
+        CancellationToken cancellationToken)
     {
-        _provider = provider;
-        _isTxClient = isTxClient;
-        _rpcTransport = provider.GetRequiredService<IRPCTransport>();
-        _loggerFactory = provider.GetService<ILoggerFactory>();
+        AssertReady();
+        return await _queryExecutor.ExecuteQueryAsync(query, ResolveFlashCallGasLimit(flashCallGasLimit), targetHeight, cancellationToken);
     }
 
     async Task IEtherClient.InitializeAsync(bool forceNoQuery, CancellationToken cancellationToken)
@@ -294,7 +281,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         (_chainId, _compatibilityReport, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
             IQuery.Combine(IQuery.GetChainId(), IQuery.GetCompatibilityReport(), initQuery, flashCallSetupQuery),
-            0,
+            ResolveFlashCallGasLimit(0),
             TargetHeight.Latest,
             cancellationToken
         );
@@ -467,7 +454,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
+        return _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, ResolveFlashCallGasLimit(flashCallGasLimit), targetHeight, cancellationToken);
     }
 
     public async Task<T> FlashCallAsync<T>(

@@ -420,6 +420,31 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
+    /// Configures default gas limits applied to client-side call execution.
+    /// </summary>
+    /// <param name="ethCallGasLimit">Optional fallback gas limit applied to <c>eth_call</c> requests when no explicit gas is provided.</param>
+    /// <param name="flashCallGasLimit">Optional fallback gas limit applied to flash-call helper execution when no per-call limit is provided.</param>
+    /// <returns></returns>
+    public EtherClientBuilder WithCallGasLimits(ulong? ethCallGasLimit = null, ulong? flashCallGasLimit = null)
+    {
+        if(ethCallGasLimit == 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(ethCallGasLimit), "Configured eth_call gas limit must be greater than zero.");
+        }
+        if(flashCallGasLimit == 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(flashCallGasLimit), "Configured flash-call gas limit must be greater than zero.");
+        }
+        if(ethCallGasLimit is not null && flashCallGasLimit is not null && flashCallGasLimit > ethCallGasLimit)
+        {
+            throw new ArgumentOutOfRangeException(nameof(flashCallGasLimit), "Configured flash-call gas limit cannot exceed the configured eth_call gas limit.");
+        }
+
+        _services.AddOrReplaceSingleton(new ClientCallGasLimits(ethCallGasLimit, flashCallGasLimit));
+        return this;
+    }
+
+    /// <summary>
     /// Configures the client to use a deployed FlashCall contract.
     /// </summary>
     /// <param name="contractAddress"></param>
@@ -480,6 +505,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         if(!_services.Any(x => x.ServiceType == typeof(JsonSerializerOptions)))
         {
             _services.AddSingleton(ParsingUtils.CreateDefaultEvmSerializerOptions());
+        }
+        if(!_services.Any(x => x.ServiceType == typeof(ClientCallGasLimits)))
+        {
+            _services.AddSingleton(new ClientCallGasLimits());
         }
 
         foreach(var service in _services.ToArray())

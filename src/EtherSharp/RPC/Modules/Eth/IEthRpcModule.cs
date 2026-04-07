@@ -10,11 +10,6 @@ namespace EtherSharp.RPC.Modules.Eth;
 public interface IEthRpcModule
 {
     /// <summary>
-    /// Optional fallback gas value applied to <c>eth_call</c> when no explicit gas is provided.
-    /// </summary>
-    public ulong? DefaultCallGas { get; set; }
-
-    /// <summary>
     /// Gets the chain id.
     /// </summary>
     public Task<ulong> ChainIdAsync(CancellationToken cancellationToken = default);
