@@ -7,10 +7,10 @@ using System.Globalization;
 
 namespace EtherSharp.RPC.Modules.Eth;
 
-internal sealed class EthRpcModule(IRpcClient rpcClient, EtherClientOptions options) : IEthRpcModule
+internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings callGasLimitSettings) : IEthRpcModule
 {
     private readonly IRpcClient _rpcClient = rpcClient;
-    private readonly ulong? _defaultCallGas = options.EthCallGasLimit;
+    private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
 
     public async Task<ulong> ChainIdAsync(CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<ulong>("eth_chainId", TargetHeight.Latest, cancellationToken) switch
@@ -72,7 +72,7 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, EtherClientOptions opti
         Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, string? data,
         TargetHeight targetHeight, CancellationToken cancellationToken)
     {
-        var transaction = new TransactionCall(from, to, gas ?? _defaultCallGas, gasPrice, value, data);
+        var transaction = new TransactionCall(from, to, gas ?? _callGasLimitSettings.GetEthCallGasLimit(), gasPrice, value, data);
 
         return TxCallResult.ParseFrom(
             await _rpcClient.SendRpcRequestAsync<TransactionCall, TargetHeight, byte[]>(

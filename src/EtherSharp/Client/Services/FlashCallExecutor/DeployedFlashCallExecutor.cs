@@ -8,13 +8,20 @@ using System.Buffers.Binary;
 namespace EtherSharp.Client.Services.FlashCallExecutor;
 
 internal sealed record DeployedFlashCallExecutorConfiguration(Address ContractAddress, bool AllowFallback, int MaxPayloadSize, int MaxResultSize);
-internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFlashCallExecutorConfiguration configuration) : IFlashCallExecutor
+internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, DeployedFlashCallExecutorConfiguration configuration,
+    CallGasLimitSettings callGasLimitSettings) : IFlashCallExecutor
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly DeployedFlashCallExecutorConfiguration _configuration = configuration;
-    private readonly ConstructorFlashCallExecutor _constructorFlashCallExecutor = new ConstructorFlashCallExecutor(ethRpcModule);
+    private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
+    private readonly ConstructorFlashCallExecutor _constructorFlashCallExecutor = new ConstructorFlashCallExecutor(ethRpcModule, callGasLimitSettings);
 
     private ulong _deploymentHeight;
+
+    private ulong ResolveFlashCallGasLimit(ulong flashCallGasLimit)
+        => flashCallGasLimit == 0
+            ? _callGasLimitSettings.GetFlashCallGasLimit() ?? 0
+            : flashCallGasLimit;
 
     public Address ContractAddress => _configuration.ContractAddress;
 
@@ -43,6 +50,8 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
         TargetHeight targetHeight,
         CancellationToken cancellationToken)
     {
+        flashCallGasLimit = ResolveFlashCallGasLimit(flashCallGasLimit);
+
         if(deployment.Value > 0)
         {
             throw new NotSupportedException("Contract deployment cannot contain any value");

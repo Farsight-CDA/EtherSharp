@@ -9,14 +9,4 @@ public sealed record EtherClientOptions
     /// Gets whether the client was built with transaction capabilities enabled.
     /// </summary>
     public bool IsTxClient { get; init; }
-
-    /// <summary>
-    /// Gets the optional fallback gas limit applied to <c>eth_call</c> requests.
-    /// </summary>
-    public ulong? EthCallGasLimit { get; init; }
-
-    /// <summary>
-    /// Gets the optional fallback gas limit applied to flash-call helper execution.
-    /// </summary>
-    public ulong? FlashCallGasLimit { get; init; }
 }

@@ -8,7 +8,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Client.Services.FlashCallExecutor;
 
-internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlashCallExecutor
+internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, CallGasLimitSettings callGasLimitSettings) : IFlashCallExecutor
 {
     private const string FLASHCALL_CONTRACT_HEX_UNLIMITED = "0x383d3d39602b5160f01c80602d3df03d3d3d84602d018038039034865af181533d8160013e3d60010181f3";
     private const int FLASHCALL_CONTRACT_LENGTH_UNLIMITED = 43;
@@ -24,9 +24,15 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
     private const int MAX_RUNTIMECODE_SIZE = 24 * 1024;
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
+    private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
+
+    private ulong ResolveFlashCallGasLimit(ulong flashCallGasLimit)
+        => flashCallGasLimit == 0
+            ? _callGasLimitSettings.GetFlashCallGasLimit() ?? 0
+            : flashCallGasLimit;
 
     public int GetMaxPayloadSize(ulong flashCallGasLimit, TargetHeight targetHeight)
-        => flashCallGasLimit == 0
+        => ResolveFlashCallGasLimit(flashCallGasLimit) == 0
             ? MAX_PAYLOAD_SIZE_UNLIMITED
             : MAX_PAYLOAD_SIZE;
 
@@ -40,6 +46,8 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
         TargetHeight targetHeight,
         CancellationToken cancellationToken)
     {
+        flashCallGasLimit = ResolveFlashCallGasLimit(flashCallGasLimit);
+
         if(deployment.Value > 0)
         {
             throw new NotSupportedException("Contract deployment cannot contain any value");

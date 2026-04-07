@@ -38,7 +38,9 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
 {
     private readonly IServiceCollection _services = new ServiceCollection();
     IServiceCollection IInternalEtherClientBuilder.Services => _services;
-    private EtherClientOptions _clientOptions = new();
+    private readonly EtherClientOptions _clientOptions = new();
+    private ulong? _ethCallGasLimit;
+    private ulong? _flashCallGasLimit;
 
     private Func<IServiceProvider, IRPCTransport>? _transportRegistration;
 
@@ -421,34 +423,17 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
-    /// Configures default gas limits applied to client-side call execution.
+    /// Configures the initial default gas limits applied to client-side call execution.
     /// </summary>
     /// <param name="ethCallGasLimit">Optional fallback gas limit applied to <c>eth_call</c> requests when no explicit gas is provided.</param>
     /// <param name="flashCallGasLimit">Optional fallback gas limit applied to flash-call helper execution when no per-call limit is provided.</param>
     /// <returns></returns>
     public EtherClientBuilder WithCallGasLimits(ulong? ethCallGasLimit = null, ulong? flashCallGasLimit = null)
     {
-        if(ethCallGasLimit == 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(ethCallGasLimit), "Configured eth_call gas limit must be greater than zero.");
-        }
-        if(flashCallGasLimit == 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(flashCallGasLimit), "Configured flash-call gas limit must be greater than zero.");
-        }
-        if(
-            ethCallGasLimit is not null
-            && flashCallGasLimit is not null
-            && flashCallGasLimit > ethCallGasLimit)
-        {
-            throw new ArgumentOutOfRangeException(nameof(flashCallGasLimit), "Configured flash-call gas limit cannot exceed the configured eth_call gas limit.");
-        }
+        CallGasLimitSettings.Validate(ethCallGasLimit, flashCallGasLimit);
 
-        _clientOptions = _clientOptions with
-        {
-            EthCallGasLimit = ethCallGasLimit,
-            FlashCallGasLimit = flashCallGasLimit,
-        };
+        _ethCallGasLimit = ethCallGasLimit;
+        _flashCallGasLimit = flashCallGasLimit;
         return this;
     }
 
@@ -487,6 +472,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         }
 
         _services.AddSingleton(_transportRegistration);
+        _services.AddOrReplaceSingleton(new CallGasLimitSettings(_ethCallGasLimit, _flashCallGasLimit));
 
         _services.AddSingleton<IRpcClient, RpcClient>();
         _services.AddSingleton<IEthRpcModule, EthRpcModule>();

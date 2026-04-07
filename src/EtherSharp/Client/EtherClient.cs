@@ -31,6 +31,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 {
     private readonly IServiceProvider _provider;
     private readonly EtherClientOptions _options;
+    private readonly CallGasLimitSettings _callGasLimitSettings;
     private readonly IRPCTransport _rpcTransport;
 
     private IEtherTxModule _etherModule = null!;
@@ -60,6 +61,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     {
         _provider = provider;
         _options = provider.GetRequiredService<EtherClientOptions>();
+        _callGasLimitSettings = provider.GetRequiredService<CallGasLimitSettings>();
         _rpcTransport = provider.GetRequiredService<IRPCTransport>();
     }
 
@@ -172,10 +174,8 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         return new EventsModule<TEvent>(_rpcClient, _ethRpcModule, _subscriptionsManager, _jsonSerializerOptions);
     }
 
-    private ulong ResolveFlashCallGasLimit(ulong flashCallGasLimit)
-        => flashCallGasLimit == 0
-            ? _options.FlashCallGasLimit ?? 0
-            : flashCallGasLimit;
+    void IEtherClient.SetDefaultCallGasLimits(ulong? ethCallGasLimit, ulong? flashCallGasLimit)
+        => _callGasLimitSettings.Set(ethCallGasLimit, flashCallGasLimit);
 
     private async Task<TQuery> ExecuteQueryAsync<TQuery>(
         IQuery<TQuery> query,
@@ -184,7 +184,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         CancellationToken cancellationToken)
     {
         AssertReady();
-        return await _queryExecutor.ExecuteQueryAsync(query, ResolveFlashCallGasLimit(flashCallGasLimit), targetHeight, cancellationToken);
+        return await _queryExecutor.ExecuteQueryAsync(query, flashCallGasLimit, targetHeight, cancellationToken);
     }
 
     async Task IEtherClient.InitializeAsync(bool forceNoQuery, CancellationToken cancellationToken)
@@ -279,7 +279,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         (_chainId, _compatibilityReport, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
             IQuery.Combine(IQuery.GetChainId(), IQuery.GetCompatibilityReport(), initQuery, flashCallSetupQuery),
-            ResolveFlashCallGasLimit(0),
+            0,
             TargetHeight.Latest,
             cancellationToken
         );
@@ -452,7 +452,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, ResolveFlashCallGasLimit(flashCallGasLimit), targetHeight, cancellationToken);
+        return _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
     }
 
     public async Task<T> FlashCallAsync<T>(

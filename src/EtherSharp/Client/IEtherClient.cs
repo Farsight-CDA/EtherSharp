@@ -56,7 +56,7 @@ public interface IEtherClient : IAsyncDisposable
     /// </summary>
     /// <typeparam name="T1">Result type of the query.</typeparam>
     /// <param name="c1">Query to execute.</param>
-    /// <param name="flashCallGasLimit">Optional gas cap applied to any flash-call helper execution performed while evaluating the query. A value of <c>0</c> uses the client default configured by <c>WithCallGasLimits</c>, if present.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap applied to any flash-call helper execution performed while evaluating the query. A value of <c>0</c> uses the current client default configured by <c>WithCallGasLimits</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
     /// <param name="targetHeight">Target block context for query execution.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The query result.</returns>
@@ -73,7 +73,7 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="T2">Result type of the second query.</typeparam>
     /// <param name="c1">First query.</param>
     /// <param name="c2">Second query.</param>
-    /// <param name="flashCallGasLimit">Optional gas cap applied to any flash-call helper execution performed while evaluating the query. A value of <c>0</c> uses the client default configured by <c>WithCallGasLimits</c>, if present.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap applied to any flash-call helper execution performed while evaluating the query. A value of <c>0</c> uses the current client default configured by <c>WithCallGasLimits</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
     /// <param name="targetHeight">Target block context for query execution.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A tuple containing both query results.</returns>
@@ -228,7 +228,7 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="deployment">Deployment definition used for the temporary execution context.</param>
     /// <param name="call">Flash-call payload to execute against the temporary deployment.</param>
-    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <c>0</c> uses the client default configured by <c>WithCallGasLimits</c>, if present.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <c>0</c> uses the current client default configured by <c>WithCallGasLimits</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert information when applicable.</returns>
@@ -243,7 +243,7 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="deployment">Deployment definition used for the temporary execution context.</param>
     /// <param name="call">Flash-call payload to execute against the temporary deployment.</param>
-    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <c>0</c> uses the client default configured by <c>WithCallGasLimits</c>, if present.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <c>0</c> uses the current client default configured by <c>WithCallGasLimits</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
@@ -276,6 +276,13 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The suggested priority fee per gas.</returns>
     public Task<UInt256> GetMaxPriorityFeePerGasAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the default gas limits used for read-only call execution.
+    /// </summary>
+    /// <param name="ethCallGasLimit">Optional default gas limit applied to <c>eth_call</c> requests. Pass <see langword="null"/> to clear it.</param>
+    /// <param name="flashCallGasLimit">Optional default gas limit applied to flash-call helper execution. Pass <see langword="null"/> to clear it.</param>
+    public void SetDefaultCallGasLimits(ulong? ethCallGasLimit, ulong? flashCallGasLimit);
 
     /// <summary>
     /// Estimates the gas limit required to execute a transaction call.
