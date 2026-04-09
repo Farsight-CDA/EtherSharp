@@ -1,11 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="..\..\version.props" />
-
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-
-		<FileVersion>$(AssemblyVersion)</FileVersion>
-		<Version>$(AssemblyVersion)</Version>
 
 		<IsPackable>false</IsPackable>
 		<IsRoslynComponent>true</IsRoslynComponent>

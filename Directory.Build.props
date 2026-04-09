@@ -1,6 +1,10 @@
 <Project>
+  <Import Project="version.props" />
+
   <PropertyGroup>
     <BaseIntermediateOutputPath>obj/$(OS)/</BaseIntermediateOutputPath>
     <DefaultItemExcludes>$(DefaultItemExcludes);obj/**</DefaultItemExcludes>
+    <AssemblyVersion>$([System.Text.RegularExpressions.Regex]::Replace('$(Version)', '[-+].*$', ''))</AssemblyVersion>
+    <FileVersion>$(AssemblyVersion)</FileVersion>
   </PropertyGroup>
 </Project>
