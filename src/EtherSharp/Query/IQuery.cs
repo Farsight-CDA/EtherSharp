@@ -40,8 +40,8 @@ public interface IQuery
     /// </summary>
     /// <typeparam name="T">The decoded return type of the contract call.</typeparam>
     /// <param name="input">The contract call input to execute.</param>
-    /// <returns>A query that never throws for EVM reverts and returns a <see cref="QueryResult{T}"/>.</returns>
-    public static IQuery<QueryResult<T>> SafeCall<T>(IContractCall<T> input)
+    /// <returns>A query that never throws for EVM reverts or malformed return bytes and returns a <see cref="CallResult{T}"/>.</returns>
+    public static IQuery<CallResult<T>> SafeCall<T>(IContractCall<T> input)
         => new CallQueryOperation<T>(input);
 
     /// <summary>
@@ -54,8 +54,9 @@ public interface IQuery
     public static IQuery<T> Call<T>(IContractCall<T> input)
         => SafeCall(input).Map(x => x switch
         {
-            QueryResult<T>.Success s => s.Value,
-            QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data.Span),
+            CallResult<T>.Success s => s.Value,
+            CallResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data.Span),
+            CallResult<T>.Malformed m => throw m.Exception,
             _ => throw new ImpossibleException()
         });
 
@@ -64,8 +65,8 @@ public interface IQuery
     /// </summary>
     /// <typeparam name="T">The decoded return type of the contract call.</typeparam>
     /// <param name="input">The contract call input to execute.</param>
-    /// <returns>A query that returns both <see cref="QueryResult{T}"/> and gas used.</returns>
-    public static IQuery<(QueryResult<T>, ulong)> SafeCallAndMeasureGas<T>(IContractCall<T> input)
+    /// <returns>A query that returns both <see cref="CallResult{T}"/> and gas used.</returns>
+    public static IQuery<(CallResult<T>, ulong)> SafeCallAndMeasureGas<T>(IContractCall<T> input)
         => new CallAndMeasureGasQueryOperation<T>(input);
 
     /// <summary>
@@ -81,8 +82,9 @@ public interface IQuery
             var (result, gasUsed) = x;
             var unwrapped = result switch
             {
-                QueryResult<T>.Success s => s.Value,
-                QueryResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data.Span),
+                CallResult<T>.Success s => s.Value,
+                CallResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data.Span),
+                CallResult<T>.Malformed m => throw m.Exception,
                 _ => throw new ImpossibleException()
             };
             return (unwrapped, gasUsed);
@@ -94,8 +96,8 @@ public interface IQuery
     /// <typeparam name="T">The decoded return type of the contract call.</typeparam>
     /// <param name="deployment">The contract deployment to execute for the flash call.</param>
     /// <param name="input">The flash-call input to execute against the deployed code.</param>
-    /// <returns>A query that never throws for EVM reverts and returns a <see cref="QueryResult{T}"/>.</returns>
-    public static IQuery<QueryResult<T>> SafeFlashCall<T>(IContractDeployment deployment, IFlashCall<T> input)
+    /// <returns>A query that never throws for EVM reverts or malformed return bytes and returns a <see cref="CallResult{T}"/>.</returns>
+    public static IQuery<CallResult<T>> SafeFlashCall<T>(IContractDeployment deployment, IFlashCall<T> input)
         => new SafeFlashCallQueryOperation<T>(deployment, input);
 
     /// <summary>
@@ -109,8 +111,9 @@ public interface IQuery
     public static IQuery<T> FlashCall<T>(IContractDeployment deployment, IFlashCall<T> input)
         => SafeFlashCall(deployment, input).Map(x => x switch
         {
-            QueryResult<T>.Success s => s.Value,
-            QueryResult<T>.Reverted r => throw CallRevertedException.Parse(null, r.Data.Span),
+            CallResult<T>.Success s => s.Value,
+            CallResult<T>.Reverted r => throw CallRevertedException.Parse(null, r.Data.Span),
+            CallResult<T>.Malformed m => throw m.Exception,
             _ => throw new ImpossibleException()
         });
 

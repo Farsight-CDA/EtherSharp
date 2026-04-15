@@ -1,18 +1,19 @@
-﻿using EtherSharp.ABI.Types;
+using EtherSharp.ABI.Types;
 using EtherSharp.Numerics;
 using EtherSharp.Tx;
+using EtherSharp.Types;
 using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IFlashCall<T> txInput) : IQuery, IQuery<QueryResult<T>>
+internal sealed class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IFlashCall<T> txInput) : IQuery, IQuery<CallResult<T>>
 {
     private readonly IFlashCall<T> _txInput = txInput;
     private readonly IContractDeployment _deployment = deployment;
 
     public int CallDataLength => 1 + 37 + _deployment.ByteCode.Length + _txInput.Data.Length;
     public UInt256 EthValue => _deployment.Value + _txInput.Value;
-    IReadOnlyList<IQuery> IQuery<QueryResult<T>>.Queries => [this];
+    IReadOnlyList<IQuery> IQuery<CallResult<T>>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
@@ -38,7 +39,7 @@ internal sealed class SafeFlashCallQueryOperation<T>(IContractDeployment deploym
         int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
         return dataLength + 4;
     }
-    QueryResult<T> IQuery<QueryResult<T>>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
+    CallResult<T> IQuery<CallResult<T>>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
         var queryResult = queryResults[0];
         bool success = queryResult.Span[0] == 0x01;
@@ -46,8 +47,8 @@ internal sealed class SafeFlashCallQueryOperation<T>(IContractDeployment deploym
 
         return success switch
         {
-            true => new QueryResult<T>.Success(_txInput.ReadResultFrom(returnData)),
-            false => new QueryResult<T>.Reverted(returnData)
+            true => CallResult<T>.ParseSuccessFrom(returnData, _txInput.ReadResultFrom),
+            false => new CallResult<T>.Reverted(returnData)
         };
     }
 }

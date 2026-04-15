@@ -1,16 +1,17 @@
-﻿using EtherSharp.Numerics;
+using EtherSharp.Numerics;
 using EtherSharp.Tx;
+using EtherSharp.Types;
 using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<QueryResult<T>>
+internal sealed class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<CallResult<T>>
 {
     private readonly IContractCall<T> _txInput = txInput;
 
     public int CallDataLength => 4 + 20 + 32 + _txInput.Data.Length;
     public UInt256 EthValue => _txInput.Value;
-    IReadOnlyList<IQuery> IQuery<QueryResult<T>>.Queries => [this];
+    IReadOnlyList<IQuery> IQuery<CallResult<T>>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
@@ -34,7 +35,7 @@ internal sealed class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, 
         int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
         return dataLength + 4;
     }
-    QueryResult<T> IQuery<QueryResult<T>>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
+    CallResult<T> IQuery<CallResult<T>>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
         var queryResult = queryResults[0];
         bool success = queryResult.Span[0] == 0x01;
@@ -42,8 +43,8 @@ internal sealed class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, 
 
         return success switch
         {
-            true => new QueryResult<T>.Success(_txInput.ReadResultFrom(returnData)),
-            false => new QueryResult<T>.Reverted(returnData)
+            true => CallResult<T>.ParseSuccessFrom(returnData, _txInput.ReadResultFrom),
+            false => new CallResult<T>.Reverted(returnData)
         };
     }
 }

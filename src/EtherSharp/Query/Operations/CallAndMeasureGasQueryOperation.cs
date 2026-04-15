@@ -1,16 +1,17 @@
-﻿using EtherSharp.Numerics;
+using EtherSharp.Numerics;
 using EtherSharp.Tx;
+using EtherSharp.Types;
 using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<(QueryResult<T>, ulong)>
+internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<(CallResult<T>, ulong)>
 {
     private readonly IContractCall<T> _txInput = txInput;
 
     public int CallDataLength => 4 + 20 + 32 + _txInput.Data.Length;
     public UInt256 EthValue => _txInput.Value;
-    IReadOnlyList<IQuery> IQuery<(QueryResult<T>, ulong)>.Queries => [this];
+    IReadOnlyList<IQuery> IQuery<(CallResult<T>, ulong)>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {
@@ -33,16 +34,16 @@ internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInpu
             + 4
             + 8;
 
-    (QueryResult<T>, ulong) IQuery<(QueryResult<T>, ulong)>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
+    (CallResult<T>, ulong) IQuery<(CallResult<T>, ulong)>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
         var queryResult = queryResults[0];
         bool success = queryResult.Span[0] == 0x01;
         ulong gasUsed = BinaryPrimitives.ReadUInt64BigEndian(queryResult.Span[5..13]);
 
-        QueryResult<T> result = success switch
+        var result = success switch
         {
-            true => new QueryResult<T>.Success(_txInput.ReadResultFrom(queryResult[13..])),
-            false => new QueryResult<T>.Reverted(queryResult[13..])
+            true => CallResult<T>.ParseSuccessFrom(queryResult[13..], _txInput.ReadResultFrom),
+            false => new CallResult<T>.Reverted(queryResult[13..])
         };
 
         return (result, gasUsed);

@@ -208,8 +208,8 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="from">Optional sender address. If null, uses the signer address for transaction clients.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A structured call result including revert information when applicable.</returns>
-    public Task<TxCallResult> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null, CancellationToken cancellationToken = default);
+    /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
+    public Task<CallResult<T>> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes a read-only call and returns the decoded result.
@@ -231,8 +231,8 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <c>0</c> uses the current client default configured by <c>WithCallGasLimits</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A structured call result including revert information when applicable.</returns>
-    public Task<TxCallResult> SafeFlashCallAsync<T>(
+    /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
+    public Task<CallResult<T>> SafeFlashCallAsync<T>(
         IContractDeployment deployment, IFlashCall<T> call, ulong flashCallGasLimit = 0,
         TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );

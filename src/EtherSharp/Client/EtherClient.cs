@@ -418,7 +418,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     TContract IEtherClient.Contract<TContract>(in Address address)
         => Contract<TContract>(in address);
 
-    public async Task<TxCallResult> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, Address? from, CancellationToken cancellationToken)
+    public async Task<CallResult<T>> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, Address? from, CancellationToken cancellationToken)
     {
         AssertReady();
 
@@ -435,16 +435,16 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             cancellationToken
         );
 
-        return result;
+        return CallResult<T>.ParseFrom(result, call.ReadResultFrom);
     }
 
     async Task<T> IEtherClient.CallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, Address? from, CancellationToken cancellationToken)
     {
         var result = await SafeCallAsync(call, targetHeight, from, cancellationToken);
-        return call.ReadResultFrom(result.Unwrap(call.To));
+        return result.Unwrap(call.To);
     }
 
-    public Task<TxCallResult> SafeFlashCallAsync<T>(
+    public async Task<CallResult<T>> SafeFlashCallAsync<T>(
         IContractDeployment deployment,
         IFlashCall<T> call,
         ulong flashCallGasLimit = 0,
@@ -452,7 +452,9 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         CancellationToken cancellationToken = default)
     {
         AssertReady();
-        return _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
+
+        var result = await _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
+        return CallResult<T>.ParseFrom(result, call.ReadResultFrom);
     }
 
     public async Task<T> FlashCallAsync<T>(
@@ -463,7 +465,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         CancellationToken cancellationToken)
     {
         var result = await SafeFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
-        return call.ReadResultFrom(result.Unwrap(null));
+        return result.Unwrap(null);
     }
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
