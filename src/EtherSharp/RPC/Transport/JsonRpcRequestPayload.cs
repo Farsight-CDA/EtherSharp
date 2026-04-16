@@ -6,7 +6,6 @@ namespace EtherSharp.RPC.Transport;
 internal static class JsonRpcRequestPayload
 {
     private const int INITIAL_BUFFER_CAPACITY = 16 * 1024;
-    private const int MAX_RETAINED_BUFFER_CAPACITY = 256 * 1024;
 
     private static readonly JsonEncodedText _id = JsonEncodedText.Encode("id");
     private static readonly JsonEncodedText _method = JsonEncodedText.Encode("method");
@@ -39,7 +38,7 @@ internal static class JsonRpcRequestPayload
         }
         finally
         {
-            ReleaseBuffer(buffer);
+            ReleaseBuffer(writer, buffer);
         }
     }
 
@@ -58,7 +57,7 @@ internal static class JsonRpcRequestPayload
         }
         finally
         {
-            ReleaseBuffer(buffer);
+            ReleaseBuffer(writer, buffer);
         }
     }
 
@@ -84,7 +83,7 @@ internal static class JsonRpcRequestPayload
         }
         finally
         {
-            ReleaseBuffer(buffer);
+            ReleaseBuffer(writer, buffer);
         }
     }
 
@@ -112,14 +111,14 @@ internal static class JsonRpcRequestPayload
         }
         finally
         {
-            ReleaseBuffer(buffer);
+            ReleaseBuffer(writer, buffer);
         }
     }
 
     private static ReusablePooledByteBufferWriter AcquireBuffer()
     {
         var buffer = _buffer ??= new ReusablePooledByteBufferWriter(INITIAL_BUFFER_CAPACITY);
-        buffer.Reset();
+        buffer.Initialize();
         return buffer;
     }
 
@@ -138,13 +137,10 @@ internal static class JsonRpcRequestPayload
         return writer;
     }
 
-    private static void ReleaseBuffer(ReusablePooledByteBufferWriter buffer)
+    private static void ReleaseBuffer(Utf8JsonWriter writer, ReusablePooledByteBufferWriter buffer)
     {
-        if(buffer.Capacity > MAX_RETAINED_BUFFER_CAPACITY)
-        {
-            buffer.Dispose();
-            _buffer = null;
-        }
+        writer.Reset();
+        buffer.ClearAndReturnBuffer();
     }
 
     private static void WriteStart(Utf8JsonWriter writer, int requestId, string method, JsonSerializerOptions options)
@@ -166,11 +162,18 @@ internal static class JsonRpcRequestPayload
 
     private sealed class ReusablePooledByteBufferWriter(int initialCapacity) : IBufferWriter<byte>, IDisposable
     {
-        private byte[]? _buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
+        private byte[]? _buffer;
         private int _writtenCount;
 
         public int Capacity
             => _buffer?.Length ?? 0;
+
+        public void Initialize()
+        {
+            _buffer ??= ArrayPool<byte>.Shared.Rent(initialCapacity);
+
+            _writtenCount = 0;
+        }
 
         public void Advance(int count)
         {
@@ -206,6 +209,16 @@ internal static class JsonRpcRequestPayload
         {
             ObjectDisposedException.ThrowIf(_buffer is null, this);
             _writtenCount = 0;
+        }
+
+        public void ClearAndReturnBuffer()
+        {
+            ObjectDisposedException.ThrowIf(_buffer is null, this);
+
+            byte[] buffer = _buffer;
+            _buffer = null;
+            _writtenCount = 0;
+            ArrayPool<byte>.Shared.Return(buffer);
         }
 
         public void Dispose()
