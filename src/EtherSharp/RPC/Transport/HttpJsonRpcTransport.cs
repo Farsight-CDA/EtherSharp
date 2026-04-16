@@ -5,7 +5,9 @@ using EtherSharp.Common.Instrumentation;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -81,7 +83,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         int id = Interlocked.Increment(ref _id);
         return SendRpcRequestCoreAsync<TResult>(
             id,
-            JsonContent.Create(new JsonRpcRequestPayload.Request0(id, method), options: _jsonSerializerOptions),
+            CreateHttpContent(JsonRpcRequestPayload.SerializeToUtf8Bytes(id, method, _jsonSerializerOptions)),
             cancellationToken
         );
     }
@@ -93,7 +95,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         int id = Interlocked.Increment(ref _id);
         return SendRpcRequestCoreAsync<TResult>(
             id,
-            JsonContent.Create(new JsonRpcRequestPayload.Request1<T1>(id, method, t1), options: _jsonSerializerOptions),
+            CreateHttpContent(JsonRpcRequestPayload.SerializeToUtf8Bytes(id, method, t1, _jsonSerializerOptions)),
             cancellationToken
         );
     }
@@ -105,7 +107,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         int id = Interlocked.Increment(ref _id);
         return SendRpcRequestCoreAsync<TResult>(
             id,
-            JsonContent.Create(new JsonRpcRequestPayload.Request2<T1, T2>(id, method, t1, t2), options: _jsonSerializerOptions),
+            CreateHttpContent(JsonRpcRequestPayload.SerializeToUtf8Bytes(id, method, t1, t2, _jsonSerializerOptions)),
             cancellationToken
         );
     }
@@ -117,13 +119,24 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         int id = Interlocked.Increment(ref _id);
         return SendRpcRequestCoreAsync<TResult>(
             id,
-            JsonContent.Create(new JsonRpcRequestPayload.Request3<T1, T2, T3>(id, method, t1, t2, t3), options: _jsonSerializerOptions),
+            CreateHttpContent(JsonRpcRequestPayload.SerializeToUtf8Bytes(id, method, t1, t2, t3, _jsonSerializerOptions)),
             cancellationToken
         );
     }
 
     private sealed record RpcError(int Code, string Message, string? Data);
     private sealed record JsonRpcResponse<T>([property: JsonRequired] int? Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
+
+    private static ByteArrayContent CreateHttpContent(byte[] payload)
+    {
+        var content = new ByteArrayContent(payload);
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/json")
+        {
+            CharSet = Encoding.UTF8.WebName
+        };
+        return content;
+    }
+
     private async Task<RpcResult<TResult>> SendRpcRequestCoreAsync<TResult>(int id, HttpContent requestContent, CancellationToken cancellationToken)
     {
         using var httpRequestMessage = new HttpRequestMessage()

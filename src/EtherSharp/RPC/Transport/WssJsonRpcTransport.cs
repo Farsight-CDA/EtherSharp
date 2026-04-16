@@ -415,7 +415,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         string method, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
-        byte[] payload = JsonSerializer.SerializeToUtf8Bytes(new JsonRpcRequestPayload.Request0(requestId, method), _jsonSerializerOptions);
+        byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, _jsonSerializerOptions);
         return SendRpcRequestInternalAsync<TResult>(requestId, payload, cancellationToken);
     }
 
@@ -424,7 +424,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         string method, T1 t1, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
-        byte[] payload = JsonSerializer.SerializeToUtf8Bytes(new JsonRpcRequestPayload.Request1<T1>(requestId, method, t1), _jsonSerializerOptions);
+        byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, t1, _jsonSerializerOptions);
         return SendRpcRequestInternalAsync<TResult>(requestId, payload, cancellationToken);
     }
 
@@ -433,7 +433,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         string method, T1 t1, T2 t2, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
-        byte[] payload = JsonSerializer.SerializeToUtf8Bytes(new JsonRpcRequestPayload.Request2<T1, T2>(requestId, method, t1, t2), _jsonSerializerOptions);
+        byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, t1, t2, _jsonSerializerOptions);
         return SendRpcRequestInternalAsync<TResult>(requestId, payload, cancellationToken);
     }
 
@@ -442,7 +442,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         string method, T1 t1, T2 t2, T3 t3, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
-        byte[] payload = JsonSerializer.SerializeToUtf8Bytes(new JsonRpcRequestPayload.Request3<T1, T2, T3>(requestId, method, t1, t2, t3), _jsonSerializerOptions);
+        byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, t1, t2, t3, _jsonSerializerOptions);
         return SendRpcRequestInternalAsync<TResult>(requestId, payload, cancellationToken);
     }
 
