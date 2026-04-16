@@ -124,6 +124,12 @@ public interface IQuery
         => new GetCodeQueryOperation(in contract);
 
     /// <summary>
+    /// Creates a query that returns whether <paramref name="address"/> currently has deployed bytecode.
+    /// </summary>
+    public static IQuery<bool> HasCode(in Address address)
+        => new HasCodeQueryOperation(in address);
+
+    /// <summary>
     /// Creates a query that returns the code hash for <paramref name="contract"/>.
     /// </summary>
     public static IQuery<byte[]> GetCodeHash(in Address contract)

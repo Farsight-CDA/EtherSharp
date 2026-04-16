@@ -129,6 +129,12 @@ object "Querier" {
                     mstore(outputOffset, extcodehash(to))
                     outputOffset := add(outputOffset, 32)
                 }
+                case 12 {
+                    let to := shr(96, calldataload(inputOffset))
+                    inputOffset := add(inputOffset, 20)
+                    mstore8(outputOffset, gt(extcodesize(to), 0))
+                    outputOffset := add(outputOffset, 1)
+                }
                 case 20 {
                     mstore(outputOffset, shl(192, chainid()))
                     outputOffset := add(outputOffset, 8)

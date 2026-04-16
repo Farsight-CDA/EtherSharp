@@ -8,6 +8,7 @@ internal enum QueryOperationId : byte
 
     GetCode = 10,
     GetCodeHash = 11,
+    HasCode = 12,
 
     GetChainId = 20,
     GetBlockNumber = 21,
