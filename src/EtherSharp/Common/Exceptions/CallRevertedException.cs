@@ -1,4 +1,5 @@
 ﻿using EtherSharp.ABI.Types;
+using EtherSharp.Common;
 using EtherSharp.Types;
 
 namespace EtherSharp.Common.Exceptions;
@@ -8,7 +9,7 @@ namespace EtherSharp.Common.Exceptions;
 /// <param name="callAddress">Contract address the call was sent to, when available.</param>
 /// <param name="message">Human-readable revert description used to build the exception message.</param>
 public abstract class CallRevertedException(Address? callAddress, string message)
-    : Exception(callAddress is null ? $"Call {message}" : $"Call to {callAddress.Value} {message}")
+    : Exception(message)
 {
     private static ReadOnlySpan<byte> ErrorStringSignature => [0x08, 0xc3, 0x79, 0xa0];
     private static ReadOnlySpan<byte> PanicSignature => [0x4e, 0x48, 0x7b, 0x71];
@@ -24,6 +25,11 @@ public abstract class CallRevertedException(Address? callAddress, string message
         if(data.Length == 0)
         {
             return new CallRevertedWithNoDataException(callAddress);
+        }
+
+        if(data.Length < 4)
+        {
+            return new CallRevertedWithCustomErrorException(callAddress, data.ToArray());
         }
 
         var errorSignature = data[0..4];
@@ -53,7 +59,8 @@ public abstract class CallRevertedException(Address? callAddress, string message
     /// Thrown when a call reverts without any error data.
     /// </summary>
     public sealed class CallRevertedWithNoDataException(Address? callAddress)
-        : CallRevertedException(callAddress, "reverted with no data, this likely means that the contract does not implement the called method.")
+        : CallRevertedException(callAddress,
+            $"Contract call{(callAddress is { } address ? $" to {address}" : "")} reverted: no revert data was returned.")
     {
     }
 
@@ -62,8 +69,8 @@ public abstract class CallRevertedException(Address? callAddress, string message
     /// </summary>
     /// <param name="callAddress">Contract address the call targeted, when known.</param>
     /// <param name="message">Decoded Solidity <c>Error(string)</c> message.</param>
-    public sealed class CallRevertedWithMessageException(Address? callAddress, string message)
-        : CallRevertedException(callAddress, message)
+    public sealed class CallRevertedWithMessageException(Address? callAddress, string message) : CallRevertedException(callAddress,
+            $"Contract call{(callAddress is { } address ? $" to {address}" : "")} reverted: Solidity Error(string) returned '{message}'.")
     {
         /// <summary>
         /// The error message returned by the contract.
@@ -77,7 +84,8 @@ public abstract class CallRevertedException(Address? callAddress, string message
     /// <param name="callAddress">Contract address the call targeted, when known.</param>
     /// <param name="data">Raw revert bytes including selector and encoded arguments.</param>
     public sealed class CallRevertedWithCustomErrorException(Address? callAddress, byte[] data)
-        : CallRevertedException(callAddress, $"reverted with custom error: 0x{Convert.ToHexStringLower(data.AsSpan(0, 4))}")
+        : CallRevertedException(callAddress,
+            $"Contract call{(callAddress is { } address ? $" to {address}" : "")} reverted with custom error {HexUtils.ToPrefixedHexString(data.AsSpan(0, 4))}. Revert data: {HexUtils.ToPrefixedHexString(data)}.")
     {
         /// <summary>
         /// The custom error data returned by the contract.
@@ -90,8 +98,8 @@ public abstract class CallRevertedException(Address? callAddress, string message
     /// </summary>
     /// <param name="callAddress">Contract address the call targeted, when known.</param>
     /// <param name="type">Decoded Solidity panic reason.</param>
-    public sealed class CallRevertedWithPanicException(Address? callAddress, PanicType type)
-        : CallRevertedException(callAddress, $"reverted with panic: {type}")
+    public sealed class CallRevertedWithPanicException(Address? callAddress, PanicType type) : CallRevertedException(callAddress,
+            $"Contract call{(callAddress is { } address ? $" to {address}" : "")} reverted: Solidity Panic(0x{(byte) type:x2}) {type}.")
     {
         /// <summary>
         /// The panic type returned by the contract.
