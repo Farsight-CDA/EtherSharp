@@ -45,9 +45,11 @@ jobs:
           fi
 
           base_version="${BASH_REMATCH[1]}"
+          IFS='.' read -r major minor patch <<< "$base_version"
+          next_patch=$((patch + 1))
           build_number="${{ github.run_number }}"
           run_attempt="${{ github.run_attempt }}"
-          package_version="$base_version-private.$build_number.$run_attempt"
+          package_version="$major.$minor.$next_patch-private.$build_number.$run_attempt"
 
           echo "version=$package_version" >> "$GITHUB_OUTPUT"
 
