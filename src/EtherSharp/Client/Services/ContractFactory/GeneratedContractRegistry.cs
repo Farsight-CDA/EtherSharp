@@ -1,6 +1,5 @@
 using EtherSharp.Contract;
 using EtherSharp.Types;
-using System.Collections.Frozen;
 
 namespace EtherSharp.Client.Services.ContractFactory;
 
@@ -28,14 +27,19 @@ public static class GeneratedContractRegistry
         }
     }
 
-    internal static FrozenDictionary<Type, Func<Address, IEVMContract>> CloneFor(IEtherClient etherClient)
+    internal static bool TryCreate<TContract>(IEtherClient etherClient, in Address address, out TContract contract)
+        where TContract : IEVMContract
     {
         lock(_lock)
         {
-            return _registrations.ToFrozenDictionary(
-                x => x.Key,
-                x => new Func<Address, IEVMContract>(address => x.Value(etherClient, address))
-            );
+            if(_registrations.TryGetValue(typeof(TContract), out var factory))
+            {
+                contract = (TContract) factory(etherClient, address);
+                return true;
+            }
         }
+
+        contract = default!;
+        return false;
     }
 }
