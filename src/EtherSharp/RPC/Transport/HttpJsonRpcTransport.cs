@@ -162,6 +162,15 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 
         try
         {
+            string? mediaType = response.Content.Headers.ContentType?.MediaType;
+
+            if(mediaType is not null && !mediaType.EndsWith("json"))
+            {
+                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
+                string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                throw new RPCTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}");
+            }
+
             var jsonRpcResponse = await response.Content.ReadFromJsonAsync<JsonRpcResponse<TResult>>(
                 _jsonSerializerOptions, cancellationToken
             );
@@ -190,11 +199,15 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
             return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
         }
-        catch(JsonException ex)
+        catch(RPCTransportException)
+        {
+            throw;
+        }
+        catch(JsonException)
         {
             _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
-            string s = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new RPCTransportException($"Error: {s}", ex);
+            string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new RPCTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}");
         }
         catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested)
         {
@@ -204,8 +217,8 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         catch(Exception ex)
         {
             _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
-            string s = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new RPCTransportException($"Error: {s}", ex);
+            string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new RPCTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}", ex);
         }
         finally
         {
