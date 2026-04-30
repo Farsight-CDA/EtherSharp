@@ -189,6 +189,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
 
                 var typeBuilder = new ClassBuilder(functionTypeName)
                     .WithAutoConstructor()
+                    .AddBaseType("EtherSharp.Contract.Sections.IGeneratedFunction", true)
                     .AddFunction(_isMatchingSelectorFunction);
 
                 var decodeMethod = new FunctionBuilder("Decode")

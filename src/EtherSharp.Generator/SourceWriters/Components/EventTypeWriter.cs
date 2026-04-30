@@ -28,6 +28,7 @@ internal sealed class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, M
         supportedTopicCounts = [];
         var classBuilder = new ClassBuilder(eventTypeName)
             .AddBaseType($"EtherSharp.Realtime.Events.ITxLog<{eventTypeName}>", true)
+            .AddBaseType("EtherSharp.Contract.Sections.IGeneratedLog", true)
             .AddProperty(new PropertyBuilder("EtherSharp.Types.Log", "Event"))
             .WithAutoConstructor();
 

@@ -64,28 +64,70 @@ public struct EVMByteCode
         => HasEvents(TLogsSection.GetTopics());
 
     /// <summary>
+    /// Checks if the given contract code implements the function from the given generated function type.
+    /// </summary>
+    /// <typeparam name="TFunction"></typeparam>
+    /// <returns></returns>
+    public readonly bool HasFunction<TFunction>()
+        where TFunction : IGeneratedFunction
+        => HasFunction(TFunction.SelectorBytes);
+
+    /// <summary>
+    /// Checks if the given contract code implements the event from the given generated log type.
+    /// </summary>
+    /// <typeparam name="TLog"></typeparam>
+    /// <returns></returns>
+    public readonly bool HasEvent<TLog>()
+        where TLog : IGeneratedLog
+        => HasEvent(TLog.TopicBytes);
+
+    /// <summary>
+    /// Checks if the given contract code implements a function selector.
+    /// </summary>
+    /// <param name="selector"></param>
+    /// <returns></returns>
+    public readonly bool HasFunction(ReadOnlyMemory<byte> selector)
+    {
+        Span<byte> prefixedSelector = stackalloc byte[5];
+        prefixedSelector[0] = PUSH4_OPCODE;
+        selector.Span.CopyTo(prefixedSelector[1..]);
+
+        int index = ByteCode.Span.IndexOf(prefixedSelector);
+
+        if(index == -1 || ByteCode.Length < (index + 7))
+        {
+            return false;
+        }
+
+        byte suffixByte = ByteCode.Span[index + 5];
+
+        return ComparisonOpcodes.Contains(suffixByte);
+    }
+
+    /// <summary>
+    /// Checks if the given contract code implements an event topic.
+    /// </summary>
+    /// <param name="topic"></param>
+    /// <returns></returns>
+    public readonly bool HasEvent(ReadOnlyMemory<byte> topic)
+    {
+        Span<byte> prefixedSelector = stackalloc byte[33];
+        prefixedSelector[0] = PUSH32_OPCODE;
+        topic.Span.CopyTo(prefixedSelector[1..]);
+
+        return ByteCode.Span.IndexOf(prefixedSelector) != -1;
+    }
+
+    /// <summary>
     /// Checks if the given contract code implements a set of function selectors
     /// </summary>
     /// <param name="selectors"></param>
     /// <returns></returns>
     public readonly bool HasFunctions(params IEnumerable<ReadOnlyMemory<byte>> selectors)
     {
-        Span<byte> prefixedSelector = stackalloc byte[5];
         foreach(var requiredSelector in selectors)
         {
-            prefixedSelector[0] = PUSH4_OPCODE;
-            requiredSelector.Span.CopyTo(prefixedSelector[1..]);
-
-            int index = ByteCode.Span.IndexOf(prefixedSelector);
-
-            if(index == -1 || ByteCode.Length < (index + 7))
-            {
-                return false;
-            }
-
-            byte suffixByte = ByteCode.Span[index + 5];
-
-            if(!ComparisonOpcodes.Contains(suffixByte))
+            if(!HasFunction(requiredSelector))
             {
                 return false;
             }
@@ -101,15 +143,9 @@ public struct EVMByteCode
     /// <returns></returns>
     public readonly bool HasEvents(params IEnumerable<ReadOnlyMemory<byte>> topics)
     {
-        Span<byte> prefixedSelector = stackalloc byte[33];
         foreach(var requiredTopic in topics)
         {
-            prefixedSelector[0] = PUSH32_OPCODE;
-            requiredTopic.Span.CopyTo(prefixedSelector[1..]);
-
-            int index = ByteCode.Span.IndexOf(prefixedSelector);
-
-            if(index == -1)
+            if(!HasEvent(requiredTopic))
             {
                 return false;
             }
