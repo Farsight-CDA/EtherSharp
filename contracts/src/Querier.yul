@@ -14,10 +14,6 @@ object "Querier" {
             let outputOffset := 0
 
             for {} lt(inputOffset, calldatasize()) {} {
-                if gt(outputOffset, maxReturnSize) {
-                    return(0, lastOutputOffset)
-                }
-
                 lastOutputOffset := outputOffset
                 let opCode := byte(0, calldataload(inputOffset))
                 inputOffset := add(inputOffset, 1)
@@ -170,10 +166,10 @@ object "Querier" {
                 default {
                     revert(0, 0)
                 }
-            }
 
-            if gt(outputOffset, maxReturnSize) {
-                return(0, lastOutputOffset)
+                if gt(outputOffset, maxReturnSize) {
+                    return(0, lastOutputOffset)
+                }
             }
 
             return(0, outputOffset)
