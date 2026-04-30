@@ -8,8 +8,6 @@ object "Querier" {
             let RETURN_GAS_BUFFER := 50000
             let ABORT_GAS_BUFFER := 55000
 
-            if lt(calldatasize(), 4) { revert(0, 0) }
-
             let maxReturnSize := shr(224, calldataload(0))
             let inputOffset := 4
             let lastOutputOffset := 0
