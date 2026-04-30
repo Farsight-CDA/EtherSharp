@@ -39,12 +39,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\EtherSharp.Generator.dll" />
-		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\Epoche.Keccak256.dll" />
-		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\Microsoft.Bcl.AsyncInterfaces.dll" />
-		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\Microsoft.Bcl.HashCode.dll" />
-		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\System.Text.Encodings.Web.dll" />
-		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(Configuration)\netstandard2.0\System.Text.Json.dll" />
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(OS)\$(Configuration)\netstandard2.0\EtherSharp.Generator.dll" />
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(OS)\$(Configuration)\netstandard2.0\Epoche.Keccak256.dll" />
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(OS)\$(Configuration)\netstandard2.0\Microsoft.Bcl.AsyncInterfaces.dll" />
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(OS)\$(Configuration)\netstandard2.0\Microsoft.Bcl.HashCode.dll" />
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(OS)\$(Configuration)\netstandard2.0\System.Text.Encodings.Web.dll" />
+		<Analyzer Include="..\src\EtherSharp.Generator\bin\$(OS)\$(Configuration)\netstandard2.0\System.Text.Json.dll" />
 	</ItemGroup>
 
 </Project>
