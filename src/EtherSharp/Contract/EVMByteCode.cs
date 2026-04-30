@@ -1,4 +1,7 @@
 using EtherSharp.Contract.Sections;
+using EtherSharp.Types;
+using System.Buffers.Binary;
+using System.Numerics;
 
 namespace EtherSharp.Contract;
 
@@ -15,14 +18,6 @@ public struct EVMByteCode
     /// The maximum init contract length.
     /// </summary>
     public const int MAX_INIT_LENGTH = 49_152;
-
-    private const byte PUSH4_OPCODE = 0x63;
-    private const byte PUSH32_OPCODE = 0x7F;
-    private const byte LT_OPCODE = 0x10;
-    private const byte GT_OPCODE = 0x11;
-    private const byte EQ_OPCODE = 0x14;
-    private const byte SUB_OPCODE = 0x03;
-    private static ReadOnlySpan<byte> ComparisonOpcodes => [LT_OPCODE, GT_OPCODE, EQ_OPCODE, SUB_OPCODE];
 
     /// <summary>
     /// Creates an EVM bytecode wrapper from the provided raw bytes.
@@ -64,6 +59,15 @@ public struct EVMByteCode
         => HasEvents(TLogsSection.GetTopics());
 
     /// <summary>
+    /// Checks if the given contract code implements the errors from the given errors section.
+    /// </summary>
+    /// <typeparam name="TErrorsSection"></typeparam>
+    /// <returns></returns>
+    public readonly bool HasErrors<TErrorsSection>()
+        where TErrorsSection : IErrorsSection
+        => HasErrors(TErrorsSection.GetSignatures());
+
+    /// <summary>
     /// Checks if the given contract code implements the function from the given generated function type.
     /// </summary>
     /// <typeparam name="TFunction"></typeparam>
@@ -82,6 +86,15 @@ public struct EVMByteCode
         => HasEvent(TLog.TopicBytes);
 
     /// <summary>
+    /// Checks if the given contract code implements the error from the given generated error type.
+    /// </summary>
+    /// <typeparam name="TError"></typeparam>
+    /// <returns></returns>
+    public readonly bool HasError<TError>()
+        where TError : IGeneratedError
+        => HasError(TError.Signature);
+
+    /// <summary>
     /// Checks if the given contract code implements a function selector.
     /// </summary>
     /// <param name="selector"></param>
@@ -89,7 +102,7 @@ public struct EVMByteCode
     public readonly bool HasFunction(ReadOnlyMemory<byte> selector)
     {
         Span<byte> prefixedSelector = stackalloc byte[5];
-        prefixedSelector[0] = PUSH4_OPCODE;
+        prefixedSelector[0] = EvmOpcodeUtils.PUSH4;
         selector.Span.CopyTo(prefixedSelector[1..]);
 
         int index = ByteCode.Span.IndexOf(prefixedSelector);
@@ -101,7 +114,7 @@ public struct EVMByteCode
 
         byte suffixByte = ByteCode.Span[index + 5];
 
-        return ComparisonOpcodes.Contains(suffixByte);
+        return EvmOpcodeUtils.ComparisonOpcodes.Contains(suffixByte);
     }
 
     /// <summary>
@@ -112,10 +125,28 @@ public struct EVMByteCode
     public readonly bool HasEvent(ReadOnlyMemory<byte> topic)
     {
         Span<byte> prefixedSelector = stackalloc byte[33];
-        prefixedSelector[0] = PUSH32_OPCODE;
+        prefixedSelector[0] = EvmOpcodeUtils.PUSH32;
         topic.Span.CopyTo(prefixedSelector[1..]);
 
         return ByteCode.Span.IndexOf(prefixedSelector) != -1;
+    }
+
+    /// <summary>
+    /// Checks if the given contract code implements an error signature.
+    /// </summary>
+    /// <param name="signature"></param>
+    /// <returns></returns>
+    public readonly bool HasError(Bytes4 signature)
+    {
+        Span<byte> signatureBytes = stackalloc byte[4];
+        signature.CopyTo(signatureBytes);
+        Span<byte> shiftedSignatureBuffer = stackalloc byte[4];
+        int shiftedSignatureLength = GetShiftedSignatureBytes(signatureBytes, shiftedSignatureBuffer);
+        var shiftedSignature = shiftedSignatureBuffer[..shiftedSignatureLength];
+        var byteCode = ByteCode.Span;
+
+        return byteCode.IndexOf(signatureBytes) != -1
+            || (!shiftedSignature.SequenceEqual(signatureBytes) && byteCode.IndexOf(shiftedSignature) != -1);
     }
 
     /// <summary>
@@ -152,5 +183,51 @@ public struct EVMByteCode
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Checks if the given contract code implements a set of error signatures.
+    /// </summary>
+    /// <param name="signatures"></param>
+    /// <returns></returns>
+    public readonly bool HasErrors(params IEnumerable<Bytes4> signatures)
+    {
+        foreach(var requiredSignature in signatures)
+        {
+            if(!HasError(requiredSignature))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static int GetShiftedSignatureBytes(ReadOnlySpan<byte> signature, Span<byte> shiftedSignature)
+    {
+        uint signatureValue = BinaryPrimitives.ReadUInt32BigEndian(signature);
+
+        if(signatureValue == 0)
+        {
+            signature.CopyTo(shiftedSignature);
+            return signature.Length;
+        }
+
+        int trailingZeroBits = BitOperations.TrailingZeroCount(signatureValue);
+        if(trailingZeroBits == 0)
+        {
+            signature.CopyTo(shiftedSignature);
+            return signature.Length;
+        }
+
+        signatureValue >>= trailingZeroBits;
+
+        Span<byte> shiftedSignatureBytes = stackalloc byte[4];
+        BinaryPrimitives.WriteUInt32BigEndian(shiftedSignatureBytes, signatureValue);
+
+        int leadingZeroBytes = BitOperations.LeadingZeroCount(signatureValue) / 8;
+        shiftedSignatureBytes[leadingZeroBytes..].CopyTo(shiftedSignature);
+
+        return 4 - leadingZeroBytes;
     }
 }
