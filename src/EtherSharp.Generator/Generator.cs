@@ -78,7 +78,7 @@ public sealed class Generator : IIncrementalGenerator
             var writer = CreateSourceWriter(@namespace, contractName);
 
             context.AddSource(
-                $"{contractName}.generated.cs",
+                NameUtils.ToValidFileName($"{@namespace}.{contractSymbol.MetadataName}.generated.cs"),
                 writer.WriteContractSourceCode(@namespace, contractName, abiMembers, bytecode)
             );
         }

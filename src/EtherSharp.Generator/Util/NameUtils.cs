@@ -35,6 +35,9 @@ internal static class NameUtils
     public static string ToValidFunctionName(string name)
         => ToValidNamespaceName(name);
 
+    public static string ToValidFileName(string name)
+        => ReplaceAll(name, '_', '<', '>', ':', '"', '/', '\\', '|', '?', '*', '\0');
+
     public static string Uncapitalize(string name)
         => name.Length == 0
             ? ""
