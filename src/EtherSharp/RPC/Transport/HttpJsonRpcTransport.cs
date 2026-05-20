@@ -180,17 +180,20 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
                 _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
                 throw new RPCTransportException("RPC Error: Empty response");
             }
-            else if(jsonRpcResponse.Id != id)
-            {
-                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
-                throw new RPCTransportException("RPC Error: Response id mismatch");
-            }
-            else if(jsonRpcResponse.Error != null)
+
+            if(jsonRpcResponse.Error is not null)
             {
                 _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
                 return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message, jsonRpcResponse.Error.Data);
             }
-            else if(jsonRpcResponse.Result is null)
+
+            if(jsonRpcResponse.Id != id)
+            {
+                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
+                throw new RPCTransportException($"RPC Error: Response id mismatch. Expected {id}, got {jsonRpcResponse.Id?.ToString() ?? "null"}");
+            }
+
+            if(jsonRpcResponse.Result is null)
             {
                 _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
                 return new RpcResult<TResult>.Null();
