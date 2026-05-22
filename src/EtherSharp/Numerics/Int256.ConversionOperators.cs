@@ -1,7 +1,8 @@
 ﻿#pragma warning disable CS1591
 
-using System.Buffers.Binary;
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace EtherSharp.Numerics;
 
@@ -24,13 +25,21 @@ public readonly partial struct Int256
     public static implicit operator Int256(ulong a) => new Int256((UInt256) a);
     public static implicit operator Int256(long a) => new Int256(a);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator BigInteger(in Int256 x)
     {
-        Span<byte> bytes = stackalloc byte[32];
-        BinaryPrimitives.WriteUInt64LittleEndian(bytes[..8], x._value._u0);
-        BinaryPrimitives.WriteUInt64LittleEndian(bytes.Slice(8, 8), x._value._u1);
-        BinaryPrimitives.WriteUInt64LittleEndian(bytes.Slice(16, 8), x._value._u2);
-        BinaryPrimitives.WriteUInt64LittleEndian(bytes.Slice(24, 8), x._value._u3);
+        if((x._value._u1 | x._value._u2 | x._value._u3) == 0 && x._value._u0 <= Int64.MaxValue)
+        {
+            return new BigInteger((long) x._value._u0);
+        }
+
+        if(x._value._u1 == UInt64.MaxValue && x._value._u2 == UInt64.MaxValue &&
+           x._value._u3 == UInt64.MaxValue && x._value._u0 >= 0x8000000000000000UL)
+        {
+            return new BigInteger(unchecked((long) x._value._u0));
+        }
+
+        var bytes = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Int256, byte>(ref Unsafe.AsRef(in x)), 32);
         return new BigInteger(bytes);
     }
 
