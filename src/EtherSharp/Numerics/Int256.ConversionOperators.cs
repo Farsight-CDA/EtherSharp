@@ -34,6 +34,23 @@ public readonly partial struct Int256
         return new BigInteger(bytes);
     }
 
+    public static explicit operator Int256(in BigInteger value)
+    {
+        if(value < _minValueAsBigInteger || value > _maxValueAsBigInteger)
+        {
+            throw new OverflowException($"Cannot convert BigInteger value to Int256: {value}.");
+        }
+
+        Span<byte> bytes = stackalloc byte[32];
+        if(value.Sign < 0)
+        {
+            bytes.Fill(0xFF);
+        }
+
+        value.TryWriteBytes(bytes, out _);
+        return new Int256(bytes);
+    }
+
     public static implicit operator long(in Int256 value)
     {
         long res = unchecked((long) value._value._u0);
