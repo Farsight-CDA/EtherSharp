@@ -363,12 +363,7 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64BE(int offset)
-    {
-        ulong value = LoadU64Raw(offset);
-        return BitConverter.IsLittleEndian
-            ? BinaryPrimitives.ReverseEndianness(value)
-            : value;
-    }
+        => BinaryPrimitives.ReverseEndianness(LoadU64Raw(offset));
 }
 
 <#
