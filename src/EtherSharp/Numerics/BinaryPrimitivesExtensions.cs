@@ -77,7 +77,7 @@ public static class BinaryPrimitivesExtensions
         /// </summary>
         /// <param name="source">Source bytes to read from.</param>
         /// <returns>The decoded signed 256-bit integer.</returns>
-        public static Int256 ReaInt256dLittleEndian(ReadOnlySpan<byte> source)
+        public static Int256 ReadInt256LittleEndian(ReadOnlySpan<byte> source)
             => new Int256(new UInt256(source, false));
 
         /// <summary>
