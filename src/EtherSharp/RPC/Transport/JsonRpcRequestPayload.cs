@@ -30,7 +30,7 @@ internal static class JsonRpcRequestPayload
         var writer = AcquireWriter(buffer);
         try
         {
-            WriteStart(writer, requestId, method, options);
+            WriteStart(writer, requestId, method);
             WriteEnd(writer);
             writer.Flush();
 
@@ -48,7 +48,7 @@ internal static class JsonRpcRequestPayload
         var writer = AcquireWriter(buffer);
         try
         {
-            WriteStart(writer, requestId, method, options);
+            WriteStart(writer, requestId, method);
             JsonSerializer.Serialize(writer, param1, options);
             WriteEnd(writer);
             writer.Flush();
@@ -73,7 +73,7 @@ internal static class JsonRpcRequestPayload
         var writer = AcquireWriter(buffer);
         try
         {
-            WriteStart(writer, requestId, method, options);
+            WriteStart(writer, requestId, method);
             JsonSerializer.Serialize(writer, param1, options);
             JsonSerializer.Serialize(writer, param2, options);
             WriteEnd(writer);
@@ -100,7 +100,7 @@ internal static class JsonRpcRequestPayload
         var writer = AcquireWriter(buffer);
         try
         {
-            WriteStart(writer, requestId, method, options);
+            WriteStart(writer, requestId, method);
             JsonSerializer.Serialize(writer, param1, options);
             JsonSerializer.Serialize(writer, param2, options);
             JsonSerializer.Serialize(writer, param3, options);
@@ -143,11 +143,10 @@ internal static class JsonRpcRequestPayload
         buffer.ClearAndReturnBuffer();
     }
 
-    private static void WriteStart(Utf8JsonWriter writer, int requestId, string method, JsonSerializerOptions options)
+    private static void WriteStart(Utf8JsonWriter writer, int requestId, string method)
     {
         writer.WriteStartObject();
-        writer.WritePropertyName(_id);
-        JsonSerializer.Serialize(writer, requestId, options);
+        writer.WriteNumber(_id, requestId);
         writer.WriteString(_method, method);
         writer.WritePropertyName(_params);
         writer.WriteStartArray();
