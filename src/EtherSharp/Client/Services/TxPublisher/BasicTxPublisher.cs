@@ -20,7 +20,8 @@ public sealed class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
         }
         catch(RPCException ex)
         {
-            if(ex.Message.Contains("ALREADY_EXISTS"))
+            if(ex.Message.Contains("ALREADY_EXISTS", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("already known", StringComparison.OrdinalIgnoreCase))
             {
                 return new TxSubmissionResult.AlreadyExists();
             }
