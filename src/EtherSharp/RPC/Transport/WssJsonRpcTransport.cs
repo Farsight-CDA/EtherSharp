@@ -459,22 +459,22 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             {
                 throw new RPCTransportException("The WebSocket is not connected.");
             }
+
+            _pendingRequests.TryAdd(requestId, (typeof(JsonRpcResponse<TResult>), tcs));
+
+            try
+            {
+                await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
+            }
+            catch
+            {
+                _pendingRequests.TryRemove(requestId, out _);
+                throw;
+            }
         }
         catch(ObjectDisposedException)
         {
             throw new RPCTransportException("The WebSocket is not connected.");
-        }
-
-        _pendingRequests.TryAdd(requestId, (typeof(JsonRpcResponse<TResult>), tcs));
-
-        try
-        {
-            await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
-        }
-        catch
-        {
-            _pendingRequests.TryRemove(requestId, out _);
-            throw;
         }
 
         var resultTask = await Task.WhenAny(tcs.Task, timeoutTask);
