@@ -70,8 +70,6 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         );
 
         _rpcRequestsCounter = provider.CreateOTELCounter<long>("evm_rpc_requests", tags: additionalTags);
-        _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "success"));
-        _rpcRequestsCounter?.Add(0, new KeyValuePair<string, object?>("status", "failure"));
 
         _subscriptionMessageCounter = provider.CreateOTELCounter<long>("subscription_messages_received", tags: additionalTags);
         _subscriptionMessageCounter?.Add(0);
@@ -416,7 +414,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
         byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, _jsonSerializerOptions);
-        return SendRpcRequestInternalAsync<TResult>(requestId, payload, cancellationToken);
+        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -425,7 +423,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
         byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, t1, _jsonSerializerOptions);
-        return SendRpcRequestInternalAsync<TResult>(requestId, payload, cancellationToken);
+        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -434,7 +432,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
         byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, t1, t2, _jsonSerializerOptions);
-        return SendRpcRequestInternalAsync<TResult>(requestId, payload, cancellationToken);
+        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -443,10 +441,20 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
         byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, t1, t2, t3, _jsonSerializerOptions);
-        return SendRpcRequestInternalAsync<TResult>(requestId, payload, cancellationToken);
+        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
     }
 
-    private async Task<RpcResult<TResult>> SendRpcRequestInternalAsync<TResult>(int requestId, byte[] payload, CancellationToken cancellationToken)
+    private void AddRpcRequestMetric(string method, string status)
+    {
+        TagList tags = [
+            new KeyValuePair<string, object?>("status", status),
+            new KeyValuePair<string, object?>("method", method)
+        ];
+        _rpcRequestsCounter?.Add(1, tags);
+    }
+
+    private async Task<RpcResult<TResult>> SendRpcRequestInternalAsync<TResult>(
+        int requestId, string method, byte[] payload, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
@@ -485,14 +493,14 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
             if(resultTask.IsCompletedSuccessfully)
             {
-                _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
+                AddRpcRequestMetric(method, "failure");
                 throw new TimeoutException($"No response received from server within {_requestTimeout} timeout");
             }
         }
 
         if(resultTask.IsCanceled)
         {
-            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
+            AddRpcRequestMetric(method, "failure");
             await resultTask;
         }
 
@@ -500,26 +508,26 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
         if(jsonRpcResponse is null)
         {
-            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
+            AddRpcRequestMetric(method, "failure");
             throw new RPCTransportException("RPC Error: Invalid response");
         }
         else if(jsonRpcResponse.Id != requestId)
         {
-            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "failure"));
+            AddRpcRequestMetric(method, "failure");
             throw new RPCTransportException("RPC Error: Invalid response Id");
         }
         else if(jsonRpcResponse.Error != null)
         {
-            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
+            AddRpcRequestMetric(method, "success");
             return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message, jsonRpcResponse.Error.Data);
         }
         else if(jsonRpcResponse.Result is null)
         {
-            _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
+            AddRpcRequestMetric(method, "success");
             return new RpcResult<TResult>.Null();
         }
         //
-        _rpcRequestsCounter?.Add(1, new KeyValuePair<string, object?>("status", "success"));
+        AddRpcRequestMetric(method, "success");
         return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
     }
 
