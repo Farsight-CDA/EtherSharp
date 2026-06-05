@@ -606,6 +606,9 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         return !high.IsZero;
     }
 
+    public static void Multiply(in UInt256 x, in UInt256 y, out UInt256 res, out UInt256 high)
+        => Multiply256To512Bit(in x, in y, out res, out high);
+
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Squared(out UInt256 result)
