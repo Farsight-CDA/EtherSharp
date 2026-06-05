@@ -117,15 +117,37 @@ public readonly partial struct UInt256
         return c;
     }
 
+    public static UInt256 operator checked *(in UInt256 a, in UInt256 b)
+        => MultiplyOverflow(in a, in b, out var c)
+            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
+            : c;
+
     public static UInt256 operator *(in UInt256 a, uint b)
     {
         Multiply(in a, b, out var c);
         return c;
     }
+
+    public static UInt256 operator checked *(in UInt256 a, uint b)
+    {
+        UInt256 bb = b;
+        return MultiplyOverflow(in a, in bb, out var c)
+            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
+            : c;
+    }
+
     public static UInt256 operator *(uint a, in UInt256 b)
     {
         Multiply(a, in b, out var c);
         return c;
+    }
+
+    public static UInt256 operator checked *(uint a, in UInt256 b)
+    {
+        UInt256 aa = a;
+        return MultiplyOverflow(in aa, in b, out var c)
+            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
+            : c;
     }
 
     public static UInt256 operator *(in UInt256 a, ulong b)
@@ -133,10 +155,27 @@ public readonly partial struct UInt256
         Multiply(in a, b, out var c);
         return c;
     }
+
+    public static UInt256 operator checked *(in UInt256 a, ulong b)
+    {
+        UInt256 bb = b;
+        return MultiplyOverflow(in a, in bb, out var c)
+            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
+            : c;
+    }
+
     public static UInt256 operator *(ulong a, in UInt256 b)
     {
         Multiply(a, in b, out var c);
         return c;
+    }
+
+    public static UInt256 operator checked *(ulong a, in UInt256 b)
+    {
+        UInt256 aa = a;
+        return MultiplyOverflow(in aa, in b, out var c)
+            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
+            : c;
     }
 
     public static UInt256 operator /(in UInt256 a, in UInt256 b)
