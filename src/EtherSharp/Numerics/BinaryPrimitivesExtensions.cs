@@ -66,10 +66,37 @@ public static class BinaryPrimitivesExtensions
                 throw new NotSupportedException();
             }
 
-            BinaryPrimitives.WriteUInt64BigEndian(destination[..8], value._u3);
-            BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(8, 8), value._u2);
-            BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(16, 8), value._u1);
-            BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(24, 8), value._u0);
+            if(Avx2.IsSupported)
+            {
+                // Reinterpret the four little-endian limbs as bytes and reverse all 32 bytes into
+                // big-endian order, mirroring the vectorized big-endian read constructor.
+                var data = Unsafe.As<ulong, Vector256<byte>>(ref Unsafe.AsRef(in value._u0));
+                var shuffle = Vector256.Create(
+                    0x18191a1b1c1d1e1ful,
+                    0x1011121314151617ul,
+                    0x08090a0b0c0d0e0ful,
+                    0x0001020304050607ul
+                ).AsByte();
+
+                if(Avx512Vbmi.VL.IsSupported)
+                {
+                    var convert = Avx512Vbmi.VL.PermuteVar32x8(data, shuffle);
+                    Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(destination), convert);
+                }
+                else
+                {
+                    var convert = Avx2.Shuffle(data, shuffle);
+                    var permute = Avx2.Permute4x64(convert.AsUInt64(), 0b_01_00_11_10);
+                    Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(destination), permute);
+                }
+            }
+            else
+            {
+                BinaryPrimitives.WriteUInt64BigEndian(destination[..8], value._u3);
+                BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(8, 8), value._u2);
+                BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(16, 8), value._u1);
+                BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(24, 8), value._u0);
+            }
         }
 
         /// <summary>
