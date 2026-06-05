@@ -12,6 +12,8 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 using System.Text.Json.Serialization;
+using Arm = System.Runtime.Intrinsics.Arm;
+using x64 = System.Runtime.Intrinsics.X86;
 
 namespace EtherSharp.Numerics;
 
@@ -1348,20 +1350,54 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
         => CompareTo(in b);
 
     [SkipLocalsInit]
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
+        const uint HASH_SEED = 2098026241U;
+
         // Very fast hardware accelerated non-cryptographic hash function
+        uint seed = HASH_SEED;
 
-        // Start with 0x12345678 and first ulong as seed
-        uint hash = BitOperations.Crc32C(0x12345678, _u0);
+        if(x64.Aes.IsSupported)
+        {
+            var key = Unsafe.As<ulong, Vector128<byte>>(ref Unsafe.AsRef(in _u0));
+            var data = Unsafe.As<ulong, Vector128<byte>>(ref Unsafe.AsRef(in _u2));
+            // Mix in the hash seed
+            key ^= Vector128.CreateScalar(seed).AsByte();
+            // Single AESENC is a powerful mixer - 4 cycles, full diffusion
+            var mixed = x64.Aes.Encrypt(data, key);
+            ulong compressed = mixed.AsUInt64().GetElement(0) ^ mixed.AsUInt64().GetElement(1);
+            return (int) (uint) (compressed ^ (compressed >> 32));
+        }
+        else if(Arm.Aes.IsSupported)
+        {
+            var key = Unsafe.As<ulong, Vector128<byte>>(ref Unsafe.AsRef(in _u0));
+            var data = Unsafe.As<ulong, Vector128<byte>>(ref Unsafe.AsRef(in _u2));
+            // Mix in the hash seed
+            key ^= Vector128.CreateScalar(seed).AsByte();
+            // ARM needs explicit MixColumns for equivalent diffusion
+            var mixed = Arm.Aes.MixColumns(Arm.Aes.Encrypt(data, key));
+            ulong compressed = mixed.AsUInt64().GetElement(0) ^ mixed.AsUInt64().GetElement(1);
+            return (int) (uint) (compressed ^ (compressed >> 32));
+        }
 
-        // Crc32C is 3 cycle latency, 1 cycle throughput
-        // So we use same initial 3 times to not create a dependency chain
-        uint hash0 = BitOperations.Crc32C(hash, _u1);
-        uint hash1 = BitOperations.Crc32C(hash, _u2);
-        uint hash2 = BitOperations.Crc32C(hash, _u3);
-        // Combine the 3 hashes; performing the shift on first crc to calculate
-        return (int) BitOperations.Crc32C(hash1, ((ulong) hash0 << (sizeof(uint) * 8)) | hash2);
+        uint hash0 = BitOperations.Crc32C(seed, _u0);
+        uint hash1 = BitOperations.Crc32C(seed ^ 0x9E3779B9u, _u1);
+        uint hash2 = BitOperations.Crc32C(seed ^ 0x85EBCA6Bu, _u2);
+        uint hash3 = BitOperations.Crc32C(seed ^ 0xC2B2AE35u, _u3);
+
+        hash0 += BitOperations.RotateLeft(hash1, 11);
+        hash2 = BitOperations.RotateLeft(hash2, 17) + BitOperations.RotateLeft(hash3, 23);
+        uint hash = hash2 + hash0;
+        return FinalMix(hash);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static int FinalMix(uint x)
+        {
+            x ^= x >> 16;
+            x *= 0x9E3779B1u;
+            x ^= x >> 16;
+            return (int) x;
+        }
     }
 
     public static UInt256 Max(in UInt256 a, in UInt256 b)
