@@ -110,7 +110,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                 var createCallBuilder = new CallArgumentsBuilder();
                 bool isPayable = constructorMember.StateMutability == StateMutability.Payable;
 
-                createCodeFunction.AddStatement("var encoder = new AbiEncoder()");
+                createCodeFunction.AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()");
 
                 for(int i = 0; i < constructorMember.Inputs.Length; i++)
                 {
