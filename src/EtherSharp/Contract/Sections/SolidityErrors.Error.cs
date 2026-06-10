@@ -18,14 +18,14 @@ public static partial class SolidityErrors
         public static string ErrorSignature { get; } = "Error(string)";
 
         /// <summary>
-        /// Hex encoded error signature bytes based on function signature: Error(string)
+        /// Hex encoded error selector based on function signature: Error(string)
         /// </summary>
-        public static string SignatureHex { get; } = "0x08c379a0";
+        public static string SelectorHex { get; } = "0x08c379a0";
 
         /// <summary>
         /// Parsed bytes4 error selector based on signature: Error(string)
         /// </summary>
-        public static Bytes4 Signature { get; } = Bytes4.Parse(SignatureHex);
+        public static Bytes4 Selector { get; } = Bytes4.Parse(SelectorHex);
 
         /// <summary>
         /// Decodes Solidity <c>Error(string)</c> revert data.
@@ -43,8 +43,8 @@ public static partial class SolidityErrors
         /// </summary>
         /// <param name="errorData">Error data including selector and ABI-encoded arguments.</param>
         /// <returns><see langword="true" /> when the selector matches; otherwise <see langword="false" />.</returns>
-        public static bool IsMatchingSignature(ReadOnlySpan<byte> errorData)
-            => errorData.Length >= 4 && Signature == Bytes4.FromBytes(errorData[0..4]);
+        public static bool IsMatchingSelector(ReadOnlySpan<byte> errorData)
+            => errorData.Length >= 4 && Selector == Bytes4.FromBytes(errorData[0..4]);
 
         /// <summary>
         /// Attempts to decode Solidity <c>Error(string)</c> revert data.
@@ -54,7 +54,7 @@ public static partial class SolidityErrors
         /// <returns><see langword="true" /> when the selector matches and the error was decoded; otherwise <see langword="false" />.</returns>
         public static bool TryDecode(ReadOnlyMemory<byte> errorData, [MaybeNullWhen(false)] out Error parsedError)
         {
-            if(!IsMatchingSignature(errorData.Span))
+            if(!IsMatchingSelector(errorData.Span))
             {
                 parsedError = null;
                 return false;

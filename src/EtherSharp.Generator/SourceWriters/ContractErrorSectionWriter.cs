@@ -41,13 +41,13 @@ internal sealed class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter
                     /// </summary>
                     public static string ErrorSignature { get; } = "{{signature}}";
                     /// <summary>
-                    /// Hex encoded error signature bytes based on function signature: {{signature}}
+                    /// Hex encoded error selector based on function signature: {{signature}}
                     /// </summary>
-                    public static string SignatureHex { get; } = "0x{{HexUtils.ToHexStringLower(signatureBytes)}}";
+                    public static string SelectorHex { get; } = "0x{{HexUtils.ToHexStringLower(signatureBytes)}}";
                     /// <summary>
                     /// Parsed bytes4 error selector based on signature: {{signature}}
                     /// </summary>
-                    public static EtherSharp.Types.Bytes4 Signature { get; } = EtherSharp.Types.Bytes4.Parse(SignatureHex);
+                    public static EtherSharp.Types.Bytes4 Selector { get; } = EtherSharp.Types.Bytes4.Parse(SelectorHex);
                     """
                 );
 
@@ -55,20 +55,20 @@ internal sealed class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter
             }
         }
 
-        var getAllSignaturesFunction = new FunctionBuilder("GetSignatures")
+        var getAllSelectorsFunction = new FunctionBuilder("GetSelectors")
             .WithIsStatic(true)
             .WithVisibility(FunctionVisibility.Public)
             .WithReturnTypeRaw("EtherSharp.Types.Bytes4[]");
 
-        getAllSignaturesFunction.AddStatement(
+        getAllSelectorsFunction.AddStatement(
             $"""
                 return [
-            {String.Join(",\n", errorTypeNames.Select(x => $"       {x}.Signature"))}
+            {String.Join(",\n", errorTypeNames.Select(x => $"       {x}.Selector"))}
                 ]
             """
         );
 
-        sectionBuilder.AddFunction(getAllSignaturesFunction);
+        sectionBuilder.AddFunction(getAllSelectorsFunction);
         interfaceBuilder.AddInnerType(sectionBuilder);
     }
 

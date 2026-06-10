@@ -8,8 +8,8 @@ namespace EtherSharp.Contract.Sections;
 public interface IErrorsSection
 {
     /// <summary>
-    /// Gets all error signatures defined in the contract.
+    /// Gets all error selectors defined in the contract.
     /// </summary>
     /// <returns></returns>
-    public abstract static Bytes4[] GetSignatures();
+    public abstract static Bytes4[] GetSelectors();
 }

@@ -16,14 +16,14 @@ public interface ISolidityError<TSelf>
     public abstract static string ErrorSignature { get; }
 
     /// <summary>
-    /// Hex encoded error signature bytes based on the error signature.
+    /// Hex encoded error selector based on the error signature.
     /// </summary>
-    public abstract static string SignatureHex { get; }
+    public abstract static string SelectorHex { get; }
 
     /// <summary>
-    /// Gets the error signature bytes.
+    /// Gets the error selector bytes.
     /// </summary>
-    public abstract static Bytes4 Signature { get; }
+    public abstract static Bytes4 Selector { get; }
 
     /// <summary>
     /// Decodes error data into the Solidity error type.
@@ -33,11 +33,11 @@ public interface ISolidityError<TSelf>
     public abstract static TSelf Decode(ReadOnlyMemory<byte> data);
 
     /// <summary>
-    /// Checks whether the error data starts with this error's signature bytes.
+    /// Checks whether the error data starts with this error's selector bytes.
     /// </summary>
     /// <param name="errorData">Error data including selector and ABI-encoded arguments.</param>
     /// <returns><see langword="true" /> when the selector matches; otherwise <see langword="false" />.</returns>
-    public abstract static bool IsMatchingSignature(ReadOnlySpan<byte> errorData);
+    public abstract static bool IsMatchingSelector(ReadOnlySpan<byte> errorData);
 
     /// <summary>
     /// Attempts to decode error data into the Solidity error type.

@@ -65,7 +65,7 @@ public struct EVMByteCode
     /// <returns></returns>
     public readonly bool HasErrors<TErrorsSection>()
         where TErrorsSection : IErrorsSection
-        => HasErrors(TErrorsSection.GetSignatures());
+        => HasErrors(TErrorsSection.GetSelectors());
 
     /// <summary>
     /// Checks if the given contract code implements the function from the given generated function type.
@@ -92,7 +92,7 @@ public struct EVMByteCode
     /// <returns></returns>
     public readonly bool HasError<TError>()
         where TError : ISolidityError<TError>
-        => HasError(TError.Signature);
+        => HasError(TError.Selector);
 
     /// <summary>
     /// Checks if the given contract code implements a function selector.

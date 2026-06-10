@@ -6,11 +6,11 @@ namespace EtherSharp.Generator.SourceWriters.Components;
 
 internal sealed class ErrorTypeWriter
 {
-    private readonly FunctionBuilder _isMatchingSignatureFunction = new FunctionBuilder("IsMatchingSignature")
+    private readonly FunctionBuilder _isMatchingSelectorFunction = new FunctionBuilder("IsMatchingSelector")
         .AddArgument("System.ReadOnlySpan<byte>", "errorData")
         .WithReturnType<bool>()
         .WithIsStatic()
-        .AddStatement($"return errorData.Length >= 4 && Signature == EtherSharp.Types.Bytes4.FromBytes(errorData[0..4])");
+        .AddStatement($"return errorData.Length >= 4 && Selector == EtherSharp.Types.Bytes4.FromBytes(errorData[0..4])");
 
     public ClassBuilder GenerateErrorType(string errorTypeName, ErrorAbiMember errorMember)
     {
@@ -20,11 +20,11 @@ internal sealed class ErrorTypeWriter
         var usedNames = new HashSet<string>(StringComparer.Ordinal)
         {
             "Decode",
-            "IsMatchingSignature",
+            "IsMatchingSelector",
             "TryDecode",
             "ErrorSignature",
-            "SignatureHex",
-            "Signature"
+            "SelectorHex",
+            "Selector"
         };
 
         var decodeMethod = new FunctionBuilder("Decode")
@@ -66,7 +66,7 @@ internal sealed class ErrorTypeWriter
         decodeMethod.AddStatement($"return {errorTypeCtorCall.ToInlineCall()}");
 
         errorTypeBuilder.AddFunction(decodeMethod);
-        errorTypeBuilder.AddFunction(_isMatchingSignatureFunction);
+        errorTypeBuilder.AddFunction(_isMatchingSelectorFunction);
 
         errorTypeBuilder.AddFunction(new FunctionBuilder("TryDecode")
             .AddArgument("System.ReadOnlyMemory<byte>", "errorData")
@@ -75,7 +75,7 @@ internal sealed class ErrorTypeWriter
             .AddArgument($"[System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out {errorTypeName}", "parsedError")
             .AddStatement(
                 $$"""
-                if (!IsMatchingSignature(errorData.Span)) 
+                if (!IsMatchingSelector(errorData.Span)) 
                 {
                     parsedError = null;
                     return false;
