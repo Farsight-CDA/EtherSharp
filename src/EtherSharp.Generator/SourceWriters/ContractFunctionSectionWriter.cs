@@ -142,14 +142,14 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                 createFunction.AddStatement(
                     $"""
                     var contractByteCode = CreateCode({createCallBuilder.Build()});
-                    return EtherSharp.Tx.IContractDeployment.Create(contractByteCode, ethValue)
+                    return EtherSharp.Tx.IContractDeployment.Create(contractByteCode, {(isPayable ? "ethValue" : "0")})
                     """
                 );
                 create2Function.AddArgument("in EtherSharp.Types.Bytes32", "salt");
                 create2Function.AddStatement(
                     $"""
                     var contractByteCode = CreateCode({createCallBuilder.Build()});
-                    return EtherSharp.Tx.IContractCall.ForCreate2Call(contractByteCode, salt, ethValue)
+                    return EtherSharp.Tx.IContractCall.ForCreate2Call(contractByteCode, salt, {(isPayable ? "ethValue" : "0")})
                     """
                 );
             }
