@@ -1,6 +1,8 @@
 using EtherSharp.ABI;
 using EtherSharp.Types;
+using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace EtherSharp.Contract.Sections;
 
@@ -36,6 +38,36 @@ public static partial class SolidityErrors
         {
             var decoder = new AbiDecoder(data[4..]);
             return new Error(decoder.String());
+        }
+
+        /// <summary>
+        /// Encodes this error as Solidity revert data.
+        /// </summary>
+        /// <returns>Error data including selector and ABI-encoded arguments.</returns>
+        public byte[] Encode()
+            => EncodeData(Message);
+
+        /// <summary>
+        /// Encodes Solidity <c>Error(string)</c> revert data.
+        /// </summary>
+        /// <param name="message">Decoded revert message.</param>
+        /// <returns>Error data including selector and ABI-encoded arguments.</returns>
+        public static byte[] EncodeData(string message)
+        {
+            ArgumentNullException.ThrowIfNull(message);
+
+            int stringLength = Encoding.UTF8.GetByteCount(message);
+            int paddedStringLength = (stringLength + 31) / 32 * 32;
+            byte[] data = new byte[4 + 32 + 32 + paddedStringLength];
+            Selector.CopyTo(data);
+
+            var arguments = data.AsSpan(4);
+            BinaryPrimitives.WriteUInt32BigEndian(arguments[28..32], 32);
+            BinaryPrimitives.WriteUInt32BigEndian(arguments[60..64], (uint) stringLength);
+
+            return Encoding.UTF8.TryGetBytes(message, arguments[64..], out _)
+                ? data
+                : throw new InvalidOperationException("Failed to write bytes");
         }
 
         /// <summary>

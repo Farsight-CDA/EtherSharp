@@ -1,4 +1,6 @@
 using EtherSharp.ABI;
+using EtherSharp.ABI.Types;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
 using System.Diagnostics.CodeAnalysis;
 
@@ -36,6 +38,26 @@ public static partial class SolidityErrors
         {
             var decoder = new AbiDecoder(data[4..]);
             return new Panic((PanicType) (byte) decoder.UInt256());
+        }
+
+        /// <summary>
+        /// Encodes this panic as Solidity revert data.
+        /// </summary>
+        /// <returns>Error data including selector and ABI-encoded arguments.</returns>
+        public byte[] Encode()
+            => EncodeData(Type);
+
+        /// <summary>
+        /// Encodes Solidity <c>Panic(uint256)</c> revert data.
+        /// </summary>
+        /// <param name="type">Decoded panic type.</param>
+        /// <returns>Error data including selector and ABI-encoded arguments.</returns>
+        public static byte[] EncodeData(PanicType type)
+        {
+            byte[] data = new byte[4 + 32];
+            Selector.CopyTo(data);
+            AbiTypes.UInt256.EncodeInto((UInt256) (byte) type, data.AsSpan(4), false);
+            return data;
         }
 
         /// <summary>

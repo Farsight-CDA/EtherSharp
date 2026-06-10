@@ -33,6 +33,12 @@ public interface ISolidityError<TSelf>
     public abstract static TSelf Decode(ReadOnlyMemory<byte> data);
 
     /// <summary>
+    /// Encodes this error as Solidity revert data.
+    /// </summary>
+    /// <returns>Error data including selector and ABI-encoded arguments.</returns>
+    public byte[] Encode();
+
+    /// <summary>
     /// Checks whether the error data starts with this error's selector bytes.
     /// </summary>
     /// <param name="errorData">Error data including selector and ABI-encoded arguments.</param>

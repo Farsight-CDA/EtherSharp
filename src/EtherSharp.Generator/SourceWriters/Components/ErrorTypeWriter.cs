@@ -20,6 +20,8 @@ internal sealed class ErrorTypeWriter
         var usedNames = new HashSet<string>(StringComparer.Ordinal)
         {
             "Decode",
+            "Encode",
+            "EncodeData",
             "IsMatchingSelector",
             "TryDecode",
             "ErrorSignature",
@@ -33,7 +35,18 @@ internal sealed class ErrorTypeWriter
             .AddArgument("System.ReadOnlyMemory<byte>", "data")
             .AddStatement("var decoder = new EtherSharp.ABI.AbiDecoder(data[4..])");
 
+        var encodeMethod = new FunctionBuilder("Encode")
+            .WithReturnTypeRaw("byte[]")
+            .WithVisibility(FunctionVisibility.Public);
+
+        var encodeDataMethod = new FunctionBuilder("EncodeData")
+            .WithReturnTypeRaw("byte[]")
+            .WithVisibility(FunctionVisibility.Public)
+            .WithIsStatic()
+            .AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()");
+
         var errorTypeCtorCall = new ConstructorCallBuilder(errorTypeName);
+        var propertyNames = new List<string>();
 
         for(int i = 0; i < errorMember.Inputs.Length; i++)
         {
@@ -51,6 +64,7 @@ internal sealed class ErrorTypeWriter
             }
 
             parameterName = NameUtils.MakeUniquePropertyName(parameterName, usedNames);
+            propertyNames.Add(parameterName);
 
             errorTypeBuilder.AddProperty(
                 new PropertyBuilder(primitiveType, parameterName)
@@ -61,11 +75,25 @@ internal sealed class ErrorTypeWriter
             string tempVarName = $"param{i}";
             decodeMethod.AddStatement($"var {tempVarName} = decoder.{abiFunctionName}(){decodeSuffix}");
             errorTypeCtorCall.AddArgument(tempVarName);
+            encodeDataMethod.AddArgument(primitiveType, parameterName);
+            encodeDataMethod.AddStatement($"encoder.{abiFunctionName}({parameterName})");
         }
 
         decodeMethod.AddStatement($"return {errorTypeCtorCall.ToInlineCall()}");
+        encodeMethod.AddStatement($"return EncodeData({String.Join(", ", propertyNames)})");
+        encodeDataMethod.AddStatement(
+            """
+            byte[] encodedArguments = encoder.Build();
+            byte[] data = new byte[4 + encodedArguments.Length];
+            Selector.CopyTo(data);
+            encodedArguments.CopyTo(data.AsSpan(4));
+            return data;
+            """, false
+        );
 
         errorTypeBuilder.AddFunction(decodeMethod);
+        errorTypeBuilder.AddFunction(encodeMethod);
+        errorTypeBuilder.AddFunction(encodeDataMethod);
         errorTypeBuilder.AddFunction(_isMatchingSelectorFunction);
 
         errorTypeBuilder.AddFunction(new FunctionBuilder("TryDecode")
