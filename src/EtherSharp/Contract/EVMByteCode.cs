@@ -91,7 +91,7 @@ public struct EVMByteCode
     /// <typeparam name="TError"></typeparam>
     /// <returns></returns>
     public readonly bool HasError<TError>()
-        where TError : IGeneratedError
+        where TError : ISolidityError<TError>
         => HasError(TError.Signature);
 
     /// <summary>

@@ -1,6 +1,7 @@
-﻿using EtherSharp.ABI.Types;
-using EtherSharp.Common;
+﻿using EtherSharp.Common;
 using EtherSharp.Types;
+using SolidityError = EtherSharp.Contract.Sections.SolidityErrors.Error;
+using SolidityPanic = EtherSharp.Contract.Sections.SolidityErrors.Panic;
 
 namespace EtherSharp.Common.Exceptions;
 /// <summary>
@@ -11,9 +12,6 @@ namespace EtherSharp.Common.Exceptions;
 public abstract class CallRevertedException(Address? callAddress, string message)
     : Exception(message)
 {
-    private static ReadOnlySpan<byte> ErrorStringSignature => [0x08, 0xc3, 0x79, 0xa0];
-    private static ReadOnlySpan<byte> PanicSignature => [0x4e, 0x48, 0x7b, 0x71];
-
     /// <summary>
     /// Parses revert bytes returned by a call into a specific <see cref="CallRevertedException"/> subtype.
     /// </summary>
@@ -32,22 +30,13 @@ public abstract class CallRevertedException(Address? callAddress, string message
             return new CallRevertedWithCustomErrorException(callAddress, data.ToArray());
         }
 
-        var errorSignature = data[0..4];
+        byte[] errorData = data.ToArray();
 
-        if(errorSignature.SequenceEqual(ErrorStringSignature))
-        {
-            return new CallRevertedWithMessageException(
-                callAddress, AbiTypes.String.Decode(data[4..], 0)
-            );
-        }
-        else if(errorSignature.SequenceEqual(PanicSignature))
-        {
-            return new CallRevertedWithPanicException(
-                callAddress, (PanicType) AbiTypes.Byte.Decode(data[4..])
-            );
-        }
-        //
-        return new CallRevertedWithCustomErrorException(callAddress, data.ToArray());
+        return SolidityError.TryDecode(errorData, out var error)
+            ? new CallRevertedWithMessageException(callAddress, error.Message)
+            : SolidityPanic.TryDecode(errorData, out var panic)
+                ? new CallRevertedWithPanicException(callAddress, panic)
+                : new CallRevertedWithCustomErrorException(callAddress, errorData);
     }
 
     /// <summary>
@@ -97,13 +86,21 @@ public abstract class CallRevertedException(Address? callAddress, string message
     /// Thrown when a call reverts with a panic.
     /// </summary>
     /// <param name="callAddress">Contract address the call targeted, when known.</param>
-    /// <param name="type">Decoded Solidity panic reason.</param>
-    public sealed class CallRevertedWithPanicException(Address? callAddress, PanicType type) : CallRevertedException(callAddress,
-            $"Contract call{(callAddress is { } address ? $" to {address}" : "")} reverted: Solidity Panic(0x{(byte) type:x2}) {type}.")
+    /// <param name="panic">Decoded Solidity panic error.</param>
+    public sealed class CallRevertedWithPanicException(Address? callAddress, SolidityPanic panic) : CallRevertedException(callAddress,
+            $"Contract call{(callAddress is { } address ? $" to {address}" : "")} reverted: {FormatPanicMessage(panic)}.")
     {
+        /// <summary>
+        /// The panic error returned by the contract.
+        /// </summary>
+        public SolidityPanic Panic { get; } = panic;
+
         /// <summary>
         /// The panic type returned by the contract.
         /// </summary>
-        public PanicType PanicType { get; } = type;
+        public PanicType PanicType { get; } = panic.Type;
+
+        private static string FormatPanicMessage(SolidityPanic panic)
+            => $"Solidity Panic(0x{(byte) panic.Type:x2}) {panic.Type}";
     }
 }

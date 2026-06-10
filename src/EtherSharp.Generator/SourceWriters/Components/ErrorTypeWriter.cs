@@ -15,7 +15,7 @@ internal sealed class ErrorTypeWriter
     public ClassBuilder GenerateErrorType(string errorTypeName, ErrorAbiMember errorMember)
     {
         var errorTypeBuilder = new ClassBuilder(errorTypeName)
-            .AddBaseType("EtherSharp.Contract.Sections.IGeneratedError", true)
+            .AddBaseType($"EtherSharp.Contract.Sections.ISolidityError<{errorTypeName}>", true)
             .WithAutoConstructor();
         var usedNames = new HashSet<string>(StringComparer.Ordinal)
         {
@@ -72,7 +72,7 @@ internal sealed class ErrorTypeWriter
             .AddArgument("System.ReadOnlyMemory<byte>", "errorData")
             .WithReturnType<bool>()
             .WithIsStatic()
-            .AddArgument($"out {errorTypeName}", "parsedError")
+            .AddArgument($"[System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out {errorTypeName}", "parsedError")
             .AddStatement(
                 $$"""
                 if (!IsMatchingSignature(errorData.Span)) 

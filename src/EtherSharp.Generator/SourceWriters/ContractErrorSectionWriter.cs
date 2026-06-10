@@ -39,11 +39,11 @@ internal sealed class ContractErrorSectionWriter(ErrorTypeWriter errorTypeWriter
                     /// <summary>
                     /// Error signature used to calculate the signature bytes.
                     /// </summary>
-                    public const string ErrorSignature = "{{signature}}";
+                    public static string ErrorSignature { get; } = "{{signature}}";
                     /// <summary>
                     /// Hex encoded error signature bytes based on function signature: {{signature}}
                     /// </summary>
-                    public const string SignatureHex = "0x{{HexUtils.ToHexStringLower(signatureBytes)}}";
+                    public static string SignatureHex { get; } = "0x{{HexUtils.ToHexStringLower(signatureBytes)}}";
                     /// <summary>
                     /// Parsed bytes4 error selector based on signature: {{signature}}
                     /// </summary>
