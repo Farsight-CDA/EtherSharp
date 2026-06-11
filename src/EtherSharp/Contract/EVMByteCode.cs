@@ -8,7 +8,8 @@ namespace EtherSharp.Contract;
 /// <summary>
 /// Represents the source code of an EVM contract.
 /// </summary>
-public struct EVMByteCode
+/// <param name="byteCode">The bytecode bytes.</param>
+public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
 {
     /// <summary>
     /// The maximum runtime contract length.
@@ -20,20 +21,9 @@ public struct EVMByteCode
     public const int MAX_INIT_LENGTH = 49_152;
 
     /// <summary>
-    /// Creates an EVM bytecode wrapper from the provided raw bytes.
-    /// </summary>
-    /// <param name="byteCode">The runtime bytecode bytes.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="byteCode"/> exceeds the maximum runtime length.</exception>
-    public EVMByteCode(ReadOnlyMemory<byte> byteCode)
-    {
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(byteCode.Length, MAX_RUNTIME_LENGTH, nameof(byteCode));
-        ByteCode = byteCode;
-    }
-
-    /// <summary>
     /// Raw bytecode bytes.
     /// </summary>
-    public ReadOnlyMemory<byte> ByteCode { get; }
+    public ReadOnlyMemory<byte> ByteCode { get; } = byteCode;
 
     /// <summary>
     /// The length of the bytecode.
