@@ -38,7 +38,7 @@ internal sealed class RpcClient : IRpcClient
         switch(_middlewares.Length)
         {
             case 0:
-                return onNext(cancellationToken);
+                throw new ImpossibleException();
             case 1:
                 return _middlewares[0].HandleAsync(onNext, cancellationToken);
             case 2:
@@ -78,31 +78,39 @@ internal sealed class RpcClient : IRpcClient
 
     public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
         string method, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
-        => ExecuteWithMiddlewareAsync(
-            (ct) => SendTransportRequestAsync<TResult>(method, requiredBlockNumber, ct),
-            cancellationToken
-        );
+        => _middlewares.Length == 0
+            ? SendTransportRequestAsync<TResult>(method, requiredBlockNumber, cancellationToken)
+            : ExecuteWithMiddlewareAsync(
+                (ct) => SendTransportRequestAsync<TResult>(method, requiredBlockNumber, ct),
+                cancellationToken
+            );
 
     public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, TResult>(
         string method, T1 t1, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
-        => ExecuteWithMiddlewareAsync(
-            (ct) => SendTransportRequestAsync<T1, TResult>(method, t1, requiredBlockNumber, ct),
-            cancellationToken
-        );
+        => _middlewares.Length == 0
+            ? SendTransportRequestAsync<T1, TResult>(method, t1, requiredBlockNumber, cancellationToken)
+            : ExecuteWithMiddlewareAsync(
+                (ct) => SendTransportRequestAsync<T1, TResult>(method, t1, requiredBlockNumber, ct),
+                cancellationToken
+            );
 
     public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, TResult>(
         string method, T1 t1, T2 t2, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
-        => ExecuteWithMiddlewareAsync(
-            (ct) => SendTransportRequestAsync<T1, T2, TResult>(method, t1, t2, requiredBlockNumber, ct),
-            cancellationToken
-        );
+        => _middlewares.Length == 0
+            ? SendTransportRequestAsync<T1, T2, TResult>(method, t1, t2, requiredBlockNumber, cancellationToken)
+            : ExecuteWithMiddlewareAsync(
+                (ct) => SendTransportRequestAsync<T1, T2, TResult>(method, t1, t2, requiredBlockNumber, ct),
+                cancellationToken
+            );
 
     public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, T3, TResult>(
         string method, T1 t1, T2 t2, T3 t3, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
-        => ExecuteWithMiddlewareAsync(
-            (ct) => SendTransportRequestAsync<T1, T2, T3, TResult>(method, t1, t2, t3, requiredBlockNumber, ct),
-            cancellationToken
-        );
+        => _middlewares.Length == 0
+            ? SendTransportRequestAsync<T1, T2, T3, TResult>(method, t1, t2, t3, requiredBlockNumber, cancellationToken)
+            : ExecuteWithMiddlewareAsync(
+                (ct) => SendTransportRequestAsync<T1, T2, T3, TResult>(method, t1, t2, t3, requiredBlockNumber, ct),
+                cancellationToken
+            );
 
     private async Task<RpcResult<TResult>> SendTransportRequestAsync<TResult>(
         string method, TargetHeight requiredBlockNumber, CancellationToken cancellationToken)
