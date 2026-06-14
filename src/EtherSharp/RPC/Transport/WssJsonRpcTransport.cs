@@ -524,7 +524,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         else if(jsonRpcResponse.Result is null)
         {
             AddRpcRequestMetric(method, "success");
-            return new RpcResult<TResult>.Null();
+            return RpcResult<TResult>.Null.Instance;
         }
         //
         AddRpcRequestMetric(method, "success");

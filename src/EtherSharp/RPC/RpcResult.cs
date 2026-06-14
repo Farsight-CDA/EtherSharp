@@ -14,7 +14,13 @@ public abstract record RpcResult<T>
     /// <summary>
     /// Indicates the RPC call completed without a protocol error, but returned a <c>null</c> result payload.
     /// </summary>
-    public sealed record Null() : RpcResult<T>;
+    public sealed record Null() : RpcResult<T>
+    {
+        /// <summary>
+        /// Cached instance for successful RPC calls with a <c>null</c> result payload.
+        /// </summary>
+        public static Null Instance { get; } = new Null();
+    }
 
     /// <summary>
     /// Indicates the RPC call completed successfully and contains the typed result payload.
