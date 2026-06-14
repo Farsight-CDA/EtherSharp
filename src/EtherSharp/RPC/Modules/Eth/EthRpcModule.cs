@@ -114,9 +114,9 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
 
     public async Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetHeight newestBlock,
         double[] rewardPercentiles, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<int, string, double[], FeeHistory>(
+        => await _rpcClient.SendRpcRequestAsync<int, TargetHeight, double[], FeeHistory>(
             //ToDo: Calculate proper required block height
-            "eth_feeHistory", blockCount, newestBlock.ToString(), rewardPercentiles, newestBlock, cancellationToken) switch
+            "eth_feeHistory", blockCount, newestBlock, rewardPercentiles, newestBlock, cancellationToken) switch
         {
             RpcResult<FeeHistory>.Success result => result.Result,
             RpcResult<FeeHistory>.Error error => throw RPCException.FromRPCError(error),
