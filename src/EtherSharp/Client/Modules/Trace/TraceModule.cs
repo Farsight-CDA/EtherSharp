@@ -6,11 +6,13 @@ namespace EtherSharp.Client.Modules.Trace;
 
 internal sealed class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
 {
+    private static readonly string[] _traceTypes = ["trace"];
+
     private readonly ITraceRpcModule _traceRpcModule = traceRpcModule;
 
     public async Task<CallTrace?> TraceTransactionCallsAsync(string transactionHash, CancellationToken cancellationToken = default)
     {
-        var result = await _traceRpcModule.ReplayTransactionAsync(transactionHash, ["trace"], cancellationToken);
+        var result = await _traceRpcModule.ReplayTransactionAsync(transactionHash, _traceTypes, cancellationToken);
         return BuildCallTrace(result);
     }
 
@@ -22,7 +24,7 @@ internal sealed class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
 
     private async Task<CallTrace?> TraceTransactionCallsCoreAsync(Bytes32 transactionHash, CancellationToken cancellationToken = default)
     {
-        var result = await _traceRpcModule.ReplayTransactionAsync(in transactionHash, ["trace"], cancellationToken);
+        var result = await _traceRpcModule.ReplayTransactionAsync(in transactionHash, _traceTypes, cancellationToken);
 
         return BuildCallTrace(result);
     }

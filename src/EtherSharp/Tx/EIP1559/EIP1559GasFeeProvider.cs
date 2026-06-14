@@ -45,7 +45,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
     private readonly IEthRpcModule _ethRpcModule;
 
     private readonly int _feeHistoryRange;
-    private readonly double _priorityFeePercentile;
+    private readonly double[] _rewardPercentiles;
     private readonly int _baseFeeOffsetPercentage;
     private readonly int _priorityFeeOffsetPercentage;
     private readonly ulong _gasWantedOffsetPercentage;
@@ -64,7 +64,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
 
         _ethRpcModule = ethRpcModule;
         _feeHistoryRange = resolvedConfiguration.FeeHistoryRange;
-        _priorityFeePercentile = resolvedConfiguration.PriorityFeePercentile;
+        _rewardPercentiles = [resolvedConfiguration.PriorityFeePercentile];
         _baseFeeOffsetPercentage = resolvedConfiguration.BaseFeeOffsetPercentage;
         _priorityFeeOffsetPercentage = resolvedConfiguration.PriorityFeeOffsetPercentage;
         _gasWantedOffsetPercentage = resolvedConfiguration.GasWantedOffsetPercentage;
@@ -75,7 +75,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
     {
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
             from, txInput.To, txInput.Value, HexUtils.ToPrefixedHexString(txInput.Data.Span), cancellationToken);
-        var feeHistoryTask = _ethRpcModule.GetFeeHistoryAsync(_feeHistoryRange, TargetHeight.Latest, [_priorityFeePercentile], cancellationToken);
+        var feeHistoryTask = _ethRpcModule.GetFeeHistoryAsync(_feeHistoryRange, TargetHeight.Latest, _rewardPercentiles, cancellationToken);
 
         ulong gasEstimation = await gasEstimationTask;
         var feeHistory = await feeHistoryTask;
