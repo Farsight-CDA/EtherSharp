@@ -236,13 +236,19 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                 typeBuilder.AddFunction(decodeMethod);
                 typeBuilder.AddFunction(tryDecodeMethod);
 
+                bool hasInputs = functionMember.Inputs.Length > 0;
+
                 var createTxFunction = new FunctionBuilder("Create")
                     .WithIsStatic()
-                    .AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()")
                     .AddArgument("EtherSharp.Types.Address", "contractAddress");
                 var createFlashFunction = new FunctionBuilder("Create")
-                    .WithIsStatic()
-                    .AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()");
+                    .WithIsStatic();
+
+                if(hasInputs)
+                {
+                    createTxFunction.AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()");
+                    createFlashFunction.AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()");
+                }
 
                 bool isQuery = functionMember.Outputs.Length > 0
                     && (functionMember.StateMutability == StateMutability.Pure || functionMember.StateMutability == StateMutability.View);
@@ -279,6 +285,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                         $"{functionTypeName}Result",
                         functionMember.Outputs
                     );
+                    string encoderArgument = hasInputs ? "    encoder,\n" : "";
 
                     createTxFunction.WithReturnTypeRaw($"EtherSharp.Tx.IContractCall<{outputTypeName}>");
                     createFlashFunction.WithReturnTypeRaw($"EtherSharp.Tx.IFlashCall<{outputTypeName}>");
@@ -288,8 +295,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                             contractAddress,
                             {(isPayable ? "ethValue" : "0")},
                             SelectorBytes,
-                            encoder,
-                            decoder => {decodeFunc}
+                        {encoderArgument}    decoder => {decodeFunc}
                         )
                         """
                     );
@@ -298,14 +304,15 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                         return EtherSharp.Tx.IFlashCall<{outputTypeName}>.ForFlashCall(
                             {(isPayable ? "ethValue" : "0")},
                             SelectorBytes,
-                            encoder,
-                            decoder => {decodeFunc}
+                        {encoderArgument}    decoder => {decodeFunc}
                         )
                         """
                     );
                 }
                 else
                 {
+                    string encoderArgument = hasInputs ? ",\n    encoder" : "";
+
                     createTxFunction.WithReturnTypeRaw("EtherSharp.Tx.IContractCall");
                     createFlashFunction.WithReturnTypeRaw("EtherSharp.Tx.IFlashCall");
                     createTxFunction.AddStatement(
@@ -313,8 +320,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                         return EtherSharp.Tx.IContractCall.ForContractCall(
                             contractAddress,
                             {(isPayable ? "ethValue" : "0")},
-                            SelectorBytes,
-                            encoder
+                            SelectorBytes{encoderArgument}
                         )
                         """
                     );
@@ -322,8 +328,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                         $"""
                         return EtherSharp.Tx.IFlashCall.ForFlashCall(
                             {(isPayable ? "ethValue" : "0")},
-                            SelectorBytes,
-                            encoder
+                            SelectorBytes{encoderArgument}
                         )
                         """
                     );

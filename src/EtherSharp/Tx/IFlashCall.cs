@@ -34,6 +34,15 @@ public interface IFlashCall
     }
 
     /// <summary>
+    /// Creates an <see cref="IFlashCall"/> for a flash call with no encoded parameters.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="functionSignature"></param>
+    /// <returns></returns>
+    public static IFlashCall ForFlashCall(UInt256 value, ReadOnlyMemory<byte> functionSignature)
+        => new FlashCallInput(value, functionSignature);
+
+    /// <summary>
     /// Creates an <see cref="IFlashCall{T}"/> for a raw undecoded flash call.
     /// </summary>
     /// <param name="value"></param>
@@ -81,4 +90,14 @@ public interface IFlashCall<T> : IFlashCall
         encoder.TryWriteTo(data.AsSpan()[functionSignature.Length..]);
         return new FlashCallInput<T>(value, data, x => decoder(new AbiDecoder(x)));
     }
+
+    /// <summary>
+    /// Creates an <see cref="IFlashCall{T}"/> for a flash call with no encoded parameters and a result of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="functionSignature"></param>
+    /// <param name="decoder"></param>
+    /// <returns></returns>
+    public static IFlashCall<T> ForFlashCall(UInt256 value, ReadOnlyMemory<byte> functionSignature, Func<AbiDecoder, T> decoder)
+        => new FlashCallInput<T>(value, functionSignature, x => decoder(new AbiDecoder(x)));
 }

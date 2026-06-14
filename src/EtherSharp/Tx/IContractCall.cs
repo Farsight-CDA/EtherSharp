@@ -28,6 +28,16 @@ public interface IContractCall : ITxInput
     }
 
     /// <summary>
+    /// Creates an IContractCall for a contract call with no encoded parameters.
+    /// </summary>
+    /// <param name="contractAddress"></param>
+    /// <param name="value"></param>
+    /// <param name="functionSignature"></param>
+    /// <returns></returns>
+    public static IContractCall ForContractCall(in Address contractAddress, UInt256 value, ReadOnlyMemory<byte> functionSignature)
+        => new TxInput(contractAddress, value, functionSignature);
+
+    /// <summary>
     /// Creates an IContractCall for a raw undecoded contract call.
     /// </summary>
     /// <param name="contractAddress"></param>
@@ -96,4 +106,15 @@ public interface IContractCall<T> : IContractCall, ITxInput<T>
         encoder.TryWriteTo(data.AsSpan()[functionSignature.Length..]);
         return new TxInput<T>(contractAddress, value, data, x => decoder(new AbiDecoder(x)));
     }
+
+    /// <summary>
+    /// Creates an IContractCall for a contract call with no encoded parameters and a result of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <param name="contractAddress"></param>
+    /// <param name="value"></param>
+    /// <param name="functionSignature"></param>
+    /// <param name="decoder"></param>
+    /// <returns></returns>
+    public static IContractCall<T> ForContractCall(in Address contractAddress, UInt256 value, ReadOnlyMemory<byte> functionSignature, Func<AbiDecoder, T> decoder)
+        => new TxInput<T>(contractAddress, value, functionSignature, x => decoder(new AbiDecoder(x)));
 }
