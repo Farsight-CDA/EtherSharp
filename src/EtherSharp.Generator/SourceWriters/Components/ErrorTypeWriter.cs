@@ -83,10 +83,9 @@ internal sealed class ErrorTypeWriter
         encodeMethod.AddStatement($"return EncodeData({String.Join(", ", propertyNames)})");
         encodeDataMethod.AddStatement(
             """
-            byte[] encodedArguments = encoder.Build();
-            byte[] data = new byte[4 + encodedArguments.Length];
+            byte[] data = new byte[4 + encoder.Size];
             Selector.CopyTo(data);
-            encodedArguments.CopyTo(data.AsSpan(4));
+            encoder.TryWriteTo(data.AsSpan(4));
             return data;
             """, false
         );
