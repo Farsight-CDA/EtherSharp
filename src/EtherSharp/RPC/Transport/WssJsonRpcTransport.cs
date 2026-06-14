@@ -266,6 +266,20 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             return;
         }
 
+        if(handlers.HasSingleTarget)
+        {
+            try
+            {
+                handlers(subscriptionId, payload);
+            }
+            catch(Exception ex)
+            {
+                _logger?.LogWarning(ex, "Subscription handler threw for subscription {SubscriptionId}", subscriptionId);
+            }
+
+            return;
+        }
+
         foreach(var handler in handlers.GetInvocationList())
         {
             try
