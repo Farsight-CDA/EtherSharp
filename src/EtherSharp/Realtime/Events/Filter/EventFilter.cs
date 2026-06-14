@@ -24,7 +24,20 @@ internal sealed class EventFilter<TLog>(IRpcClient rpcClient, IEthRpcModule ethR
     public async Task<TLog[]> GetChangesAsync(CancellationToken cancellationToken)
     {
         var rawResults = await _ethRpcModule.GetEventFilterChangesAsync(Id, cancellationToken);
-        return [.. rawResults.Select(TLog.Decode)];
+
+        if(rawResults.Length == 0)
+        {
+            return [];
+        }
+
+        var results = new TLog[rawResults.Length];
+
+        for(int i = 0; i < rawResults.Length; i++)
+        {
+            results[i] = TLog.Decode(rawResults[i]);
+        }
+
+        return results;
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken)

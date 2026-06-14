@@ -125,8 +125,19 @@ internal sealed class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule eth
             return rawResults as TLog[]
                 ?? throw new ImpossibleException();
         }
-        //
-        return [.. rawResults.Select(TLog.Decode)];
+        if(rawResults.Length == 0)
+        {
+            return [];
+        }
+
+        var results = new TLog[rawResults.Length];
+
+        for(int i = 0; i < rawResults.Length; i++)
+        {
+            results[i] = TLog.Decode(rawResults[i]);
+        }
+
+        return results;
     }
 
     public async Task<IEventFilter<TLog>> CreateFilterAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default,
