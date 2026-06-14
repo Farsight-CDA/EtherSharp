@@ -17,6 +17,11 @@ namespace EtherSharp.RPC.Transport;
 /// </summary>
 public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 {
+    private static readonly MediaTypeHeaderValue _jsonMediaTypeHeaderValue = new("application/json")
+    {
+        CharSet = Encoding.UTF8.WebName
+    };
+
     /// <inheritdoc />
     public bool SupportsFilters => true;
     /// <inheritdoc />
@@ -132,10 +137,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     private static ByteArrayContent CreateHttpContent(byte[] payload)
     {
         var content = new ByteArrayContent(payload);
-        content.Headers.ContentType = new MediaTypeHeaderValue("application/json")
-        {
-            CharSet = Encoding.UTF8.WebName
-        };
+        content.Headers.ContentType = _jsonMediaTypeHeaderValue;
         return content;
     }
 
