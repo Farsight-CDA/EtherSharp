@@ -199,8 +199,8 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
 
     private async Task<byte[]> GetStorageAtCoreAsync(
         Address address, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default)
-        => await _rpcClient.SendRpcRequestAsync<string, byte[], TargetHeight, byte[]>(
-            "eth_getStorageAt", address.ToString(), slot, targetHeight, targetHeight, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<Address, byte[], TargetHeight, byte[]>(
+            "eth_getStorageAt", address, slot, targetHeight, targetHeight, cancellationToken) switch
         {
             RpcResult<byte[]>.Success result => result.Result,
             RpcResult<byte[]>.Error error => throw RPCException.FromRPCError(error),

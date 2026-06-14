@@ -57,7 +57,7 @@ internal static class HexJsonConverter
     {
         Span<char> buffer = stackalloc char[(bytes.Length * 2) + 2];
         WriteHexBytes(buffer, bytes);
-        writer.WritePropertyName(buffer.ToString());
+        writer.WritePropertyName(buffer);
     }
 
     private static void WriteHexBytes(scoped Span<char> buffer, ReadOnlySpan<byte> bytes)
