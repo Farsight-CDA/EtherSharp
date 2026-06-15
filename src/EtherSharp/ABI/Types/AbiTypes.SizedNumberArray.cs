@@ -1,6 +1,7 @@
 ﻿using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace EtherSharp.ABI.Types;
 
@@ -45,38 +46,91 @@ public static partial class AbiTypes
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
             BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
 
-            for(int i = 0; i < Value.Length; i++)
+            var value = Value;
+            switch(typeof(TInner))
             {
-                var slot = payload.Slice(32 + (i * 32), 32);
-                switch(Value[i])
+                case Type us8 when us8 == typeof(byte):
                 {
-                    case byte us8:
-                        AbiTypes.Byte.EncodeInto(us8, slot);
-                        break;
-                    case sbyte s8:
-                        AbiTypes.SByte.EncodeInto(s8, slot);
-                        break;
-                    case ushort us16:
-                        AbiTypes.UShort.EncodeInto(us16, slot);
-                        break;
-                    case short s16:
-                        AbiTypes.Short.EncodeInto(s16, slot);
-                        break;
-                    case uint us32:
-                        AbiTypes.UInt.EncodeInto(us32, slot, false);
-                        break;
-                    case int s32:
-                        AbiTypes.Int.EncodeInto(s32, slot, false);
-                        break;
-                    case ulong us64:
-                        AbiTypes.ULong.EncodeInto(us64, slot, false);
-                        break;
-                    case long s64:
-                        AbiTypes.Long.EncodeInto(s64, slot, false);
-                        break;
-                    default:
-                        throw new NotImplementedException();
+                    byte[] values = Unsafe.As<TInner[], byte[]>(ref value);
+                    for(int i = 0; i < values.Length; i++)
+                    {
+                        Byte.EncodeInto(values[i], payload.Slice(32 + (i * 32), 32));
+                    }
+
+                    break;
                 }
+                case Type s8 when s8 == typeof(sbyte):
+                {
+                    sbyte[] values = Unsafe.As<TInner[], sbyte[]>(ref value);
+                    for(int i = 0; i < values.Length; i++)
+                    {
+                        SByte.EncodeInto(values[i], payload.Slice(32 + (i * 32), 32));
+                    }
+
+                    break;
+                }
+                case Type us16 when us16 == typeof(ushort):
+                {
+                    ushort[] values = Unsafe.As<TInner[], ushort[]>(ref value);
+                    for(int i = 0; i < values.Length; i++)
+                    {
+                        UShort.EncodeInto(values[i], payload.Slice(32 + (i * 32), 32));
+                    }
+
+                    break;
+                }
+                case Type s16 when s16 == typeof(short):
+                {
+                    short[] values = Unsafe.As<TInner[], short[]>(ref value);
+                    for(int i = 0; i < values.Length; i++)
+                    {
+                        Short.EncodeInto(values[i], payload.Slice(32 + (i * 32), 32));
+                    }
+
+                    break;
+                }
+                case Type us32 when us32 == typeof(uint):
+                {
+                    uint[] values = Unsafe.As<TInner[], uint[]>(ref value);
+                    for(int i = 0; i < values.Length; i++)
+                    {
+                        UInt.EncodeInto(values[i], payload.Slice(32 + (i * 32), 32), false);
+                    }
+
+                    break;
+                }
+                case Type s32 when s32 == typeof(int):
+                {
+                    int[] values = Unsafe.As<TInner[], int[]>(ref value);
+                    for(int i = 0; i < values.Length; i++)
+                    {
+                        Int.EncodeInto(values[i], payload.Slice(32 + (i * 32), 32), false);
+                    }
+
+                    break;
+                }
+                case Type us64 when us64 == typeof(ulong):
+                {
+                    ulong[] values = Unsafe.As<TInner[], ulong[]>(ref value);
+                    for(int i = 0; i < values.Length; i++)
+                    {
+                        ULong.EncodeInto(values[i], payload.Slice(32 + (i * 32), 32), false);
+                    }
+
+                    break;
+                }
+                case Type s64 when s64 == typeof(long):
+                {
+                    long[] values = Unsafe.As<TInner[], long[]>(ref value);
+                    for(int i = 0; i < values.Length; i++)
+                    {
+                        Long.EncodeInto(values[i], payload.Slice(32 + (i * 32), 32), false);
+                    }
+
+                    break;
+                }
+                default:
+                    throw new NotImplementedException();
             }
         }
 
@@ -97,7 +151,7 @@ public static partial class AbiTypes
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = AbiTypes.Byte.Decode(slot.Span);
+                        arr[i] = Byte.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -107,7 +161,7 @@ public static partial class AbiTypes
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = AbiTypes.SByte.Decode(slot.Span);
+                        arr[i] = SByte.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -117,7 +171,7 @@ public static partial class AbiTypes
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = AbiTypes.UShort.Decode(slot.Span);
+                        arr[i] = UShort.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -127,7 +181,7 @@ public static partial class AbiTypes
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = AbiTypes.Short.Decode(slot.Span);
+                        arr[i] = Short.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -137,7 +191,7 @@ public static partial class AbiTypes
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = AbiTypes.UInt.Decode(slot.Span);
+                        arr[i] = UInt.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -147,7 +201,7 @@ public static partial class AbiTypes
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = AbiTypes.Int.Decode(slot.Span);
+                        arr[i] = Int.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -158,7 +212,7 @@ public static partial class AbiTypes
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = AbiTypes.ULong.Decode(slot.Span);
+                        arr[i] = ULong.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
@@ -168,7 +222,7 @@ public static partial class AbiTypes
                     for(int i = 0; i < length; i++)
                     {
                         var slot = data[(i * 32)..((i * 32) + 32)];
-                        arr[i] = AbiTypes.Long.Decode(slot.Span);
+                        arr[i] = Long.Decode(slot.Span);
                     }
                     return (TInner[]) (object) arr;
                 }
