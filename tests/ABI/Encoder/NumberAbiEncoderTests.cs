@@ -73,7 +73,7 @@ public sealed class AbiSizedNumberEncodingTests
             16 => UInt16.MaxValue,
             > 16 and <= 32 => UInt32.MaxValue >> (32 - bitSize),
             > 32 and <= 64 => UInt64.MaxValue >> (64 - bitSize),
-            > 64 and < 256 => UInt256.Pow(2, (uint) bitSize) - 1,
+            > 64 and < 256 => (object) (UInt256.Pow(2, (uint) bitSize) - 1),
             256 => UInt256.MaxValue,
             _ => throw new NotSupportedException()
         };
