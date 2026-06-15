@@ -167,6 +167,10 @@
 		  <LastGenOutput>PackedAbiEncoder.SizedBytes.generated.cs</LastGenOutput>
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		</None>
+		<None Update="ABI\Packed\PackedAbiEncoder.SizedNumbers.tt">
+		  <LastGenOutput>PackedAbiEncoder.SizedNumbers.generated.cs</LastGenOutput>
+		  <Generator>TextTemplatingFileGenerator</Generator>
+		</None>
 		<None Update="Query\QueryBuilder.AddQuery.tt">
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		  <LastGenOutput>QueryBuilder.AddQuery.generated.cs</LastGenOutput>
@@ -313,6 +317,11 @@
 		</Compile>
 		<Compile Update="ABI\Packed\PackedAbiEncoder.SizedBytes.generated.cs">
 		  <DependentUpon>PackedAbiEncoder.SizedBytes.tt</DependentUpon>
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
+		</Compile>
+		<Compile Update="ABI\Packed\PackedAbiEncoder.SizedNumbers.generated.cs">
+		  <DependentUpon>PackedAbiEncoder.SizedNumbers.tt</DependentUpon>
 		  <DesignTime>True</DesignTime>
 		  <AutoGen>True</AutoGen>
 		</Compile>
