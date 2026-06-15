@@ -57,28 +57,28 @@ public partial interface IDynamicTupleEncoder
     /// </summary>
     /// <param name="values">The boolean values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder BoolArray(params bool[] values);
+    public IDynamicTupleEncoder BoolArray(params ReadOnlySpan<bool> values);
 
     /// <summary>
     /// Encodes an address array.
     /// </summary>
     /// <param name="addresses">The addresses to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder AddressArray(params Address[] addresses);
+    public IDynamicTupleEncoder AddressArray(params ReadOnlySpan<Address> addresses);
 
     /// <summary>
     /// Encodes a string array.
     /// </summary>
     /// <param name="values">The strings to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder StringArray(params string[] values);
+    public IDynamicTupleEncoder StringArray(params ReadOnlySpan<string> values);
 
     /// <summary>
     /// Encodes a dynamic bytes array.
     /// </summary>
     /// <param name="values">The bytes values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
-    public IDynamicTupleEncoder BytesArray(params ReadOnlyMemory<byte>[] values);
+    public IDynamicTupleEncoder BytesArray(params ReadOnlySpan<ReadOnlyMemory<byte>> values);
 
     /// <summary>
     /// Encodes an array of complex elements.

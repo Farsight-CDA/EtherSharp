@@ -129,7 +129,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// </summary>
     /// <param name="values">Values to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
-    public AbiEncoder BoolArray(params bool[] values)
+    public AbiEncoder BoolArray(params ReadOnlySpan<bool> values)
     {
         var encoded = new AbiTypes.Bool[values.Length];
         for(int i = 0; i < values.Length; i++)
@@ -145,7 +145,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// </summary>
     /// <param name="addresses">Addresses to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
-    public AbiEncoder AddressArray(params Address[] addresses)
+    public AbiEncoder AddressArray(params ReadOnlySpan<Address> addresses)
     {
         var encoded = new AbiTypes.Address[addresses.Length];
         for(int i = 0; i < addresses.Length; i++)
@@ -161,7 +161,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// </summary>
     /// <param name="value">Strings to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
-    public AbiEncoder StringArray(params string[] value)
+    public AbiEncoder StringArray(params ReadOnlySpan<string> value)
     {
         var encoded = new AbiTypes.String[value.Length];
         for(int i = 0; i < value.Length; i++)
@@ -177,7 +177,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// </summary>
     /// <param name="value">Byte sequences to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
-    public AbiEncoder BytesArray(params ReadOnlyMemory<byte>[] value)
+    public AbiEncoder BytesArray(params ReadOnlySpan<ReadOnlyMemory<byte>> value)
     {
         var encoded = new AbiTypes.Bytes[value.Length];
         for(int i = 0; i < value.Length; i++)
@@ -260,13 +260,13 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         => String(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(ReadOnlyMemory<byte> arr)
             => Bytes(arr);
-    IDynamicTupleEncoder IDynamicTupleEncoder.BoolArray(params bool[] values)
+    IDynamicTupleEncoder IDynamicTupleEncoder.BoolArray(params ReadOnlySpan<bool> values)
         => BoolArray(values);
-    IDynamicTupleEncoder IDynamicTupleEncoder.AddressArray(params Address[] addresses)
+    IDynamicTupleEncoder IDynamicTupleEncoder.AddressArray(params ReadOnlySpan<Address> addresses)
         => AddressArray(addresses);
-    IDynamicTupleEncoder IDynamicTupleEncoder.StringArray(params string[] values)
+    IDynamicTupleEncoder IDynamicTupleEncoder.StringArray(params ReadOnlySpan<string> values)
         => StringArray(values);
-    IDynamicTupleEncoder IDynamicTupleEncoder.BytesArray(params ReadOnlyMemory<byte>[] values)
+    IDynamicTupleEncoder IDynamicTupleEncoder.BytesArray(params ReadOnlySpan<ReadOnlyMemory<byte>> values)
         => BytesArray(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
         => Array(values, func);
