@@ -1,7 +1,5 @@
 using EtherSharp.Contract.Sections;
 using EtherSharp.Types;
-using System.Buffers.Binary;
-using System.Numerics;
 
 namespace EtherSharp.Contract;
 
@@ -67,24 +65,6 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
         => HasFunctions(TFunctionsSection.GetSelectors());
 
     /// <summary>
-    /// Checks if the given contract code implements the events from the given logs section.
-    /// </summary>
-    /// <typeparam name="TLogsSection"></typeparam>
-    /// <returns></returns>
-    public readonly bool HasEvents<TLogsSection>()
-        where TLogsSection : ILogsSection
-        => HasEvents(TLogsSection.GetTopics());
-
-    /// <summary>
-    /// Checks if the given contract code implements the errors from the given errors section.
-    /// </summary>
-    /// <typeparam name="TErrorsSection"></typeparam>
-    /// <returns></returns>
-    public readonly bool HasErrors<TErrorsSection>()
-        where TErrorsSection : IErrorsSection
-        => HasErrors(TErrorsSection.GetSelectors());
-
-    /// <summary>
     /// Checks if the given contract code implements the function from the given generated function type.
     /// </summary>
     /// <typeparam name="TFunction"></typeparam>
@@ -94,84 +74,11 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
         => HasFunction(TFunction.SelectorBytes);
 
     /// <summary>
-    /// Checks if the given contract code implements the event from the given generated log type.
-    /// </summary>
-    /// <typeparam name="TLog"></typeparam>
-    /// <returns></returns>
-    public readonly bool HasEvent<TLog>()
-        where TLog : IGeneratedLog
-        => HasEvent(TLog.TopicBytes);
-
-    /// <summary>
-    /// Checks if the given contract code implements the error from the given generated error type.
-    /// </summary>
-    /// <typeparam name="TError"></typeparam>
-    /// <returns></returns>
-    public readonly bool HasError<TError>()
-        where TError : ISolidityError<TError>
-        => HasError(TError.Selector);
-
-    /// <summary>
-    /// Checks if the given contract code implements a function selector.
-    /// </summary>
-    /// <param name="selector"></param>
-    /// <returns></returns>
-    public readonly bool HasFunction(ReadOnlyMemory<byte> selector)
-    {
-        Span<byte> prefixedSelector = stackalloc byte[5];
-        prefixedSelector[0] = EvmOpcodeUtils.PUSH4;
-        selector.Span.CopyTo(prefixedSelector[1..]);
-
-        int index = ByteCode.Span.IndexOf(prefixedSelector);
-
-        if(index == -1 || ByteCode.Length < (index + 7))
-        {
-            return false;
-        }
-
-        byte suffixByte = ByteCode.Span[index + 5];
-
-        return EvmOpcodeUtils.ComparisonOpcodes.Contains(suffixByte);
-    }
-
-    /// <summary>
-    /// Checks if the given contract code implements an event topic.
-    /// </summary>
-    /// <param name="topic"></param>
-    /// <returns></returns>
-    public readonly bool HasEvent(ReadOnlyMemory<byte> topic)
-    {
-        Span<byte> prefixedSelector = stackalloc byte[33];
-        prefixedSelector[0] = EvmOpcodeUtils.PUSH32;
-        topic.Span.CopyTo(prefixedSelector[1..]);
-
-        return ByteCode.Span.IndexOf(prefixedSelector) != -1;
-    }
-
-    /// <summary>
-    /// Checks if the given contract code implements an error signature.
-    /// </summary>
-    /// <param name="signature"></param>
-    /// <returns></returns>
-    public readonly bool HasError(Bytes4 signature)
-    {
-        Span<byte> signatureBytes = stackalloc byte[4];
-        signature.CopyTo(signatureBytes);
-        Span<byte> shiftedSignatureBuffer = stackalloc byte[4];
-        int shiftedSignatureLength = GetShiftedSignatureBytes(signatureBytes, shiftedSignatureBuffer);
-        var shiftedSignature = shiftedSignatureBuffer[..shiftedSignatureLength];
-        var byteCode = ByteCode.Span;
-
-        return byteCode.IndexOf(signatureBytes) != -1
-            || (!shiftedSignature.SequenceEqual(signatureBytes) && byteCode.IndexOf(shiftedSignature) != -1);
-    }
-
-    /// <summary>
     /// Checks if the given contract code implements a set of function selectors
     /// </summary>
     /// <param name="selectors"></param>
     /// <returns></returns>
-    public readonly bool HasFunctions(params IEnumerable<ReadOnlyMemory<byte>> selectors)
+    public readonly bool HasFunctions(IEnumerable<ReadOnlyMemory<byte>> selectors)
     {
         foreach(var requiredSelector in selectors)
         {
@@ -185,11 +92,69 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     }
 
     /// <summary>
+    /// Checks if the given contract code implements a function selector.
+    /// </summary>
+    /// <param name="selector"></param>
+    /// <returns></returns>
+    public readonly bool HasFunction(ReadOnlyMemory<byte> selector)
+    {
+        var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
+        var normalizedSelector = selector.Span.TrimStart((byte) 0);
+        normalizedSelector = normalizedSelector.IsEmpty ? selector.Span[^1..] : normalizedSelector;
+
+        for(int i = 0; i < byteCode.Length; i++)
+        {
+            if(!EvmOpcodeUtils.TryGetPushLength(byteCode[i], out int pushLength))
+            {
+                continue;
+            }
+
+            int pushValueIndex = i + 1;
+            int pushEndIndex = pushValueIndex + pushLength;
+
+            if(pushEndIndex > byteCode.Length)
+            {
+                break;
+            }
+
+            if(pushLength == normalizedSelector.Length
+                && byteCode[pushValueIndex..pushEndIndex].SequenceEqual(normalizedSelector)
+                && pushEndIndex < byteCode.Length
+                && EvmOpcodeUtils.ComparisonOpcodes.Contains(byteCode[pushEndIndex]))
+            {
+                return true;
+            }
+
+            i += pushLength;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if the given contract code implements the events from the given logs section.
+    /// </summary>
+    /// <typeparam name="TLogsSection"></typeparam>
+    /// <returns></returns>
+    public readonly bool HasEvents<TLogsSection>()
+        where TLogsSection : ILogsSection
+        => HasEvents(TLogsSection.GetTopics());
+
+    /// <summary>
+    /// Checks if the given contract code implements the event from the given generated log type.
+    /// </summary>
+    /// <typeparam name="TLog"></typeparam>
+    /// <returns></returns>
+    public readonly bool HasEvent<TLog>()
+        where TLog : IGeneratedLog
+        => HasEvent(TLog.TopicBytes);
+
+    /// <summary>
     /// Checks if the given contract code implements a set of event topics
     /// </summary>
     /// <param name="topics"></param>
     /// <returns></returns>
-    public readonly bool HasEvents(params IEnumerable<ReadOnlyMemory<byte>> topics)
+    public readonly bool HasEvents(IEnumerable<ReadOnlyMemory<byte>> topics)
     {
         foreach(var requiredTopic in topics)
         {
@@ -203,11 +168,50 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     }
 
     /// <summary>
+    /// Checks if the given contract code implements an event topic.
+    /// </summary>
+    /// <param name="topic"></param>
+    /// <returns></returns>
+    public readonly bool HasEvent(ReadOnlyMemory<byte> topic)
+    {
+        var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
+
+        if(byteCode.IndexOf(topic.Span) != -1)
+        {
+            return true;
+        }
+
+        var normalizedTopic = topic.Span.TrimStart((byte) 0);
+        normalizedTopic = normalizedTopic.IsEmpty ? topic.Span[^1..] : normalizedTopic;
+
+        return normalizedTopic.Length != topic.Length
+            && byteCode.IndexOf(normalizedTopic) != -1;
+    }
+
+    /// <summary>
+    /// Checks if the given contract code implements the errors from the given errors section.
+    /// </summary>
+    /// <typeparam name="TErrorsSection"></typeparam>
+    /// <returns></returns>
+    public readonly bool HasErrors<TErrorsSection>()
+        where TErrorsSection : IErrorsSection
+        => HasErrors(TErrorsSection.GetSelectors());
+
+    /// <summary>
+    /// Checks if the given contract code implements the error from the given generated error type.
+    /// </summary>
+    /// <typeparam name="TError"></typeparam>
+    /// <returns></returns>
+    public readonly bool HasError<TError>()
+        where TError : ISolidityError<TError>
+        => HasError(TError.Selector);
+
+    /// <summary>
     /// Checks if the given contract code implements a set of error signatures.
     /// </summary>
     /// <param name="signatures"></param>
     /// <returns></returns>
-    public readonly bool HasErrors(params IEnumerable<Bytes4> signatures)
+    public readonly bool HasErrors(IEnumerable<Bytes4> signatures)
     {
         foreach(var requiredSignature in signatures)
         {
@@ -220,31 +224,72 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
         return true;
     }
 
-    private static int GetShiftedSignatureBytes(ReadOnlySpan<byte> signature, Span<byte> shiftedSignature)
+    /// <summary>
+    /// Checks if the given contract code implements an error signature.
+    /// </summary>
+    /// <param name="signature"></param>
+    /// <returns></returns>
+    public readonly bool HasError(Bytes4 signature)
     {
-        uint signatureValue = BinaryPrimitives.ReadUInt32BigEndian(signature);
+        Span<byte> signatureBytes = stackalloc byte[4];
+        signature.CopyTo(signatureBytes);
+        var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
 
-        if(signatureValue == 0)
+        return HasPushedErrorSignature(byteCode, signatureBytes);
+    }
+
+    private static bool HasPushedErrorSignature(ReadOnlySpan<byte> byteCode, ReadOnlySpan<byte> signature)
+    {
+        Span<byte> compactSignature = stackalloc byte[4];
+        int compactSignatureLength = CopyWithoutLeadingOrTrailingZeroBytes(signature, compactSignature);
+
+        for(int i = 0; i < byteCode.Length; i++)
         {
-            signature.CopyTo(shiftedSignature);
-            return signature.Length;
+            if(!EvmOpcodeUtils.TryGetPushLength(byteCode[i], out int pushLength))
+            {
+                continue;
+            }
+
+            int pushValueIndex = i + 1;
+            int pushEndIndex = pushValueIndex + pushLength;
+
+            if(pushEndIndex > byteCode.Length)
+            {
+                break;
+            }
+
+            var pushData = byteCode[pushValueIndex..pushEndIndex];
+
+            if(pushData.IndexOf(signature) != -1
+                || (compactSignatureLength != signature.Length && pushData.IndexOf(compactSignature[..compactSignatureLength]) != -1))
+            {
+                return true;
+            }
+
+            i += pushLength;
         }
 
-        int trailingZeroBits = BitOperations.TrailingZeroCount(signatureValue);
-        if(trailingZeroBits == 0)
+        return false;
+    }
+
+    private static int CopyWithoutLeadingOrTrailingZeroBytes(ReadOnlySpan<byte> bytes, Span<byte> destination)
+    {
+        int leadingZeroBytes = 0;
+
+        while(leadingZeroBytes < bytes.Length - 1 && bytes[leadingZeroBytes] == 0)
         {
-            signature.CopyTo(shiftedSignature);
-            return signature.Length;
+            leadingZeroBytes++;
         }
 
-        signatureValue >>= trailingZeroBits;
+        int trailingZeroBytes = 0;
 
-        Span<byte> shiftedSignatureBytes = stackalloc byte[4];
-        BinaryPrimitives.WriteUInt32BigEndian(shiftedSignatureBytes, signatureValue);
+        while(trailingZeroBytes < bytes.Length - leadingZeroBytes - 1 && bytes[bytes.Length - trailingZeroBytes - 1] == 0)
+        {
+            trailingZeroBytes++;
+        }
 
-        int leadingZeroBytes = BitOperations.LeadingZeroCount(signatureValue) / 8;
-        shiftedSignatureBytes[leadingZeroBytes..].CopyTo(shiftedSignature);
+        bytes[leadingZeroBytes..(bytes.Length - trailingZeroBytes)].CopyTo(destination);
 
-        return 4 - leadingZeroBytes;
+        return bytes.Length - leadingZeroBytes - trailingZeroBytes;
     }
 }
