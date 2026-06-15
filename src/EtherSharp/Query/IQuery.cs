@@ -10,7 +10,7 @@ namespace EtherSharp.Query;
 /// <summary>
 /// Represents a low-level query operation that can be encoded into the aggregated query payload.
 /// </summary>
-public interface IQuery
+public partial interface IQuery
 {
     /// <summary>
     /// Gets the number of bytes this operation contributes to the encoded query calldata.
@@ -217,199 +217,6 @@ public interface IQuery
         => new Query<TTo>(query.Queries, results => mapping(query.ReadResultFrom(results)));
 
     /// <summary>
-    /// Combines two queries into a single query that returns a tuple of both results.
-    /// </summary>
-    public static IQuery<(T1, T2)> Combine<T1, T2>(IQuery<T1> q1, IQuery<T2> q2)
-        => new Query<(T1, T2)>(
-            [.. q1.Queries, .. q2.Queries],
-            results => (
-                q1.ReadResultFrom(results[..]),
-                q2.ReadResultFrom(results[q1.Queries.Count..])
-            )
-        );
-
-    /// <summary>
-    /// Combines three queries into a single query that returns a tuple of all results.
-    /// </summary>
-    public static IQuery<(T1, T2, T3)> Combine<T1, T2, T3>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3)
-        => new Query<(T1, T2, T3)>(
-            [.. q1.Queries, .. q2.Queries, .. q3.Queries],
-            results => (
-                q1.ReadResultFrom(results[..]),
-                q2.ReadResultFrom(results[q1.Queries.Count..]),
-                q3.ReadResultFrom(results[(q1.Queries.Count + q2.Queries.Count)..])
-            )
-        );
-
-    /// <summary>
-    /// Combines four queries into a single query that returns a tuple of all results.
-    /// </summary>
-    public static IQuery<(T1, T2, T3, T4)> Combine<T1, T2, T3, T4>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4)
-        => new Query<(T1, T2, T3, T4)>(
-            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries],
-            results =>
-            {
-                int offset = 0;
-                int count1 = q1.Queries.Count;
-                int count2 = q2.Queries.Count;
-                int count3 = q3.Queries.Count;
-                int count4 = q4.Queries.Count;
-
-                return (
-                    q1.ReadResultFrom(results[offset..(offset += count1)]),
-                    q2.ReadResultFrom(results[offset..(offset += count2)]),
-                    q3.ReadResultFrom(results[offset..(offset += count3)]),
-                    q4.ReadResultFrom(results[offset..(offset += count4)])
-                );
-            }
-        );
-
-    /// <summary>
-    /// Combines five queries into a single query that returns a tuple of all results.
-    /// </summary>
-    public static IQuery<(T1, T2, T3, T4, T5)> Combine<T1, T2, T3, T4, T5>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5)
-        => new Query<(T1, T2, T3, T4, T5)>(
-            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries],
-            results =>
-            {
-                int offset = 0;
-                int count1 = q1.Queries.Count;
-                int count2 = q2.Queries.Count;
-                int count3 = q3.Queries.Count;
-                int count4 = q4.Queries.Count;
-                int count5 = q5.Queries.Count;
-
-                return (
-                    q1.ReadResultFrom(results[offset..(offset += count1)]),
-                    q2.ReadResultFrom(results[offset..(offset += count2)]),
-                    q3.ReadResultFrom(results[offset..(offset += count3)]),
-                    q4.ReadResultFrom(results[offset..(offset += count4)]),
-                    q5.ReadResultFrom(results[offset..(offset += count5)])
-                );
-            }
-        );
-
-    /// <summary>
-    /// Combines six queries into a single query that returns a tuple of all results.
-    /// </summary>
-    public static IQuery<(T1, T2, T3, T4, T5, T6)> Combine<T1, T2, T3, T4, T5, T6>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5, IQuery<T6> q6)
-        => new Query<(T1, T2, T3, T4, T5, T6)>(
-            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries, .. q6.Queries],
-            results =>
-            {
-                int offset = 0;
-                int count1 = q1.Queries.Count;
-                int count2 = q2.Queries.Count;
-                int count3 = q3.Queries.Count;
-                int count4 = q4.Queries.Count;
-                int count5 = q5.Queries.Count;
-                int count6 = q6.Queries.Count;
-
-                return (
-                    q1.ReadResultFrom(results[offset..(offset += count1)]),
-                    q2.ReadResultFrom(results[offset..(offset += count2)]),
-                    q3.ReadResultFrom(results[offset..(offset += count3)]),
-                    q4.ReadResultFrom(results[offset..(offset += count4)]),
-                    q5.ReadResultFrom(results[offset..(offset += count5)]),
-                    q6.ReadResultFrom(results[offset..(offset += count6)])
-                );
-            }
-        );
-
-    /// <summary>
-    /// Combines seven queries into a single query that returns a tuple of all results.
-    /// </summary>
-    public static IQuery<(T1, T2, T3, T4, T5, T6, T7)> Combine<T1, T2, T3, T4, T5, T6, T7>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5, IQuery<T6> q6, IQuery<T7> q7)
-        => new Query<(T1, T2, T3, T4, T5, T6, T7)>(
-            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries, .. q6.Queries, .. q7.Queries],
-            results =>
-            {
-                int offset = 0;
-                int count1 = q1.Queries.Count;
-                int count2 = q2.Queries.Count;
-                int count3 = q3.Queries.Count;
-                int count4 = q4.Queries.Count;
-                int count5 = q5.Queries.Count;
-                int count6 = q6.Queries.Count;
-                int count7 = q7.Queries.Count;
-
-                return (
-                    q1.ReadResultFrom(results[offset..(offset += count1)]),
-                    q2.ReadResultFrom(results[offset..(offset += count2)]),
-                    q3.ReadResultFrom(results[offset..(offset += count3)]),
-                    q4.ReadResultFrom(results[offset..(offset += count4)]),
-                    q5.ReadResultFrom(results[offset..(offset += count5)]),
-                    q6.ReadResultFrom(results[offset..(offset += count6)]),
-                    q7.ReadResultFrom(results[offset..(offset += count7)])
-                );
-            }
-        );
-
-    /// <summary>
-    /// Combines eight queries into a single query that returns a tuple of all results.
-    /// </summary>
-    public static IQuery<(T1, T2, T3, T4, T5, T6, T7, T8)> Combine<T1, T2, T3, T4, T5, T6, T7, T8>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5, IQuery<T6> q6, IQuery<T7> q7, IQuery<T8> q8)
-        => new Query<(T1, T2, T3, T4, T5, T6, T7, T8)>(
-            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries, .. q6.Queries, .. q7.Queries, .. q8.Queries],
-            results =>
-            {
-                int offset = 0;
-                int count1 = q1.Queries.Count;
-                int count2 = q2.Queries.Count;
-                int count3 = q3.Queries.Count;
-                int count4 = q4.Queries.Count;
-                int count5 = q5.Queries.Count;
-                int count6 = q6.Queries.Count;
-                int count7 = q7.Queries.Count;
-                int count8 = q8.Queries.Count;
-
-                return (
-                    q1.ReadResultFrom(results[offset..(offset += count1)]),
-                    q2.ReadResultFrom(results[offset..(offset += count2)]),
-                    q3.ReadResultFrom(results[offset..(offset += count3)]),
-                    q4.ReadResultFrom(results[offset..(offset += count4)]),
-                    q5.ReadResultFrom(results[offset..(offset += count5)]),
-                    q6.ReadResultFrom(results[offset..(offset += count6)]),
-                    q7.ReadResultFrom(results[offset..(offset += count7)]),
-                    q8.ReadResultFrom(results[offset..(offset += count8)])
-                );
-            }
-        );
-
-    /// <summary>
-    /// Combines nine queries into a single query that returns a tuple of all results.
-    /// </summary>
-    public static IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> Combine<T1, T2, T3, T4, T5, T6, T7, T8, T9>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5, IQuery<T6> q6, IQuery<T7> q7, IQuery<T8> q8, IQuery<T9> q9)
-        => new Query<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>(
-            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries, .. q6.Queries, .. q7.Queries, .. q8.Queries, .. q9.Queries],
-            results =>
-            {
-                int offset = 0;
-                int count1 = q1.Queries.Count;
-                int count2 = q2.Queries.Count;
-                int count3 = q3.Queries.Count;
-                int count4 = q4.Queries.Count;
-                int count5 = q5.Queries.Count;
-                int count6 = q6.Queries.Count;
-                int count7 = q7.Queries.Count;
-                int count8 = q8.Queries.Count;
-                int count9 = q9.Queries.Count;
-
-                return (
-                    q1.ReadResultFrom(results[offset..(offset += count1)]),
-                    q2.ReadResultFrom(results[offset..(offset += count2)]),
-                    q3.ReadResultFrom(results[offset..(offset += count3)]),
-                    q4.ReadResultFrom(results[offset..(offset += count4)]),
-                    q5.ReadResultFrom(results[offset..(offset += count5)]),
-                    q6.ReadResultFrom(results[offset..(offset += count6)]),
-                    q7.ReadResultFrom(results[offset..(offset += count7)]),
-                    q8.ReadResultFrom(results[offset..(offset += count8)]),
-                    q9.ReadResultFrom(results[offset..(offset += count9)])
-                );
-            }
-        );
-
-    /// <summary>
     /// Combines an arbitrary number of queries into a single query that returns an ordered result list.
     /// </summary>
     public static IQuery<T[]> Range<T>(params IEnumerable<IQuery<T>> queries)
@@ -440,7 +247,7 @@ public interface IQuery
 /// Represents a call payload that returns a result of type <typeparamref name="TQuery"/> when eth_call'ed.
 /// </summary>
 /// <typeparam name="TQuery">The parsed result type returned by this query.</typeparam>
-public interface IQuery<TQuery>
+public partial interface IQuery<TQuery>
 {
     internal IReadOnlyList<IQuery> Queries { get; }
     internal TQuery ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults);
