@@ -233,7 +233,7 @@ public sealed class RLPEncoderTests
         stringBuffer.AsSpan().Fill(0xaa);
         _ = new RLPEncoder(stringBuffer)
             .EncodeString(data)
-            .EncodeString((byte) 0x01);
+            .EncodeString(0x01);
 
         Assert.Equal(0x01, stringBuffer[stringSize]);
 
@@ -244,7 +244,7 @@ public sealed class RLPEncoderTests
         _ = new RLPEncoder(listBuffer)
             .EncodeList(listContentSize)
             .EncodeString(data)
-            .EncodeString((byte) 0x01);
+            .EncodeString(0x01);
 
         Assert.Equal(0x01, listBuffer[listSize]);
     }

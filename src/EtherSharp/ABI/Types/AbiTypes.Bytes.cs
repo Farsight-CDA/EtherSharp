@@ -35,7 +35,7 @@ public static partial class AbiTypes
         /// </summary>
         public static ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> bytes, int metaDataOffset)
         {
-            uint bytesOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) metaDataOffset + 28)..((int) metaDataOffset + 32)]);
+            uint bytesOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(metaDataOffset + 28)..(metaDataOffset + 32)]);
 
             uint valueLength = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[((int) bytesOffset + 28)..((int) bytesOffset + 32)]);
             return bytes.Slice((int) bytesOffset + 32, (int) valueLength);

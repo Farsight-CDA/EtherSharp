@@ -2754,7 +2754,7 @@ public readonly partial struct UInt256
         {
             var x = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in v));
             var cL = Vector128.CreateScalarUnsafe((ulong) (uint) sh);
-            var cR = Vector128.CreateScalarUnsafe(64uL - (ulong) (uint) sh);
+            var cR = Vector128.CreateScalarUnsafe(64uL - (uint) sh);
 
             var left = Avx2.ShiftLeftLogical(x, cL);
             Vector256<ulong> y;

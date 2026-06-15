@@ -69,12 +69,12 @@ public sealed class AbiSizedNumberEncodingTests
 
         object value = bitSize switch
         {
-            8 => (object) Byte.MaxValue,
-            16 => (object) UInt16.MaxValue,
-            > 16 and <= 32 => (object) (UInt32.MaxValue >> (32 - bitSize)),
-            > 32 and <= 64 => (object) (UInt64.MaxValue >> (64 - bitSize)),
-            > 64 and < 256 => (object) (UInt256.Pow(2, (uint) bitSize) - 1),
-            256 => (object) UInt256.MaxValue,
+            8 => Byte.MaxValue,
+            16 => UInt16.MaxValue,
+            > 16 and <= 32 => UInt32.MaxValue >> (32 - bitSize),
+            > 32 and <= 64 => UInt64.MaxValue >> (64 - bitSize),
+            > 64 and < 256 => UInt256.Pow(2, (uint) bitSize) - 1,
+            256 => UInt256.MaxValue,
             _ => throw new NotSupportedException()
         };
 
@@ -110,10 +110,10 @@ public sealed class AbiSizedNumberEncodingTests
         byte[] expected = new byte[32];
         object value = bitSize switch
         {
-            8 => (object) (byte) 0,
-            16 => (object) (ushort) 0,
-            > 16 and <= 32 => (object) (uint) 0,
-            > 32 and <= 64 => (object) (ulong) 0,
+            8 => (byte) 0,
+            16 => (ushort) 0,
+            > 16 and <= 32 => (uint) 0,
+            > 32 and <= 64 => (ulong) 0,
             > 64 and <= 256 => (object) UInt256.Zero,
             _ => throw new NotSupportedException()
         };
@@ -144,8 +144,8 @@ public sealed class AbiSizedNumberEncodingTests
     {
         object value = bitSize switch
         {
-            24 => (object) ((UInt32.MaxValue >> (32 - bitSize)) + 1u),
-            > 32 and < 64 => (object) ((UInt64.MaxValue >> (64 - bitSize)) + 1ul),
+            24 => (UInt32.MaxValue >> (32 - bitSize)) + 1u,
+            > 32 and < 64 => (UInt64.MaxValue >> (64 - bitSize)) + 1ul,
             > 64 and < 256 => (object) UInt256.Pow(2, (uint) bitSize),
             _ => throw new NotSupportedException()
         };
