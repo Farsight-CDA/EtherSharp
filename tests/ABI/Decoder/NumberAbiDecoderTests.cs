@@ -1,17 +1,13 @@
-﻿using EtherSharp.ABI;
+using EtherSharp.ABI;
 using EtherSharp.Numerics;
 using System.Numerics;
 
 namespace EtherSharp.Tests.ABI.Decoder;
 
-public sealed class AbiNumberEncodingTests
+public sealed class AbiSizedNumberDecoderTests
 {
     public static TheoryData<int> BitSizes
-        => [.. Enumerable.Range(1, 32).Select(x => x * 8)];
-    public static TheoryData<int> NonNativeBitSizes
-        => [.. Enumerable.Range(1, 32)
-            .Select(x => x * 8)
-            .Where(x => x != 8 && x != 16 && x != 32 && x != 64)];
+        => [.. Enumerable.Range(1, 32).Select(static x => x * 8)];
 
     [Theory]
     [MemberData(nameof(BitSizes))]
@@ -21,42 +17,19 @@ public sealed class AbiNumberEncodingTests
         input.AsSpan()[0..(32 - (bitSize / 8))].Fill(255);
         input[^(bitSize / 8)] = 128;
 
-        switch(bitSize)
+        object expected = bitSize switch
         {
-            case 8:
-            {
-                sbyte value = new AbiDecoder(input).Number<sbyte>(false, bitSize);
-                Assert.Equal(SByte.MinValue, value);
-                break;
-            }
-            case 16:
-            {
-                short value = new AbiDecoder(input).Number<short>(false, bitSize);
-                Assert.Equal(Int16.MinValue, value);
-                break;
-            }
-            case > 16 and <= 32:
-            {
-                int value = new AbiDecoder(input).Number<int>(false, bitSize);
-                Assert.Equal(Int32.MinValue >> (32 - bitSize), value);
-                break;
-            }
-            case > 32 and <= 64:
-            {
-                long value = new AbiDecoder(input).Number<long>(false, bitSize);
-                Assert.Equal(Int64.MinValue >> (64 - bitSize), value);
-                break;
-            }
-            case > 64 and <= 256:
-            {
-                var value = new AbiDecoder(input).Number<Int256>(false, bitSize);
-                Assert.Equal(-Int256.Pow(2, bitSize - 1), value);
-                break;
-            }
-            default:
-                throw new NotSupportedException();
-        }
+            8 => SByte.MinValue,
+            16 => Int16.MinValue,
+            > 16 and <= 32 => Int32.MinValue >> (32 - bitSize),
+            > 32 and <= 64 => Int64.MinValue >> (64 - bitSize),
+            > 64 and <= 256 => -Int256.Pow(2, bitSize - 1),
+            _ => throw new NotSupportedException()
+        };
+
+        Assert.Equal(expected, DecodeInt(input, bitSize));
     }
+
     [Theory]
     [MemberData(nameof(BitSizes))]
     public void Should_Match_Int_MaxValue_Output(int bitSize)
@@ -65,41 +38,17 @@ public sealed class AbiNumberEncodingTests
         _ = ((BigInteger.One << (bitSize - 1)) - 1)
             .TryWriteBytes(input.AsSpan()[(32 - (bitSize / 8))..], out _, false, true);
 
-        switch(bitSize)
+        object expected = bitSize switch
         {
-            case 8:
-            {
-                sbyte value = new AbiDecoder(input).Number<sbyte>(false, bitSize);
-                Assert.Equal(SByte.MaxValue, value);
-                break;
-            }
-            case 16:
-            {
-                short value = new AbiDecoder(input).Number<short>(false, bitSize);
-                Assert.Equal(Int16.MaxValue, value);
-                break;
-            }
-            case > 16 and <= 32:
-            {
-                int value = new AbiDecoder(input).Number<int>(false, bitSize);
-                Assert.Equal(Int32.MaxValue >> (32 - bitSize), value);
-                break;
-            }
-            case > 32 and <= 64:
-            {
-                long value = new AbiDecoder(input).Number<long>(false, bitSize);
-                Assert.Equal(Int64.MaxValue >> (64 - bitSize), value);
-                break;
-            }
-            case > 64 and <= 256:
-            {
-                var value = new AbiDecoder(input).Number<Int256>(false, bitSize);
-                Assert.Equal(Int256.Pow(2, bitSize - 1) - 1, value);
-                break;
-            }
-            default:
-                throw new NotSupportedException();
-        }
+            8 => SByte.MaxValue,
+            16 => Int16.MaxValue,
+            > 16 and <= 32 => Int32.MaxValue >> (32 - bitSize),
+            > 32 and <= 64 => Int64.MaxValue >> (64 - bitSize),
+            > 64 and <= 256 => Int256.Pow(2, bitSize - 1) - 1,
+            _ => throw new NotSupportedException()
+        };
+
+        Assert.Equal(expected, DecodeInt(input, bitSize));
     }
 
     [Theory]
@@ -108,41 +57,17 @@ public sealed class AbiNumberEncodingTests
     {
         byte[] input = new byte[32];
 
-        switch(bitSize)
+        object expected = bitSize switch
         {
-            case 8:
-            {
-                byte value = new AbiDecoder(input).Number<byte>(true, bitSize);
-                Assert.Equal(0, value);
-                break;
-            }
-            case 16:
-            {
-                ushort value = new AbiDecoder(input).Number<ushort>(true, bitSize);
-                Assert.Equal(0, value);
-                break;
-            }
-            case > 16 and <= 32:
-            {
-                uint value = new AbiDecoder(input).Number<uint>(true, bitSize);
-                Assert.Equal((uint) 0, value);
-                break;
-            }
-            case > 32 and <= 64:
-            {
-                ulong value = new AbiDecoder(input).Number<ulong>(true, bitSize);
-                Assert.Equal((ulong) 0, value);
-                break;
-            }
-            case > 64 and <= 256:
-            {
-                var value = new AbiDecoder(input).Number<UInt256>(true, bitSize);
-                Assert.Equal(UInt256.Zero, value);
-                break;
-            }
-            default:
-                throw new NotSupportedException();
-        }
+            8 => (object) Byte.MinValue,
+            16 => (object) UInt16.MinValue,
+            > 16 and <= 32 => (object) UInt32.MinValue,
+            > 32 and <= 64 => (object) UInt64.MinValue,
+            > 64 and <= 256 => (object) UInt256.Zero,
+            _ => throw new NotSupportedException()
+        };
+
+        Assert.Equal(expected, DecodeUInt(input, bitSize));
     }
 
     [Theory]
@@ -152,40 +77,99 @@ public sealed class AbiNumberEncodingTests
         byte[] input = new byte[32];
         input.AsSpan(32 - (bitSize / 8)).Fill(255);
 
-        switch(bitSize)
+        object expected = bitSize switch
         {
-            case 8:
-            {
-                byte value = new AbiDecoder(input).Number<byte>(true, bitSize);
-                Assert.Equal(Byte.MaxValue, value);
-                break;
-            }
-            case 16:
-            {
-                ushort value = new AbiDecoder(input).Number<ushort>(true, bitSize);
-                Assert.Equal(UInt16.MaxValue, value);
-                break;
-            }
-            case > 16 and <= 32:
-            {
-                uint value = new AbiDecoder(input).Number<uint>(true, bitSize);
-                Assert.Equal(UInt32.MaxValue >> (32 - bitSize), value);
-                break;
-            }
-            case > 32 and <= 64:
-            {
-                ulong value = new AbiDecoder(input).Number<ulong>(true, bitSize);
-                Assert.Equal(UInt64.MaxValue >> (64 - bitSize), value);
-                break;
-            }
-            case > 64 and <= 256:
-            {
-                var value = new AbiDecoder(input).Number<UInt256>(true, bitSize);
-                Assert.Equal(UInt256.Pow(2, (uint) bitSize) - 1, value);
-                break;
-            }
-            default:
-                throw new NotSupportedException();
-        }
+            8 => (object) Byte.MaxValue,
+            16 => (object) UInt16.MaxValue,
+            > 16 and <= 32 => (object) (UInt32.MaxValue >> (32 - bitSize)),
+            > 32 and <= 64 => (object) (UInt64.MaxValue >> (64 - bitSize)),
+            > 64 and < 256 => (object) (UInt256.Pow(2, (uint) bitSize) - 1),
+            256 => (object) UInt256.MaxValue,
+            _ => throw new NotSupportedException()
+        };
+
+        Assert.Equal(expected, DecodeUInt(input, bitSize));
+    }
+
+    private static object DecodeInt(byte[] input, int bitSize)
+    {
+        var decoder = new AbiDecoder(input);
+        return bitSize switch
+        {
+            8 => decoder.Int8(),
+            16 => decoder.Int16(),
+            24 => decoder.Int24(),
+            32 => decoder.Int32(),
+            40 => decoder.Int40(),
+            48 => decoder.Int48(),
+            56 => decoder.Int56(),
+            64 => decoder.Int64(),
+            72 => decoder.Int72(),
+            80 => decoder.Int80(),
+            88 => decoder.Int88(),
+            96 => decoder.Int96(),
+            104 => decoder.Int104(),
+            112 => decoder.Int112(),
+            120 => decoder.Int120(),
+            128 => decoder.Int128(),
+            136 => decoder.Int136(),
+            144 => decoder.Int144(),
+            152 => decoder.Int152(),
+            160 => decoder.Int160(),
+            168 => decoder.Int168(),
+            176 => decoder.Int176(),
+            184 => decoder.Int184(),
+            192 => decoder.Int192(),
+            200 => decoder.Int200(),
+            208 => decoder.Int208(),
+            216 => decoder.Int216(),
+            224 => decoder.Int224(),
+            232 => decoder.Int232(),
+            240 => decoder.Int240(),
+            248 => decoder.Int248(),
+            256 => decoder.Int256(),
+            _ => throw new NotSupportedException()
+        };
+    }
+
+    private static object DecodeUInt(byte[] input, int bitSize)
+    {
+        var decoder = new AbiDecoder(input);
+        return bitSize switch
+        {
+            8 => (object) decoder.UInt8(),
+            16 => (object) decoder.UInt16(),
+            24 => (object) decoder.UInt24(),
+            32 => (object) decoder.UInt32(),
+            40 => (object) decoder.UInt40(),
+            48 => (object) decoder.UInt48(),
+            56 => (object) decoder.UInt56(),
+            64 => (object) decoder.UInt64(),
+            72 => (object) decoder.UInt72(),
+            80 => (object) decoder.UInt80(),
+            88 => (object) decoder.UInt88(),
+            96 => (object) decoder.UInt96(),
+            104 => (object) decoder.UInt104(),
+            112 => (object) decoder.UInt112(),
+            120 => (object) decoder.UInt120(),
+            128 => (object) decoder.UInt128(),
+            136 => (object) decoder.UInt136(),
+            144 => (object) decoder.UInt144(),
+            152 => (object) decoder.UInt152(),
+            160 => (object) decoder.UInt160(),
+            168 => (object) decoder.UInt168(),
+            176 => (object) decoder.UInt176(),
+            184 => (object) decoder.UInt184(),
+            192 => (object) decoder.UInt192(),
+            200 => (object) decoder.UInt200(),
+            208 => (object) decoder.UInt208(),
+            216 => (object) decoder.UInt216(),
+            224 => (object) decoder.UInt224(),
+            232 => (object) decoder.UInt232(),
+            240 => (object) decoder.UInt240(),
+            248 => (object) decoder.UInt248(),
+            256 => (object) decoder.UInt256(),
+            _ => throw new NotSupportedException()
+        };
     }
 }

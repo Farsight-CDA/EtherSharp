@@ -138,15 +138,6 @@ public sealed class DecoderEdgeCaseTests
     }
 
     [Fact]
-    public void Should_Throw_On_Invalid_Number_BitLength()
-    {
-        byte[] input = new byte[32];
-        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).Number<int>(true, 7));
-        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).Number<int>(true, 0));
-        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).Number<int>(true, 264));
-    }
-
-    [Fact]
     public void Should_Throw_On_Invalid_NumberArray_BitLength()
     {
         byte[] input = Convert.FromHexString("00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000");
@@ -164,16 +155,6 @@ public sealed class DecoderEdgeCaseTests
         input[64 + (32 - 9)] = 0x80;
 
         Assert.Throws<ArgumentException>(() => new AbiDecoder(input).NumberArray<Int256>(false, 72));
-    }
-
-    [Fact]
-    public void Should_Throw_On_Wrong_Number_Type()
-    {
-        byte[] input = new byte[32];
-        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).Number<byte>(false, 8));
-        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).Number<sbyte>(true, 8));
-        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).Number<int>(true, 16));
-        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).Number<uint>(false, 16));
     }
 
     [Fact]

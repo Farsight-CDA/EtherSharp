@@ -27,15 +27,6 @@ public partial interface IFixedTupleDecoder
     public ReadOnlyMemory<byte> SizedBytes(int bitLength);
 
     /// <summary>
-    /// Reads a numeric value from the input.
-    /// </summary>
-    /// <typeparam name="TNumber">The numeric type to decode to.</typeparam>
-    /// <param name="isUnsigned">Whether the number is unsigned.</param>
-    /// <param name="bitLength">The bit length of the number.</param>
-    /// <returns>The decoded numeric value.</returns>
-    public TNumber Number<TNumber>(bool isUnsigned, int bitLength);
-
-    /// <summary>
     /// Decodes a fixed-size tuple from the input.
     /// </summary>
     /// <typeparam name="T">The type of the tuple to decode.</typeparam>

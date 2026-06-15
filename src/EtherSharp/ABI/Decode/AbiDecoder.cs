@@ -87,61 +87,6 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     }
 
     /// <summary>
-    /// Decodes the next ABI slot as a numeric value (<c>intN</c> or <c>uintN</c>).
-    /// </summary>
-    /// <typeparam name="TNumber">Expected CLR result type for the requested ABI width.</typeparam>
-    /// <param name="isUnsigned"><see langword="true"/> for uintN, <see langword="false"/> for intN.</param>
-    /// <param name="bitLength">ABI bit width (8..256 in steps of 8).</param>
-    /// <returns>The decoded numeric value.</returns>
-    /// <exception cref="ArgumentException">Thrown for invalid bit widths or mismatched CLR target type.</exception>
-    /// <exception cref="NotSupportedException">Thrown when the requested configuration is unsupported.</exception>
-    public TNumber Number<TNumber>(bool isUnsigned, int bitLength)
-    {
-        if(bitLength % 8 != 0 || bitLength < 8 || bitLength > 256)
-        {
-            throw new ArgumentException("Invalid bitLength", nameof(bitLength));
-        }
-
-        var result = bitLength switch
-        {
-            8 when isUnsigned => AbiTypes.Byte.Decode(CurrentSlot) is not TNumber b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}")
-                : b,
-            8 when !isUnsigned => AbiTypes.SByte.Decode(CurrentSlot) is not TNumber b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}")
-                : b,
-            16 when isUnsigned => AbiTypes.UShort.Decode(CurrentSlot) is not TNumber b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}")
-                : b,
-            16 when !isUnsigned => AbiTypes.Short.Decode(CurrentSlot) is not TNumber b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}")
-                : b,
-            > 16 and <= 32 when isUnsigned => AbiTypes.UInt.Decode(CurrentSlot) is not TNumber b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}")
-                : b,
-            > 16 and <= 32 when !isUnsigned => AbiTypes.Int.Decode(CurrentSlot) is not TNumber b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}")
-                : b,
-            > 32 and <= 64 when isUnsigned => AbiTypes.ULong.Decode(CurrentSlot) is not TNumber b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}")
-                : b,
-            > 32 and <= 64 when !isUnsigned => AbiTypes.Long.Decode(CurrentSlot) is not TNumber b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}")
-                : b,
-            > 64 and <= 256 when isUnsigned => AbiTypes.UInt256.Decode(CurrentSlot) is not TNumber b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(UInt256)}")
-                : b,
-            > 64 and <= 256 when !isUnsigned => AbiTypes.Int256.Decode(CurrentSlot) is not TNumber b
-                ? throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(Int256)}")
-                : b,
-            _ => throw new NotSupportedException()
-        };
-
-        ConsumeBytes();
-        return result;
-    }
-
-    /// <summary>
     /// Decodes the next ABI slot as a dynamic array of booleans.
     /// </summary>
     /// <returns>The decoded boolean array.</returns>

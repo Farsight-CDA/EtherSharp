@@ -29,12 +29,12 @@ public sealed class AbiRoundTripTests
 
         // Act
         byte[] encoded = new AbiEncoder()
-            .Number(number, true, 16)
+            .UInt16(number)
             .String(str)
             .Build();
 
         var decoder = new AbiDecoder(encoded);
-        ushort outputNumber = decoder.Number<ushort>(true, 16);
+        ushort outputNumber = decoder.UInt16();
         string outputStr = decoder.String();
 
         // Assert
@@ -146,14 +146,14 @@ public sealed class AbiRoundTripTests
 
         // Act
         byte[] encoded = new AbiEncoder()
-            .Number(number, true, 16)
+            .UInt16(number)
             .Bytes32Array(bytes32Input)
             .String(str)
             .Address(address)
             .Build();
 
         var decoder = new AbiDecoder(encoded);
-        ushort outputNumber = decoder.Number<ushort>(true, 16);
+        ushort outputNumber = decoder.UInt16();
         var outputBytes32 = decoder.Bytes32Array();
         string outputStr = decoder.String();
         var outputAddress = decoder.Address();

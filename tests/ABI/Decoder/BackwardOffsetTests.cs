@@ -11,7 +11,7 @@ public sealed class BackwardOffsetTests
         payload[31] = 0x20;
         var decoder = new AbiDecoder(payload);
 
-        uint num = decoder.Number<uint>(true, 32);
+        uint num = decoder.UInt32();
         Assert.Equal(32u, num);
 
         byte[] bytes = decoder.Bytes().ToArray();
