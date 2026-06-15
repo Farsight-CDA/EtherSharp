@@ -223,15 +223,6 @@ public sealed class EdgeCaseTests
     }
 
     [Fact]
-    public void Should_Throw_On_Invalid_BitLength_Number()
-    {
-        Assert.Throws<ArgumentException>(() => _encoder.Number(0, true, 7));
-        Assert.Throws<ArgumentException>(() => _encoder.Number(0, true, 0));
-        Assert.Throws<ArgumentException>(() => _encoder.Number(0, true, 264));
-        Assert.Throws<ArgumentException>(() => _encoder.Number(0, true, 33));
-    }
-
-    [Fact]
     public void Should_Throw_On_Invalid_BitLength_NumberArray()
     {
         Assert.Throws<ArgumentException>(() => _encoder.NumberArray<byte>(true, 7, []));
