@@ -26,10 +26,16 @@ public sealed class TransactionTypeHexConverter : JsonConverter<TxType>
 
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, TxType value, JsonSerializerOptions options)
-    {
-        uint numericValue = (uint) value;
-        writer.WriteStringValue($"0x{numericValue:x}");
-    }
+        => writer.WriteRawValue(value switch
+        {
+            TxType.Legacy => "\"0x0\""u8,
+            TxType.EIP2930AccessList => "\"0x1\""u8,
+            TxType.EIP1559DynamicFee => "\"0x2\""u8,
+            TxType.EIP4844Blob => "\"0x3\""u8,
+            TxType.EIP7702SetCode => "\"0x4\""u8,
+            TxType.OPDeposit => "\"0x7e\""u8,
+            _ => throw new JsonException($"Cannot write unsupported {nameof(TxType)} value {value}")
+        }, skipInputValidation: true);
 
     private static TxType Parse(string value)
         => value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
