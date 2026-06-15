@@ -263,6 +263,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
         string[] values = new string[arrayLength];
 
+        // Optimized JITs scalar-replace this short-lived decoder; direct helper calls benchmark slower.
         var decoder = new AbiDecoder(payload[32..]);
 
         for(int i = 0; i < arrayLength; i++)
@@ -289,6 +290,7 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
 
         var values = new ReadOnlyMemory<byte>[arrayLength];
 
+        // Optimized JITs scalar-replace this short-lived decoder; direct helper calls benchmark slower.
         var decoder = new AbiDecoder(payload[32..]);
 
         for(int i = 0; i < arrayLength; i++)
