@@ -114,6 +114,14 @@ public sealed class EVMByteCodeTests
     }
 
     [Fact]
+    public void HasError_Should_Match_Right_Shifted_Selector_In_Push_Data()
+    {
+        var byteCode = CreateByteCode(0x63, 0x10, 0x09, 0xA9, 0xAD, 0x60, 0xE1, 0x1B);
+
+        Assert.True(byteCode.HasError(Bytes4.Parse("0x2013535a")));
+    }
+
+    [Fact]
     public void HasError_Should_Match_Optimized_Shifted_Non_Leading_Zero_Selector()
     {
         var byteCode = CreateByteCode(0x63, 0x12, 0x34, 0x56, 0x78, 0x60, 0xE0, 0x1B);

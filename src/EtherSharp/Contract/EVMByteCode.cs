@@ -1,5 +1,7 @@
 using EtherSharp.Contract.Sections;
 using EtherSharp.Types;
+using System.Buffers.Binary;
+using System.Numerics;
 
 namespace EtherSharp.Contract;
 
@@ -100,7 +102,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     {
         var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
         var normalizedSelector = selector.Span.TrimStart((byte) 0);
-        normalizedSelector = normalizedSelector.IsEmpty ? selector.Span[^1..] : normalizedSelector;
+        normalizedSelector = normalizedSelector.IsEmpty ? selector.Span : normalizedSelector;
 
         for(int i = 0; i < byteCode.Length; i++)
         {
@@ -182,7 +184,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
         }
 
         var normalizedTopic = topic.Span.TrimStart((byte) 0);
-        normalizedTopic = normalizedTopic.IsEmpty ? topic.Span[^1..] : normalizedTopic;
+        normalizedTopic = normalizedTopic.IsEmpty ? topic.Span : normalizedTopic;
 
         return normalizedTopic.Length != topic.Length
             && byteCode.IndexOf(normalizedTopic) != -1;
@@ -240,8 +242,10 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
 
     private static bool HasPushedErrorSignature(ReadOnlySpan<byte> byteCode, ReadOnlySpan<byte> signature)
     {
-        Span<byte> compactSignature = stackalloc byte[4];
-        int compactSignatureLength = CopyWithoutLeadingOrTrailingZeroBytes(signature, compactSignature);
+        var compactSignature = signature.Trim((byte) 0);
+        compactSignature = compactSignature.IsEmpty ? signature : compactSignature;
+        Span<byte> shiftedSignature = stackalloc byte[4];
+        int shiftedSignatureLength = CopyRightShiftedSignatureBytes(signature, shiftedSignature);
 
         for(int i = 0; i < byteCode.Length; i++)
         {
@@ -261,7 +265,8 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
             var pushData = byteCode[pushValueIndex..pushEndIndex];
 
             if(pushData.IndexOf(signature) != -1
-                || (compactSignatureLength != signature.Length && pushData.IndexOf(compactSignature[..compactSignatureLength]) != -1))
+                || (compactSignature.Length != signature.Length && pushData.IndexOf(compactSignature) != -1)
+                || (shiftedSignatureLength != 0 && pushData.IndexOf(shiftedSignature[..shiftedSignatureLength]) != -1))
             {
                 return true;
             }
@@ -272,24 +277,21 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
         return false;
     }
 
-    private static int CopyWithoutLeadingOrTrailingZeroBytes(ReadOnlySpan<byte> bytes, Span<byte> destination)
+    private static int CopyRightShiftedSignatureBytes(ReadOnlySpan<byte> signature, Span<byte> destination)
     {
-        int leadingZeroBytes = 0;
+        uint value = BinaryPrimitives.ReadUInt32BigEndian(signature);
+        int shift = BitOperations.TrailingZeroCount(value);
 
-        while(leadingZeroBytes < bytes.Length - 1 && bytes[leadingZeroBytes] == 0)
+        if(shift is 0 or 32)
         {
-            leadingZeroBytes++;
+            return 0;
         }
 
-        int trailingZeroBytes = 0;
+        BinaryPrimitives.WriteUInt32BigEndian(destination, value >> shift);
 
-        while(trailingZeroBytes < bytes.Length - leadingZeroBytes - 1 && bytes[bytes.Length - trailingZeroBytes - 1] == 0)
-        {
-            trailingZeroBytes++;
-        }
+        var shiftedSignature = destination[..4].TrimStart((byte) 0);
+        shiftedSignature.CopyTo(destination);
 
-        bytes[leadingZeroBytes..(bytes.Length - trailingZeroBytes)].CopyTo(destination);
-
-        return bytes.Length - leadingZeroBytes - trailingZeroBytes;
+        return shiftedSignature.Length;
     }
 }
