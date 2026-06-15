@@ -41,7 +41,8 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
 
                 byte[] payloadBytes = QuerierUtils.EncodeCalls(
                     querierDeployment.ByteCode,
-                    query.Queries.Skip(i),
+                    query.Queries,
+                    i,
                     _flashCallExecutor.GetMaxPayloadSize(flashCallGasLimit, targetHeight) - querierDeployment.ByteCode.Length,
                     _flashCallExecutor.GetMaxResultSize(targetHeight),
                     out int payloadSize,

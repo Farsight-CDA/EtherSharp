@@ -19,15 +19,16 @@ internal sealed class QuerierUtils
         )
     );
 
-    public static byte[] EncodeCalls(EVMByteCode querierCode, IEnumerable<IQuery> queries, int maxPayloadSize, int maxResultSize,
+    public static byte[] EncodeCalls(EVMByteCode querierCode, IReadOnlyList<IQuery> queries, int startIndex, int maxPayloadSize, int maxResultSize,
         out int payloadSize, out int encodedCallCount, out UInt256 ethValue)
     {
         ethValue = 0;
         payloadSize = 4;
         int callCount = 0;
 
-        foreach(var queryable in queries)
+        for(int i = startIndex; i < queries.Count; i++)
         {
+            var queryable = queries[i];
             int newDataLength = payloadSize + queryable.CallDataLength;
 
             if(newDataLength + querierCode.Length + 2 > maxPayloadSize)
@@ -49,13 +50,9 @@ internal sealed class QuerierUtils
 
         var buffer = arr.AsSpan(4);
 
-        foreach(var queryable in queries)
+        for(int i = startIndex; callCount > 0; i++)
         {
-            if(callCount == 0)
-            {
-                break;
-            }
-
+            var queryable = queries[i];
             queryable.Encode(buffer);
             buffer = buffer[queryable.CallDataLength..];
             callCount--;
