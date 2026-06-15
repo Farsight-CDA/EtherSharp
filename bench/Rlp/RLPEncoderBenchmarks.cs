@@ -8,7 +8,7 @@ using System.Text;
 namespace EtherSharp.Bench.Rlp;
 
 [MemoryDiagnoser]
-public sealed class RLPEncoderBenchmarks
+public class RLPEncoderBenchmarks
 {
     private readonly ulong _chainId = 137;
     private readonly uint _nonce = 1_000;
