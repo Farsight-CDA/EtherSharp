@@ -31,6 +31,33 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     public readonly int Length => ByteCode.Length;
 
     /// <summary>
+    /// Checks if the given opcode exists in the contract code, ignoring bytes used as PUSH data and compiler metadata.
+    /// </summary>
+    /// <param name="opcode">The opcode byte to find.</param>
+    /// <returns>True if the opcode appears outside PUSH data; otherwise false.</returns>
+    public readonly bool ContainsOpcode(byte opcode)
+    {
+        var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
+
+        for(int i = 0; i < byteCode.Length; i++)
+        {
+            byte currentOpcode = byteCode[i];
+
+            if(currentOpcode == opcode)
+            {
+                return true;
+            }
+
+            if(EvmOpcodeUtils.TryGetPushLength(currentOpcode, out int pushLength))
+            {
+                i += pushLength;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Checks if the given contract code implements the function from the given function section.
     /// </summary>
     /// <typeparam name="TFunctionsSection"></typeparam>
