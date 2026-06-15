@@ -86,7 +86,7 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
             string payload = String.Create(
                 2 + (argsLength * 2),
                 buffer,
-                (chars, buffer) =>
+                static (chars, buffer) =>
                 {
                     "0x".CopyTo(chars);
                     Convert.TryToHexString(buffer, chars[2..], out _);

@@ -56,7 +56,6 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
         bool useUnlimitedPayload = flashCallGasLimit == 0;
         int prefixLength = useUnlimitedPayload ? 2 : 10;
         int contractLength = useUnlimitedPayload ? FLASHCALL_CONTRACT_LENGTH_UNLIMITED : FLASHCALL_CONTRACT_LENGTH;
-        string contractHex = useUnlimitedPayload ? FLASHCALL_CONTRACT_HEX_UNLIMITED : FLASHCALL_CONTRACT_HEX;
         int argsLength = prefixLength + deployment.Data.Length + call.Data.Length;
 
         if(argsLength + contractLength > EVMByteCode.MAX_INIT_LENGTH)
@@ -85,15 +84,25 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
                 call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 10)..]);
             }
 
-            string payload = String.Create(
-                contractHex.Length + (argsLength * 2),
-                buffer,
-                (chars, state) =>
-                {
-                    contractHex.AsSpan().CopyTo(chars);
-                    Convert.TryToHexString(state, chars[contractHex.Length..], out _);
-                }
-            );
+            string payload = useUnlimitedPayload
+                ? String.Create(
+                    FLASHCALL_CONTRACT_HEX_UNLIMITED.Length + (argsLength * 2),
+                    buffer,
+                    static (chars, buffer) =>
+                    {
+                        FLASHCALL_CONTRACT_HEX_UNLIMITED.AsSpan().CopyTo(chars);
+                        Convert.TryToHexString(buffer, chars[FLASHCALL_CONTRACT_HEX_UNLIMITED.Length..], out _);
+                    }
+                )
+                : String.Create(
+                    FLASHCALL_CONTRACT_HEX.Length + (argsLength * 2),
+                    buffer,
+                    static (chars, buffer) =>
+                    {
+                        FLASHCALL_CONTRACT_HEX.AsSpan().CopyTo(chars);
+                        Convert.TryToHexString(buffer, chars[FLASHCALL_CONTRACT_HEX.Length..], out _);
+                    }
+                );
 
             var result = await _ethRpcModule.CallAsync(
                 null,
