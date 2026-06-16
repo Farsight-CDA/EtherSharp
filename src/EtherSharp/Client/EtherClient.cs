@@ -11,6 +11,7 @@ using EtherSharp.Client.Services.QueryExecutor;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Query;
@@ -252,7 +253,12 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
                 cancellationToken
             );
 
-            var deploymentHeight = BinaryPrimitives.ReadUInt256BigEndian(deploymentHeightResult.Unwrap(deployedFlashCallExecutor.ContractAddress).Span);
+            if(!deploymentHeightResult.Success)
+            {
+                throw CallRevertedException.Parse(deployedFlashCallExecutor.ContractAddress, deploymentHeightResult.Data.Span);
+            }
+
+            var deploymentHeight = BinaryPrimitives.ReadUInt256BigEndian(deploymentHeightResult.Data.Span);
             deployedFlashCallExecutor.SetDeploymentHeight((ulong) deploymentHeight);
         }
 

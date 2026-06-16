@@ -115,12 +115,17 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
                 cancellationToken
             );
 
-            var data = result.Unwrap(null);
+            if(!result.Success)
+            {
+                throw CallRevertedException.Parse(null, result.Data.Span);
+            }
+
+            var data = result.Data;
 
             return data.Span[0] switch
             {
-                0 => new TxCallResult.Reverted(data[1..]),
-                1 => new TxCallResult.Success(data[1..]),
+                0 => new TxCallResult(false, data[1..]),
+                1 => new TxCallResult(true, data[1..]),
                 _ => throw new ImpossibleException()
             };
         }

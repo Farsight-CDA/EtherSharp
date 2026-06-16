@@ -43,12 +43,9 @@ public abstract record CallResult<T>
     };
 
     internal static CallResult<T> ParseFrom(TxCallResult txCallResult, Func<ReadOnlyMemory<byte>, T> decoder)
-        => txCallResult switch
-        {
-            TxCallResult.Success success => ParseSuccessFrom(success.Data, decoder),
-            TxCallResult.Reverted reverted => new Reverted(reverted.Data),
-            _ => throw new NotImplementedException()
-        };
+        => txCallResult.Success
+            ? ParseSuccessFrom(txCallResult.Data, decoder)
+            : new Reverted(txCallResult.Data);
 
     internal static CallResult<T> ParseSuccessFrom(ReadOnlyMemory<byte> data, Func<ReadOnlyMemory<byte>, T> decoder)
     {

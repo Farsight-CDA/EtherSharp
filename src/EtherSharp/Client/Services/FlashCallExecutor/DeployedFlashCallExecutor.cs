@@ -104,12 +104,17 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
                 cancellationToken
             );
 
-            var data = result.Unwrap(_configuration.ContractAddress);
+            if(!result.Success)
+            {
+                throw CallRevertedException.Parse(_configuration.ContractAddress, result.Data.Span);
+            }
+
+            var data = result.Data;
 
             return data.Span[0] switch
             {
-                0 => new TxCallResult.Reverted(data[1..]),
-                1 => new TxCallResult.Success(data[1..]),
+                0 => new TxCallResult(false, data[1..]),
+                1 => new TxCallResult(true, data[1..]),
                 _ => throw new ImpossibleException()
             };
         }

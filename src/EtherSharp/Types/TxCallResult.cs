@@ -6,38 +6,25 @@ namespace EtherSharp.Types;
 /// <summary>
 /// Represents the raw outcome of an <c>eth_call</c>-style execution.
 /// </summary>
-public abstract record TxCallResult
+/// <param name="success">Whether execution succeeded.</param>
+/// <param name="data">The returned bytes for success, or the EVM revert payload for reverts.</param>
+public readonly struct TxCallResult(bool success, ReadOnlyMemory<byte> data)
 {
     /// <summary>
-    /// Indicates execution succeeded and returned raw call data.
+    /// Gets whether execution succeeded.
     /// </summary>
-    /// <param name="Data">The returned bytes from the call.</param>
-    public sealed record Success(ReadOnlyMemory<byte> Data) : TxCallResult;
+    public bool Success { get; } = success;
 
     /// <summary>
-    /// Indicates execution reverted and returned raw revert data.
+    /// Gets the returned bytes for successful execution, or the EVM revert payload when <see cref="Success"/> is <see langword="false"/>.
     /// </summary>
-    /// <param name="Data">The EVM revert payload, if any.</param>
-    public sealed record Reverted(ReadOnlyMemory<byte> Data) : TxCallResult;
-
-    /// <summary>
-    /// Returns call data for successful execution, or throws a parsed revert exception.
-    /// </summary>
-    /// <param name="callToAddress">The target contract address used for exception parsing.</param>
-    /// <returns>The successful call return bytes.</returns>
-    /// <exception cref="CallRevertedException">Thrown when this instance is a <see cref="Reverted"/> result.</exception>
-    public ReadOnlyMemory<byte> Unwrap(Address? callToAddress) => this switch
-    {
-        Success s => s.Data,
-        Reverted r => throw CallRevertedException.Parse(callToAddress, r.Data.Span),
-        _ => throw new NotImplementedException()
-    };
+    public ReadOnlyMemory<byte> Data { get; } = data;
 
     /// <summary>
     /// Converts an RPC <c>eth_call</c> response into a <see cref="TxCallResult"/>.
     /// </summary>
     /// <param name="rpcResult">The low-level RPC response payload.</param>
-    /// <returns>A <see cref="Success"/> for normal responses, or <see cref="Reverted"/> for execution reverts.</returns>
+    /// <returns>A raw result with <see cref="Success"/> set according to the execution outcome.</returns>
     /// <exception cref="RPCException">Thrown when the RPC response is an error unrelated to execution revert.</exception>
     public static TxCallResult ParseFrom(RpcResult<byte[]> rpcResult)
     {
@@ -45,7 +32,7 @@ public abstract record TxCallResult
         {
             case RpcResult<byte[]>.Success successResult:
             {
-                return new Success(successResult.Result);
+                return new TxCallResult(true, successResult.Result);
             }
             case RpcResult<byte[]>.Error errorResult:
             {
@@ -56,11 +43,11 @@ public abstract record TxCallResult
 
                 if(errorResult.Data is null || errorResult.Data.Length <= 2)
                 {
-                    return new Reverted(Array.Empty<byte>());
+                    return new TxCallResult(false, Array.Empty<byte>());
                 }
 
                 byte[] dataBytes = Convert.FromHexString(errorResult.Data.AsSpan(2));
-                return new Reverted(dataBytes);
+                return new TxCallResult(false, dataBytes);
             }
             default:
                 throw new NotSupportedException();

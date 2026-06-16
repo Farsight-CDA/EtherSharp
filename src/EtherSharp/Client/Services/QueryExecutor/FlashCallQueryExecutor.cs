@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Services.FlashCallExecutor;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Query;
 using EtherSharp.Tx;
 using EtherSharp.Types;
@@ -65,7 +66,12 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
                         cancellationToken
                     );
 
-                    var output = callResult.Unwrap(null);
+                    if(!callResult.Success)
+                    {
+                        throw CallRevertedException.Parse(null, callResult.Data.Span);
+                    }
+
+                    var output = callResult.Data;
 
                     if(output.Length == 0)
                     {

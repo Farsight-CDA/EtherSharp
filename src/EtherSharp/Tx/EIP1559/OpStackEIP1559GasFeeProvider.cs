@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Common;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
@@ -129,7 +130,12 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
         var gasPrice = await gasPriceTask;
         var priorityFee = await priorityFeeTask;
 
-        var l1Fee = BinaryPrimitives.ReadUInt256BigEndian(l1FeeCallResult.Unwrap(_opGasOracleAddress).Span);
+        if(!l1FeeCallResult.Success)
+        {
+            throw CallRevertedException.Parse(_opGasOracleAddress, l1FeeCallResult.Data.Span);
+        }
+
+        var l1Fee = BinaryPrimitives.ReadUInt256BigEndian(l1FeeCallResult.Data.Span);
         var l1FeePerGas = l1Fee / gasEstimation;
 
         return new EIP1559GasParams(
