@@ -271,9 +271,20 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
 <#= BuildHashCodeLines(i) #>
-        return hash.ToHashCode();
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -424,12 +435,14 @@ private static string BuildHashCodeLines(int length)
     var full = (length / 8) * 8;
     for(var offset = 0; offset < full; offset += 8)
     {
-        lines.Add($"        hash.Add(LoadU64BE({offset}));");
+        lines.Add($"            ulong word{offset} = LoadU64Raw({offset});");
+        lines.Add($"            hash = (hash ^ (uint) word{offset}) * FNV_PRIME;");
+        lines.Add($"            hash = (hash ^ (uint) (word{offset} >> 32)) * FNV_PRIME;");
     }
 
     for(var offset = full; offset < length; offset++)
     {
-        lines.Add($"        hash.Add(LoadU8Raw({offset}));");
+        lines.Add($"            hash = (hash ^ LoadU8Raw({offset})) * FNV_PRIME;");
     }
 
     return global::System.String.Join("\n", lines);

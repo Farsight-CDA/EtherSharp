@@ -266,9 +266,20 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU8Raw(0));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            hash = (hash ^ LoadU8Raw(0)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -577,10 +588,21 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU8Raw(0));
-        hash.Add(LoadU8Raw(1));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            hash = (hash ^ LoadU8Raw(0)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(1)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -896,11 +918,22 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU8Raw(0));
-        hash.Add(LoadU8Raw(1));
-        hash.Add(LoadU8Raw(2));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            hash = (hash ^ LoadU8Raw(0)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(1)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(2)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -1223,12 +1256,23 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU8Raw(0));
-        hash.Add(LoadU8Raw(1));
-        hash.Add(LoadU8Raw(2));
-        hash.Add(LoadU8Raw(3));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            hash = (hash ^ LoadU8Raw(0)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(1)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(2)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(3)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -1558,13 +1602,24 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU8Raw(0));
-        hash.Add(LoadU8Raw(1));
-        hash.Add(LoadU8Raw(2));
-        hash.Add(LoadU8Raw(3));
-        hash.Add(LoadU8Raw(4));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            hash = (hash ^ LoadU8Raw(0)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(1)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(2)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(3)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(4)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -1901,14 +1956,25 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU8Raw(0));
-        hash.Add(LoadU8Raw(1));
-        hash.Add(LoadU8Raw(2));
-        hash.Add(LoadU8Raw(3));
-        hash.Add(LoadU8Raw(4));
-        hash.Add(LoadU8Raw(5));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            hash = (hash ^ LoadU8Raw(0)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(1)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(2)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(3)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(4)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(5)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -2252,15 +2318,26 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU8Raw(0));
-        hash.Add(LoadU8Raw(1));
-        hash.Add(LoadU8Raw(2));
-        hash.Add(LoadU8Raw(3));
-        hash.Add(LoadU8Raw(4));
-        hash.Add(LoadU8Raw(5));
-        hash.Add(LoadU8Raw(6));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            hash = (hash ^ LoadU8Raw(0)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(1)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(2)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(3)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(4)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(5)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(6)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -2604,9 +2681,22 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -2915,10 +3005,23 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU8Raw(8));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(8)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -3233,11 +3336,24 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU8Raw(8));
-        hash.Add(LoadU8Raw(9));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(8)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(9)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -3558,12 +3674,25 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU8Raw(8));
-        hash.Add(LoadU8Raw(9));
-        hash.Add(LoadU8Raw(10));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(8)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(9)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(10)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -3890,13 +4019,26 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU8Raw(8));
-        hash.Add(LoadU8Raw(9));
-        hash.Add(LoadU8Raw(10));
-        hash.Add(LoadU8Raw(11));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(8)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(9)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(10)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(11)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -4229,14 +4371,27 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU8Raw(8));
-        hash.Add(LoadU8Raw(9));
-        hash.Add(LoadU8Raw(10));
-        hash.Add(LoadU8Raw(11));
-        hash.Add(LoadU8Raw(12));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(8)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(9)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(10)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(11)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(12)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -4575,15 +4730,28 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU8Raw(8));
-        hash.Add(LoadU8Raw(9));
-        hash.Add(LoadU8Raw(10));
-        hash.Add(LoadU8Raw(11));
-        hash.Add(LoadU8Raw(12));
-        hash.Add(LoadU8Raw(13));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(8)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(9)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(10)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(11)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(12)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(13)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -4928,16 +5096,29 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU8Raw(8));
-        hash.Add(LoadU8Raw(9));
-        hash.Add(LoadU8Raw(10));
-        hash.Add(LoadU8Raw(11));
-        hash.Add(LoadU8Raw(12));
-        hash.Add(LoadU8Raw(13));
-        hash.Add(LoadU8Raw(14));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(8)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(9)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(10)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(11)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(12)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(13)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(14)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -5288,10 +5469,25 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -5607,11 +5803,26 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU8Raw(16));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(16)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -5933,12 +6144,27 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU8Raw(16));
-        hash.Add(LoadU8Raw(17));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(16)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(17)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -6266,13 +6492,28 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU8Raw(16));
-        hash.Add(LoadU8Raw(17));
-        hash.Add(LoadU8Raw(18));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(16)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(17)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(18)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -6606,14 +6847,29 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU8Raw(16));
-        hash.Add(LoadU8Raw(17));
-        hash.Add(LoadU8Raw(18));
-        hash.Add(LoadU8Raw(19));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(16)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(17)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(18)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(19)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -6953,15 +7209,30 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU8Raw(16));
-        hash.Add(LoadU8Raw(17));
-        hash.Add(LoadU8Raw(18));
-        hash.Add(LoadU8Raw(19));
-        hash.Add(LoadU8Raw(20));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(16)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(17)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(18)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(19)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(20)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -7307,16 +7578,31 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU8Raw(16));
-        hash.Add(LoadU8Raw(17));
-        hash.Add(LoadU8Raw(18));
-        hash.Add(LoadU8Raw(19));
-        hash.Add(LoadU8Raw(20));
-        hash.Add(LoadU8Raw(21));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(16)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(17)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(18)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(19)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(20)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(21)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -7668,17 +7954,32 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU8Raw(16));
-        hash.Add(LoadU8Raw(17));
-        hash.Add(LoadU8Raw(18));
-        hash.Add(LoadU8Raw(19));
-        hash.Add(LoadU8Raw(20));
-        hash.Add(LoadU8Raw(21));
-        hash.Add(LoadU8Raw(22));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(16)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(17)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(18)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(19)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(20)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(21)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(22)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -8036,11 +8337,28 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU64BE(16));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            ulong word16 = LoadU64Raw(16);
+            hash = (hash ^ (uint) word16) * FNV_PRIME;
+            hash = (hash ^ (uint) (word16 >> 32)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -8363,12 +8681,29 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU64BE(16));
-        hash.Add(LoadU8Raw(24));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            ulong word16 = LoadU64Raw(16);
+            hash = (hash ^ (uint) word16) * FNV_PRIME;
+            hash = (hash ^ (uint) (word16 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(24)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -8697,13 +9032,30 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU64BE(16));
-        hash.Add(LoadU8Raw(24));
-        hash.Add(LoadU8Raw(25));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            ulong word16 = LoadU64Raw(16);
+            hash = (hash ^ (uint) word16) * FNV_PRIME;
+            hash = (hash ^ (uint) (word16 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(24)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(25)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -9038,14 +9390,31 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU64BE(16));
-        hash.Add(LoadU8Raw(24));
-        hash.Add(LoadU8Raw(25));
-        hash.Add(LoadU8Raw(26));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            ulong word16 = LoadU64Raw(16);
+            hash = (hash ^ (uint) word16) * FNV_PRIME;
+            hash = (hash ^ (uint) (word16 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(24)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(25)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(26)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -9386,15 +9755,32 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU64BE(16));
-        hash.Add(LoadU8Raw(24));
-        hash.Add(LoadU8Raw(25));
-        hash.Add(LoadU8Raw(26));
-        hash.Add(LoadU8Raw(27));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            ulong word16 = LoadU64Raw(16);
+            hash = (hash ^ (uint) word16) * FNV_PRIME;
+            hash = (hash ^ (uint) (word16 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(24)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(25)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(26)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(27)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -9741,16 +10127,33 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU64BE(16));
-        hash.Add(LoadU8Raw(24));
-        hash.Add(LoadU8Raw(25));
-        hash.Add(LoadU8Raw(26));
-        hash.Add(LoadU8Raw(27));
-        hash.Add(LoadU8Raw(28));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            ulong word16 = LoadU64Raw(16);
+            hash = (hash ^ (uint) word16) * FNV_PRIME;
+            hash = (hash ^ (uint) (word16 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(24)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(25)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(26)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(27)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(28)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -10103,17 +10506,34 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU64BE(16));
-        hash.Add(LoadU8Raw(24));
-        hash.Add(LoadU8Raw(25));
-        hash.Add(LoadU8Raw(26));
-        hash.Add(LoadU8Raw(27));
-        hash.Add(LoadU8Raw(28));
-        hash.Add(LoadU8Raw(29));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            ulong word16 = LoadU64Raw(16);
+            hash = (hash ^ (uint) word16) * FNV_PRIME;
+            hash = (hash ^ (uint) (word16 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(24)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(25)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(26)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(27)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(28)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(29)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -10472,18 +10892,35 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU64BE(16));
-        hash.Add(LoadU8Raw(24));
-        hash.Add(LoadU8Raw(25));
-        hash.Add(LoadU8Raw(26));
-        hash.Add(LoadU8Raw(27));
-        hash.Add(LoadU8Raw(28));
-        hash.Add(LoadU8Raw(29));
-        hash.Add(LoadU8Raw(30));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            ulong word16 = LoadU64Raw(16);
+            hash = (hash ^ (uint) word16) * FNV_PRIME;
+            hash = (hash ^ (uint) (word16 >> 32)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(24)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(25)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(26)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(27)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(28)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(29)) * FNV_PRIME;
+            hash = (hash ^ LoadU8Raw(30)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -10848,12 +11285,31 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
 
     public readonly override int GetHashCode()
     {
-        var hash = new HashCode();
-        hash.Add(LoadU64BE(0));
-        hash.Add(LoadU64BE(8));
-        hash.Add(LoadU64BE(16));
-        hash.Add(LoadU64BE(24));
-        return hash.ToHashCode();
+        unchecked
+        {
+            const uint FNV_OFFSET_BASIS = 2166136261u;
+            const uint FNV_PRIME = 16777619u;
+
+            uint hash = FNV_OFFSET_BASIS;
+            ulong word0 = LoadU64Raw(0);
+            hash = (hash ^ (uint) word0) * FNV_PRIME;
+            hash = (hash ^ (uint) (word0 >> 32)) * FNV_PRIME;
+            ulong word8 = LoadU64Raw(8);
+            hash = (hash ^ (uint) word8) * FNV_PRIME;
+            hash = (hash ^ (uint) (word8 >> 32)) * FNV_PRIME;
+            ulong word16 = LoadU64Raw(16);
+            hash = (hash ^ (uint) word16) * FNV_PRIME;
+            hash = (hash ^ (uint) (word16 >> 32)) * FNV_PRIME;
+            ulong word24 = LoadU64Raw(24);
+            hash = (hash ^ (uint) word24) * FNV_PRIME;
+            hash = (hash ^ (uint) (word24 >> 32)) * FNV_PRIME;
+            hash ^= hash >> 16;
+            hash *= 2246822519u;
+            hash ^= hash >> 13;
+            hash *= 3266489917u;
+            hash ^= hash >> 16;
+            return (int) hash;
+        }
     }
 
     /// <summary>
@@ -10971,4 +11427,5 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
 }
 
 #pragma warning restore CS1591, CS0675
+
 
