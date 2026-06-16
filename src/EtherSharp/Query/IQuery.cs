@@ -1,5 +1,4 @@
-﻿using EtherSharp.Common.Exceptions;
-using EtherSharp.Contract;
+﻿using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Query.Operations;
 using EtherSharp.Tx;
@@ -50,15 +49,9 @@ public partial interface IQuery
     /// <typeparam name="T">The decoded return type of the contract call.</typeparam>
     /// <param name="input">The contract call input to execute.</param>
     /// <returns>A query that yields the decoded return value.</returns>
-    /// <exception cref="CallRevertedException">Thrown when the call reverts.</exception>
+    /// <exception cref="EtherSharp.Common.Exceptions.CallRevertedException">Thrown when the call reverts.</exception>
     public static IQuery<T> Call<T>(IContractCall<T> input)
-        => SafeCall(input).Map(x => x switch
-        {
-            CallResult<T>.Success s => s.Value,
-            CallResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data.Span),
-            CallResult<T>.Malformed m => throw m.Exception,
-            _ => throw new ImpossibleException()
-        });
+        => SafeCall(input).Map(x => x.Unwrap());
 
     /// <summary>
     /// Creates a contract-call query that returns call success/revert information and measured gas usage.
@@ -75,19 +68,12 @@ public partial interface IQuery
     /// <typeparam name="T">The decoded return type of the contract call.</typeparam>
     /// <param name="input">The contract call input to execute.</param>
     /// <returns>A query that yields the decoded return value and gas used.</returns>
-    /// <exception cref="CallRevertedException">Thrown when the call reverts.</exception>
+    /// <exception cref="EtherSharp.Common.Exceptions.CallRevertedException">Thrown when the call reverts.</exception>
     public static IQuery<(T, ulong)> CallAndMeasureGas<T>(IContractCall<T> input)
         => SafeCallAndMeasureGas(input).Map(x =>
         {
             var (result, gasUsed) = x;
-            var unwrapped = result switch
-            {
-                CallResult<T>.Success s => s.Value,
-                CallResult<T>.Reverted r => throw CallRevertedException.Parse(input.To, r.Data.Span),
-                CallResult<T>.Malformed m => throw m.Exception,
-                _ => throw new ImpossibleException()
-            };
-            return (unwrapped, gasUsed);
+            return (result.Unwrap(), gasUsed);
         });
 
     /// <summary>
@@ -107,15 +93,9 @@ public partial interface IQuery
     /// <param name="deployment">The contract deployment to execute for the flash call.</param>
     /// <param name="input">The flash-call input to execute against the deployed code.</param>
     /// <returns>A query that yields the decoded return value.</returns>
-    /// <exception cref="CallRevertedException">Thrown when the call reverts.</exception>
+    /// <exception cref="EtherSharp.Common.Exceptions.CallRevertedException">Thrown when the call reverts.</exception>
     public static IQuery<T> FlashCall<T>(IContractDeployment deployment, IFlashCall<T> input)
-        => SafeFlashCall(deployment, input).Map(x => x switch
-        {
-            CallResult<T>.Success s => s.Value,
-            CallResult<T>.Reverted r => throw CallRevertedException.Parse(null, r.Data.Span),
-            CallResult<T>.Malformed m => throw m.Exception,
-            _ => throw new ImpossibleException()
-        });
+        => SafeFlashCall(deployment, input).Map(x => x.Unwrap());
 
     /// <summary>
     /// Creates a query that returns deployed bytecode for <paramref name="contract"/>.

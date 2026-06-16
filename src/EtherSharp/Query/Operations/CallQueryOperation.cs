@@ -43,8 +43,8 @@ internal sealed class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, 
 
         return success switch
         {
-            true => CallResult<T>.ParseSuccessFrom(returnData, _txInput.ReadResultFrom),
-            false => new CallResult<T>.Reverted(returnData)
+            true => CallResult<T>.ParseSuccessFrom(returnData, _txInput.To, _txInput.ReadResultFrom),
+            false => new CallResult<T>.Reverted(_txInput.To, returnData)
         };
     }
 }

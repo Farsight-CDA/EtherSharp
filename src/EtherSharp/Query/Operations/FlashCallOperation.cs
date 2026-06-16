@@ -47,8 +47,8 @@ internal sealed class SafeFlashCallQueryOperation<T>(IContractDeployment deploym
 
         return success switch
         {
-            true => CallResult<T>.ParseSuccessFrom(returnData, _txInput.ReadResultFrom),
-            false => new CallResult<T>.Reverted(returnData)
+            true => CallResult<T>.ParseSuccessFrom(returnData, null, _txInput.ReadResultFrom),
+            false => new CallResult<T>.Reverted(null, returnData)
         };
     }
 }

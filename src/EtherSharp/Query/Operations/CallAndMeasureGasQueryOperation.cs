@@ -42,8 +42,8 @@ internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInpu
 
         var result = success switch
         {
-            true => CallResult<T>.ParseSuccessFrom(queryResult[13..], _txInput.ReadResultFrom),
-            false => new CallResult<T>.Reverted(queryResult[13..])
+            true => CallResult<T>.ParseSuccessFrom(queryResult[13..], _txInput.To, _txInput.ReadResultFrom),
+            false => new CallResult<T>.Reverted(_txInput.To, queryResult[13..])
         };
 
         return (result, gasUsed);

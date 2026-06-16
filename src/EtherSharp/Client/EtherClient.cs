@@ -441,13 +441,13 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             cancellationToken
         );
 
-        return CallResult<T>.ParseFrom(result, call.ReadResultFrom);
+        return CallResult<T>.ParseFrom(result, call.To, call.ReadResultFrom);
     }
 
     async Task<T> IEtherClient.CallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, Address? from, CancellationToken cancellationToken)
     {
         var result = await SafeCallAsync(call, targetHeight, from, cancellationToken);
-        return result.Unwrap(call.To);
+        return result.Unwrap();
     }
 
     public async Task<CallResult<T>> SafeFlashCallAsync<T>(
@@ -460,7 +460,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         AssertReady();
 
         var result = await _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
-        return CallResult<T>.ParseFrom(result, call.ReadResultFrom);
+        return CallResult<T>.ParseFrom(result, null, call.ReadResultFrom);
     }
 
     public async Task<T> FlashCallAsync<T>(
@@ -471,7 +471,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         CancellationToken cancellationToken)
     {
         var result = await SafeFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
-        return result.Unwrap(null);
+        return result.Unwrap();
     }
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
