@@ -159,4 +159,79 @@ public partial interface IQuery
                 );
             }
         );
+    /// <summary>
+    /// Combines 10 queries into a single query that returns a tuple of all results.
+    /// </summary>
+    public static IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)> Combine<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5, IQuery<T6> q6, IQuery<T7> q7, IQuery<T8> q8, IQuery<T9> q9, IQuery<T10> q10)
+        => new Query<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>(
+            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries, .. q6.Queries, .. q7.Queries, .. q8.Queries, .. q9.Queries, .. q10.Queries],
+            results =>
+            {
+                int offset = 0;
+
+                return (
+                    q1.ReadResultFrom(results[offset..(offset += q1.Queries.Count)]),
+                    q2.ReadResultFrom(results[offset..(offset += q2.Queries.Count)]),
+                    q3.ReadResultFrom(results[offset..(offset += q3.Queries.Count)]),
+                    q4.ReadResultFrom(results[offset..(offset += q4.Queries.Count)]),
+                    q5.ReadResultFrom(results[offset..(offset += q5.Queries.Count)]),
+                    q6.ReadResultFrom(results[offset..(offset += q6.Queries.Count)]),
+                    q7.ReadResultFrom(results[offset..(offset += q7.Queries.Count)]),
+                    q8.ReadResultFrom(results[offset..(offset += q8.Queries.Count)]),
+                    q9.ReadResultFrom(results[offset..(offset += q9.Queries.Count)]),
+                    q10.ReadResultFrom(results[offset..(offset += q10.Queries.Count)])
+                );
+            }
+        );
+    /// <summary>
+    /// Combines 11 queries into a single query that returns a tuple of all results.
+    /// </summary>
+    public static IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)> Combine<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5, IQuery<T6> q6, IQuery<T7> q7, IQuery<T8> q8, IQuery<T9> q9, IQuery<T10> q10, IQuery<T11> q11)
+        => new Query<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>(
+            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries, .. q6.Queries, .. q7.Queries, .. q8.Queries, .. q9.Queries, .. q10.Queries, .. q11.Queries],
+            results =>
+            {
+                int offset = 0;
+
+                return (
+                    q1.ReadResultFrom(results[offset..(offset += q1.Queries.Count)]),
+                    q2.ReadResultFrom(results[offset..(offset += q2.Queries.Count)]),
+                    q3.ReadResultFrom(results[offset..(offset += q3.Queries.Count)]),
+                    q4.ReadResultFrom(results[offset..(offset += q4.Queries.Count)]),
+                    q5.ReadResultFrom(results[offset..(offset += q5.Queries.Count)]),
+                    q6.ReadResultFrom(results[offset..(offset += q6.Queries.Count)]),
+                    q7.ReadResultFrom(results[offset..(offset += q7.Queries.Count)]),
+                    q8.ReadResultFrom(results[offset..(offset += q8.Queries.Count)]),
+                    q9.ReadResultFrom(results[offset..(offset += q9.Queries.Count)]),
+                    q10.ReadResultFrom(results[offset..(offset += q10.Queries.Count)]),
+                    q11.ReadResultFrom(results[offset..(offset += q11.Queries.Count)])
+                );
+            }
+        );
+    /// <summary>
+    /// Combines 12 queries into a single query that returns a tuple of all results.
+    /// </summary>
+    public static IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)> Combine<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(IQuery<T1> q1, IQuery<T2> q2, IQuery<T3> q3, IQuery<T4> q4, IQuery<T5> q5, IQuery<T6> q6, IQuery<T7> q7, IQuery<T8> q8, IQuery<T9> q9, IQuery<T10> q10, IQuery<T11> q11, IQuery<T12> q12)
+        => new Query<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>(
+            [.. q1.Queries, .. q2.Queries, .. q3.Queries, .. q4.Queries, .. q5.Queries, .. q6.Queries, .. q7.Queries, .. q8.Queries, .. q9.Queries, .. q10.Queries, .. q11.Queries, .. q12.Queries],
+            results =>
+            {
+                int offset = 0;
+
+                return (
+                    q1.ReadResultFrom(results[offset..(offset += q1.Queries.Count)]),
+                    q2.ReadResultFrom(results[offset..(offset += q2.Queries.Count)]),
+                    q3.ReadResultFrom(results[offset..(offset += q3.Queries.Count)]),
+                    q4.ReadResultFrom(results[offset..(offset += q4.Queries.Count)]),
+                    q5.ReadResultFrom(results[offset..(offset += q5.Queries.Count)]),
+                    q6.ReadResultFrom(results[offset..(offset += q6.Queries.Count)]),
+                    q7.ReadResultFrom(results[offset..(offset += q7.Queries.Count)]),
+                    q8.ReadResultFrom(results[offset..(offset += q8.Queries.Count)]),
+                    q9.ReadResultFrom(results[offset..(offset += q9.Queries.Count)]),
+                    q10.ReadResultFrom(results[offset..(offset += q10.Queries.Count)]),
+                    q11.ReadResultFrom(results[offset..(offset += q11.Queries.Count)]),
+                    q12.ReadResultFrom(results[offset..(offset += q12.Queries.Count)])
+                );
+            }
+        );
 }

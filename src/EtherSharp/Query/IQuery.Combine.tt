@@ -3,7 +3,7 @@
 public partial interface IQuery
 {
 <#
-    for(int n = 2; n <= 9; n++)
+    for(int n = 2; n <= 12; n++)
     {
         string genericParams = string.Join(", ", System.Linq.Enumerable.Select(System.Linq.Enumerable.Range(1, n), i => $"T{i}"));
         string tupleType = $"({genericParams})";
