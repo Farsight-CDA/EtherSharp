@@ -320,31 +320,41 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Multiply(in UInt256 x, in UInt256 y, out UInt256 res)
     {
-        if(y.IsZero || x.IsZero)
+        ulong x0 = x._u0;
+        ulong y0 = y._u0;
+        ulong xHi = x._u1 | x._u2 | x._u3;
+        ulong yHi = y._u1 | y._u2 | y._u3;
+
+        if((x0 | xHi) == 0 || (y0 | yHi) == 0)
         {
             res = default;
-            return;
-        }
-        if(y.IsOne)
-        {
-            res = x;
-            return;
-        }
-        if(x.IsOne)
-        {
-            res = y;
             return;
         }
 
-        // If both inputs fit in 64 bits, use a simple multiplication routine.
-        if(x.IsUint64 && y.IsUint64)
+        if(yHi == 0)
         {
-            // Fast multiply for numbers less than 2^64 (18,446,744,073,709,551,615)
-            ulong high = Multiply64(x._u0, y._u0, out ulong low);
-            // Assignment to res after multiply in case is used as input for x or y (by ref aliasing)
-            res = default;
-            Unsafe.AsRef(in res._u0) = low;
-            Unsafe.AsRef(in res._u1) = high;
+            if(y0 == 1)
+            {
+                res = x;
+                return;
+            }
+
+            // If both inputs fit in 64 bits, use a simple multiplication routine.
+            if(xHi == 0)
+            {
+                // Fast multiply for numbers less than 2^64 (18,446,744,073,709,551,615)
+                ulong high = Multiply64(x0, y0, out ulong low);
+                // Assignment to res after multiply in case is used as input for x or y (by ref aliasing)
+                res = default;
+                Unsafe.AsRef(in res._u0) = low;
+                Unsafe.AsRef(in res._u1) = high;
+                return;
+            }
+        }
+
+        if(xHi == 0 && x0 == 1)
+        {
+            res = y;
             return;
         }
 
