@@ -114,15 +114,37 @@ public readonly partial struct Int256
         return c;
     }
 
+    public static Int256 operator checked *(in Int256 a, in Int256 b)
+        => MultiplyOverflow(in a, in b, out var c)
+            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
+            : c;
+
     public static Int256 operator *(in Int256 a, uint b)
     {
         Multiply(in a, b, out var c);
         return c;
     }
+
+    public static Int256 operator checked *(in Int256 a, uint b)
+    {
+        Int256 bb = b;
+        return MultiplyOverflow(in a, in bb, out var c)
+            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
+            : c;
+    }
+
     public static Int256 operator *(uint a, in Int256 b)
     {
         Multiply(a, in b, out var c);
         return c;
+    }
+
+    public static Int256 operator checked *(uint a, in Int256 b)
+    {
+        Int256 aa = a;
+        return MultiplyOverflow(in aa, in b, out var c)
+            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
+            : c;
     }
 
     public static Int256 operator *(in Int256 a, ulong b)
@@ -130,10 +152,27 @@ public readonly partial struct Int256
         Multiply(in a, b, out var c);
         return c;
     }
+
+    public static Int256 operator checked *(in Int256 a, ulong b)
+    {
+        Int256 bb = b;
+        return MultiplyOverflow(in a, in bb, out var c)
+            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
+            : c;
+    }
+
     public static Int256 operator *(ulong a, in Int256 b)
     {
         Multiply(a, in b, out var c);
         return c;
+    }
+
+    public static Int256 operator checked *(ulong a, in Int256 b)
+    {
+        Int256 aa = a;
+        return MultiplyOverflow(in aa, in b, out var c)
+            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
+            : c;
     }
 
     public static Int256 operator /(in Int256 a, in Int256 b)

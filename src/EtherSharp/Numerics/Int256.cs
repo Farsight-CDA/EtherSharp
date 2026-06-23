@@ -158,6 +158,26 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         res = Negate(res);
     }
 
+    public static bool MultiplyOverflow(in Int256 x, in Int256 y, out Int256 res)
+    {
+        int xSign = x.Sign;
+        int ySign = y.Sign;
+        var xAbs = xSign < 0 ? Negate(x) : x;
+        var yAbs = ySign < 0 ? Negate(y) : y;
+
+        UInt256.Multiply(in xAbs._value, in yAbs._value, out var low, out var high);
+
+        bool isNegative = (xSign < 0 && ySign >= 0) || (xSign >= 0 && ySign < 0);
+        res = new Int256(low);
+        if(isNegative)
+        {
+            res = Negate(res);
+        }
+
+        var limit = isNegative ? MinValue._value : MaxValue._value;
+        return !high.IsZero || limit < low;
+    }
+
     public static void MultiplyMod(in Int256 x, in Int256 y, in Int256 m, out Int256 res)
     {
         var mAbs = m;
