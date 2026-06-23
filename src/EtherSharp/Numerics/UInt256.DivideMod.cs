@@ -461,13 +461,18 @@ public readonly partial struct UInt256
         var intermediate = One;
         var bs = b;
         int len = e.BitLength;
-        for(int i = 0; i < len; i++)
+        for(int i = 0; i < len - 1; i++)
         {
             if(e.Bit(i))
             {
                 MultiplyMod(intermediate, bs, m, out intermediate);
             }
             MultiplyMod(bs, bs, m, out bs);
+        }
+
+        if(len > 0)
+        {
+            MultiplyMod(intermediate, bs, m, out intermediate);
         }
 
         result = intermediate;
