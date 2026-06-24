@@ -19,8 +19,24 @@ public abstract class FixedBytesJsonConverter<TBytes> : JsonConverter<TBytes>
     }
 
     /// <inheritdoc/>
+    public override TBytes ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        Span<byte> bytes = stackalloc byte[TBytes.BYTE_LENGTH];
+        HexJsonConverter.ReadPropertyNameBytes(ref reader, bytes, typeof(TBytes).Name);
+        return TBytes.FromBytes(bytes);
+    }
+
+    /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, TBytes value, JsonSerializerOptions options)
         => WriteUnsafe(writer, value);
+
+    /// <inheritdoc/>
+    public override void WriteAsPropertyName(Utf8JsonWriter writer, TBytes value, JsonSerializerOptions options)
+    {
+        Span<byte> bytes = stackalloc byte[TBytes.BYTE_LENGTH];
+        value.CopyTo(bytes);
+        HexJsonConverter.WritePropertyNameBytes(writer, bytes);
+    }
 
     /// <summary>
     /// Writes the value using its internal byte span without copying.

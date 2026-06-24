@@ -82,6 +82,20 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
         );
     }
 
+    public async Task<TxCallResult> CallAsync(
+        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, string? data,
+        TargetHeight targetHeight, IReadOnlyDictionary<Address, StateOverride> stateOverrides,
+        CancellationToken cancellationToken = default)
+    {
+        var transaction = new TransactionCall(from, to, gas ?? _callGasLimitSettings.GetEthCallGasLimit(), gasPrice, value, data);
+
+        return TxCallResult.ParseFrom(
+            await _rpcClient.SendRpcRequestAsync<TransactionCall, TargetHeight, IReadOnlyDictionary<Address, StateOverride>, byte[]>(
+                "eth_call", transaction, targetHeight, stateOverrides, targetHeight, cancellationToken
+            )
+        );
+    }
+
     public async Task<TxSubmissionResult> SendRawTransactionAsync(string transaction, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<string, Bytes32>("eth_sendRawTransaction", transaction, TargetHeight.Latest, cancellationToken) switch
         {

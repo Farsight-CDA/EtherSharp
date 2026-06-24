@@ -73,6 +73,14 @@ public interface IEthRpcModule
         TargetHeight blockNumber, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Executes a read-only call with state overrides.
+    /// </summary>
+    public Task<TxCallResult> CallAsync(
+        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, string? data,
+        TargetHeight blockNumber, IReadOnlyDictionary<Address, StateOverride> stateOverrides,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets transaction count (nonce) at a target block.
     /// </summary>
     public Task<uint> GetTransactionCountAsync(
