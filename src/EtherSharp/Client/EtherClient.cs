@@ -248,7 +248,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
                 null,
                 null,
                 0,
-                "0x217CD3E1",
+                Convert.FromHexString("217CD3E1"),
                 TargetHeight.Latest,
                 cancellationToken
             );
@@ -436,7 +436,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             null,
             null,
             call.Value,
-            HexUtils.ToPrefixedHexString(call.Data.Span),
+            call.Data,
             targetHeight,
             cancellationToken
         );
@@ -461,7 +461,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             null,
             null,
             call.Value,
-            HexUtils.ToPrefixedHexString(call.Data.Span),
+            call.Data,
             targetHeight,
             stateOverrides,
             cancellationToken

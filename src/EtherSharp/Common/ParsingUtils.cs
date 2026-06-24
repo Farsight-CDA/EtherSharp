@@ -37,6 +37,7 @@ public static class ParsingUtils
         options.Converters.Add(DateTimeOffsetHexConverter.Instance);
         FixedBytesJsonConverters.Register(options.Converters);
         options.Converters.Add(HexStringByteArrayConverter.Instance);
+        options.Converters.Add(HexStringReadOnlyMemoryByteConverter.Instance);
         options.Converters.Add(IntHexConverter.Instance);
         options.Converters.Add(UIntHexConverter.Instance);
         options.Converters.Add(LongHexConverter.Instance);

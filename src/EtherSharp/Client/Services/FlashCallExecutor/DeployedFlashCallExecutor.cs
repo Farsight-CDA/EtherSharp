@@ -71,27 +71,15 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
 
         int argsLength = 10 + deployment.Data.Length + call.Data.Length;
 
-        byte[]? rented = null;
-        var buffer = argsLength <= 4096
-            ? stackalloc byte[argsLength]
-            : (rented = ArrayPool<byte>.Shared.Rent(argsLength)).AsSpan(0, argsLength);
+        byte[] rented = ArrayPool<byte>.Shared.Rent(argsLength);
+        var payload = rented.AsMemory(0, argsLength);
 
         try
         {
-            BinaryPrimitives.WriteUInt64BigEndian(buffer, flashCallGasLimit);
-            BinaryPrimitives.WriteUInt16BigEndian(buffer[8..], (ushort) deployment.Data.Length);
-            deployment.Data.Span.CopyTo(buffer[10..]);
-            call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 10)..]);
-
-            string payload = String.Create(
-                2 + (argsLength * 2),
-                buffer,
-                static (chars, buffer) =>
-                {
-                    "0x".CopyTo(chars);
-                    Convert.TryToHexString(buffer, chars[2..], out _);
-                }
-            );
+            BinaryPrimitives.WriteUInt64BigEndian(payload.Span, flashCallGasLimit);
+            BinaryPrimitives.WriteUInt16BigEndian(payload.Span[8..], (ushort) deployment.Data.Length);
+            deployment.Data.Span.CopyTo(payload.Span[10..]);
+            call.Data.Span.CopyTo(payload.Span[(deployment.Data.Length + 10)..]);
 
             var result = await _ethRpcModule.CallAsync(
                 null,
@@ -120,10 +108,7 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
         }
         finally
         {
-            if(rented is not null)
-            {
-                ArrayPool<byte>.Shared.Return(rented);
-            }
+            ArrayPool<byte>.Shared.Return(rented);
         }
     }
 }

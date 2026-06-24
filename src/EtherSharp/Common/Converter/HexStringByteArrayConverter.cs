@@ -64,6 +64,9 @@ public sealed class HexStringByteArrayConverter : JsonConverter<byte[]>
 
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, byte[] value, JsonSerializerOptions options)
+        => WriteHexStringValue(writer, value);
+
+    internal static void WriteHexStringValue(Utf8JsonWriter writer, ReadOnlySpan<byte> value)
     {
         if(value.Length < STACK_BUFFER_SIZE)
         {
@@ -102,7 +105,7 @@ public sealed class HexStringByteArrayConverter : JsonConverter<byte[]>
 
             int byteCount = Math.Min(value.Length - offset, (STACK_BUFFER_SIZE - prefixLength) / 2);
 
-            if(!Convert.TryToHexString(value.AsSpan(offset, byteCount), buffer[prefixLength..], out int written))
+            if(!Convert.TryToHexString(value.Slice(offset, byteCount), buffer[prefixLength..], out int written))
             {
                 throw new InvalidOperationException("Failed to format hex.");
             }

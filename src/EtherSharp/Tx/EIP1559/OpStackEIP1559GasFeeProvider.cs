@@ -61,7 +61,7 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
     }
 
     /// <inheritdoc/>
-    public Task<EIP1559GasParams> EstimateGasParamsAsync(ITxInput txInput, EIP1559TxParams txParams, Address from, CancellationToken cancellationToken)
+    public async Task<EIP1559GasParams> EstimateGasParamsAsync(ITxInput txInput, EIP1559TxParams txParams, Address from, CancellationToken cancellationToken)
     {
         if(!_initialized)
         {
@@ -74,52 +74,44 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
         int txByteSize = mockTx.GetEncodedSize(listSizes);
         int simulationBufferSize = (32 * ((txByteSize - 1) / 32)) + 32 + 69;
 
-        byte[]? rented = null;
-        var simulationPayloadBuffer = simulationBufferSize <= 4096
-            ? stackalloc byte[simulationBufferSize]
-            : (rented = ArrayPool<byte>.Shared.Rent(simulationBufferSize)).AsSpan(0, simulationBufferSize);
-
-        if(rented is not null)
-        {
-            simulationPayloadBuffer.Clear();
-        }
+        byte[] rented = ArrayPool<byte>.Shared.Rent(simulationBufferSize);
+        var simulationPayload = rented.AsMemory(0, simulationBufferSize);
 
         try
         {
-            simulationPayloadBuffer[0] = 0x49;
-            simulationPayloadBuffer[1] = 0x94;
-            simulationPayloadBuffer[2] = 0x8e;
-            simulationPayloadBuffer[3] = 0x0e;
+            simulationPayload.Span.Clear();
+            simulationPayload.Span[0] = 0x49;
+            simulationPayload.Span[1] = 0x94;
+            simulationPayload.Span[2] = 0x8e;
+            simulationPayload.Span[3] = 0x0e;
 
-            simulationPayloadBuffer[35] = 32;
+            simulationPayload.Span[35] = 32;
 
-            BinaryPrimitives.WriteInt32BigEndian(simulationPayloadBuffer[64..], txByteSize);
+            BinaryPrimitives.WriteInt32BigEndian(simulationPayload.Span[64..], txByteSize);
 
-            simulationPayloadBuffer[68] = EIP1559Transaction.PrefixByte;
-            mockTx.Encode(listSizes, simulationPayloadBuffer[69..]);
+            simulationPayload.Span[68] = EIP1559Transaction.PrefixByte;
+            mockTx.Encode(listSizes, simulationPayload.Span[69..]);
 
-            return SendEstimationRequestsAsync(
+            return await SendEstimationRequestsAsync(
                 from,
                 txInput,
-                HexUtils.ToPrefixedHexString(simulationPayloadBuffer),
+                simulationPayload,
                 cancellationToken
             );
         }
         finally
         {
-            if(rented is not null)
-            {
-                ArrayPool<byte>.Shared.Return(rented);
-            }
+            ArrayPool<byte>.Shared.Return(rented);
         }
     }
 
-    private async Task<EIP1559GasParams> SendEstimationRequestsAsync(Address sender, ITxInput txInput, string getL1FeePayloadHex, CancellationToken cancellationToken)
+    private async Task<EIP1559GasParams> SendEstimationRequestsAsync(
+        Address sender, ITxInput txInput, ReadOnlyMemory<byte> getL1FeePayload, CancellationToken cancellationToken)
     {
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
             sender, txInput.To, txInput.Value, HexUtils.ToPrefixedHexString(txInput.Data.Span), cancellationToken);
         var l1FeeTask = _ethRpcModule.CallAsync(
-            null, _opGasOracleAddress, null, null, 0, getL1FeePayloadHex, TargetHeight.Pending, cancellationToken
+            null, _opGasOracleAddress, null, null, 0, getL1FeePayload, TargetHeight.Pending, cancellationToken
         );
 
         ulong gasEstimation = await gasEstimationTask;

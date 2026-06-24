@@ -68,9 +68,9 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
         };
 
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
-    private sealed record TransactionCall(Address? From, Address? To, ulong? Gas, UInt256? GasPrice, UInt256 Value, string? Data);
+    private sealed record TransactionCall(Address? From, Address? To, ulong? Gas, UInt256? GasPrice, UInt256 Value, ReadOnlyMemory<byte> Data);
     public async Task<TxCallResult> CallAsync(
-        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, string? data,
+        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         TargetHeight targetHeight, CancellationToken cancellationToken)
     {
         var transaction = new TransactionCall(from, to, gas ?? _callGasLimitSettings.GetEthCallGasLimit(), gasPrice, value, data);
@@ -83,7 +83,7 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
     }
 
     public async Task<TxCallResult> CallAsync(
-        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, string? data,
+        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         TargetHeight targetHeight, IReadOnlyDictionary<Address, StateOverride> stateOverrides,
         CancellationToken cancellationToken = default)
     {

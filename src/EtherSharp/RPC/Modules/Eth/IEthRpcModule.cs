@@ -69,14 +69,14 @@ public interface IEthRpcModule
     /// Executes a read-only call.
     /// </summary>
     public Task<TxCallResult> CallAsync(
-        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, string? data,
+        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         TargetHeight blockNumber, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes a read-only call with state overrides.
     /// </summary>
     public Task<TxCallResult> CallAsync(
-        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, string? data,
+        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         TargetHeight blockNumber, IReadOnlyDictionary<Address, StateOverride> stateOverrides,
         CancellationToken cancellationToken = default);
 

@@ -10,16 +10,11 @@ namespace EtherSharp.Client.Services.FlashCallExecutor;
 
 internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, CallGasLimitSettings callGasLimitSettings) : IFlashCallExecutor
 {
-    private const string FLASHCALL_CONTRACT_HEX_UNLIMITED = "0x383d3d39602b5160f01c80602d3df03d3d3d84602d018038039034865af181533d8160013e3d60010181f3";
-    private const int FLASHCALL_CONTRACT_LENGTH_UNLIMITED = 43;
+    private static readonly byte[] _flashCallContractUnlimited = Convert.FromHexString(
+        "383d3d39602b5160f01c80602d3df03d3d3d84602d018038039034865af181533d8160013e3d60010181f3");
 
-    private const string FLASHCALL_CONTRACT_HEX = "0x383d3d396035518060b01c61ffff169060c01c81603f3df0903d3d3d85603f0180380390348787f181533d8160013e3d60010181f3";
-    private const int FLASHCALL_CONTRACT_LENGTH = 53;
-
-    //EIP-3860
-    private const int MAX_INITCODE_SIZE = 48 * 1024;
-    private const int MAX_PAYLOAD_SIZE = MAX_INITCODE_SIZE - 10 - FLASHCALL_CONTRACT_LENGTH;
-    private const int MAX_PAYLOAD_SIZE_UNLIMITED = MAX_INITCODE_SIZE - 2 - FLASHCALL_CONTRACT_LENGTH_UNLIMITED;
+    private static readonly byte[] _flashCallContract = Convert.FromHexString(
+        "383d3d396035518060b01c61ffff169060c01c81603f3df0903d3d3d85603f0180380390348787f181533d8160013e3d60010181f3");
 
     private const int MAX_RUNTIMECODE_SIZE = 24 * 1024;
 
@@ -33,8 +28,8 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
 
     public int GetMaxPayloadSize(ulong flashCallGasLimit, TargetHeight targetHeight)
         => ResolveFlashCallGasLimit(flashCallGasLimit) == 0
-            ? MAX_PAYLOAD_SIZE_UNLIMITED
-            : MAX_PAYLOAD_SIZE;
+            ? EVMByteCode.MAX_INIT_LENGTH - 2 - _flashCallContractUnlimited.Length
+            : EVMByteCode.MAX_INIT_LENGTH - 10 - _flashCallContract.Length;
 
     public int GetMaxResultSize(TargetHeight targetHeight)
         => MAX_RUNTIMECODE_SIZE;
@@ -55,18 +50,19 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
 
         bool useUnlimitedPayload = flashCallGasLimit == 0;
         int prefixLength = useUnlimitedPayload ? 2 : 10;
-        int contractLength = useUnlimitedPayload ? FLASHCALL_CONTRACT_LENGTH_UNLIMITED : FLASHCALL_CONTRACT_LENGTH;
+        byte[] contract = useUnlimitedPayload ? _flashCallContractUnlimited : _flashCallContract;
         int argsLength = prefixLength + deployment.Data.Length + call.Data.Length;
 
-        if(argsLength + contractLength > EVMByteCode.MAX_INIT_LENGTH)
+        if(argsLength + contract.Length > EVMByteCode.MAX_INIT_LENGTH)
         {
-            throw new InvalidOperationException($"Maximum call length exceeded, {argsLength + contractLength} > {EVMByteCode.MAX_INIT_LENGTH}");
+            throw new InvalidOperationException($"Maximum call length exceeded, {argsLength + contract.Length} > {EVMByteCode.MAX_INIT_LENGTH}");
         }
 
-        byte[]? rented = null;
-        var buffer = argsLength <= 4096
-            ? stackalloc byte[argsLength]
-            : (rented = ArrayPool<byte>.Shared.Rent(argsLength)).AsSpan(0, argsLength);
+        int payloadLength = contract.Length + argsLength;
+        byte[] rented = ArrayPool<byte>.Shared.Rent(payloadLength);
+        var payload = rented.AsMemory(0, payloadLength);
+        contract.CopyTo(payload);
+        var buffer = payload.Span[contract.Length..];
 
         try
         {
@@ -83,26 +79,6 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
                 deployment.Data.Span.CopyTo(buffer[10..]);
                 call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 10)..]);
             }
-
-            string payload = useUnlimitedPayload
-                ? String.Create(
-                    FLASHCALL_CONTRACT_HEX_UNLIMITED.Length + (argsLength * 2),
-                    buffer,
-                    static (chars, buffer) =>
-                    {
-                        FLASHCALL_CONTRACT_HEX_UNLIMITED.AsSpan().CopyTo(chars);
-                        Convert.TryToHexString(buffer, chars[FLASHCALL_CONTRACT_HEX_UNLIMITED.Length..], out _);
-                    }
-                )
-                : String.Create(
-                    FLASHCALL_CONTRACT_HEX.Length + (argsLength * 2),
-                    buffer,
-                    static (chars, buffer) =>
-                    {
-                        FLASHCALL_CONTRACT_HEX.AsSpan().CopyTo(chars);
-                        Convert.TryToHexString(buffer, chars[FLASHCALL_CONTRACT_HEX.Length..], out _);
-                    }
-                );
 
             var result = await _ethRpcModule.CallAsync(
                 null,
@@ -131,10 +107,7 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
         }
         finally
         {
-            if(rented is not null)
-            {
-                ArrayPool<byte>.Shared.Return(rented);
-            }
+            ArrayPool<byte>.Shared.Return(rented);
         }
     }
 }
