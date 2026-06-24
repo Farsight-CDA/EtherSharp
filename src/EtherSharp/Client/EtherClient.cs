@@ -444,9 +444,46 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         return CallResult<T>.ParseFrom(result, call.To, call.ReadResultFrom);
     }
 
+    public async Task<CallResult<T>> SafeCallAsync<T>(
+        ITxInput<T> call,
+        IReadOnlyDictionary<Address, StateOverride> stateOverrides,
+        TargetHeight targetHeight,
+        Address? from,
+        CancellationToken cancellationToken)
+    {
+        AssertReady();
+
+        Address? sender = from ?? (_options.IsTxClient ? _signer.Address : default);
+
+        var result = await _ethRpcModule.CallAsync(
+            sender,
+            call.To,
+            null,
+            null,
+            call.Value,
+            HexUtils.ToPrefixedHexString(call.Data.Span),
+            targetHeight,
+            stateOverrides,
+            cancellationToken
+        );
+
+        return CallResult<T>.ParseFrom(result, call.To, call.ReadResultFrom);
+    }
+
     async Task<T> IEtherClient.CallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, Address? from, CancellationToken cancellationToken)
     {
         var result = await SafeCallAsync(call, targetHeight, from, cancellationToken);
+        return result.Unwrap();
+    }
+
+    async Task<T> IEtherClient.CallAsync<T>(
+        ITxInput<T> call,
+        IReadOnlyDictionary<Address, StateOverride> stateOverrides,
+        TargetHeight targetHeight,
+        Address? from,
+        CancellationToken cancellationToken)
+    {
+        var result = await SafeCallAsync(call, stateOverrides, targetHeight, from, cancellationToken);
         return result.Unwrap();
     }
 

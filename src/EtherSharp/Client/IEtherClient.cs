@@ -212,6 +212,20 @@ public interface IEtherClient : IAsyncDisposable
     public Task<CallResult<T>> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Executes a safe call with state overrides that captures success/failure status and return data.
+    /// </summary>
+    /// <typeparam name="T">Expected decoded return type.</typeparam>
+    /// <param name="call">Call input definition.</param>
+    /// <param name="stateOverrides">State overrides applied during execution.</param>
+    /// <param name="targetHeight">Target block context.</param>
+    /// <param name="from">Optional sender address. If null, uses the signer address for transaction clients.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
+    public Task<CallResult<T>> SafeCallAsync<T>(
+        ITxInput<T> call, IReadOnlyDictionary<Address, StateOverride> stateOverrides,
+        TargetHeight targetHeight = default, Address? from = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Executes a read-only call and returns the decoded result.
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
@@ -221,6 +235,20 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
     public Task<T> CallAsync<T>(ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes a read-only call with state overrides and returns the decoded result.
+    /// </summary>
+    /// <typeparam name="T">Expected decoded return type.</typeparam>
+    /// <param name="call">Call input definition.</param>
+    /// <param name="stateOverrides">State overrides applied during execution.</param>
+    /// <param name="targetHeight">Target block context.</param>
+    /// <param name="from">Optional sender address. If null, uses the signer address for transaction clients.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The decoded call result.</returns>
+    public Task<T> CallAsync<T>(
+        ITxInput<T> call, IReadOnlyDictionary<Address, StateOverride> stateOverrides,
+        TargetHeight targetHeight = default, Address? from = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes a safe flash-call against a temporary deployment and captures success/failure details.
