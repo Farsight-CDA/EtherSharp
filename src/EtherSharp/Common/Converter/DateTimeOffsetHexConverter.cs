@@ -7,8 +7,11 @@ namespace EtherSharp.Common.Converter;
 /// <summary>
 /// Converts a <see cref="DateTimeOffset"/> value to or from a hex-encoded Unix timestamp JSON string.
 /// </summary>
-internal sealed class DateTimeOffsetHexConverter : JsonConverter<DateTimeOffset>
+public sealed class DateTimeOffsetHexConverter : JsonConverter<DateTimeOffset>
 {
+    /// <summary>
+    /// Gets the shared converter instance.
+    /// </summary>
     public static DateTimeOffsetHexConverter Instance { get; } = new();
 
     /// <inheritdoc/>

@@ -8,8 +8,11 @@ namespace EtherSharp.Common.Converter;
 /// <summary>
 /// Converts a <see cref="UInt32"/> to or from a hex-encoded JSON string.
 /// </summary>
-internal sealed class UIntHexConverter : JsonConverter<uint>
+public sealed class UIntHexConverter : JsonConverter<uint>
 {
+    /// <summary>
+    /// Gets the shared converter instance.
+    /// </summary>
     public static UIntHexConverter Instance { get; } = new();
 
     /// <inheritdoc/>
