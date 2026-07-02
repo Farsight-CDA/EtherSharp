@@ -2,6 +2,7 @@
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Common.Instrumentation;
+using EtherSharp.RPC.Transport.Json;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
@@ -131,9 +132,6 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         );
     }
 
-    private sealed record RpcError(int Code, string Message, string? Data);
-    private sealed record JsonRpcResponse<T>([property: JsonRequired] int? Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
-
     private static ByteArrayContent CreateHttpContent(byte[] payload)
     {
         var content = new ByteArrayContent(payload);
@@ -207,14 +205,14 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
                 throw new RPCTransportException($"RPC Error: Response id mismatch. Expected {id}, got {jsonRpcResponse.Id?.ToString() ?? "null"}");
             }
 
-            if(jsonRpcResponse.Result is null)
+            if(jsonRpcResponse.ResultIsNull)
             {
                 AddRpcRequestMetric(method, "success");
                 return RpcResult<TResult>.Null.Instance;
             }
 
             AddRpcRequestMetric(method, "success");
-            return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
+            return new RpcResult<TResult>.Success(jsonRpcResponse.Result!);
         }
         catch(RPCTransportException)
         {

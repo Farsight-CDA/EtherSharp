@@ -2,6 +2,7 @@
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Common.Instrumentation;
+using EtherSharp.RPC.Transport.Json;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -185,9 +186,6 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         _logger?.LogInformation("Websocket connection established...");
     }
 
-    private sealed record RpcError(int Code, string Message, string? Data);
-    private sealed record JsonRpcResponse<T>(
-        [property: JsonRequired] int Id, T? Result, RpcError? Error, [property: JsonRequired] string Jsonrpc);
     private async Task MessageHandler()
     {
         using var ms = new MemoryStream();
@@ -230,10 +228,10 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                         break;
                     }
 
-                    var (responseType, tcs) = value;
-
                     try
                     {
+                        var (responseType, tcs) = value;
+
                         object? response = JsonSerializer.Deserialize(
                             msBuffer, responseType,
                             options: _jsonSerializerOptions
@@ -243,7 +241,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                     }
                     catch(Exception ex)
                     {
-                        tcs.SetException(ex);
+                        value.Tcs.SetException(ex);
                     }
                     break;
                 case PayloadType.Subscription:
@@ -518,7 +516,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             await resultTask;
         }
 
-        var jsonRpcResponse = (JsonRpcResponse<TResult>) await tcs.Task;
+        var jsonRpcResponse = (JsonRpcResponse<TResult>?) await tcs.Task;
 
         if(jsonRpcResponse is null)
         {
@@ -535,14 +533,14 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             AddRpcRequestMetric(method, "success");
             return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message, jsonRpcResponse.Error.Data);
         }
-        else if(jsonRpcResponse.Result is null)
+        else if(jsonRpcResponse.ResultIsNull)
         {
             AddRpcRequestMetric(method, "success");
             return RpcResult<TResult>.Null.Instance;
         }
         //
         AddRpcRequestMetric(method, "success");
-        return new RpcResult<TResult>.Success(jsonRpcResponse.Result);
+        return new RpcResult<TResult>.Success(jsonRpcResponse.Result!);
     }
 
     /// <inheritdoc/>
