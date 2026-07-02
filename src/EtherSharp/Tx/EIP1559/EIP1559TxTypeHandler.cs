@@ -31,7 +31,7 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer)
     }
 
     /// <inheritdoc/>
-    string ITxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>.EncodeTxToBytes(
+    public string EncodeTxToBytes(
         ITxInput txInput, EIP1559TxParams txParams, EIP1559GasParams txGasParams, uint nonce, out Bytes32 txHash)
     {
         if(!_isInitialized)
