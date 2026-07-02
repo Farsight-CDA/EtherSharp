@@ -106,6 +106,16 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer)
             throw new NotImplementedException();
         }
 
-        _ = new RLPEncoder(signatureBuffer).EncodeSignature(rawSignatureBuffer, out encodedSignatureLength);
+        ulong parityByte = rawSignatureBuffer[64] switch
+        {
+            0 => 0,
+            1 => 1,
+            27 => 0,
+            28 => 1,
+            _ => throw new NotSupportedException("Bad parity byte")
+        };
+
+        _ = new RLPEncoder(signatureBuffer).EncodeSignature(
+            rawSignatureBuffer[..64], parityByte, out encodedSignatureLength);
     }
 }

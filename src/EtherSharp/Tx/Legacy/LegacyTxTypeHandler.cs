@@ -64,7 +64,7 @@ public sealed class LegacyTxTypeHandler(IEtherSigner signer)
 
             var signatureBuffer = txBuffer[^MAX_LEGACY_SIGNATURE_LENGTH..];
 
-            SignAndEncode(signDataBuffer, signatureBuffer, tx.ChainId, out int signatureLength);
+            SignAndEncode(signDataBuffer, signatureBuffer, out int signatureLength);
 
             if(signatureLength < MAX_LEGACY_SIGNATURE_LENGTH)
             {
@@ -100,7 +100,7 @@ public sealed class LegacyTxTypeHandler(IEtherSigner signer)
         }
     }
 
-    private void SignAndEncode(ReadOnlySpan<byte> signDataBuffer, Span<byte> signatureBuffer, ulong chainId, out int encodedSignatureLength)
+    private void SignAndEncode(ReadOnlySpan<byte> signDataBuffer, Span<byte> signatureBuffer, out int encodedSignatureLength)
     {
         Span<byte> hashBuffer = stackalloc byte[32];
         _ = Keccak256.TryHashData(signDataBuffer, hashBuffer);
@@ -111,7 +111,7 @@ public sealed class LegacyTxTypeHandler(IEtherSigner signer)
             throw new NotImplementedException();
         }
 
-        byte v = rawSignatureBuffer[64] switch
+        ulong parityByte = rawSignatureBuffer[64] switch
         {
             0 => 0,
             1 => 1,
@@ -119,17 +119,9 @@ public sealed class LegacyTxTypeHandler(IEtherSigner signer)
             28 => 1,
             _ => throw new NotSupportedException("Bad parity byte")
         };
+        ulong eip155V = (_chainId * 2) + 35 + parityByte;
 
-        var r = rawSignatureBuffer[..32];
-        var s = rawSignatureBuffer[32..64];
-
-        ulong eip155V = (chainId * 2) + 35 + v;
-
-        encodedSignatureLength = RLPEncoder.GetIntSize(eip155V) + RLPEncoder.GetStringSize(r) + RLPEncoder.GetStringSize(s);
-
-        _ = new RLPEncoder(signatureBuffer)
-            .EncodeInt(eip155V)
-            .EncodeString(r)
-            .EncodeString(s);
+        _ = new RLPEncoder(signatureBuffer).EncodeSignature(
+            rawSignatureBuffer[..64], eip155V, out encodedSignatureLength);
     }
 }

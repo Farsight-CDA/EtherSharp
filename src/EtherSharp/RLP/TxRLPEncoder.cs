@@ -57,35 +57,15 @@ internal static class TxRLPEncoder
 
     public static int MaxEncodedSignatureLength => 33 + 33 + 1;
 
-    public static RLPEncoder EncodeSignature(this RLPEncoder encoder, ReadOnlySpan<byte> signature, out int signatureLength)
+    public static RLPEncoder EncodeSignature(
+        this RLPEncoder encoder, ReadOnlySpan<byte> signature, ulong v, out int signatureLength)
     {
-        byte parityByte = signature[64] switch
-        {
-            0 => 0,
-            1 => 1,
-            27 => 0,
-            28 => 1,
-            _ => throw new NotSupportedException("Bad parity byte")
-        };
+        var r = signature[..32].TrimStart((byte) 0);
+        var s = signature[32..64].TrimStart((byte) 0);
 
-        var r = signature[..32];
-        var s = signature[32..64];
-
-        int rLeadingZeroBytes = r.IndexOfAnyExcept((byte) 0);
-        int sLeadingZeroBytes = s.IndexOfAnyExcept((byte) 0);
-
-        if(rLeadingZeroBytes > 0)
-        {
-            r = r[rLeadingZeroBytes..];
-        }
-        if(sLeadingZeroBytes > 0)
-        {
-            s = s[sLeadingZeroBytes..];
-        }
-
-        signatureLength = RLPEncoder.GetStringSize(r) + RLPEncoder.GetStringSize(s) + 1;
+        signatureLength = RLPEncoder.GetIntSize(v) + RLPEncoder.GetStringSize(r) + RLPEncoder.GetStringSize(s);
         return encoder
-            .EncodeInt(parityByte)
+            .EncodeInt(v)
             .EncodeString(r)
             .EncodeString(s);
     }
