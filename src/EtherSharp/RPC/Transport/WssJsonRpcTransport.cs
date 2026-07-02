@@ -44,7 +44,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     private Task? _connectionHandlerTask;
 
     private int _requestIdCounter;
-    private readonly ConcurrentDictionary<int, (Type RpcResponseType, TaskCompletionSource<object> Tcs)> _pendingRequests = [];
+    private readonly ConcurrentDictionary<int, IJsonRpcResponseHandler> _pendingRequests = [];
 
     private readonly ObservableGauge<int>? _websocketConnectedGauge;
     private readonly OTELCounter<long>? _rpcRequestsCounter;
@@ -114,7 +114,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 var wssClosedException = new RPCTransportException("The WebSocket is not connected.");
                 foreach(var r in _pendingRequests)
                 {
-                    r.Value.Tcs.SetException(wssClosedException);
+                    r.Value.SetException(wssClosedException);
                 }
                 _pendingRequests.Clear();
             }
@@ -132,7 +132,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 _logger?.LogWarning(ex, "Websocket connection lost, killing {RequestCount} pending requests...", _pendingRequests.Count);
                 foreach(var r in _pendingRequests)
                 {
-                    r.Value.Tcs.SetException(ex);
+                    r.Value.SetException(ex);
                 }
                 _pendingRequests.Clear();
             }
@@ -230,18 +230,11 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
                     try
                     {
-                        var (responseType, tcs) = value;
-
-                        object? response = JsonSerializer.Deserialize(
-                            msBuffer, responseType,
-                            options: _jsonSerializerOptions
-                        )!;
-
-                        tcs.SetResult(response);
+                        value.SetResponse(msBuffer, _jsonSerializerOptions);
                     }
                     catch(Exception ex)
                     {
-                        value.Tcs.SetException(ex);
+                        value.SetException(ex);
                     }
                     break;
                 case PayloadType.Subscription:
@@ -470,7 +463,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        var tcs = new TaskCompletionSource<object>();
+        var responseHandler = new JsonRpcResponseHandler<TResult>();
         var timeoutTask = Task.Delay(_requestTimeout, cancellationToken);
 
         try
@@ -480,7 +473,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 throw new RPCTransportException("The WebSocket is not connected.");
             }
 
-            _pendingRequests.TryAdd(requestId, (typeof(JsonRpcResponse<TResult>), tcs));
+            _pendingRequests.TryAdd(requestId, responseHandler);
 
             try
             {
@@ -497,7 +490,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             throw new RPCTransportException("The WebSocket is not connected.");
         }
 
-        var resultTask = await Task.WhenAny(tcs.Task, timeoutTask);
+        var resultTask = await Task.WhenAny(responseHandler.Task, timeoutTask);
 
         if(resultTask == timeoutTask)
         {
@@ -516,14 +509,9 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             await resultTask;
         }
 
-        var jsonRpcResponse = (JsonRpcResponse<TResult>?) await tcs.Task;
+        var jsonRpcResponse = await responseHandler.Task;
 
-        if(jsonRpcResponse is null)
-        {
-            AddRpcRequestMetric(method, "failure");
-            throw new RPCTransportException("RPC Error: Invalid response");
-        }
-        else if(jsonRpcResponse.Id != requestId)
+        if(jsonRpcResponse.Id != requestId)
         {
             AddRpcRequestMetric(method, "failure");
             throw new RPCTransportException("RPC Error: Invalid response Id");

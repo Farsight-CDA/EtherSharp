@@ -187,12 +187,6 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
                 _jsonSerializerOptions, cancellationToken
             );
 
-            if(jsonRpcResponse is null)
-            {
-                AddRpcRequestMetric(method, "failure");
-                throw new RPCTransportException("RPC Error: Empty response");
-            }
-
             if(jsonRpcResponse.Error is not null)
             {
                 AddRpcRequestMetric(method, "success");
