@@ -14,11 +14,9 @@ namespace EtherSharp.Tx.EIP1559;
 /// Encodes and signs EIP-1559 transactions.
 /// </summary>
 /// <param name="signer">Signer used to produce recoverable transaction signatures.</param>
-/// <param name="rpcClient">RPC client used by the tx handler lifecycle.</param>
-public sealed class EIP1559TxTypeHandler(IEtherSigner signer, IRpcClient rpcClient)
+public sealed class EIP1559TxTypeHandler(IEtherSigner signer)
     : IInitializableService, ITxTypeHandler<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>
 {
-    private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IEtherSigner _signer = signer;
 
     private bool _isInitialized;
