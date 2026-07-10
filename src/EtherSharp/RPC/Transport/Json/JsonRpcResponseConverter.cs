@@ -16,7 +16,6 @@ internal sealed class JsonRpcResponseConverter<TResult> : JsonConverter<JsonRpcR
         TResult? result = default;
         bool resultIsNull = false;
         RpcError? error = null;
-        string? jsonrpc = null;
         bool hasId = false;
         bool hasJsonrpc = false;
 
@@ -26,7 +25,7 @@ internal sealed class JsonRpcResponseConverter<TResult> : JsonConverter<JsonRpcR
             {
                 return !hasId || !hasJsonrpc
                     ? throw new JsonException("JSON-RPC response is missing required properties.")
-                    : new JsonRpcResponse<TResult>(id, result, resultIsNull, error, jsonrpc);
+                    : new JsonRpcResponse<TResult>(id, result, resultIsNull, error);
             }
 
             if(reader.TokenType != JsonTokenType.PropertyName)
@@ -69,7 +68,7 @@ internal sealed class JsonRpcResponseConverter<TResult> : JsonConverter<JsonRpcR
             {
                 ReadPropertyValue(ref reader);
                 hasJsonrpc = true;
-                jsonrpc = reader.TokenType == JsonTokenType.Null ? null : reader.GetString();
+                reader.Skip();
             }
             else
             {
