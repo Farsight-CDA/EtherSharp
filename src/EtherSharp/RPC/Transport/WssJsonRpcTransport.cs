@@ -464,7 +464,6 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         var responseHandler = new JsonRpcResponseHandler<TResult>();
-        var timeoutTask = Task.Delay(_requestTimeout, cancellationToken);
 
         try
         {
@@ -490,26 +489,23 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             throw new RPCTransportException("The WebSocket is not connected.");
         }
 
-        var resultTask = await Task.WhenAny(responseHandler.Task, timeoutTask);
-
-        if(resultTask == timeoutTask)
+        JsonRpcResponse<TResult> jsonRpcResponse;
+        try
+        {
+            jsonRpcResponse = await responseHandler.Task.WaitAsync(_requestTimeout, cancellationToken);
+        }
+        catch(TimeoutException)
         {
             _pendingRequests.TryRemove(requestId, out _);
-
-            if(resultTask.IsCompletedSuccessfully)
-            {
-                AddRpcRequestMetric(method, "failure");
-                throw new TimeoutException($"No response received from server within {_requestTimeout} timeout");
-            }
-        }
-
-        if(resultTask.IsCanceled)
-        {
             AddRpcRequestMetric(method, "failure");
-            await resultTask;
+            throw new TimeoutException($"No response received from server within {_requestTimeout} timeout");
         }
-
-        var jsonRpcResponse = await responseHandler.Task;
+        catch(OperationCanceledException)
+        {
+            _pendingRequests.TryRemove(requestId, out _);
+            AddRpcRequestMetric(method, "failure");
+            throw;
+        }
 
         if(jsonRpcResponse.Id != requestId)
         {
