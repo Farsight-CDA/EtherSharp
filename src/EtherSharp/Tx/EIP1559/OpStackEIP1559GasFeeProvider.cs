@@ -1,6 +1,5 @@
 ﻿using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.GasFeeProvider;
-using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
@@ -109,7 +108,7 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
         Address sender, ITxInput txInput, ReadOnlyMemory<byte> getL1FeePayload, CancellationToken cancellationToken)
     {
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
-            sender, txInput.To, txInput.Value, HexUtils.ToPrefixedHexString(txInput.Data.Span), cancellationToken);
+            sender, txInput.To, txInput.Value, txInput.Data, cancellationToken);
         var l1FeeTask = _ethRpcModule.CallAsync(
             null, _opGasOracleAddress, null, null, 0, getL1FeePayload, TargetHeight.Pending, cancellationToken
         );

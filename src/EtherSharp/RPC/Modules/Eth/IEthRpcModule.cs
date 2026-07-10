@@ -23,7 +23,7 @@ public interface IEthRpcModule
     /// Estimates gas for a transaction call.
     /// </summary>
     public Task<ulong> EstimateGasAsync(
-        Address? from, Address? to, UInt256 value, string data,
+        Address? from, Address? to, UInt256 value, ReadOnlyMemory<byte> data,
         CancellationToken cancellationToken = default
     );
 

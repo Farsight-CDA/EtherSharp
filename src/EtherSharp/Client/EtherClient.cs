@@ -10,7 +10,6 @@ using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.QueryExecutor;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxScheduler;
-using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
@@ -406,7 +405,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             from = _signer.Address;
         }
 
-        return _ethRpcModule.EstimateGasAsync(from, call.To, call.Value, HexUtils.ToPrefixedHexString(call.Data.Span), cancellationToken);
+        return _ethRpcModule.EstimateGasAsync(from, call.To, call.Value, call.Data, cancellationToken);
     }
 
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
