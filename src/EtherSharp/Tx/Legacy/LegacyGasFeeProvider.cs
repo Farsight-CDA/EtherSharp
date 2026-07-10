@@ -51,8 +51,11 @@ public sealed class LegacyGasFeeProvider : IGasFeeProvider<LegacyTxParams, Legac
     /// <inheritdoc/>
     public async Task<LegacyGasParams> EstimateGasParamsAsync(ITxInput txInput, LegacyTxParams txParams, Address from, CancellationToken cancellationToken)
     {
-        ulong gasUsed = await _ethRpcModule.EstimateGasAsync(from, txInput.To, txInput.Value, txInput.Data, cancellationToken);
-        var gasPrice = await _ethRpcModule.GasPriceAsync(cancellationToken);
+        var gasUsedTask = _ethRpcModule.EstimateGasAsync(from, txInput.To, txInput.Value, txInput.Data, cancellationToken);
+        var gasPriceTask = _ethRpcModule.GasPriceAsync(cancellationToken);
+
+        ulong gasUsed = await gasUsedTask;
+        var gasPrice = await gasPriceTask;
 
         var adjustedGasPrice = gasPrice * (UInt256) (100 + _gasPriceOffsetPercentage) / 100;
 

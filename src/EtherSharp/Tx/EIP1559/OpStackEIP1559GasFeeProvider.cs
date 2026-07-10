@@ -112,11 +112,10 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
         var l1FeeTask = _ethRpcModule.CallAsync(
             null, _opGasOracleAddress, null, null, 0, getL1FeePayload, TargetHeight.Pending, cancellationToken
         );
-
-        ulong gasEstimation = await gasEstimationTask;
         var gasPriceTask = _ethRpcModule.GasPriceAsync(cancellationToken);
         var priorityFeeTask = _ethRpcModule.MaxPriorityFeePerGasAsync(cancellationToken);
 
+        ulong gasEstimation = await gasEstimationTask;
         var l1FeeCallResult = await l1FeeTask;
         var gasPrice = await gasPriceTask;
         var priorityFee = await priorityFeeTask;
