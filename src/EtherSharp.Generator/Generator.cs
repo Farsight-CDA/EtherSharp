@@ -4,7 +4,6 @@ using EtherSharp.Generator.SourceWriters;
 using EtherSharp.Generator.SourceWriters.Components;
 using EtherSharp.Generator.Util;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using System.Text.Json;
@@ -26,47 +25,47 @@ public sealed class Generator : IIncrementalGenerator
             .ForAttributeWithMetadataName(
                 ABI_FILE_ATTRIBUTE_METADATA_NAME,
                 static (node, _) => node is InterfaceDeclarationSyntax,
-                static (ctx, _) => ctx.TargetSymbol is INamedTypeSymbol symbol && symbol.AllInterfaces.Any(TypeIdentificationUtils.IsIEVMContract)
-                    ? symbol
-                    : null
+                static (ctx, cancellationToken) => ContractInfo.Create(ctx, cancellationToken)
             )
-            .Where(symbol => symbol is not null)
-            .Select((symbol, _) => symbol!);
+            .Where(static contract => contract.HasValue)
+            .Select(static (contract, _) => contract!.Value);
 
         var additionalFilesByNameProvider = context.AdditionalTextsProvider
-            .Select((file, _) => (FileName: Path.GetFileName(file.Path), File: file))
+            .Select(static (file, cancellationToken) => (
+                FileName: Path.GetFileName(file.Path),
+                Content: file.GetText(cancellationToken)?.ToString()
+            ))
             .Collect()
-            .Select((files, _) =>
+            .Select(static (files, _) =>
             {
-                var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<AdditionalText>>(StringComparer.OrdinalIgnoreCase);
+                var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string?>>(StringComparer.OrdinalIgnoreCase);
 
                 foreach(var group in files.GroupBy(file => file.FileName, StringComparer.OrdinalIgnoreCase))
                 {
-                    builder[group.Key] = [.. group.Select(file => file.File)];
+                    builder[group.Key] = [.. group.Select(file => file.Content)];
                 }
 
                 return builder.ToImmutable();
             });
 
-        var combined = contractTypesProvider.Combine(additionalFilesByNameProvider);
+        var combined = contractTypesProvider
+            .Combine(additionalFilesByNameProvider)
+            .Select(static (combined, _) => ContractGenerationInput.Create(combined.Left, combined.Right))
+            .WithTrackingName("ContractGenerationInput");
         context.RegisterSourceOutput(combined, GenerateSource);
     }
 
-    private static void GenerateSource(SourceProductionContext context,
-        (INamedTypeSymbol contractSymbol, ImmutableDictionary<string, ImmutableArray<AdditionalText>> additionalFilesByName) combined)
+    private static void GenerateSource(SourceProductionContext context, ContractGenerationInput input)
     {
-        var (contractSymbol, additionalFilesByName) = combined;
+        var contract = input.Contract;
 
         try
         {
-            if(!TryGetContractDetails(context, contractSymbol, additionalFilesByName,
+            if(!TryGetContractDetails(context, input,
                 out var abiMembers, out byte[]? bytecode))
             {
                 return;
             }
-
-            string @namespace = contractSymbol.ContainingNamespace.ToString();
-            string contractName = contractSymbol.Name;
 
             bool hasConstructor = abiMembers.Any(x => x is ConstructorAbiMember);
 
@@ -75,86 +74,71 @@ public sealed class Generator : IIncrementalGenerator
                 abiMembers.Add(ConstructorAbiMember.Empty);
             }
 
-            var writer = CreateSourceWriter(@namespace, contractName);
+            var writer = CreateSourceWriter(contract.Namespace, contract.Name);
 
             context.AddSource(
-                NameUtils.ToValidFileName($"{@namespace}.{contractSymbol.MetadataName}.generated.cs"),
-                writer.WriteContractSourceCode(@namespace, contractName, abiMembers, bytecode)
+                NameUtils.ToValidFileName($"{contract.Namespace}.{contract.MetadataName}.generated.cs"),
+                writer.WriteContractSourceCode(contract.Namespace, contract.Name, abiMembers, bytecode)
             );
         }
         catch(Exception ex)
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.ExecutionFailed, contractSymbol, ex);
+            ReportDiagnostic(context, GeneratorDiagnostics.ExecutionFailed, contract.Location, ex);
             return;
         }
     }
 
     private static bool TryGetContractDetails(
-        SourceProductionContext context, INamedTypeSymbol contractSymbol, ImmutableDictionary<string, ImmutableArray<AdditionalText>> additionalFilesByName,
+        SourceProductionContext context, ContractGenerationInput input,
         out List<AbiMember> abiMembers, out byte[]? byteCode)
     {
         abiMembers = null!;
         byteCode = null!;
+        var contract = input.Contract;
 
-        bool isPartial = contractSymbol.DeclaringSyntaxReferences
-            .Select(reference => reference.GetSyntax())
-            .OfType<InterfaceDeclarationSyntax>()
-            .Any(declaration => declaration.Modifiers.Any(SyntaxKind.PartialKeyword));
-
-        if(!isPartial)
+        if(!contract.IsPartial)
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.InterfaceMustBePartial, contractSymbol, contractSymbol.Name);
+            ReportDiagnostic(context, GeneratorDiagnostics.InterfaceMustBePartial, contract.Location, contract.Name);
             return false;
         }
 
-        var rawAttributes = contractSymbol.GetAttributes().Where(x => x.AttributeClass is not null).ToArray();
-
-        var abiFileAttributes = rawAttributes
-            .Where(x => TypeIdentificationUtils.IsAbiFileAttribute(x.AttributeClass!))
-            .ToArray();
-        var bytecodeFileAttributes = rawAttributes
-            .Where(x => TypeIdentificationUtils.IsBytecodeFileAttribute(x.AttributeClass!))
-            .ToArray();
-
-        if(abiFileAttributes.Length == 0)
+        if(contract.AbiFileAttributeCount == 0)
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileAttributeNotFound, contractSymbol, contractSymbol.Name);
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileAttributeNotFound, contract.Location, contract.Name);
             return false;
         }
-        if(abiFileAttributes.Length > 1)
+        if(contract.AbiFileAttributeCount > 1)
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFileAttributeFound, contractSymbol, contractSymbol.Name);
+            ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFileAttributeFound, contract.Location, contract.Name);
             return false;
         }
 
-        string? abiFileName = abiFileAttributes.Single().ConstructorArguments[0].Value?.ToString();
+        string? abiFileName = contract.AbiFileName;
 
         if(abiFileName is null || String.IsNullOrEmpty(abiFileName))
         {
             string fileDisplayName = abiFileName is null
                 ? "null"
                 : $"\"{abiFileName}\"";
-            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contractSymbol, fileDisplayName);
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contract.Location, fileDisplayName);
             return false;
         }
 
-        additionalFilesByName.TryGetValue(abiFileName, out var abiFiles);
-
-        if(abiFiles.IsDefaultOrEmpty)
+        if(input.AbiFile.Count == 0)
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contractSymbol, abiFileName);
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contract.Location, abiFileName);
             return false;
         }
-        if(abiFiles.Length > 1)
+        if(input.AbiFile.Count > 1)
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFilesWithNameFound, contractSymbol, abiFileName);
+            ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFilesWithNameFound, contract.Location, abiFileName);
             return false;
         }
 
-        string? schemaText = abiFiles.Single().GetText()?.ToString();
+        string? schemaText = input.AbiFile.Content;
         if(String.IsNullOrEmpty(schemaText) || schemaText is null)
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileMalformed, contractSymbol);
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileMalformed, contract.Location);
             return false;
         }
 
@@ -165,46 +149,44 @@ public sealed class Generator : IIncrementalGenerator
         }
         catch(Exception ex)
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileMalformed, contractSymbol, ex);
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileMalformed, contract.Location, ex);
             return false;
         }
 
-        if(bytecodeFileAttributes.Length > 1)
+        if(contract.BytecodeFileAttributeCount > 1)
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFileAttributeFound, contractSymbol, contractSymbol.Name);
+            ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFileAttributeFound, contract.Location, contract.Name);
             return false;
         }
 
-        if(bytecodeFileAttributes.Length == 1)
+        if(contract.BytecodeFileAttributeCount == 1)
         {
-            string? bytecodeFileName = bytecodeFileAttributes.Single().ConstructorArguments[0].Value?.ToString();
+            string? bytecodeFileName = contract.BytecodeFileName;
 
             if(bytecodeFileName is null || String.IsNullOrEmpty(bytecodeFileName))
             {
                 string fileDisplayName = bytecodeFileName is null
                     ? "null"
                     : $"\"{bytecodeFileName}\"";
-                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contractSymbol, fileDisplayName);
+                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contract.Location, fileDisplayName);
                 return false;
             }
 
-            additionalFilesByName.TryGetValue(bytecodeFileName, out var bytecodeFiles);
-
-            if(bytecodeFiles.IsDefaultOrEmpty)
+            if(input.BytecodeFile.Count == 0)
             {
-                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contractSymbol, bytecodeFileName);
+                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contract.Location, bytecodeFileName);
                 return false;
             }
-            if(bytecodeFiles.Length > 1)
+            if(input.BytecodeFile.Count > 1)
             {
-                ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFilesWithNameFound, contractSymbol, bytecodeFileName);
+                ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFilesWithNameFound, contract.Location, bytecodeFileName);
                 return false;
             }
 
-            string bytecodeText = bytecodeFiles.Single().GetText()?.ToString()?.Trim() ?? String.Empty;
+            string bytecodeText = input.BytecodeFile.Content?.Trim() ?? String.Empty;
             if(bytecodeText.Length == 0)
             {
-                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contractSymbol);
+                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contract.Location);
                 return false;
             }
 
@@ -214,7 +196,7 @@ public sealed class Generator : IIncrementalGenerator
             }
             catch(Exception ex)
             {
-                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileMalformed, contractSymbol, ex);
+                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileMalformed, contract.Location, ex);
                 return false;
             }
         }
@@ -222,15 +204,15 @@ public sealed class Generator : IIncrementalGenerator
         return true;
     }
 
-    private static void ReportDiagnostic(SourceProductionContext context, DiagnosticDescriptor descriptor, ISymbol symbol, params string[] args)
+    private static void ReportDiagnostic(SourceProductionContext context, DiagnosticDescriptor descriptor, Location? location, params string[] args)
     {
-        var diagnostic = Diagnostic.Create(descriptor, symbol.Locations.FirstOrDefault(), args);
+        var diagnostic = Diagnostic.Create(descriptor, location, args);
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static void ReportDiagnostic(SourceProductionContext context, DiagnosticDescriptor descriptor, ISymbol symbol, Exception e)
+    private static void ReportDiagnostic(SourceProductionContext context, DiagnosticDescriptor descriptor, Location? location, Exception e)
     {
-        var diagnostic = Diagnostic.Create(descriptor, symbol.Locations.FirstOrDefault(), e.ToString());
+        var diagnostic = Diagnostic.Create(descriptor, location, e.ToString());
         context.ReportDiagnostic(diagnostic);
     }
 
