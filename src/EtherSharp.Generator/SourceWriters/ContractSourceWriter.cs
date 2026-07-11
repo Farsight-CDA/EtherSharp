@@ -17,6 +17,10 @@ internal sealed class ContractSourceWriter(
 
     public string WriteContractSourceCode(string @namespace, string contractName, IEnumerable<AbiMember> members, byte[]? byteCode)
     {
+        string namespacePrefix = String.IsNullOrEmpty(@namespace) ? String.Empty : $"{@namespace}.";
+        string namespaceDeclaration = String.IsNullOrEmpty(@namespace)
+            ? String.Empty
+            : $"namespace {@namespace};\n\n";
         var contractInterface = new InterfaceBuilder(contractName)
             .WithIsPartial(true)
             .AddRawContent($"public Logs.EventsModule Events => new Logs.EventsModule(this);");
@@ -30,7 +34,7 @@ internal sealed class ContractSourceWriter(
 
         string implementationName = $"{contractName}_Generated_Implementation";
         var contractImplementation = new ClassBuilder(implementationName)
-            .AddBaseType($"{@namespace}.{contractName}", true)
+            .AddBaseType($"{namespacePrefix}{contractName}", true)
             .WithVisibility(ClassVisibility.Internal)
             .AddField(new FieldBuilder("EtherSharp.Client.IEtherClient", "_client")
                 .WithIsReadonly(true)
@@ -59,9 +63,7 @@ internal sealed class ContractSourceWriter(
         var output = new StringBuilder();
         output.AppendLine(
             $$"""
-            namespace {{@namespace}};
-
-            {{contractInterface.Build()}}
+            {{namespaceDeclaration}}{{contractInterface.Build()}}
             {{contractImplementation.WithAutoConstructor().Build()}}
 
             file static class {{implementationName}}_Registration
@@ -69,8 +71,8 @@ internal sealed class ContractSourceWriter(
                 [global::System.Runtime.CompilerServices.ModuleInitializer]
                 internal static void RegisterContract()
                 {
-                    global::EtherSharp.Client.Services.ContractFactory.GeneratedContractRegistry.Register<global::{{@namespace}}.{{contractName}}>(
-                        static (client, address) => new global::{{@namespace}}.{{implementationName}}(client, address)
+                    global::EtherSharp.Client.Services.ContractFactory.GeneratedContractRegistry.Register<global::{{namespacePrefix}}{{contractName}}>(
+                        static (client, address) => new global::{{namespacePrefix}}{{implementationName}}(client, address)
                     );
                 }
             }

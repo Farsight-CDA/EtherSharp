@@ -48,7 +48,9 @@ internal readonly struct ContractInfo(
             .ToArray();
 
         return new ContractInfo(
-            symbol.ContainingNamespace.ToString(),
+            symbol.ContainingNamespace.IsGlobalNamespace
+                ? String.Empty
+                : symbol.ContainingNamespace.ToDisplayString(),
             symbol.Name,
             symbol.MetadataName,
             isPartial,

@@ -5,7 +5,7 @@ namespace EtherSharp.Generator.SourceWriters;
 public sealed class ContractTypesSectionWriter(string @namespace, string contractInterfaceName)
 {
     private readonly Dictionary<SyntaxId, ITypeBuilder> _typeBuilders = [];
-    private readonly string _namespace = @namespace;
+    private readonly string _namespace = String.IsNullOrEmpty(@namespace) ? String.Empty : $"{@namespace}.";
 
     public string RegisterTypeBuilder(ITypeBuilder typeBuilder)
     {
@@ -13,11 +13,11 @@ public sealed class ContractTypesSectionWriter(string @namespace, string contrac
 
         if(_typeBuilders.TryGetValue(syntaxId, out _))
         {
-            return $"{_namespace}.{contractInterfaceName}.Types.{typeBuilder.TypeName}";
+            return $"{_namespace}{contractInterfaceName}.Types.{typeBuilder.TypeName}";
         }
 
         _typeBuilders.Add(syntaxId, typeBuilder);
-        return $"{_namespace}.{contractInterfaceName}.Types.{typeBuilder.TypeName}";
+        return $"{_namespace}{contractInterfaceName}.Types.{typeBuilder.TypeName}";
     }
 
     public IEnumerable<ITypeBuilder> GetTypeBuilders()

@@ -13,6 +13,7 @@ internal sealed class ContractEventSectionWriter(EventTypeWriter eventTypeWriter
     public void GenerateContractEventSection(InterfaceBuilder interfaceBuilder, string @namespace,
         string contractName, IEnumerable<EventAbiMember> eventMembers)
     {
+        string namespacePrefix = String.IsNullOrEmpty(@namespace) ? String.Empty : $"{@namespace}.";
         var sectionBuilder = new ClassBuilder("Logs")
             .AddBaseType("EtherSharp.Contract.Sections.ILogsSection", true)
             .AddRawContent("private Logs() {}");
@@ -107,11 +108,11 @@ internal sealed class ContractEventSectionWriter(EventTypeWriter eventTypeWriter
 
             eventsModuleBuilder.AppendLine(
                 $"""
-                    public readonly EtherSharp.Client.Modules.Events.IConfiguredEventsModule<{@namespace}.{contractName}.Logs.{eventTypeName}> {eventTypeName}
+                    public readonly EtherSharp.Client.Modules.Events.IConfiguredEventsModule<{namespacePrefix}{contractName}.Logs.{eventTypeName}> {eventTypeName}
                         => contract.GetClient()
-                            .Events<{@namespace}.{contractName}.Logs.{eventTypeName}>()
+                            .Events<{namespacePrefix}{contractName}.Logs.{eventTypeName}>()
                             .HasContract(contract)
-                            .HasTopic({@namespace}.{contractName}.Logs.{eventTypeName}.TopicHex);
+                            .HasTopic({namespacePrefix}{contractName}.Logs.{eventTypeName}.TopicHex);
                     """
             );
 
