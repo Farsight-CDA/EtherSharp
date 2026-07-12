@@ -108,4 +108,13 @@ internal static class GeneratorDiagnostics
         DiagnosticSeverity.Error,
         true
     );
+
+    public static readonly DiagnosticDescriptor AnonymousEventNotSupported = new DiagnosticDescriptor(
+        "EVMG0040",
+        "Anonymous event is not supported",
+        "Anonymous event {0} is not supported and will be skipped",
+        DiagnosticCategory.USAGE,
+        DiagnosticSeverity.Warning,
+        true
+    );
 }

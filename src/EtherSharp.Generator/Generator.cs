@@ -67,6 +67,12 @@ public sealed class Generator : IIncrementalGenerator
                 return;
             }
 
+            foreach(var anonymousEvent in abiMembers.OfType<EventAbiMember>().Where(x => x.IsAnonymous))
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.AnonymousEventNotSupported, contract.Location, anonymousEvent.Name);
+            }
+            abiMembers.RemoveAll(static member => member is EventAbiMember { IsAnonymous: true });
+
             bool hasConstructor = abiMembers.Any(x => x is ConstructorAbiMember);
 
             if(!hasConstructor && bytecode is not null)
