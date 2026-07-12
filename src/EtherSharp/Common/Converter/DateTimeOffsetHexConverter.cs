@@ -43,11 +43,11 @@ public sealed class DateTimeOffsetHexConverter : JsonConverter<DateTimeOffset>
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
     {
-        Span<char> buffer = stackalloc char[10];
+        Span<char> buffer = stackalloc char[18];
         buffer[0] = '0';
         buffer[1] = 'x';
 
-        if(value.TryFormat(buffer[2..], out int charsWritten, "X"))
+        if(value.ToUnixTimeSeconds().TryFormat(buffer[2..], out int charsWritten, "X"))
         {
             writer.WriteStringValue(buffer[..(2 + charsWritten)]);
         }
