@@ -119,7 +119,6 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     {
         while(!_connectionHandlerCts.IsCancellationRequested)
         {
-            _requestIdCounter = 0;
             _ = Task.Run(() => OnConnectionEstablished?.Invoke());
 
             try
