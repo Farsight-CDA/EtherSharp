@@ -45,6 +45,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
     private int _requestIdCounter;
     private readonly ConcurrentDictionary<int, IJsonRpcResponseHandler> _pendingRequests = [];
+    private readonly SemaphoreSlim _sendSemaphore = new SemaphoreSlim(1, 1);
 
     private readonly ObservableGauge<int>? _websocketConnectedGauge;
     private readonly OTELCounter<long>? _rpcRequestsCounter;
@@ -476,7 +477,15 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
             try
             {
-                await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
+                await _sendSemaphore.WaitAsync(cancellationToken);
+                try
+                {
+                    await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
+                }
+                finally
+                {
+                    _sendSemaphore.Release();
+                }
             }
             catch
             {
