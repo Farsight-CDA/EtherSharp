@@ -70,8 +70,8 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
         var mockTx = EIP1559Transaction.Create(_chainId, txParams, _defaultGasParams, txInput, 1_000);
         Span<int> listSizes = stackalloc int[EIP1559Transaction.NestedListCount];
 
-        int txByteSize = mockTx.GetEncodedSize(listSizes);
-        int simulationBufferSize = (32 * ((txByteSize - 1) / 32)) + 32 + 69;
+        int txByteSize = mockTx.GetEncodedSize(listSizes) + 1;
+        int simulationBufferSize = 68 + (32 * ((txByteSize + 31) / 32));
 
         byte[] rented = ArrayPool<byte>.Shared.Rent(simulationBufferSize);
         var simulationPayload = rented.AsMemory(0, simulationBufferSize);
