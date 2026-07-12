@@ -55,9 +55,7 @@ public static partial class AbiTypes
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(bitSize));
             }
 
-            int arrayOffest = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(metaDataOffset + 28)..(metaDataOffset + 32)]);
-            int length = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(arrayOffest + 28)..(arrayOffest + 32)]);
-            var data = bytes[(arrayOffest + 32)..];
+            var (data, length) = DecodeArrayPayload(bytes, metaDataOffset);
 
             var arr = new Numerics.Int256[length];
 

@@ -7,6 +7,28 @@ namespace EtherSharp.ABI.Types;
 
 public static partial class AbiTypes
 {
+    internal static (ReadOnlyMemory<byte> Data, int Length) DecodeArrayPayload(ReadOnlyMemory<byte> bytes, int metadataOffset)
+    {
+        if(metadataOffset < 0 || metadataOffset > bytes.Length - 32)
+        {
+            throw new ArgumentException("ABI array metadata is outside the payload.", nameof(bytes));
+        }
+
+        uint encodedPayloadOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(metadataOffset + 28)..(metadataOffset + 32)]);
+        if(encodedPayloadOffset > Int32.MaxValue || (int) encodedPayloadOffset > bytes.Length - 32)
+        {
+            throw new ArgumentException("ABI array payload is outside the encoded data.", nameof(bytes));
+        }
+
+        int payloadOffset = (int) encodedPayloadOffset;
+        uint encodedLength = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(payloadOffset + 28)..(payloadOffset + 32)]);
+        var data = bytes[(payloadOffset + 32)..];
+
+        return encodedLength <= data.Length / 32
+            ? (data, (int) encodedLength)
+            : throw new ArgumentException("ABI array length exceeds the available payload.", nameof(bytes));
+    }
+
     /// <summary>
     /// Represents a dynamic ABI array.
     /// </summary>
@@ -40,17 +62,12 @@ public static partial class AbiTypes
         /// </summary>
         public static T[] Decode<T>(ReadOnlyMemory<byte> bytes, int metaDataOffset, Func<IArrayAbiDecoder, T> decoder)
         {
-            int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(metaDataOffset + 28)..(metaDataOffset + 32)]);
-
-            var payload = bytes[(payloadOffset + 32)..];
-
-            uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(bytes.Span[(payloadOffset + 28)..(payloadOffset + 32)]);
-
+            var (payload, arrayLength) = DecodeArrayPayload(bytes, metaDataOffset);
             var output = new T[arrayLength];
 
             var innerDecoder = new AbiDecoder(payload);
 
-            for(uint i = 0; i < arrayLength; i++)
+            for(int i = 0; i < arrayLength; i++)
             {
                 output[i] = decoder.Invoke(innerDecoder);
             }

@@ -2,7 +2,6 @@
 using EtherSharp.ABI.Types;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
-using System.Buffers.Binary;
 
 namespace EtherSharp.ABI;
 
@@ -93,18 +92,13 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// <exception cref="IndexOutOfRangeException">Thrown when the encoded offsets/lengths point outside the payload.</exception>
     public bool[] BoolArray()
     {
-        int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
-
-        var payload = _bytes.Span[payloadOffset..];
-
-        uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32]);
-
+        var (data, arrayLength) = AbiTypes.DecodeArrayPayload(_bytes, BytesRead);
         bool[] values = new bool[arrayLength];
 
-        int offset = 32;
-        for(uint i = 0; i < arrayLength; i++)
+        int offset = 0;
+        for(int i = 0; i < arrayLength; i++)
         {
-            values[i] = AbiTypes.Bool.Decode(payload[offset..(offset + 32)]);
+            values[i] = AbiTypes.Bool.Decode(data.Span[offset..(offset + 32)]);
             offset += 32;
         }
 
@@ -119,18 +113,13 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// <exception cref="IndexOutOfRangeException">Thrown when the encoded offsets/lengths point outside the payload.</exception>
     public Address[] AddressArray()
     {
-        int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
-
-        var payload = _bytes.Span[payloadOffset..];
-
-        uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload[28..32]);
-
+        var (data, arrayLength) = AbiTypes.DecodeArrayPayload(_bytes, BytesRead);
         var addresses = new Address[arrayLength];
 
-        int offset = 32;
-        for(uint i = 0; i < arrayLength; i++)
+        int offset = 0;
+        for(int i = 0; i < arrayLength; i++)
         {
-            addresses[i] = AbiTypes.Address.Decode(payload[offset..(offset + 32)]);
+            addresses[i] = AbiTypes.Address.Decode(data.Span[offset..(offset + 32)]);
             offset += 32;
         }
 
@@ -200,16 +189,11 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// <exception cref="IndexOutOfRangeException">Thrown when the encoded offsets/lengths point outside the payload.</exception>
     public string[] StringArray()
     {
-        int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
-
-        var payload = _bytes[payloadOffset..];
-
-        uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload.Span[28..32]);
-
+        var (data, arrayLength) = AbiTypes.DecodeArrayPayload(_bytes, BytesRead);
         string[] values = new string[arrayLength];
 
         // Optimized JITs scalar-replace this short-lived decoder; direct helper calls benchmark slower.
-        var decoder = new AbiDecoder(payload[32..]);
+        var decoder = new AbiDecoder(data);
 
         for(int i = 0; i < arrayLength; i++)
         {
@@ -227,16 +211,11 @@ public partial class AbiDecoder(ReadOnlyMemory<byte> bytes) : IFixedTupleDecoder
     /// <exception cref="IndexOutOfRangeException">Thrown when the encoded offsets/lengths point outside the payload.</exception>
     public ReadOnlyMemory<byte>[] BytesArray()
     {
-        int payloadOffset = (int) BinaryPrimitives.ReadUInt32BigEndian(CurrentSlot[28..32]);
-
-        var payload = _bytes[payloadOffset..];
-
-        uint arrayLength = BinaryPrimitives.ReadUInt32BigEndian(payload.Span[28..32]);
-
+        var (data, arrayLength) = AbiTypes.DecodeArrayPayload(_bytes, BytesRead);
         var values = new ReadOnlyMemory<byte>[arrayLength];
 
         // Optimized JITs scalar-replace this short-lived decoder; direct helper calls benchmark slower.
-        var decoder = new AbiDecoder(payload[32..]);
+        var decoder = new AbiDecoder(data);
 
         for(int i = 0; i < arrayLength; i++)
         {

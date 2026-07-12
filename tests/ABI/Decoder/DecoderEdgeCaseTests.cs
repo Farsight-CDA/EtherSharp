@@ -195,6 +195,33 @@ public sealed class DecoderEdgeCaseTests
     }
 
     [Fact]
+    public void Should_Reject_Array_Length_Exceeding_Payload_Before_Allocation()
+    {
+        byte[] input = new byte[64];
+        BinaryPrimitives.WriteUInt32BigEndian(input.AsSpan()[28..32], 32);
+        BinaryPrimitives.WriteUInt32BigEndian(input.AsSpan()[60..64], UInt32.MaxValue);
+
+        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).BoolArray());
+        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).AddressArray());
+        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).StringArray());
+        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).BytesArray());
+        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).NumberArray<byte>(true, 8));
+        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).NumberArray<UInt256>(true, 256));
+        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).NumberArray<Int256>(false, 256));
+        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).Bytes32Array());
+        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).Array(static decoder => decoder.BoolArray()));
+    }
+
+    [Fact]
+    public void Should_Reject_Array_Offset_Outside_Payload()
+    {
+        byte[] input = new byte[32];
+        BinaryPrimitives.WriteUInt32BigEndian(input.AsSpan()[28..32], 32);
+
+        Assert.Throws<ArgumentException>(() => new AbiDecoder(input).BoolArray());
+    }
+
+    [Fact]
     public void Should_Decode_Bytes_Exactly32Bytes()
     {
         byte[] bytes = new byte[32];
