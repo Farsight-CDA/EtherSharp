@@ -942,16 +942,8 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
 
     public static UInt256 Negate(in UInt256 a)
     {
-        ulong cs0 = 0 - a._u0;
-        ulong cs1 = 0 - a._u1;
-        ulong cs2 = 0 - a._u2;
-        ulong cs3 = 0 - a._u3;
-        if(a._u0 > 0)
-        {
-            cs3--;
-        }
-
-        return new UInt256(cs0, cs1, cs2, cs3);
+        Subtract(Zero, a, out var res);
+        return res;
     }
 
     public static void Not(in UInt256 a, out UInt256 res)
