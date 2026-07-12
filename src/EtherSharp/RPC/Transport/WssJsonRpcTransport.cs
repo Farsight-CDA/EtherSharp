@@ -32,6 +32,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     private readonly ILogger? _logger;
 
     private readonly Lock _statusLock = new Lock();
+    private readonly SemaphoreSlim _lifecycleSemaphore = new SemaphoreSlim(1, 1);
     private bool _isInitialized;
     private bool _isDisposed;
 
@@ -80,18 +81,38 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask InitializeAsync(CancellationToken cancellationToken)
     {
-        lock(_statusLock)
+        await _lifecycleSemaphore.WaitAsync(cancellationToken);
+
+        try
         {
-            if(_isInitialized)
+            lock(_statusLock)
             {
-                return;
+                ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+                if(_isInitialized)
+                {
+                    return;
+                }
             }
 
-            _isInitialized = true;
-        }
+            using var initializationCts = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                _connectionHandlerCts.Token
+            );
 
-        await ConnectSocketAsync(cancellationToken);
-        _connectionHandlerTask = ConnectionHandler();
+            await ConnectSocketAsync(initializationCts.Token);
+
+            lock(_statusLock)
+            {
+                ObjectDisposedException.ThrowIf(_isDisposed, this);
+                _connectionHandlerTask = ConnectionHandler();
+                _isInitialized = true;
+            }
+        }
+        finally
+        {
+            _lifecycleSemaphore.Release();
+        }
     }
 
     private async Task ConnectionHandler()
@@ -539,8 +560,6 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     /// <inheritdoc/>
     public async ValueTask DisposeAsync()
     {
-        Task? connectionHandlerTask;
-
         lock(_statusLock)
         {
             if(_isDisposed)
@@ -550,50 +569,57 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
             _isDisposed = true;
             _connectionHandlerCts.Cancel();
-            connectionHandlerTask = _connectionHandlerTask;
         }
 
-        if(_socket is not null)
+        await _lifecycleSemaphore.WaitAsync();
+
+        try
         {
-            try
+            if(_socket is not null)
             {
-                if(_socket.State is WebSocketState.Open or WebSocketState.CloseReceived or WebSocketState.CloseSent)
+                try
                 {
-                    await _socket.CloseAsync(
-                        WebSocketCloseStatus.NormalClosure,
-                        "Disposing transport",
-                        CancellationToken.None
-                    );
+                    if(_socket.State is WebSocketState.Open or WebSocketState.CloseReceived or WebSocketState.CloseSent)
+                    {
+                        await _socket.CloseAsync(
+                            WebSocketCloseStatus.NormalClosure,
+                            "Disposing transport",
+                            CancellationToken.None
+                        );
+                    }
+                }
+                catch(OperationCanceledException)
+                {
+                }
+                catch(WebSocketException)
+                {
+                }
+                catch(ObjectDisposedException)
+                {
+                }
+                finally
+                {
+                    _socket.Abort();
+                    _socket.Dispose();
                 }
             }
-            catch(OperationCanceledException)
+
+            if(_connectionHandlerTask is not null)
             {
-            }
-            catch(WebSocketException)
-            {
-            }
-            catch(ObjectDisposedException)
-            {
-            }
-            finally
-            {
-                _socket.Abort();
-                _socket.Dispose();
+                try
+                {
+                    await _connectionHandlerTask;
+                }
+                catch(OperationCanceledException) when(_connectionHandlerCts.IsCancellationRequested)
+                {
+                }
             }
         }
-
-        if(connectionHandlerTask is not null)
+        finally
         {
-            try
-            {
-                await connectionHandlerTask;
-            }
-            catch(OperationCanceledException) when(_connectionHandlerCts.IsCancellationRequested)
-            {
-            }
+            _lifecycleSemaphore.Release();
+            _connectionHandlerCts.Dispose();
+            GC.SuppressFinalize(this);
         }
-
-        _connectionHandlerCts.Dispose();
-        GC.SuppressFinalize(this);
     }
 }
