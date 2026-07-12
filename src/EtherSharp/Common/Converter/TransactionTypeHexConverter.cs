@@ -17,12 +17,26 @@ public sealed class TransactionTypeHexConverter : JsonConverter<TxType>
 
     /// <inheritdoc/>
     public override TxType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        => reader.TokenType switch
+    {
+        switch(reader.TokenType)
         {
-            JsonTokenType.Number => (TxType) reader.GetUInt32(),
-            JsonTokenType.String => Parse(reader.GetString() ?? throw new InvalidOperationException("Cannot parse null as transaction type")),
-            _ => throw new JsonException($"Cannot parse {nameof(TxType)} from token of type {reader.TokenType}")
-        };
+            case JsonTokenType.Number:
+                return (TxType) reader.GetUInt32();
+            case JsonTokenType.String:
+                int valueLength = reader.HasValueSequence
+                    ? checked((int) reader.ValueSequence.Length)
+                    : reader.ValueSpan.Length;
+
+                var value = valueLength <= 12
+                    ? stackalloc char[valueLength]
+                    : throw new JsonException("Unexpected transaction type length");
+                int charsWritten = reader.CopyString(value);
+
+                return Parse(value[..charsWritten]);
+            default:
+                throw new JsonException($"Cannot parse {nameof(TxType)} from token of type {reader.TokenType}");
+        }
+    }
 
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, TxType value, JsonSerializerOptions options)
@@ -37,8 +51,8 @@ public sealed class TransactionTypeHexConverter : JsonConverter<TxType>
             _ => throw new JsonException($"Cannot write unsupported {nameof(TxType)} value {value}")
         }, skipInputValidation: true);
 
-    private static TxType Parse(string value)
+    private static TxType Parse(ReadOnlySpan<char> value)
         => value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-            ? (TxType) UInt32.Parse(value.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture)
+            ? (TxType) UInt32.Parse(value[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture)
             : (TxType) UInt32.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);
 }
