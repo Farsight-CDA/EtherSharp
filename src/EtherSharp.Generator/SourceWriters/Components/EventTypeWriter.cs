@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Generator.Abi.Members;
+using EtherSharp.Generator.Abi.Parameters;
 using EtherSharp.Generator.SyntaxElements;
 using System.Text;
 
@@ -57,7 +58,7 @@ internal sealed class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, M
 
         _memberTypeWriter.AddInputProperties(
             classBuilder,
-            eventMembers[0].Inputs,
+            [.. eventMembers[0].Inputs.Select(GetEventOutputParameter)],
             [
                 "Event",
                 "Decode",
@@ -156,7 +157,7 @@ internal sealed class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, M
 
             var (outputTypeName, _, decodeFunc) = _paramEncodingWriter.GetOutputDecoding(
                 $"EventParam{i + 1}",
-                [parameter]
+                [GetEventOutputParameter(parameter)]
             );
 
             statementBuilder.AppendLine($"decoder = new EtherSharp.ABI.AbiDecoder(log.Topics[{topicIndex}].ToArray());");
@@ -171,5 +172,16 @@ internal sealed class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, M
 
         statementBuilder.AppendLine($"return {ctorBuilder.ToInlineCall()};");
         return statementBuilder.ToString();
+    }
+
+    private static AbiParameter GetEventOutputParameter(AbiEventParameter parameter)
+    {
+        bool isHashedTopic = parameter.Type is "string" or "bytes"
+            || parameter.Type.Contains('[')
+            || parameter.Type.Contains("tuple", StringComparison.Ordinal);
+
+        return parameter.IsIndexed && isHashedTopic
+            ? new AbiParameter(parameter.Name, "bytes32", null, null)
+            : parameter;
     }
 }
