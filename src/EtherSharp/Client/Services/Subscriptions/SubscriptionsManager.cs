@@ -19,6 +19,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
     private readonly Lock _subscriptionsLock = new Lock();
     private readonly List<ISubscription> _subscriptions = [];
+    private int _installationsInProgress;
     private bool _subscriptionsClosed;
 
     private readonly ObservableUpDownCounter<int>? _subscriptionsCounter;
@@ -37,13 +38,28 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
     public async Task InstallSubscriptionAsync(ISubscription subscription, CancellationToken cancellationToken)
     {
-        ThrowIfClosed();
-        await subscription.InstallAsync(cancellationToken);
-
         lock(_subscriptionsLock)
         {
             ThrowIfClosed();
-            _subscriptions.Add(subscription);
+            _installationsInProgress++;
+        }
+
+        try
+        {
+            await subscription.InstallAsync(cancellationToken);
+
+            lock(_subscriptionsLock)
+            {
+                ThrowIfClosed();
+                _subscriptions.Add(subscription);
+            }
+        }
+        finally
+        {
+            lock(_subscriptionsLock)
+            {
+                _installationsInProgress--;
+            }
         }
     }
 
@@ -139,6 +155,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
 
         ISubscription? subscription = null;
+        bool shouldUnsubscribe;
 
         lock(_subscriptionsLock)
         {
@@ -150,6 +167,8 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                     break;
                 }
             }
+
+            shouldUnsubscribe = _installationsInProgress == 0;
         }
 
         if(subscription is not null)
@@ -171,6 +190,11 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                 }
             }
 
+            return;
+        }
+
+        if(!shouldUnsubscribe)
+        {
             return;
         }
 
