@@ -1,5 +1,7 @@
 using EtherSharp.Numerics;
 using EtherSharp.RLP;
+using EtherSharp.Tx;
+using EtherSharp.Types;
 using System.Text;
 
 namespace EtherSharp.Tests.RLP;
@@ -62,6 +64,23 @@ public sealed class RLPEncoderTests
         _ = new RLPEncoder(buffer).EncodeList(0);
 
         Assert.Equal(Convert.FromHexString("c0"), buffer.ToArray());
+    }
+
+    [Fact]
+    public void Should_Encode_Access_List_Entry_As_Nested_List()
+    {
+        StateAccess[] accessList =
+        [
+            new StateAccess(Address.Parse("0x1111111111111111111111111111111111111111"), [])
+        ];
+        int contentSize = TxRLPEncoder.GetAccessListLength(accessList);
+        byte[] buffer = new byte[RLPEncoder.GetListSize(contentSize)];
+
+        _ = new RLPEncoder(buffer)
+            .EncodeList(contentSize)
+            .EncodeAccessList(accessList);
+
+        Assert.Equal(Convert.FromHexString("d7d6941111111111111111111111111111111111111111c0"), buffer);
     }
 
     [Fact]

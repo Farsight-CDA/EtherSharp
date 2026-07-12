@@ -40,7 +40,9 @@ internal static class TxRLPEncoder
     {
         foreach(var access in accessList)
         {
-            encoder = encoder.EncodeAddress(access.Address)
+            encoder = encoder
+                .EncodeList(AddressStringSize + RLPEncoder.GetListSize(GetStorageKeysLength(access)))
+                .EncodeAddress(access.Address)
                 .EncodeList(GetStorageKeysLength(access));
 
             foreach(byte[] storageKey in access.StorageKeys)
