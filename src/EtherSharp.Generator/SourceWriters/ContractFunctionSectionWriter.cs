@@ -104,11 +104,11 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
             var create2Function = new FunctionBuilder("Create2")
                 .WithIsStatic()
                 .WithReturnTypeRaw("EtherSharp.Tx.IContractCall<EtherSharp.Types.Address>");
+            bool isPayable = constructorMember.StateMutability == StateMutability.Payable;
 
             if(constructorMember.Inputs.Length > 0)
             {
                 var createCallBuilder = new CallArgumentsBuilder();
-                bool isPayable = constructorMember.StateMutability == StateMutability.Payable;
 
                 createCodeFunction.AddStatement("var encoder = new EtherSharp.ABI.AbiEncoder()");
 
@@ -155,6 +155,12 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
             }
             else
             {
+                if(isPayable)
+                {
+                    createFunction.AddArgument("EtherSharp.Numerics.UInt256", "ethValue");
+                    create2Function.AddArgument("EtherSharp.Numerics.UInt256", "ethValue");
+                }
+
                 createCodeFunction.AddStatement(
                     $"""
                     return ByteCode
@@ -162,13 +168,13 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                 );
                 createFunction.AddStatement(
                     $"""
-                    return EtherSharp.Tx.IContractDeployment.Create(ByteCode, 0)
+                    return EtherSharp.Tx.IContractDeployment.Create(ByteCode, {(isPayable ? "ethValue" : "0")})
                     """
                 );
                 create2Function.AddArgument("in EtherSharp.Types.Bytes32", "salt");
                 create2Function.AddStatement(
                     $"""
-                    return EtherSharp.Tx.IContractCall.ForCreate2Call(ByteCode, salt, 0)
+                    return EtherSharp.Tx.IContractCall.ForCreate2Call(ByteCode, salt, {(isPayable ? "ethValue" : "0")})
                     """
                 );
             }
