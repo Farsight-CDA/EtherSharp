@@ -289,9 +289,9 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             cancellationToken
         );
 
-        if(deploymentHeight > 0)
+        if(_flashCallExecutor is DeployedFlashCallExecutor executor)
         {
-            ((DeployedFlashCallExecutor) _flashCallExecutor).SetDeploymentHeight((ulong) deploymentHeight);
+            executor.SetDeploymentHeight((ulong) deploymentHeight);
         }
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
