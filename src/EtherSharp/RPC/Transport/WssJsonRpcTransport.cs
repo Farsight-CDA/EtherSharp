@@ -397,6 +397,11 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                                     payloadType = PayloadType.Subscription;
                                     return;
                                 }
+                                else
+                                {
+                                    reader.Skip();
+                                    reader.Read();
+                                }
                             }
 
                             _logger?.LogWarning("Failed to identify payload, eth_subscription params not containing subscription id");
