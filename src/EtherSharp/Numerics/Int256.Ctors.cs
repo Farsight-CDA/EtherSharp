@@ -18,7 +18,7 @@ public readonly partial struct Int256
     {
         if(n < 0)
         {
-            Int256 value = new(new UInt256((ulong) -n));
+            Int256 value = new(new UInt256((ulong) -(long) n));
             _value = Negate(value)._value;
         }
         else
