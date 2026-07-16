@@ -18,35 +18,7 @@ object "Querier" {
                 let opCode := byte(0, calldataload(inputOffset))
                 inputOffset := add(inputOffset, 1)
 
-                switch opCode
-                case 0 {
-                    let length := shr(232, calldataload(inputOffset))
-                    let to := shr(96, calldataload(add(inputOffset, 3)))
-                    let value := calldataload(add(inputOffset, 23))
-
-                    inputOffset := add(inputOffset, 55)
-                    calldatacopy(outputOffset, inputOffset, length)
-                    inputOffset := add(inputOffset, length)
-
-                    let success := call(
-                        sub(gas(), RETURN_GAS_BUFFER),
-                        to,
-                        value,
-                        outputOffset,
-                        length,
-                        0,
-                        0
-                    )
-
-                    if and(iszero(success), lt(gas(), ABORT_GAS_BUFFER)) {
-                        break
-                    }
-
-                    mstore(outputOffset, shl(224, returndatasize()))
-                    mstore8(outputOffset, success)
-                    returndatacopy(add(outputOffset, 4), 0, returndatasize())
-                    outputLength := add(4, returndatasize())
-                }
+                switch lt(opCode, 2)
                 case 1 {
                     let length := shr(232, calldataload(inputOffset))
                     let to := shr(96, calldataload(add(inputOffset, 3)))
@@ -56,32 +28,57 @@ object "Querier" {
                     calldatacopy(outputOffset, inputOffset, length)
                     inputOffset := add(inputOffset, length)
 
-                    let gasBefore := gas()
-                    let success := call(
-                        sub(gas(), RETURN_GAS_BUFFER),
-                        to,
-                        value,
-                        outputOffset,
-                        length,
-                        0,
-                        0
-                    )
-                    let gasUsed := sub(gasBefore, gas())
-
-                    if and(iszero(success), lt(gas(), ABORT_GAS_BUFFER)) {
-                        break
-                    }
-
-                    mstore(
-                        outputOffset,
-                        or(
-                            shl(248, success),
-                            or(shl(216, returndatasize()), shl(152, gasUsed))
+                    switch opCode
+                    case 0 {
+                        let success := call(
+                            sub(gas(), RETURN_GAS_BUFFER),
+                            to,
+                            value,
+                            outputOffset,
+                            length,
+                            0,
+                            0
                         )
-                    )
-                    returndatacopy(add(outputOffset, 13), 0, returndatasize())
-                    outputLength := add(13, returndatasize())
+
+                        if and(iszero(success), lt(gas(), ABORT_GAS_BUFFER)) {
+                            break
+                        }
+
+                        mstore(outputOffset, shl(224, returndatasize()))
+                        mstore8(outputOffset, success)
+                        returndatacopy(add(outputOffset, 4), 0, returndatasize())
+                        outputLength := add(4, returndatasize())
+                    }
+                    default {
+                        let gasBefore := gas()
+                        let success := call(
+                            sub(gas(), RETURN_GAS_BUFFER),
+                            to,
+                            value,
+                            outputOffset,
+                            length,
+                            0,
+                            0
+                        )
+                        let gasUsed := sub(gasBefore, gas())
+
+                        if and(iszero(success), lt(gas(), ABORT_GAS_BUFFER)) {
+                            break
+                        }
+
+                        mstore(
+                            outputOffset,
+                            or(
+                                shl(248, success),
+                                or(shl(216, returndatasize()), shl(152, gasUsed))
+                            )
+                        )
+                        returndatacopy(add(outputOffset, 13), 0, returndatasize())
+                        outputLength := add(13, returndatasize())
+                    }
                 }
+                default {
+                    switch opCode
                 case 2 {
                     let codeLength := shr(240, calldataload(inputOffset))
                     let calldataLength := shr(232, calldataload(add(inputOffset, 2)))
@@ -169,6 +166,7 @@ object "Querier" {
                 }
                 default {
                     revert(0, 0)
+                }
                 }
 
                 if gt(add(outputOffset, outputLength), maxReturnSize) {
