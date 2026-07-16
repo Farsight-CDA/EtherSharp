@@ -44,20 +44,20 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
                     querierDeployment.ByteCode,
                     query.Queries,
                     i,
-                    _flashCallExecutor.GetMaxPayloadSize(flashCallGasLimit, targetHeight) - querierDeployment.ByteCode.Length,
+                    _flashCallExecutor.GetMaxPayloadSize(flashCallGasLimit, targetHeight),
                     _flashCallExecutor.GetMaxResultSize(targetHeight),
                     out int payloadSize,
                     out int callCount,
                     out var ethValue
                 );
 
-                if(callCount == 0)
-                {
-                    throw new InvalidOperationException("Call is too large to be executed within batch");
-                }
-
                 try
                 {
+                    if(callCount == 0)
+                    {
+                        throw new InvalidOperationException("Call is too large to be executed within batch");
+                    }
+
                     var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
                         querierDeployment,
                         IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),

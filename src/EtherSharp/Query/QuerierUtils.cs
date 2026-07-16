@@ -31,7 +31,7 @@ internal sealed class QuerierUtils
             var queryable = queries[i];
             int newDataLength = payloadSize + queryable.CallDataLength;
 
-            if(newDataLength + querierCode.Length + 2 > maxPayloadSize)
+            if(newDataLength + querierCode.Length > maxPayloadSize)
             {
                 break;
             }
