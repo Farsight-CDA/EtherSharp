@@ -253,14 +253,28 @@ public sealed class BlockingSequentialTxScheduler(
         {
             lock(_stateLock)
             {
-                if(_peakNonce == nonce + 1)
+                if(_peakNonce != nonce + 1)
                 {
-                    _logger?.LogWarning("Transaction with nonce {nonce} cancelled", nonce);
-                    _peakNonce--;
-                    _nonceGates.Remove(nonce, out _);
-                    return true;
+                    return false;
                 }
-                return false;
+            }
+
+            if(_resiliencyLayer is not null)
+            {
+                await _resiliencyLayer.DeleteTxSubmissionsForNonceAsync(nonce, cancellationToken);
+            }
+
+            lock(_stateLock)
+            {
+                if(_peakNonce != nonce + 1)
+                {
+                    return false;
+                }
+
+                _logger?.LogWarning("Transaction with nonce {nonce} cancelled", nonce);
+                _peakNonce--;
+                _nonceGates.Remove(nonce, out _);
+                return true;
             }
         }
         finally
