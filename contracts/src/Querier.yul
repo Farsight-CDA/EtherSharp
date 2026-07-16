@@ -1,7 +1,8 @@
 object "Querier" {
     code {
-        datacopy(0, dataoffset("runtime"), datasize("runtime"))
-        return(0, datasize("runtime"))
+        let size := datasize("runtime")
+        datacopy(0, dataoffset("runtime"), size)
+        return(0, size)
     }
     object "runtime" {
         code {
