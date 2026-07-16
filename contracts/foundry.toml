@@ -3,4 +3,12 @@ src = "src"
 out = "out"
 libs = ["lib"]
 
+additional_compiler_profiles = [
+    { name = "querier", optimizer = true, optimizer_runs = 1 },
+]
+
+compilation_restrictions = [
+    { paths = "src/Querier.yul", optimizer_runs = 1 },
+]
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
