@@ -42,8 +42,8 @@ object "Querier" {
                         break
                     }
 
+                    mstore(outputOffset, shl(224, returndatasize()))
                     mstore8(outputOffset, success)
-                    mstore(add(outputOffset, 1), shl(232, returndatasize()))
                     returndatacopy(add(outputOffset, 4), 0, returndatasize())
                     outputOffset := add(outputOffset, add(4, returndatasize()))
                 }
@@ -72,9 +72,13 @@ object "Querier" {
                         break
                     }
 
-                    mstore8(outputOffset, success)
-                    mstore(add(outputOffset, 1), shl(224, returndatasize()))
-                    mstore(add(outputOffset, 5), shl(192, gasUsed))
+                    mstore(
+                        outputOffset,
+                        or(
+                            shl(248, success),
+                            or(shl(216, returndatasize()), shl(152, gasUsed))
+                        )
+                    )
                     returndatacopy(add(outputOffset, 13), 0, returndatasize())
                     outputOffset := add(outputOffset, add(13, returndatasize()))
                 }
@@ -104,8 +108,8 @@ object "Querier" {
                         break
                     }
 
+                    mstore(outputOffset, shl(224, returndatasize()))
                     mstore8(outputOffset, success)
-                    mstore(add(outputOffset, 1), shl(232, returndatasize()))
                     returndatacopy(add(outputOffset, 4), 0, returndatasize())
                     outputOffset := add(outputOffset, add(4, returndatasize()))
                 }
