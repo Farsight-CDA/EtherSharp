@@ -18,8 +18,8 @@ public sealed class EIP1559TxParamsTests
             new StateAccess(
                 Address.Parse("0x1111111111111111111111111111111111111111"),
                 [
-                    Convert.FromHexString("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
-                    [0x01, 0x02, 0x03, 0x04]
+                    Bytes32.Parse("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
+                    Bytes32.Parse("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
                 ]
             ),
             new StateAccess(
@@ -55,7 +55,7 @@ public sealed class EIP1559TxParamsTests
                 new StateAccess(
                     Address.Parse("0x3333333333333333333333333333333333333333"),
                     [
-                        Convert.FromHexString("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+                        Bytes32.Parse("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
                     ]
                 )
             ]

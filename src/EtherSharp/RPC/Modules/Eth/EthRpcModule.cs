@@ -139,7 +139,7 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
         };
 
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
-    internal sealed record EstimateGasAccess(Address Address, byte[][] StorageKeys);
+    internal sealed record EstimateGasAccess(Address Address, Bytes32[] StorageKeys);
     internal sealed record EstimateGasRequest(
         Address? From, Address? To, UInt256 Value, ReadOnlyMemory<byte> Data, EstimateGasAccess[]? AccessList);
 

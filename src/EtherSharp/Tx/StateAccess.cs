@@ -12,7 +12,7 @@ public sealed record StateAccess
     /// </summary>
     /// <param name="address">The contract address whose storage is accessed.</param>
     /// <param name="storageKeys">The storage slot keys accessed for <paramref name="address"/>.</param>
-    public StateAccess(in Address address, byte[][] storageKeys)
+    public StateAccess(in Address address, Bytes32[] storageKeys)
     {
         Address = address;
         StorageKeys = storageKeys;
@@ -26,5 +26,5 @@ public sealed record StateAccess
     /// <summary>
     /// The storage slot keys accessed for <see cref="Address"/>.
     /// </summary>
-    public byte[][] StorageKeys { get; init; }
+    public Bytes32[] StorageKeys { get; init; }
 }

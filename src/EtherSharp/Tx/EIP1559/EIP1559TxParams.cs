@@ -52,7 +52,7 @@ public sealed record EIP1559TxParams(
                 throw new InvalidDataException("Storage key count cannot be negative.");
             }
 
-            byte[][] storageKeys = new byte[storageKeyCount][];
+            var storageKeys = new Bytes32[storageKeyCount];
 
             for(int j = 0; j < storageKeys.Length; j++)
             {
@@ -60,14 +60,14 @@ public sealed record EIP1559TxParams(
                 int storageKeyLength = BinaryPrimitives.ReadInt32BigEndian(data.Slice(offset, LENGTH_PREFIX_SIZE));
                 offset += LENGTH_PREFIX_SIZE;
 
-                if(storageKeyLength < 0)
+                if(storageKeyLength != Bytes32.BYTE_LENGTH)
                 {
-                    throw new InvalidDataException("Storage key length cannot be negative.");
+                    throw new InvalidDataException($"Storage keys must be exactly {Bytes32.BYTE_LENGTH} bytes.");
                 }
 
                 EnsureBytesAvailable(data, offset, storageKeyLength);
 
-                storageKeys[j] = data.Slice(offset, storageKeyLength).ToArray();
+                storageKeys[j] = Bytes32.FromBytes(data.Slice(offset, storageKeyLength));
                 offset += storageKeyLength;
             }
 
@@ -88,9 +88,9 @@ public sealed record EIP1559TxParams(
         {
             size = size + Address.BYTES_LENGTH + LENGTH_PREFIX_SIZE;
 
-            foreach(byte[] storageKey in access.StorageKeys)
+            foreach(var storageKey in access.StorageKeys)
             {
-                size = size + LENGTH_PREFIX_SIZE + storageKey.Length;
+                size = size + LENGTH_PREFIX_SIZE + Bytes32.BYTE_LENGTH;
             }
         }
 
@@ -109,12 +109,12 @@ public sealed record EIP1559TxParams(
             BinaryPrimitives.WriteInt32BigEndian(span.Slice(offset, LENGTH_PREFIX_SIZE), access.StorageKeys.Length);
             offset += LENGTH_PREFIX_SIZE;
 
-            foreach(byte[] storageKey in access.StorageKeys)
+            foreach(var storageKey in access.StorageKeys)
             {
-                BinaryPrimitives.WriteInt32BigEndian(span.Slice(offset, LENGTH_PREFIX_SIZE), storageKey.Length);
+                BinaryPrimitives.WriteInt32BigEndian(span.Slice(offset, LENGTH_PREFIX_SIZE), Bytes32.BYTE_LENGTH);
                 offset += LENGTH_PREFIX_SIZE;
                 storageKey.CopyTo(span[offset..]);
-                offset += storageKey.Length;
+                offset += Bytes32.BYTE_LENGTH;
             }
         }
 

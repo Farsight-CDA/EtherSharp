@@ -28,9 +28,9 @@ internal static class TxRLPEncoder
     {
         int storageKeySize = 0;
 
-        foreach(byte[] storageKey in access.StorageKeys)
+        foreach(var storageKey in access.StorageKeys)
         {
-            storageKeySize += RLPEncoder.GetStringSize(storageKey);
+            storageKeySize += RLPEncoder.GetStringSize(storageKey.DangerousGetReadOnlySpan());
         }
 
         return storageKeySize;
@@ -45,9 +45,9 @@ internal static class TxRLPEncoder
                 .EncodeAddress(access.Address)
                 .EncodeList(GetStorageKeysLength(access));
 
-            foreach(byte[] storageKey in access.StorageKeys)
+            foreach(var storageKey in access.StorageKeys)
             {
-                encoder = encoder.EncodeString(storageKey);
+                encoder = encoder.EncodeString(storageKey.DangerousGetReadOnlySpan());
             }
         }
 
