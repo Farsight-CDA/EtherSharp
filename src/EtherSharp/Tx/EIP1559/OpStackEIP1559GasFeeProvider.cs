@@ -94,6 +94,7 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
             return await SendEstimationRequestsAsync(
                 from,
                 txInput,
+                txParams.AccessList,
                 simulationPayload,
                 cancellationToken
             );
@@ -105,10 +106,11 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
     }
 
     private async Task<EIP1559GasParams> SendEstimationRequestsAsync(
-        Address sender, ITxInput txInput, ReadOnlyMemory<byte> getL1FeePayload, CancellationToken cancellationToken)
+        Address sender, ITxInput txInput, StateAccess[] accessList,
+        ReadOnlyMemory<byte> getL1FeePayload, CancellationToken cancellationToken)
     {
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
-            sender, txInput.To, txInput.Value, txInput.Data, cancellationToken);
+            sender, txInput.To, txInput.Value, txInput.Data, accessList, cancellationToken);
         var l1FeeTask = _ethRpcModule.CallAsync(
             null, _opGasOracleAddress, null, null, 0, getL1FeePayload, TargetHeight.Pending, cancellationToken
         );

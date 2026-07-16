@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Numerics;
+using EtherSharp.Tx;
 using EtherSharp.Types;
 
 namespace EtherSharp.RPC.Modules.Eth;
@@ -24,7 +25,7 @@ public interface IEthRpcModule
     /// </summary>
     public Task<ulong> EstimateGasAsync(
         Address? from, Address? to, UInt256 value, ReadOnlyMemory<byte> data,
-        CancellationToken cancellationToken = default
+        StateAccess[]? accessList, CancellationToken cancellationToken = default
     );
 
     /// <summary>

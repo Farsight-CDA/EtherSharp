@@ -2,6 +2,7 @@
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Numerics;
+using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Globalization;
 
@@ -138,11 +139,16 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
         };
 
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
-    private sealed record EstimateGasRequest(Address? From, Address? To, UInt256 Value, ReadOnlyMemory<byte> Data);
+    internal sealed record EstimateGasAccess(Address Address, byte[][] StorageKeys);
+    internal sealed record EstimateGasRequest(
+        Address? From, Address? To, UInt256 Value, ReadOnlyMemory<byte> Data, EstimateGasAccess[]? AccessList);
+
     public async Task<ulong> EstimateGasAsync(
-        Address? from, Address? to, UInt256 value, ReadOnlyMemory<byte> data, CancellationToken cancellationToken)
+        Address? from, Address? to, UInt256 value, ReadOnlyMemory<byte> data,
+        StateAccess[]? accessList, CancellationToken cancellationToken)
     {
-        var transaction = new EstimateGasRequest(from, to, value, data);
+        var rpcAccessList = accessList?.Select(x => new EstimateGasAccess(x.Address, x.StorageKeys)).ToArray();
+        var transaction = new EstimateGasRequest(from, to, value, data, rpcAccessList);
         return await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, ulong>(
             "eth_estimateGas", transaction, TargetHeight.Latest, cancellationToken) switch
         {

@@ -73,7 +73,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
     public async Task<EIP1559GasParams> EstimateGasParamsAsync(ITxInput txInput, EIP1559TxParams txParams, Address from, CancellationToken cancellationToken)
     {
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
-            from, txInput.To, txInput.Value, txInput.Data, cancellationToken);
+            from, txInput.To, txInput.Value, txInput.Data, txParams.AccessList, cancellationToken);
         var feeHistoryTask = _ethRpcModule.GetFeeHistoryAsync(_feeHistoryRange, TargetHeight.Latest, _rewardPercentiles, cancellationToken);
 
         ulong gasEstimation = await gasEstimationTask;

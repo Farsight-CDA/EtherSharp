@@ -405,7 +405,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             from = _signer.Address;
         }
 
-        return _ethRpcModule.EstimateGasAsync(from, call.To, call.Value, call.Data, cancellationToken);
+        return _ethRpcModule.EstimateGasAsync(from, call.To, call.Value, call.Data, null, cancellationToken);
     }
 
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
