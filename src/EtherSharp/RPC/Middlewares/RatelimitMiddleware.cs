@@ -47,7 +47,8 @@ public sealed class RatelimitMiddleware : IRpcMiddleware, IDisposable
     /// <inheritdoc/>
     public async Task<RpcResult<TResult>> HandleAsync<TResult>(Func<CancellationToken, Task<RpcResult<TResult>>> onNext, CancellationToken cancellationToken)
     {
-        await _requestSemaphore.WaitAsync(cancellationToken);
+        using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposeCts.Token);
+        await _requestSemaphore.WaitAsync(waitCts.Token);
         return await onNext(cancellationToken);
     }
 }
