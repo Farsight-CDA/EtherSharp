@@ -30,12 +30,13 @@ public sealed class WssJsonRpcTransportIdentifyPayloadTests
         Assert.Null(decimalSubscriptionId);
     }
 
-    [Fact]
-    public void Should_Identify_Subscription_Payload()
+    [Theory]
+    [InlineData("{\"jsonrpc\":\"2.0\",\"method\":\"eth_subscription\",\"params\":{\"subscription\":\"0xfeedbeef\",\"result\":{\"number\":\"0x1\"}}}")]
+    [InlineData("{\"method\":\"eth_subscription\",\"jsonrpc\":\"2.0\",\"params\":{\"subscription\":\"0xfeedbeef\",\"result\":{\"number\":\"0x1\"}}}")]
+    [InlineData("{\"params\":{\"subscription\":\"0xfeedbeef\",\"result\":{\"number\":\"0x1\"}},\"jsonrpc\":\"2.0\",\"method\":\"eth_subscription\"}")]
+    public void Should_Identify_Subscription_Payload_Regardless_Of_Property_Order(string payload)
     {
         string expectedSubscriptionId = "0xfeedbeef";
-        string payload =
-            $"{{\"jsonrpc\":\"2.0\",\"method\":\"eth_subscription\",\"params\":{{\"subscription\":\"{expectedSubscriptionId}\",\"result\":{{\"number\":\"0x1\"}}}}}}";
 
         var (payloadType, requestId, subscriptionId) = Identify(payload);
 

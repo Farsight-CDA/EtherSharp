@@ -314,6 +314,9 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         try
         {
             var reader = new Utf8JsonReader(jsonSpan);
+            bool isSubscriptionMethod = false;
+            bool hasSubscriptionId = false;
+            string parsedSubscriptionId = null!;
             reader.Read();
 
             if(reader.TokenType != JsonTokenType.StartObject)
@@ -365,23 +368,25 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                                 return;
                             }
 
-                            reader.Read(); //eth_subscription string
-
-                            if(reader.TokenType != JsonTokenType.PropertyName || !reader.ValueTextEquals("params"))
+                            isSubscriptionMethod = true;
+                            if(hasSubscriptionId)
                             {
-                                _logger?.LogWarning("Failed to identify payload, eth_subscription not followed by params property");
+                                subscriptionId = parsedSubscriptionId;
+                                payloadType = PayloadType.Subscription;
                                 return;
                             }
-
-                            reader.Read(); //params property name
+                        }
+                        else if(reader.ValueTextEquals("params"))
+                        {
+                            reader.Read();
 
                             if(reader.TokenType != JsonTokenType.StartObject)
                             {
-                                _logger?.LogWarning("Failed to identify payload, eth_subscription not followed by params object");
-                                return;
+                                reader.Skip();
+                                break;
                             }
 
-                            reader.Read(); //start params object
+                            reader.Read();
 
                             while(reader.TokenType == JsonTokenType.PropertyName)
                             {
@@ -393,9 +398,17 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                                 else if(reader.ValueTextEquals("subscription"))
                                 {
                                     reader.Read();
-                                    subscriptionId = reader.GetString()!;
-                                    payloadType = PayloadType.Subscription;
-                                    return;
+                                    parsedSubscriptionId = reader.GetString()!;
+                                    hasSubscriptionId = true;
+
+                                    if(isSubscriptionMethod)
+                                    {
+                                        subscriptionId = parsedSubscriptionId;
+                                        payloadType = PayloadType.Subscription;
+                                        return;
+                                    }
+
+                                    reader.Read();
                                 }
                                 else
                                 {
@@ -403,9 +416,6 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                                     reader.Read();
                                 }
                             }
-
-                            _logger?.LogWarning("Failed to identify payload, eth_subscription params not containing subscription id");
-                            return;
                         }
 
                         reader.Skip();
