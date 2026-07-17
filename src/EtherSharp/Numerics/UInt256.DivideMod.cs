@@ -418,7 +418,7 @@ public readonly partial struct UInt256
             return;
         }
 
-        Remainder512By256Bits(in lo, in hi, in m, out res);
+        Remainder512By256Bits(in lo, in hi, in m, false, out res);
     }
 
     /// <summary>
@@ -1681,7 +1681,12 @@ public readonly partial struct UInt256
     }
 
     [SkipLocalsInit]
-    private static void Remainder512By256Bits(in UInt256 lo, in UInt256 hi, in UInt256 d, out UInt256 rem)
+    private static void Remainder512By256Bits(
+        in UInt256 lo,
+        in UInt256 hi,
+        in UInt256 d,
+        bool quotientFitsUInt256,
+        out UInt256 rem)
     {
         ulong d0 = d._u0, d1 = d._u1, d2 = d._u2, d3 = d._u3;
 
@@ -1764,6 +1769,11 @@ public readonly partial struct UInt256
 
         // Divide (remainder only). m = uLen - dLen, loop j = m..0.
         int mQ = uLen - dLen;
+        if(quotientFitsUInt256 && mQ == 4)
+        {
+            // The possible fifth quotient limb is known to be zero.
+            mQ = 3;
+        }
 
         switch(dLen)
         {
