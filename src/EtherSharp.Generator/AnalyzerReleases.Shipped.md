@@ -7,15 +7,15 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-EVMG0000 | Unknown | Error | GeneratorDiagnostics
-EVMG0010 | Usage | Error | GeneratorDiagnostics
-EVMG0020 | Usage | Error | GeneratorDiagnostics
-EVMG0021 | Usage | Error | GeneratorDiagnostics
-EVMG0022 | Usage | Error | GeneratorDiagnostics
-EVMG0023 | Usage | Error | GeneratorDiagnostics
-EVMG0024 | Usage | Error | GeneratorDiagnostics
-EVMG0030 | Usage | Error | GeneratorDiagnostics
-EVMG0031 | Usage | Error | GeneratorDiagnostics
-EVMG0032 | Usage | Error | GeneratorDiagnostics
-EVMG0033 | Usage | Error | GeneratorDiagnostics
-EVMG0040 | Usage | Warning | GeneratorDiagnostics
+ABI0000 | Unknown | Error | GeneratorDiagnostics
+ABI0010 | Usage | Error | GeneratorDiagnostics
+ABI0020 | Usage | Error | GeneratorDiagnostics
+ABI0021 | Usage | Error | GeneratorDiagnostics
+ABI0022 | Usage | Error | GeneratorDiagnostics
+ABI0023 | Usage | Error | GeneratorDiagnostics
+ABI0024 | Usage | Error | GeneratorDiagnostics
+ABI0030 | Usage | Error | GeneratorDiagnostics
+ABI0031 | Usage | Error | GeneratorDiagnostics
+ABI0032 | Usage | Error | GeneratorDiagnostics
+ABI0033 | Usage | Error | GeneratorDiagnostics
+ABI0040 | Usage | Warning | GeneratorDiagnostics
