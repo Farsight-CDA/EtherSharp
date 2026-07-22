@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using System.Globalization;
 using System.Text;
 
@@ -7,13 +8,13 @@ namespace EtherSharp.Generator.Util;
 internal static class NameUtils
 {
     public static string ToValidParameterName(string name)
-        => EscapeVariableName(Uncapitalize(name).Trim('_'));
+        => EscapeIdentifier(Uncapitalize(name).Trim('_'));
 
     public static string ToValidVariableName(string name)
-        => EscapeVariableName(Uncapitalize(name));
+        => EscapeIdentifier(Uncapitalize(name));
 
     public static string ToValidPropertyName(string name)
-        => EscapeVariableName(ToValidNamespaceName(Capitalize(name)));
+        => EscapeIdentifier(ToValidNamespaceName(Capitalize(name)));
 
     public static string ToValidNamespaceName(string name)
     {
@@ -23,7 +24,7 @@ internal static class NameUtils
 
         foreach(string? part in parts)
         {
-            _ = finalSb.Append(Capitalize(part));
+            finalSb.Append(Capitalize(part));
         }
 
         return finalSb.ToString();
@@ -74,31 +75,21 @@ internal static class NameUtils
         return name;
     }
 
-    private static readonly HashSet<string> _reservedKeywords = new(
-        StringComparer.Ordinal)
+    public static string EscapeIdentifier(string identifier)
     {
-        "abstract","as","base","bool","break","byte","case","catch","char",
-        "checked","class","const","continue","decimal","default","delegate","do",
-        "double","else","enum","event","explicit","extern","false","finally","fixed",
-        "float","for","foreach","goto","if","implicit","in","int","interface","internal",
-        "is","lock","long","namespace","new","null","object","operator","out","override",
-        "params","private","protected","public","readonly","ref","return","sbyte",
-        "sealed","short","sizeof","stackalloc","static","string","struct","switch","this",
-        "throw","true","try","typeof","uint","ulong","unchecked","unsafe","ushort",
-        "using","virtual","void","volatile","while"
-    };
-    public static string EscapeVariableName(string name)
-        => name is null
-            ? throw new ArgumentNullException(nameof(name))
-            : _reservedKeywords.Contains(name)
-                ? "@" + name
-                : name;
+        identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
+
+        return SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None
+            || SyntaxFacts.GetContextualKeywordKind(identifier) != SyntaxKind.None
+                ? $"@{identifier}"
+                : identifier;
+    }
 
     public static string FullyQualifiedTypeName(ITypeSymbol symbol)
     {
         var sb = new StringBuilder();
 
-        _ = sb.Append($"global::{symbol.ContainingNamespace}");
+        sb.Append($"global::{symbol.ContainingNamespace}");
 
         var parentNames = new List<string>();
         var parentType = symbol.ContainingType;
@@ -111,21 +102,21 @@ internal static class NameUtils
         parentNames.Reverse();
         foreach(string parentName in parentNames)
         {
-            _ = sb.Append($".{parentName}");
+            sb.Append($".{parentName}");
         }
 
-        _ = sb.Append($".{symbol.Name}");
+        sb.Append($".{symbol.Name}");
 
         if(symbol is INamedTypeSymbol namedType && namedType.TypeArguments.Length > 0)
         {
-            _ = sb.Append('<');
+            sb.Append('<');
 
             foreach(var typeArg in namedType.TypeArguments)
             {
-                _ = sb.Append(FullyQualifiedTypeName(typeArg));
+                sb.Append(FullyQualifiedTypeName(typeArg));
             }
 
-            _ = sb.Append('>');
+            sb.Append('>');
         }
 
         return sb.ToString();
