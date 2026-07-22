@@ -1,8 +1,10 @@
 using EtherSharp.Types;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace EtherSharp.Crypto;
 
@@ -15,6 +17,7 @@ public ref struct Keccak256
     private const int RATE = 1088;
     private const int RATE_BYTES = RATE / 8;
     private const int RATE_64 = RATE >> 6;
+    private const int MAX_STACKALLOC_BYTES = 1024;
 
     private static readonly ulong[] _keccakRoundConstants = [
         0x0000000000000001UL, 0x0000000000008082UL, 0x800000000000808aUL, 0x8000000080008000UL,
@@ -70,6 +73,35 @@ public ref struct Keccak256
         return !TryHashData(data, outputBuffer)
             ? throw new NotSupportedException()
             : Bytes32.FromBytes(outputBuffer);
+    }
+
+    /// <summary>
+    /// Hashes the UTF-8 representation of a string.
+    /// </summary>
+    /// <param name="data">String to hash as UTF-8.</param>
+    /// <returns>The resulting Keccak-256 hash.</returns>
+    public static Bytes32 HashData(string data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+
+        int byteCount = Encoding.UTF8.GetByteCount(data);
+        byte[]? rented = null;
+        var utf8Bytes = byteCount <= MAX_STACKALLOC_BYTES
+            ? stackalloc byte[byteCount]
+            : (rented = ArrayPool<byte>.Shared.Rent(byteCount));
+
+        try
+        {
+            int bytesWritten = Encoding.UTF8.GetBytes(data, utf8Bytes);
+            return HashData(utf8Bytes[..bytesWritten]);
+        }
+        finally
+        {
+            if(rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
     }
 
     private void BlockUpdate(ReadOnlySpan<byte> input)
