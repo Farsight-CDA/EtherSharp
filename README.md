@@ -47,7 +47,7 @@ await txClient.InitializeAsync();
 
 ### Hashing EIP-712 Messages
 
-Mark a partial message type with `[EIP712Type]` and implement `IEIP712Type`. The source generator adds the public `HashStruct()` implementation used by `EIP712.HashTypedData`.
+Mark a partial message type with `[EIP712Type]` and implement `IEIP712Type`. The source generator adds public `HashStruct()` and `GetSigningHash()` implementations.
 
 ```csharp
 using EtherSharp.Crypto;
@@ -68,10 +68,10 @@ var domain = new EIP712Domain(
     ChainId: new UInt256(1),
     VerifyingContract: tokenAddress);
 
-Bytes32 signingHash = EIP712.HashTypedData(domain, permit);
+Bytes32 signingHash = permit.GetSigningHash(domain);
 
 Span<byte> signature = stackalloc byte[65];
-signer.TrySignRecoverable(signingHash, signature);
+signer.TrySignEIP712(domain, permit, signature);
 ```
 
 Generated message members currently support `bool`, `Address`, `string`, `byte[]`, `ReadOnlyMemory<byte>`, `Bytes1` through `Bytes32`, `Int256`, `UInt256`, and nested EIP-712 types. Property names are converted to lower camel case in the EIP-712 type definition.

@@ -1,4 +1,5 @@
-﻿using EtherSharp.Types;
+﻿using EtherSharp.Crypto;
+using EtherSharp.Types;
 
 namespace EtherSharp.Wallet;
 
@@ -45,4 +46,22 @@ public interface IEtherSigner
     /// <returns><see langword="true"/> when signing succeeds; otherwise, <see langword="false"/>.</returns>
     public bool TrySignRecoverable(in Bytes32 data, Span<byte> destination)
         => TrySignRecoverable(data.DangerousGetReadOnlySpan(), destination);
+
+    /// <summary>
+    /// Attempts to sign an EIP-712 message with a recoverable signature.
+    /// </summary>
+    /// <typeparam name="TMessage">Source-generated EIP-712 message type.</typeparam>
+    /// <param name="domain">Signature domain.</param>
+    /// <param name="message">Typed message to hash and sign.</param>
+    /// <param name="destination">The destination buffer for the 65-byte recoverable signature.</param>
+    /// <returns><see langword="true"/> when signing succeeds; otherwise, <see langword="false"/>.</returns>
+    public bool TrySignEIP712<TMessage>(
+        in EIP712Domain domain,
+        in TMessage message,
+        Span<byte> destination)
+        where TMessage : IEIP712Type
+    {
+        var hash = message.GetSigningHash(domain);
+        return TrySignRecoverable(hash, destination);
+    }
 }

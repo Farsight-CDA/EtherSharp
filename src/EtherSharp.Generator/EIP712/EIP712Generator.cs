@@ -126,14 +126,15 @@ public sealed class EIP712Generator : IIncrementalGenerator
             return false;
         }
 
-        if(symbol.GetMembers("HashStruct").OfType<IMethodSymbol>().Any()
+        if(symbol.GetMembers("HashStruct").Any()
+            || symbol.GetMembers("GetSigningHash").Any()
             || symbol.GetMembers("__etherSharpEIP712TypeHash").Any())
         {
             context.ReportDiagnostic(Diagnostic.Create(
                 EIP712GeneratorDiagnostics.UnsupportedDeclaration,
                 symbol.Locations.FirstOrDefault(),
                 symbol.Name,
-                "HashStruct and __etherSharpEIP712TypeHash are reserved for generated code"));
+                "HashStruct, GetSigningHash, and __etherSharpEIP712TypeHash are reserved for generated code"));
             return false;
         }
 

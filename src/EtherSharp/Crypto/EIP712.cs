@@ -32,7 +32,7 @@ public static class EIP712
             throw new ArgumentNullException(nameof(message));
         }
 
-        var domainSeparator = HashDomain(in domain);
+        var domainSeparator = HashDomain(domain);
         var structHash = message.HashStruct();
 
         Span<byte> payload = stackalloc byte[66];
@@ -45,7 +45,7 @@ public static class EIP712
 
     private static Bytes32 HashDomain(in EIP712Domain domain)
     {
-        byte fields = GetDomainFields(in domain);
+        byte fields = GetDomainFields(domain);
         if(fields == 0)
         {
             throw new ArgumentException("An EIP-712 domain must contain at least one field.", nameof(domain));
