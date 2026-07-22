@@ -85,6 +85,29 @@ internal static class NameUtils
                 : identifier;
     }
 
+    public static bool IsValidIdentifier(string identifier)
+    {
+        if(String.IsNullOrEmpty(identifier) || !IsIdentifierStart(identifier[0]))
+        {
+            return false;
+        }
+
+        for(int i = 1; i < identifier.Length; i++)
+        {
+            if(!IsIdentifierStart(identifier[i]) && identifier[i] is not (>= '0' and <= '9'))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsIdentifierStart(char value)
+        => value is (>= 'a' and <= 'z')
+            or (>= 'A' and <= 'Z')
+            or '_';
+
     public static string FullyQualifiedTypeName(ITypeSymbol symbol)
     {
         var sb = new StringBuilder();

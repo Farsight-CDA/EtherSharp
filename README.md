@@ -14,6 +14,7 @@ EtherSharp is a high-performance, type-safe .NET library for interacting with Et
 - **Transaction Lifecycle Support**: Built-in nonce management, gas estimation, and confirmation handling.
 - **Flash Calling**: Simulate a temporary deployment plus call in one `eth_call` flow.
 - **Realtime Support**: Subscribe to contract events and new block headers over WebSocket transports.
+- **EIP-712 Signing Hashes**: Generate typed-data hashes from source-generated message types.
 - **Operational Tooling**: Access debug/trace modules and add custom RPC middleware when needed.
 
 ---
@@ -43,6 +44,37 @@ var txClient = EtherClientBuilder
 
 await txClient.InitializeAsync();
 ```
+
+### Hashing EIP-712 Messages
+
+Mark a partial message type with `[EIP712Type]` and implement `IEIP712Type`. The source generator adds the public `HashStruct()` implementation used by `EIP712.HashTypedData`.
+
+```csharp
+using EtherSharp.Crypto;
+using EtherSharp.Numerics;
+using EtherSharp.Types;
+
+[EIP712Type]
+public readonly partial record struct Permit(
+    Address Owner,
+    Address Spender,
+    UInt256 Value,
+    UInt256 Nonce,
+    UInt256 Deadline) : IEIP712Type;
+
+var domain = new EIP712Domain(
+    Name: "Token",
+    Version: "1",
+    ChainId: new UInt256(1),
+    VerifyingContract: tokenAddress);
+
+Bytes32 signingHash = EIP712.HashTypedData(domain, permit);
+
+Span<byte> signature = stackalloc byte[65];
+signer.TrySignRecoverable(signingHash, signature);
+```
+
+Generated message members currently support `bool`, `Address`, `string`, `byte[]`, `ReadOnlyMemory<byte>`, `Bytes1` through `Bytes32`, `Int256`, `UInt256`, and nested EIP-712 types. Property names are converted to lower camel case in the EIP-712 type definition.
 
 ### Generating Contract Interfaces
 

@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.Generator.ABI.SourceWriters.Components;
+﻿using EtherSharp.Generator.Util;
+
+namespace EtherSharp.Generator.ABI.SourceWriters.Components;
 
 internal static class PrimitiveTypeWriter
 {
@@ -60,11 +62,10 @@ internal static class PrimitiveTypeWriter
                 isDynamic = false;
                 abiFunctionName = $"Int{bitSize}";
                 break;
-            case string s when s.StartsWith("bytes", StringComparison.Ordinal) && Int32.TryParse(s.Substring(5), out int bitSize)
-                && bitSize >= 1 && bitSize <= 32:
-                csharpTypeName = $"EtherSharp.Types.Bytes{bitSize}";
+            case string s when SolidityTypeUtils.TryGetFixedBytesLength(s, "bytes", out int byteLength):
+                csharpTypeName = $"EtherSharp.Types.Bytes{byteLength}";
                 isDynamic = false;
-                abiFunctionName = $"Bytes{bitSize}";
+                abiFunctionName = $"Bytes{byteLength}";
                 break;
             default:
                 csharpTypeName = null!;
