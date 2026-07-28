@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC.Modules.Eth;
+using System.Buffers;
 
 namespace EtherSharp.Client.Services.TxPublisher;
 
@@ -9,6 +10,21 @@ namespace EtherSharp.Client.Services.TxPublisher;
 /// <param name="ethRpcModule">RPC module used to submit raw transactions.</param>
 public sealed class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
 {
+    private static readonly SearchValues<string> _alreadyExistsMessages = SearchValues.Create(
+        ["ALREADY_EXISTS", "already known", "tx already exists in cache"],
+        StringComparison.OrdinalIgnoreCase
+    );
+
+    private static readonly SearchValues<string> _transactionUnderpricedMessages = SearchValues.Create(
+        ["transaction underpriced", "max fee per gas less than block base fee"],
+        StringComparison.Ordinal
+    );
+
+    private static readonly SearchValues<string> _nonceTooLowMessages = SearchValues.Create(
+        ["nonce too low", "next nonce"],
+        StringComparison.Ordinal
+    );
+
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
     /// <inheritdoc/>
@@ -20,17 +36,15 @@ public sealed class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
         }
         catch(RPCException ex)
         {
-            if(ex.Message.Contains("ALREADY_EXISTS", StringComparison.OrdinalIgnoreCase)
-                || ex.Message.Contains("already known", StringComparison.OrdinalIgnoreCase)
-                || ex.Message.Contains("tx already exists in cache", StringComparison.OrdinalIgnoreCase))
+            if(ex.Message.AsSpan().ContainsAny(_alreadyExistsMessages))
             {
                 return new TxSubmissionResult.AlreadyExists();
             }
-            else if(ex.Message.Contains("transaction underpriced") || ex.Message.Contains("max fee per gas less than block base fee"))
+            else if(ex.Message.AsSpan().ContainsAny(_transactionUnderpricedMessages))
             {
                 return new TxSubmissionResult.TransactionUnderpriced();
             }
-            else if(ex.Message.Contains("nonce too low") || ex.Message.Contains("next nonce"))
+            else if(ex.Message.AsSpan().ContainsAny(_nonceTooLowMessages))
             {
                 return new TxSubmissionResult.NonceTooLow();
             }
