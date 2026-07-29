@@ -1,7 +1,6 @@
 ﻿using EtherSharp.Common;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
-using EtherSharp.Common.Instrumentation;
 using EtherSharp.RPC.Transport.Json;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +30,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     private readonly HttpClient _client;
     private int _id;
 
-    private readonly OTELCounter<long>? _rpcRequestsCounter;
+    private readonly RpcRequestMetrics _rpcRequestMetrics;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     /// <inheritdoc />
@@ -63,7 +62,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         _jsonSerializerOptions = provider.GetService<JsonSerializerOptions>()
             ?? ParsingUtils.EvmSerializerOptions;
 
-        _rpcRequestsCounter = provider.CreateOTELCounter<long>("evm_rpc_requests", tags: additionalTags);
+        _rpcRequestMetrics = new RpcRequestMetrics(provider, additionalTags);
     }
 
     /// <summary>
@@ -139,15 +138,6 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         return content;
     }
 
-    private void AddRpcRequestMetric(string method, string status)
-    {
-        TagList tags = [
-            new KeyValuePair<string, object?>("status", status),
-            new KeyValuePair<string, object?>("method", method)
-        ];
-        _rpcRequestsCounter?.Add(1, tags);
-    }
-
     private async Task<RpcResult<TResult>> SendRpcRequestCoreAsync<TResult>(
         int id, string method, HttpContent requestContent, CancellationToken cancellationToken)
     {
@@ -178,7 +168,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 
             if(mediaType is not null && !mediaType.EndsWith("json"))
             {
-                AddRpcRequestMetric(method, "failure");
+                _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
                 string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
                 throw new RPCTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}");
             }
@@ -189,23 +179,23 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 
             if(jsonRpcResponse.Error is not null)
             {
-                AddRpcRequestMetric(method, "success");
+                _rpcRequestMetrics.Add(method, RpcRequestStatus.Success);
                 return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message, jsonRpcResponse.Error.Data);
             }
 
             if(jsonRpcResponse.Id != id)
             {
-                AddRpcRequestMetric(method, "failure");
+                _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
                 throw new RPCTransportException($"RPC Error: Response id mismatch. Expected {id}, got {jsonRpcResponse.Id?.ToString() ?? "null"}");
             }
 
             if(jsonRpcResponse.ResultIsNull)
             {
-                AddRpcRequestMetric(method, "success");
+                _rpcRequestMetrics.Add(method, RpcRequestStatus.Success);
                 return RpcResult<TResult>.Null.Instance;
             }
 
-            AddRpcRequestMetric(method, "success");
+            _rpcRequestMetrics.Add(method, RpcRequestStatus.Success);
             return new RpcResult<TResult>.Success(jsonRpcResponse.Result!);
         }
         catch(RPCTransportException)
@@ -214,18 +204,18 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         }
         catch(JsonException)
         {
-            AddRpcRequestMetric(method, "failure");
+            _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
             string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new RPCTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}");
         }
         catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested)
         {
-            AddRpcRequestMetric(method, "failure");
+            _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
             throw;
         }
         catch(Exception ex)
         {
-            AddRpcRequestMetric(method, "failure");
+            _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
             string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new RPCTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}", ex);
         }

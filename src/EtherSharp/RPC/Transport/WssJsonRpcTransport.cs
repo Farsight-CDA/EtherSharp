@@ -49,7 +49,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     private readonly SemaphoreSlim _sendSemaphore = new SemaphoreSlim(1, 1);
 
     private readonly ObservableGauge<int>? _websocketConnectedGauge;
-    private readonly OTELCounter<long>? _rpcRequestsCounter;
+    private readonly RpcRequestMetrics _rpcRequestMetrics;
     private readonly OTELCounter<long>? _subscriptionMessageCounter;
 
     /// <summary>
@@ -72,7 +72,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             tags: additionalTags
         );
 
-        _rpcRequestsCounter = provider.CreateOTELCounter<long>("evm_rpc_requests", tags: additionalTags);
+        _rpcRequestMetrics = new RpcRequestMetrics(provider, additionalTags);
 
         _subscriptionMessageCounter = provider.CreateOTELCounter<long>("subscription_messages_received", tags: additionalTags);
         _subscriptionMessageCounter?.Add(0);
@@ -485,15 +485,6 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
     }
 
-    private void AddRpcRequestMetric(string method, string status)
-    {
-        TagList tags = [
-            new KeyValuePair<string, object?>("status", status),
-            new KeyValuePair<string, object?>("method", method)
-        ];
-        _rpcRequestsCounter?.Add(1, tags);
-    }
-
     private async Task<RpcResult<TResult>> SendRpcRequestInternalAsync<TResult>(
         int requestId, string method, byte[] payload, CancellationToken cancellationToken)
     {
@@ -541,33 +532,33 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         catch(TimeoutException)
         {
             _pendingRequests.TryRemove(requestId, out _);
-            AddRpcRequestMetric(method, "failure");
+            _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
             throw new TimeoutException($"No response received from server within {_requestTimeout} timeout");
         }
         catch(OperationCanceledException)
         {
             _pendingRequests.TryRemove(requestId, out _);
-            AddRpcRequestMetric(method, "failure");
+            _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
             throw;
         }
 
         if(jsonRpcResponse.Id != requestId)
         {
-            AddRpcRequestMetric(method, "failure");
+            _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
             throw new RPCTransportException("RPC Error: Invalid response Id");
         }
         else if(jsonRpcResponse.Error != null)
         {
-            AddRpcRequestMetric(method, "success");
+            _rpcRequestMetrics.Add(method, RpcRequestStatus.Success);
             return new RpcResult<TResult>.Error(jsonRpcResponse.Error.Code, jsonRpcResponse.Error.Message, jsonRpcResponse.Error.Data);
         }
         else if(jsonRpcResponse.ResultIsNull)
         {
-            AddRpcRequestMetric(method, "success");
+            _rpcRequestMetrics.Add(method, RpcRequestStatus.Success);
             return RpcResult<TResult>.Null.Instance;
         }
         //
-        AddRpcRequestMetric(method, "success");
+        _rpcRequestMetrics.Add(method, RpcRequestStatus.Success);
         return new RpcResult<TResult>.Success(jsonRpcResponse.Result!);
     }
 
