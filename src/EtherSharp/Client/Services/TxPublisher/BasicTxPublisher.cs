@@ -11,7 +11,7 @@ namespace EtherSharp.Client.Services.TxPublisher;
 public sealed class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
 {
     private static readonly SearchValues<string> _alreadyExistsMessages = SearchValues.Create(
-        ["ALREADY_EXISTS", "already known", "tx already exists in cache"],
+        ["ALREADY_EXISTS", "already known", "tx already exists in cache", "known transaction"],
         StringComparison.OrdinalIgnoreCase
     );
 
