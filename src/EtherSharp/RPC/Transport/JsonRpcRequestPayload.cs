@@ -115,6 +115,36 @@ internal static class JsonRpcRequestPayload
         }
     }
 
+    public static byte[] SerializeToUtf8Bytes<T1, T2, T3, T4>(
+        int requestId,
+        string method,
+        T1 param1,
+        T2 param2,
+        T3 param3,
+        T4 param4,
+        JsonSerializerOptions options
+    )
+    {
+        var buffer = AcquireBuffer();
+        var writer = AcquireWriter(buffer);
+        try
+        {
+            WriteStart(writer, requestId, method);
+            JsonSerializer.Serialize(writer, param1, options);
+            JsonSerializer.Serialize(writer, param2, options);
+            JsonSerializer.Serialize(writer, param3, options);
+            JsonSerializer.Serialize(writer, param4, options);
+            WriteEnd(writer);
+            writer.Flush();
+
+            return buffer.ToArray();
+        }
+        finally
+        {
+            ReleaseBuffer(writer, buffer);
+        }
+    }
+
     private static ReusablePooledByteBufferWriter AcquireBuffer()
     {
         var buffer = _buffer ??= new ReusablePooledByteBufferWriter(INITIAL_BUFFER_CAPACITY);

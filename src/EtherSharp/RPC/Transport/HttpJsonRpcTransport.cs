@@ -131,6 +131,19 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         );
     }
 
+    /// <inheritdoc/>
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, T3, T4, TResult>(
+        string method, T1 t1, T2 t2, T3 t3, T4 t4, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
+    {
+        int id = Interlocked.Increment(ref _id);
+        return SendRpcRequestCoreAsync<TResult>(
+            id,
+            method,
+            CreateHttpContent(JsonRpcRequestPayload.SerializeToUtf8Bytes(id, method, t1, t2, t3, t4, _jsonSerializerOptions)),
+            cancellationToken
+        );
+    }
+
     private static ByteArrayContent CreateHttpContent(byte[] payload)
     {
         var content = new ByteArrayContent(payload);

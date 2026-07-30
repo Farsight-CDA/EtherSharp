@@ -485,6 +485,15 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
     }
 
+    /// <inheritdoc/>
+    public Task<RpcResult<TResult>> SendRpcRequestAsync<T1, T2, T3, T4, TResult>(
+        string method, T1 t1, T2 t2, T3 t3, T4 t4, TargetHeight requiredBlockNumber, CancellationToken cancellationToken = default)
+    {
+        int requestId = Interlocked.Increment(ref _requestIdCounter);
+        byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, t1, t2, t3, t4, _jsonSerializerOptions);
+        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
+    }
+
     private async Task<RpcResult<TResult>> SendRpcRequestInternalAsync<TResult>(
         int requestId, string method, byte[] payload, CancellationToken cancellationToken)
     {
