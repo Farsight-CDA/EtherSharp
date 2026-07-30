@@ -322,6 +322,18 @@ public interface IEtherClient : IAsyncDisposable
     public Task<ulong> EstimateGasLimitAsync(ITxInput call, Address? from = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Estimates the gas limit required to execute a transaction call with state overrides.
+    /// </summary>
+    /// <param name="call">Transaction call definition.</param>
+    /// <param name="from">Optional sender address override.</param>
+    /// <param name="stateOverrides">State overrides applied during estimation.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Estimated gas limit.</returns>
+    public Task<ulong> EstimateGasLimitAsync(
+        ITxInput call, Address? from, IReadOnlyDictionary<Address, StateOverride> stateOverrides,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Estimates EIP-1559 gas parameters for a transaction call.
     /// </summary>
     /// <param name="call">Transaction call definition.</param>

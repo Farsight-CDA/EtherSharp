@@ -249,7 +249,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
                 0,
                 Convert.FromHexString("217CD3E1"),
                 TargetHeight.Latest,
-                cancellationToken
+                cancellationToken: cancellationToken
             );
 
             if(!deploymentHeightResult.Success)
@@ -405,7 +405,25 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             from = _signer.Address;
         }
 
-        return _ethRpcModule.EstimateGasAsync(from, call.To, call.Value, call.Data, null, cancellationToken);
+        return _ethRpcModule.EstimateGasAsync(
+            from, call.To, call.Value, call.Data, null, cancellationToken: cancellationToken);
+    }
+
+    Task<ulong> IEtherClient.EstimateGasLimitAsync(
+        ITxInput call,
+        Address? from,
+        IReadOnlyDictionary<Address, StateOverride> stateOverrides,
+        CancellationToken cancellationToken)
+    {
+        AssertReady();
+
+        if(from is null && _options.IsTxClient)
+        {
+            from = _signer.Address;
+        }
+
+        return _ethRpcModule.EstimateGasAsync(
+            from, call.To, call.Value, call.Data, null, stateOverrides, cancellationToken);
     }
 
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
@@ -437,7 +455,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             call.Value,
             call.Data,
             targetHeight,
-            cancellationToken
+            cancellationToken: cancellationToken
         );
 
         return CallResult<T>.ParseFrom(result, call.To, call.ReadResultFrom);
