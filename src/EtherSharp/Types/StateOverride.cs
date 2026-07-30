@@ -33,11 +33,6 @@ public sealed record StateOverride
     public IReadOnlyDictionary<Bytes32, Bytes32>? StateDiff { get; }
 
     /// <summary>
-    /// Gets the address to which the precompile is moved.
-    /// </summary>
-    public Address? MovePrecompileToAddress { get; }
-
-    /// <summary>
     /// Initializes an account state override.
     /// </summary>
     /// <exception cref="ArgumentException"><paramref name="state"/> and <paramref name="stateDiff"/> are both specified.</exception>
@@ -46,8 +41,7 @@ public sealed record StateOverride
         ulong? nonce = null,
         ReadOnlyMemory<byte>? code = null,
         IReadOnlyDictionary<Bytes32, Bytes32>? state = null,
-        IReadOnlyDictionary<Bytes32, Bytes32>? stateDiff = null,
-        Address? movePrecompileToAddress = null)
+        IReadOnlyDictionary<Bytes32, Bytes32>? stateDiff = null)
     {
         if(state is not null && stateDiff is not null)
         {
@@ -59,6 +53,5 @@ public sealed record StateOverride
         Code = code;
         State = state;
         StateDiff = stateDiff;
-        MovePrecompileToAddress = movePrecompileToAddress;
     }
 }
