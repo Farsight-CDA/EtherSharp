@@ -1,37 +1,29 @@
-    0x0: CODESIZE  
+; Maximum-width layout. PUSH widths and program counters shrink when values need fewer bytes.
+    0x0: CODESIZE
     0x1: RETURNDATASIZE
     0x2: RETURNDATASIZE
-    0x3: CODECOPY  
-    0x4: PUSH1     0x2b
-    0x6: MLOAD     
-    0x7: PUSH1     0xf0
-    0x9: SHR       
-    0xa: DUP1      
-    0xb: PUSH1     0x2d
+    0x3: CODECOPY
+    0x4: PUSH2     deploymentLength
+    0x7: PUSH1     0x25
+    0x9: RETURNDATASIZE
+    0xa: CREATE
+    0xb: RETURNDATASIZE
+    0xc: RETURNDATASIZE
     0xd: RETURNDATASIZE
-    0xe: CREATE    
-    0xf: RETURNDATASIZE
-   0x10: RETURNDATASIZE
-   0x11: RETURNDATASIZE
-   0x12: DUP5      
-   0x13: PUSH1     0x2d
-   0x15: ADD       
-   0x16: DUP1      
-   0x17: CODESIZE  
-   0x18: SUB       
-   0x19: SWAP1     
-   0x1a: CALLVALUE 
-   0x1b: DUP7      
-   0x1c: GAS       
-   0x1d: CALL      
-   0x1e: DUP2      
-   0x1f: MSTORE8   
-   0x20: RETURNDATASIZE
-   0x21: DUP2      
-   0x22: PUSH1     0x1
-   0x24: RETURNDATACOPY
-   0x25: RETURNDATASIZE
-   0x26: PUSH1     0x1
-   0x28: ADD       
-   0x29: DUP2      
-   0x2a: RETURN    
+    0xe: PUSH2     callLength
+   0x11: PUSH2     callDataOffset
+   0x14: CALLVALUE
+   0x15: DUP7
+   0x16: GAS
+   0x17: CALL
+   0x18: DUP2
+   0x19: MSTORE8
+   0x1a: RETURNDATASIZE
+   0x1b: DUP2
+   0x1c: PUSH1     0x1
+   0x1e: RETURNDATACOPY
+   0x1f: RETURNDATASIZE
+   0x20: PUSH1     0x1
+   0x22: ADD
+   0x23: DUP2
+   0x24: RETURN

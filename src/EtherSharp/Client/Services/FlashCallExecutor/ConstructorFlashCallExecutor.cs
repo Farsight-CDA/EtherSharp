@@ -4,18 +4,15 @@ using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Buffers;
-using System.Buffers.Binary;
+using System.Numerics;
 
 namespace EtherSharp.Client.Services.FlashCallExecutor;
 
 internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, CallGasLimitSettings callGasLimitSettings) : IFlashCallExecutor
 {
-    private static readonly byte[] _flashCallContractUnlimited = Convert.FromHexString(
-        "383d3d39602b5160f01c80602d3df03d3d3d84602d018038039034865af181533d8160013e3d60010181f3");
-
-    private static readonly byte[] _flashCallContract = Convert.FromHexString(
-        "383d3d396035518060b01c61ffff169060c01c81603f3df0903d3d3d85603f0180380390348787f181533d8160013e3d60010181f3");
-
+    private const int FIXED_HELPER_LENGTH = 27;
+    private const int MAX_UNLIMITED_HELPER_LENGTH = 37;
+    private const int MAX_LIMITED_HELPER_LENGTH = 45;
     private const int MAX_RUNTIMECODE_SIZE = 24 * 1024;
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
@@ -28,8 +25,8 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
 
     public int GetMaxPayloadSize(ulong flashCallGasLimit, TargetHeight targetHeight)
         => ResolveFlashCallGasLimit(flashCallGasLimit) == 0
-            ? EVMByteCode.MAX_INIT_LENGTH - 2 - _flashCallContractUnlimited.Length
-            : EVMByteCode.MAX_INIT_LENGTH - 10 - _flashCallContract.Length;
+            ? EVMByteCode.MAX_INIT_LENGTH - MAX_UNLIMITED_HELPER_LENGTH
+            : EVMByteCode.MAX_INIT_LENGTH - MAX_LIMITED_HELPER_LENGTH;
 
     public int GetMaxResultSize(TargetHeight targetHeight)
         => MAX_RUNTIMECODE_SIZE;
@@ -48,37 +45,23 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
             throw new NotSupportedException("Contract deployment cannot contain any value");
         }
 
-        bool useUnlimitedPayload = flashCallGasLimit == 0;
-        int prefixLength = useUnlimitedPayload ? 2 : 10;
-        byte[] contract = useUnlimitedPayload ? _flashCallContractUnlimited : _flashCallContract;
-        int argsLength = prefixLength + deployment.Data.Length + call.Data.Length;
+        int helperLength = GetHelperLength(deployment.Data.Length, call.Data.Length, flashCallGasLimit);
+        int argsLength = deployment.Data.Length + call.Data.Length;
 
-        if(argsLength + contract.Length > EVMByteCode.MAX_INIT_LENGTH)
+        if(argsLength + helperLength > EVMByteCode.MAX_INIT_LENGTH)
         {
-            throw new InvalidOperationException($"Maximum call length exceeded, {argsLength + contract.Length} > {EVMByteCode.MAX_INIT_LENGTH}");
+            throw new InvalidOperationException($"Maximum call length exceeded, {argsLength + helperLength} > {EVMByteCode.MAX_INIT_LENGTH}");
         }
 
-        int payloadLength = contract.Length + argsLength;
+        int payloadLength = helperLength + argsLength;
         byte[] rented = ArrayPool<byte>.Shared.Rent(payloadLength);
         var payload = rented.AsMemory(0, payloadLength);
-        contract.CopyTo(payload);
-        var buffer = payload.Span[contract.Length..];
 
         try
         {
-            if(useUnlimitedPayload)
-            {
-                BinaryPrimitives.WriteUInt16BigEndian(buffer, (ushort) deployment.Data.Length);
-                deployment.Data.Span.CopyTo(buffer[2..]);
-                call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 2)..]);
-            }
-            else
-            {
-                BinaryPrimitives.WriteUInt64BigEndian(buffer, flashCallGasLimit);
-                BinaryPrimitives.WriteUInt16BigEndian(buffer[8..], (ushort) deployment.Data.Length);
-                deployment.Data.Span.CopyTo(buffer[10..]);
-                call.Data.Span.CopyTo(buffer[(deployment.Data.Length + 10)..]);
-            }
+            WriteHelper(payload.Span, helperLength, deployment.Data.Length, call.Data.Length, flashCallGasLimit);
+            deployment.Data.Span.CopyTo(payload.Span[helperLength..]);
+            call.Data.Span.CopyTo(payload.Span[(helperLength + deployment.Data.Length)..]);
 
             var result = await _ethRpcModule.CallAsync(
                 null,
@@ -109,5 +92,95 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
         {
             ArrayPool<byte>.Shared.Return(rented);
         }
+    }
+
+    private static int GetHelperLength(int deploymentLength, int callLength, ulong flashCallGasLimit)
+    {
+        int gasInstructionLength = flashCallGasLimit == 0
+            ? 1
+            : GetPushInstructionLength(flashCallGasLimit);
+        int helperLength = FIXED_HELPER_LENGTH
+            + GetPushInstructionLength((ulong) deploymentLength)
+            + GetPushInstructionLength((ulong) callLength)
+            + 2
+            + gasInstructionLength;
+
+        return helperLength + GetPushInstructionLength((ulong) (helperLength + deploymentLength)) - 2;
+    }
+
+    private static int GetPushInstructionLength(ulong value)
+        => value == 0
+            ? 1
+            : (BitOperations.Log2(value) / 8) + 2;
+
+    private static void WriteHelper(
+        Span<byte> destination,
+        int helperLength,
+        int deploymentLength,
+        int callLength,
+        ulong flashCallGasLimit)
+    {
+        int offset = 0;
+
+        destination[offset++] = 0x38; // CODESIZE
+        destination[offset++] = 0x3D; // RETURNDATASIZE
+        destination[offset++] = 0x3D; // RETURNDATASIZE
+        destination[offset++] = 0x39; // CODECOPY
+        offset = WritePush(destination, offset, (ulong) deploymentLength);
+        destination[offset++] = 0x60; // PUSH1
+        destination[offset++] = (byte) helperLength;
+        destination[offset++] = 0x3D; // RETURNDATASIZE
+        destination[offset++] = 0xF0; // CREATE
+        destination[offset++] = 0x3D; // RETURNDATASIZE
+        destination[offset++] = 0x3D; // RETURNDATASIZE
+        destination[offset++] = 0x3D; // RETURNDATASIZE
+        offset = WritePush(destination, offset, (ulong) callLength);
+        offset = WritePush(destination, offset, (ulong) (helperLength + deploymentLength));
+        destination[offset++] = 0x34; // CALLVALUE
+        destination[offset++] = 0x86; // DUP7
+
+        if(flashCallGasLimit == 0)
+        {
+            destination[offset++] = 0x5A; // GAS
+        }
+        else
+        {
+            offset = WritePush(destination, offset, flashCallGasLimit);
+        }
+
+        destination[offset++] = 0xF1; // CALL
+        destination[offset++] = 0x81; // DUP2
+        destination[offset++] = 0x53; // MSTORE8
+        destination[offset++] = 0x3D; // RETURNDATASIZE
+        destination[offset++] = 0x81; // DUP2
+        destination[offset++] = 0x60; // PUSH1
+        destination[offset++] = 0x01;
+        destination[offset++] = 0x3E; // RETURNDATACOPY
+        destination[offset++] = 0x3D; // RETURNDATASIZE
+        destination[offset++] = 0x60; // PUSH1
+        destination[offset++] = 0x01;
+        destination[offset++] = 0x01; // ADD
+        destination[offset++] = 0x81; // DUP2
+        destination[offset++] = 0xF3; // RETURN
+    }
+
+    private static int WritePush(Span<byte> destination, int offset, ulong value)
+    {
+        if(value == 0)
+        {
+            destination[offset] = 0x3D; // RETURNDATASIZE
+            return offset + 1;
+        }
+
+        int valueLength = GetPushInstructionLength(value) - 1;
+        destination[offset] = (byte) (0x5F + valueLength);
+
+        for(int i = valueLength; i > 0; i--)
+        {
+            destination[offset + i] = (byte) value;
+            value >>= 8;
+        }
+
+        return offset + valueLength + 1;
     }
 }
