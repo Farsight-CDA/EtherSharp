@@ -396,23 +396,11 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         return _ethRpcModule.MaxPriorityFeePerGasAsync(cancellationToken);
     }
 
-    Task<ulong> IEtherClient.EstimateGasLimitAsync(ITxInput call, Address? from, CancellationToken cancellationToken)
-    {
-        AssertReady();
-
-        if(from is null && _options.IsTxClient)
-        {
-            from = _signer.Address;
-        }
-
-        return _ethRpcModule.EstimateGasAsync(
-            from, call.To, call.Value, call.Data, null, cancellationToken: cancellationToken);
-    }
-
     Task<ulong> IEtherClient.EstimateGasLimitAsync(
         ITxInput call,
         Address? from,
-        IReadOnlyDictionary<Address, StateOverride> stateOverrides,
+        IReadOnlyDictionary<Address, StateOverride>? stateOverrides,
+        BlockOverride? blockOverrides,
         CancellationToken cancellationToken)
     {
         AssertReady();
@@ -423,7 +411,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         }
 
         return _ethRpcModule.EstimateGasAsync(
-            from, call.To, call.Value, call.Data, null, stateOverrides, cancellationToken);
+            from, call.To, call.Value, call.Data, null, stateOverrides, blockOverrides, cancellationToken);
     }
 
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
@@ -441,31 +429,12 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     TContract IEtherClient.Contract<TContract>(in Address address)
         => Contract<TContract>(in address);
 
-    public async Task<CallResult<T>> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, Address? from, CancellationToken cancellationToken)
-    {
-        AssertReady();
-
-        Address? sender = from ?? (_options.IsTxClient ? _signer.Address : default);
-
-        var result = await _ethRpcModule.CallAsync(
-            sender,
-            call.To,
-            null,
-            null,
-            call.Value,
-            call.Data,
-            targetHeight,
-            cancellationToken: cancellationToken
-        );
-
-        return CallResult<T>.ParseFrom(result, call.To, call.ReadResultFrom);
-    }
-
     public async Task<CallResult<T>> SafeCallAsync<T>(
         ITxInput<T> call,
-        IReadOnlyDictionary<Address, StateOverride> stateOverrides,
         TargetHeight targetHeight,
         Address? from,
+        IReadOnlyDictionary<Address, StateOverride>? stateOverrides,
+        BlockOverride? blockOverrides,
         CancellationToken cancellationToken)
     {
         AssertReady();
@@ -481,26 +450,22 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             call.Data,
             targetHeight,
             stateOverrides,
+            blockOverrides,
             cancellationToken
         );
 
         return CallResult<T>.ParseFrom(result, call.To, call.ReadResultFrom);
     }
 
-    async Task<T> IEtherClient.CallAsync<T>(ITxInput<T> call, TargetHeight targetHeight, Address? from, CancellationToken cancellationToken)
-    {
-        var result = await SafeCallAsync(call, targetHeight, from, cancellationToken);
-        return result.Unwrap();
-    }
-
     async Task<T> IEtherClient.CallAsync<T>(
         ITxInput<T> call,
-        IReadOnlyDictionary<Address, StateOverride> stateOverrides,
         TargetHeight targetHeight,
         Address? from,
+        IReadOnlyDictionary<Address, StateOverride>? stateOverrides,
+        BlockOverride? blockOverrides,
         CancellationToken cancellationToken)
     {
-        var result = await SafeCallAsync(call, stateOverrides, targetHeight, from, cancellationToken);
+        var result = await SafeCallAsync(call, targetHeight, from, stateOverrides, blockOverrides, cancellationToken);
         return result.Unwrap();
     }
 

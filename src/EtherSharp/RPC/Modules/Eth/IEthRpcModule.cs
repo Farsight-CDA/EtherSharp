@@ -21,11 +21,12 @@ public interface IEthRpcModule
     public Task<ulong> BlockNumberAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Estimates gas for a transaction call, optionally applying state overrides.
+    /// Estimates gas for a transaction call, optionally applying state and block overrides.
     /// </summary>
     public Task<ulong> EstimateGasAsync(
         Address? from, Address? to, UInt256 value, ReadOnlyMemory<byte> data,
         StateAccess[]? accessList, IReadOnlyDictionary<Address, StateOverride>? stateOverrides = null,
+        BlockOverride? blockOverrides = null,
         CancellationToken cancellationToken = default
     );
 
@@ -68,11 +69,12 @@ public interface IEthRpcModule
     );
 
     /// <summary>
-    /// Executes a read-only call, optionally applying state overrides.
+    /// Executes a read-only call, optionally applying state and block overrides.
     /// </summary>
     public Task<TxCallResult> CallAsync(
         Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         TargetHeight blockNumber, IReadOnlyDictionary<Address, StateOverride>? stateOverrides = null,
+        BlockOverride? blockOverrides = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

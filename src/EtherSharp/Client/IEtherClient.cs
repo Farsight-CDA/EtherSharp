@@ -201,54 +201,36 @@ public interface IEtherClient : IAsyncDisposable
         where TContract : IEVMContract;
 
     /// <summary>
-    /// Executes a safe call that captures success/failure status and return data.
+    /// Executes a safe call with optional state and block overrides that captures success/failure status and return data.
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="call">Call input definition.</param>
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="from">Optional sender address. If null, uses the signer address for transaction clients.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
-    public Task<CallResult<T>> SafeCallAsync<T>(ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Executes a safe call with state overrides that captures success/failure status and return data.
-    /// </summary>
-    /// <typeparam name="T">Expected decoded return type.</typeparam>
-    /// <param name="call">Call input definition.</param>
-    /// <param name="stateOverrides">State overrides applied during execution.</param>
-    /// <param name="targetHeight">Target block context.</param>
-    /// <param name="from">Optional sender address. If null, uses the signer address for transaction clients.</param>
+    /// <param name="stateOverrides">Optional state overrides applied during execution.</param>
+    /// <param name="blockOverrides">Optional block overrides applied during execution.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
     public Task<CallResult<T>> SafeCallAsync<T>(
-        ITxInput<T> call, IReadOnlyDictionary<Address, StateOverride> stateOverrides,
-        TargetHeight targetHeight = default, Address? from = null, CancellationToken cancellationToken = default);
+        ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null,
+        IReadOnlyDictionary<Address, StateOverride>? stateOverrides = null, BlockOverride? blockOverrides = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes a read-only call and returns the decoded result.
+    /// Executes a read-only call with optional state and block overrides and returns the decoded result.
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="call">Call input definition.</param>
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="from">Optional sender address. If null, uses the signer address for transaction clients.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The decoded call result.</returns>
-    public Task<T> CallAsync<T>(ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Executes a read-only call with state overrides and returns the decoded result.
-    /// </summary>
-    /// <typeparam name="T">Expected decoded return type.</typeparam>
-    /// <param name="call">Call input definition.</param>
-    /// <param name="stateOverrides">State overrides applied during execution.</param>
-    /// <param name="targetHeight">Target block context.</param>
-    /// <param name="from">Optional sender address. If null, uses the signer address for transaction clients.</param>
+    /// <param name="stateOverrides">Optional state overrides applied during execution.</param>
+    /// <param name="blockOverrides">Optional block overrides applied during execution.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
     public Task<T> CallAsync<T>(
-        ITxInput<T> call, IReadOnlyDictionary<Address, StateOverride> stateOverrides,
-        TargetHeight targetHeight = default, Address? from = null, CancellationToken cancellationToken = default);
+        ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null,
+        IReadOnlyDictionary<Address, StateOverride>? stateOverrides = null, BlockOverride? blockOverrides = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes a safe flash-call against a temporary deployment and captures success/failure details.
@@ -313,24 +295,17 @@ public interface IEtherClient : IAsyncDisposable
     public void SetDefaultCallGasLimits(ulong? ethCallGasLimit, ulong? flashCallGasLimit);
 
     /// <summary>
-    /// Estimates the gas limit required to execute a transaction call.
+    /// Estimates the gas limit required to execute a transaction call with optional state and block overrides.
     /// </summary>
     /// <param name="call">Transaction call definition.</param>
     /// <param name="from">Optional sender address override.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Estimated gas limit.</returns>
-    public Task<ulong> EstimateGasLimitAsync(ITxInput call, Address? from = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Estimates the gas limit required to execute a transaction call with state overrides.
-    /// </summary>
-    /// <param name="call">Transaction call definition.</param>
-    /// <param name="from">Optional sender address override.</param>
-    /// <param name="stateOverrides">State overrides applied during estimation.</param>
+    /// <param name="stateOverrides">Optional state overrides applied during estimation.</param>
+    /// <param name="blockOverrides">Optional block overrides applied during estimation.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Estimated gas limit.</returns>
     public Task<ulong> EstimateGasLimitAsync(
-        ITxInput call, Address? from, IReadOnlyDictionary<Address, StateOverride> stateOverrides,
+        ITxInput call, Address? from = null, IReadOnlyDictionary<Address, StateOverride>? stateOverrides = null,
+        BlockOverride? blockOverrides = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

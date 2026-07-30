@@ -376,11 +376,11 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                             return _client.CallAsync(
                                 {contractName}.Functions.{functionTypeName}.Create(
                                 Address{(inputNameList.Count > 0 ? "," : "")}
-                                {String.Join(",", inputNameList)}), 
-                                targetHeight,
-                                from,
-                                cancellationToken
-                            )
+                                 {String.Join(",", inputNameList)}),
+                                 targetHeight,
+                                 from,
+                                 cancellationToken: cancellationToken
+                             )
                             """
                         );
                 }

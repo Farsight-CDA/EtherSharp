@@ -73,15 +73,21 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
     public async Task<TxCallResult> CallAsync(
         Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         TargetHeight targetHeight, IReadOnlyDictionary<Address, StateOverride>? stateOverrides,
+        BlockOverride? blockOverrides,
         CancellationToken cancellationToken)
     {
         var transaction = new TransactionCall(from, to, gas ?? _callGasLimitSettings.GetEthCallGasLimit(), gasPrice, value, data);
 
-        var result = stateOverrides is null
-            ? await _rpcClient.SendRpcRequestAsync<TransactionCall, TargetHeight, byte[]>(
-                "eth_call", transaction, targetHeight, targetHeight, cancellationToken)
-            : await _rpcClient.SendRpcRequestAsync<TransactionCall, TargetHeight, IReadOnlyDictionary<Address, StateOverride>, byte[]>(
-                "eth_call", transaction, targetHeight, stateOverrides, targetHeight, cancellationToken);
+        var result = (stateOverrides, blockOverrides) switch
+        {
+            (_, not null) => await _rpcClient.SendRpcRequestAsync<TransactionCall, TargetHeight, IReadOnlyDictionary<Address, StateOverride>?, BlockOverride, byte[]>(
+                "eth_call", transaction, targetHeight, stateOverrides, blockOverrides, targetHeight, cancellationToken),
+            (not null, null) => await _rpcClient.SendRpcRequestAsync<TransactionCall, TargetHeight, IReadOnlyDictionary<Address, StateOverride>, byte[]>(
+                "eth_call", transaction, targetHeight, stateOverrides, targetHeight, cancellationToken),
+            _ => await _rpcClient.SendRpcRequestAsync<TransactionCall, TargetHeight, byte[]>(
+                "eth_call", transaction, targetHeight, targetHeight, cancellationToken),
+        };
+
         return TxCallResult.ParseFrom(result);
     }
 
@@ -134,15 +140,21 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
     public async Task<ulong> EstimateGasAsync(
         Address? from, Address? to, UInt256 value, ReadOnlyMemory<byte> data,
         StateAccess[]? accessList, IReadOnlyDictionary<Address, StateOverride>? stateOverrides,
+        BlockOverride? blockOverrides,
         CancellationToken cancellationToken)
     {
         var rpcAccessList = accessList?.Select(x => new EstimateGasAccess(x.Address, x.StorageKeys)).ToArray();
         var transaction = new EstimateGasRequest(from, to, value, data, rpcAccessList);
-        var response = stateOverrides is null
-            ? await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, ulong>(
-                "eth_estimateGas", transaction, TargetHeight.Latest, cancellationToken)
-            : await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, TargetHeight, IReadOnlyDictionary<Address, StateOverride>, ulong>(
-                "eth_estimateGas", transaction, TargetHeight.Latest, stateOverrides, TargetHeight.Latest, cancellationToken);
+        var response = (stateOverrides, blockOverrides) switch
+        {
+            (_, not null) => await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, TargetHeight, IReadOnlyDictionary<Address, StateOverride>?, BlockOverride, ulong>(
+                "eth_estimateGas", transaction, TargetHeight.Latest, stateOverrides, blockOverrides, TargetHeight.Latest, cancellationToken),
+            (not null, null) => await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, TargetHeight, IReadOnlyDictionary<Address, StateOverride>, ulong>(
+                "eth_estimateGas", transaction, TargetHeight.Latest, stateOverrides, TargetHeight.Latest, cancellationToken),
+            _ => await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, ulong>(
+                "eth_estimateGas", transaction, TargetHeight.Latest, cancellationToken),
+        };
+
         return response switch
         {
             RpcResult<ulong>.Success result => result.Result,
