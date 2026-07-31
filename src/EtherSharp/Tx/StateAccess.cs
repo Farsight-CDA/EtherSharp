@@ -1,4 +1,6 @@
 ﻿using EtherSharp.Types;
+using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace EtherSharp.Tx;
 
@@ -12,6 +14,18 @@ public sealed record StateAccess
     /// </summary>
     /// <param name="address">The contract address whose storage is accessed.</param>
     /// <param name="storageKeys">The storage slot keys accessed for <paramref name="address"/>.</param>
+    [JsonConstructor]
+    public StateAccess(Address address, Bytes32[] storageKeys)
+        : this(in address, storageKeys)
+    {
+    }
+
+    /// <summary>
+    /// Creates a new state access descriptor using a readonly reference to the address.
+    /// </summary>
+    /// <param name="address">The contract address whose storage is accessed.</param>
+    /// <param name="storageKeys">The storage slot keys accessed for <paramref name="address"/>.</param>
+    [OverloadResolutionPriority(1)]
     public StateAccess(in Address address, Bytes32[] storageKeys)
     {
         Address = address;
