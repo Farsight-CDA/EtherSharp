@@ -35,7 +35,7 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
         IContractDeployment deployment,
         IFlashCall call,
         ulong flashCallGasLimit,
-        TargetHeight targetHeight,
+        CallOptions options,
         CancellationToken cancellationToken)
     {
         flashCallGasLimit = ResolveFlashCallGasLimit(flashCallGasLimit);
@@ -69,8 +69,8 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
                 null,
                 call.Value,
                 payload,
-                targetHeight,
-                cancellationToken: cancellationToken
+                options,
+                cancellationToken
             );
 
             if(!result.Success)

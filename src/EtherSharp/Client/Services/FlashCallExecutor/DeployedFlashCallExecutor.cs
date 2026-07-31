@@ -49,10 +49,11 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
         IContractDeployment deployment,
         IFlashCall call,
         ulong flashCallGasLimit,
-        TargetHeight targetHeight,
+        CallOptions options,
         CancellationToken cancellationToken)
     {
         flashCallGasLimit = ResolveFlashCallGasLimit(flashCallGasLimit);
+        var targetHeight = options.TargetHeight;
 
         if(deployment.Value > 0)
         {
@@ -61,14 +62,14 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
 
         if(_deploymentHeight is null)
         {
-            return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
+            return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, options, cancellationToken);
         }
 
         if(targetHeight.Value > 0 && targetHeight.Value < _deploymentHeight.Value)
         {
             return !_configuration.AllowFallback
                 ? throw new InvalidOperationException($"Missing FlashCall contract deployment at height {targetHeight.Value}")
-                : await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
+                : await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, options, cancellationToken);
         }
 
         int argsLength = 10 + deployment.Data.Length + call.Data.Length;
@@ -89,8 +90,8 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
                 null,
                 call.Value,
                 payload,
-                targetHeight,
-                cancellationToken: cancellationToken
+                options,
+                cancellationToken
             );
 
             if(!result.Success)

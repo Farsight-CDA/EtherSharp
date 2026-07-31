@@ -21,7 +21,7 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
     public async Task<TQuery> ExecuteQueryAsync<TQuery>(
         IQuery<TQuery> query,
         ulong flashCallGasLimit,
-        TargetHeight targetHeight,
+        CallOptions options,
         CancellationToken cancellationToken)
     {
         var buffer = ReadOnlyMemory<byte>.Empty;
@@ -29,7 +29,7 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
         int requestCount = 0;
 
         bool supportsCancun = _client.IsInitialized && _client.CompatibilityReport is not null && _client.CompatibilityReport.SupportsPush0;
-        var querierDeployment = !supportsCancun || targetHeight.Value != 0 || targetHeight == TargetHeight.Earliest
+        var querierDeployment = !supportsCancun || options.TargetHeight.Value != 0 || options.TargetHeight == TargetHeight.Earliest
             ? _londonDeployment
             : _cancunDeployment;
 
@@ -44,8 +44,8 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
                     querierDeployment.ByteCode,
                     query.Queries,
                     i,
-                    _flashCallExecutor.GetMaxPayloadSize(flashCallGasLimit, targetHeight),
-                    _flashCallExecutor.GetMaxResultSize(targetHeight),
+                    _flashCallExecutor.GetMaxPayloadSize(flashCallGasLimit, options.TargetHeight),
+                    _flashCallExecutor.GetMaxResultSize(options.TargetHeight),
                     out int payloadSize,
                     out int callCount,
                     out var ethValue
@@ -62,7 +62,7 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
                         querierDeployment,
                         IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
                         flashCallGasLimit,
-                        targetHeight,
+                        options,
                         cancellationToken
                     );
 

@@ -29,14 +29,14 @@ public interface IFlashCallExecutor
     /// <param name="deployment">The deployment descriptor of the helper contract used for flash execution.</param>
     /// <param name="call">The flash-call payload to execute.</param>
     /// <param name="flashCallGasLimit">The optional gas cap forwarded from the flash helper into the deployed contract call.</param>
-    /// <param name="targetHeight">The block number to execute the call against.</param>
+    /// <param name="options">The call execution context.</param>
     /// <param name="cancellationToken">A token used to cancel the underlying RPC request.</param>
     /// <returns>The execution result containing call success state and returned bytes.</returns>
     public Task<TxCallResult> ExecuteFlashCallAsync(
         IContractDeployment deployment,
         IFlashCall call,
         ulong flashCallGasLimit,
-        TargetHeight targetHeight,
+        CallOptions options,
         CancellationToken cancellationToken
     );
 }

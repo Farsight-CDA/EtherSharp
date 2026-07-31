@@ -57,13 +57,13 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="T1">Result type of the query.</typeparam>
     /// <param name="c1">Query to execute.</param>
     /// <param name="flashCallGasLimit">Optional gas cap applied to any flash-call helper execution performed while evaluating the query. A value of <c>0</c> uses the current client default configured by <c>WithCallGasLimits</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
-    /// <param name="targetHeight">Target block context for query execution.</param>
+    /// <param name="options">Query call execution options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The query result.</returns>
     public Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
         ulong flashCallGasLimit = 0,
-        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -74,13 +74,13 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="c1">First query.</param>
     /// <param name="c2">Second query.</param>
     /// <param name="flashCallGasLimit">Optional gas cap applied to any flash-call helper execution performed while evaluating the query. A value of <c>0</c> uses the current client default configured by <c>WithCallGasLimits</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
-    /// <param name="targetHeight">Target block context for query execution.</param>
+    /// <param name="options">Query call execution options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A tuple containing both query results.</returns>
     public Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
         ulong flashCallGasLimit = 0,
-        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -89,7 +89,7 @@ public interface IEtherClient : IAsyncDisposable
     public Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
         ulong flashCallGasLimit = 0,
-        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -98,7 +98,7 @@ public interface IEtherClient : IAsyncDisposable
     public Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
         ulong flashCallGasLimit = 0,
-        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -107,7 +107,7 @@ public interface IEtherClient : IAsyncDisposable
     public Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
         ulong flashCallGasLimit = 0,
-        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
