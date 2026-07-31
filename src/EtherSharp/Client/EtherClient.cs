@@ -399,7 +399,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     Task<ulong> IEtherClient.EstimateGasLimitAsync(
         ITxInput call,
         Address? from,
-        IReadOnlyDictionary<Address, StateOverride>? stateOverrides,
+        IReadOnlyDictionary<Address, AccountOverride>? stateOverrides,
         BlockOverride? blockOverrides,
         CancellationToken cancellationToken)
     {
@@ -433,7 +433,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         ITxInput<T> call,
         TargetHeight targetHeight,
         Address? from,
-        IReadOnlyDictionary<Address, StateOverride>? stateOverrides,
+        IReadOnlyDictionary<Address, AccountOverride>? stateOverrides,
         BlockOverride? blockOverrides,
         CancellationToken cancellationToken)
     {
@@ -461,7 +461,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         ITxInput<T> call,
         TargetHeight targetHeight,
         Address? from,
-        IReadOnlyDictionary<Address, StateOverride>? stateOverrides,
+        IReadOnlyDictionary<Address, AccountOverride>? stateOverrides,
         BlockOverride? blockOverrides,
         CancellationToken cancellationToken)
     {

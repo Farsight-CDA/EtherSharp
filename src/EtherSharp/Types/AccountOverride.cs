@@ -5,7 +5,7 @@ namespace EtherSharp.Types;
 /// <summary>
 /// Describes a single account entry in an <c>eth_call</c> state override set.
 /// </summary>
-public sealed record StateOverride
+public sealed record AccountOverride
 {
     /// <summary>
     /// Gets the account balance override.
@@ -36,7 +36,7 @@ public sealed record StateOverride
     /// Initializes an account state override.
     /// </summary>
     /// <exception cref="ArgumentException"><paramref name="state"/> and <paramref name="stateDiff"/> are both specified.</exception>
-    public StateOverride(
+    public AccountOverride(
         UInt256? balance = null,
         ulong? nonce = null,
         ReadOnlyMemory<byte>? code = null,

@@ -25,7 +25,7 @@ public interface IEthRpcModule
     /// </summary>
     public Task<ulong> EstimateGasAsync(
         Address? from, Address? to, UInt256 value, ReadOnlyMemory<byte> data,
-        StateAccess[]? accessList, IReadOnlyDictionary<Address, StateOverride>? stateOverrides = null,
+        StateAccess[]? accessList, IReadOnlyDictionary<Address, AccountOverride>? stateOverrides = null,
         BlockOverride? blockOverrides = null,
         CancellationToken cancellationToken = default
     );
@@ -73,7 +73,7 @@ public interface IEthRpcModule
     /// </summary>
     public Task<TxCallResult> CallAsync(
         Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
-        TargetHeight blockNumber, IReadOnlyDictionary<Address, StateOverride>? stateOverrides = null,
+        TargetHeight blockNumber, IReadOnlyDictionary<Address, AccountOverride>? stateOverrides = null,
         BlockOverride? blockOverrides = null,
         CancellationToken cancellationToken = default);
 

@@ -213,7 +213,7 @@ public interface IEtherClient : IAsyncDisposable
     /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
     public Task<CallResult<T>> SafeCallAsync<T>(
         ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null,
-        IReadOnlyDictionary<Address, StateOverride>? stateOverrides = null, BlockOverride? blockOverrides = null,
+        IReadOnlyDictionary<Address, AccountOverride>? stateOverrides = null, BlockOverride? blockOverrides = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -229,7 +229,7 @@ public interface IEtherClient : IAsyncDisposable
     /// <returns>The decoded call result.</returns>
     public Task<T> CallAsync<T>(
         ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null,
-        IReadOnlyDictionary<Address, StateOverride>? stateOverrides = null, BlockOverride? blockOverrides = null,
+        IReadOnlyDictionary<Address, AccountOverride>? stateOverrides = null, BlockOverride? blockOverrides = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -304,7 +304,7 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Estimated gas limit.</returns>
     public Task<ulong> EstimateGasLimitAsync(
-        ITxInput call, Address? from = null, IReadOnlyDictionary<Address, StateOverride>? stateOverrides = null,
+        ITxInput call, Address? from = null, IReadOnlyDictionary<Address, AccountOverride>? stateOverrides = null,
         BlockOverride? blockOverrides = null,
         CancellationToken cancellationToken = default);
 
