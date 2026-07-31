@@ -201,36 +201,46 @@ public interface IEtherClient : IAsyncDisposable
         where TContract : IEVMContract;
 
     /// <summary>
-    /// Executes a safe call with optional state and block overrides that captures success/failure status and return data.
+    /// Executes a safe call using the default execution context and captures success/failure status and return data.
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="call">Call input definition.</param>
-    /// <param name="targetHeight">Target block context.</param>
-    /// <param name="from">Optional sender address. If null, uses the signer address for transaction clients.</param>
-    /// <param name="stateOverrides">Optional state overrides applied during execution.</param>
-    /// <param name="blockOverrides">Optional block overrides applied during execution.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
+    public Task<CallResult<T>> SafeCallAsync<T>(ITxInput<T> call, CancellationToken cancellationToken = default)
+        => SafeCallAsync(call, default, cancellationToken);
+
+    /// <summary>
+    /// Executes a safe call using the specified execution context and captures success/failure status and return data.
+    /// </summary>
+    /// <typeparam name="T">Expected decoded return type.</typeparam>
+    /// <param name="call">Call input definition.</param>
+    /// <param name="options">Call execution options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
     public Task<CallResult<T>> SafeCallAsync<T>(
-        ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null,
-        IReadOnlyDictionary<Address, AccountOverride>? stateOverrides = null, BlockOverride? blockOverrides = null,
-        CancellationToken cancellationToken = default);
+        ITxInput<T> call, in CallOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes a read-only call with optional state and block overrides and returns the decoded result.
+    /// Executes a read-only call using the default execution context and returns the decoded result.
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="call">Call input definition.</param>
-    /// <param name="targetHeight">Target block context.</param>
-    /// <param name="from">Optional sender address. If null, uses the signer address for transaction clients.</param>
-    /// <param name="stateOverrides">Optional state overrides applied during execution.</param>
-    /// <param name="blockOverrides">Optional block overrides applied during execution.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The decoded call result.</returns>
+    public Task<T> CallAsync<T>(ITxInput<T> call, CancellationToken cancellationToken = default)
+        => CallAsync(call, default, cancellationToken);
+
+    /// <summary>
+    /// Executes a read-only call using the specified execution context and returns the decoded result.
+    /// </summary>
+    /// <typeparam name="T">Expected decoded return type.</typeparam>
+    /// <param name="call">Call input definition.</param>
+    /// <param name="options">Call execution options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
     public Task<T> CallAsync<T>(
-        ITxInput<T> call, TargetHeight targetHeight = default, Address? from = null,
-        IReadOnlyDictionary<Address, AccountOverride>? stateOverrides = null, BlockOverride? blockOverrides = null,
-        CancellationToken cancellationToken = default);
+        ITxInput<T> call, in CallOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes a safe flash-call against a temporary deployment and captures success/failure details.
@@ -295,18 +305,23 @@ public interface IEtherClient : IAsyncDisposable
     public void SetDefaultCallGasLimits(ulong? ethCallGasLimit, ulong? flashCallGasLimit);
 
     /// <summary>
-    /// Estimates the gas limit required to execute a transaction call with optional state and block overrides.
+    /// Estimates the gas limit required to execute a transaction call using the default execution context.
     /// </summary>
     /// <param name="call">Transaction call definition.</param>
-    /// <param name="from">Optional sender address override.</param>
-    /// <param name="stateOverrides">Optional state overrides applied during estimation.</param>
-    /// <param name="blockOverrides">Optional block overrides applied during estimation.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Estimated gas limit.</returns>
+    public Task<ulong> EstimateGasLimitAsync(ITxInput call, CancellationToken cancellationToken = default)
+        => EstimateGasLimitAsync(call, default, cancellationToken);
+
+    /// <summary>
+    /// Estimates the gas limit required to execute a transaction call using the specified execution context.
+    /// </summary>
+    /// <param name="call">Transaction call definition.</param>
+    /// <param name="options">Call execution options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Estimated gas limit.</returns>
     public Task<ulong> EstimateGasLimitAsync(
-        ITxInput call, Address? from = null, IReadOnlyDictionary<Address, AccountOverride>? stateOverrides = null,
-        BlockOverride? blockOverrides = null,
-        CancellationToken cancellationToken = default);
+        ITxInput call, in CallOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Estimates EIP-1559 gas parameters for a transaction call.

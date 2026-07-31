@@ -242,7 +242,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         if(_flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor)
         {
             var deploymentHeightResult = await _ethRpcModule.CallAsync(
-                null,
                 deployedFlashCallExecutor.ContractAddress,
                 null,
                 null,
@@ -396,22 +395,18 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         return _ethRpcModule.MaxPriorityFeePerGasAsync(cancellationToken);
     }
 
-    Task<ulong> IEtherClient.EstimateGasLimitAsync(
+    public Task<ulong> EstimateGasLimitAsync(
         ITxInput call,
-        Address? from,
-        IReadOnlyDictionary<Address, AccountOverride>? stateOverrides,
-        BlockOverride? blockOverrides,
+        in CallOptions options,
         CancellationToken cancellationToken)
     {
         AssertReady();
 
-        if(from is null && _options.IsTxClient)
-        {
-            from = _signer.Address;
-        }
-
-        return _ethRpcModule.EstimateGasAsync(
-            from, call.To, call.Value, call.Data, null, stateOverrides, blockOverrides, cancellationToken);
+        return options.From is null && _options.IsTxClient
+            ? _ethRpcModule.EstimateGasAsync(
+                call.To, call.Value, call.Data, null, options with { From = _signer.Address }, cancellationToken)
+            : _ethRpcModule.EstimateGasAsync(
+                call.To, call.Value, call.Data, null, options, cancellationToken);
     }
 
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
@@ -429,44 +424,44 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     TContract IEtherClient.Contract<TContract>(in Address address)
         => Contract<TContract>(in address);
 
-    public async Task<CallResult<T>> SafeCallAsync<T>(
+    public Task<CallResult<T>> SafeCallAsync<T>(
         ITxInput<T> call,
-        TargetHeight targetHeight,
-        Address? from,
-        IReadOnlyDictionary<Address, AccountOverride>? stateOverrides,
-        BlockOverride? blockOverrides,
+        in CallOptions options,
         CancellationToken cancellationToken)
     {
         AssertReady();
 
-        Address? sender = from ?? (_options.IsTxClient ? _signer.Address : default);
+        var resultTask = options.From is null && _options.IsTxClient
+            ? _ethRpcModule.CallAsync(
+                call.To, null, null, call.Value, call.Data, options with { From = _signer.Address }, cancellationToken)
+            : _ethRpcModule.CallAsync(
+                call.To, null, null, call.Value, call.Data, options, cancellationToken);
 
-        var result = await _ethRpcModule.CallAsync(
-            sender,
-            call.To,
-            null,
-            null,
-            call.Value,
-            call.Data,
-            targetHeight,
-            stateOverrides,
-            blockOverrides,
-            cancellationToken
-        );
+        return ParseAsync(call, resultTask);
 
-        return CallResult<T>.ParseFrom(result, call.To, call.ReadResultFrom);
+        // Avoid CallOptions in the async state machine.
+        static async Task<CallResult<T>> ParseAsync(
+            ITxInput<T> call, Task<TxCallResult> resultTask)
+        {
+            var result = await resultTask;
+
+            return CallResult<T>.ParseFrom(result, call.To, call.ReadResultFrom);
+        }
     }
 
-    async Task<T> IEtherClient.CallAsync<T>(
+    public Task<T> CallAsync<T>(
         ITxInput<T> call,
-        TargetHeight targetHeight,
-        Address? from,
-        IReadOnlyDictionary<Address, AccountOverride>? stateOverrides,
-        BlockOverride? blockOverrides,
+        in CallOptions options,
         CancellationToken cancellationToken)
     {
-        var result = await SafeCallAsync(call, targetHeight, from, stateOverrides, blockOverrides, cancellationToken);
-        return result.Unwrap();
+        return UnwrapAsync(SafeCallAsync(call, options, cancellationToken));
+
+        // Avoid CallOptions in the async state machine.
+        static async Task<T> UnwrapAsync(Task<CallResult<T>> resultTask)
+        {
+            var result = await resultTask;
+            return result.Unwrap();
+        }
     }
 
     public async Task<CallResult<T>> SafeFlashCallAsync<T>(

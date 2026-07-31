@@ -1,4 +1,5 @@
-﻿using EtherSharp.Client.Services.TxPublisher;
+﻿using EtherSharp.Client;
+using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Numerics;
 using EtherSharp.Tx;
 using EtherSharp.Types;
@@ -24,11 +25,8 @@ public interface IEthRpcModule
     /// Estimates gas for a transaction call, optionally applying state and block overrides.
     /// </summary>
     public Task<ulong> EstimateGasAsync(
-        Address? from, Address? to, UInt256 value, ReadOnlyMemory<byte> data,
-        StateAccess[]? accessList, IReadOnlyDictionary<Address, AccountOverride>? stateOverrides = null,
-        BlockOverride? blockOverrides = null,
-        CancellationToken cancellationToken = default
-    );
+        Address? to, UInt256 value, ReadOnlyMemory<byte> data, StateAccess[]? accessList,
+        in CallOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets a block by number with transaction hashes only.
@@ -72,9 +70,8 @@ public interface IEthRpcModule
     /// Executes a read-only call, optionally applying state and block overrides.
     /// </summary>
     public Task<TxCallResult> CallAsync(
-        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
-        TargetHeight blockNumber, IReadOnlyDictionary<Address, AccountOverride>? stateOverrides = null,
-        BlockOverride? blockOverrides = null,
+        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        in CallOptions options,
         CancellationToken cancellationToken = default);
 
     /// <summary>

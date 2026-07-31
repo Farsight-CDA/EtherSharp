@@ -67,7 +67,6 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
                 null,
                 null,
                 null,
-                null,
                 call.Value,
                 payload,
                 targetHeight,

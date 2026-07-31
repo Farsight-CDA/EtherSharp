@@ -84,7 +84,6 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
             call.Data.Span.CopyTo(payload.Span[(deployment.Data.Length + 10)..]);
 
             var result = await _ethRpcModule.CallAsync(
-                null,
                 _configuration.ContractAddress,
                 null,
                 null,
