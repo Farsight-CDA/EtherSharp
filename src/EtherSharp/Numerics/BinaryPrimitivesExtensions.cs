@@ -14,31 +14,31 @@ public static class BinaryPrimitivesExtensions
     extension(BinaryPrimitives)
     {
         /// <summary>
-        /// Reads a <see cref="UInt256"/> from a 32-byte little-endian span.
+        /// Reads a <see cref="UInt256"/> from the first 32 bytes of a little-endian span.
         /// </summary>
         /// <param name="source">Source bytes to read from.</param>
         /// <returns>The decoded unsigned 256-bit integer.</returns>
         public static UInt256 ReadUInt256LittleEndian(ReadOnlySpan<byte> source)
-            => new UInt256(source, false);
+            => new UInt256(source[..32], false);
 
         /// <summary>
-        /// Reads a <see cref="UInt256"/> from a 32-byte big-endian span.
+        /// Reads a <see cref="UInt256"/> from the first 32 bytes of a big-endian span.
         /// </summary>
         /// <param name="source">Source bytes to read from.</param>
         /// <returns>The decoded unsigned 256-bit integer.</returns>
         public static UInt256 ReadUInt256BigEndian(ReadOnlySpan<byte> source)
-            => new UInt256(source, true);
+            => new UInt256(source[..32], true);
 
         /// <summary>
-        /// Writes a <see cref="UInt256"/> to a 32-byte span in little-endian order.
+        /// Writes a <see cref="UInt256"/> to the first 32 bytes of a span in little-endian order.
         /// </summary>
-        /// <param name="destination">Destination span that must be exactly 32 bytes long.</param>
+        /// <param name="destination">Destination span that must be at least 32 bytes long.</param>
         /// <param name="value">Value to write.</param>
         public static void WriteUInt256LittleEndian(Span<byte> destination, in UInt256 value)
         {
-            if(destination.Length != 32)
+            if(destination.Length < 32)
             {
-                throw new NotSupportedException();
+                throw new ArgumentOutOfRangeException(nameof(destination));
             }
 
             if(Avx.IsSupported)
@@ -55,15 +55,15 @@ public static class BinaryPrimitivesExtensions
         }
 
         /// <summary>
-        /// Writes a <see cref="UInt256"/> to a 32-byte span in big-endian order.
+        /// Writes a <see cref="UInt256"/> to the first 32 bytes of a span in big-endian order.
         /// </summary>
-        /// <param name="destination">Destination span that must be exactly 32 bytes long.</param>
+        /// <param name="destination">Destination span that must be at least 32 bytes long.</param>
         /// <param name="value">Value to write.</param>
         public static void WriteUInt256BigEndian(Span<byte> destination, in UInt256 value)
         {
-            if(destination.Length != 32)
+            if(destination.Length < 32)
             {
-                throw new NotSupportedException();
+                throw new ArgumentOutOfRangeException(nameof(destination));
             }
 
             if(Avx2.IsSupported)
@@ -100,33 +100,33 @@ public static class BinaryPrimitivesExtensions
         }
 
         /// <summary>
-        /// Reads an <see cref="Int256"/> from a 32-byte little-endian span.
+        /// Reads an <see cref="Int256"/> from the first 32 bytes of a little-endian span.
         /// </summary>
         /// <param name="source">Source bytes to read from.</param>
         /// <returns>The decoded signed 256-bit integer.</returns>
         public static Int256 ReadInt256LittleEndian(ReadOnlySpan<byte> source)
-            => new Int256(new UInt256(source, false));
+            => new Int256(new UInt256(source[..32], false));
 
         /// <summary>
-        /// Reads an <see cref="Int256"/> from a 32-byte big-endian span.
+        /// Reads an <see cref="Int256"/> from the first 32 bytes of a big-endian span.
         /// </summary>
         /// <param name="source">Source bytes to read from.</param>
         /// <returns>The decoded signed 256-bit integer.</returns>
         public static Int256 ReadInt256BigEndian(ReadOnlySpan<byte> source)
-            => new Int256(new UInt256(source, true));
+            => new Int256(new UInt256(source[..32], true));
 
         /// <summary>
-        /// Writes an <see cref="Int256"/> to a 32-byte span in little-endian order.
+        /// Writes an <see cref="Int256"/> to the first 32 bytes of a span in little-endian order.
         /// </summary>
-        /// <param name="destination">Destination span that must be exactly 32 bytes long.</param>
+        /// <param name="destination">Destination span that must be at least 32 bytes long.</param>
         /// <param name="value">Value to write.</param>
         public static void WriteInt256LittleEndian(Span<byte> destination, in Int256 value)
             => WriteUInt256LittleEndian(destination, in value._value);
 
         /// <summary>
-        /// Writes an <see cref="Int256"/> to a 32-byte span in big-endian order.
+        /// Writes an <see cref="Int256"/> to the first 32 bytes of a span in big-endian order.
         /// </summary>
-        /// <param name="destination">Destination span that must be exactly 32 bytes long.</param>
+        /// <param name="destination">Destination span that must be at least 32 bytes long.</param>
         /// <param name="value">Value to write.</param>
         public static void WriteInt256BigEndian(Span<byte> destination, in Int256 value)
             => WriteUInt256BigEndian(destination, in value._value);
