@@ -27,5 +27,9 @@ public enum CallType
     /// <summary>
     /// Contract creation via CREATE2.
     /// </summary>
-    Create2
+    Create2,
+    /// <summary>
+    /// Legacy message call that executes in the caller context.
+    /// </summary>
+    CallCode
 }
