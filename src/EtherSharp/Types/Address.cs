@@ -49,6 +49,14 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>
         => FromString(value);
 
     /// <summary>
+    /// Determines whether a string contains a valid address.
+    /// </summary>
+    /// <param name="value">The address string to validate.</param>
+    /// <returns>True when <paramref name="value"/> contains a valid address.</returns>
+    public static bool IsValid(string? value)
+        => TryParse(value, out _);
+
+    /// <summary>
     /// Attempts to parse an address string.
     /// </summary>
     /// <param name="value"></param>
