@@ -78,30 +78,46 @@ public sealed class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSi
         return Address.FromBytes(hashBuffer[^20..]);
     }
 
-    bool IEtherSigner.TrySign(ReadOnlySpan<byte> data, Span<byte> destination)
+    ValueTask<EtherSignature> IEtherSigner.SignAsync(Bytes32 hash, CancellationToken cancellationToken)
     {
-        bool success = TrySign(data, destination);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        if(!success)
+        Span<byte> signatureBuffer = stackalloc byte[64];
+        if(!TrySign(hash.DangerousGetReadOnlySpan(), signatureBuffer))
         {
-            return false;
+            throw new CryptographicException("Failed to sign hash.");
         }
 
-        destination[..32].Reverse();
-        destination[32..64].Reverse();
-        return true;
+        signatureBuffer[..32].Reverse();
+        signatureBuffer[32..64].Reverse();
+
+        var signature = new EtherSignature(
+            Bytes32.FromBytes(signatureBuffer[..32]),
+            Bytes32.FromBytes(signatureBuffer[32..])
+        );
+        return ValueTask.FromResult(signature);
     }
-    bool IEtherSigner.TrySignRecoverable(ReadOnlySpan<byte> data, Span<byte> destination)
-    {
-        bool success = TrySignRecoverable(data, destination);
 
-        if(!success)
+    ValueTask<RecoverableEtherSignature> IEtherSigner.SignRecoverableAsync(
+        Bytes32 hash,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        Span<byte> signatureBuffer = stackalloc byte[65];
+        if(!TrySignRecoverable(hash.DangerousGetReadOnlySpan(), signatureBuffer))
         {
-            return false;
+            throw new CryptographicException("Failed to sign hash.");
         }
 
-        destination[..32].Reverse();
-        destination[32..64].Reverse();
-        return true;
+        signatureBuffer[..32].Reverse();
+        signatureBuffer[32..64].Reverse();
+
+        var signature = new RecoverableEtherSignature(
+            Bytes32.FromBytes(signatureBuffer[..32]),
+            Bytes32.FromBytes(signatureBuffer[32..64]),
+            signatureBuffer[64]
+        );
+        return ValueTask.FromResult(signature);
     }
 }

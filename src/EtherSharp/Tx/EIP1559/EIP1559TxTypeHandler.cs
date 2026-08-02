@@ -31,8 +31,12 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer)
     }
 
     /// <inheritdoc/>
-    public string EncodeTxToBytes(
-        ITxInput txInput, EIP1559TxParams txParams, EIP1559GasParams txGasParams, uint nonce, out Bytes32 txHash)
+    public async ValueTask<SignedTransaction> EncodeTxAsync(
+        ITxInput txInput,
+        EIP1559TxParams txParams,
+        EIP1559GasParams txGasParams,
+        uint nonce,
+        CancellationToken cancellationToken = default)
     {
         if(!_isInitialized)
         {
@@ -40,25 +44,27 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer)
         }
 
         var tx = EIP1559Transaction.Create(_chainId, txParams, txGasParams, txInput, nonce);
-
-        Span<int> lengthBuffer = stackalloc int[EIP1559Transaction.NestedListCount];
-        int txTemplateLength = tx.GetEncodedSize(lengthBuffer);
-        int txBufferLength = 2 + txTemplateLength + TxRLPEncoder.MaxEncodedSignatureLength;
-
+        int[] lengthBuffer = ArrayPool<int>.Shared.Rent(EIP1559Transaction.NestedListCount);
         byte[]? rented = null;
-        var txBuffer = txBufferLength <= 4096
-            ? stackalloc byte[txBufferLength]
-            : (rented = ArrayPool<byte>.Shared.Rent(txBufferLength)).AsSpan(0, txBufferLength);
 
         try
         {
+            int txTemplateLength = tx.GetEncodedSize(lengthBuffer);
+            int txBufferLength = 2 + txTemplateLength + TxRLPEncoder.MaxEncodedSignatureLength;
+
+            rented = ArrayPool<byte>.Shared.Rent(txBufferLength);
+            var txBuffer = rented.AsSpan(0, txBufferLength);
             var txTemplateBuffer = txBuffer[1..(txTemplateLength + 2)];
-            var signatureBuffer = txBuffer[^TxRLPEncoder.MaxEncodedSignatureLength..];
 
             tx.Encode(lengthBuffer, txTemplateBuffer[1..]);
             txTemplateBuffer[0] = EIP1559Transaction.PrefixByte;
 
-            SignAndEncode(txTemplateBuffer, signatureBuffer, out int signatureLength);
+            var signingHash = Keccak256.HashData(txTemplateBuffer);
+            var signature = await _signer.SignRecoverableAsync(signingHash, cancellationToken).ConfigureAwait(false);
+
+            txBuffer = rented.AsSpan(0, txBufferLength);
+            var signatureBuffer = txBuffer[^TxRLPEncoder.MaxEncodedSignatureLength..];
+            EncodeSignature(signature, signatureBuffer, out int signatureLength);
 
             int oldLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0]);
             int newLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0] + signatureLength);
@@ -78,13 +84,12 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer)
             var signedTxBuffer = txBuffer[..^(TxRLPEncoder.MaxEncodedSignatureLength - signatureLength)];
 
             Span<byte> txHashBuffer = stackalloc byte[32];
-            if(!Keccak256.TryHashData(signedTxBuffer, txHashBuffer))
-            {
-                throw new InvalidOperationException("Failed to calculate tx hash");
-            }
-
-            txHash = Bytes32.FromBytes(txHashBuffer);
-            return HexUtils.ToPrefixedHexString(signedTxBuffer);
+            return !Keccak256.TryHashData(signedTxBuffer, txHashBuffer)
+                ? throw new InvalidOperationException("Failed to calculate tx hash")
+                : new SignedTransaction(
+                    HexUtils.ToPrefixedHexString(signedTxBuffer),
+                    Bytes32.FromBytes(txHashBuffer)
+                );
         }
         finally
         {
@@ -92,19 +97,17 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer)
             {
                 ArrayPool<byte>.Shared.Return(rented);
             }
+            ArrayPool<int>.Shared.Return(lengthBuffer);
         }
     }
 
-    private void SignAndEncode(Span<byte> txTemplateBuffer, Span<byte> signatureBuffer, out int encodedSignatureLength)
+    private static void EncodeSignature(
+        in RecoverableEtherSignature signature,
+        Span<byte> signatureBuffer,
+        out int encodedSignatureLength)
     {
-        Span<byte> hashBuffer = stackalloc byte[32];
-        _ = Keccak256.TryHashData(txTemplateBuffer, hashBuffer);
-
         Span<byte> rawSignatureBuffer = stackalloc byte[65];
-        if(!_signer!.TrySignRecoverable(hashBuffer, rawSignatureBuffer))
-        {
-            throw new NotImplementedException();
-        }
+        signature.CopyTo(rawSignatureBuffer);
 
         ulong parityByte = rawSignatureBuffer[64] switch
         {

@@ -53,6 +53,7 @@ Mark a partial message type with `[EIP712Type]` and implement `IEIP712Type`. The
 using EtherSharp.Crypto;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
+using EtherSharp.Wallet;
 
 [EIP712Type]
 public readonly partial record struct Permit(
@@ -70,8 +71,7 @@ var domain = new EIP712Domain(
 
 Bytes32 signingHash = permit.GetSigningHash(domain);
 
-Span<byte> signature = stackalloc byte[65];
-signer.TrySignEIP712(domain, permit, signature);
+RecoverableEtherSignature signature = await signer.SignEIP712Async(domain, permit);
 ```
 
 Generated message members currently support `bool`, `Address`, `string`, `byte[]`, `ReadOnlyMemory<byte>`, `Bytes1` through `Bytes32`, `Int256`, `UInt256`, and nested EIP-712 types. Property names are converted to lower camel case in the EIP-712 type definition.

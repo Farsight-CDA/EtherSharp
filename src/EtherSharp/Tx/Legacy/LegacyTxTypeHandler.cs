@@ -33,7 +33,12 @@ public sealed class LegacyTxTypeHandler(IEtherSigner signer)
     }
 
     /// <inheritdoc/>
-    public string EncodeTxToBytes(ITxInput txInput, LegacyTxParams txParams, LegacyGasParams txGasParams, uint nonce, out Bytes32 txHash)
+    public async ValueTask<SignedTransaction> EncodeTxAsync(
+        ITxInput txInput,
+        LegacyTxParams txParams,
+        LegacyGasParams txGasParams,
+        uint nonce,
+        CancellationToken cancellationToken = default)
     {
         if(!_isInitialized)
         {
@@ -41,30 +46,28 @@ public sealed class LegacyTxTypeHandler(IEtherSigner signer)
         }
 
         var tx = LegacyTransaction.Create(_chainId, txGasParams, txInput, nonce);
-
-        Span<int> lengthBuffer = stackalloc int[LegacyTransaction.NestedListCount];
-        int signDataLength = tx.GetSignDataEncodedSize(lengthBuffer);
-        int bufferLength = signDataLength + MAX_LEGACY_SIGNATURE_LENGTH;
-
+        int[] lengthBuffer = ArrayPool<int>.Shared.Rent(LegacyTransaction.NestedListCount);
         byte[]? rented = null;
-        var buffer = bufferLength <= 4096
-            ? stackalloc byte[bufferLength]
-            : (rented = ArrayPool<byte>.Shared.Rent(bufferLength)).AsSpan(0, bufferLength);
 
         try
         {
-            var signDataBuffer = buffer[0..signDataLength];
+            int signDataLength = tx.GetSignDataEncodedSize(lengthBuffer);
+            int bufferLength = signDataLength + MAX_LEGACY_SIGNATURE_LENGTH;
+
+            rented = ArrayPool<byte>.Shared.Rent(bufferLength);
+            var signDataBuffer = rented.AsSpan(0, signDataLength);
 
             tx.EncodeSignData(lengthBuffer, signDataBuffer);
 
             int txSizeWithoutSignature = tx.GetEncodedSize(lengthBuffer);
             int maxTxSize = 1 + txSizeWithoutSignature + MAX_LEGACY_SIGNATURE_LENGTH;
 
-            var txBuffer = buffer[0..maxTxSize];
+            var signingHash = Keccak256.HashData(signDataBuffer);
+            var signature = await _signer.SignRecoverableAsync(signingHash, cancellationToken).ConfigureAwait(false);
 
+            var txBuffer = rented.AsSpan(0, maxTxSize);
             var signatureBuffer = txBuffer[^MAX_LEGACY_SIGNATURE_LENGTH..];
-
-            SignAndEncode(signDataBuffer, signatureBuffer, out int signatureLength);
+            EncodeSignature(signature, signatureBuffer, out int signatureLength);
 
             if(signatureLength < MAX_LEGACY_SIGNATURE_LENGTH)
             {
@@ -83,13 +86,12 @@ public sealed class LegacyTxTypeHandler(IEtherSigner signer)
             tx.Encode(lengthBuffer, txBuffer, signatureLength);
 
             Span<byte> txHashBuffer = stackalloc byte[32];
-            if(!Keccak256.TryHashData(txBuffer, txHashBuffer))
-            {
-                throw new InvalidOperationException("Failed to calculate tx hash");
-            }
-
-            txHash = Bytes32.FromBytes(txHashBuffer);
-            return HexUtils.ToPrefixedHexString(txBuffer);
+            return !Keccak256.TryHashData(txBuffer, txHashBuffer)
+                ? throw new InvalidOperationException("Failed to calculate tx hash")
+                : new SignedTransaction(
+                    HexUtils.ToPrefixedHexString(txBuffer),
+                    Bytes32.FromBytes(txHashBuffer)
+                );
         }
         finally
         {
@@ -97,19 +99,17 @@ public sealed class LegacyTxTypeHandler(IEtherSigner signer)
             {
                 ArrayPool<byte>.Shared.Return(rented);
             }
+            ArrayPool<int>.Shared.Return(lengthBuffer);
         }
     }
 
-    private void SignAndEncode(ReadOnlySpan<byte> signDataBuffer, Span<byte> signatureBuffer, out int encodedSignatureLength)
+    private void EncodeSignature(
+        in RecoverableEtherSignature signature,
+        Span<byte> signatureBuffer,
+        out int encodedSignatureLength)
     {
-        Span<byte> hashBuffer = stackalloc byte[32];
-        _ = Keccak256.TryHashData(signDataBuffer, hashBuffer);
-
         Span<byte> rawSignatureBuffer = stackalloc byte[65];
-        if(!_signer!.TrySignRecoverable(hashBuffer, rawSignatureBuffer))
-        {
-            throw new NotImplementedException();
-        }
+        signature.CopyTo(rawSignatureBuffer);
 
         ulong parityByte = rawSignatureBuffer[64] switch
         {

@@ -216,8 +216,16 @@ public sealed class BlockingSequentialTxScheduler(
             txParams ??= TTxParams.Default;
             txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(call, txParams, signer.Address, cts.Token);
 
-            string encodedTx = handler.EncodeTxToBytes(call, txParams, txGasParams, myNonce, out var txHash);
-            var submission = new TxSubmission<TTxParams, TTxGasParams>(_chainId, 0, txHash, encodedTx, call, txParams, txGasParams);
+            var signedTransaction = await handler.EncodeTxAsync(call, txParams, txGasParams, myNonce, cts.Token);
+            var submission = new TxSubmission<TTxParams, TTxGasParams>(
+                _chainId,
+                0,
+                signedTransaction.Hash,
+                signedTransaction.EncodedTx,
+                call,
+                txParams,
+                txGasParams
+            );
 
             lock(_stateLock)
             {
@@ -447,8 +455,22 @@ public sealed class BlockingSequentialTxScheduler(
             ? oldSub.GasParams.IncrementByFactor(1105, 1000, 1)
             : ((TxConfirmationAction<TTxParams, TTxGasParams>.RepriceTransaction) action).GasParams;
 
-        string encoded = typeHandler.EncodeTxToBytes(oldSub.Call, oldSub.Params, newGas, context.Nonce, out var txHash);
-        var newSub = new TxSubmission<TTxParams, TTxGasParams>(_chainId, oldSub.Sequence + 1, txHash, encoded, oldSub.Call, oldSub.Params, newGas);
+        var signedTransaction = await typeHandler.EncodeTxAsync(
+            oldSub.Call,
+            oldSub.Params,
+            newGas,
+            context.Nonce,
+            _cts.Token
+        );
+        var newSub = new TxSubmission<TTxParams, TTxGasParams>(
+            _chainId,
+            oldSub.Sequence + 1,
+            signedTransaction.Hash,
+            signedTransaction.EncodedTx,
+            oldSub.Call,
+            oldSub.Params,
+            newGas
+        );
 
         context.TxSubmissions.Insert(0, newSub);
 
