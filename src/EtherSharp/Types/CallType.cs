@@ -31,5 +31,9 @@ public enum CallType
     /// <summary>
     /// Legacy message call that executes in the caller context.
     /// </summary>
-    CallCode
+    CallCode,
+    /// <summary>
+    /// Contract destruction and balance transfer to its beneficiary.
+    /// </summary>
+    SelfDestruct
 }
