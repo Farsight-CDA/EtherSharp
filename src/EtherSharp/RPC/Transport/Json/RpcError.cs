@@ -1,3 +1,10 @@
+using EtherSharp.Common.Converter;
+using System.Text.Json.Serialization;
+
 namespace EtherSharp.RPC.Transport.Json;
 
-internal sealed record RpcError(int Code, string Message, string? Data);
+internal sealed record RpcError(
+    int Code,
+    string Message,
+    [property: JsonConverter(typeof(RpcErrorDataConverter))] string? Data
+);
