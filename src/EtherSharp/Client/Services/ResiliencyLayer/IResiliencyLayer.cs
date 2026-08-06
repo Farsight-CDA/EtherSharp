@@ -26,7 +26,7 @@ public interface IResiliencyLayer
     /// </summary>
     /// <param name="cancellationToken">A token used to cancel the read operation.</param>
     /// <returns>The highest persisted nonce.</returns>
-    public Task<uint> GetLastSubmittedNonceAsync(CancellationToken cancellationToken = default);
+    public Task<uint?> GetLastSubmittedNonceAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves all persisted submissions for the specified nonce.

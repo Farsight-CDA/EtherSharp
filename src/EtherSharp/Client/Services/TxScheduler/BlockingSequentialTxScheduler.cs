@@ -74,8 +74,13 @@ public sealed class BlockingSequentialTxScheduler(
         }
         else
         {
-            uint dbNonce = await _resiliencyLayer.GetLastSubmittedNonceAsync(cancellationToken);
-            _peakNonce = Math.Max(_confirmedNonce, dbNonce + 1);
+            uint? dbNonce = await _resiliencyLayer.GetLastSubmittedNonceAsync(cancellationToken);
+
+            _peakNonce = dbNonce switch
+            {
+                uint nonce => Math.Max(nonce + 1, _confirmedNonce),
+                _ => _confirmedNonce
+            };
         }
 
         _ = Task.Run(() => AdaptiveNoncePollerAsync(_cts.Token), cancellationToken);
