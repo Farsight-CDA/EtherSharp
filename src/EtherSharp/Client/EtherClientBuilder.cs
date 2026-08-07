@@ -426,7 +426,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// Configures the initial default gas limits applied to client-side call execution.
     /// </summary>
     /// <param name="ethCallGasLimit">Optional fallback gas limit applied to <c>eth_call</c> requests when no explicit gas is provided.</param>
-    /// <param name="flashCallGasLimit">Optional fallback gas limit applied to flash-call helper execution when no per-call limit is provided.</param>
+    /// <param name="flashCallGasLimit">Optional fallback gas limit applied to flash-call execution when no per-call limit is provided.</param>
     /// <returns></returns>
     public EtherClientBuilder WithCallGasLimits(ulong? ethCallGasLimit = null, ulong? flashCallGasLimit = null)
     {
@@ -434,6 +434,31 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
 
         _ethCallGasLimit = ethCallGasLimit;
         _flashCallGasLimit = flashCallGasLimit;
+        return this;
+    }
+
+    /// <summary>
+    /// Configures queries to execute by installing the querier runtime through an <c>eth_call</c> state override.
+    /// </summary>
+    /// <remarks>The configured RPC endpoint must support account code overrides.</remarks>
+    /// <param name="querierAddress">Reserved address at which the temporary querier code is installed. Queries and caller state overrides must not use this address.</param>
+    /// <param name="maxPayloadSize">Maximum encoded query payload size per RPC request, in bytes.</param>
+    /// <param name="maxResultSize">Maximum query result size per RPC request, in bytes.</param>
+    /// <returns></returns>
+    public EtherClientBuilder WithStateOverrideQueryExecutor(
+        Address? querierAddress = null,
+        int maxPayloadSize = 3 * 1024 * 1024,
+        int maxResultSize = 3 * 1024 * 1024)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxPayloadSize, 5);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxResultSize, 1);
+
+        _services.AddOrReplaceSingleton(new StateOverrideQueryExecutor.Configuration(
+            querierAddress ?? StateOverrideQueryExecutor.Configuration.DefaultQuerierAddress,
+            maxPayloadSize,
+            maxResultSize
+        ));
+        _services.AddOrReplaceSingleton<IQueryExecutor, StateOverrideQueryExecutor>();
         return this;
     }
 

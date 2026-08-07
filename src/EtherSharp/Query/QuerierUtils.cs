@@ -1,12 +1,18 @@
 ﻿using EtherSharp.Contract;
 using EtherSharp.Numerics;
+using EtherSharp.Tx;
 using System.Buffers;
 using System.Buffers.Binary;
 
 namespace EtherSharp.Query;
 
+internal readonly record struct QuerierByteCode(IContractDeployment Deployment, ReadOnlyMemory<byte> RuntimeCode);
+
 internal sealed class QuerierUtils
 {
+    private const int LONDON_RUNTIME_OFFSET = 14;
+    private const int CANCUN_RUNTIME_OFFSET = 12;
+
     public static readonly EVMByteCode LondonQuerierCode = new EVMByteCode(
         Convert.FromHexString(
             "6102668061000e6000396000f3fe60003560e01c600460005b81368110156101b857600060018235821a920193600283106001146101c05750508060021461015d5780600a146101375780600b146101225780600c1461010c57806014146100fe57806015146100f057806016146100e257806017146100d457806018146100c957806019146100be5780601e146100a95760281461008f57600080fd5b5a815260205b8101908382116100a5575061000a565b6000f35b506014823560601c9201913181526020610095565b504881526020610095565b503a81526020610095565b504560c01b81526008610095565b504260c01b81526008610095565b504360c01b81526008610095565b504660c01b81526008610095565b5060148201913560601c3b151581536001610095565b506014823560601c9201913f81526020610095565b5060006014833560601c930192803b9182918260e81b855260038501903c600301610095565b50600080833560f01c600285013560e81c90602560058701359683830190818382018937010195818685f09186019161c34f195a01f161d6d85a108115166101b8573d60e01b825281533d6000600483013e3d600401610095565b509150506000f35b90919383903560e81c91600481013560601c93603884601884013593818382018737010196156102345750916000929183925a9561c34f195a01f1905a900361d6d85a1082151661022b5760981b3d60d81b179060f81b1781523d6000600d83013e3d600d01610095565b50509150506000f35b9391849391849361c34f195a01f161d6d85a1081151661022b573d60e01b835282533d90600483013e3d60040161009556"
@@ -19,7 +25,17 @@ internal sealed class QuerierUtils
         )
     );
 
-    public static byte[] EncodeCalls(EVMByteCode querierCode, IReadOnlyList<IQuery> queries, int startIndex, int maxPayloadSize, int maxResultSize,
+    public static readonly QuerierByteCode LondonQuerier = new(
+        IContractDeployment.Create(LondonQuerierCode, 0),
+        LondonQuerierCode.ByteCode[LONDON_RUNTIME_OFFSET..]
+    );
+
+    public static readonly QuerierByteCode CancunQuerier = new(
+        IContractDeployment.Create(CancunQuerierCode, 0),
+        CancunQuerierCode.ByteCode[CANCUN_RUNTIME_OFFSET..]
+    );
+
+    public static byte[] EncodeCalls(IReadOnlyList<IQuery> queries, int startIndex, int maxPayloadSize, int maxResultSize,
         out int payloadSize, out int encodedCallCount, out UInt256 ethValue)
     {
         ethValue = 0;
@@ -31,7 +47,7 @@ internal sealed class QuerierUtils
             var queryable = queries[i];
             int newDataLength = payloadSize + queryable.CallDataLength;
 
-            if(newDataLength + querierCode.Length > maxPayloadSize)
+            if(newDataLength > maxPayloadSize)
             {
                 break;
             }

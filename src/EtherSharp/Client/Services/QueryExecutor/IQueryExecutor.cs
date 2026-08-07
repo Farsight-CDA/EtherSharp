@@ -12,13 +12,13 @@ public interface IQueryExecutor
     /// </summary>
     /// <typeparam name="TQuery">The query result type produced by the provided query object.</typeparam>
     /// <param name="query">The query definition containing call data and decode logic.</param>
-    /// <param name="flashCallGasLimit">The optional gas cap applied to flash-call helper execution while evaluating the query.</param>
+    /// <param name="gasLimit">The optional gas cap applied to the configured query execution strategy.</param>
     /// <param name="options">The call execution context used for the query.</param>
     /// <param name="cancellationToken">A token used to cancel the underlying RPC call.</param>
     /// <returns>The decoded result for the supplied query.</returns>
     public Task<TQuery> ExecuteQueryAsync<TQuery>(
         IQuery<TQuery> query,
-        ulong flashCallGasLimit,
+        ulong? gasLimit,
         CallOptions options,
         CancellationToken cancellationToken
     );

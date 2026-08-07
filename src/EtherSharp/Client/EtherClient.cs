@@ -107,66 +107,66 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
     public Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
-        ulong flashCallGasLimit = 0,
+        ulong? gasLimit = null,
         in CallOptions options = default,
         CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(c1, flashCallGasLimit, options, cancellationToken);
+        => ExecuteQueryAsync(c1, gasLimit, options, cancellationToken);
 
     public Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
-        ulong flashCallGasLimit = 0,
+        ulong? gasLimit = null,
         in CallOptions options = default,
         CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2), flashCallGasLimit, options, cancellationToken);
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2), gasLimit, options, cancellationToken);
 
     public Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
-        ulong flashCallGasLimit = 0,
+        ulong? gasLimit = null,
         in CallOptions options = default,
         CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), flashCallGasLimit, options, cancellationToken);
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), gasLimit, options, cancellationToken);
 
     public Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
-        ulong flashCallGasLimit = 0,
+        ulong? gasLimit = null,
         in CallOptions options = default,
         CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), flashCallGasLimit, options, cancellationToken);
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), gasLimit, options, cancellationToken);
 
     public Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
-        ulong flashCallGasLimit = 0,
+        ulong? gasLimit = null,
         in CallOptions options = default,
         CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), flashCallGasLimit, options, cancellationToken);
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), gasLimit, options, cancellationToken);
 
     public Task<(T1, T2, T3, T4, T5, T6)> QueryAsync<T1, T2, T3, T4, T5, T6>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6,
-        ulong flashCallGasLimit = 0,
+        ulong? gasLimit = null,
         in CallOptions options = default,
         CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), flashCallGasLimit, options, cancellationToken);
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), gasLimit, options, cancellationToken);
 
     public Task<(T1, T2, T3, T4, T5, T6, T7)> QueryAsync<T1, T2, T3, T4, T5, T6, T7>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7,
-        ulong flashCallGasLimit = 0,
+        ulong? gasLimit = null,
         in CallOptions options = default,
         CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), flashCallGasLimit, options, cancellationToken);
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), gasLimit, options, cancellationToken);
 
     public Task<(T1, T2, T3, T4, T5, T6, T7, T8)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8,
-        ulong flashCallGasLimit = 0,
+        ulong? gasLimit = null,
         in CallOptions options = default,
         CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), flashCallGasLimit, options, cancellationToken);
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), gasLimit, options, cancellationToken);
 
     public Task<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8, IQuery<T9> c9,
-        ulong flashCallGasLimit = 0,
+        ulong? gasLimit = null,
         in CallOptions options = default,
         CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), flashCallGasLimit, options, cancellationToken);
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), gasLimit, options, cancellationToken);
 
     IEventsModule<TEvent> IEtherClient.Events<TEvent>()
     {
@@ -179,12 +179,12 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
     private Task<TQuery> ExecuteQueryAsync<TQuery>(
         IQuery<TQuery> query,
-        ulong flashCallGasLimit,
+        ulong? gasLimit,
         in CallOptions options,
         CancellationToken cancellationToken)
     {
         AssertReady();
-        return _queryExecutor.ExecuteQueryAsync(query, flashCallGasLimit, options, cancellationToken);
+        return _queryExecutor.ExecuteQueryAsync(query, gasLimit, options, cancellationToken);
     }
 
     async Task IEtherClient.InitializeAsync(bool forceNoQuery, CancellationToken cancellationToken)
@@ -283,7 +283,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         (_chainId, _compatibilityReport, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
             IQuery.Combine(IQuery.GetChainId(), IQuery.GetCompatibilityReport(), initQuery, flashCallSetupQuery),
-            0,
+            null,
             TargetHeight.Latest,
             cancellationToken
         );
@@ -467,7 +467,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     public async Task<CallResult<T>> SafeFlashCallAsync<T>(
         IContractDeployment deployment,
         IFlashCall<T> call,
-        ulong flashCallGasLimit = 0,
+        ulong? flashCallGasLimit = null,
         TargetHeight targetHeight = default,
         CancellationToken cancellationToken = default)
     {
@@ -480,7 +480,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     public async Task<T> FlashCallAsync<T>(
         IContractDeployment deployment,
         IFlashCall<T> call,
-        ulong flashCallGasLimit,
+        ulong? flashCallGasLimit,
         TargetHeight targetHeight,
         CancellationToken cancellationToken)
     {

@@ -18,12 +18,12 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
 
-    private ulong ResolveFlashCallGasLimit(ulong flashCallGasLimit)
-        => flashCallGasLimit == 0
-            ? _callGasLimitSettings.GetFlashCallGasLimit() ?? 0
-            : flashCallGasLimit;
+    private ulong ResolveFlashCallGasLimit(ulong? flashCallGasLimit)
+        => flashCallGasLimit
+            ?? _callGasLimitSettings.GetFlashCallGasLimit()
+            ?? 0;
 
-    public int GetMaxPayloadSize(ulong flashCallGasLimit, TargetHeight targetHeight)
+    public int GetMaxPayloadSize(ulong? flashCallGasLimit, TargetHeight targetHeight)
         => ResolveFlashCallGasLimit(flashCallGasLimit) == 0
             ? EVMByteCode.MAX_INIT_LENGTH - MAX_UNLIMITED_HELPER_LENGTH
             : EVMByteCode.MAX_INIT_LENGTH - MAX_LIMITED_HELPER_LENGTH;
@@ -34,18 +34,18 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
     public async Task<TxCallResult> ExecuteFlashCallAsync(
         IContractDeployment deployment,
         IFlashCall call,
-        ulong flashCallGasLimit,
+        ulong? flashCallGasLimit,
         CallOptions options,
         CancellationToken cancellationToken)
     {
-        flashCallGasLimit = ResolveFlashCallGasLimit(flashCallGasLimit);
+        ulong resolvedGasLimit = ResolveFlashCallGasLimit(flashCallGasLimit);
 
         if(deployment.Value > 0)
         {
             throw new NotSupportedException("Contract deployment cannot contain any value");
         }
 
-        int helperLength = GetHelperLength(deployment.Data.Length, call.Data.Length, flashCallGasLimit);
+        int helperLength = GetHelperLength(deployment.Data.Length, call.Data.Length, resolvedGasLimit);
         int argsLength = deployment.Data.Length + call.Data.Length;
 
         if(argsLength + helperLength > EVMByteCode.MAX_INIT_LENGTH)
@@ -59,7 +59,7 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule, C
 
         try
         {
-            WriteHelper(payload.Span, helperLength, deployment.Data.Length, call.Data.Length, flashCallGasLimit);
+            WriteHelper(payload.Span, helperLength, deployment.Data.Length, call.Data.Length, resolvedGasLimit);
             deployment.Data.Span.CopyTo(payload.Span[helperLength..]);
             call.Data.Span.CopyTo(payload.Span[(helperLength + deployment.Data.Length)..]);
 

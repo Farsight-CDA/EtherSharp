@@ -18,17 +18,17 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
 
     private ulong? _deploymentHeight;
 
-    private ulong ResolveFlashCallGasLimit(ulong flashCallGasLimit)
-        => flashCallGasLimit == 0
-            ? _callGasLimitSettings.GetFlashCallGasLimit() ?? 0
-            : flashCallGasLimit;
+    private ulong ResolveFlashCallGasLimit(ulong? flashCallGasLimit)
+        => flashCallGasLimit
+            ?? _callGasLimitSettings.GetFlashCallGasLimit()
+            ?? 0;
 
     public Address ContractAddress => _configuration.ContractAddress;
 
     public void SetDeploymentHeight(ulong deploymentHeight)
         => _deploymentHeight = deploymentHeight;
 
-    public int GetMaxPayloadSize(ulong flashCallGasLimit, TargetHeight targetHeight)
+    public int GetMaxPayloadSize(ulong? flashCallGasLimit, TargetHeight targetHeight)
     {
         bool useFallback = _deploymentHeight is null
             || (targetHeight.Value > 0 && targetHeight.Value < _deploymentHeight.Value);
@@ -48,11 +48,11 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
     public async Task<TxCallResult> ExecuteFlashCallAsync(
         IContractDeployment deployment,
         IFlashCall call,
-        ulong flashCallGasLimit,
+        ulong? flashCallGasLimit,
         CallOptions options,
         CancellationToken cancellationToken)
     {
-        flashCallGasLimit = ResolveFlashCallGasLimit(flashCallGasLimit);
+        ulong resolvedGasLimit = ResolveFlashCallGasLimit(flashCallGasLimit);
         var targetHeight = options.TargetHeight;
 
         if(deployment.Value > 0)
@@ -62,14 +62,14 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
 
         if(_deploymentHeight is null)
         {
-            return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, options, cancellationToken);
+            return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, resolvedGasLimit, options, cancellationToken);
         }
 
         if(targetHeight.Value > 0 && targetHeight.Value < _deploymentHeight.Value)
         {
             return !_configuration.AllowFallback
                 ? throw new InvalidOperationException($"Missing FlashCall contract deployment at height {targetHeight.Value}")
-                : await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, options, cancellationToken);
+                : await _constructorFlashCallExecutor.ExecuteFlashCallAsync(deployment, call, resolvedGasLimit, options, cancellationToken);
         }
 
         int argsLength = 10 + deployment.Data.Length + call.Data.Length;
@@ -79,7 +79,7 @@ internal sealed class DeployedFlashCallExecutor(IEthRpcModule ethRpcModule, Depl
 
         try
         {
-            BinaryPrimitives.WriteUInt64BigEndian(payload.Span, flashCallGasLimit);
+            BinaryPrimitives.WriteUInt64BigEndian(payload.Span, resolvedGasLimit);
             BinaryPrimitives.WriteUInt16BigEndian(payload.Span[8..], (ushort) deployment.Data.Length);
             deployment.Data.Span.CopyTo(payload.Span[10..]);
             call.Data.Span.CopyTo(payload.Span[(deployment.Data.Length + 10)..]);

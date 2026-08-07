@@ -11,10 +11,10 @@ public interface IFlashCallExecutor
     /// <summary>
     /// Gets the maximum call payload size, in bytes, supported at the specified target block.
     /// </summary>
-    /// <param name="flashCallGasLimit">The optional gas cap that influences helper payload sizing.</param>
+    /// <param name="flashCallGasLimit">The optional gas cap that influences helper payload sizing. A value of <see langword="null"/> uses the configured default.</param>
     /// <param name="targetHeight">The block height context used to evaluate execution constraints.</param>
     /// <returns>The maximum payload size, in bytes, accepted by this executor.</returns>
-    public int GetMaxPayloadSize(ulong flashCallGasLimit, TargetHeight targetHeight);
+    public int GetMaxPayloadSize(ulong? flashCallGasLimit, TargetHeight targetHeight);
 
     /// <summary>
     /// Gets the maximum call result size, in bytes, that can be returned at the specified target block.
@@ -28,14 +28,14 @@ public interface IFlashCallExecutor
     /// </summary>
     /// <param name="deployment">The deployment descriptor of the helper contract used for flash execution.</param>
     /// <param name="call">The flash-call payload to execute.</param>
-    /// <param name="flashCallGasLimit">The optional gas cap forwarded from the flash helper into the deployed contract call.</param>
+    /// <param name="flashCallGasLimit">The optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the configured default.</param>
     /// <param name="options">The call execution context.</param>
     /// <param name="cancellationToken">A token used to cancel the underlying RPC request.</param>
     /// <returns>The execution result containing call success state and returned bytes.</returns>
     public Task<TxCallResult> ExecuteFlashCallAsync(
         IContractDeployment deployment,
         IFlashCall call,
-        ulong flashCallGasLimit,
+        ulong? flashCallGasLimit,
         CallOptions options,
         CancellationToken cancellationToken
     );

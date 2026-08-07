@@ -1,112 +1,36 @@
 ﻿using EtherSharp.Client.Services.FlashCallExecutor;
-using EtherSharp.Common.Exceptions;
+using EtherSharp.Numerics;
 using EtherSharp.Query;
 using EtherSharp.Tx;
 using EtherSharp.Types;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System.Buffers;
 
 namespace EtherSharp.Client.Services.QueryExecutor;
 
-internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, IServiceProvider provider) : IQueryExecutor
+internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecutor, IServiceProvider provider) : QueryExecutorBase(provider)
 {
     private readonly IFlashCallExecutor _flashCallExecutor = flashCallExecutor;
-    private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<FlashCallQueryExecutor>();
-    private readonly IEtherClient _client = provider.GetRequiredService<IEtherClient>();
 
-    private readonly IContractDeployment _londonDeployment = IContractDeployment.Create(QuerierUtils.LondonQuerierCode, 0);
-    private readonly IContractDeployment _cancunDeployment = IContractDeployment.Create(QuerierUtils.CancunQuerierCode, 0);
+    protected override Address? CallAddress => null;
+    protected override void PreparePlan(QueryPlan plan, QuerierByteCode querier) { }
 
-    public async Task<TQuery> ExecuteQueryAsync<TQuery>(
-        IQuery<TQuery> query,
-        ulong flashCallGasLimit,
+    protected override int GetMaxPayloadSize(QuerierByteCode querier, ulong? gasLimit, TargetHeight targetHeight)
+        => _flashCallExecutor.GetMaxPayloadSize(gasLimit, targetHeight) - querier.Deployment.ByteCode.Length;
+
+    protected override int GetMaxResultSize(TargetHeight targetHeight)
+        => _flashCallExecutor.GetMaxResultSize(targetHeight);
+
+    protected override Task<TxCallResult> ExecuteBatchAsync(
+        QuerierByteCode querier,
+        UInt256 value,
+        ReadOnlyMemory<byte> payload,
+        ulong? gasLimit,
         CallOptions options,
-        CancellationToken cancellationToken)
-    {
-        var plan = new QueryPlan(query.OperationCount, options.StateOverrides);
-        plan.Add(query);
-
-        var buffer = ReadOnlyMemory<byte>.Empty;
-        var outputs = new ReadOnlyMemory<byte>[plan.Queries.Count];
-        int requestCount = 0;
-
-        bool supportsCancun = _client.IsInitialized && _client.CompatibilityReport is not null && _client.CompatibilityReport.SupportsPush0;
-        var querierDeployment = !supportsCancun || options.TargetHeight.Value != 0 || options.TargetHeight == TargetHeight.Earliest
-            ? _londonDeployment
-            : _cancunDeployment;
-
-        for(int i = 0; i < plan.Queries.Count; i++)
-        {
-            var q = plan.Queries[i];
-            if(buffer.Length == 0)
-            {
-                requestCount++;
-
-                byte[] payloadBytes = QuerierUtils.EncodeCalls(
-                    querierDeployment.ByteCode,
-                    plan.Queries,
-                    i,
-                    _flashCallExecutor.GetMaxPayloadSize(flashCallGasLimit, options.TargetHeight),
-                    _flashCallExecutor.GetMaxResultSize(options.TargetHeight),
-                    out int payloadSize,
-                    out int callCount,
-                    out var ethValue
-                );
-
-                try
-                {
-                    if(callCount == 0)
-                    {
-                        throw new InvalidOperationException("Call is too large to be executed within batch");
-                    }
-
-                    var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
-                        querierDeployment,
-                        IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
-                        flashCallGasLimit,
-                        options with { StateOverrides = plan.StateOverrides },
-                        cancellationToken
-                    );
-
-                    if(!callResult.Success)
-                    {
-                        throw CallRevertedException.Parse(null, callResult.Data.Span);
-                    }
-
-                    var output = callResult.Data;
-
-                    if(output.Length == 0)
-                    {
-                        throw new InvalidOperationException("Call is too expensive to be executed within batch");
-                    }
-
-                    buffer = output;
-
-                    if(_logger?.IsEnabled(LogLevel.Trace) == true)
-                    {
-                        _logger.LogTrace(
-                            "Query request {request} completed with {operations} operation(s)",
-                            requestCount,
-                            callCount);
-                    }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(payloadBytes);
-                }
-            }
-
-            int sliceLength = q.ParseResultLength(buffer.Span);
-            outputs[i] = buffer[0..sliceLength];
-            buffer = buffer[sliceLength..];
-        }
-
-        if(requestCount > 1 && _logger?.IsEnabled(LogLevel.Debug) == true)
-        {
-            _logger.LogDebug("Batch query processing too expensive, required {requests} requests", requestCount);
-        }
-
-        return query.ReadResultFrom(outputs);
-    }
+        CancellationToken cancellationToken
+    )
+        => _flashCallExecutor.ExecuteFlashCallAsync(
+            querier.Deployment,
+            IFlashCall.ForRawFlashCall(value, payload),
+            gasLimit,
+            options,
+            cancellationToken);
 }
