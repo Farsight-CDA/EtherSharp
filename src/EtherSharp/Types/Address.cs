@@ -138,6 +138,15 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>
     public static Address FromBytes(ReadOnlySpan<byte> b)
         => new(Bytes20.FromBytes(b));
 
+    /// <summary>
+    /// Creates an <see cref="Address"/> from the leading 20 bytes of a <see cref="Bytes32"/>,
+    /// matching Solidity's <c>address(bytes20(value))</c> conversion.
+    /// </summary>
+    /// <param name="value">The fixed-size byte value to convert.</param>
+    /// <returns>The address represented by the leading 20 bytes.</returns>
+    public static Address FromBytes(in Bytes32 value)
+        => FromBytes(value.DangerousGetReadOnlySpan()[..BYTES_LENGTH]);
+
     /// <inheritdoc/>
     [OverloadResolutionPriority(1)]
     public readonly bool Equals(in Address other)
