@@ -7,7 +7,6 @@ internal sealed class RemainingGasOperation : IQuery, IQuery<UInt256>
 {
     public int CallDataLength => 1;
     public UInt256 EthValue => 0;
-    IReadOnlyList<IQuery> IQuery<UInt256>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
         => buffer[0] = (byte) QueryOperationId.GetRemainingGas;

@@ -9,7 +9,6 @@ internal sealed class HasCodeQueryOperation(in Address address) : IQuery, IQuery
 
     public int CallDataLength => 21;
     public UInt256 EthValue => 0;
-    IReadOnlyList<IQuery> IQuery<bool>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {

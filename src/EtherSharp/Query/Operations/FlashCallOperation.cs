@@ -13,7 +13,6 @@ internal sealed class SafeFlashCallQueryOperation<T>(IContractDeployment deploym
 
     public int CallDataLength => 1 + 37 + _deployment.ByteCode.Length + _txInput.Data.Length;
     public UInt256 EthValue => _deployment.Value + _txInput.Value;
-    IReadOnlyList<IQuery> IQuery<CallResult<T>>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {

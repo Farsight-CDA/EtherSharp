@@ -10,7 +10,6 @@ internal sealed class GetBalanceQueryOperation(in Address user) : IQuery, IQuery
 
     public int CallDataLength => 21;
     public UInt256 EthValue => 0;
-    IReadOnlyList<IQuery> IQuery<UInt256>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {

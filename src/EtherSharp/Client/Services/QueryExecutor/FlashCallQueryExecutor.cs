@@ -24,8 +24,11 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
         CallOptions options,
         CancellationToken cancellationToken)
     {
+        var plan = new QueryPlan(query.OperationCount, options.StateOverrides);
+        plan.Add(query);
+
         var buffer = ReadOnlyMemory<byte>.Empty;
-        var outputs = new ReadOnlyMemory<byte>[query.Queries.Count];
+        var outputs = new ReadOnlyMemory<byte>[plan.Queries.Count];
         int requestCount = 0;
 
         bool supportsCancun = _client.IsInitialized && _client.CompatibilityReport is not null && _client.CompatibilityReport.SupportsPush0;
@@ -33,16 +36,16 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
             ? _londonDeployment
             : _cancunDeployment;
 
-        for(int i = 0; i < query.Queries.Count; i++)
+        for(int i = 0; i < plan.Queries.Count; i++)
         {
-            var q = query.Queries[i];
+            var q = plan.Queries[i];
             if(buffer.Length == 0)
             {
                 requestCount++;
 
                 byte[] payloadBytes = QuerierUtils.EncodeCalls(
                     querierDeployment.ByteCode,
-                    query.Queries,
+                    plan.Queries,
                     i,
                     _flashCallExecutor.GetMaxPayloadSize(flashCallGasLimit, options.TargetHeight),
                     _flashCallExecutor.GetMaxResultSize(options.TargetHeight),
@@ -62,7 +65,7 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
                         querierDeployment,
                         IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
                         flashCallGasLimit,
-                        options,
+                        options with { StateOverrides = plan.StateOverrides },
                         cancellationToken
                     );
 
@@ -79,6 +82,14 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
                     }
 
                     buffer = output;
+
+                    if(_logger?.IsEnabled(LogLevel.Trace) == true)
+                    {
+                        _logger.LogTrace(
+                            "Query request {request} completed with {operations} operation(s)",
+                            requestCount,
+                            callCount);
+                    }
                 }
                 finally
                 {
@@ -89,11 +100,6 @@ internal sealed class FlashCallQueryExecutor(IFlashCallExecutor flashCallExecuto
             int sliceLength = q.ParseResultLength(buffer.Span);
             outputs[i] = buffer[0..sliceLength];
             buffer = buffer[sliceLength..];
-        }
-
-        if(_logger?.IsEnabled(LogLevel.Trace) == true)
-        {
-            _logger.LogTrace("Batch query processing completed using {requests} request(s)", requestCount);
         }
 
         if(requestCount > 1 && _logger?.IsEnabled(LogLevel.Debug) == true)

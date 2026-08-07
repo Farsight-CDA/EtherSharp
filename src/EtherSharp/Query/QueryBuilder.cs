@@ -8,14 +8,17 @@ namespace EtherSharp.Client.Modules.Query;
 /// <typeparam name="TQuery">The output type produced for each query entry added to the builder.</typeparam>
 public partial class QueryBuilder<TQuery> : IQuery<List<TQuery>>
 {
-    private readonly List<IQuery> _queries = [];
+    private readonly QueryPlan _plan = new QueryPlan();
     private readonly List<Func<ReadOnlySpan<ReadOnlyMemory<byte>>, TQuery>> _resultSelectorFunctions = [];
 
     /// <summary>
     /// Gets the flattened low-level operations that will be executed by the query executor.
     /// </summary>
-    public IReadOnlyList<IQuery> Queries => _queries;
-    IReadOnlyList<IQuery> IQuery<List<TQuery>>.Queries => _queries;
+    public IReadOnlyList<IQuery> Queries => _plan.Queries;
+    int IQuery<List<TQuery>>.OperationCount => _plan.Count;
+
+    void IQuery<List<TQuery>>.AddTo(QueryPlan plan)
+        => plan.Add(_plan);
 
     List<TQuery> IQuery<List<TQuery>>.ReadResultFrom(params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
@@ -35,8 +38,8 @@ public partial class QueryBuilder<TQuery> : IQuery<List<TQuery>>
     /// <returns>The current builder instance.</returns>
     public QueryBuilder<TQuery> AddQuery(IQuery<TQuery> c1)
     {
-        int o1 = _queries.Count;
-        _queries.AddRange(c1.Queries);
+        int o1 = _plan.Count;
+        _plan.Add(c1);
         _resultSelectorFunctions.Add(x => c1.ReadResultFrom(x[o1..]));
         return this;
     }

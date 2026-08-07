@@ -54,4 +54,82 @@ public sealed record AccountOverride
         State = state;
         StateDiff = stateDiff;
     }
+
+    /// <inheritdoc />
+    public bool Equals(AccountOverride? other)
+        => ReferenceEquals(this, other)
+            || (other is not null
+                && Balance == other.Balance
+                && Nonce == other.Nonce
+                && CodeEquals(Code, other.Code)
+                && StateEquals(State, other.State)
+                && StateEquals(StateDiff, other.StateDiff));
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(Balance);
+        hashCode.Add(Nonce);
+        hashCode.Add(Code is not null);
+        if(Code is { } code)
+        {
+            foreach(byte value in code.Span)
+            {
+                hashCode.Add(value);
+            }
+        }
+
+        hashCode.Add(State is not null);
+        hashCode.Add(GetStateHashCode(State));
+        hashCode.Add(StateDiff is not null);
+        hashCode.Add(GetStateHashCode(StateDiff));
+        return hashCode.ToHashCode();
+    }
+
+    private static bool CodeEquals(ReadOnlyMemory<byte>? left, ReadOnlyMemory<byte>? right)
+        => left is null
+            ? right is null
+            : right is { } rightCode && left.Value.Span.SequenceEqual(rightCode.Span);
+
+    private static bool StateEquals(
+        IReadOnlyDictionary<Bytes32, Bytes32>? left,
+        IReadOnlyDictionary<Bytes32, Bytes32>? right)
+    {
+        if(left is null || right is null)
+        {
+            return left is null && right is null;
+        }
+
+        if(left.Count != right.Count)
+        {
+            return false;
+        }
+
+        foreach(var (slot, value) in left)
+        {
+            if(!right.TryGetValue(slot, out var otherValue) || value != otherValue)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static int GetStateHashCode(IReadOnlyDictionary<Bytes32, Bytes32>? state)
+    {
+        if(state is null)
+        {
+            return 0;
+        }
+
+        int entriesHashCode = 0;
+        foreach(var (slot, value) in state)
+        {
+            entriesHashCode ^= HashCode.Combine(slot, value);
+        }
+
+        return HashCode.Combine(state.Count, entriesHashCode);
+    }
 }

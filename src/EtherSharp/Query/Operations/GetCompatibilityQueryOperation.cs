@@ -20,7 +20,15 @@ internal sealed class GetCompatibilityQueryOperation : IQuery<CompatibilityRepor
         new SafeFlashCallQueryOperation<bool>(_baseFee, _call)
     ];
 
-    IReadOnlyList<IQuery> IQuery<CompatibilityReport>.Queries => _queries;
+    int IQuery<CompatibilityReport>.OperationCount => _queries.Length;
+
+    void IQuery<CompatibilityReport>.AddTo(QueryPlan plan)
+    {
+        foreach(var query in _queries)
+        {
+            plan.AddOperation(query);
+        }
+    }
 
     CompatibilityReport IQuery<CompatibilityReport>.ReadResultFrom(params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
         => new CompatibilityReport(

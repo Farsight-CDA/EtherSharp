@@ -7,7 +7,6 @@ internal sealed class GetChainIdQueryOperation : IQuery, IQuery<ulong>
 {
     public int CallDataLength => 1;
     public UInt256 EthValue => 0;
-    IReadOnlyList<IQuery> IQuery<ulong>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
         => buffer[0] = (byte) QueryOperationId.GetChainId;

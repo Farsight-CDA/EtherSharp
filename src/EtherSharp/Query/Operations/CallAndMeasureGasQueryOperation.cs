@@ -11,7 +11,6 @@ internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInpu
 
     public int CallDataLength => 4 + 20 + 32 + _txInput.Data.Length;
     public UInt256 EthValue => _txInput.Value;
-    IReadOnlyList<IQuery> IQuery<(CallResult<T>, ulong)>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {

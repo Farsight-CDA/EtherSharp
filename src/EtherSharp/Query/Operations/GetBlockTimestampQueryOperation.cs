@@ -7,7 +7,6 @@ internal sealed class GetBlockTimestampQueryOperation : IQuery, IQuery<DateTimeO
 {
     public int CallDataLength => 1;
     public UInt256 EthValue => 0;
-    IReadOnlyList<IQuery> IQuery<DateTimeOffset>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
         => buffer[0] = (byte) QueryOperationId.GetBlockTimestamp;

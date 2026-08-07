@@ -1,18 +1,12 @@
-﻿using EtherSharp.Numerics;
+﻿namespace EtherSharp.Query.Operations;
 
-namespace EtherSharp.Query.Operations;
-
-internal sealed class NoopQueryOperation<T>(T value) : IQuery, IQuery<T>
+internal sealed class NoopQueryOperation<T>(T value) : IQuery<T>
 {
     private readonly T _value = value;
 
-    public int CallDataLength => 0;
-    public UInt256 EthValue => 0;
-    IReadOnlyList<IQuery> IQuery<T>.Queries => [];
+    int IQuery<T>.OperationCount => 0;
 
-    public void Encode(Span<byte> buffer) { }
-    public int ParseResultLength(ReadOnlySpan<byte> resultData)
-        => 0;
+    void IQuery<T>.AddTo(QueryPlan plan) { }
     T IQuery<T>.ReadResultFrom(params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
         => _value;
 }

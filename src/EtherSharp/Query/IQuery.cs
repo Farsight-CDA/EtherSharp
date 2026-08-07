@@ -3,6 +3,7 @@ using EtherSharp.Numerics;
 using EtherSharp.Query.Operations;
 using EtherSharp.Tx;
 using EtherSharp.Types;
+using System.Runtime.CompilerServices;
 
 namespace EtherSharp.Query;
 
@@ -167,6 +168,33 @@ public partial interface IQuery
         => new GetBalanceQueryOperation(in user);
 
     /// <summary>
+    /// Creates a query that reads a raw storage slot by temporarily replacing the target contract's code.
+    /// </summary>
+    /// <remarks>
+    /// The replacement applies to every RPC call used to execute the combined query. Calls to the target's original functions will not work.
+    /// </remarks>
+    /// <param name="contract">The contract whose storage is read.</param>
+    /// <param name="slot">The raw 32-byte storage slot.</param>
+    /// <exception cref="InvalidOperationException">Thrown during execution when another query requires a conflicting override for the same contract.</exception>
+    public static IQuery<Bytes32> ReadStorage(in Address contract, in Bytes32 slot)
+        => new ReadStorageQueryOperation(in contract, in slot, null);
+
+    /// <summary>
+    /// Creates a query that reads a raw storage slot while preserving calls to the target contract's original runtime bytecode.
+    /// </summary>
+    /// <remarks>
+    /// The replacement applies to every RPC call used to execute the combined query. Non-storage-read calls are delegated to a transient
+    /// state-override account containing <paramref name="originalByteCode"/>.
+    /// </remarks>
+    /// <param name="contract">The contract whose storage is read.</param>
+    /// <param name="slot">The raw 32-byte storage slot.</param>
+    /// <param name="originalByteCode">The target contract's original deployed runtime bytecode.</param>
+    /// <exception cref="InvalidOperationException">Thrown during execution when another query requires a conflicting override for the target
+    /// or transient contract address.</exception>
+    public static IQuery<Bytes32> ReadStorage(in Address contract, in Bytes32 slot, EVMByteCode originalByteCode)
+        => new ReadStorageQueryOperation(in contract, in slot, originalByteCode);
+
+    /// <summary>
     /// Creates a query that returns the current chain id.
     /// </summary>
     public static IQuery<ulong> GetChainId()
@@ -194,33 +222,20 @@ public partial interface IQuery
     /// Maps the result of <paramref name="query"/> to a new type while preserving its underlying operations.
     /// </summary>
     public static IQuery<TTo> Map<TFrom, TTo>(IQuery<TFrom> query, Func<TFrom, TTo> mapping)
-        => new Query<TTo>(query.Queries, results => mapping(query.ReadResultFrom(results)));
+        => new MappedQuery<TFrom, TTo>(query, mapping);
 
     /// <summary>
     /// Combines an arbitrary number of queries into a single query that returns an ordered result list.
     /// </summary>
     public static IQuery<T[]> Range<T>(params IEnumerable<IQuery<T>> queries)
-    {
-        var queryList = queries.ToList();
-        return new Query<T[]>(
-            [.. queryList.SelectMany(q => q.Queries)],
-            results =>
-            {
-                var queryResults = new T[queryList.Count];
-                int offset = 0;
+        => Range<T>(queries.ToArray().AsMemory());
 
-                for(int i = 0; i < queryList.Count; i++)
-                {
-                    var q = queryList[i];
-                    int count = q.Queries.Count;
-                    queryResults[i] = q.ReadResultFrom(results[offset..(offset + count)]);
-                    offset += count;
-                }
-
-                return queryResults;
-            }
-        );
-    }
+    /// <summary>
+    /// Combines an arbitrary number of queries into a single query that returns an ordered result list.
+    /// </summary>
+    [OverloadResolutionPriority(1)]
+    public static IQuery<T[]> Range<T>(ReadOnlyMemory<IQuery<T>> queries)
+        => new RangeQuery<T>(queries);
 }
 
 /// <summary>
@@ -229,7 +244,24 @@ public partial interface IQuery
 /// <typeparam name="TQuery">The parsed result type returned by this query.</typeparam>
 public partial interface IQuery<TQuery>
 {
-    internal IReadOnlyList<IQuery> Queries { get; }
+    /// <summary>
+    /// Gets the number of low-level operations contributed to an execution plan by this query.
+    /// </summary>
+    public int OperationCount
+        => this is IQuery
+            ? 1
+            : throw new InvalidOperationException("Composite queries must declare their operation count.");
+
+    internal void AddTo(QueryPlan plan)
+    {
+        if(this is not IQuery query)
+        {
+            throw new InvalidOperationException("Composite queries must implement query collection.");
+        }
+
+        plan.AddOperation(query);
+    }
+
     internal TQuery ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults);
 
     /// <summary>

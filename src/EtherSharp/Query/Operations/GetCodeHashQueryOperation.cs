@@ -9,7 +9,6 @@ internal sealed class GetCodeHashQueryOperation(in Address address) : IQuery, IQ
 
     public int CallDataLength => 21;
     public UInt256 EthValue => 0;
-    IReadOnlyList<IQuery> IQuery<byte[]>.Queries => [this];
 
     public void Encode(Span<byte> buffer)
     {

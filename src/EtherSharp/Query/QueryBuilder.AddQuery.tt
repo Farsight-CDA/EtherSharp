@@ -22,8 +22,8 @@ public partial class QueryBuilder<TQuery>
     var inputLines = new List<string>(n * 2);
     for(int i = 1; i <= n; i++)
     {
-        inputLines.Add($"int o{i} = _queries.Count;");
-        inputLines.Add($"_queries.AddRange(c{i}.Queries);");
+        inputLines.Add($"int o{i} = _plan.Count;");
+        inputLines.Add($"_plan.Add(c{i});");
     }
     string inputsCode = string.Join("\n        ", inputLines);
     string querySummary = n == 1 ? "query" : "queries";
