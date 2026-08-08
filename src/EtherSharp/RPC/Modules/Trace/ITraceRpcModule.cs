@@ -1,3 +1,4 @@
+using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Trace.Types;
 using EtherSharp.Types;
 
@@ -9,12 +10,13 @@ namespace EtherSharp.RPC.Modules.Trace;
 public interface ITraceRpcModule
 {
     /// <summary>
-    /// Replays a transaction and returns requested trace payloads.
+    /// Executes a simulated call and returns the requested raw trace payloads.
     /// </summary>
-    /// <returns>
-    /// The raw trace payload returned by the node, or <see langword="null"/> when the node returns a null result (for example, transaction not found).
-    /// </returns>
-    public Task<TransactionTraceResult?> ReplayTransactionAsync(in Bytes32 txHash, string[] traceTypes, CancellationToken cancellationToken = default);
+    public Task<TransactionTraceResult> CallAsync(
+        Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        TraceTypes traceTypes, TargetHeight targetHeight = default,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Replays a transaction and returns requested trace payloads.
@@ -22,5 +24,7 @@ public interface ITraceRpcModule
     /// <returns>
     /// The raw trace payload returned by the node, or <see langword="null"/> when the node returns a null result (for example, transaction not found).
     /// </returns>
-    public Task<TransactionTraceResult?> ReplayTransactionAsync(string txHash, string[] traceTypes, CancellationToken cancellationToken = default);
+    public Task<TransactionTraceResult?> ReplayTransactionAsync(
+        Bytes32 txHash, TraceTypes traceTypes, CancellationToken cancellationToken = default
+    );
 }

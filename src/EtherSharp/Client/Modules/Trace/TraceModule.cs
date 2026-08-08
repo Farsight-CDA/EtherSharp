@@ -6,26 +6,14 @@ namespace EtherSharp.Client.Modules.Trace;
 
 internal sealed class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
 {
-    private static readonly string[] _traceTypes = ["trace"];
+    private const TraceTypes TRACE_TYPES = TraceTypes.Trace;
 
     private readonly ITraceRpcModule _traceRpcModule = traceRpcModule;
 
-    public async Task<CallTrace?> TraceTransactionCallsAsync(string transactionHash, CancellationToken cancellationToken = default)
+    public async Task<CallTrace?> TraceTransactionCallsAsync(
+        Bytes32 transactionHash, CancellationToken cancellationToken = default)
     {
-        var result = await _traceRpcModule.ReplayTransactionAsync(transactionHash, _traceTypes, cancellationToken);
-        return BuildCallTrace(result);
-    }
-
-    public Task<CallTrace?> TraceTransactionCallsAsync(in Bytes32 transactionHash, CancellationToken cancellationToken = default)
-    {
-        var transactionHashValue = transactionHash;
-        return TraceTransactionCallsCoreAsync(transactionHashValue, cancellationToken);
-    }
-
-    private async Task<CallTrace?> TraceTransactionCallsCoreAsync(Bytes32 transactionHash, CancellationToken cancellationToken = default)
-    {
-        var result = await _traceRpcModule.ReplayTransactionAsync(in transactionHash, _traceTypes, cancellationToken);
-
+        var result = await _traceRpcModule.ReplayTransactionAsync(transactionHash, TRACE_TYPES, cancellationToken);
         return BuildCallTrace(result);
     }
 
@@ -68,9 +56,8 @@ internal sealed class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
         );
     }
 
-    public Task<TransactionTraceResult?> ReplayTransactionAsync(in Bytes32 transactionHash, string[] traceTypes, CancellationToken cancellationToken = default)
-        => _traceRpcModule.ReplayTransactionAsync(in transactionHash, traceTypes, cancellationToken);
+    public Task<TransactionTraceResult?> ReplayTransactionAsync(
+        Bytes32 transactionHash, TraceTypes traceTypes, CancellationToken cancellationToken = default
+    ) => _traceRpcModule.ReplayTransactionAsync(transactionHash, traceTypes, cancellationToken);
 
-    public Task<TransactionTraceResult?> ReplayTransactionAsync(string transactionHash, string[] traceTypes, CancellationToken cancellationToken = default)
-        => _traceRpcModule.ReplayTransactionAsync(transactionHash, traceTypes, cancellationToken);
 }
