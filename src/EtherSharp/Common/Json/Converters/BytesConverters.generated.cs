@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Converter;
+namespace EtherSharp.Common.Json.Converters;
 
 internal static class FixedBytesJsonConverters
 {
@@ -430,5 +430,4 @@ public sealed class Bytes32Converter : FixedBytesJsonConverter<Bytes32>
     protected override void WriteUnsafe(Utf8JsonWriter writer, Bytes32 value)
         => HexJsonConverter.WriteBytes(writer, value.DangerousGetReadOnlySpan());
 }
-
 

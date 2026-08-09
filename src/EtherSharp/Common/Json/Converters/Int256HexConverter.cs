@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Converter;
+namespace EtherSharp.Common.Json.Converters;
 
 /// <summary>
 /// Converts an <see cref="Int256"/> to or from a hex-encoded JSON string.

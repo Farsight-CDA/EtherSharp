@@ -14,6 +14,7 @@ using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common;
 using EtherSharp.Common.Extensions;
+using EtherSharp.Common.Json;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Debug;
 using EtherSharp.RPC.Modules.Eth;
@@ -539,6 +540,11 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         {
             _services.AddSingleton(ParsingUtils.CreateDefaultEvmSerializerOptions());
         }
+
+        _services.AddSingleton(provider => new EtherSharpJsonSerializerContext(
+            new JsonSerializerOptions(provider.GetRequiredService<JsonSerializerOptions>())
+        ));
+
         foreach(var service in _services.ToArray())
         {
             var serviceType = service.ImplementationType

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Converter;
+namespace EtherSharp.Common.Json.Converters;
 
 /// <summary>
 /// Converts hex-encoded <see cref="ReadOnlyMemory{T}"/> byte values to or from JSON.

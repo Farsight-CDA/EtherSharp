@@ -16,9 +16,6 @@ internal sealed class RpcClient : IRpcClient
     public bool SupportsFilters => _transport.SupportsFilters;
     public bool SupportsSubscriptions => _transport.SupportsSubscriptions;
 
-    private sealed record LogParams(LogResponse Params);
-    private sealed record LogResponse(Log Result);
-
     public RpcClient(IRPCTransport transport, IServiceProvider serviceProvider)
     {
         _transport = transport;

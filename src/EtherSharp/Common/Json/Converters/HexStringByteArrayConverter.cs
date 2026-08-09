@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Converter;
+namespace EtherSharp.Common.Json.Converters;
 
 /// <summary>
 /// Converts a hex-encoded <see cref="Byte"/> array to or from JSON.

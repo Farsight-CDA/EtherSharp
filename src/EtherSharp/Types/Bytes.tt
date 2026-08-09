@@ -3,7 +3,7 @@
 #>#nullable enable
 #pragma warning disable CS1591, CS0675
 using EtherSharp.Common;
-using EtherSharp.Common.Converter;
+using EtherSharp.Common.Json.Converters;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;

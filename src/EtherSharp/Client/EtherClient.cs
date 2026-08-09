@@ -11,6 +11,7 @@ using EtherSharp.Client.Services.QueryExecutor;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Json;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Query;
@@ -23,7 +24,6 @@ using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using System.Buffers.Binary;
-using System.Text.Json;
 
 namespace EtherSharp.Client;
 
@@ -49,7 +49,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private IFlashCallExecutor _flashCallExecutor = null!;
     private ISubscriptionsManager _subscriptionsManager = null!;
     private ContractFactory _contractFactory = null!;
-    private JsonSerializerOptions _jsonSerializerOptions = null!;
+    private EtherSharpJsonSerializerContext _jsonSerializerContext = null!;
 
     private bool _initialized;
     private bool _isDisposed;
@@ -171,7 +171,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     IEventsModule<TEvent> IEtherClient.Events<TEvent>()
     {
         AssertReady();
-        return new EventsModule<TEvent>(_rpcClient, _ethRpcModule, _subscriptionsManager, _jsonSerializerOptions);
+        return new EventsModule<TEvent>(_rpcClient, _ethRpcModule, _subscriptionsManager, _jsonSerializerContext);
     }
 
     void IEtherClient.SetDefaultCallGasLimits(ulong? ethCallGasLimit, ulong? flashCallGasLimit)
@@ -223,7 +223,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         _flashCallExecutor = _provider.GetRequiredService<IFlashCallExecutor>();
         _subscriptionsManager = _provider.GetRequiredService<ISubscriptionsManager>();
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
-        _jsonSerializerOptions = _provider.GetRequiredService<JsonSerializerOptions>();
+        _jsonSerializerContext = _provider.GetRequiredService<EtherSharpJsonSerializerContext>();
 
         if(_options.IsTxClient)
         {

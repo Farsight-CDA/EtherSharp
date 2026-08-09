@@ -1,4 +1,5 @@
 using EtherSharp.Client.Services.Subscriptions;
+using EtherSharp.Common.Json;
 using EtherSharp.RPC.Modules.Eth;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -7,13 +8,13 @@ using System.Threading.Channels;
 namespace EtherSharp.Realtime.Blocks.Subscription;
 
 internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
-    JsonSerializerOptions jsonSerializerOptions) : IBlocksSubscription, ISubscription
+    EtherSharpJsonSerializerContext jsonSerializerContext) : IBlocksSubscription, ISubscription
 {
     public string Id { get; private set; } = null!;
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
-    private readonly JsonSerializerOptions _jsonSerializerOptions = jsonSerializerOptions;
+    private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
 
     private readonly Channel<BlockHeader> _channel = Channel.CreateUnbounded<BlockHeader>(new UnboundedChannelOptions()
     {
@@ -75,12 +76,10 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
         _channel.Writer.TryComplete();
     }
 
-    private record struct HeadsParams(HeadsResponse Params);
-    private record struct HeadsResponse(BlockHeader Result);
     public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload)
     {
-        var p = JsonSerializer.Deserialize<HeadsParams>(payload, _jsonSerializerOptions)!;
-        _channel.Writer.TryWrite(p.Params.Result);
+        var envelope = JsonSerializer.Deserialize(payload, _jsonSerializerContext.BlockHeaderSubscriptionEnvelope);
+        _channel.Writer.TryWrite(envelope.Params.Result);
         return true;
     }
 

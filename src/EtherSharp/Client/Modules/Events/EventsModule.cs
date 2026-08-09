@@ -1,6 +1,7 @@
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common.Comparer;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Json;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Events;
 using EtherSharp.Realtime.Events.Filter;
@@ -8,18 +9,17 @@ using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
-using System.Text.Json;
 
 namespace EtherSharp.Client.Modules.Events;
 
 internal sealed class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
-    JsonSerializerOptions jsonSerializerOptions) : IEventsModule<TLog>
+    EtherSharpJsonSerializerContext jsonSerializerContext) : IEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {
     private readonly IRpcClient _rpcClient = rpcClient;
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
-    private readonly JsonSerializerOptions _jsonSerializerOptions = jsonSerializerOptions;
+    private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
 
     private readonly Dictionary<int, string[]?> _topics = [];
     private Address[]? _contractAddresses;
@@ -150,8 +150,8 @@ internal sealed class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule eth
 
     public async Task<IEventSubscription<TLog>> CreateSubscriptionAsync(CancellationToken cancellationToken = default)
     {
-        var subscription = new EventSubscription<TLog>(_rpcClient, _ethRpcModule, _subscriptionsManager,
-            _jsonSerializerOptions, _contractAddresses, CreateTopicsArray());
+        var subscription = new EventSubscription<TLog>(_ethRpcModule, _subscriptionsManager,
+            _jsonSerializerContext, _contractAddresses, CreateTopicsArray());
         await _subscriptionsManager.InstallSubscriptionAsync(subscription, cancellationToken);
         return subscription;
     }

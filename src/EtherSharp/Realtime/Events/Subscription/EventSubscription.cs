@@ -1,5 +1,5 @@
 using EtherSharp.Client.Services.Subscriptions;
-using EtherSharp.RPC;
+using EtherSharp.Common.Json;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
 using System.Runtime.CompilerServices;
@@ -9,18 +9,17 @@ using System.Threading.Channels;
 namespace EtherSharp.Realtime.Events.Subscription;
 
 internal sealed class EventSubscription<TLog>(
-    IRpcClient client, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
-    JsonSerializerOptions jsonSerializerOptions, Address[]? contractAddresses, string[]?[]? topics
+    IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+    EtherSharpJsonSerializerContext jsonSerializerContext, Address[]? contractAddresses, string[]?[]? topics
 )
     : IEventSubscription<TLog>, ISubscription
     where TLog : ITxLog<TLog>
 {
     public string Id { get; private set; } = null!;
 
-    private readonly IRpcClient _client = client;
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
-    private readonly JsonSerializerOptions _jsonSerializerOptions = jsonSerializerOptions;
+    private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
 
     private readonly Address[]? _contractAddresses = contractAddresses;
     private readonly string[]?[]? _topics = topics;
@@ -49,12 +48,10 @@ internal sealed class EventSubscription<TLog>(
         Id = await _ethRpcModule.SubscribeLogsAsync(_contractAddresses, _topics, cancellationToken);
     }
 
-    private record struct LogParams(LogResponse Params);
-    private record struct LogResponse(Log Result);
     public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload)
     {
-        var p = JsonSerializer.Deserialize<LogParams>(payload, _jsonSerializerOptions)!;
-        _channel.Writer.TryWrite(p.Params.Result);
+        var envelope = JsonSerializer.Deserialize(payload, _jsonSerializerContext.LogSubscriptionEnvelope);
+        _channel.Writer.TryWrite(envelope.Params.Result);
         return true;
     }
 

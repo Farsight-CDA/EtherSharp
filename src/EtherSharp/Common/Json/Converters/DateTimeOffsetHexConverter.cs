@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Converter;
+namespace EtherSharp.Common.Json.Converters;
 
 /// <summary>
 /// Converts a <see cref="DateTimeOffset"/> value to or from a hex-encoded Unix timestamp JSON string.

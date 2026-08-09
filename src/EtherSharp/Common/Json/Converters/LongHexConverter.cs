@@ -3,25 +3,25 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Converter;
+namespace EtherSharp.Common.Json.Converters;
 
 /// <summary>
-/// Converts a <see cref="UInt64"/> to or from a hex-encoded JSON string.
+/// Converts a <see cref="Int64"/> to or from a hex-encoded JSON string.
 /// </summary>
-public sealed class ULongHexConverter : JsonConverter<ulong>
+public sealed class LongHexConverter : JsonConverter<long>
 {
     /// <summary>
     /// Gets the shared converter instance.
     /// </summary>
-    public static ULongHexConverter Instance { get; } = new();
+    public static LongHexConverter Instance { get; } = new();
 
     /// <inheritdoc/>
-    public override ulong Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override long Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         switch(reader.TokenType)
         {
             case JsonTokenType.Number:
-                return reader.GetUInt64();
+                return reader.GetInt64();
             case JsonTokenType.String:
                 int valueLength = reader.HasValueSequence
                     ? (int) reader.ValueSequence.Length
@@ -37,14 +37,14 @@ public sealed class ULongHexConverter : JsonConverter<ulong>
 
                 return charsWritten > 18
                     ? throw new InvalidOperationException("Unexpected number length")
-                    : UInt64.Parse(sourceBuffer[2..charsWritten], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+                    : Int64.Parse(sourceBuffer[2..charsWritten], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
             default:
-                throw new JsonException($"Cannot parse {nameof(UInt64)} from token of type {reader.TokenType}");
+                throw new JsonException($"Cannot parse {nameof(Int64)} from token of type {reader.TokenType}");
         }
     }
 
     /// <inheritdoc/>
-    public override void Write(Utf8JsonWriter writer, ulong value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, long value, JsonSerializerOptions options)
     {
         if(value == 0)
         {
@@ -52,9 +52,9 @@ public sealed class ULongHexConverter : JsonConverter<ulong>
             return;
         }
 
-        Span<byte> byteBuffer = stackalloc byte[sizeof(ulong)];
+        Span<byte> byteBuffer = stackalloc byte[sizeof(long)];
 
-        BinaryPrimitives.WriteUInt64BigEndian(byteBuffer, value);
+        BinaryPrimitives.WriteInt64BigEndian(byteBuffer, value);
 
         byteBuffer = byteBuffer.TrimStart((byte) 0);
 

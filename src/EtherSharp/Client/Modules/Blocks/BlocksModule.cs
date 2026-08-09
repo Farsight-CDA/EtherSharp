@@ -1,17 +1,17 @@
 using EtherSharp.Client.Services.Subscriptions;
+using EtherSharp.Common.Json;
 using EtherSharp.Realtime.Blocks.Subscription;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.Types;
-using System.Text.Json;
 
 namespace EtherSharp.Client.Modules.Blocks;
 
 internal sealed class BlocksModule(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
-    JsonSerializerOptions jsonSerializerOptions) : IBlocksModule
+    EtherSharpJsonSerializerContext jsonSerializerContext) : IBlocksModule
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
-    private readonly JsonSerializerOptions _jsonSerializerOptions = jsonSerializerOptions;
+    private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
 
     public Task<Block> GetBlockAtHeightAsync(TargetHeight targetHeight, CancellationToken cancellationToken = default)
         => _ethRpcModule.GetBlockByNumberAsync(targetHeight, cancellationToken);
@@ -19,7 +19,7 @@ internal sealed class BlocksModule(IEthRpcModule ethRpcModule, ISubscriptionsMan
         => _ethRpcModule.BlockNumberAsync(cancellationToken);
     public async Task<IBlocksSubscription> SubscribeNewHeadsAsync(CancellationToken cancellationToken)
     {
-        var subscription = new BlocksSubscription(_ethRpcModule, _subscriptionsManager, _jsonSerializerOptions);
+        var subscription = new BlocksSubscription(_ethRpcModule, _subscriptionsManager, _jsonSerializerContext);
         await _subscriptionsManager.InstallSubscriptionAsync(subscription, cancellationToken);
         return subscription;
     }
