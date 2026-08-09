@@ -9,10 +9,10 @@ namespace EtherSharp.RPC.Modules.Debug;
 internal sealed class DebugRpcModule(IRpcClient rpcClient) : IDebugRpcModule
 {
     private readonly IRpcClient _rpcClient = rpcClient;
-
+    private readonly record struct CallTracerOptions(string Tracer);
     public async Task<CallTrace?> TraceTransactionCallsAsync(string transactionHash, CancellationToken cancellationToken = default)
-        => await _rpcClient.SendRpcRequestAsync<string, object, CallTrace>(
-            "debug_traceTransaction", transactionHash, new { tracer = "callTracer" }, TargetHeight.Latest, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<string, CallTracerOptions, CallTrace>(
+            "debug_traceTransaction", transactionHash, new CallTracerOptions("callTracer"), TargetHeight.Latest, cancellationToken) switch
         {
             RpcResult<CallTrace>.Success result => result.Result,
             RpcResult<CallTrace>.Null => null,
@@ -27,8 +27,8 @@ internal sealed class DebugRpcModule(IRpcClient rpcClient) : IDebugRpcModule
     }
 
     private async Task<CallTrace?> TraceTransactionCallsCoreAsync(Bytes32 transactionHash, CancellationToken cancellationToken = default)
-        => await _rpcClient.SendRpcRequestAsync<Bytes32, object, CallTrace>(
-            "debug_traceTransaction", transactionHash, new { tracer = "callTracer" }, TargetHeight.Latest, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<Bytes32, CallTracerOptions, CallTrace>(
+            "debug_traceTransaction", transactionHash, new CallTracerOptions("callTracer"), TargetHeight.Latest, cancellationToken) switch
         {
             RpcResult<CallTrace>.Success result => result.Result,
             RpcResult<CallTrace>.Null => null,
