@@ -26,6 +26,7 @@ using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
 using System.Text.Json;
 
@@ -232,7 +233,8 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// </summary>
     /// <typeparam name="TRpcMiddleware"></typeparam>
     /// <returns></returns>
-    public EtherClientBuilder AddRPCMiddleware<TRpcMiddleware>()
+    public EtherClientBuilder AddRPCMiddleware<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRpcMiddleware>()
         where TRpcMiddleware : class, IRpcMiddleware
     {
         _services.AddSingleton<IRpcMiddleware, TRpcMiddleware>();
@@ -295,7 +297,8 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <typeparam name="TTxScheduler"></typeparam>
     /// <param name="configureAction"></param>
     /// <returns></returns>
-    public EtherClientBuilder WithTxScheduler<TTxScheduler>(Action<TTxScheduler>? configureAction = null)
+    public EtherClientBuilder WithTxScheduler<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTxScheduler>(Action<TTxScheduler>? configureAction = null)
         where TTxScheduler : class, ITxScheduler
     {
         _services.AddOrReplaceSingleton<ITxScheduler, TTxScheduler>();
@@ -310,7 +313,9 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <typeparam name="TOptions"></typeparam>
     /// <param name="configureAction"></param>
     /// <returns></returns>
-    public EtherClientBuilder WithTxScheduler<TTxScheduler, TOptions>(Action<TOptions>? configureAction = null)
+    public EtherClientBuilder WithTxScheduler<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTxScheduler,
+        TOptions>(Action<TOptions>? configureAction = null)
         where TTxScheduler : class, ITxScheduler
         where TOptions : class, new()
     {
@@ -338,7 +343,8 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <typeparam name="TSusbcriptionManager"></typeparam>
     /// <param name="configureAction"></param>
     /// <returns></returns>
-    public EtherClientBuilder WithSubscriptionsManager<TSusbcriptionManager>(Action<TSusbcriptionManager>? configureAction = null)
+    public EtherClientBuilder WithSubscriptionsManager<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TSusbcriptionManager>(Action<TSusbcriptionManager>? configureAction = null)
         where TSusbcriptionManager : class, ISubscriptionsManager
     {
         _services.AddOrReplaceSingleton<ISubscriptionsManager, TSusbcriptionManager>();
@@ -352,7 +358,8 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <typeparam name="TTxPublisher"></typeparam>
     /// <param name="configureAction"></param>
     /// <returns></returns>
-    public EtherClientBuilder WithTxPublisher<TTxPublisher>(Action<TTxPublisher>? configureAction = null)
+    public EtherClientBuilder WithTxPublisher<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTxPublisher>(Action<TTxPublisher>? configureAction = null)
         where TTxPublisher : class, ITxPublisher
     {
         _services.AddOrReplaceSingleton<ITxPublisher, TTxPublisher>();
@@ -366,7 +373,8 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <typeparam name="TResiliencyLayer"></typeparam>
     /// <param name="configureAction"></param>
     /// <returns></returns>
-    public EtherClientBuilder WithResiliencyLayer<TResiliencyLayer>(Action<TResiliencyLayer>? configureAction = null)
+    public EtherClientBuilder WithResiliencyLayer<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResiliencyLayer>(Action<TResiliencyLayer>? configureAction = null)
         where TResiliencyLayer : class, IResiliencyLayer
     {
         _services.AddOrReplaceSingleton<IResiliencyLayer, TResiliencyLayer>();
@@ -386,7 +394,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="handlerConfigureAction"></param>
     /// <param name="gasFeeProviderConfigurationAction"></param>
     /// <returns></returns>
-    public EtherClientBuilder AddTxTypeHandler<TTxTypeHandler, TGasFeeProvider, TGasFeeProviderConfiguration, TTransaction, TTxParams, TTxGasParams>(
+    public EtherClientBuilder AddTxTypeHandler<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTxTypeHandler,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TGasFeeProvider,
+        TGasFeeProviderConfiguration, TTransaction, TTxParams, TTxGasParams>(
         Action<TTxTypeHandler>? handlerConfigureAction = null,
         Action<TGasFeeProviderConfiguration>? gasFeeProviderConfigurationAction = null
     )

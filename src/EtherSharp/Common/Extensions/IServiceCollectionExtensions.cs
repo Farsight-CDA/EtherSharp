@@ -1,10 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EtherSharp.Common.Extensions;
 
 internal static class IServiceCollectionExtensions
 {
-    internal static void AddOrReplaceSingleton<TService, TImplementation>(this IServiceCollection services)
+    internal static void AddOrReplaceSingleton<TService,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(this IServiceCollection services)
         where TImplementation : class, TService
         where TService : class
     {
