@@ -1,12 +1,8 @@
-using EtherSharp.RPC.Modules.Trace.Converter;
-using System.Text.Json.Serialization;
-
 namespace EtherSharp.RPC.Modules.Trace.Types;
 
 /// <summary>
 /// Represents one unchanged, added, removed, or modified state value.
 /// </summary>
-[JsonConverter(typeof(StateChangeJsonConverterFactory))]
 public abstract record StateChange<T>
 {
     /// <summary>

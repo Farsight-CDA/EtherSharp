@@ -1,4 +1,7 @@
 ﻿using EtherSharp.Common.Converter;
+using EtherSharp.Numerics;
+using EtherSharp.RPC.Modules.Trace.Converter;
+using EtherSharp.Types;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -46,6 +49,9 @@ public static class ParsingUtils
         options.Converters.Add(TransactionTypeHexConverter.Instance);
         options.Converters.Add(UInt256HexConverter.Instance);
         options.Converters.Add(Int256HexConverter.Instance);
+        options.Converters.Add(new StateChangeJsonConverter<UInt256>(UInt256HexConverter.Instance));
+        options.Converters.Add(new StateChangeJsonConverter<byte[]>(HexStringByteArrayConverter.Instance));
+        options.Converters.Add(new StateChangeJsonConverter<Bytes32>(Bytes32Converter.Instance));
         return options;
     }
 }
