@@ -2,8 +2,8 @@
 using EtherSharp.Common.Extensions;
 using EtherSharp.Common.Instrumentation;
 using EtherSharp.Realtime;
-using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.Metrics;
@@ -12,7 +12,7 @@ namespace EtherSharp.Client.Services.Subscriptions;
 
 internal sealed class SubscriptionsManager : ISubscriptionsManager
 {
-    private readonly IRpcClient _rpcClient;
+    private readonly IRPCTransport _rpcTransport;
     private readonly IEthRpcModule _ethRpcModule;
 
     private readonly ILogger? _logger;
@@ -24,16 +24,16 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
     private readonly ObservableUpDownCounter<int>? _subscriptionsCounter;
 
-    public SubscriptionsManager(IRpcClient rpcClient, IEthRpcModule ethRpcModule, IServiceProvider serviceProvider)
+    public SubscriptionsManager(IRPCTransport rpcTransport, IEthRpcModule ethRpcModule, IServiceProvider serviceProvider)
     {
-        _rpcClient = rpcClient;
+        _rpcTransport = rpcTransport;
         _ethRpcModule = ethRpcModule;
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger<SubscriptionsManager>();
 
         _subscriptionsCounter = serviceProvider.CreateOTELObservableUpDownCounter("active_wss_subscriptions", () => _subscriptions.Count);
 
-        _rpcClient.OnConnectionEstablished += HandleConnectionEstablished;
-        _rpcClient.OnSubscriptionMessage += HandleSubscriptionMessage;
+        _rpcTransport.OnConnectionEstablished += HandleConnectionEstablished;
+        _rpcTransport.OnSubscriptionMessage += HandleSubscriptionMessage;
     }
 
     public async Task InstallSubscriptionAsync(ISubscription subscription, CancellationToken cancellationToken)
@@ -102,8 +102,8 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
             _subscriptions.Clear();
         }
 
-        _rpcClient.OnConnectionEstablished -= HandleConnectionEstablished;
-        _rpcClient.OnSubscriptionMessage -= HandleSubscriptionMessage;
+        _rpcTransport.OnConnectionEstablished -= HandleConnectionEstablished;
+        _rpcTransport.OnSubscriptionMessage -= HandleSubscriptionMessage;
 
         foreach(var subscription in subscriptions)
         {

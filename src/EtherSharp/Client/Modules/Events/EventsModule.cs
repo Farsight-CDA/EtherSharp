@@ -6,17 +6,17 @@ using EtherSharp.Contract;
 using EtherSharp.Realtime.Events;
 using EtherSharp.Realtime.Events.Filter;
 using EtherSharp.Realtime.Events.Subscription;
-using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Events;
 
-internal sealed class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+internal sealed class EventsModule<TLog>(IRPCTransport rpcTransport, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
     EtherSharpJsonSerializerContext jsonSerializerContext) : IEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {
-    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly IRPCTransport _rpcTransport = rpcTransport;
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
     private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
@@ -143,7 +143,7 @@ internal sealed class EventsModule<TLog>(IRpcClient rpcClient, IEthRpcModule eth
     public async Task<IEventFilter<TLog>> CreateFilterAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default,
         CancellationToken cancellationToken = default)
     {
-        var filter = new EventFilter<TLog>(_rpcClient, _ethRpcModule, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());
+        var filter = new EventFilter<TLog>(_rpcTransport, _ethRpcModule, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());
         await filter.InitializeAsync(cancellationToken);
         return filter;
     }

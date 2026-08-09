@@ -5,28 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EtherSharp.RPC;
 
-internal sealed class RpcClient : IRpcClient
+internal sealed class RpcClient(IRPCTransport transport, IServiceProvider serviceProvider)
 {
-    private readonly IRPCTransport _transport;
-    private readonly IRpcMiddleware[] _middlewares;
-
-    public event Action? OnConnectionEstablished;
-    public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
-
-    public bool SupportsFilters => _transport.SupportsFilters;
-    public bool SupportsSubscriptions => _transport.SupportsSubscriptions;
-
-    public RpcClient(IRPCTransport transport, IServiceProvider serviceProvider)
-    {
-        _transport = transport;
-        _middlewares = [.. serviceProvider.GetServices<IRpcMiddleware>().Reverse()];
-
-        if(_transport.SupportsSubscriptions)
-        {
-            _transport.OnConnectionEstablished += () => OnConnectionEstablished?.Invoke();
-            _transport.OnSubscriptionMessage += (subscriptionId, payload) => OnSubscriptionMessage?.Invoke(subscriptionId, payload);
-        }
-    }
+    private readonly IRPCTransport _transport = transport;
+    private readonly IRpcMiddleware[] _middlewares = [.. serviceProvider.GetServices<IRpcMiddleware>().Reverse()];
 
     private Task<RpcResult<TResult>> ExecuteWithMiddlewareAsync<TResult>(
         Func<CancellationToken, Task<RpcResult<TResult>>> onNext,

@@ -6,9 +6,9 @@ using System.Globalization;
 
 namespace EtherSharp.RPC.Modules.Debug;
 
-internal sealed class DebugRpcModule(IRpcClient rpcClient) : IDebugRpcModule
+internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
 {
-    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly RpcClient _rpcClient = rpcClient;
     private readonly record struct CallTracerOptions(string Tracer);
     public async Task<CallTrace?> TraceTransactionCallsAsync(string transactionHash, CancellationToken cancellationToken = default)
         => await _rpcClient.SendRpcRequestAsync<string, CallTracerOptions, CallTrace>(

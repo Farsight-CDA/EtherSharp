@@ -2,15 +2,17 @@
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Numerics;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Globalization;
 
 namespace EtherSharp.RPC.Modules.Eth;
 
-internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings callGasLimitSettings) : IEthRpcModule
+internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTransport, CallGasLimitSettings callGasLimitSettings) : IEthRpcModule
 {
-    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly RpcClient _rpcClient = rpcClient;
+    private readonly IRPCTransport _rpcTransport = rpcTransport;
     private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
 
     public async Task<ulong> ChainIdAsync(CancellationToken cancellationToken)
@@ -87,7 +89,7 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
 
         // Avoid CallOptions in the async state machine.
         static async Task<TxCallResult> SendAsync(
-            IRpcClient rpcClient, TransactionCall transaction, TargetHeight targetHeight,
+            RpcClient rpcClient, TransactionCall transaction, TargetHeight targetHeight,
             IReadOnlyDictionary<Address, AccountOverride>? stateOverrides, BlockOverride? blockOverrides,
             CancellationToken cancellationToken)
         {
@@ -166,7 +168,7 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
 
         // Avoid CallOptions in the async state machine.
         static async Task<ulong> SendAsync(
-            IRpcClient rpcClient, EstimateGasRequest transaction, TargetHeight targetHeight,
+            RpcClient rpcClient, EstimateGasRequest transaction, TargetHeight targetHeight,
             IReadOnlyDictionary<Address, AccountOverride>? stateOverrides, BlockOverride? blockOverrides,
             CancellationToken cancellationToken)
         {
@@ -274,7 +276,7 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
         Address[]? address, string[]?[]? topics,
         CancellationToken cancellationToken)
     {
-        if(!_rpcClient.SupportsFilters)
+        if(!_rpcTransport.SupportsFilters)
         {
             throw new InvalidOperationException("The underlying transport does not support filters");
         }
@@ -361,7 +363,7 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
     private sealed record SubscribeLogsRequest(Address[]? Address, string[]?[]? Topics);
     public async Task<string> SubscribeLogsAsync(Address[]? contracts, string[]?[]? topics, CancellationToken cancellationToken)
     {
-        if(!_rpcClient.SupportsSubscriptions)
+        if(!_rpcTransport.SupportsSubscriptions)
         {
             throw new InvalidOperationException("The underlying transport does not support subscriptions");
         }
@@ -378,7 +380,7 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
 
     public async Task<string> SubscribeNewHeadsAsync(CancellationToken cancellationToken = default)
     {
-        if(!_rpcClient.SupportsSubscriptions)
+        if(!_rpcTransport.SupportsSubscriptions)
         {
             throw new InvalidOperationException("The underlying transport does not support subscriptions");
         }
@@ -394,7 +396,7 @@ internal sealed class EthRpcModule(IRpcClient rpcClient, CallGasLimitSettings ca
 
     public async Task<bool> UnsubscribeAsync(string subscriptionId, CancellationToken cancellationToken)
     {
-        if(!_rpcClient.SupportsSubscriptions)
+        if(!_rpcTransport.SupportsSubscriptions)
         {
             throw new InvalidOperationException("The underlying transport does not support subscriptions");
         }

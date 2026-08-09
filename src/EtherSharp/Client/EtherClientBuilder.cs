@@ -511,7 +511,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddSingleton(_transportRegistration);
         _services.AddOrReplaceSingleton(new CallGasLimitSettings(_ethCallGasLimit, _flashCallGasLimit));
 
-        _services.AddSingleton<IRpcClient, RpcClient>();
+        _services.AddSingleton<RpcClient>();
         _services.AddSingleton<IEthRpcModule, EthRpcModule>();
         _services.AddSingleton<ITraceRpcModule, TraceRpcModule>();
         _services.AddSingleton<IDebugRpcModule, DebugRpcModule>();

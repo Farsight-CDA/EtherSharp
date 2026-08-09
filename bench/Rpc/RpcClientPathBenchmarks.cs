@@ -10,12 +10,12 @@ namespace EtherSharp.Bench.Rpc;
 [MemoryDiagnoser]
 public class RpcClientPathBenchmarks
 {
-    private readonly IRpcClient _noMiddlewareClient;
-    private readonly IRpcClient _oneMiddlewareClient;
-    private readonly IRpcClient _twoMiddlewareClient;
-    private readonly IRpcClient _threeMiddlewareClient;
-    private readonly IRpcClient _fourMiddlewareClient;
-    private readonly IRpcClient _fiveMiddlewareClient;
+    private readonly RpcClient _noMiddlewareClient;
+    private readonly RpcClient _oneMiddlewareClient;
+    private readonly RpcClient _twoMiddlewareClient;
+    private readonly RpcClient _threeMiddlewareClient;
+    private readonly RpcClient _fourMiddlewareClient;
+    private readonly RpcClient _fiveMiddlewareClient;
 
     public RpcClientPathBenchmarks()
     {
@@ -105,7 +105,7 @@ public class RpcClientPathBenchmarks
             cancellationToken: default
         );
 
-    private static IRpcClient BuildClient(IRPCTransport transport, params IRpcMiddleware[] middlewares)
+    private static RpcClient BuildClient(IRPCTransport transport, params IRpcMiddleware[] middlewares)
     {
         var builder = EtherClientBuilder
             .CreateEmpty()
@@ -117,6 +117,6 @@ public class RpcClientPathBenchmarks
         }
 
         var client = builder.BuildReadClient();
-        return client.AsInternal().Provider.GetRequiredService<IRpcClient>();
+        return client.AsInternal().Provider.GetRequiredService<RpcClient>();
     }
 }

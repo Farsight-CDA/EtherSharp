@@ -5,9 +5,9 @@ using EtherSharp.Types;
 
 namespace EtherSharp.RPC.Modules.Trace;
 
-internal sealed class TraceRpcModule(IRpcClient rpcClient) : ITraceRpcModule
+internal sealed class TraceRpcModule(RpcClient rpcClient) : ITraceRpcModule
 {
-    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly RpcClient _rpcClient = rpcClient;
 
     private sealed record TraceCallRequest(
         Address? From,

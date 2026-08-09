@@ -1,6 +1,4 @@
-﻿using EtherSharp.RPC;
-
-namespace EtherSharp.Client;
+﻿namespace EtherSharp.Client;
 
 /// <summary>
 /// Internal EtherClient Interface.
@@ -11,9 +9,4 @@ public interface IInternalEtherClient
     /// The underlying service provider of the EtherClient.
     /// </summary>
     public IServiceProvider Provider { get; }
-
-    /// <summary>
-    /// The underlying RPC client of the EtherClient.
-    /// </summary>
-    public IRpcClient RPC { get; }
 }

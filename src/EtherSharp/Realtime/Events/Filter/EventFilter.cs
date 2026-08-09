@@ -1,10 +1,10 @@
-﻿using EtherSharp.RPC;
-using EtherSharp.RPC.Modules.Eth;
+﻿using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 
 namespace EtherSharp.Realtime.Events.Filter;
 
-internal sealed class EventFilter<TLog>(IRpcClient rpcClient, IEthRpcModule ethRpcModule,
+internal sealed class EventFilter<TLog>(IRPCTransport rpcTransport, IEthRpcModule ethRpcModule,
     TargetHeight fromBlock, TargetHeight toBlock,
     Address[]? addresses, string[]?[]? topics
 ) : IEventFilter<TLog>
@@ -12,7 +12,7 @@ internal sealed class EventFilter<TLog>(IRpcClient rpcClient, IEthRpcModule ethR
 {
     public string Id { get; private set; } = null!;
 
-    private readonly IRpcClient _rpcClient = rpcClient;
+    private readonly IRPCTransport _rpcTransport = rpcTransport;
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
     private readonly TargetHeight _fromBlock = fromBlock;
@@ -42,7 +42,7 @@ internal sealed class EventFilter<TLog>(IRpcClient rpcClient, IEthRpcModule ethR
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        _rpcClient.OnConnectionEstablished += HandleReconnect;
+        _rpcTransport.OnConnectionEstablished += HandleReconnect;
         await InstallAsync(cancellationToken);
     }
 
@@ -54,7 +54,7 @@ internal sealed class EventFilter<TLog>(IRpcClient rpcClient, IEthRpcModule ethR
 
     public async ValueTask DisposeAsync()
     {
-        _rpcClient.OnConnectionEstablished -= HandleReconnect;
+        _rpcTransport.OnConnectionEstablished -= HandleReconnect;
         await _ethRpcModule.UninstallFilterAsync(Id);
     }
 }

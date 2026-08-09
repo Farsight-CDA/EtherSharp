@@ -39,7 +39,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private IBlocksModule _blocksModule = null!;
     private IDebugModule _debugModule = null!;
 
-    private IRpcClient _rpcClient = null!;
     private IEthRpcModule _ethRpcModule = null!;
 
     private IEtherSigner _signer = null!;
@@ -66,7 +65,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     }
 
     IServiceProvider IInternalEtherClient.Provider => _provider;
-    IRpcClient IInternalEtherClient.RPC => _rpcClient;
 
     ulong IEtherClient.ChainId
         => _initialized
@@ -171,7 +169,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     IEventsModule<TEvent> IEtherClient.Events<TEvent>()
     {
         AssertReady();
-        return new EventsModule<TEvent>(_rpcClient, _ethRpcModule, _subscriptionsManager, _jsonSerializerContext);
+        return new EventsModule<TEvent>(_rpcTransport, _ethRpcModule, _subscriptionsManager, _jsonSerializerContext);
     }
 
     void IEtherClient.SetDefaultCallGasLimits(ulong? ethCallGasLimit, ulong? flashCallGasLimit)
@@ -216,7 +214,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         _blocksModule = _provider.GetRequiredService<IBlocksModule>();
         _debugModule = _provider.GetRequiredService<IDebugModule>();
 
-        _rpcClient = _provider.GetRequiredService<IRpcClient>();
         _ethRpcModule = _provider.GetRequiredService<IEthRpcModule>();
 
         _queryExecutor = _provider.GetRequiredService<IQueryExecutor>();
