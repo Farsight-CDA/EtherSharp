@@ -36,14 +36,14 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     /// <inheritdoc />
     public event Action? OnConnectionEstablished
     {
-        add => throw new NotSupportedException();
-        remove => throw new NotSupportedException();
+        add { }
+        remove { }
     }
     /// <inheritdoc />
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage
     {
-        add => throw new NotSupportedException();
-        remove => throw new NotSupportedException();
+        add { }
+        remove { }
     }
 
     /// <summary>
