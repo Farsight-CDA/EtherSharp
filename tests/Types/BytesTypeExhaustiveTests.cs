@@ -56,6 +56,13 @@ public sealed class BytesTypeExhaustiveTests
         var higherValue = TBytes.FromBytes(higher);
 
         Assert.Equal(first, firstValue.ToArray());
+        for(int i = 0; i < length; i++)
+        {
+            Assert.Equal(first[i], firstValue[i]);
+        }
+
+        Assert.Throws<IndexOutOfRangeException>(() => _ = firstValue[-1]);
+        Assert.Throws<IndexOutOfRangeException>(() => _ = firstValue[length]);
 
         Span<byte> copied = stackalloc byte[length];
         Assert.True(firstValue.TryWriteTo(copied));

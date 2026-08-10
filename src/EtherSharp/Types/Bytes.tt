@@ -25,6 +25,13 @@ public interface IFixedBytes<TSelf>
     static abstract int BYTE_LENGTH { get; }
 
     /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    byte this[int index] { get; }
+
+    /// <summary>
     /// Copies the bytes in this value into <paramref name="destination"/>.
     /// </summary>
     /// <param name="destination">The destination span.</param>
@@ -92,6 +99,14 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
     public static Bytes<#= i #> Zero => default;
 
     static int IFixedBytes<Bytes<#= i #>>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes<#= i #>(ReadOnlySpan<byte> bytes)
     {

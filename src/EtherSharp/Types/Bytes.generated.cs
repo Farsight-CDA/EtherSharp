@@ -24,6 +24,13 @@ public interface IFixedBytes<TSelf>
     static abstract int BYTE_LENGTH { get; }
 
     /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    byte this[int index] { get; }
+
+    /// <summary>
     /// Copies the bytes in this value into <paramref name="destination"/>.
     /// </summary>
     /// <param name="destination">The destination span.</param>
@@ -87,6 +94,14 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
     public static Bytes1 Zero => default;
 
     static int IFixedBytes<Bytes1>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes1(ReadOnlySpan<byte> bytes)
     {
@@ -408,6 +423,14 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
     public static Bytes2 Zero => default;
 
     static int IFixedBytes<Bytes2>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes2(ReadOnlySpan<byte> bytes)
     {
@@ -737,6 +760,14 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
     public static Bytes3 Zero => default;
 
     static int IFixedBytes<Bytes3>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes3(ReadOnlySpan<byte> bytes)
     {
@@ -1074,6 +1105,14 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
     public static Bytes4 Zero => default;
 
     static int IFixedBytes<Bytes4>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes4(ReadOnlySpan<byte> bytes)
     {
@@ -1419,6 +1458,14 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
     public static Bytes5 Zero => default;
 
     static int IFixedBytes<Bytes5>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes5(ReadOnlySpan<byte> bytes)
     {
@@ -1772,6 +1819,14 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
     public static Bytes6 Zero => default;
 
     static int IFixedBytes<Bytes6>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes6(ReadOnlySpan<byte> bytes)
     {
@@ -2133,6 +2188,14 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
     public static Bytes7 Zero => default;
 
     static int IFixedBytes<Bytes7>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes7(ReadOnlySpan<byte> bytes)
     {
@@ -2503,6 +2566,14 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
 
     static int IFixedBytes<Bytes8>.BYTE_LENGTH => BYTE_LENGTH;
 
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
+
     private Bytes8(ReadOnlySpan<byte> bytes)
     {
         _bytes = default;
@@ -2825,6 +2896,14 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
     public static Bytes9 Zero => default;
 
     static int IFixedBytes<Bytes9>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes9(ReadOnlySpan<byte> bytes)
     {
@@ -3156,6 +3235,14 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
     public static Bytes10 Zero => default;
 
     static int IFixedBytes<Bytes10>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes10(ReadOnlySpan<byte> bytes)
     {
@@ -3494,6 +3581,14 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
     public static Bytes11 Zero => default;
 
     static int IFixedBytes<Bytes11>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes11(ReadOnlySpan<byte> bytes)
     {
@@ -3839,6 +3934,14 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
     public static Bytes12 Zero => default;
 
     static int IFixedBytes<Bytes12>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes12(ReadOnlySpan<byte> bytes)
     {
@@ -4191,6 +4294,14 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
     public static Bytes13 Zero => default;
 
     static int IFixedBytes<Bytes13>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes13(ReadOnlySpan<byte> bytes)
     {
@@ -4550,6 +4661,14 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
     public static Bytes14 Zero => default;
 
     static int IFixedBytes<Bytes14>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes14(ReadOnlySpan<byte> bytes)
     {
@@ -4916,6 +5035,14 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
     public static Bytes15 Zero => default;
 
     static int IFixedBytes<Bytes15>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes15(ReadOnlySpan<byte> bytes)
     {
@@ -5290,6 +5417,14 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
 
     static int IFixedBytes<Bytes16>.BYTE_LENGTH => BYTE_LENGTH;
 
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
+
     private Bytes16(ReadOnlySpan<byte> bytes)
     {
         _bytes = default;
@@ -5622,6 +5757,14 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
     public static Bytes17 Zero => default;
 
     static int IFixedBytes<Bytes17>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes17(ReadOnlySpan<byte> bytes)
     {
@@ -5963,6 +6106,14 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
     public static Bytes18 Zero => default;
 
     static int IFixedBytes<Bytes18>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes18(ReadOnlySpan<byte> bytes)
     {
@@ -6311,6 +6462,14 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
     public static Bytes19 Zero => default;
 
     static int IFixedBytes<Bytes19>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes19(ReadOnlySpan<byte> bytes)
     {
@@ -6666,6 +6825,14 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
     public static Bytes20 Zero => default;
 
     static int IFixedBytes<Bytes20>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes20(ReadOnlySpan<byte> bytes)
     {
@@ -7028,6 +7195,14 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
     public static Bytes21 Zero => default;
 
     static int IFixedBytes<Bytes21>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes21(ReadOnlySpan<byte> bytes)
     {
@@ -7397,6 +7572,14 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
     public static Bytes22 Zero => default;
 
     static int IFixedBytes<Bytes22>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes22(ReadOnlySpan<byte> bytes)
     {
@@ -7773,6 +7956,14 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
     public static Bytes23 Zero => default;
 
     static int IFixedBytes<Bytes23>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes23(ReadOnlySpan<byte> bytes)
     {
@@ -8157,6 +8348,14 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
 
     static int IFixedBytes<Bytes24>.BYTE_LENGTH => BYTE_LENGTH;
 
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
+
     private Bytes24(ReadOnlySpan<byte> bytes)
     {
         _bytes = default;
@@ -8499,6 +8698,14 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
     public static Bytes25 Zero => default;
 
     static int IFixedBytes<Bytes25>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes25(ReadOnlySpan<byte> bytes)
     {
@@ -8850,6 +9057,14 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
     public static Bytes26 Zero => default;
 
     static int IFixedBytes<Bytes26>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes26(ReadOnlySpan<byte> bytes)
     {
@@ -9208,6 +9423,14 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
     public static Bytes27 Zero => default;
 
     static int IFixedBytes<Bytes27>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes27(ReadOnlySpan<byte> bytes)
     {
@@ -9573,6 +9796,14 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
     public static Bytes28 Zero => default;
 
     static int IFixedBytes<Bytes28>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes28(ReadOnlySpan<byte> bytes)
     {
@@ -9945,6 +10176,14 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
     public static Bytes29 Zero => default;
 
     static int IFixedBytes<Bytes29>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes29(ReadOnlySpan<byte> bytes)
     {
@@ -10324,6 +10563,14 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
     public static Bytes30 Zero => default;
 
     static int IFixedBytes<Bytes30>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes30(ReadOnlySpan<byte> bytes)
     {
@@ -10710,6 +10957,14 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
     public static Bytes31 Zero => default;
 
     static int IFixedBytes<Bytes31>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes31(ReadOnlySpan<byte> bytes)
     {
@@ -11103,6 +11358,14 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
     public static Bytes32 Zero => default;
 
     static int IFixedBytes<Bytes32>.BYTE_LENGTH => BYTE_LENGTH;
+
+    /// <summary>
+    /// Gets the byte at the specified zero-based index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
 
     private Bytes32(ReadOnlySpan<byte> bytes)
     {
