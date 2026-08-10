@@ -6,7 +6,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query;
 
-internal readonly record struct QuerierByteCode(IContractDeployment Deployment, ReadOnlyMemory<byte> RuntimeCode);
+internal readonly record struct QuerierByteCode(IFlashCode Code);
 
 internal sealed class QuerierUtils
 {
@@ -26,13 +26,11 @@ internal sealed class QuerierUtils
     );
 
     public static readonly QuerierByteCode LondonQuerier = new(
-        IContractDeployment.Create(LondonQuerierCode, 0),
-        LondonQuerierCode.ByteCode[LONDON_RUNTIME_OFFSET..]
+        IFlashCode.FromRuntimeCode(new EVMByteCode(LondonQuerierCode.ByteCode[LONDON_RUNTIME_OFFSET..]))
     );
 
     public static readonly QuerierByteCode CancunQuerier = new(
-        IContractDeployment.Create(CancunQuerierCode, 0),
-        CancunQuerierCode.ByteCode[CANCUN_RUNTIME_OFFSET..]
+        IFlashCode.FromRuntimeCode(new EVMByteCode(CancunQuerierCode.ByteCode[CANCUN_RUNTIME_OFFSET..]))
     );
 
     public static byte[] EncodeCalls(IReadOnlyList<IQuery> queries, int startIndex, int maxPayloadSize, int maxResultSize,

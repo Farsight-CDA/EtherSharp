@@ -5,7 +5,7 @@ using EtherSharp.Client.Modules.Events;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
-using EtherSharp.Client.Services.FlashCallExecutor;
+using EtherSharp.Client.Services.FlashCall;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.QueryExecutor;
 using EtherSharp.Client.Services.Subscriptions;
@@ -44,8 +44,8 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private IEtherSigner _signer = null!;
     private ITxScheduler _txScheduler = null!;
 
-    private IQueryExecutor _queryExecutor = null!;
-    private IFlashCallExecutor _flashCallExecutor = null!;
+    private QueryExecutor _queryExecutor = null!;
+    private FlashCallExecutor _flashCallExecutor = null!;
     private ISubscriptionsManager _subscriptionsManager = null!;
     private ContractFactory _contractFactory = null!;
     private EtherSharpJsonSerializerContext _jsonSerializerContext = null!;
@@ -216,8 +216,8 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         _ethRpcModule = _provider.GetRequiredService<IEthRpcModule>();
 
-        _queryExecutor = _provider.GetRequiredService<IQueryExecutor>();
-        _flashCallExecutor = _provider.GetRequiredService<IFlashCallExecutor>();
+        _queryExecutor = _provider.GetRequiredService<QueryExecutor>();
+        _flashCallExecutor = _provider.GetRequiredService<FlashCallExecutor>();
         _subscriptionsManager = _provider.GetRequiredService<ISubscriptionsManager>();
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
         _jsonSerializerContext = _provider.GetRequiredService<EtherSharpJsonSerializerContext>();
@@ -236,7 +236,8 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         _chainId = await _ethRpcModule.ChainIdAsync(cancellationToken);
         _compatibilityReport = null;
 
-        if(_flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor)
+        var flashInitCodeExecutor = _provider.GetRequiredService<IFlashInitCodeExecutor>();
+        if(flashInitCodeExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor)
         {
             var deploymentHeightResult = await _ethRpcModule.CallAsync(
                 deployedFlashCallExecutor.ContractAddress,
@@ -270,7 +271,8 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         await BaseInitializeAsync(cancellationToken);
 
         initQuery ??= IQuery.Noop<T>(default!);
-        var flashCallSetupQuery = _flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor
+        var flashInitCodeExecutor = _provider.GetRequiredService<IFlashInitCodeExecutor>();
+        var flashCallSetupQuery = flashInitCodeExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor
             ? IQuery.Call(IContractCall<UInt256>.ForContractCall(
                 deployedFlashCallExecutor.ContractAddress, 0, Convert.FromHexString("217CD3E1"), new ABI.AbiEncoder(), x => x.UInt256())
             )
@@ -285,7 +287,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             cancellationToken
         );
 
-        if(_flashCallExecutor is DeployedFlashCallExecutor executor)
+        if(flashInitCodeExecutor is DeployedFlashCallExecutor executor)
         {
             executor.SetDeploymentHeight((ulong) deploymentHeight);
         }
@@ -462,7 +464,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     }
 
     public async Task<CallResult<T>> SafeFlashCallAsync<T>(
-        IContractDeployment deployment,
+        IFlashCode code,
         IFlashCall<T> call,
         ulong? flashCallGasLimit = null,
         TargetHeight targetHeight = default,
@@ -470,18 +472,18 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     {
         AssertReady();
 
-        var result = await _flashCallExecutor.ExecuteFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
+        var result = await _flashCallExecutor.ExecuteFlashCallAsync(code, call, flashCallGasLimit, targetHeight, cancellationToken);
         return CallResult<T>.ParseFrom(result, null, call.ReadResultFrom);
     }
 
     public async Task<T> FlashCallAsync<T>(
-        IContractDeployment deployment,
+        IFlashCode code,
         IFlashCall<T> call,
         ulong? flashCallGasLimit,
         TargetHeight targetHeight,
         CancellationToken cancellationToken)
     {
-        var result = await SafeFlashCallAsync(deployment, call, flashCallGasLimit, targetHeight, cancellationToken);
+        var result = await SafeFlashCallAsync(code, call, flashCallGasLimit, targetHeight, cancellationToken);
         return result.Unwrap();
     }
 

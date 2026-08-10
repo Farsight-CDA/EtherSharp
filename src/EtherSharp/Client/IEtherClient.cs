@@ -243,32 +243,32 @@ public interface IEtherClient : IAsyncDisposable
         ITxInput<T> call, in CallOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes a safe flash-call against a temporary deployment and captures success/failure details.
+    /// Executes a safe flash-call against temporary code and captures success/failure details.
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
-    /// <param name="deployment">Deployment definition used for the temporary execution context.</param>
-    /// <param name="call">Flash-call payload to execute against the temporary deployment.</param>
-    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithCallGasLimits</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
+    /// <param name="code">Initcode or runtime code used for the temporary execution context.</param>
+    /// <param name="call">Flash-call payload to execute against the temporary code.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithFlashCalls</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
     public Task<CallResult<T>> SafeFlashCallAsync<T>(
-        IContractDeployment deployment, IFlashCall<T> call, ulong? flashCallGasLimit = null,
+        IFlashCode code, IFlashCall<T> call, ulong? flashCallGasLimit = null,
         TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Executes a flash-call against a temporary deployment and returns the decoded result.
+    /// Executes a flash-call against temporary code and returns the decoded result.
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
-    /// <param name="deployment">Deployment definition used for the temporary execution context.</param>
-    /// <param name="call">Flash-call payload to execute against the temporary deployment.</param>
-    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithCallGasLimits</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
+    /// <param name="code">Initcode or runtime code used for the temporary execution context.</param>
+    /// <param name="call">Flash-call payload to execute against the temporary code.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithFlashCalls</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
     /// <param name="targetHeight">Target block context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
     public Task<T> FlashCallAsync<T>(
-        IContractDeployment deployment, IFlashCall<T> call, ulong? flashCallGasLimit = null,
+        IFlashCode code, IFlashCall<T> call, ulong? flashCallGasLimit = null,
         TargetHeight targetHeight = default, CancellationToken cancellationToken = default
     );
 

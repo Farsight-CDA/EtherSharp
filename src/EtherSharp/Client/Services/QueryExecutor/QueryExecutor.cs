@@ -1,6 +1,7 @@
+using EtherSharp.Client.Services.FlashCall;
 using EtherSharp.Common.Exceptions;
-using EtherSharp.Numerics;
 using EtherSharp.Query;
+using EtherSharp.Tx;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,30 +9,13 @@ using System.Buffers;
 
 namespace EtherSharp.Client.Services.QueryExecutor;
 
-internal abstract class QueryExecutorBase : IQueryExecutor
+internal sealed class QueryExecutor(
+    FlashCallExecutor flashCallExecutor,
+    IServiceProvider provider)
 {
-    private readonly ILogger? _logger;
-    private readonly IEtherClient _client;
-
-    protected QueryExecutorBase(IServiceProvider provider)
-    {
-        _logger = provider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
-        _client = provider.GetRequiredService<IEtherClient>();
-    }
-
-    protected abstract Address? CallAddress { get; }
-    protected abstract void PreparePlan(QueryPlan plan, QuerierByteCode querier);
-    protected abstract int GetMaxPayloadSize(QuerierByteCode querier, ulong? gasLimit, TargetHeight targetHeight);
-    protected abstract int GetMaxResultSize(TargetHeight targetHeight);
-
-    protected abstract Task<TxCallResult> ExecuteBatchAsync(
-        QuerierByteCode querier,
-        UInt256 value,
-        ReadOnlyMemory<byte> payload,
-        ulong? gasLimit,
-        CallOptions options,
-        CancellationToken cancellationToken
-    );
+    private readonly FlashCallExecutor _flashCallExecutor = flashCallExecutor;
+    private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<QueryExecutor>();
+    private readonly IEtherClient _client = provider.GetRequiredService<IEtherClient>();
 
     public async Task<TQuery> ExecuteQueryAsync<TQuery>(
         IQuery<TQuery> query,
@@ -54,10 +38,8 @@ internal abstract class QueryExecutorBase : IQueryExecutor
             ? QuerierUtils.CancunQuerier
             : QuerierUtils.LondonQuerier;
 
-        PreparePlan(plan, querier);
-
-        int maxPayloadSize = GetMaxPayloadSize(querier, gasLimit, options.TargetHeight);
-        int maxResultSize = GetMaxResultSize(options.TargetHeight);
+        int maxPayloadSize = _flashCallExecutor.GetMaxPayloadSize(querier.Code, gasLimit, options.TargetHeight);
+        int maxResultSize = _flashCallExecutor.GetMaxResultSize(querier.Code, options.TargetHeight);
         var buffer = ReadOnlyMemory<byte>.Empty;
         int requestCount = 0;
 
@@ -85,10 +67,9 @@ internal abstract class QueryExecutorBase : IQueryExecutor
                         throw new InvalidOperationException("Call is too large to be executed within batch");
                     }
 
-                    var callResult = await ExecuteBatchAsync(
-                        querier,
-                        ethValue,
-                        payloadBytes.AsMemory(0, payloadSize),
+                    var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
+                        querier.Code,
+                        IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
                         gasLimit,
                         options with { StateOverrides = plan.StateOverrides },
                         cancellationToken
@@ -96,7 +77,7 @@ internal abstract class QueryExecutorBase : IQueryExecutor
 
                     if(!callResult.Success)
                     {
-                        throw CallRevertedException.Parse(CallAddress, callResult.Data.Span);
+                        throw CallRevertedException.Parse(null, callResult.Data.Span);
                     }
 
                     var output = callResult.Data;

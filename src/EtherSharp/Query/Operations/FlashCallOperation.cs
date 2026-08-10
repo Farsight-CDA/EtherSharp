@@ -1,4 +1,5 @@
 using EtherSharp.ABI.Types;
+using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Tx;
 using EtherSharp.Types;
@@ -6,30 +7,43 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class SafeFlashCallQueryOperation<T>(IContractDeployment deployment, IFlashCall<T> txInput) : IQuery, IQuery<CallResult<T>>
+internal sealed class SafeFlashCallQueryOperation<T> : IQuery, IQuery<CallResult<T>>
 {
-    private readonly IFlashCall<T> _txInput = txInput;
-    private readonly IContractDeployment _deployment = deployment;
+    private readonly IFlashCall<T> _txInput;
+    private readonly EVMByteCode _initCode;
 
-    public int CallDataLength => 1 + 37 + _deployment.ByteCode.Length + _txInput.Data.Length;
-    public UInt256 EthValue => _deployment.Value + _txInput.Value;
-
-    public void Encode(Span<byte> buffer)
+    public SafeFlashCallQueryOperation(IFlashCode code, IFlashCall<T> txInput)
     {
-        if(_deployment.Value > 0)
+        if(code is IContractDeployment deployment && deployment.Value > 0)
         {
             throw new NotSupportedException("Contract deployment cannot contain any value");
         }
 
+        _txInput = txInput;
+        _initCode = code.IsRuntimeCode
+            ? IFlashCode.CreateInitCode(code.ByteCode)
+            : code.ByteCode;
+
+        if(_initCode.Length > EVMByteCode.MAX_INIT_LENGTH)
+        {
+            throw new InvalidOperationException($"Maximum initcode length exceeded, {_initCode.Length} > {EVMByteCode.MAX_INIT_LENGTH}");
+        }
+    }
+
+    public int CallDataLength => 1 + 37 + _initCode.Length + _txInput.Data.Length;
+    public UInt256 EthValue => _txInput.Value;
+
+    public void Encode(Span<byte> buffer)
+    {
         buffer[0] = (byte) QueryOperationId.FlashCall;
         buffer = buffer[1..];
 
-        AbiTypes.UShort.EncodeInto((ushort) _deployment.ByteCode.Length, buffer[0..2]);
+        AbiTypes.UShort.EncodeInto((ushort) _initCode.Length, buffer[0..2]);
         AbiTypes.UInt.EncodeInto((uint) _txInput.Data.Length, buffer[2..5], true);
         BinaryPrimitives.WriteUInt256BigEndian(buffer[5..37], EthValue);
 
-        _deployment.ByteCode.ByteCode.Span.CopyTo(buffer[37..]);
-        _txInput.Data.Span.CopyTo(buffer[(37 + _deployment.ByteCode.Length)..]);
+        _initCode.ByteCode.Span.CopyTo(buffer[37..]);
+        _txInput.Data.Span.CopyTo(buffer[(37 + _initCode.Length)..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
     {

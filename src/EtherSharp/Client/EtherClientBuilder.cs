@@ -4,7 +4,7 @@ using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
-using EtherSharp.Client.Services.FlashCallExecutor;
+using EtherSharp.Client.Services.FlashCall;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.QueryExecutor;
 using EtherSharp.Client.Services.ResiliencyLayer;
@@ -26,6 +26,7 @@ using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
@@ -435,58 +436,65 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
-    /// Configures the initial default gas limits applied to client-side call execution.
+    /// Configures the initial default gas limit applied to <c>eth_call</c> execution.
     /// </summary>
-    /// <param name="ethCallGasLimit">Optional fallback gas limit applied to <c>eth_call</c> requests when no explicit gas is provided.</param>
-    /// <param name="flashCallGasLimit">Optional fallback gas limit applied to flash-call execution when no per-call limit is provided.</param>
+    /// <param name="gasLimit">Optional fallback gas limit applied to <c>eth_call</c> requests when no explicit gas is provided.</param>
     /// <returns></returns>
-    public EtherClientBuilder WithCallGasLimits(ulong? ethCallGasLimit = null, ulong? flashCallGasLimit = null)
+    public EtherClientBuilder WithEthCallGasLimit(ulong? gasLimit = null)
     {
-        CallGasLimitSettings.Validate(ethCallGasLimit, flashCallGasLimit);
-
-        _ethCallGasLimit = ethCallGasLimit;
-        _flashCallGasLimit = flashCallGasLimit;
+        CallGasLimitSettings.Validate(gasLimit, _flashCallGasLimit);
+        _ethCallGasLimit = gasLimit;
         return this;
     }
 
     /// <summary>
-    /// Configures queries to execute by installing the querier runtime through an <c>eth_call</c> state override.
+    /// Configures flash-call execution.
     /// </summary>
-    /// <remarks>The configured RPC endpoint must support account code overrides.</remarks>
-    /// <param name="querierAddress">Reserved address at which the temporary querier code is installed. Queries and caller state overrides must not use this address.</param>
-    /// <param name="maxPayloadSize">Maximum encoded query payload size per RPC request, in bytes.</param>
-    /// <param name="maxResultSize">Maximum query result size per RPC request, in bytes.</param>
+    /// <param name="gasLimit">Optional fallback gas limit applied when no per-call limit is provided.</param>
+    /// <param name="enableStateOverrides">Whether runtime code should execute directly through account code overrides.</param>
+    /// <param name="contractAddress">Optional deployed FlashCall contract used for initcode execution.</param>
+    /// <param name="allowConstructorFallback">Whether initcode may fall back to constructor-based execution when the deployed contract is unavailable.</param>
+    /// <param name="maxPayloadSize">Maximum payload size supported by configured state-override and deployed-contract backends.</param>
+    /// <param name="maxResultSize">Maximum result size supported by configured state-override and deployed-contract backends.</param>
     /// <returns></returns>
-    public EtherClientBuilder WithStateOverrideQueryExecutor(
-        Address? querierAddress = null,
+    public EtherClientBuilder WithFlashCalls(
+        ulong? gasLimit = null,
+        bool enableStateOverrides = false,
+        Address? contractAddress = null,
+        bool allowConstructorFallback = true,
         int maxPayloadSize = 3 * 1024 * 1024,
         int maxResultSize = 3 * 1024 * 1024)
     {
+        CallGasLimitSettings.Validate(_ethCallGasLimit, gasLimit);
         ArgumentOutOfRangeException.ThrowIfLessThan(maxPayloadSize, 5);
         ArgumentOutOfRangeException.ThrowIfLessThan(maxResultSize, 1);
 
-        _services.AddOrReplaceSingleton(new StateOverrideQueryExecutor.Configuration(
-            querierAddress ?? StateOverrideQueryExecutor.Configuration.DefaultQuerierAddress,
-            maxPayloadSize,
-            maxResultSize
-        ));
-        _services.AddOrReplaceSingleton<IQueryExecutor, StateOverrideQueryExecutor>();
-        return this;
-    }
+        _flashCallGasLimit = gasLimit;
 
-    /// <summary>
-    /// Configures the client to use a deployed FlashCall contract.
-    /// </summary>
-    /// <param name="contractAddress"></param>
-    /// <param name="allowFallback"></param>
-    /// <param name="maxPayloadSize"></param>
-    /// <param name="maxResultSize"></param>
-    /// <returns></returns>
-    public EtherClientBuilder WithFlashCallContract(in Address contractAddress, bool allowFallback = true,
-        int maxPayloadSize = 3 * 1024 * 1024, int maxResultSize = 3 * 1024 * 1024)
-    {
-        _services.AddOrReplaceSingleton(new DeployedFlashCallExecutorConfiguration(contractAddress, allowFallback, maxPayloadSize, maxResultSize));
-        _services.AddOrReplaceSingleton<IFlashCallExecutor, DeployedFlashCallExecutor>();
+        _services.RemoveAll<StateOverrideFlashCallExecutor.Configuration>();
+        _services.RemoveAll<IFlashRuntimeExecutor>();
+        if(enableStateOverrides)
+        {
+            _services.AddSingleton(new StateOverrideFlashCallExecutor.Configuration(
+                maxPayloadSize,
+                maxResultSize
+            ));
+            _services.AddSingleton<IFlashRuntimeExecutor, StateOverrideFlashCallExecutor>();
+        }
+
+        _services.RemoveAll<DeployedFlashCallExecutor.Configuration>();
+        _services.RemoveAll<IFlashInitCodeExecutor>();
+        if(contractAddress is { } deployedContractAddress)
+        {
+            _services.AddSingleton(new DeployedFlashCallExecutor.Configuration(
+                deployedContractAddress,
+                allowConstructorFallback,
+                maxPayloadSize,
+                maxResultSize
+            ));
+            _services.AddSingleton<IFlashInitCodeExecutor, DeployedFlashCallExecutor>();
+        }
+
         return this;
     }
 
@@ -528,14 +536,14 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         {
             _services.AddSingleton<ISubscriptionsManager, SubscriptionsManager>();
         }
-        if(!_services.Any(x => x.ServiceType == typeof(IQueryExecutor)))
+        _services.AddSingleton<QueryExecutor>();
+        _services.AddSingleton<FlashCallExecutor>();
+
+        if(!_services.Any(x => x.ServiceType == typeof(IFlashInitCodeExecutor)))
         {
-            _services.AddSingleton<IQueryExecutor, FlashCallQueryExecutor>();
+            _services.AddSingleton<IFlashInitCodeExecutor, ConstructorFlashCallExecutor>();
         }
-        if(!_services.Any(x => x.ServiceType == typeof(IFlashCallExecutor)))
-        {
-            _services.AddSingleton<IFlashCallExecutor, ConstructorFlashCallExecutor>();
-        }
+
         if(!_services.Any(x => x.ServiceType == typeof(JsonSerializerOptions)))
         {
             _services.AddSingleton(ParsingUtils.CreateDefaultEvmSerializerOptions());

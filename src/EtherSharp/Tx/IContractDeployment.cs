@@ -5,12 +5,10 @@ namespace EtherSharp.Tx;
 /// <summary>
 /// Represents a contract deployment transaction payload.
 /// </summary>
-public interface IContractDeployment : ITxInput<byte[]>
+public interface IContractDeployment : ITxInput<byte[]>, IFlashCode
 {
-    /// <summary>
-    /// The ByteCode of the contract to deploy.
-    /// </summary>
-    public EVMByteCode ByteCode { get; }
+    bool IFlashCode.IsRuntimeCode
+        => false;
 
     /// <summary>
     /// Creates an IContractDeployment transaction payload.

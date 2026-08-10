@@ -4,7 +4,7 @@ using EtherSharp.Numerics;
 namespace EtherSharp.Tx;
 
 /// <summary>
-/// Represents a flash-call payload executed against an ephemeral deployment.
+/// Represents a flash-call payload executed against ephemeral code.
 /// </summary>
 public interface IFlashCall
 {

@@ -78,25 +78,25 @@ public partial interface IQuery
         });
 
     /// <summary>
-    /// Creates a flash-call query that deploys ephemeral bytecode and then executes a call against it, returning success/revert information.
+    /// Creates a flash-call query that executes against ephemeral code and returns success/revert information.
     /// </summary>
     /// <typeparam name="T">The decoded return type of the contract call.</typeparam>
-    /// <param name="deployment">The contract deployment to execute for the flash call.</param>
-    /// <param name="input">The flash-call input to execute against the deployed code.</param>
+    /// <param name="code">The initcode or runtime code to execute for the flash call.</param>
+    /// <param name="input">The flash-call input to execute against the code.</param>
     /// <returns>A query that never throws for EVM reverts or malformed return bytes and returns a <see cref="CallResult{T}"/>.</returns>
-    public static IQuery<CallResult<T>> SafeFlashCall<T>(IContractDeployment deployment, IFlashCall<T> input)
-        => new SafeFlashCallQueryOperation<T>(deployment, input);
+    public static IQuery<CallResult<T>> SafeFlashCall<T>(IFlashCode code, IFlashCall<T> input)
+        => new SafeFlashCallQueryOperation<T>(code, input);
 
     /// <summary>
     /// Creates a flash-call query that unwraps successful results and throws on EVM revert.
     /// </summary>
     /// <typeparam name="T">The decoded return type of the contract call.</typeparam>
-    /// <param name="deployment">The contract deployment to execute for the flash call.</param>
-    /// <param name="input">The flash-call input to execute against the deployed code.</param>
+    /// <param name="code">The initcode or runtime code to execute for the flash call.</param>
+    /// <param name="input">The flash-call input to execute against the code.</param>
     /// <returns>A query that yields the decoded return value.</returns>
     /// <exception cref="EtherSharp.Common.Exceptions.CallRevertedException">Thrown when the call reverts.</exception>
-    public static IQuery<T> FlashCall<T>(IContractDeployment deployment, IFlashCall<T> input)
-        => SafeFlashCall(deployment, input).Map(x => x.Unwrap());
+    public static IQuery<T> FlashCall<T>(IFlashCode code, IFlashCall<T> input)
+        => SafeFlashCall(code, input).Map(x => x.Unwrap());
 
     /// <summary>
     /// Creates a query that returns deployed bytecode for <paramref name="contract"/>.

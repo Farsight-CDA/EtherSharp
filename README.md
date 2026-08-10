@@ -190,7 +190,7 @@ var results = await readClient.QueryAsync(query);
 
 ### Flash Calling
 
-Flash calling executes a temporary deployment plus a follow-up call in a single simulation.
+Flash calling executes temporary code plus a follow-up call in a single simulation. Contract deployments remain valid flash code, while context-independent runtime code can be supplied with `IFlashCode.FromRuntimeCode` to use state overrides when configured and generated initcode otherwise.
 
 ```csharp
 var simulationResult = await readClient.FlashCallAsync(
