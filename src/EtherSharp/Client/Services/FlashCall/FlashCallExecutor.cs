@@ -30,7 +30,7 @@ internal sealed class FlashCallExecutor(
         IFlashCode code,
         IFlashCall call,
         ulong? flashCallGasLimit,
-        CallOptions options,
+        in CallOptions options,
         CancellationToken cancellationToken)
     {
         ulong? resolvedGasLimit = flashCallGasLimit ?? _callGasLimitSettings.GetFlashCallGasLimit();

@@ -463,28 +463,44 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         }
     }
 
-    public async Task<CallResult<T>> SafeFlashCallAsync<T>(
+    public Task<CallResult<T>> SafeFlashCallAsync<T>(
         IFlashCode code,
         IFlashCall<T> call,
         ulong? flashCallGasLimit = null,
-        TargetHeight targetHeight = default,
+        in CallOptions options = default,
         CancellationToken cancellationToken = default)
     {
         AssertReady();
 
-        var result = await _flashCallExecutor.ExecuteFlashCallAsync(code, call, flashCallGasLimit, targetHeight, cancellationToken);
-        return CallResult<T>.ParseFrom(result, null, call.ReadResultFrom);
+        return ParseAsync(
+            call,
+            _flashCallExecutor.ExecuteFlashCallAsync(code, call, flashCallGasLimit, options, cancellationToken)
+        );
+
+        // Avoid CallOptions in the async state machine.
+        static async Task<CallResult<T>> ParseAsync(
+            IFlashCall<T> call, Task<TxCallResult> resultTask)
+        {
+            var result = await resultTask;
+            return CallResult<T>.ParseFrom(result, null, call.ReadResultFrom);
+        }
     }
 
-    public async Task<T> FlashCallAsync<T>(
+    public Task<T> FlashCallAsync<T>(
         IFlashCode code,
         IFlashCall<T> call,
         ulong? flashCallGasLimit,
-        TargetHeight targetHeight,
+        in CallOptions options,
         CancellationToken cancellationToken)
     {
-        var result = await SafeFlashCallAsync(code, call, flashCallGasLimit, targetHeight, cancellationToken);
-        return result.Unwrap();
+        return UnwrapAsync(SafeFlashCallAsync(code, call, flashCallGasLimit, options, cancellationToken));
+
+        // Avoid CallOptions in the async state machine.
+        static async Task<T> UnwrapAsync(Task<CallResult<T>> resultTask)
+        {
+            var result = await resultTask;
+            return result.Unwrap();
+        }
     }
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(

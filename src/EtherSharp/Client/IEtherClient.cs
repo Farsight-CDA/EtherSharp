@@ -249,12 +249,12 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="code">Initcode or runtime code used for the temporary execution context.</param>
     /// <param name="call">Flash-call payload to execute against the temporary code.</param>
     /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithFlashCalls</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
-    /// <param name="targetHeight">Target block context.</param>
+    /// <param name="options">Call execution options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
     public Task<CallResult<T>> SafeFlashCallAsync<T>(
         IFlashCode code, IFlashCall<T> call, ulong? flashCallGasLimit = null,
-        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -264,12 +264,12 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="code">Initcode or runtime code used for the temporary execution context.</param>
     /// <param name="call">Flash-call payload to execute against the temporary code.</param>
     /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithFlashCalls</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
-    /// <param name="targetHeight">Target block context.</param>
+    /// <param name="options">Call execution options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
     public Task<T> FlashCallAsync<T>(
         IFlashCode code, IFlashCall<T> call, ulong? flashCallGasLimit = null,
-        TargetHeight targetHeight = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
