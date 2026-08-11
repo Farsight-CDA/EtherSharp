@@ -18,10 +18,12 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
     public int GetMaxPayloadSize(int initCodeLength, ulong? flashCallGasLimit, TargetHeight targetHeight)
-        => (flashCallGasLimit is null
-                ? EVMByteCode.MAX_INIT_LENGTH - MAX_UNLIMITED_HELPER_LENGTH
-                : EVMByteCode.MAX_INIT_LENGTH - MAX_LIMITED_HELPER_LENGTH
-            ) - initCodeLength;
+        => Int32.MaxValue
+            - (flashCallGasLimit is null
+                ? MAX_UNLIMITED_HELPER_LENGTH
+                : MAX_LIMITED_HELPER_LENGTH
+                )
+            - initCodeLength;
 
     public int GetMaxResultSize(TargetHeight targetHeight)
         => MAX_RUNTIMECODE_SIZE;
@@ -35,11 +37,6 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
     {
         int helperLength = GetHelperLength(initCode.Length, call.Data.Length, flashCallGasLimit);
         int argsLength = initCode.Length + call.Data.Length;
-
-        if(argsLength + helperLength > EVMByteCode.MAX_INIT_LENGTH)
-        {
-            throw new InvalidOperationException($"Maximum call length exceeded, {argsLength + helperLength} > {EVMByteCode.MAX_INIT_LENGTH}");
-        }
 
         int payloadLength = helperLength + argsLength;
         byte[] rented = ArrayPool<byte>.Shared.Rent(payloadLength);

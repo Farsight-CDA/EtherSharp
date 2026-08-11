@@ -2,6 +2,7 @@ using EtherSharp.Generator.ABI.Util;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Immutable;
 
 namespace EtherSharp.Generator.ABI;
 
@@ -12,8 +13,9 @@ internal readonly struct ContractInfo(
     bool isPartial,
     int abiFileAttributeCount,
     string? abiFileName,
-    int bytecodeFileAttributeCount,
-    string? bytecodeFileName,
+    int bytecodeAttributeCount,
+    string? initCode,
+    string? runtimeCode,
     Location? location) : IEquatable<ContractInfo>
 {
     public string Namespace { get; } = @namespace;
@@ -22,8 +24,9 @@ internal readonly struct ContractInfo(
     public bool IsPartial { get; } = isPartial;
     public int AbiFileAttributeCount { get; } = abiFileAttributeCount;
     public string? AbiFileName { get; } = abiFileName;
-    public int BytecodeFileAttributeCount { get; } = bytecodeFileAttributeCount;
-    public string? BytecodeFileName { get; } = bytecodeFileName;
+    public int BytecodeAttributeCount { get; } = bytecodeAttributeCount;
+    public string? InitCode { get; } = initCode;
+    public string? RuntimeCode { get; } = runtimeCode;
     public Location? Location { get; } = location;
 
     public static ContractInfo? Create(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
@@ -43,9 +46,10 @@ internal readonly struct ContractInfo(
         var abiFileAttributes = rawAttributes
             .Where(attribute => TypeIdentificationUtils.IsAbiFileAttribute(attribute.AttributeClass!))
             .ToArray();
-        var bytecodeFileAttributes = rawAttributes
-            .Where(attribute => TypeIdentificationUtils.IsBytecodeFileAttribute(attribute.AttributeClass!))
+        var bytecodeAttributes = rawAttributes
+            .Where(attribute => TypeIdentificationUtils.IsBytecodeAttribute(attribute.AttributeClass!))
             .ToArray();
+        var (initCode, runtimeCode) = GetBytecode(bytecodeAttributes);
 
         return new ContractInfo(
             symbol.ContainingNamespace.IsGlobalNamespace
@@ -56,8 +60,9 @@ internal readonly struct ContractInfo(
             isPartial,
             abiFileAttributes.Length,
             GetFileName(abiFileAttributes),
-            bytecodeFileAttributes.Length,
-            GetFileName(bytecodeFileAttributes),
+            bytecodeAttributes.Length,
+            initCode,
+            runtimeCode,
             symbol.Locations.FirstOrDefault()
         );
     }
@@ -69,8 +74,9 @@ internal readonly struct ContractInfo(
             && IsPartial == other.IsPartial
             && AbiFileAttributeCount == other.AbiFileAttributeCount
             && AbiFileName == other.AbiFileName
-            && BytecodeFileAttributeCount == other.BytecodeFileAttributeCount
-            && BytecodeFileName == other.BytecodeFileName
+            && BytecodeAttributeCount == other.BytecodeAttributeCount
+            && InitCode == other.InitCode
+            && RuntimeCode == other.RuntimeCode
             && LocationsEqual(Location, other.Location);
 
     public override bool Equals(object? obj)
@@ -85,8 +91,9 @@ internal readonly struct ContractInfo(
         hashCode.Add(IsPartial);
         hashCode.Add(AbiFileAttributeCount);
         hashCode.Add(AbiFileName, StringComparer.Ordinal);
-        hashCode.Add(BytecodeFileAttributeCount);
-        hashCode.Add(BytecodeFileName, StringComparer.Ordinal);
+        hashCode.Add(BytecodeAttributeCount);
+        hashCode.Add(InitCode, StringComparer.Ordinal);
+        hashCode.Add(RuntimeCode, StringComparer.Ordinal);
         hashCode.Add(Location?.SourceTree);
         hashCode.Add(Location?.SourceSpan);
         return hashCode.ToHashCode();
@@ -110,4 +117,24 @@ internal readonly struct ContractInfo(
             ? argument.Value?.ToString()
             : null;
     }
+
+    private static (string? InitCode, string? RuntimeCode) GetBytecode(AttributeData[] attributes)
+    {
+        if(attributes.Length != 1)
+        {
+            return (null, null);
+        }
+
+        var arguments = attributes[0].ConstructorArguments;
+        return (
+            GetStringArgument(arguments, 0),
+            GetStringArgument(arguments, 1)
+        );
+    }
+
+    private static string? GetStringArgument(ImmutableArray<TypedConstant> arguments, int index)
+        => arguments.Length > index
+            && arguments[index] is { Kind: TypedConstantKind.Primitive, Value: string value }
+                ? value
+                : null;
 }

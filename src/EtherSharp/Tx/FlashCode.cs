@@ -2,19 +2,26 @@ using EtherSharp.Contract;
 
 namespace EtherSharp.Tx;
 
-internal sealed class FlashCode : IFlashCode
+internal sealed class FlashCode(EVMByteCode? initCode, EVMByteCode? runtimeCode) : IFlashCode
 {
-    public EVMByteCode ByteCode { get; }
-    public bool IsRuntimeCode { get; }
+    private readonly EVMByteCode? _initCode = initCode;
+    private readonly EVMByteCode? _runtimeCode = runtimeCode;
 
-    public FlashCode(EVMByteCode byteCode, bool isRuntimeCode)
+    public bool TryGetRuntimeCode(out EVMByteCode runtimeCode)
     {
-        if(!isRuntimeCode)
+        if(_runtimeCode is not { } code)
         {
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(byteCode.Length, EVMByteCode.MAX_INIT_LENGTH);
+            runtimeCode = default;
+            return false;
         }
 
-        ByteCode = byteCode;
-        IsRuntimeCode = isRuntimeCode;
+        runtimeCode = code;
+        return true;
     }
+
+    public int GetInitCodeLength()
+        => _initCode?.Length ?? IFlashCode.GetInitCodeLength(_runtimeCode!.Value);
+
+    public EVMByteCode GetInitCode()
+        => _initCode ?? IFlashCode.CreateInitCode(_runtimeCode!.Value);
 }

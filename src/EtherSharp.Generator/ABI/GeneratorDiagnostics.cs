@@ -73,37 +73,46 @@ internal static class GeneratorDiagnostics
         true
     );
 
-    public static readonly DiagnosticDescriptor MultipleBytecodeFileAttributeFound = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor MultipleBytecodeAttributeFound = new DiagnosticDescriptor(
         "ABI0030",
-        "Too many bytecode files specified",
-        "Ensure your contract interface {0} only has one attribute of type BytecodeFileAttribute",
+        "Too many bytecode attributes specified",
+        "Ensure your contract interface {0} only has one attribute of type BytecodeAttribute",
         DiagnosticCategory.USAGE,
         DiagnosticSeverity.Error,
         true
     );
 
-    public static readonly DiagnosticDescriptor BytecodeFileNotFound = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor BytecodeVariantInvalid = new DiagnosticDescriptor(
         "ABI0031",
-        "Bytecode file not found",
-        "Bytecode file {0} not found. Ensure the build action is set to \"C# Analyzer additional file\".",
+        "Bytecode variant is invalid",
+        "BytecodeAttribute must specify exactly one non-empty initCode or runtimeCode value",
         DiagnosticCategory.USAGE,
         DiagnosticSeverity.Error,
         true
     );
 
-    public static readonly DiagnosticDescriptor MultipleBytecodeFilesWithNameFound = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor BytecodeTooLong = new DiagnosticDescriptor(
         "ABI0032",
-        "Bytecode file name must be unique",
-        "Multiple contract bytecode files with the name {0} have been found. Ensure they all have unique names.",
+        "Bytecode is too long",
+        "The supplied {0} is {1} bytes, exceeding the maximum of {2} bytes",
         DiagnosticCategory.USAGE,
         DiagnosticSeverity.Error,
         true
     );
 
-    public static readonly DiagnosticDescriptor BytecodeFileMalformed = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor BytecodeMalformed = new DiagnosticDescriptor(
         "ABI0033",
-        "Bytecode file could not be parsed",
-        "Bytecode file could not be parsed. An exception occured: {0}.",
+        "Bytecode could not be parsed",
+        "Bytecode could not be parsed. An exception occured: {0}.",
+        DiagnosticCategory.USAGE,
+        DiagnosticSeverity.Error,
+        true
+    );
+
+    public static readonly DiagnosticDescriptor RuntimeBytecodeWithConstructorParameters = new DiagnosticDescriptor(
+        "ABI0034",
+        "Runtime bytecode cannot use constructor parameters",
+        "Runtime bytecode cannot be used when the ABI constructor has parameters; supply initCode instead",
         DiagnosticCategory.USAGE,
         DiagnosticSeverity.Error,
         true

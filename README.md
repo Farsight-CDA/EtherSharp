@@ -80,13 +80,13 @@ Generated message members currently support `bool`, `Address`, `string`, `byte[]
 
 The source generator is bundled with the `EtherSharp` package, so no separate generator package is required.
 
-Define a partial interface and decorate it with `[AbiFile]`. Add `[BytecodeFile]` if you also want generated deployment helpers and flash-call deployment payloads.
+Define a partial interface and decorate it with `[AbiFile]`. Add `[Bytecode]` if you also want generated deployment helpers and flash-call code. Supply runtime code when the contract can execute without constructor logic; the generator creates its initcode wrapper at compile time. Supply initcode for contracts that require constructor execution.
 
 ```csharp
 using EtherSharp.Contract;
 
 [AbiFile("abis/erc20.json")]
-[BytecodeFile("bytecodes/erc20.bytecode")] // Needed for deployment and flash calling
+[Bytecode(runtimeCode: "0x...")]
 public partial interface IERC20 : IEVMContract;
 ```
 
@@ -194,7 +194,7 @@ Flash calling executes temporary code plus a follow-up call in a single simulati
 
 ```csharp
 var simulationResult = await readClient.FlashCallAsync(
-    IFlashCaller.Functions.Constructor.Create(), // Deployment payload
+    IFlashCaller.Code.Flash,
     IFlashCaller.Functions.DeploymentHeight.Create()
 );
 ```

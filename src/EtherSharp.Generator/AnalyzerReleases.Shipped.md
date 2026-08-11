@@ -18,6 +18,7 @@ ABI0030 | Usage | Error | GeneratorDiagnostics
 ABI0031 | Usage | Error | GeneratorDiagnostics
 ABI0032 | Usage | Error | GeneratorDiagnostics
 ABI0033 | Usage | Error | GeneratorDiagnostics
+ABI0034 | Usage | Error | GeneratorDiagnostics
 ABI0040 | Usage | Warning | GeneratorDiagnostics
 EIP0000 | Unknown | Error | EIP712GeneratorDiagnostics
 EIP0010 | Usage | Error | EIP712GeneratorDiagnostics

@@ -20,13 +20,11 @@ internal sealed class SafeFlashCallQueryOperation<T> : IQuery, IQuery<CallResult
         }
 
         _txInput = txInput;
-        _initCode = code.IsRuntimeCode
-            ? IFlashCode.CreateInitCode(code.ByteCode)
-            : code.ByteCode;
+        _initCode = code.GetInitCode();
 
-        if(_initCode.Length > EVMByteCode.MAX_INIT_LENGTH)
+        if(_initCode.Length > UInt16.MaxValue)
         {
-            throw new InvalidOperationException($"Maximum initcode length exceeded, {_initCode.Length} > {EVMByteCode.MAX_INIT_LENGTH}");
+            throw new InvalidOperationException($"Query flash calls cannot encode initcode longer than {UInt16.MaxValue} bytes.");
         }
     }
 

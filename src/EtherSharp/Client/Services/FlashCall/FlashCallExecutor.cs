@@ -16,17 +16,13 @@ internal sealed class FlashCallExecutor(
     public int GetMaxPayloadSize(IFlashCode code, ulong? flashCallGasLimit, TargetHeight targetHeight)
     {
         ulong? resolvedGasLimit = flashCallGasLimit ?? _callGasLimitSettings.GetFlashCallGasLimit();
-        return code.IsRuntimeCode switch
-        {
-            true => _runtimeExecutor is not null
-                ? _runtimeExecutor.GetMaxPayloadSize(resolvedGasLimit, targetHeight)
-                : _initCodeExecutor.GetMaxPayloadSize(IFlashCode.GetInitCodeLength(code.ByteCode), resolvedGasLimit, targetHeight),
-            false => _initCodeExecutor.GetMaxPayloadSize(code.ByteCode.Length, resolvedGasLimit, targetHeight)
-        };
+        return _runtimeExecutor is not null && code.TryGetRuntimeCode(out _)
+            ? _runtimeExecutor.GetMaxPayloadSize(resolvedGasLimit, targetHeight)
+            : _initCodeExecutor.GetMaxPayloadSize(code.GetInitCodeLength(), resolvedGasLimit, targetHeight);
     }
 
     public int GetMaxResultSize(IFlashCode code, TargetHeight targetHeight)
-        => code.IsRuntimeCode && _runtimeExecutor is not null
+        => _runtimeExecutor is not null && code.TryGetRuntimeCode(out _)
             ? _runtimeExecutor.GetMaxResultSize(targetHeight)
             : _initCodeExecutor.GetMaxResultSize(targetHeight);
 
@@ -39,19 +35,13 @@ internal sealed class FlashCallExecutor(
     {
         ulong? resolvedGasLimit = flashCallGasLimit ?? _callGasLimitSettings.GetFlashCallGasLimit();
 
-        if(code.IsRuntimeCode && _runtimeExecutor is not null)
+        if(_runtimeExecutor is not null && code.TryGetRuntimeCode(out var runtimeCode))
         {
-            return _runtimeExecutor.ExecuteFlashCallAsync(code.ByteCode, call, resolvedGasLimit, options, cancellationToken);
+            return _runtimeExecutor.ExecuteFlashCallAsync(runtimeCode, call, resolvedGasLimit, options, cancellationToken);
         }
 
-        var initCode = code.IsRuntimeCode
-            ? IFlashCode.CreateInitCode(code.ByteCode)
-            : code.ByteCode;
+        var initCode = code.GetInitCode();
 
-        if(initCode.Length > EVMByteCode.MAX_INIT_LENGTH)
-        {
-            throw new InvalidOperationException($"Maximum initcode length exceeded, {initCode.Length} > {EVMByteCode.MAX_INIT_LENGTH}");
-        }
         if(code is IContractDeployment deployment && deployment.Value > 0)
         {
             throw new NotSupportedException("Contract deployment cannot contain any value");

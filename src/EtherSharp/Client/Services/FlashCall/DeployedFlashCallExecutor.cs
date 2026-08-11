@@ -68,6 +68,11 @@ internal sealed class DeployedFlashCallExecutor(
                 : await _constructorFlashCallExecutor.ExecuteFlashCallAsync(initCode, call, flashCallGasLimit, options, cancellationToken);
         }
 
+        if(initCode.Length > UInt16.MaxValue)
+        {
+            throw new InvalidOperationException($"Deployed flash calls cannot encode initcode longer than {UInt16.MaxValue} bytes.");
+        }
+
         int argsLength = 10 + initCode.Length + call.Data.Length;
 
         byte[] rented = ArrayPool<byte>.Shared.Rent(argsLength);

@@ -26,7 +26,6 @@
 		<None Remove="ERC4626\erc4626.abi.json" />
 		<None Remove="ERC721\erc721.abi.json" />
 		<None Remove="FlashCaller\flash-caller.abi.json" />
-		<None Remove="FlashCaller\flash-caller.bytecode" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -35,7 +34,6 @@
 		<AdditionalFiles Include="ERC721\erc721.abi.json" />
 		<AdditionalFiles Include="ERC1155\erc1155.abi.json" />
 		<AdditionalFiles Include="FlashCaller\flash-caller.abi.json" />
-		<AdditionalFiles Include="FlashCaller\flash-caller.bytecode" />
 	</ItemGroup>
 
 	<ItemGroup>

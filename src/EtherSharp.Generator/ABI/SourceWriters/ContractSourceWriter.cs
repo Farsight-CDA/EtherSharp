@@ -14,7 +14,12 @@ internal sealed class ContractSourceWriter(
     private readonly ContractFunctionSectionWriter _functionSectionWriter = functionSectionWriter;
     private readonly ContractTypesSectionWriter _typesSectionWriter = typesSectionWriter;
 
-    public string WriteContractSourceCode(string @namespace, string contractName, IEnumerable<AbiMember> members, byte[]? byteCode)
+    public string WriteContractSourceCode(
+        string @namespace,
+        string contractName,
+        IEnumerable<AbiMember> members,
+        byte[]? initCode,
+        byte[]? runtimeCode)
     {
         string namespacePrefix = String.IsNullOrEmpty(@namespace) ? String.Empty : $"{@namespace}.";
         string namespaceDeclaration = String.IsNullOrEmpty(@namespace)
@@ -52,7 +57,8 @@ internal sealed class ContractSourceWriter(
             contractName,
             members.OfType<FunctionAbiMember>(),
             members.OfType<ConstructorAbiMember>().SingleOrDefault() ?? ConstructorAbiMember.Empty,
-            byteCode,
+            initCode,
+            runtimeCode,
             members.OfType<FallbackAbiMember>().SingleOrDefault()
         );
         _errorSectionWriter.GenerateContractErrorSection(contractInterface, members.OfType<ErrorAbiMember>());

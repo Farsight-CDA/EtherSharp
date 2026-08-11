@@ -5,6 +5,7 @@ using EtherSharp.Generator.ABI.Util;
 using EtherSharp.Generator.Util;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Buffers.Binary;
 using System.Collections.Immutable;
 using System.Text.Json;
 
@@ -17,6 +18,7 @@ namespace EtherSharp.Generator.ABI;
 public sealed class Generator : IIncrementalGenerator
 {
     private const string ABI_FILE_ATTRIBUTE_METADATA_NAME = "EtherSharp.Contract.AbiFileAttribute";
+    private const int RUNTIME_OFFSET = 12;
 
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -62,7 +64,7 @@ public sealed class Generator : IIncrementalGenerator
         try
         {
             if(!TryGetContractDetails(context, input,
-                out var abiMembers, out byte[]? bytecode))
+                out var abiMembers, out byte[]? initCode, out byte[]? runtimeCode))
             {
                 return;
             }
@@ -73,9 +75,14 @@ public sealed class Generator : IIncrementalGenerator
             }
             abiMembers.RemoveAll(static member => member is EventAbiMember { IsAnonymous: true });
 
-            bool hasConstructor = abiMembers.Any(x => x is ConstructorAbiMember);
+            var constructorMember = abiMembers.OfType<ConstructorAbiMember>().SingleOrDefault();
+            if(runtimeCode is not null && constructorMember is { Inputs.Length: > 0 })
+            {
+                ReportDiagnostic(context, GeneratorDiagnostics.RuntimeBytecodeWithConstructorParameters, contract.Location);
+                return;
+            }
 
-            if(!hasConstructor && bytecode is not null)
+            if(constructorMember is null && initCode is not null)
             {
                 abiMembers.Add(ConstructorAbiMember.Empty);
             }
@@ -84,7 +91,7 @@ public sealed class Generator : IIncrementalGenerator
 
             context.AddSource(
                 NameUtils.ToValidFileName($"{contract.Namespace}.{contract.MetadataName}.generated.cs"),
-                writer.WriteContractSourceCode(contract.Namespace, contract.Name, abiMembers, bytecode)
+                writer.WriteContractSourceCode(contract.Namespace, contract.Name, abiMembers, initCode, runtimeCode)
             );
         }
         catch(Exception ex)
@@ -96,10 +103,11 @@ public sealed class Generator : IIncrementalGenerator
 
     private static bool TryGetContractDetails(
         SourceProductionContext context, ContractGenerationInput input,
-        out List<AbiMember> abiMembers, out byte[]? byteCode)
+        out List<AbiMember> abiMembers, out byte[]? initCode, out byte[]? runtimeCode)
     {
         abiMembers = null!;
-        byteCode = null!;
+        initCode = null;
+        runtimeCode = null;
         var contract = input.Contract;
 
         if(!contract.IsPartial)
@@ -159,55 +167,76 @@ public sealed class Generator : IIncrementalGenerator
             return false;
         }
 
-        if(contract.BytecodeFileAttributeCount > 1)
+        if(contract.BytecodeAttributeCount > 1)
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFileAttributeFound, contract.Location, contract.Name);
+            ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeAttributeFound, contract.Location, contract.Name);
             return false;
         }
 
-        if(contract.BytecodeFileAttributeCount == 1)
+        if(contract.BytecodeAttributeCount == 1)
         {
-            string? bytecodeFileName = contract.BytecodeFileName;
-
-            if(bytecodeFileName is null || String.IsNullOrEmpty(bytecodeFileName))
+            bool hasInitCode = !String.IsNullOrWhiteSpace(contract.InitCode);
+            bool hasRuntimeCode = !String.IsNullOrWhiteSpace(contract.RuntimeCode);
+            if(hasInitCode == hasRuntimeCode)
             {
-                string fileDisplayName = bytecodeFileName is null
-                    ? "null"
-                    : $"\"{bytecodeFileName}\"";
-                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contract.Location, fileDisplayName);
-                return false;
-            }
-
-            if(input.BytecodeFile.Count == 0)
-            {
-                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contract.Location, bytecodeFileName);
-                return false;
-            }
-            if(input.BytecodeFile.Count > 1)
-            {
-                ReportDiagnostic(context, GeneratorDiagnostics.MultipleBytecodeFilesWithNameFound, contract.Location, bytecodeFileName);
-                return false;
-            }
-
-            string bytecodeText = input.BytecodeFile.Content?.Trim() ?? String.Empty;
-            if(bytecodeText.Length == 0)
-            {
-                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileNotFound, contract.Location);
+                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeVariantInvalid, contract.Location);
                 return false;
             }
 
             try
             {
-                byteCode = HexUtils.FromHex(bytecodeText);
+                if(hasRuntimeCode)
+                {
+                    runtimeCode = HexUtils.FromHex(contract.RuntimeCode!.Trim());
+                    if(runtimeCode.Length == 0)
+                    {
+                        ReportDiagnostic(context, GeneratorDiagnostics.BytecodeVariantInvalid, contract.Location);
+                        return false;
+                    }
+                    if(runtimeCode.Length > UInt16.MaxValue)
+                    {
+                        ReportDiagnostic(context, GeneratorDiagnostics.BytecodeTooLong, contract.Location,
+                            "runtime code", runtimeCode.Length.ToString(), UInt16.MaxValue.ToString());
+                        return false;
+                    }
+                    initCode = CreateInitCode(runtimeCode);
+                }
+                else
+                {
+                    initCode = HexUtils.FromHex(contract.InitCode!.Trim());
+                    if(initCode.Length == 0)
+                    {
+                        ReportDiagnostic(context, GeneratorDiagnostics.BytecodeVariantInvalid, contract.Location);
+                        return false;
+                    }
+                }
             }
             catch(Exception ex)
             {
-                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeFileMalformed, contract.Location, ex);
+                ReportDiagnostic(context, GeneratorDiagnostics.BytecodeMalformed, contract.Location, ex);
                 return false;
             }
         }
 
         return true;
+    }
+
+    private static byte[] CreateInitCode(byte[] runtimeCode)
+    {
+        byte[] initCode = new byte[RUNTIME_OFFSET + runtimeCode.Length];
+        var header = initCode.AsSpan(0, RUNTIME_OFFSET);
+        header[0] = 0x61;
+        BinaryPrimitives.WriteUInt16BigEndian(header.Slice(1), (ushort) runtimeCode.Length);
+        header[3] = 0x60;
+        header[4] = RUNTIME_OFFSET;
+        header[5] = 0x3D;
+        header[6] = 0x39;
+        header[7] = 0x61;
+        BinaryPrimitives.WriteUInt16BigEndian(header.Slice(8), (ushort) runtimeCode.Length);
+        header[10] = 0x3D;
+        header[11] = 0xF3;
+        runtimeCode.CopyTo(initCode, RUNTIME_OFFSET);
+        return initCode;
     }
 
     private static void ReportDiagnostic(SourceProductionContext context, DiagnosticDescriptor descriptor, Location? location, params string[] args)

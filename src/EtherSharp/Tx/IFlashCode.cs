@@ -11,26 +11,39 @@ public interface IFlashCode
     private const int RUNTIME_OFFSET = 12;
 
     /// <summary>
-    /// Gets the code bytes.
+    /// Attempts to get runtime code suitable for state override execution.
     /// </summary>
-    public EVMByteCode ByteCode { get; }
+    /// <param name="runtimeCode">The runtime code, when available.</param>
+    /// <returns>Whether runtime code is available.</returns>
+    public bool TryGetRuntimeCode(out EVMByteCode runtimeCode);
 
     /// <summary>
-    /// Gets whether <see cref="ByteCode"/> contains runtime code rather than initcode.
+    /// Gets the initcode length without generating wrapping initcode.
     /// </summary>
-    public bool IsRuntimeCode { get; }
+    public int GetInitCodeLength();
+
+    /// <summary>
+    /// Gets initcode suitable for constructor-backed execution.
+    /// </summary>
+    public EVMByteCode GetInitCode();
 
     /// <summary>
     /// Creates flash code from initcode.
     /// </summary>
     public static IFlashCode FromInitCode(EVMByteCode initCode)
-        => new FlashCode(initCode, false);
+        => new FlashCode(initCode, null);
 
     /// <summary>
     /// Creates flash code from runtime code.
     /// </summary>
     public static IFlashCode FromRuntimeCode(EVMByteCode runtimeCode)
-        => new FlashCode(runtimeCode, true);
+        => new FlashCode(null, runtimeCode);
+
+    /// <summary>
+    /// Creates flash code with both initcode and runtime code representations.
+    /// </summary>
+    public static IFlashCode FromCode(EVMByteCode initCode, EVMByteCode runtimeCode)
+        => new FlashCode(initCode, runtimeCode);
 
     /// <summary>
     /// Creates minimal initcode that deploys the supplied runtime bytecode.
@@ -60,7 +73,7 @@ public interface IFlashCode
     /// </summary>
     public static int GetInitCodeLength(EVMByteCode runtimeCode)
     {
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(runtimeCode.Length, EVMByteCode.MAX_RUNTIME_LENGTH);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(runtimeCode.Length, UInt16.MaxValue);
         return RUNTIME_OFFSET + runtimeCode.Length;
     }
 }
