@@ -3,7 +3,8 @@ using EtherSharp.Numerics;
 namespace EtherSharp.Types;
 
 /// <summary>
-/// Describes block-context fields overridden during an <c>eth_call</c> or <c>eth_estimateGas</c> simulation.
+/// Describes block-context fields overridden during an <c>eth_call</c>, <c>eth_estimateGas</c>,
+/// or <c>eth_createAccessList</c> simulation.
 /// </summary>
 /// <param name="Number">Simulated block number.</param>
 /// <param name="Time">Simulated block timestamp.</param>

@@ -408,6 +408,21 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
                 call.To, call.Value, call.Data, null, options, cancellationToken);
     }
 
+    public Task<AccessListResult> CreateAccessListAsync(
+        ITxInput call,
+        StateAccess[]? accessList,
+        in CallOptions options,
+        CancellationToken cancellationToken)
+    {
+        AssertReady();
+
+        return options.From is null && _options.IsTxClient
+            ? _ethRpcModule.CreateAccessListAsync(
+                call.To, call.Value, call.Data, accessList, options with { From = _signer.Address }, cancellationToken)
+            : _ethRpcModule.CreateAccessListAsync(
+                call.To, call.Value, call.Data, accessList, options, cancellationToken);
+    }
+
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
         ITxInput call, TTxParams? txParams, Address? from, CancellationToken cancellationToken)
         where TTxParams : class

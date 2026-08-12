@@ -29,6 +29,13 @@ public interface IEthRpcModule
         in CallOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Creates an access list for a transaction call at the requested block.
+    /// </summary>
+    public Task<AccessListResult> CreateAccessListAsync(
+        Address? to, UInt256 value, ReadOnlyMemory<byte> data, StateAccess[]? accessList,
+        CallOptions options, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets a block by number with transaction hashes only.
     /// </summary>
     public Task<Block> GetBlockByNumberAsync(

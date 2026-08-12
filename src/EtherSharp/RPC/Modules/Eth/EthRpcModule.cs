@@ -193,6 +193,32 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         }
     }
 
+    public async Task<AccessListResult> CreateAccessListAsync(
+        Address? to, UInt256 value, ReadOnlyMemory<byte> data, StateAccess[]? accessList,
+        CallOptions options,
+        CancellationToken cancellationToken)
+    {
+        var transaction = new EstimateGasRequest(options.From, to, value, data, accessList);
+        var response = (options.TargetHeight == TargetHeight.Latest, options.StateOverrides, options.BlockOverrides) switch
+        {
+            (_, _, not null) => await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, TargetHeight, IReadOnlyDictionary<Address, AccountOverride>?, BlockOverride, AccessListResult>(
+                "eth_createAccessList", transaction, options.TargetHeight, options.StateOverrides, options.BlockOverrides, options.TargetHeight, cancellationToken),
+            (_, not null, null) => await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, TargetHeight, IReadOnlyDictionary<Address, AccountOverride>, AccessListResult>(
+                "eth_createAccessList", transaction, options.TargetHeight, options.StateOverrides, options.TargetHeight, cancellationToken),
+            (false, null, null) => await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, TargetHeight, AccessListResult>(
+                "eth_createAccessList", transaction, options.TargetHeight, options.TargetHeight, cancellationToken),
+            _ => await _rpcClient.SendRpcRequestAsync<EstimateGasRequest, AccessListResult>(
+                "eth_createAccessList", transaction, options.TargetHeight, cancellationToken),
+        };
+
+        return response switch
+        {
+            RpcResult<AccessListResult>.Success result => result.Result,
+            RpcResult<AccessListResult>.Error error => throw RPCException.FromRPCError(error),
+            _ => throw new NotImplementedException(),
+        };
+    }
+
     public async Task<DetailedBlockData?> GetFullBlockByNumberAsync(
         TargetHeight targetHeight, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<TargetHeight, bool, DetailedBlockData>(

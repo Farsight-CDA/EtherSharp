@@ -324,6 +324,29 @@ public interface IEtherClient : IAsyncDisposable
         ITxInput call, in CallOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Creates an access list for a transaction call using the default execution context.
+    /// </summary>
+    /// <param name="call">Transaction call definition.</param>
+    /// <param name="accessList">Optional access list used as the starting point for the simulation.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The generated access list and simulated gas usage.</returns>
+    public Task<AccessListResult> CreateAccessListAsync(
+        ITxInput call, StateAccess[]? accessList = null, CancellationToken cancellationToken = default)
+        => CreateAccessListAsync(call, accessList, default, cancellationToken);
+
+    /// <summary>
+    /// Creates an access list for a transaction call using the specified execution context.
+    /// </summary>
+    /// <param name="call">Transaction call definition.</param>
+    /// <param name="accessList">Optional access list used as the starting point for the simulation.</param>
+    /// <param name="options">Call execution options, including optional state and block overrides.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The generated access list and simulated gas usage.</returns>
+    public Task<AccessListResult> CreateAccessListAsync(
+        ITxInput call, StateAccess[]? accessList, in CallOptions options,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Estimates EIP-1559 gas parameters for a transaction call.
     /// </summary>
     /// <param name="call">Transaction call definition.</param>
