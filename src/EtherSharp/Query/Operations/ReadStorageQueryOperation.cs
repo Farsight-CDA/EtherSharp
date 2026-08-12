@@ -16,7 +16,7 @@ internal sealed class ReadStorageQueryOperation(in Address contract, in Bytes32 
     public int CallDataLength => CallQueryEncoding.GetCallDataLength(Bytes4.BYTE_LENGTH + Bytes32.BYTE_LENGTH);
     public UInt256 EthValue => 0;
 
-    void IQuery<Bytes32>.AddTo(QueryPlan plan)
+    void IQuery<Bytes32>.AddTo(IQueryPlan plan)
     {
         if(originalByteCode is not { } byteCode)
         {

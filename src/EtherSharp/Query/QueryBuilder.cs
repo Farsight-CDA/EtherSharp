@@ -17,8 +17,23 @@ public partial class QueryBuilder<TQuery> : IQuery<List<TQuery>>
     public IReadOnlyList<IQuery> Queries => _plan.Queries;
     int IQuery<List<TQuery>>.OperationCount => _plan.Count;
 
-    void IQuery<List<TQuery>>.AddTo(QueryPlan plan)
-        => plan.Add(_plan);
+    void IQuery<List<TQuery>>.AddTo(IQueryPlan plan)
+    {
+        foreach(var query in _plan.Queries)
+        {
+            plan.AddOperation(query);
+        }
+
+        if(_plan.StateOverrides is not { } stateOverrides)
+        {
+            return;
+        }
+
+        foreach(var (address, accountOverride) in stateOverrides)
+        {
+            plan.AddStateOverride(address, accountOverride);
+        }
+    }
 
     List<TQuery> IQuery<List<TQuery>>.ReadResultFrom(params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {

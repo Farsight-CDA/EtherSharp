@@ -324,7 +324,14 @@ public partial interface IQuery<TQuery>
             ? 1
             : throw new InvalidOperationException("Composite queries must declare their operation count.");
 
-    internal void AddTo(QueryPlan plan)
+    /// <summary>
+    /// Adds this query's low-level operations and state overrides to <paramref name="plan"/>.
+    /// </summary>
+    /// <remarks>
+    /// Implementations must add exactly <see cref="OperationCount"/> operations, in the order expected by
+    /// <see cref="ReadResultFrom"/>.
+    /// </remarks>
+    public void AddTo(IQueryPlan plan)
     {
         if(this is not IQuery query)
         {
@@ -334,7 +341,11 @@ public partial interface IQuery<TQuery>
         plan.AddOperation(query);
     }
 
-    internal TQuery ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults);
+    /// <summary>
+    /// Decodes this query's result from its low-level operation results.
+    /// </summary>
+    /// <param name="queryResults">The results in the same order that the operations were added to the plan.</param>
+    public TQuery ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults);
 
     /// <summary>
     /// Creates a query by mapping the output of <paramref name="query"/> to <typeparamref name="TQuery"/>.

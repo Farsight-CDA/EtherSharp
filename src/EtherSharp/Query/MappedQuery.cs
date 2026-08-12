@@ -8,7 +8,7 @@ internal sealed record MappedQuery<TFrom, TTo>(
     public int OperationCount
         => Query.OperationCount;
 
-    void IQuery<TTo>.AddTo(QueryPlan plan)
+    void IQuery<TTo>.AddTo(IQueryPlan plan)
         => plan.Add(Query);
 
     TTo IQuery<TTo>.ReadResultFrom(params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)

@@ -22,7 +22,7 @@ internal sealed class GetCompatibilityQueryOperation : IQuery<CompatibilityRepor
 
     int IQuery<CompatibilityReport>.OperationCount => _queries.Length;
 
-    void IQuery<CompatibilityReport>.AddTo(QueryPlan plan)
+    void IQuery<CompatibilityReport>.AddTo(IQueryPlan plan)
     {
         foreach(var query in _queries)
         {

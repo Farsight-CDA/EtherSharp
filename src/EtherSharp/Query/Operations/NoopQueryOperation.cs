@@ -6,7 +6,7 @@ internal sealed class NoopQueryOperation<T>(T value) : IQuery<T>
 
     int IQuery<T>.OperationCount => 0;
 
-    void IQuery<T>.AddTo(QueryPlan plan) { }
+    void IQuery<T>.AddTo(IQueryPlan plan) { }
     T IQuery<T>.ReadResultFrom(params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
         => _value;
 }

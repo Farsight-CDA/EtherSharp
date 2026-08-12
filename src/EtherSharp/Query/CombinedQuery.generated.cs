@@ -6,7 +6,7 @@ internal sealed record CombinedQuery<T1, T2>(IQuery<T1> Q1, IQuery<T2> Q2) : IQu
     public int OperationCount
         => Q1.OperationCount + Q2.OperationCount;
 
-    void IQuery<(T1, T2)>.AddTo(QueryPlan plan)
+    void IQuery<(T1, T2)>.AddTo(IQueryPlan plan)
     {
         plan.Add(Q1);
         plan.Add(Q2);
@@ -28,7 +28,7 @@ internal sealed record CombinedQuery<T1, T2, T3>(IQuery<T1> Q1, IQuery<T2> Q2, I
     public int OperationCount
         => Q1.OperationCount + Q2.OperationCount + Q3.OperationCount;
 
-    void IQuery<(T1, T2, T3)>.AddTo(QueryPlan plan)
+    void IQuery<(T1, T2, T3)>.AddTo(IQueryPlan plan)
     {
         plan.Add(Q1);
         plan.Add(Q2);
@@ -52,7 +52,7 @@ internal sealed record CombinedQuery<T1, T2, T3, T4>(IQuery<T1> Q1, IQuery<T2> Q
     public int OperationCount
         => Q1.OperationCount + Q2.OperationCount + Q3.OperationCount + Q4.OperationCount;
 
-    void IQuery<(T1, T2, T3, T4)>.AddTo(QueryPlan plan)
+    void IQuery<(T1, T2, T3, T4)>.AddTo(IQueryPlan plan)
     {
         plan.Add(Q1);
         plan.Add(Q2);
@@ -78,7 +78,7 @@ internal sealed record CombinedQuery<T1, T2, T3, T4, T5>(IQuery<T1> Q1, IQuery<T
     public int OperationCount
         => Q1.OperationCount + Q2.OperationCount + Q3.OperationCount + Q4.OperationCount + Q5.OperationCount;
 
-    void IQuery<(T1, T2, T3, T4, T5)>.AddTo(QueryPlan plan)
+    void IQuery<(T1, T2, T3, T4, T5)>.AddTo(IQueryPlan plan)
     {
         plan.Add(Q1);
         plan.Add(Q2);
@@ -106,7 +106,7 @@ internal sealed record CombinedQuery<T1, T2, T3, T4, T5, T6>(IQuery<T1> Q1, IQue
     public int OperationCount
         => Q1.OperationCount + Q2.OperationCount + Q3.OperationCount + Q4.OperationCount + Q5.OperationCount + Q6.OperationCount;
 
-    void IQuery<(T1, T2, T3, T4, T5, T6)>.AddTo(QueryPlan plan)
+    void IQuery<(T1, T2, T3, T4, T5, T6)>.AddTo(IQueryPlan plan)
     {
         plan.Add(Q1);
         plan.Add(Q2);
@@ -136,7 +136,7 @@ internal sealed record CombinedQuery<T1, T2, T3, T4, T5, T6, T7>(IQuery<T1> Q1, 
     public int OperationCount
         => Q1.OperationCount + Q2.OperationCount + Q3.OperationCount + Q4.OperationCount + Q5.OperationCount + Q6.OperationCount + Q7.OperationCount;
 
-    void IQuery<(T1, T2, T3, T4, T5, T6, T7)>.AddTo(QueryPlan plan)
+    void IQuery<(T1, T2, T3, T4, T5, T6, T7)>.AddTo(IQueryPlan plan)
     {
         plan.Add(Q1);
         plan.Add(Q2);
@@ -168,7 +168,7 @@ internal sealed record CombinedQuery<T1, T2, T3, T4, T5, T6, T7, T8>(IQuery<T1> 
     public int OperationCount
         => Q1.OperationCount + Q2.OperationCount + Q3.OperationCount + Q4.OperationCount + Q5.OperationCount + Q6.OperationCount + Q7.OperationCount + Q8.OperationCount;
 
-    void IQuery<(T1, T2, T3, T4, T5, T6, T7, T8)>.AddTo(QueryPlan plan)
+    void IQuery<(T1, T2, T3, T4, T5, T6, T7, T8)>.AddTo(IQueryPlan plan)
     {
         plan.Add(Q1);
         plan.Add(Q2);
@@ -202,7 +202,7 @@ internal sealed record CombinedQuery<T1, T2, T3, T4, T5, T6, T7, T8, T9>(IQuery<
     public int OperationCount
         => Q1.OperationCount + Q2.OperationCount + Q3.OperationCount + Q4.OperationCount + Q5.OperationCount + Q6.OperationCount + Q7.OperationCount + Q8.OperationCount + Q9.OperationCount;
 
-    void IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>.AddTo(QueryPlan plan)
+    void IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>.AddTo(IQueryPlan plan)
     {
         plan.Add(Q1);
         plan.Add(Q2);
@@ -238,7 +238,7 @@ internal sealed record CombinedQuery<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(IQ
     public int OperationCount
         => Q1.OperationCount + Q2.OperationCount + Q3.OperationCount + Q4.OperationCount + Q5.OperationCount + Q6.OperationCount + Q7.OperationCount + Q8.OperationCount + Q9.OperationCount + Q10.OperationCount;
 
-    void IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>.AddTo(QueryPlan plan)
+    void IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>.AddTo(IQueryPlan plan)
     {
         plan.Add(Q1);
         plan.Add(Q2);
@@ -276,7 +276,7 @@ internal sealed record CombinedQuery<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T1
     public int OperationCount
         => Q1.OperationCount + Q2.OperationCount + Q3.OperationCount + Q4.OperationCount + Q5.OperationCount + Q6.OperationCount + Q7.OperationCount + Q8.OperationCount + Q9.OperationCount + Q10.OperationCount + Q11.OperationCount;
 
-    void IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>.AddTo(QueryPlan plan)
+    void IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>.AddTo(IQueryPlan plan)
     {
         plan.Add(Q1);
         plan.Add(Q2);
@@ -316,7 +316,7 @@ internal sealed record CombinedQuery<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T1
     public int OperationCount
         => Q1.OperationCount + Q2.OperationCount + Q3.OperationCount + Q4.OperationCount + Q5.OperationCount + Q6.OperationCount + Q7.OperationCount + Q8.OperationCount + Q9.OperationCount + Q10.OperationCount + Q11.OperationCount + Q12.OperationCount;
 
-    void IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>.AddTo(QueryPlan plan)
+    void IQuery<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>.AddTo(IQueryPlan plan)
     {
         plan.Add(Q1);
         plan.Add(Q2);

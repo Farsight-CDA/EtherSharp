@@ -15,7 +15,7 @@ internal sealed record CombinedQuery<<#=genericParams#>>(<#=queryParams#>) : IQu
     public int OperationCount
         => <#=totalCount#>;
 
-    void IQuery<<#=tupleType#>>.AddTo(QueryPlan plan)
+    void IQuery<<#=tupleType#>>.AddTo(IQueryPlan plan)
     {
 <#=addQueries#>
     }

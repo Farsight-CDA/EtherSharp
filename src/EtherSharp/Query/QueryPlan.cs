@@ -4,7 +4,8 @@ namespace EtherSharp.Query;
 
 internal sealed class QueryPlan(
     int capacity = 0,
-    IReadOnlyDictionary<Address, AccountOverride>? callerStateOverrides = null)
+    IReadOnlyDictionary<Address, AccountOverride>? callerStateOverrides = null
+) : IQueryPlan
 {
     private readonly List<IQuery> _queries = new List<IQuery>(capacity);
     private readonly IReadOnlyDictionary<Address, AccountOverride>? _callerStateOverrides = callerStateOverrides;
@@ -25,21 +26,6 @@ internal sealed class QueryPlan(
 
     public void Add<T>(IQuery<T> query)
         => query.AddTo(this);
-
-    public void Add(QueryPlan plan)
-    {
-        _queries.AddRange(plan._queries);
-
-        if(plan.StateOverrides is not { } stateOverrides)
-        {
-            return;
-        }
-
-        foreach(var (address, accountOverride) in stateOverrides)
-        {
-            AddStateOverride(address, accountOverride);
-        }
-    }
 
     public void AddStateOverride(in Address address, AccountOverride accountOverride)
     {
