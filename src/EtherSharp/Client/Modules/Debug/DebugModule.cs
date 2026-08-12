@@ -35,4 +35,11 @@ internal sealed class DebugModule(IDebugRpcModule debugRpcModule) : IDebugModule
         CancellationToken cancellationToken = default)
         => _debugRpcModule.TraceCallPrestateDiffAsync(
             to, gas, gasPrice, value, data, in options, disableCode, disableStorage, cancellationToken);
+
+    public Task<TResult> TraceCallJavaScriptAsync<TTracerConfig, TResult>(
+        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        in TraceCallOptions options, JavaScriptTracer tracer, TTracerConfig tracerConfig,
+        CancellationToken cancellationToken = default)
+        => _debugRpcModule.TraceCallJavaScriptAsync<TTracerConfig, TResult>(
+            to, gas, gasPrice, value, data, in options, tracer, tracerConfig, cancellationToken);
 }

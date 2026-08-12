@@ -55,4 +55,13 @@ public interface IDebugModule
         in TraceCallOptions options, bool disableCode = false, bool disableStorage = false,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Traces a simulated call using a custom JavaScript tracer.
+    /// </summary>
+    public Task<TResult> TraceCallJavaScriptAsync<TTracerConfig, TResult>(
+        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        in TraceCallOptions options, JavaScriptTracer tracer, TTracerConfig tracerConfig,
+        CancellationToken cancellationToken = default
+    );
 }

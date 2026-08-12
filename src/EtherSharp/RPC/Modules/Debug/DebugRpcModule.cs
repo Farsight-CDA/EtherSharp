@@ -67,7 +67,8 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
             FormatTimeout(options.TimeoutMilliseconds),
             options.StateOverrides,
             options.BlockOverrides,
-            options.TransactionIndex);
+            options.TransactionIndex
+        );
 
         return SendAsync();
 
@@ -136,6 +137,35 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
                 RpcResult<PrestateDiffTrace>.Success result => result.Result,
                 RpcResult<PrestateDiffTrace>.Null => throw new RPCException(-1, "debug_traceCall returned null", null),
                 RpcResult<PrestateDiffTrace>.Error error => throw RPCException.FromRPCError(error),
+                _ => throw new NotImplementedException(),
+            };
+    }
+
+    public Task<TResult> TraceCallJavaScriptAsync<TTracerConfig, TResult>(
+        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        in TraceCallOptions options, JavaScriptTracer tracer, TTracerConfig tracerConfig,
+        CancellationToken cancellationToken = default)
+    {
+        var request = new TraceCallRequest(options.From, to, gas, gasPrice, value, data);
+        var targetHeight = options.TargetHeight;
+        var config = new TraceCallConfig<TTracerConfig>(
+            tracer.Source,
+            tracerConfig,
+            FormatTimeout(options.TimeoutMilliseconds),
+            options.StateOverrides,
+            options.BlockOverrides,
+            options.TransactionIndex
+        );
+
+        return SendAsync();
+
+        async Task<TResult> SendAsync()
+            => await _rpcClient.SendRpcRequestAsync<TraceCallRequest, TargetHeight, TraceCallConfig<TTracerConfig>, TResult>(
+                "debug_traceCall", request, targetHeight, config, targetHeight, cancellationToken) switch
+            {
+                RpcResult<TResult>.Success result => result.Result,
+                RpcResult<TResult>.Null => throw new RPCException(-1, "debug_traceCall returned null", null),
+                RpcResult<TResult>.Error error => throw RPCException.FromRPCError(error),
                 _ => throw new NotImplementedException(),
             };
     }
