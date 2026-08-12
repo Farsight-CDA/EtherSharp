@@ -51,7 +51,10 @@ internal sealed class JsonRpcResponseConverter<TResult> : JsonConverter<JsonRpcR
                 }
                 else if(error is not null)
                 {
-                    reader.Skip();
+                    if(!reader.TrySkip())
+                    {
+                        throw new JsonException("Incomplete JSON-RPC response property value.");
+                    }
                 }
                 else
                 {
@@ -70,12 +73,18 @@ internal sealed class JsonRpcResponseConverter<TResult> : JsonConverter<JsonRpcR
             {
                 ReadPropertyValue(ref reader);
                 hasJsonrpc = true;
-                reader.Skip();
+                if(!reader.TrySkip())
+                {
+                    throw new JsonException("Incomplete JSON-RPC response property value.");
+                }
             }
             else
             {
                 ReadPropertyValue(ref reader);
-                reader.Skip();
+                if(!reader.TrySkip())
+                {
+                    throw new JsonException("Incomplete JSON-RPC response property value.");
+                }
             }
         }
 
