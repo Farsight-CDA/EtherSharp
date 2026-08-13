@@ -50,7 +50,7 @@ internal sealed class StateOverrideFlashCallExecutor(
 
         return _ethRpcModule.CallAsync(
             _flashCodeAddress,
-            flashCallGasLimit,
+            null,
             null,
             call.Value,
             call.Data,
