@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS1591
 
+using EtherSharp.Types;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -10,6 +11,13 @@ public readonly partial struct Int256
 {
     private static readonly BigInteger _minValueAsBigInteger = -(BigInteger.One << 255);
     private static readonly BigInteger _maxValueAsBigInteger = (BigInteger.One << 255) - BigInteger.One;
+
+    /// <summary>
+    /// Interprets the bytes as a signed 256-bit two's-complement integer in big-endian byte order.
+    /// </summary>
+    /// <param name="value">The fixed-size bytes to interpret.</param>
+    public static explicit operator Int256(in Bytes32 value)
+        => new Int256(value.DangerousGetReadOnlySpan(), true);
 
     public static explicit operator Int256(in UInt256 value) => new Int256(value);
 

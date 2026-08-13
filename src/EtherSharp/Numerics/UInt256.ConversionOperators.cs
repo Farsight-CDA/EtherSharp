@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS1591
 
+using EtherSharp.Types;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -8,6 +9,13 @@ namespace EtherSharp.Numerics;
 
 public readonly partial struct UInt256
 {
+    /// <summary>
+    /// Interprets the bytes as an unsigned 256-bit integer in big-endian byte order.
+    /// </summary>
+    /// <param name="value">The fixed-size bytes to interpret.</param>
+    public static explicit operator UInt256(in Bytes32 value)
+        => new UInt256(value.DangerousGetReadOnlySpan(), true);
+
     public static explicit operator UInt256(Int256 z) => z._value;
 
     public static implicit operator UInt256(byte a) => new UInt256(a);
