@@ -71,6 +71,15 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
                     ? 128 + BitOperations.LeadingZeroCount(value._u1)
                     : 192 + BitOperations.LeadingZeroCount(value._u0);
 
+    public static int TrailingZeroCount(in UInt256 value)
+        => value._u0 != 0
+            ? BitOperations.TrailingZeroCount(value._u0)
+            : value._u1 != 0
+                ? 64 + BitOperations.TrailingZeroCount(value._u1)
+                : value._u2 != 0
+                    ? 128 + BitOperations.TrailingZeroCount(value._u2)
+                    : 192 + BitOperations.TrailingZeroCount(value._u3);
+
     /// <summary>
     /// Adds two <see cref="UInt256"/> values and reports whether the addition overflowed.
     /// </summary>

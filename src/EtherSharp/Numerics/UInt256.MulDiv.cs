@@ -53,13 +53,7 @@ public readonly partial struct UInt256
             return true;
         }
 
-        int shift = denominator._u0 != 0
-            ? BitOperations.TrailingZeroCount(denominator._u0)
-            : denominator._u1 != 0
-                ? 64 + BitOperations.TrailingZeroCount(denominator._u1)
-                : denominator._u2 != 0
-                    ? 128 + BitOperations.TrailingZeroCount(denominator._u2)
-                    : 192 + BitOperations.TrailingZeroCount(denominator._u3);
+        int shift = TrailingZeroCount(in denominator);
 
         var oddDenominator = denominator >> shift;
         if(oddDenominator.IsOne)
