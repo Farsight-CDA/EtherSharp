@@ -1,4 +1,5 @@
 using EtherSharp.Common;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
 using System.Text.Json;
 
@@ -75,6 +76,26 @@ public sealed class Bytes32Tests
         Assert.Equal(bytes, copy);
         copy[0] ^= 0xFF;
         Assert.NotEqual(copy, bytes32.ToArray());
+    }
+
+    [Fact]
+    public void Should_Convert_To_UInt256_In_BigEndian_Byte_Order()
+    {
+        var bytes32 = Bytes32.Parse(SAMPLE_BYTES32);
+
+        Assert.True(UInt256.TryParseFromHex(SAMPLE_BYTES32.AsSpan(2), out var expected));
+        Assert.Equal(expected, (UInt256) bytes32);
+        Assert.Equal(UInt256.MaxValue, (UInt256) Bytes32.Parse($"0x{new string('f', 64)}"));
+    }
+
+    [Fact]
+    public void Should_Convert_To_Int256_With_TwosComplement_Semantics()
+    {
+        var negativeOne = Bytes32.Parse($"0x{new string('f', 64)}");
+        var minValue = Bytes32.Parse($"0x8{new string('0', 63)}");
+
+        Assert.Equal((Int256) (-1L), (Int256) negativeOne);
+        Assert.Equal(Int256.MinValue, (Int256) minValue);
     }
 
     [Fact]
