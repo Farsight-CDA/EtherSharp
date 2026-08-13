@@ -44,8 +44,7 @@ internal sealed class StateOverrideFlashCallExecutor(
             new AccountOverride(
                 balance: UInt256.Zero,
                 nonce: 1,
-                code: runtimeCode.ByteCode,
-                state: new Dictionary<Bytes32, Bytes32>()
+                code: runtimeCode.ByteCode
             )
         );
 
