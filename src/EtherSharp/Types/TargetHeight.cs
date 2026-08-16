@@ -11,39 +11,48 @@ namespace EtherSharp.Types;
 /// Not all available TargetHeights are supported on every blockchain network.
 /// </remarks>
 [JsonConverter(typeof(TargetHeightConverter))]
-public readonly struct TargetHeight(ulong value, string rawValue) : IEquatable<TargetHeight>
+public readonly struct TargetHeight(ulong? value, string rawValue) : IEquatable<TargetHeight>
 {
     /// <summary>
-    /// The block height or 0 if it is a string based one.
+    /// The block height, or <see langword="null"/> if this is a named block selector.
     /// </summary>
-    public ulong Value { get; } = value;
+    public ulong? Value { get; } = value;
+
+    /// <summary>
+    /// Whether this target specifies a numeric block height.
+    /// </summary>
+    public bool IsNumeric
+        => Value.HasValue;
 
     /// <summary>
     /// Targets the latest block.
     /// </summary>
-    public static TargetHeight Latest { get; } = new(0, "latest");
+    public static TargetHeight Latest { get; } = new(null, "latest");
     /// <summary>
     /// Targets the earliest available block on the node.
     /// </summary>
-    public static TargetHeight Earliest { get; } = new(0, "earliest");
+    public static TargetHeight Earliest { get; } = new(null, "earliest");
     /// <summary>
     /// Targets the latest safe block.
     /// </summary>
-    public static TargetHeight Safe { get; } = new(0, "safe");
+    public static TargetHeight Safe { get; } = new(null, "safe");
     /// <summary>
     /// Targets the latest finalized block.
     /// </summary>
-    public static TargetHeight Finalized { get; } = new(0, "finalized");
+    public static TargetHeight Finalized { get; } = new(null, "finalized");
     /// <summary>
     /// Targets the pending block.
     /// </summary>
-    public static TargetHeight Pending { get; } = new(0, "pending");
+    public static TargetHeight Pending { get; } = new(null, "pending");
     /// <summary>
     /// Targets the block at a given height.
     /// </summary>
     public static TargetHeight Height(ulong value)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(value, (ulong) 1);
+        if(value == 0)
+        {
+            return new TargetHeight(value, "0x0");
+        }
 
         Span<byte> byteBuffer = stackalloc byte[sizeof(ulong)];
 

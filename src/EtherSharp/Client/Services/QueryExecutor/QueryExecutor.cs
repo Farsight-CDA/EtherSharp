@@ -28,9 +28,9 @@ internal sealed class QueryExecutor(
             return query.ReadResultFrom([]);
         }
 
-        var blockNumberQuery = options.TargetHeight.Value == 0
-            ? IQuery.GetBlockNumber()
-            : IQuery.Noop(options.TargetHeight.Value);
+        var blockNumberQuery = options.TargetHeight.IsNumeric
+            ? IQuery.Noop(options.TargetHeight.Value.GetValueOrDefault())
+            : IQuery.GetBlockNumber();
         var plan = new QueryPlan(query.OperationCount + blockNumberQuery.OperationCount, options.StateOverrides);
         plan.Add(blockNumberQuery);
         plan.Add(query);

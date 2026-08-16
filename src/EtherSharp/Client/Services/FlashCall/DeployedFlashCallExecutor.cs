@@ -33,7 +33,7 @@ internal sealed class DeployedFlashCallExecutor(
     public int GetMaxPayloadSize(int initCodeLength, ulong? flashCallGasLimit, TargetHeight targetHeight)
     {
         bool useFallback = _deploymentHeight is null
-            || (targetHeight.Value > 0 && targetHeight.Value < _deploymentHeight.Value);
+            || (targetHeight.IsNumeric && targetHeight.Value < _deploymentHeight.Value);
         return useFallback
             ? _constructorFlashCallExecutor.GetMaxPayloadSize(initCodeLength, flashCallGasLimit, targetHeight)
             : _configuration.MaxPayloadSize - 10 - initCodeLength;
@@ -41,7 +41,7 @@ internal sealed class DeployedFlashCallExecutor(
     public int GetMaxResultSize(TargetHeight targetHeight)
     {
         bool useFallback = _deploymentHeight is null
-            || (targetHeight.Value > 0 && targetHeight.Value < _deploymentHeight.Value);
+            || (targetHeight.IsNumeric && targetHeight.Value < _deploymentHeight.Value);
         return useFallback
             ? _constructorFlashCallExecutor.GetMaxResultSize(targetHeight)
             : _configuration.MaxResultSize;
@@ -61,7 +61,7 @@ internal sealed class DeployedFlashCallExecutor(
             return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(initCode, call, flashCallGasLimit, options, cancellationToken);
         }
 
-        if(targetHeight.Value > 0 && targetHeight.Value < _deploymentHeight.Value)
+        if(targetHeight.IsNumeric && targetHeight.Value < _deploymentHeight.Value)
         {
             return !_configuration.AllowFallback
                 ? throw new InvalidOperationException($"Missing FlashCall contract deployment at height {targetHeight.Value}")
