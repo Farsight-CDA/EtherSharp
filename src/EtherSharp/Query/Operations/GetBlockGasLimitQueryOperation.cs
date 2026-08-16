@@ -5,6 +5,12 @@ namespace EtherSharp.Query.Operations;
 
 internal sealed class GetBlockGasLimitQueryOperation : IQuery, IQuery<ulong>
 {
+    public static GetBlockGasLimitQueryOperation Instance { get; } = new();
+
+    private GetBlockGasLimitQueryOperation()
+    {
+    }
+
     public int CallDataLength => 1;
     public UInt256 EthValue => 0;
 

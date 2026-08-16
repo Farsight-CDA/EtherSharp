@@ -5,6 +5,12 @@ namespace EtherSharp.Query.Operations;
 
 internal sealed class GetBlockGasPriceQueryOperation : IQuery, IQuery<UInt256>
 {
+    public static GetBlockGasPriceQueryOperation Instance { get; } = new();
+
+    private GetBlockGasPriceQueryOperation()
+    {
+    }
+
     public int CallDataLength => 1;
     public UInt256 EthValue => 0;
 

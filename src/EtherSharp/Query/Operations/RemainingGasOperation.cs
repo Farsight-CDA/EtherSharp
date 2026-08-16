@@ -5,6 +5,12 @@ namespace EtherSharp.Query.Operations;
 
 internal sealed class RemainingGasOperation : IQuery, IQuery<UInt256>
 {
+    public static RemainingGasOperation Instance { get; } = new();
+
+    private RemainingGasOperation()
+    {
+    }
+
     public int CallDataLength => 1;
     public UInt256 EthValue => 0;
 

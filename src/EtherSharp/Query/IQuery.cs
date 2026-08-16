@@ -13,6 +13,14 @@ namespace EtherSharp.Query;
 /// </summary>
 public partial interface IQuery
 {
+    private static IQuery<ulong> ArbitrumBlockNumberQuery { get; } = Call(IContractCall<UInt256>.ForContractCall(
+        "0x0000000000000000000000000000000000000064",
+        0,
+        Convert.FromHexString("A3B1B31D"),
+        new ABI.AbiEncoder(),
+        x => x.UInt256())
+    ).Map(x => (ulong) x);
+
     /// <summary>
     /// Gets the number of bytes this operation contributes to the encoded query calldata.
     /// </summary>
@@ -121,7 +129,7 @@ public partial interface IQuery
     /// Creates a query that returns the current block number.
     /// </summary>
     public static IQuery<ulong> GetBlockNumber()
-        => new GetBlockNumberQueryOperation();
+        => GetBlockNumberQueryOperation.Instance;
 
     /// <summary>
     /// Creates a query that calls Arbitrum's <c>ArbSys.arbBlockNumber()</c> precompile and returns the current L2 block number.
@@ -130,37 +138,31 @@ public partial interface IQuery
     /// This query is only supported on Arbitrum-based chains. On other EVM chains the underlying call will revert.
     /// </remarks>
     public static IQuery<ulong> GetArbitrumBlockNumber()
-        => Call(IContractCall<UInt256>.ForContractCall(
-            "0x0000000000000000000000000000000000000064",
-            0,
-            Convert.FromHexString("A3B1B31D"),
-            new ABI.AbiEncoder(),
-            x => x.UInt256())
-        ).Map(x => (ulong) x);
+        => ArbitrumBlockNumberQuery;
 
     /// <summary>
     /// Creates a query that returns the current block timestamp as a <see cref="DateTimeOffset"/>.
     /// </summary>
     public static IQuery<DateTimeOffset> GetBlockTimestamp()
-        => new GetBlockTimestampQueryOperation();
+        => GetBlockTimestampQueryOperation.Instance;
 
     /// <summary>
     /// Creates a query that returns the current block gas limit.
     /// </summary>
     public static IQuery<ulong> GetBlockGasLimit()
-        => new GetBlockGasLimitQueryOperation();
+        => GetBlockGasLimitQueryOperation.Instance;
 
     /// <summary>
     /// Creates a query that returns the block gas price.
     /// </summary>
     public static IQuery<UInt256> GetBlockGasPrice()
-        => new GetBlockGasPriceQueryOperation();
+        => GetBlockGasPriceQueryOperation.Instance;
 
     /// <summary>
     /// Creates a query that returns the block base fee.
     /// </summary>
     public static IQuery<UInt256> GetBlockBaseFee()
-        => new GetBlockBaseFeeQueryOperation();
+        => GetBlockBaseFeeQueryOperation.Instance;
 
     /// <summary>
     /// Creates a query that returns the ETH balance for <paramref name="user"/>.
@@ -270,19 +272,19 @@ public partial interface IQuery
     /// Creates a query that returns the current chain id.
     /// </summary>
     public static IQuery<ulong> GetChainId()
-        => new GetChainIdQueryOperation();
+        => GetChainIdQueryOperation.Instance;
 
     /// <summary>
     /// Creates a query that probes EVM feature support and returns a compatibility report.
     /// </summary>
     public static IQuery<CompatibilityReport> GetCompatibilityReport()
-        => new GetCompatibilityQueryOperation();
+        => GetCompatibilityQueryOperation.Instance;
 
     /// <summary>
     /// Creates a query that returns the remaining gas inside the query execution context.
     /// </summary>
     public static IQuery<UInt256> GetRemainingGas()
-        => new RemainingGasOperation();
+        => RemainingGasOperation.Instance;
 
     /// <summary>
     /// Creates a query with no underlying operations that always returns <paramref name="value"/>.

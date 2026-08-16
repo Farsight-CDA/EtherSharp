@@ -6,6 +6,8 @@ namespace EtherSharp.Query.Operations;
 
 internal sealed class GetCompatibilityQueryOperation : IQuery<CompatibilityReport>
 {
+    public static GetCompatibilityQueryOperation Instance { get; } = new();
+
     private static readonly IContractDeployment _push0 = IContractDeployment.Create(new EVMByteCode(Convert.FromHexString("600b380380600b3d393df35f")), 0);
     private static readonly IContractDeployment _mCopy = IContractDeployment.Create(new EVMByteCode(Convert.FromHexString("600b380380600b3d393df36001600060015e")), 0);
     private static readonly IContractDeployment _tStore = IContractDeployment.Create(new EVMByteCode(Convert.FromHexString("600b380380600b3d393df3600060005d")), 0);
@@ -19,6 +21,10 @@ internal sealed class GetCompatibilityQueryOperation : IQuery<CompatibilityRepor
         new SafeFlashCallQueryOperation<bool>(_tStore, _call),
         new SafeFlashCallQueryOperation<bool>(_baseFee, _call)
     ];
+
+    private GetCompatibilityQueryOperation()
+    {
+    }
 
     int IQuery<CompatibilityReport>.OperationCount => _queries.Length;
 

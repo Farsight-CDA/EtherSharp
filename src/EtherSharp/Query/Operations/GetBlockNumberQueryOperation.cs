@@ -5,6 +5,12 @@ namespace EtherSharp.Query.Operations;
 
 internal sealed class GetBlockNumberQueryOperation : IQuery, IQuery<ulong>
 {
+    public static GetBlockNumberQueryOperation Instance { get; } = new();
+
+    private GetBlockNumberQueryOperation()
+    {
+    }
+
     public int CallDataLength => 1;
     public UInt256 EthValue => 0;
 

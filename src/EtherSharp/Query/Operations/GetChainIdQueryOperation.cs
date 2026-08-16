@@ -5,6 +5,12 @@ namespace EtherSharp.Query.Operations;
 
 internal sealed class GetChainIdQueryOperation : IQuery, IQuery<ulong>
 {
+    public static GetChainIdQueryOperation Instance { get; } = new();
+
+    private GetChainIdQueryOperation()
+    {
+    }
+
     public int CallDataLength => 1;
     public UInt256 EthValue => 0;
 

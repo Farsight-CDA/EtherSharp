@@ -5,6 +5,12 @@ namespace EtherSharp.Query.Operations;
 
 internal sealed class GetBlockTimestampQueryOperation : IQuery, IQuery<DateTimeOffset>
 {
+    public static GetBlockTimestampQueryOperation Instance { get; } = new();
+
+    private GetBlockTimestampQueryOperation()
+    {
+    }
+
     public int CallDataLength => 1;
     public UInt256 EthValue => 0;
 
