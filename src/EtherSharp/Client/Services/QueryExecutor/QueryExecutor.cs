@@ -23,15 +23,19 @@ internal sealed class QueryExecutor(
         CallOptions options,
         CancellationToken cancellationToken)
     {
-        var plan = new QueryPlan(query.OperationCount, options.StateOverrides);
+        if(query.OperationCount == 0)
+        {
+            return query.ReadResultFrom([]);
+        }
+
+        var blockNumberQuery = options.TargetHeight.Value == 0
+            ? IQuery.GetBlockNumber()
+            : IQuery.Noop(options.TargetHeight.Value);
+        var plan = new QueryPlan(query.OperationCount + blockNumberQuery.OperationCount, options.StateOverrides);
+        plan.Add(blockNumberQuery);
         plan.Add(query);
 
         var outputs = new ReadOnlyMemory<byte>[plan.Queries.Count];
-
-        if(plan.Count == 0)
-        {
-            return query.ReadResultFrom(outputs);
-        }
 
         bool supportsCancun = _client.IsInitialized && _client.CompatibilityReport is not null && _client.CompatibilityReport.SupportsPush0;
         var querier = supportsCancun && (options.TargetHeight == TargetHeight.Latest || options.TargetHeight == TargetHeight.Pending)
@@ -106,6 +110,15 @@ internal sealed class QueryExecutor(
             int sliceLength = q.ParseResultLength(buffer.Span);
             outputs[i] = buffer[0..sliceLength];
             buffer = buffer[sliceLength..];
+
+            if(i == 0)
+            {
+                ulong blockNumber = blockNumberQuery.ReadResultFrom(outputs);
+                if(blockNumber > 0)
+                {
+                    options = options with { TargetHeight = TargetHeight.Height(blockNumber) };
+                }
+            }
         }
 
         if(requestCount > 1 && _logger?.IsEnabled(LogLevel.Debug) == true)
@@ -113,6 +126,6 @@ internal sealed class QueryExecutor(
             _logger.LogDebug("Batch query processing too expensive, required {requests} requests", requestCount);
         }
 
-        return query.ReadResultFrom(outputs);
+        return query.ReadResultFrom(outputs.AsSpan(blockNumberQuery.OperationCount));
     }
 }
