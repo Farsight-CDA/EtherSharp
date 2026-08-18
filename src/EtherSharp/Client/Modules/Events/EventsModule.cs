@@ -109,14 +109,15 @@ internal sealed class EventsModule<TLog>(IRPCTransport rpcTransport, IEthRpcModu
     }
 
     public async Task<TLog[]> GetAllAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default, Bytes32? blockHash = null,
-        CancellationToken cancellationToken = default)
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
     {
         if(fromBlock == default)
         {
             fromBlock = TargetHeight.Earliest;
         }
 
-        var rawResults = await _ethRpcModule.GetLogsAsync(fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), blockHash, cancellationToken);
+        var rawResults = await _ethRpcModule.GetLogsAsync(
+            fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), blockHash, requestOptions, cancellationToken);
 
         Array.Sort(rawResults, EventComparer.Instance);
 
@@ -141,18 +142,20 @@ internal sealed class EventsModule<TLog>(IRPCTransport rpcTransport, IEthRpcModu
     }
 
     public async Task<IEventFilter<TLog>> CreateFilterAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default,
-        CancellationToken cancellationToken = default)
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
     {
-        var filter = new EventFilter<TLog>(_rpcTransport, _ethRpcModule, fromBlock, toBlock, _contractAddresses, CreateTopicsArray());
+        var filter = new EventFilter<TLog>(
+            _rpcTransport, _ethRpcModule, fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), requestOptions);
         await filter.InitializeAsync(cancellationToken);
         return filter;
     }
 
-    public async Task<IEventSubscription<TLog>> CreateSubscriptionAsync(CancellationToken cancellationToken = default)
+    public async Task<IEventSubscription<TLog>> CreateSubscriptionAsync(
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
     {
         var subscription = new EventSubscription<TLog>(_ethRpcModule, _subscriptionsManager,
             _jsonSerializerContext, _contractAddresses, CreateTopicsArray());
-        await _subscriptionsManager.InstallSubscriptionAsync(subscription, cancellationToken);
+        await _subscriptionsManager.InstallSubscriptionAsync(subscription, requestOptions, cancellationToken);
         return subscription;
     }
 

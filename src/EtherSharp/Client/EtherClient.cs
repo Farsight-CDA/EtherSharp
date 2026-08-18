@@ -107,64 +107,64 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         IQuery<T1> c1,
         ulong? gasLimit = null,
         in CallOptions options = default,
-        CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(c1, gasLimit, options, cancellationToken);
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => ExecuteQueryAsync(c1, gasLimit, options, requestOptions, cancellationToken);
 
     public Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
         ulong? gasLimit = null,
         in CallOptions options = default,
-        CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2), gasLimit, options, cancellationToken);
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2), gasLimit, options, requestOptions, cancellationToken);
 
     public Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
         ulong? gasLimit = null,
         in CallOptions options = default,
-        CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), gasLimit, options, cancellationToken);
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3), gasLimit, options, requestOptions, cancellationToken);
 
     public Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
         ulong? gasLimit = null,
         in CallOptions options = default,
-        CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), gasLimit, options, cancellationToken);
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4), gasLimit, options, requestOptions, cancellationToken);
 
     public Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
         ulong? gasLimit = null,
         in CallOptions options = default,
-        CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), gasLimit, options, cancellationToken);
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5), gasLimit, options, requestOptions, cancellationToken);
 
     public Task<(T1, T2, T3, T4, T5, T6)> QueryAsync<T1, T2, T3, T4, T5, T6>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6,
         ulong? gasLimit = null,
         in CallOptions options = default,
-        CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), gasLimit, options, cancellationToken);
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6), gasLimit, options, requestOptions, cancellationToken);
 
     public Task<(T1, T2, T3, T4, T5, T6, T7)> QueryAsync<T1, T2, T3, T4, T5, T6, T7>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7,
         ulong? gasLimit = null,
         in CallOptions options = default,
-        CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), gasLimit, options, cancellationToken);
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7), gasLimit, options, requestOptions, cancellationToken);
 
     public Task<(T1, T2, T3, T4, T5, T6, T7, T8)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8,
         ulong? gasLimit = null,
         in CallOptions options = default,
-        CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), gasLimit, options, cancellationToken);
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8), gasLimit, options, requestOptions, cancellationToken);
 
     public Task<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5, IQuery<T6> c6, IQuery<T7> c7, IQuery<T8> c8, IQuery<T9> c9,
         ulong? gasLimit = null,
         in CallOptions options = default,
-        CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), gasLimit, options, cancellationToken);
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => ExecuteQueryAsync(IQuery.Combine(c1, c2, c3, c4, c5, c6, c7, c8, c9), gasLimit, options, requestOptions, cancellationToken);
 
     IEventsModule<TEvent> IEtherClient.Events<TEvent>()
     {
@@ -179,26 +179,26 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         IQuery<TQuery> query,
         ulong? gasLimit,
         in CallOptions options,
-        CancellationToken cancellationToken)
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _queryExecutor.ExecuteQueryAsync(query, gasLimit, options, cancellationToken);
+        return _queryExecutor.ExecuteQueryAsync(query, gasLimit, options, requestOptions, cancellationToken);
     }
 
-    async Task IEtherClient.InitializeAsync(bool forceNoQuery, CancellationToken cancellationToken)
+    async Task IEtherClient.InitializeAsync(bool forceNoQuery, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         if(forceNoQuery)
         {
-            await InitializeNoQueryAsync(cancellationToken);
+            await InitializeNoQueryAsync(requestOptions, cancellationToken);
         }
         else
         {
-            await InitializeWithQueryAsync<object?>(null, cancellationToken);
+            await InitializeWithQueryAsync<object?>(null, requestOptions, cancellationToken);
         }
     }
 
-    Task<T> IEtherClient.InitializeAsync<T>(IQuery<T> initQuery, CancellationToken cancellationToken)
-        => InitializeWithQueryAsync(initQuery, cancellationToken);
+    Task<T> IEtherClient.InitializeAsync<T>(IQuery<T> initQuery, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
+        => InitializeWithQueryAsync(initQuery, requestOptions, cancellationToken);
 
     private async Task BaseInitializeAsync(CancellationToken cancellationToken)
     {
@@ -229,11 +229,11 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         }
     }
 
-    private async Task InitializeNoQueryAsync(CancellationToken cancellationToken)
+    private async Task InitializeNoQueryAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         await BaseInitializeAsync(cancellationToken);
 
-        _chainId = await _ethRpcModule.ChainIdAsync(cancellationToken);
+        _chainId = await _ethRpcModule.ChainIdAsync(requestOptions, cancellationToken);
         _compatibilityReport = null;
 
         var flashInitCodeExecutor = _provider.GetRequiredService<IFlashInitCodeExecutor>();
@@ -246,6 +246,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
                 0,
                 Convert.FromHexString("217CD3E1"),
                 TargetHeight.Latest,
+                requestOptions,
                 cancellationToken: cancellationToken
             );
 
@@ -260,13 +261,13 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
         {
-            await initializeableService.InitializeAsync(_chainId, cancellationToken);
+            await initializeableService.InitializeAsync(_chainId, requestOptions, cancellationToken);
         }
 
         _initialized = true;
     }
 
-    private async Task<T> InitializeWithQueryAsync<T>(IQuery<T>? initQuery, CancellationToken cancellationToken)
+    private async Task<T> InitializeWithQueryAsync<T>(IQuery<T>? initQuery, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         await BaseInitializeAsync(cancellationToken);
 
@@ -284,6 +285,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             IQuery.Combine(IQuery.GetChainId(), IQuery.GetCompatibilityReport(), initQuery, flashCallSetupQuery),
             null,
             TargetHeight.Latest,
+            requestOptions,
             cancellationToken
         );
 
@@ -294,7 +296,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
         {
-            await initializeableService.InitializeAsync(_chainId, cancellationToken);
+            await initializeableService.InitializeAsync(_chainId, requestOptions, cancellationToken);
         }
 
         _initialized = true;
@@ -340,33 +342,33 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
     IInternalEtherClient IEtherClient.AsInternal() => this;
 
-    Task<TxData?> IEtherClient.GetTransactionAsync(in Bytes32 hash, CancellationToken cancellationToken)
+    Task<TxData?> IEtherClient.GetTransactionAsync(in Bytes32 hash, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.TransactionByHashAsync(in hash, cancellationToken);
+        return _ethRpcModule.TransactionByHashAsync(in hash, requestOptions, cancellationToken);
     }
-    Task<TxReceipt?> IEtherClient.GetTransactionReceiptAsync(in Bytes32 hash, CancellationToken cancellationToken)
+    Task<TxReceipt?> IEtherClient.GetTransactionReceiptAsync(in Bytes32 hash, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.GetTransactionReceiptAsync(in hash, cancellationToken);
+        return _ethRpcModule.GetTransactionReceiptAsync(in hash, requestOptions, cancellationToken);
     }
 
     Task<uint> IEtherClient.GetTransactionCount(
-        in Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
+        in Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.GetTransactionCountAsync(in address, targetHeight, cancellationToken);
+        return _ethRpcModule.GetTransactionCountAsync(in address, targetHeight, requestOptions, cancellationToken);
     }
 
-    Task<byte[]> IEtherClient.GetStorageAtAsync(in Address address, byte[] slot, TargetHeight targetHeight, CancellationToken cancellationToken)
+    Task<byte[]> IEtherClient.GetStorageAtAsync(in Address address, byte[] slot, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.GetStorageAtAsync(in address, slot, targetHeight, cancellationToken);
+        return _ethRpcModule.GetStorageAtAsync(in address, slot, targetHeight, requestOptions, cancellationToken);
     }
-    Task<byte[]> IEtherClient.GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetHeight targetHeight, CancellationToken cancellationToken)
+    Task<byte[]> IEtherClient.GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.GetStorageAtAsync(contract.Address, slot, targetHeight, cancellationToken);
+        return _ethRpcModule.GetStorageAtAsync(contract.Address, slot, targetHeight, requestOptions, cancellationToken);
     }
 
     private TContract Contract<TContract>(in Address address)
@@ -377,54 +379,54 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     }
 
     Task<FeeHistory> IEtherClient.GetFeeHistoryAsync(int blockCount, TargetHeight newestBlock,
-        double[] rewardPercentiles, CancellationToken cancellationToken)
+        double[] rewardPercentiles, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.GetFeeHistoryAsync(blockCount, newestBlock, rewardPercentiles, cancellationToken);
+        return _ethRpcModule.GetFeeHistoryAsync(blockCount, newestBlock, rewardPercentiles, requestOptions, cancellationToken);
     }
-    Task<UInt256> IEtherClient.GetGasPriceAsync(CancellationToken cancellationToken)
+    Task<UInt256> IEtherClient.GetGasPriceAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.GasPriceAsync(cancellationToken);
+        return _ethRpcModule.GasPriceAsync(requestOptions, cancellationToken);
     }
 
-    Task<UInt256> IEtherClient.GetMaxPriorityFeePerGasAsync(CancellationToken cancellationToken)
+    Task<UInt256> IEtherClient.GetMaxPriorityFeePerGasAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
-        return _ethRpcModule.MaxPriorityFeePerGasAsync(cancellationToken);
+        return _ethRpcModule.MaxPriorityFeePerGasAsync(requestOptions, cancellationToken);
     }
 
     public Task<ulong> EstimateGasLimitAsync(
         ITxInput call,
         in CallOptions options,
-        CancellationToken cancellationToken)
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
 
         return options.From is null && _options.IsTxClient
             ? _ethRpcModule.EstimateGasAsync(
-                call.To, call.Value, call.Data, null, options with { From = _signer.Address }, cancellationToken)
+                call.To, call.Value, call.Data, null, options with { From = _signer.Address }, requestOptions, cancellationToken)
             : _ethRpcModule.EstimateGasAsync(
-                call.To, call.Value, call.Data, null, options, cancellationToken);
+                call.To, call.Value, call.Data, null, options, requestOptions, cancellationToken);
     }
 
     public Task<AccessListResult> CreateAccessListAsync(
         ITxInput call,
         StateAccess[]? accessList,
         in CallOptions options,
-        CancellationToken cancellationToken)
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
 
         return options.From is null && _options.IsTxClient
             ? _ethRpcModule.CreateAccessListAsync(
-                call.To, call.Value, call.Data, accessList, options with { From = _signer.Address }, cancellationToken)
+                call.To, call.Value, call.Data, accessList, options with { From = _signer.Address }, requestOptions, cancellationToken)
             : _ethRpcModule.CreateAccessListAsync(
-                call.To, call.Value, call.Data, accessList, options, cancellationToken);
+                call.To, call.Value, call.Data, accessList, options, requestOptions, cancellationToken);
     }
 
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams, Address? from, CancellationToken cancellationToken)
+        ITxInput call, TTxParams? txParams, Address? from, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
         where TTxParams : class
     {
         AssertReady();
@@ -432,7 +434,8 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             ?? throw new InvalidOperationException(
                 $"No GasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
 
-        return await gasFeeProvider.EstimateGasParamsAsync(call, txParams ?? TTxParams.Default, from ?? _signer.Address, cancellationToken);
+        return await gasFeeProvider.EstimateGasParamsAsync(
+            call, txParams ?? TTxParams.Default, from ?? _signer.Address, requestOptions, cancellationToken);
     }
 
     TContract IEtherClient.Contract<TContract>(in Address address)
@@ -441,15 +444,15 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     public Task<CallResult<T>> SafeCallAsync<T>(
         ITxInput<T> call,
         in CallOptions options,
-        CancellationToken cancellationToken)
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
 
         var resultTask = options.From is null && _options.IsTxClient
             ? _ethRpcModule.CallAsync(
-                call.To, null, null, call.Value, call.Data, options with { From = _signer.Address }, cancellationToken)
+                call.To, null, null, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
             : _ethRpcModule.CallAsync(
-                call.To, null, null, call.Value, call.Data, options, cancellationToken);
+                call.To, null, null, call.Value, call.Data, options, requestOptions, cancellationToken);
 
         return ParseAsync(call, resultTask);
 
@@ -466,9 +469,9 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     public Task<T> CallAsync<T>(
         ITxInput<T> call,
         in CallOptions options,
-        CancellationToken cancellationToken)
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
-        return UnwrapAsync(SafeCallAsync(call, options, cancellationToken));
+        return UnwrapAsync(SafeCallAsync(call, options, requestOptions, cancellationToken));
 
         // Avoid CallOptions in the async state machine.
         static async Task<T> UnwrapAsync(Task<CallResult<T>> resultTask)
@@ -483,13 +486,13 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         IFlashCall<T> call,
         ulong? flashCallGasLimit = null,
         in CallOptions options = default,
-        CancellationToken cancellationToken = default)
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
     {
         AssertReady();
 
         return ParseAsync(
             call,
-            _flashCallExecutor.ExecuteFlashCallAsync(code, call, flashCallGasLimit, options, cancellationToken)
+            _flashCallExecutor.ExecuteFlashCallAsync(code, call, flashCallGasLimit, options, requestOptions, cancellationToken)
         );
 
         // Avoid CallOptions in the async state machine.
@@ -506,9 +509,9 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         IFlashCall<T> call,
         ulong? flashCallGasLimit,
         in CallOptions options,
-        CancellationToken cancellationToken)
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
-        return UnwrapAsync(SafeFlashCallAsync(code, call, flashCallGasLimit, options, cancellationToken));
+        return UnwrapAsync(SafeFlashCallAsync(code, call, flashCallGasLimit, options, requestOptions, cancellationToken));
 
         // Avoid CallOptions in the async state machine.
         static async Task<T> UnwrapAsync(Task<CallResult<T>> resultTask)
@@ -519,12 +522,16 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     }
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams
+        ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams,
+        CancellationToken cancellationToken
     )
         where TTxParams : class
         where TTxGasParams : class
-        => await _txScheduler.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(call, txParams, txGasParams);
+        => await _txScheduler.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
+            call, txParams, txGasParams, cancellationToken);
 
-    async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(uint nonce)
-        => await _txScheduler.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(nonce);
+    async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        uint nonce, CancellationToken cancellationToken)
+        => await _txScheduler.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
+            nonce, cancellationToken);
 }

@@ -392,10 +392,12 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                 {
                     var usedArgumentNames = new HashSet<string>(inputNameList, StringComparer.Ordinal);
                     string callOptionsArgumentName = NameUtils.MakeUniquePropertyName("callOptions", usedArgumentNames);
+                    string requestOptionsArgumentName = NameUtils.MakeUniquePropertyName("requestOptions", usedArgumentNames);
 
                     interfaceFunction
                         .WithReturnTypeRaw($"System.Threading.Tasks.Task<{outputTypeName}>")
                         .AddArgument("in EtherSharp.Client.CallOptions", callOptionsArgumentName, true, "default")
+                        .AddArgument("EtherSharp.RPC.Transport.RpcRequestOptions", requestOptionsArgumentName, true, "default")
                         .AddArgument("System.Threading.CancellationToken", "cancellationToken", true, "default")
                         .AddStatement(
                             $"""
@@ -403,8 +405,9 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                                 {contractName}.Functions.{functionTypeName}.Create(
                                 Address{(inputNameList.Count > 0 ? "," : "")}
                                  {String.Join(",", inputNameList)}),
-                                 {callOptionsArgumentName},
-                                 cancellationToken
+                                  {callOptionsArgumentName},
+                                  {requestOptionsArgumentName},
+                                  cancellationToken
                              )
                             """
                         );

@@ -38,6 +38,7 @@ public interface IRPCTransport
     public Task<RpcResult<TResult>> SendRpcRequestAsync<TResult>(
         string method,
         TargetHeight requiredBlockNumber,
+        RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     );
 
@@ -48,6 +49,7 @@ public interface IRPCTransport
         string method,
         T1 t1,
         TargetHeight requiredBlockNumber,
+        RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     );
 
@@ -59,6 +61,7 @@ public interface IRPCTransport
         T1 t1,
         T2 t2,
         TargetHeight requiredBlockNumber,
+        RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     );
 
@@ -71,6 +74,7 @@ public interface IRPCTransport
         T2 t2,
         T3 t3,
         TargetHeight requiredBlockNumber,
+        RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     );
 
@@ -84,6 +88,7 @@ public interface IRPCTransport
         T3 t3,
         T4 t4,
         TargetHeight requiredBlockNumber,
+        RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     );
 }

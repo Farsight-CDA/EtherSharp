@@ -6,7 +6,7 @@ namespace EtherSharp.Realtime.Events.Filter;
 
 internal sealed class EventFilter<TLog>(IRPCTransport rpcTransport, IEthRpcModule ethRpcModule,
     TargetHeight fromBlock, TargetHeight toBlock,
-    Address[]? addresses, string[]?[]? topics
+    Address[]? addresses, string[]?[]? topics, RpcRequestOptions requestOptions
 ) : IEventFilter<TLog>
     where TLog : ITxLog<TLog>
 {
@@ -20,10 +20,11 @@ internal sealed class EventFilter<TLog>(IRPCTransport rpcTransport, IEthRpcModul
 
     private readonly Address[]? _addresses = addresses;
     private readonly string[]?[]? _topics = topics;
+    private readonly RpcRequestOptions _requestOptions = requestOptions;
 
-    public async Task<TLog[]> GetChangesAsync(CancellationToken cancellationToken)
+    public async Task<TLog[]> GetChangesAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
-        var rawResults = await _ethRpcModule.GetEventFilterChangesAsync(Id, cancellationToken);
+        var rawResults = await _ethRpcModule.GetEventFilterChangesAsync(Id, requestOptions, cancellationToken);
 
         if(rawResults.Length == 0)
         {
@@ -43,18 +44,18 @@ internal sealed class EventFilter<TLog>(IRPCTransport rpcTransport, IEthRpcModul
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
         _rpcTransport.OnConnectionEstablished += HandleReconnect;
-        await InstallAsync(cancellationToken);
+        await InstallAsync(_requestOptions, cancellationToken);
     }
 
-    private async Task InstallAsync(CancellationToken cancellationToken = default)
-        => Id = await _ethRpcModule.NewFilterAsync(_fromBlock, _toBlock, _addresses, _topics, cancellationToken);
+    private async Task InstallAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken = default)
+        => Id = await _ethRpcModule.NewFilterAsync(_fromBlock, _toBlock, _addresses, _topics, requestOptions, cancellationToken);
 
     private void HandleReconnect()
-        => _ = Task.Run(() => InstallAsync());
+        => _ = Task.Run(() => InstallAsync(_requestOptions));
 
     public async ValueTask DisposeAsync()
     {
         _rpcTransport.OnConnectionEstablished -= HandleReconnect;
-        await _ethRpcModule.UninstallFilterAsync(Id);
+        await _ethRpcModule.UninstallFilterAsync(Id, _requestOptions);
     }
 }

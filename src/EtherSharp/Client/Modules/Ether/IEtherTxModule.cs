@@ -1,5 +1,6 @@
-﻿using EtherSharp.Contract;
+using EtherSharp.Contract;
 using EtherSharp.Numerics;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 
@@ -13,9 +14,11 @@ public interface IEtherTxModule : IEtherModule
     /// Gets the native currency balance of the signer configured on the client.
     /// </summary>
     /// <param name="targetHeight">Block to evaluate the balance at. Uses the latest block by default.</param>
+    /// <param name="requestOptions">Options controlling the RPC request.</param>
     /// <param name="cancellationToken">Token used to cancel the RPC request.</param>
     /// <returns>Balance in wei.</returns>
-    public Task<UInt256> GetMyBalanceAsync(TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<UInt256> GetMyBalanceAsync(TargetHeight targetHeight = default,
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a transaction input that transfers native currency to an address.

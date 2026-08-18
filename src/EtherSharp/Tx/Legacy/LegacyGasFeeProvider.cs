@@ -2,6 +2,7 @@
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 
 namespace EtherSharp.Tx.Legacy;
@@ -50,7 +51,9 @@ public sealed class LegacyGasFeeProvider : IGasFeeProvider<LegacyTxParams, Legac
     }
 
     /// <inheritdoc/>
-    public async Task<LegacyGasParams> EstimateGasParamsAsync(ITxInput txInput, LegacyTxParams txParams, Address from, CancellationToken cancellationToken)
+    public async Task<LegacyGasParams> EstimateGasParamsAsync(
+        ITxInput txInput, LegacyTxParams txParams, Address from,
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         var gasUsedTask = _ethRpcModule.EstimateGasAsync(
             txInput.To,
@@ -58,9 +61,10 @@ public sealed class LegacyGasFeeProvider : IGasFeeProvider<LegacyTxParams, Legac
             txInput.Data,
             null,
             new CallOptions { From = from },
+            requestOptions,
             cancellationToken
         );
-        var gasPriceTask = _ethRpcModule.GasPriceAsync(cancellationToken);
+        var gasPriceTask = _ethRpcModule.GasPriceAsync(requestOptions, cancellationToken);
 
         ulong gasUsed = await gasUsedTask;
         var gasPrice = await gasPriceTask;

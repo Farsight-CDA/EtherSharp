@@ -1,6 +1,7 @@
-﻿using EtherSharp.Contract;
+using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
@@ -18,15 +19,19 @@ internal sealed class EtherModule(IEthRpcModule ethRpcModule, IServiceProvider p
     public ITxInput Transfer(IPayableContract contract, UInt256 amount)
         => ITxInput.ForEthTransfer(contract.Address, amount);
 
-    public Task<UInt256> GetBalanceAsync(in Address address, TargetHeight targetHeight, CancellationToken cancellationToken)
-        => _ethRpcModule.GetBalanceAsync(in address, targetHeight, cancellationToken);
-    public Task<UInt256> GetBalanceAsync(IEVMContract contract, TargetHeight targetHeight, CancellationToken cancellationToken)
-        => _ethRpcModule.GetBalanceAsync(contract.Address, targetHeight, cancellationToken);
+    public Task<UInt256> GetBalanceAsync(in Address address, TargetHeight targetHeight,
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => _ethRpcModule.GetBalanceAsync(in address, targetHeight, requestOptions, cancellationToken);
+    public Task<UInt256> GetBalanceAsync(IEVMContract contract, TargetHeight targetHeight,
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => _ethRpcModule.GetBalanceAsync(contract.Address, targetHeight, requestOptions, cancellationToken);
 
-    public Task<UInt256> GetMyBalanceAsync(TargetHeight targetHeight, CancellationToken cancellationToken)
+    public Task<UInt256> GetMyBalanceAsync(TargetHeight targetHeight,
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
         => _ethRpcModule.GetBalanceAsync(
             _provider.GetService<IEtherSigner>()?.Address ?? throw new InvalidOperationException("Client is not a tx client"),
             targetHeight,
+            requestOptions,
             cancellationToken
         );
 }

@@ -1,4 +1,5 @@
 using EtherSharp.Contract;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 
@@ -31,13 +32,15 @@ internal sealed class FlashCallExecutor(
         IFlashCall call,
         ulong? flashCallGasLimit,
         in CallOptions options,
+        RpcRequestOptions requestOptions,
         CancellationToken cancellationToken)
     {
         ulong? resolvedGasLimit = flashCallGasLimit ?? _callGasLimitSettings.GetFlashCallGasLimit();
 
         if(_runtimeExecutor is not null && code.TryGetRuntimeCode(out var runtimeCode))
         {
-            return _runtimeExecutor.ExecuteFlashCallAsync(runtimeCode, call, resolvedGasLimit, options, cancellationToken);
+            return _runtimeExecutor.ExecuteFlashCallAsync(
+                runtimeCode, call, resolvedGasLimit, options, requestOptions, cancellationToken);
         }
 
         var initCode = code.GetInitCode();
@@ -47,6 +50,7 @@ internal sealed class FlashCallExecutor(
             throw new NotSupportedException("Contract deployment cannot contain any value");
         }
         //
-        return _initCodeExecutor.ExecuteFlashCallAsync(initCode, call, resolvedGasLimit, options, cancellationToken);
+        return _initCodeExecutor.ExecuteFlashCallAsync(
+            initCode, call, resolvedGasLimit, options, requestOptions, cancellationToken);
     }
 }

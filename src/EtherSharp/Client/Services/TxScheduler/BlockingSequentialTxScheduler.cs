@@ -4,6 +4,7 @@ using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Tx.Types;
@@ -53,6 +54,7 @@ public sealed class BlockingSequentialTxScheduler(
     private readonly SemaphoreSlim _workerSignal = new SemaphoreSlim(0);
 
     private ulong _chainId;
+    private RpcRequestOptions _requestOptions;
 
     private uint _confirmedNonce;
     private uint _peakNonce;
@@ -60,12 +62,14 @@ public sealed class BlockingSequentialTxScheduler(
     private readonly Dictionary<uint, TaskCompletionSource> _nonceGates = [];
 
     /// <inheritdoc/>
-    public async ValueTask InitializeAsync(ulong chainId, CancellationToken cancellationToken)
+    public async ValueTask InitializeAsync(
+        ulong chainId, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         _chainId = chainId;
+        _requestOptions = requestOptions;
 
         _confirmedNonce = await ethRpcModule.GetTransactionCountAsync(
-            signer.Address, TargetHeight.Latest, cancellationToken
+            signer.Address, TargetHeight.Latest, requestOptions, cancellationToken
         );
 
         if(_resiliencyLayer is null)
@@ -161,7 +165,8 @@ public sealed class BlockingSequentialTxScheduler(
                     continue;
                 }
 
-                uint actualNonce = await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Latest, cancellationToken);
+                uint actualNonce = await ethRpcModule.GetTransactionCountAsync(
+                    signer.Address, TargetHeight.Latest, _requestOptions, cancellationToken);
 
                 lock(_stateLock)
                 {
@@ -201,7 +206,8 @@ public sealed class BlockingSequentialTxScheduler(
         {
             if(_nonceMode == NonceMode.RefreshOnAllocate)
             {
-                uint latestNonce = await ethRpcModule.GetTransactionCountAsync(signer.Address, TargetHeight.Latest, cts.Token);
+                uint latestNonce = await ethRpcModule.GetTransactionCountAsync(
+                    signer.Address, TargetHeight.Latest, _requestOptions, cts.Token);
 
                 lock(_stateLock)
                 {
@@ -219,7 +225,8 @@ public sealed class BlockingSequentialTxScheduler(
             }
 
             txParams ??= TTxParams.Default;
-            txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(call, txParams, signer.Address, cts.Token);
+            txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(
+                call, txParams, signer.Address, _requestOptions, cts.Token);
 
             var signedTransaction = await handler.EncodeTxAsync(call, txParams, txGasParams, myNonce, cts.Token);
             var submission = new TxSubmission<TTxParams, TTxGasParams>(
@@ -250,7 +257,8 @@ public sealed class BlockingSequentialTxScheduler(
             return new PendingTxHandler<TTxParams, TTxGasParams>(
                 myNonce,
                 [submission],
-                (ctx, onError) => ExecuteTransactionLifeCycleAsync<TTransaction, TTxParams, TTxGasParams>(ctx, onError, true)
+                (ctx, onError) => ExecuteTransactionLifeCycleAsync<TTransaction, TTxParams, TTxGasParams>(
+                    ctx, onError, true)
             );
         }
         finally
@@ -297,7 +305,8 @@ public sealed class BlockingSequentialTxScheduler(
     }
 
     /// <inheritdoc/>
-    public async Task<IPendingTxHandler<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(uint nonce, CancellationToken cancellationToken)
+    public async Task<IPendingTxHandler<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        uint nonce, CancellationToken cancellationToken)
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
@@ -340,7 +349,8 @@ public sealed class BlockingSequentialTxScheduler(
         return new PendingTxHandler<TTxParams, TTxGasParams>(
             nonce,
             typedSubmissions,
-            (ctx, onError) => ExecuteTransactionLifeCycleAsync<TTransaction, TTxParams, TTxGasParams>(ctx, onError, false)
+            (ctx, onError) => ExecuteTransactionLifeCycleAsync<TTransaction, TTxParams, TTxGasParams>(
+                ctx, onError, false)
         );
     }
 
@@ -411,7 +421,8 @@ public sealed class BlockingSequentialTxScheduler(
             }
 
             // --- Publish & Monitor Phase ---
-            var pubResult = await txPublisher.PublishTxAsync(currentSubmission.SignedTx, default);
+            var pubResult = await txPublisher.PublishTxAsync(
+                currentSubmission.SignedTx, _requestOptions, _cts.Token);
 
             switch(pubResult)
             {
@@ -494,7 +505,8 @@ public sealed class BlockingSequentialTxScheduler(
         {
             for(int i = 1; i < retries + 1; i++)
             {
-                var receipt = await ethRpcModule.GetTransactionReceiptAsync(sub.TxHash);
+                var receipt = await ethRpcModule.GetTransactionReceiptAsync(
+                    sub.TxHash, _requestOptions, _cts.Token);
                 if(receipt is not null)
                 {
                     return new TxConfirmationResult.Success(receipt);

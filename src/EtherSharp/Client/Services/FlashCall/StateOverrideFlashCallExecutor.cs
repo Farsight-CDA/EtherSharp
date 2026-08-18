@@ -1,6 +1,7 @@
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 
@@ -28,6 +29,7 @@ internal sealed class StateOverrideFlashCallExecutor(
         IFlashCall call,
         ulong? flashCallGasLimit,
         CallOptions options,
+        RpcRequestOptions requestOptions,
         CancellationToken cancellationToken)
     {
         var stateOverrides = options.StateOverrides is null
@@ -55,6 +57,7 @@ internal sealed class StateOverrideFlashCallExecutor(
             call.Value,
             call.Data,
             options with { StateOverrides = stateOverrides },
+            requestOptions,
             cancellationToken
         );
     }

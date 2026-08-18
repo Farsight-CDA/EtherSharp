@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Buffers;
@@ -33,6 +34,7 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
         IFlashCall call,
         ulong? flashCallGasLimit,
         CallOptions options,
+        RpcRequestOptions requestOptions,
         CancellationToken cancellationToken)
     {
         int helperLength = GetHelperLength(initCode.Length, call.Data.Length, flashCallGasLimit);
@@ -55,6 +57,7 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
                 call.Value,
                 payload,
                 options,
+                requestOptions,
                 cancellationToken
             );
 

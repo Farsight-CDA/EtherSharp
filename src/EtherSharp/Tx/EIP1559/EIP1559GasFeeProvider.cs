@@ -2,6 +2,7 @@
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 
 namespace EtherSharp.Tx.EIP1559;
@@ -71,7 +72,9 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
     }
 
     /// <inheritdoc/>
-    public async Task<EIP1559GasParams> EstimateGasParamsAsync(ITxInput txInput, EIP1559TxParams txParams, Address from, CancellationToken cancellationToken)
+    public async Task<EIP1559GasParams> EstimateGasParamsAsync(
+        ITxInput txInput, EIP1559TxParams txParams, Address from,
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
             txInput.To,
@@ -79,9 +82,11 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
             txInput.Data,
             txParams.AccessList,
             new CallOptions { From = from },
+            requestOptions,
             cancellationToken
         );
-        var feeHistoryTask = _ethRpcModule.GetFeeHistoryAsync(_feeHistoryRange, TargetHeight.Latest, _rewardPercentiles, cancellationToken);
+        var feeHistoryTask = _ethRpcModule.GetFeeHistoryAsync(
+            _feeHistoryRange, TargetHeight.Latest, _rewardPercentiles, requestOptions, cancellationToken);
 
         ulong gasEstimation = await gasEstimationTask;
         var feeHistory = await feeHistoryTask;
@@ -91,7 +96,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
 
         if(feeHistory.BaseFeePerGas.Length == 0)
         {
-            baseFee = await _ethRpcModule.GasPriceAsync(cancellationToken);
+            baseFee = await _ethRpcModule.GasPriceAsync(requestOptions, cancellationToken);
         }
         else
         {
@@ -102,7 +107,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
         var nonZeroRewards = feeHistory.Reward.Where(x => x[0] != 0).ToArray();
         if(nonZeroRewards.Length == 0)
         {
-            priorityFee = await _ethRpcModule.MaxPriorityFeePerGasAsync(cancellationToken);
+            priorityFee = await _ethRpcModule.MaxPriorityFeePerGasAsync(requestOptions, cancellationToken);
         }
         else
         {

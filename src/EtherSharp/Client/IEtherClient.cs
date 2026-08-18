@@ -7,6 +7,7 @@ using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Query;
 using EtherSharp.Realtime.Events;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Types;
@@ -58,12 +59,13 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="c1">Query to execute.</param>
     /// <param name="gasLimit">Optional gas cap applied to query execution. A value of <see langword="null"/> leaves gas selection to the configured query executor.</param>
     /// <param name="options">Query call execution options.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The query result.</returns>
     public Task<T1> QueryAsync<T1>(
         IQuery<T1> c1,
         ulong? gasLimit = null,
-        in CallOptions options = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -75,12 +77,13 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="c2">Second query.</param>
     /// <param name="gasLimit">Optional gas cap applied to query execution. A value of <see langword="null"/> leaves gas selection to the configured query executor.</param>
     /// <param name="options">Query call execution options.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A tuple containing both query results.</returns>
     public Task<(T1, T2)> QueryAsync<T1, T2>(
         IQuery<T1> c1, IQuery<T2> c2,
         ulong? gasLimit = null,
-        in CallOptions options = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -89,7 +92,7 @@ public interface IEtherClient : IAsyncDisposable
     public Task<(T1, T2, T3)> QueryAsync<T1, T2, T3>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3,
         ulong? gasLimit = null,
-        in CallOptions options = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -98,7 +101,7 @@ public interface IEtherClient : IAsyncDisposable
     public Task<(T1, T2, T3, T4)> QueryAsync<T1, T2, T3, T4>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4,
         ulong? gasLimit = null,
-        in CallOptions options = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -107,7 +110,7 @@ public interface IEtherClient : IAsyncDisposable
     public Task<(T1, T2, T3, T4, T5)> QueryAsync<T1, T2, T3, T4, T5>(
         IQuery<T1> c1, IQuery<T2> c2, IQuery<T3> c3, IQuery<T4> c4, IQuery<T5> c5,
         ulong? gasLimit = null,
-        in CallOptions options = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -133,43 +136,48 @@ public interface IEtherClient : IAsyncDisposable
     /// Initializes the client and loads chain capabilities.
     /// </summary>
     /// <param name="forceNoQuery">If <see langword="true"/>, skips initial query-based warmup when supported.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A task that completes when initialization finishes.</returns>
-    public Task InitializeAsync(bool forceNoQuery = false, CancellationToken cancellationToken = default);
+    public Task InitializeAsync(bool forceNoQuery = false, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Initializes the client and executes an initialization query.
     /// </summary>
     /// <typeparam name="T">Result type returned by the initialization query.</typeparam>
     /// <param name="initQuery">Query to execute as part of initialization.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The query result.</returns>
-    public Task<T> InitializeAsync<T>(IQuery<T> initQuery, CancellationToken cancellationToken = default);
+    public Task<T> InitializeAsync<T>(IQuery<T> initQuery, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Fetches a transaction by hash.
     /// </summary>
     /// <param name="hash">Transaction hash.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The transaction if found; otherwise <see langword="null"/>.</returns>
-    public Task<TxData?> GetTransactionAsync(in Bytes32 hash, CancellationToken cancellationToken = default);
+    public Task<TxData?> GetTransactionAsync(in Bytes32 hash, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Fetches a transaction receipt by hash.
     /// </summary>
     /// <param name="hash">Transaction hash.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The receipt if available; otherwise <see langword="null"/>.</returns>
-    public Task<TxReceipt?> GetTransactionReceiptAsync(in Bytes32 hash, CancellationToken cancellationToken = default);
+    public Task<TxReceipt?> GetTransactionReceiptAsync(in Bytes32 hash, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the account nonce (transaction count) for an address at a specific block context.
     /// </summary>
     /// <param name="address">Account address.</param>
     /// <param name="targetHeight">Target block context.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The account nonce.</returns>
-    public Task<uint> GetTransactionCount(in Address address, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<uint> GetTransactionCount(in Address address, TargetHeight targetHeight = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reads a storage slot from contract storage.
@@ -177,9 +185,10 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="address">Contract address.</param>
     /// <param name="slot">32-byte storage slot key.</param>
     /// <param name="targetHeight">Target block context.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The slot value as bytes.</returns>
-    public Task<byte[]> GetStorageAtAsync(in Address address, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<byte[]> GetStorageAtAsync(in Address address, byte[] slot, TargetHeight targetHeight = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reads a storage slot from a contract instance.
@@ -187,9 +196,10 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="contract">Contract instance.</param>
     /// <param name="slot">32-byte storage slot key.</param>
     /// <param name="targetHeight">Target block context.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The slot value as bytes.</returns>
-    public Task<byte[]> GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetHeight targetHeight = default, CancellationToken cancellationToken = default);
+    public Task<byte[]> GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetHeight targetHeight = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Binds a contract interface to a specific on-chain address.
@@ -205,10 +215,11 @@ public interface IEtherClient : IAsyncDisposable
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="call">Call input definition.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
-    public Task<CallResult<T>> SafeCallAsync<T>(ITxInput<T> call, CancellationToken cancellationToken = default)
-        => SafeCallAsync(call, default, cancellationToken);
+    public Task<CallResult<T>> SafeCallAsync<T>(ITxInput<T> call, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => SafeCallAsync(call, default, requestOptions, cancellationToken);
 
     /// <summary>
     /// Executes a safe call using the specified execution context and captures success/failure status and return data.
@@ -216,20 +227,22 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="call">Call input definition.</param>
     /// <param name="options">Call execution options.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
     public Task<CallResult<T>> SafeCallAsync<T>(
-        ITxInput<T> call, in CallOptions options, CancellationToken cancellationToken = default);
+        ITxInput<T> call, in CallOptions options, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes a read-only call using the default execution context and returns the decoded result.
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="call">Call input definition.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
-    public Task<T> CallAsync<T>(ITxInput<T> call, CancellationToken cancellationToken = default)
-        => CallAsync(call, default, cancellationToken);
+    public Task<T> CallAsync<T>(ITxInput<T> call, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => CallAsync(call, default, requestOptions, cancellationToken);
 
     /// <summary>
     /// Executes a read-only call using the specified execution context and returns the decoded result.
@@ -237,10 +250,11 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="call">Call input definition.</param>
     /// <param name="options">Call execution options.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
     public Task<T> CallAsync<T>(
-        ITxInput<T> call, in CallOptions options, CancellationToken cancellationToken = default);
+        ITxInput<T> call, in CallOptions options, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes a safe flash-call against temporary code and captures success/failure details.
@@ -250,11 +264,12 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="call">Flash-call payload to execute against the temporary code.</param>
     /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithFlashCalls</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
     /// <param name="options">Call execution options.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
     public Task<CallResult<T>> SafeFlashCallAsync<T>(
         IFlashCode code, IFlashCall<T> call, ulong? flashCallGasLimit = null,
-        in CallOptions options = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -265,11 +280,12 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="call">Flash-call payload to execute against the temporary code.</param>
     /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithFlashCalls</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
     /// <param name="options">Call execution options.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
     public Task<T> FlashCallAsync<T>(
         IFlashCode code, IFlashCall<T> call, ulong? flashCallGasLimit = null,
-        in CallOptions options = default, CancellationToken cancellationToken = default
+        in CallOptions options = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -278,24 +294,27 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="blockCount">Number of historical blocks to inspect.</param>
     /// <param name="newestBlock">Newest block included in the history window.</param>
     /// <param name="rewardPercentiles">Reward percentiles to calculate per block.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Fee history snapshot from the node.</returns>
     public Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetHeight newestBlock,
-        double[] rewardPercentiles, CancellationToken cancellationToken = default);
+        double[] rewardPercentiles, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the current network gas price.
     /// </summary>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The current gas price.</returns>
-    public Task<UInt256> GetGasPriceAsync(CancellationToken cancellationToken = default);
+    public Task<UInt256> GetGasPriceAsync(RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the current recommended max priority fee per gas.
     /// </summary>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The suggested priority fee per gas.</returns>
-    public Task<UInt256> GetMaxPriorityFeePerGasAsync(CancellationToken cancellationToken = default);
+    public Task<UInt256> GetMaxPriorityFeePerGasAsync(RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the default gas limits used for read-only call execution.
@@ -308,31 +327,34 @@ public interface IEtherClient : IAsyncDisposable
     /// Estimates the gas limit required to execute a transaction call using the default execution context.
     /// </summary>
     /// <param name="call">Transaction call definition.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Estimated gas limit.</returns>
-    public Task<ulong> EstimateGasLimitAsync(ITxInput call, CancellationToken cancellationToken = default)
-        => EstimateGasLimitAsync(call, default, cancellationToken);
+    public Task<ulong> EstimateGasLimitAsync(ITxInput call, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => EstimateGasLimitAsync(call, default, requestOptions, cancellationToken);
 
     /// <summary>
     /// Estimates the gas limit required to execute a transaction call using the specified execution context.
     /// </summary>
     /// <param name="call">Transaction call definition.</param>
     /// <param name="options">Call execution options.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Estimated gas limit.</returns>
     public Task<ulong> EstimateGasLimitAsync(
-        ITxInput call, in CallOptions options, CancellationToken cancellationToken = default);
+        ITxInput call, in CallOptions options, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates an access list for a transaction call using the default execution context.
     /// </summary>
     /// <param name="call">Transaction call definition.</param>
     /// <param name="accessList">Optional access list used as the starting point for the simulation.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The generated access list and simulated gas usage.</returns>
     public Task<AccessListResult> CreateAccessListAsync(
-        ITxInput call, StateAccess[]? accessList = null, CancellationToken cancellationToken = default)
-        => CreateAccessListAsync(call, accessList, default, cancellationToken);
+        ITxInput call, StateAccess[]? accessList = null, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => CreateAccessListAsync(call, accessList, default, requestOptions, cancellationToken);
 
     /// <summary>
     /// Creates an access list for a transaction call using the specified execution context.
@@ -340,11 +362,12 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="call">Transaction call definition.</param>
     /// <param name="accessList">Optional access list used as the starting point for the simulation.</param>
     /// <param name="options">Call execution options, including optional state and block overrides.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The generated access list and simulated gas usage.</returns>
     public Task<AccessListResult> CreateAccessListAsync(
         ITxInput call, StateAccess[]? accessList, in CallOptions options,
-        CancellationToken cancellationToken = default);
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Estimates EIP-1559 gas parameters for a transaction call.
@@ -352,10 +375,11 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="call">Transaction call definition.</param>
     /// <param name="txParams">Optional transaction parameters that influence estimation.</param>
     /// <param name="from">Optional sender address override. If null, uses the signer address.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Estimated EIP-1559 gas parameters.</returns>
-    public Task<EIP1559GasParams> EstimateTxGasParamsAsync(ITxInput call, EIP1559TxParams? txParams = default, Address? from = null, CancellationToken cancellationToken = default)
-        => EstimateTxGasParamsAsync<EIP1559TxParams, EIP1559GasParams>(call, txParams, from, cancellationToken);
+    public Task<EIP1559GasParams> EstimateTxGasParamsAsync(ITxInput call, EIP1559TxParams? txParams = default, Address? from = null, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+        => EstimateTxGasParamsAsync<EIP1559TxParams, EIP1559GasParams>(call, txParams, from, requestOptions, cancellationToken);
 
     /// <summary>
     /// Estimates gas parameters for a transaction call using custom transaction and gas parameter types.
@@ -365,10 +389,11 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="call">Transaction call definition.</param>
     /// <param name="txParams">Optional transaction parameters that influence estimation.</param>
     /// <param name="from">Optional sender address override. If null, uses the signer address.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Estimated gas parameters.</returns>
     public Task<TTxGasParams> EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams = default, Address? from = null, CancellationToken cancellationToken = default
+        ITxInput call, TTxParams? txParams = default, Address? from = null, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     )
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams;

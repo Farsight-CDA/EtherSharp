@@ -1,5 +1,6 @@
 ﻿using EtherSharp.RPC.Modules.Trace;
 using EtherSharp.RPC.Modules.Trace.Types;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Trace;
@@ -11,9 +12,10 @@ internal sealed class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
     private readonly ITraceRpcModule _traceRpcModule = traceRpcModule;
 
     public async Task<CallTrace?> TraceTransactionCallsAsync(
-        Bytes32 transactionHash, CancellationToken cancellationToken = default)
+        Bytes32 transactionHash, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
-        var result = await _traceRpcModule.ReplayTransactionAsync(transactionHash, TRACE_TYPES, cancellationToken);
+        var result = await _traceRpcModule.ReplayTransactionAsync(
+            transactionHash, TRACE_TYPES, requestOptions, cancellationToken);
         return BuildCallTrace(result);
     }
 
@@ -57,7 +59,8 @@ internal sealed class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
     }
 
     public Task<TransactionTraceResult?> ReplayTransactionAsync(
-        Bytes32 transactionHash, TraceTypes traceTypes, CancellationToken cancellationToken = default
-    ) => _traceRpcModule.ReplayTransactionAsync(transactionHash, traceTypes, cancellationToken);
+        Bytes32 transactionHash, TraceTypes traceTypes, RpcRequestOptions requestOptions,
+        CancellationToken cancellationToken
+    ) => _traceRpcModule.ReplayTransactionAsync(transactionHash, traceTypes, requestOptions, cancellationToken);
 
 }

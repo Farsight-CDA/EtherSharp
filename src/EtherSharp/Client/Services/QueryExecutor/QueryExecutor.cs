@@ -1,6 +1,7 @@
 using EtherSharp.Client.Services.FlashCall;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Query;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,7 @@ internal sealed class QueryExecutor(
         IQuery<TQuery> query,
         ulong? gasLimit,
         CallOptions options,
+        RpcRequestOptions requestOptions,
         CancellationToken cancellationToken)
     {
         if(query.OperationCount == 0)
@@ -76,6 +78,7 @@ internal sealed class QueryExecutor(
                         IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
                         gasLimit,
                         options with { StateOverrides = plan.StateOverrides },
+                        requestOptions,
                         cancellationToken
                     );
 

@@ -4,6 +4,7 @@ using EtherSharp.Common;
 using EtherSharp.Crypto;
 using EtherSharp.RLP;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using System.Buffers;
@@ -25,7 +26,8 @@ public sealed class LegacyTxTypeHandler(IEtherSigner signer)
     private ulong _chainId;
 
     /// <inheritdoc/>
-    public ValueTask InitializeAsync(ulong chainId, CancellationToken cancellationToken = default)
+    public ValueTask InitializeAsync(
+        ulong chainId, RpcRequestOptions _ = default, CancellationToken cancellationToken = default)
     {
         _chainId = chainId;
         _isInitialized = true;

@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Realtime;
+using EtherSharp.RPC.Transport;
 
 namespace EtherSharp.Client.Services.Subscriptions;
 
@@ -11,9 +12,11 @@ public interface ISubscriptionsManager
     /// Installs and starts the provided subscription.
     /// </summary>
     /// <param name="subscription">The subscription instance to install.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">A token used to cancel installation.</param>
     /// <returns>A task that completes when the subscription is active.</returns>
-    public Task InstallSubscriptionAsync(ISubscription subscription, CancellationToken cancellationToken);
+    public Task InstallSubscriptionAsync(
+        ISubscription subscription, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Stops and removes the provided subscription.

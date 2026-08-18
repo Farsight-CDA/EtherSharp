@@ -4,6 +4,7 @@ using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 using System.Buffers;
 using System.Buffers.Binary;
@@ -53,7 +54,8 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
     }
 
     /// <inheritdoc/>
-    public ValueTask InitializeAsync(ulong chainId, CancellationToken cancellationToken = default)
+    public ValueTask InitializeAsync(
+        ulong chainId, RpcRequestOptions _ = default, CancellationToken cancellationToken = default)
     {
         _initialized = true;
         _chainId = chainId;
@@ -61,7 +63,9 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
     }
 
     /// <inheritdoc/>
-    public async Task<EIP1559GasParams> EstimateGasParamsAsync(ITxInput txInput, EIP1559TxParams txParams, Address from, CancellationToken cancellationToken)
+    public async Task<EIP1559GasParams> EstimateGasParamsAsync(
+        ITxInput txInput, EIP1559TxParams txParams, Address from,
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         if(!_initialized)
         {
@@ -97,6 +101,7 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
                 txInput,
                 txParams.AccessList,
                 simulationPayload,
+                requestOptions,
                 cancellationToken
             );
         }
@@ -108,7 +113,8 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
 
     private async Task<EIP1559GasParams> SendEstimationRequestsAsync(
         Address sender, ITxInput txInput, StateAccess[] accessList,
-        ReadOnlyMemory<byte> getL1FeePayload, CancellationToken cancellationToken)
+        ReadOnlyMemory<byte> getL1FeePayload,
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(
             txInput.To,
@@ -116,13 +122,14 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
             txInput.Data,
             accessList,
             new CallOptions { From = sender },
+            requestOptions,
             cancellationToken
         );
         var l1FeeTask = _ethRpcModule.CallAsync(
-            _opGasOracleAddress, null, null, 0, getL1FeePayload, TargetHeight.Pending, cancellationToken
+            _opGasOracleAddress, null, null, 0, getL1FeePayload, TargetHeight.Pending, requestOptions, cancellationToken
         );
-        var gasPriceTask = _ethRpcModule.GasPriceAsync(cancellationToken);
-        var priorityFeeTask = _ethRpcModule.MaxPriorityFeePerGasAsync(cancellationToken);
+        var gasPriceTask = _ethRpcModule.GasPriceAsync(requestOptions, cancellationToken);
+        var priorityFeeTask = _ethRpcModule.MaxPriorityFeePerGasAsync(requestOptions, cancellationToken);
 
         ulong gasEstimation = await gasEstimationTask;
         var l1FeeCallResult = await l1FeeTask;

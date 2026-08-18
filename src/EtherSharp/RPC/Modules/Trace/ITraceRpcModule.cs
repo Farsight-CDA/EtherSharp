@@ -1,5 +1,6 @@
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Trace.Types;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 
 namespace EtherSharp.RPC.Modules.Trace;
@@ -15,6 +16,7 @@ public interface ITraceRpcModule
     public Task<TransactionTraceResult> CallAsync(
         Address? from, Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         TraceTypes traceTypes, TargetHeight targetHeight = default,
+        RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     );
 
@@ -25,6 +27,7 @@ public interface ITraceRpcModule
     /// The raw trace payload returned by the node, or <see langword="null"/> when the node returns a null result (for example, transaction not found).
     /// </returns>
     public Task<TransactionTraceResult?> ReplayTransactionAsync(
-        Bytes32 txHash, TraceTypes traceTypes, CancellationToken cancellationToken = default
+        Bytes32 txHash, TraceTypes traceTypes, RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
     );
 }

@@ -1,5 +1,6 @@
-﻿using EtherSharp.Client;
+using EtherSharp.Client;
 using EtherSharp.Numerics;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 
 namespace EtherSharp.RPC.Modules.Debug;
@@ -15,7 +16,9 @@ public interface IDebugRpcModule
     /// <returns>
     /// The traced call tree for the transaction, or <see langword="null"/> when the node returns a null result (for example, transaction not found).
     /// </returns>
-    public Task<CallTrace?> TraceTransactionCallsAsync(in Bytes32 transactionHash, CancellationToken cancellationToken = default);
+    public Task<CallTrace?> TraceTransactionCallsAsync(
+        in Bytes32 transactionHash, RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Traces calls executed by a mined transaction.
@@ -23,7 +26,9 @@ public interface IDebugRpcModule
     /// <returns>
     /// The traced call tree for the transaction, or <see langword="null"/> when the node returns a null result (for example, transaction not found).
     /// </returns>
-    public Task<CallTrace?> TraceTransactionCallsAsync(string transactionHash, CancellationToken cancellationToken = default);
+    public Task<CallTrace?> TraceTransactionCallsAsync(
+        string transactionHash, RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Traces a simulated call using Geth's call tracer.
@@ -31,6 +36,7 @@ public interface IDebugRpcModule
     public Task<CallTrace> TraceCallCallsAsync(
         Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool onlyTopCall = false,
+        RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -39,6 +45,7 @@ public interface IDebugRpcModule
     public Task<PrestateTrace> TraceCallPrestateAsync(
         Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool disableCode = false, bool disableStorage = false,
+        RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -47,6 +54,7 @@ public interface IDebugRpcModule
     public Task<PrestateDiffTrace> TraceCallPrestateDiffAsync(
         Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool disableCode = false, bool disableStorage = false,
+        RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -55,5 +63,6 @@ public interface IDebugRpcModule
     public Task<TResult> TraceCallJavaScriptAsync<TTracerConfig, TResult>(
         Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, JavaScriptTracer tracer, TTracerConfig tracerConfig,
+        RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default);
 }

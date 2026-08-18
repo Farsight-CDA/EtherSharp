@@ -1,4 +1,5 @@
-﻿using EtherSharp.Tx;
+﻿using EtherSharp.RPC.Transport;
+using EtherSharp.Tx;
 using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Tx.Types;
 
@@ -21,7 +22,8 @@ public interface ITxScheduler
     /// <param name="cancellationToken">A token used to cancel preparation.</param>
     /// <returns>A pending transaction handler that can submit, monitor, and manage the transaction lifecycle.</returns>
     public ValueTask<IPendingTxHandler<TTxParams, TTxGasParams>> PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
-         ITxInput call, TTxParams? txParams = default, TTxGasParams? txGasParams = default, CancellationToken cancellationToken = default
+         ITxInput call, TTxParams? txParams = default, TTxGasParams? txGasParams = default,
+         CancellationToken cancellationToken = default
      )
          where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
          where TTxParams : class, ITxParams<TTxParams>

@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Buffers;
@@ -52,20 +53,23 @@ internal sealed class DeployedFlashCallExecutor(
         IFlashCall call,
         ulong? flashCallGasLimit,
         CallOptions options,
+        RpcRequestOptions requestOptions,
         CancellationToken cancellationToken)
     {
         var targetHeight = options.TargetHeight;
 
         if(_deploymentHeight is null)
         {
-            return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(initCode, call, flashCallGasLimit, options, cancellationToken);
+            return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(
+                initCode, call, flashCallGasLimit, options, requestOptions, cancellationToken);
         }
 
         if(targetHeight.IsNumeric && targetHeight.Value < _deploymentHeight.Value)
         {
             return !_configuration.AllowFallback
                 ? throw new InvalidOperationException($"Missing FlashCall contract deployment at height {targetHeight.Value}")
-                : await _constructorFlashCallExecutor.ExecuteFlashCallAsync(initCode, call, flashCallGasLimit, options, cancellationToken);
+                : await _constructorFlashCallExecutor.ExecuteFlashCallAsync(
+                    initCode, call, flashCallGasLimit, options, requestOptions, cancellationToken);
         }
 
         if(initCode.Length > UInt16.MaxValue)
@@ -92,6 +96,7 @@ internal sealed class DeployedFlashCallExecutor(
                 call.Value,
                 payload,
                 options,
+                requestOptions,
                 cancellationToken
             );
 

@@ -52,6 +52,7 @@ public class RpcClientPathBenchmarks
             "0xabc",
             7,
             TargetHeight.Latest,
+            requestOptions: default,
             cancellationToken: default
         );
 
@@ -62,6 +63,7 @@ public class RpcClientPathBenchmarks
             "0xabc",
             7,
             TargetHeight.Latest,
+            requestOptions: default,
             cancellationToken: default
         );
 
@@ -72,6 +74,7 @@ public class RpcClientPathBenchmarks
             "0xabc",
             7,
             TargetHeight.Latest,
+            requestOptions: default,
             cancellationToken: default
         );
 
@@ -82,6 +85,7 @@ public class RpcClientPathBenchmarks
             "0xabc",
             7,
             TargetHeight.Latest,
+            requestOptions: default,
             cancellationToken: default
         );
 
@@ -92,6 +96,7 @@ public class RpcClientPathBenchmarks
             "0xabc",
             7,
             TargetHeight.Latest,
+            requestOptions: default,
             cancellationToken: default
         );
 
@@ -102,6 +107,7 @@ public class RpcClientPathBenchmarks
             "0xabc",
             7,
             TargetHeight.Latest,
+            requestOptions: default,
             cancellationToken: default
         );
 

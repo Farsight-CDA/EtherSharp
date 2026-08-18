@@ -1,4 +1,5 @@
 using EtherSharp.Contract;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 
@@ -14,6 +15,7 @@ internal interface IFlashRuntimeExecutor
         IFlashCall call,
         ulong? flashCallGasLimit,
         CallOptions options,
+        RpcRequestOptions requestOptions,
         CancellationToken cancellationToken
     );
 }

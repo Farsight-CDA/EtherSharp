@@ -1,6 +1,7 @@
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common.Json;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -16,6 +17,7 @@ internal sealed class EventSubscription<TLog>(
     where TLog : ITxLog<TLog>
 {
     public string Id { get; private set; } = null!;
+    public RpcRequestOptions RequestOptions { get; private set; }
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
@@ -23,7 +25,6 @@ internal sealed class EventSubscription<TLog>(
 
     private readonly Address[]? _contractAddresses = contractAddresses;
     private readonly string[]?[]? _topics = topics;
-
     private readonly Channel<Log> _channel = Channel.CreateUnbounded<Log>(new UnboundedChannelOptions()
     {
         SingleReader = true,
@@ -42,10 +43,11 @@ internal sealed class EventSubscription<TLog>(
         }
     }
 
-    public async Task InstallAsync(CancellationToken cancellationToken = default)
+    public async Task InstallAsync(RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
     {
         ThrowIfClosed();
-        Id = await _ethRpcModule.SubscribeLogsAsync(_contractAddresses, _topics, cancellationToken);
+        RequestOptions = requestOptions;
+        Id = await _ethRpcModule.SubscribeLogsAsync(_contractAddresses, _topics, requestOptions, cancellationToken);
     }
 
     public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload)

@@ -1,6 +1,7 @@
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Common.Json;
 using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Transport;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Channels;
@@ -11,11 +12,11 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
     EtherSharpJsonSerializerContext jsonSerializerContext) : IBlocksSubscription, ISubscription
 {
     public string Id { get; private set; } = null!;
+    public RpcRequestOptions RequestOptions { get; private set; }
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
     private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
-
     private readonly Channel<BlockHeader> _channel = Channel.CreateUnbounded<BlockHeader>(new UnboundedChannelOptions()
     {
         SingleReader = true,
@@ -33,10 +34,11 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
         }
     }
 
-    public async Task InstallAsync(CancellationToken cancellationToken = default)
+    public async Task InstallAsync(RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
     {
         ThrowIfClosed();
-        Id = await _ethRpcModule.SubscribeNewHeadsAsync(cancellationToken);
+        RequestOptions = requestOptions;
+        Id = await _ethRpcModule.SubscribeNewHeadsAsync(requestOptions, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()

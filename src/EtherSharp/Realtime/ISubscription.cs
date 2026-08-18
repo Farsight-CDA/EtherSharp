@@ -1,3 +1,5 @@
+using EtherSharp.RPC.Transport;
+
 namespace EtherSharp.Realtime;
 
 /// <summary>
@@ -11,6 +13,11 @@ public interface ISubscription : IAsyncDisposable
     public string Id { get; }
 
     /// <summary>
+    /// Gets the transport-specific options used to install the subscription.
+    /// </summary>
+    public RpcRequestOptions RequestOptions { get; }
+
+    /// <summary>
     /// Handles an incoming subscription payload.
     /// </summary>
     /// <param name="payload">The raw subscription payload bytes.</param>
@@ -20,8 +27,9 @@ public interface ISubscription : IAsyncDisposable
     /// <summary>
     /// Installs the subscription on the remote node.
     /// </summary>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Token used to cancel the installation request.</param>
-    public Task InstallAsync(CancellationToken cancellationToken = default);
+    public Task InstallAsync(RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Closes the local subscription state without sending an unsubscribe RPC.

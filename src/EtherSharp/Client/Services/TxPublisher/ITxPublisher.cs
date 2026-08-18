@@ -1,3 +1,5 @@
+using EtherSharp.RPC.Transport;
+
 namespace EtherSharp.Client.Services.TxPublisher;
 
 /// <summary>
@@ -9,7 +11,10 @@ public interface ITxPublisher
     /// Submits a signed transaction to the network and returns submission details.
     /// </summary>
     /// <param name="transactionHex">The raw signed transaction encoded as a hexadecimal string.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">A token used to cancel the publish request.</param>
     /// <returns>The submission result including status and transaction hash information.</returns>
-    public Task<TxSubmissionResult> PublishTxAsync(string transactionHex, CancellationToken cancellationToken);
+    public Task<TxSubmissionResult> PublishTxAsync(
+        string transactionHex, RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default);
 }

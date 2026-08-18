@@ -1,3 +1,5 @@
+using EtherSharp.RPC.Transport;
+
 namespace EtherSharp.Client.Services;
 
 /// <summary>
@@ -8,5 +10,8 @@ public interface IInitializableService
     /// <summary>
     /// Initializes the service with the chain ID used by the client.
     /// </summary>
-    public ValueTask InitializeAsync(ulong chainId, CancellationToken cancellationToken = default);
+    public ValueTask InitializeAsync(
+        ulong chainId, RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    );
 }

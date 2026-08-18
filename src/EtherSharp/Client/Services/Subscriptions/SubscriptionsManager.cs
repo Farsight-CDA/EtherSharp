@@ -36,7 +36,8 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         _rpcTransport.OnSubscriptionMessage += HandleSubscriptionMessage;
     }
 
-    public async Task InstallSubscriptionAsync(ISubscription subscription, CancellationToken cancellationToken)
+    public async Task InstallSubscriptionAsync(
+        ISubscription subscription, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         lock(_subscriptionsLock)
         {
@@ -46,7 +47,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
         try
         {
-            await subscription.InstallAsync(cancellationToken);
+            await subscription.InstallAsync(requestOptions, cancellationToken);
 
             lock(_subscriptionsLock)
             {
@@ -77,7 +78,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         {
             if(shouldUnsubscribe)
             {
-                await _ethRpcModule.UnsubscribeAsync(subscription.Id);
+                await _ethRpcModule.UnsubscribeAsync(subscription.Id, subscription.RequestOptions);
             }
         }
         finally
@@ -132,7 +133,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                             _logger.LogDebug("Reinstalling subscription of type {type}, oldId={oldId}", subscriptionType, subscription.Id);
                         }
 
-                        await subscription.InstallAsync();
+                        await subscription.InstallAsync(subscription.RequestOptions);
                     }
                     catch(Exception ex)
                     {
