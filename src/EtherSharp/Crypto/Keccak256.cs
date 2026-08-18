@@ -62,6 +62,15 @@ public ref struct Keccak256
     }
 
     /// <summary>
+    /// Hashes a 32-byte value and writes the resulting hash into the destination buffer.
+    /// </summary>
+    /// <param name="data">The 32-byte value to hash.</param>
+    /// <param name="destination">The destination buffer for the hash.</param>
+    /// <returns><see langword="true"/> when <paramref name="destination"/> is exactly 32 bytes long; otherwise, <see langword="false"/>.</returns>
+    public static bool TryHashData(in Bytes32 data, Span<byte> destination)
+        => TryHashData(data.DangerousGetReadOnlySpan(), destination);
+
+    /// <summary>
     /// Hashes the input data and writes the hash into a newly allocated array.
     /// </summary>
     /// <param name="data"></param>
@@ -74,6 +83,14 @@ public ref struct Keccak256
             ? throw new NotSupportedException()
             : Bytes32.FromBytes(outputBuffer);
     }
+
+    /// <summary>
+    /// Hashes a 32-byte value.
+    /// </summary>
+    /// <param name="data">The 32-byte value to hash.</param>
+    /// <returns>The resulting Keccak-256 hash.</returns>
+    public static Bytes32 HashData(in Bytes32 data)
+        => HashData(data.DangerousGetReadOnlySpan());
 
     /// <summary>
     /// Hashes the UTF-8 representation of a string.
