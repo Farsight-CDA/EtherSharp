@@ -41,11 +41,11 @@ internal sealed class QueryExecutor(
 
         bool supportsCancun = _client.IsInitialized && _client.CompatibilityReport is not null && _client.CompatibilityReport.SupportsPush0;
         var querier = supportsCancun && (options.TargetHeight == TargetHeight.Latest || options.TargetHeight == TargetHeight.Pending)
-            ? QuerierUtils.CancunQuerier
-            : QuerierUtils.LondonQuerier;
+            ? IQuerier.Code.Cancun.Flash
+            : IQuerier.Code.London.Flash;
 
-        int maxPayloadSize = _flashCallExecutor.GetMaxPayloadSize(querier.Code, gasLimit, options.TargetHeight);
-        int maxResultSize = _flashCallExecutor.GetMaxResultSize(querier.Code, options.TargetHeight);
+        int maxPayloadSize = _flashCallExecutor.GetMaxPayloadSize(querier, gasLimit, options.TargetHeight);
+        int maxResultSize = _flashCallExecutor.GetMaxResultSize(querier, options.TargetHeight);
         var buffer = ReadOnlyMemory<byte>.Empty;
         int requestCount = 0;
 
@@ -56,7 +56,7 @@ internal sealed class QueryExecutor(
             {
                 requestCount++;
 
-                byte[] payloadBytes = QuerierUtils.EncodeCalls(
+                byte[] payloadBytes = IQuerier.Functions.Query.Encode(
                     plan.Queries,
                     i,
                     maxPayloadSize,
@@ -74,7 +74,7 @@ internal sealed class QueryExecutor(
                     }
 
                     var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
-                        querier.Code,
+                        querier,
                         IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
                         gasLimit,
                         options with { StateOverrides = plan.StateOverrides },

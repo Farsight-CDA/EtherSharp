@@ -18,6 +18,7 @@ internal enum QueryOperationId : byte
     GetBlockBaseFee = 25,
 
     GetBalance = 30,
+    ReadStorage = 31,
 
     GetRemainingGas = 40
 }

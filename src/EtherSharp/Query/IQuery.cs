@@ -171,102 +171,44 @@ public partial interface IQuery
         => new GetBalanceQueryOperation(in user);
 
     /// <summary>
-    /// Creates a query that reads a raw storage slot by temporarily replacing the target contract's code.
+    /// Executes <paramref name="query"/> from <paramref name="caller"/> by temporarily installing a querier at that address.
+    /// </summary>
+    /// <remarks>Calls to the address's original implementation are unavailable while the query executes.</remarks>
+    public static IQuery<T> WithCaller<T>(in Address caller, IQuery<T> query)
+        => new WithCallerQuery<T>(in caller, query, null);
+
+    /// <summary>
+    /// Executes <paramref name="query"/> from <paramref name="caller"/> while preserving calls to its original implementation.
     /// </summary>
     /// <remarks>
-    /// The replacement applies to every RPC call used to execute the combined query. Calls to the target's original functions will not work.
+    /// Non-query calls are delegated to a transient state-override account containing <paramref name="originalByteCode"/>.
     /// </remarks>
-    /// <param name="contract">The contract whose storage is read.</param>
-    /// <param name="slot">The raw 32-byte storage slot.</param>
-    /// <exception cref="InvalidOperationException">Thrown during execution when another query requires a conflicting override for the same contract.</exception>
-    public static IQuery<Bytes32> ReadStorageBytes32(in Address contract, in Bytes32 slot)
-        => new ReadStorageQueryOperation(in contract, in slot, null);
+    public static IQuery<T> WithCaller<T>(in Address caller, IQuery<T> query, EVMByteCode originalByteCode)
+        => new WithCallerQuery<T>(in caller, query, originalByteCode);
 
     /// <summary>
-    /// Creates a query that reads a raw storage slot while preserving calls to the target contract's original runtime bytecode.
+    /// Creates a query that reads a raw slot from the current execution context's storage.
     /// </summary>
-    /// <remarks>
-    /// The replacement applies to every RPC call used to execute the combined query. Non-storage-read calls are delegated to a transient
-    /// state-override account containing <paramref name="originalByteCode"/>.
-    /// </remarks>
-    /// <param name="contract">The contract whose storage is read.</param>
-    /// <param name="slot">The raw 32-byte storage slot.</param>
-    /// <param name="originalByteCode">The target contract's original deployed runtime bytecode.</param>
-    /// <exception cref="InvalidOperationException">Thrown during execution when another query requires a conflicting override for the target
-    /// or transient contract address.</exception>
-    public static IQuery<Bytes32> ReadStorageBytes32(in Address contract, in Bytes32 slot, EVMByteCode originalByteCode)
-        => new ReadStorageQueryOperation(in contract, in slot, originalByteCode);
+    public static IQuery<Bytes32> ReadStorage(in Bytes32 slot)
+        => new ReadStorageQueryOperation(in slot);
 
     /// <summary>
-    /// Creates a query that reads an address from a raw storage slot by temporarily replacing the target contract's code.
+    /// Creates a query that reads an address from the low 20 bytes of a local storage slot.
     /// </summary>
-    /// <remarks>
-    /// The address is read from the low 20 bytes of the storage slot. The replacement applies to every RPC call used to execute the
-    /// combined query. Calls to the target's original functions will not work.
-    /// </remarks>
-    /// <param name="contract">The contract whose storage is read.</param>
-    /// <param name="slot">The raw 32-byte storage slot.</param>
-    /// <exception cref="InvalidOperationException">Thrown during execution when another query requires a conflicting override for the same contract.</exception>
-    public static IQuery<Address> ReadStorageAddress(in Address contract, in Bytes32 slot)
-        => ReadStorageBytes32(in contract, in slot).Map(static value => Address.FromBytes(value.DangerousGetReadOnlySpan()[^Address.BYTES_LENGTH..]));
+    public static IQuery<Address> ReadStorageAddress(in Bytes32 slot)
+        => ReadStorage(in slot).Map(static value => Address.FromBytes(value.DangerousGetReadOnlySpan()[^Address.BYTES_LENGTH..]));
 
     /// <summary>
-    /// Creates a query that reads an address from a raw storage slot while preserving calls to the target contract's original runtime bytecode.
+    /// Creates a query that reads an unsigned 256-bit integer from a local storage slot.
     /// </summary>
-    /// <remarks>
-    /// The address is read from the low 20 bytes of the storage slot. The replacement applies to every RPC call used to execute the combined
-    /// query. Non-storage-read calls are delegated to a transient state-override account containing <paramref name="originalByteCode"/>.
-    /// </remarks>
-    /// <param name="contract">The contract whose storage is read.</param>
-    /// <param name="slot">The raw 32-byte storage slot.</param>
-    /// <param name="originalByteCode">The target contract's original deployed runtime bytecode.</param>
-    /// <exception cref="InvalidOperationException">Thrown during execution when another query requires a conflicting override for the target
-    /// or transient contract address.</exception>
-    public static IQuery<Address> ReadStorageAddress(in Address contract, in Bytes32 slot, EVMByteCode originalByteCode)
-        => ReadStorageBytes32(in contract, in slot, originalByteCode)
-            .Map(static value => Address.FromBytes(value.DangerousGetReadOnlySpan()[^Address.BYTES_LENGTH..]));
+    public static IQuery<UInt256> ReadStorageUInt256(in Bytes32 slot)
+        => ReadStorage(in slot).Map(static value => BinaryPrimitives.ReadUInt256BigEndian(value.DangerousGetReadOnlySpan()));
 
     /// <summary>
-    /// Creates a query that reads an unsigned 256-bit integer from a raw storage slot by temporarily replacing the target contract's code.
+    /// Creates a query that reads a signed 256-bit integer from a local storage slot.
     /// </summary>
-    /// <param name="contract">The contract whose storage is read.</param>
-    /// <param name="slot">The raw 32-byte storage slot.</param>
-    /// <exception cref="InvalidOperationException">Thrown during execution when another query requires a conflicting override for the same contract.</exception>
-    public static IQuery<UInt256> ReadStorageUInt256(in Address contract, in Bytes32 slot)
-        => ReadStorageBytes32(in contract, in slot).Map(static value => BinaryPrimitives.ReadUInt256BigEndian(value.DangerousGetReadOnlySpan()));
-
-    /// <summary>
-    /// Creates a query that reads an unsigned 256-bit integer from a raw storage slot while preserving calls to the target contract's original runtime bytecode.
-    /// </summary>
-    /// <param name="contract">The contract whose storage is read.</param>
-    /// <param name="slot">The raw 32-byte storage slot.</param>
-    /// <param name="originalByteCode">The target contract's original deployed runtime bytecode.</param>
-    /// <exception cref="InvalidOperationException">Thrown during execution when another query requires a conflicting override for the target
-    /// or transient contract address.</exception>
-    public static IQuery<UInt256> ReadStorageUInt256(in Address contract, in Bytes32 slot, EVMByteCode originalByteCode)
-        => ReadStorageBytes32(in contract, in slot, originalByteCode)
-            .Map(static value => BinaryPrimitives.ReadUInt256BigEndian(value.DangerousGetReadOnlySpan()));
-
-    /// <summary>
-    /// Creates a query that reads a signed 256-bit integer from a raw storage slot by temporarily replacing the target contract's code.
-    /// </summary>
-    /// <param name="contract">The contract whose storage is read.</param>
-    /// <param name="slot">The raw 32-byte storage slot.</param>
-    /// <exception cref="InvalidOperationException">Thrown during execution when another query requires a conflicting override for the same contract.</exception>
-    public static IQuery<Int256> ReadStorageInt256(in Address contract, in Bytes32 slot)
-        => ReadStorageBytes32(in contract, in slot).Map(static value => BinaryPrimitives.ReadInt256BigEndian(value.DangerousGetReadOnlySpan()));
-
-    /// <summary>
-    /// Creates a query that reads a signed 256-bit integer from a raw storage slot while preserving calls to the target contract's original runtime bytecode.
-    /// </summary>
-    /// <param name="contract">The contract whose storage is read.</param>
-    /// <param name="slot">The raw 32-byte storage slot.</param>
-    /// <param name="originalByteCode">The target contract's original deployed runtime bytecode.</param>
-    /// <exception cref="InvalidOperationException">Thrown during execution when another query requires a conflicting override for the target
-    /// or transient contract address.</exception>
-    public static IQuery<Int256> ReadStorageInt256(in Address contract, in Bytes32 slot, EVMByteCode originalByteCode)
-        => ReadStorageBytes32(in contract, in slot, originalByteCode)
-            .Map(static value => BinaryPrimitives.ReadInt256BigEndian(value.DangerousGetReadOnlySpan()));
+    public static IQuery<Int256> ReadStorageInt256(in Bytes32 slot)
+        => ReadStorage(in slot).Map(static value => BinaryPrimitives.ReadInt256BigEndian(value.DangerousGetReadOnlySpan()));
 
     /// <summary>
     /// Creates a query that returns the current chain id.

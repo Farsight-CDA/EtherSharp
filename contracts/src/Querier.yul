@@ -160,6 +160,12 @@ object "Querier" {
                     mstore(outputOffset, balance(to))
                     outputLength := 32
                 }
+                case 31 {
+                    let slot := calldataload(inputOffset)
+                    inputOffset := add(inputOffset, 32)
+                    mstore(outputOffset, sload(slot))
+                    outputLength := 32
+                }
                 case 40 {
                     mstore(outputOffset, gas())
                     outputLength := 32
