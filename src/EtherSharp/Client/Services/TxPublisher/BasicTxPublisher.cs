@@ -12,18 +12,35 @@ namespace EtherSharp.Client.Services.TxPublisher;
 public sealed class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
 {
     private static readonly SearchValues<string> _alreadyExistsMessages = SearchValues.Create(
-        ["ALREADY_EXISTS", "already known", "tx already exists in cache", "known transaction"],
+        [
+            "ALREADY_EXISTS",
+            "AlreadyKnown",
+            "already known",
+            "already imported",
+            "tx already exists in cache",
+            " known transaction",
+            "existing txn with same hash",
+            "duplicate tx"
+        ],
         StringComparison.OrdinalIgnoreCase
     );
 
     private static readonly SearchValues<string> _transactionUnderpricedMessages = SearchValues.Create(
-        ["transaction underpriced", "max fee per gas less than block base fee"],
-        StringComparison.Ordinal
+        [
+            "underpriced",
+            "fee too low",
+            "gas price is too low",
+            "gas price below configured minimum gas price",
+            "gas price below current base fee",
+            "max fee per gas less than block base fee",
+            "could not replace existing tx"
+        ],
+        StringComparison.OrdinalIgnoreCase
     );
 
     private static readonly SearchValues<string> _nonceTooLowMessages = SearchValues.Create(
-        ["nonce too low", "next nonce"],
-        StringComparison.Ordinal
+        ["nonce too low", "nonce is too low", "nonce has already been used", "next nonce"],
+        StringComparison.OrdinalIgnoreCase
     );
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
