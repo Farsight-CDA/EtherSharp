@@ -15,7 +15,9 @@ public sealed class Bytes32Tests
     {
         var bytes32 = Bytes32.Parse(SAMPLE_BYTES32);
         Assert.Equal(SAMPLE_BYTES32, bytes32.ToString());
-        Assert.Equal(_sampleBytes32ToHex, bytes32.ToHex());
+        Assert.Equal(SAMPLE_BYTES32, bytes32.ToStringLower());
+        Assert.Equal(_sampleBytes32ToHex, bytes32.ToHexUpper());
+        Assert.Equal(SAMPLE_BYTES32[2..], bytes32.ToHexLower());
         Assert.Equal(Bytes32.BYTE_LENGTH, bytes32.ToArray().Length);
     }
 
@@ -24,7 +26,8 @@ public sealed class Bytes32Tests
     {
         var bytes32 = Bytes32.Parse(SAMPLE_BYTES32[2..]);
         Assert.Equal(SAMPLE_BYTES32, bytes32.ToString());
-        Assert.Equal(_sampleBytes32ToHex, bytes32.ToHex());
+        Assert.Equal(_sampleBytes32ToHex, bytes32.ToHexUpper());
+        Assert.Equal(SAMPLE_BYTES32[2..], bytes32.ToHexLower());
     }
 
     [Fact]
@@ -34,7 +37,8 @@ public sealed class Bytes32Tests
         var bytes32 = Bytes32.Parse(span);
 
         Assert.Equal(SAMPLE_BYTES32, bytes32.ToString());
-        Assert.Equal(_sampleBytes32ToHex, bytes32.ToHex());
+        Assert.Equal(_sampleBytes32ToHex, bytes32.ToHexUpper());
+        Assert.Equal(SAMPLE_BYTES32[2..], bytes32.ToHexLower());
     }
 
     [Theory]
@@ -59,7 +63,8 @@ public sealed class Bytes32Tests
         bool parsed = Bytes32.TryParse(SAMPLE_BYTES32.AsSpan(), out var bytes32);
         Assert.True(parsed);
         Assert.Equal(SAMPLE_BYTES32, bytes32.ToString());
-        Assert.Equal(_sampleBytes32ToHex, bytes32.ToHex());
+        Assert.Equal(_sampleBytes32ToHex, bytes32.ToHexUpper());
+        Assert.Equal(SAMPLE_BYTES32[2..], bytes32.ToHexLower());
     }
 
     [Fact]

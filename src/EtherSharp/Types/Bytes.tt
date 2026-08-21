@@ -54,7 +54,19 @@ public interface IFixedBytes<TSelf>
     /// Returns this value as an uppercase hex string without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation of this value.</returns>
-    string ToHex();
+    string ToHexUpper();
+
+    /// <summary>
+    /// Returns this value as a lowercase hex string without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation of this value.</returns>
+    string ToHexLower();
+
+    /// <summary>
+    /// Returns this value as a lowercase <c>0x</c>-prefixed hex string.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal representation of this value.</returns>
+    string ToStringLower();
 
     /// <summary>
     /// Converts a byte span into an instance of the fixed-size byte type.
@@ -254,15 +266,29 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.

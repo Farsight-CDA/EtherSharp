@@ -103,7 +103,7 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>
     /// Returns the address as uppercase hexadecimal without the 0x prefix.
     /// </summary>
     public readonly string ToHex()
-        => _bytes.ToHex();
+        => _bytes.ToHexUpper();
 
     /// <inheritdoc/>
     public readonly override string ToString()

@@ -53,7 +53,19 @@ public interface IFixedBytes<TSelf>
     /// Returns this value as an uppercase hex string without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation of this value.</returns>
-    string ToHex();
+    string ToHexUpper();
+
+    /// <summary>
+    /// Returns this value as a lowercase hex string without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation of this value.</returns>
+    string ToHexLower();
+
+    /// <summary>
+    /// Returns this value as a lowercase <c>0x</c>-prefixed hex string.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal representation of this value.</returns>
+    string ToStringLower();
 
     /// <summary>
     /// Converts a byte span into an instance of the fixed-size byte type.
@@ -249,15 +261,29 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -578,15 +604,29 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -915,15 +955,29 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -1260,15 +1314,29 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -1613,15 +1681,29 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -1974,15 +2056,29 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -2343,15 +2439,29 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -2720,15 +2830,29 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -3051,15 +3175,29 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -3390,15 +3528,29 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -3736,15 +3888,29 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -4089,15 +4255,29 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -4449,15 +4629,29 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -4816,15 +5010,29 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -5190,15 +5398,29 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -5571,15 +5793,29 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -5912,15 +6148,29 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -6261,15 +6511,29 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -6617,15 +6881,29 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -6980,15 +7258,29 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -7350,15 +7642,29 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -7727,15 +8033,29 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -8111,15 +8431,29 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -8502,15 +8836,29 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -8853,15 +9201,29 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -9212,15 +9574,29 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -9578,15 +9954,29 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -9951,15 +10341,29 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -10331,15 +10735,29 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -10718,15 +11136,29 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -11112,15 +11544,29 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -11513,15 +11959,29 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
     /// Returns the uppercase hex string for this value without a prefix.
     /// </summary>
     /// <returns>The uppercase hexadecimal representation.</returns>
-    public readonly string ToHex()
+    public readonly string ToHexUpper()
         => Convert.ToHexString(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase hex string for this value without a prefix.
+    /// </summary>
+    /// <returns>The lowercase hexadecimal representation.</returns>
+    public readonly string ToHexLower()
+        => Convert.ToHexStringLower(AsReadOnlySpan());
+
+    /// <summary>
+    /// Returns the lowercase <c>0x</c>-prefixed hexadecimal representation of this value.
+    /// </summary>
+    /// <returns>The lowercase prefixed hexadecimal string.</returns>
+    public readonly string ToStringLower()
+        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
 
     /// <summary>
     /// Returns the <c>0x</c>-prefixed hexadecimal representation of this value.
     /// </summary>
     /// <returns>The prefixed hexadecimal string.</returns>
     public readonly override string ToString()
-        => HexUtils.ToPrefixedHexString(AsReadOnlySpan());
+        => ToStringLower();
 
     /// <summary>
     /// Checks equality with another value by value.
