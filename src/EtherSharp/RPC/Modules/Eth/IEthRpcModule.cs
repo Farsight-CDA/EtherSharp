@@ -33,7 +33,7 @@ public interface IEthRpcModule
     /// Creates an access list for a transaction call at the requested block.
     /// </summary>
     public Task<AccessListResult> CreateAccessListAsync(
-        Address? to, ulong? gas, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256 value, ReadOnlyMemory<byte> data,
         CallOptions options, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -78,7 +78,7 @@ public interface IEthRpcModule
     /// Executes a read-only call, optionally applying state and block overrides.
     /// </summary>
     public Task<TxCallResult> CallAsync(
-        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in CallOptions options,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 

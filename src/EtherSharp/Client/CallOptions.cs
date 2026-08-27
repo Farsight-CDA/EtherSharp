@@ -19,6 +19,11 @@ public readonly record struct CallOptions
     public Address? From { get; init; }
 
     /// <summary>
+    /// Gets the optional gas limit for the outer transaction simulation.
+    /// </summary>
+    public ulong? GasLimit { get; init; }
+
+    /// <summary>
     /// Gets the optional transaction access list.
     /// </summary>
     public StateAccess[]? AccessList { get; init; }

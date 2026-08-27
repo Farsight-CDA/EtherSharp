@@ -53,7 +53,6 @@ internal sealed class StateOverrideFlashCallExecutor(
         return _ethRpcModule.CallAsync(
             _flashCodeAddress,
             null,
-            null,
             call.Value,
             call.Data,
             options with { StateOverrides = stateOverrides },

@@ -348,14 +348,12 @@ public interface IEtherClient : IAsyncDisposable
     /// Creates an access list for a transaction call.
     /// </summary>
     /// <param name="call">Transaction call definition.</param>
-    /// <param name="gasLimit">Optional gas limit applied to the simulated transaction. A value of <see langword="null"/> uses the configured <c>eth_call</c> gas limit, if present.</param>
     /// <param name="options">Call execution options, including optional state and block overrides.</param>
     /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The generated access list and simulated gas usage.</returns>
     public Task<AccessListResult> CreateAccessListAsync(
-        ITxInput call, ulong? gasLimit = null,
-        in CallOptions options = default,
+        ITxInput call, in CallOptions options = default,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>

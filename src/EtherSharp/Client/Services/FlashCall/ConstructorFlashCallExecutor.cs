@@ -53,7 +53,6 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
             var result = await _ethRpcModule.CallAsync(
                 null,
                 null,
-                null,
                 call.Value,
                 payload,
                 options,

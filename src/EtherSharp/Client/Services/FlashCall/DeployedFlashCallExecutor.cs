@@ -92,7 +92,6 @@ internal sealed class DeployedFlashCallExecutor(
             var result = await _ethRpcModule.CallAsync(
                 _configuration.ContractAddress,
                 null,
-                null,
                 call.Value,
                 payload,
                 options,

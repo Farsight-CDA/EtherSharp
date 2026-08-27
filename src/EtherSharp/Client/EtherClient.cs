@@ -242,7 +242,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             var deploymentHeightResult = await _ethRpcModule.CallAsync(
                 deployedFlashCallExecutor.ContractAddress,
                 null,
-                null,
                 0,
                 Convert.FromHexString("217CD3E1"),
                 TargetHeight.Latest,
@@ -411,18 +410,16 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     }
 
     public Task<AccessListResult> CreateAccessListAsync(
-        ITxInput call,
-        ulong? gasLimit,
-        in CallOptions options,
+        ITxInput call, in CallOptions options,
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
 
         return options.From is null && _options.IsTxClient
             ? _ethRpcModule.CreateAccessListAsync(
-                call.To, gasLimit, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
+                call.To, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
             : _ethRpcModule.CreateAccessListAsync(
-                call.To, gasLimit, call.Value, call.Data, options, requestOptions, cancellationToken);
+                call.To, call.Value, call.Data, options, requestOptions, cancellationToken);
     }
 
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
@@ -450,9 +447,9 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         var resultTask = options.From is null && _options.IsTxClient
             ? _ethRpcModule.CallAsync(
-                call.To, null, null, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
+                call.To, null, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
             : _ethRpcModule.CallAsync(
-                call.To, null, null, call.Value, call.Data, options, requestOptions, cancellationToken);
+                call.To, null, call.Value, call.Data, options, requestOptions, cancellationToken);
 
         return ParseAsync(call, resultTask);
 

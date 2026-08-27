@@ -74,13 +74,13 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     private sealed record TransactionCall(
         Address? From, Address? To, ulong? Gas, UInt256? GasPrice, UInt256 Value, ReadOnlyMemory<byte> Data, StateAccess[]? AccessList);
     public Task<TxCallResult> CallAsync(
-        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in CallOptions options, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         return SendAsync(
             _rpcClient,
             new TransactionCall(
-                options.From, to, gas ?? _callGasLimitSettings.GetEthCallGasLimit(), gasPrice, value, data, options.AccessList
+                options.From, to, options.GasLimit ?? _callGasLimitSettings.GetEthCallGasLimit(), gasPrice, value, data, options.AccessList
             ),
             options.TargetHeight,
             options.StateOverrides,
@@ -152,7 +152,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
 
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
     private sealed record EstimateGasRequest(
-        Address? From, Address? To, UInt256 Value, ReadOnlyMemory<byte> Data, StateAccess[]? AccessList);
+        Address? From, Address? To, ulong? Gas, UInt256 Value, ReadOnlyMemory<byte> Data, StateAccess[]? AccessList);
     public Task<ulong> EstimateGasAsync(
         Address? to, UInt256 value, ReadOnlyMemory<byte> data,
         in CallOptions options,
@@ -160,7 +160,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     {
         return SendAsync(
             _rpcClient,
-            new EstimateGasRequest(options.From, to, value, data, options.AccessList),
+            new EstimateGasRequest(options.From, to, options.GasLimit, value, data, options.AccessList),
             options.TargetHeight,
             options.StateOverrides,
             options.BlockOverrides,
@@ -198,12 +198,12 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     private sealed record CreateAccessListRequest(
         Address? From, Address? To, ulong? Gas, UInt256 Value, ReadOnlyMemory<byte> Data, StateAccess[]? AccessList);
     public async Task<AccessListResult> CreateAccessListAsync(
-        Address? to, ulong? gas, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256 value, ReadOnlyMemory<byte> data,
         CallOptions options,
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         var transaction = new CreateAccessListRequest(
-            options.From, to, gas ?? _callGasLimitSettings.GetEthCallGasLimit(), value, data, options.AccessList);
+            options.From, to, options.GasLimit ?? _callGasLimitSettings.GetEthCallGasLimit(), value, data, options.AccessList);
         var response = (options.TargetHeight == TargetHeight.Latest, options.StateOverrides, options.BlockOverrides) switch
         {
             (_, _, not null) => await _rpcClient.SendRpcRequestAsync<CreateAccessListRequest, TargetHeight, IReadOnlyDictionary<Address, AccountOverride>?, BlockOverride, AccessListResult>(
