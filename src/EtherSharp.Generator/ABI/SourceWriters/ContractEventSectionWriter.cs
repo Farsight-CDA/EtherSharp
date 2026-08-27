@@ -112,8 +112,8 @@ internal sealed class ContractEventSectionWriter(EventTypeWriter eventTypeWriter
                     public readonly EtherSharp.Client.Modules.Events.IConfiguredEventsModule<{namespacePrefix}{contractName}.Logs.{eventTypeName}> {eventTypeName}
                         => contract.GetClient()
                             .Events<{namespacePrefix}{contractName}.Logs.{eventTypeName}>()
-                            .HasContract(contract)
-                            .HasTopic({namespacePrefix}{contractName}.Logs.{eventTypeName}.TopicHex);
+                            .WithContracts(contract)
+                            .WithTopic0({namespacePrefix}{contractName}.Logs.{eventTypeName}.Topic);
                     """
             );
 

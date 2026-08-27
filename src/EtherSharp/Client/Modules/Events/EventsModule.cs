@@ -4,7 +4,7 @@ using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Json;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Events;
-using EtherSharp.Realtime.Events.Filter;
+using EtherSharp.Realtime.Events.Polling;
 using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
@@ -21,91 +21,100 @@ internal sealed class EventsModule<TLog>(IRPCTransport rpcTransport, IEthRpcModu
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
     private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
 
-    private readonly Dictionary<int, string[]?> _topics = [];
-    private Address[]? _contractAddresses;
+    private readonly EventFilterBuilder _eventFilterBuilder = new();
+    private EventFilter? _completeEventFilter;
 
-    private void AssertNoTopics(int index)
+    public IEventsModule<TLog> WithContracts(params ReadOnlySpan<IEVMContract> contracts)
     {
-        if(!_topics.ContainsKey(index))
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithContracts(contracts);
+        return this;
+    }
+    public IEventsModule<TLog> WithContractAddresses(params ReadOnlySpan<Address> contractAddresses)
+    {
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithContractAddresses(contractAddresses);
+        return this;
+    }
+
+    public IEventsModule<TLog> WithContracts(params IEnumerable<IEVMContract> contracts)
+    {
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithContracts(contracts);
+        return this;
+    }
+    public IEventsModule<TLog> WithContractAddresses(params IEnumerable<Address> contractAddresses)
+    {
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithContractAddresses(contractAddresses);
+        return this;
+    }
+
+    public IEventsModule<TLog> WithTopic0(params ReadOnlySpan<Bytes32> topics)
+    {
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithTopic0(topics);
+        return this;
+    }
+    public IEventsModule<TLog> WithTopic0(params IEnumerable<Bytes32> topics)
+    {
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithTopic0(topics);
+        return this;
+    }
+    public IEventsModule<TLog> WithTopic1(params ReadOnlySpan<Bytes32> topics)
+    {
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithTopic1(topics);
+        return this;
+    }
+    public IEventsModule<TLog> WithTopic1(params IEnumerable<Bytes32> topics)
+    {
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithTopic1(topics);
+        return this;
+    }
+    public IEventsModule<TLog> WithTopic2(params ReadOnlySpan<Bytes32> topics)
+    {
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithTopic2(topics);
+        return this;
+    }
+    public IEventsModule<TLog> WithTopic2(params IEnumerable<Bytes32> topics)
+    {
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithTopic2(topics);
+        return this;
+    }
+    public IEventsModule<TLog> WithTopic3(params ReadOnlySpan<Bytes32> topics)
+    {
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithTopic3(topics);
+        return this;
+    }
+    public IEventsModule<TLog> WithTopic3(params IEnumerable<Bytes32> topics)
+    {
+        AssertNoCompleteEventFilter();
+        _eventFilterBuilder.WithTopic3(topics);
+        return this;
+    }
+
+    public IConfiguredEventsModule<TLog> WithEventFilter(in EventFilter eventFilter)
+    {
+        AssertNoCompleteEventFilter();
+        _completeEventFilter = eventFilter;
+        return this;
+    }
+
+    public EventFilter BuildEventFilter()
+        => _completeEventFilter ?? _eventFilterBuilder.Build();
+
+    private void AssertNoCompleteEventFilter()
+    {
+        if(_completeEventFilter is not null)
         {
-            return;
+            throw new InvalidOperationException("A complete event filter is already applied");
         }
-
-        throw new InvalidOperationException("Topics filter already configured");
-    }
-    private void AssertNoContractAddresses()
-    {
-        if(_contractAddresses is null)
-        {
-            return;
-        }
-
-        throw new InvalidOperationException("Contract address filter already configured");
-    }
-
-    public IEventsModule<TLog> HasContract(IEVMContract contract)
-    {
-        AssertNoContractAddresses();
-        _contractAddresses = [contract.Address];
-        return this;
-    }
-    public IEventsModule<TLog> HasContractAddress(in Address contractAddress)
-    {
-        AssertNoContractAddresses();
-        _contractAddresses = [contractAddress];
-        return this;
-    }
-
-    public IEventsModule<TLog> HasContracts(params ReadOnlySpan<IEVMContract> contracts)
-    {
-        AssertNoContractAddresses();
-
-        _contractAddresses = new Address[contracts.Length];
-
-        for(int i = 0; i < _contractAddresses.Length; i++)
-        {
-            _contractAddresses[i] = contracts[i].Address;
-        }
-
-        return this;
-    }
-    public IEventsModule<TLog> HasContractAddresses(params ReadOnlySpan<Address> contractAddresses)
-    {
-        AssertNoContractAddresses();
-        _contractAddresses = contractAddresses.ToArray();
-        return this;
-    }
-
-    public IEventsModule<TLog> HasContracts(params IEnumerable<IEVMContract> contracts)
-    {
-        AssertNoContractAddresses();
-        _contractAddresses = [.. contracts.Select(x => x.Address)];
-        return this;
-    }
-    public IEventsModule<TLog> HasContractAddresses(params IEnumerable<Address> contractAddresses)
-    {
-        AssertNoContractAddresses();
-        _contractAddresses = [.. contractAddresses];
-        return this;
-    }
-
-    public IEventsModule<TLog> HasTopic(string topic, int index = 0)
-    {
-        AssertNoTopics(index);
-        _topics[index] = [topic];
-        return this;
-    }
-    public IEventsModule<TLog> HasTopics(int index = 0, params ReadOnlySpan<string> topics)
-    {
-        AssertNoTopics(index);
-        _topics[index] = topics.ToArray();
-        return this;
-    }
-    public IEventsModule<TLog> HasTopics(int index = 0, params IEnumerable<string> topics)
-    {
-        AssertNoTopics(index);
-        _topics[index] = [.. topics];
-        return this;
     }
 
     public async Task<TLog[]> GetAllAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default, Bytes32? blockHash = null,
@@ -117,7 +126,13 @@ internal sealed class EventsModule<TLog>(IRPCTransport rpcTransport, IEthRpcModu
         }
 
         var rawResults = await _ethRpcModule.GetLogsAsync(
-            fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), blockHash, requestOptions, cancellationToken);
+            fromBlock,
+            toBlock,
+            BuildEventFilter(),
+            blockHash,
+            requestOptions,
+            cancellationToken
+        );
 
         Array.Sort(rawResults, EventComparer.Instance);
 
@@ -141,11 +156,17 @@ internal sealed class EventsModule<TLog>(IRPCTransport rpcTransport, IEthRpcModu
         return results;
     }
 
-    public async Task<IEventFilter<TLog>> CreateFilterAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default,
+    public async Task<IPollingEventFilter<TLog>> CreatePollingFilterAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
     {
-        var filter = new EventFilter<TLog>(
-            _rpcTransport, _ethRpcModule, fromBlock, toBlock, _contractAddresses, CreateTopicsArray(), requestOptions);
+        var filter = new PollingEventFilter<TLog>(
+            _rpcTransport,
+            _ethRpcModule,
+            fromBlock,
+            toBlock,
+            BuildEventFilter(),
+            requestOptions
+        );
         await filter.InitializeAsync(cancellationToken);
         return filter;
     }
@@ -153,26 +174,13 @@ internal sealed class EventsModule<TLog>(IRPCTransport rpcTransport, IEthRpcModu
     public async Task<IEventSubscription<TLog>> CreateSubscriptionAsync(
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
     {
-        var subscription = new EventSubscription<TLog>(_ethRpcModule, _subscriptionsManager,
-            _jsonSerializerContext, _contractAddresses, CreateTopicsArray());
+        var subscription = new EventSubscription<TLog>(
+            _ethRpcModule,
+            _subscriptionsManager,
+            _jsonSerializerContext,
+            BuildEventFilter()
+        );
         await _subscriptionsManager.InstallSubscriptionAsync(subscription, requestOptions, cancellationToken);
         return subscription;
-    }
-
-    private string[]?[]? CreateTopicsArray()
-    {
-        if(_topics.Count == 0)
-        {
-            return null;
-        }
-
-        string[]?[]? topics = new string[]?[_topics.Max(x => x.Key) + 1];
-
-        foreach(var (index, topicsArr) in _topics)
-        {
-            topics[index] = topicsArr;
-        }
-
-        return topics;
     }
 }

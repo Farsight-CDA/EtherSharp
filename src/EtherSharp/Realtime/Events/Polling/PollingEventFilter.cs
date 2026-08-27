@@ -2,12 +2,12 @@
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 
-namespace EtherSharp.Realtime.Events.Filter;
+namespace EtherSharp.Realtime.Events.Polling;
 
-internal sealed class EventFilter<TLog>(IRPCTransport rpcTransport, IEthRpcModule ethRpcModule,
+internal sealed class PollingEventFilter<TLog>(IRPCTransport rpcTransport, IEthRpcModule ethRpcModule,
     TargetHeight fromBlock, TargetHeight toBlock,
-    Address[]? addresses, string[]?[]? topics, RpcRequestOptions requestOptions
-) : IEventFilter<TLog>
+    EventFilter eventFilter, RpcRequestOptions requestOptions
+) : IPollingEventFilter<TLog>
     where TLog : ITxLog<TLog>
 {
     public string Id { get; private set; } = null!;
@@ -18,8 +18,7 @@ internal sealed class EventFilter<TLog>(IRPCTransport rpcTransport, IEthRpcModul
     private readonly TargetHeight _fromBlock = fromBlock;
     private readonly TargetHeight _toBlock = toBlock;
 
-    private readonly Address[]? _addresses = addresses;
-    private readonly string[]?[]? _topics = topics;
+    private readonly EventFilter _eventFilter = eventFilter;
     private readonly RpcRequestOptions _requestOptions = requestOptions;
 
     public async Task<TLog[]> GetChangesAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken)
@@ -48,7 +47,7 @@ internal sealed class EventFilter<TLog>(IRPCTransport rpcTransport, IEthRpcModul
     }
 
     private async Task InstallAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken = default)
-        => Id = await _ethRpcModule.NewFilterAsync(_fromBlock, _toBlock, _addresses, _topics, requestOptions, cancellationToken);
+        => Id = await _ethRpcModule.NewFilterAsync(_fromBlock, _toBlock, _eventFilter, requestOptions, cancellationToken);
 
     private void HandleReconnect()
         => _ = Task.Run(() => InstallAsync(_requestOptions));

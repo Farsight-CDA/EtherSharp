@@ -9,43 +9,80 @@ namespace EtherSharp.Client.Modules.Events;
 /// Fluent builder for configuring event topic/address filters before execution.
 /// </summary>
 /// <remarks>
-/// Each topic index and contract-address filter can only be configured once per module instance.
+/// Reconfiguring addresses or a topic slot replaces that complete condition.
 /// </remarks>
 /// <typeparam name="TLog">Typed log representation decoded from chain logs.</typeparam>
 public interface IEventsModule<TLog> : IConfiguredEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {
     /// <summary>
-    /// Matches logs where a specific indexed topic equals the provided value.
+    /// Matches logs where topic slot 0 equals any of the provided values.
     /// </summary>
-    /// <param name="topic">Topic value to match (hex string).</param>
-    /// <param name="index">Topic slot index (0-based).</param>
-    /// <returns>The same module instance for fluent chaining.</returns>
-    public IEventsModule<TLog> HasTopic(string topic, int index = 0);
-
-    /// <summary>
-    /// Matches logs where a specific indexed topic equals any of the provided values.
-    /// </summary>
-    /// <param name="index">Topic slot index (0-based).</param>
     /// <param name="topics">Allowed topic values (OR semantics).</param>
     /// <returns>The same module instance for fluent chaining.</returns>
     [OverloadResolutionPriority(1)]
-    public IEventsModule<TLog> HasTopics(int index = 0, params ReadOnlySpan<string> topics);
+    public IEventsModule<TLog> WithTopic0(params ReadOnlySpan<Bytes32> topics);
 
     /// <summary>
-    /// Matches logs where a specific indexed topic equals any of the provided values.
+    /// Matches logs where topic slot 0 equals any of the provided values.
     /// </summary>
-    /// <param name="index">Topic slot index (0-based).</param>
     /// <param name="topics">Allowed topic values (OR semantics).</param>
     /// <returns>The same module instance for fluent chaining.</returns>
-    public IEventsModule<TLog> HasTopics(int index = 0, params IEnumerable<string> topics);
+    public IEventsModule<TLog> WithTopic0(params IEnumerable<Bytes32> topics);
 
     /// <summary>
-    /// Restricts logs to a single emitting contract address.
+    /// Matches logs where topic slot 1 equals any of the provided values.
     /// </summary>
-    /// <param name="contractAddress">Contract address to match.</param>
+    /// <param name="topics">Allowed topic values (OR semantics).</param>
     /// <returns>The same module instance for fluent chaining.</returns>
-    public IEventsModule<TLog> HasContractAddress(in Address contractAddress);
+    [OverloadResolutionPriority(1)]
+    public IEventsModule<TLog> WithTopic1(params ReadOnlySpan<Bytes32> topics);
+
+    /// <summary>
+    /// Matches logs where topic slot 1 equals any of the provided values.
+    /// </summary>
+    /// <param name="topics">Allowed topic values (OR semantics).</param>
+    /// <returns>The same module instance for fluent chaining.</returns>
+    public IEventsModule<TLog> WithTopic1(params IEnumerable<Bytes32> topics);
+
+    /// <summary>
+    /// Matches logs where topic slot 2 equals any of the provided values.
+    /// </summary>
+    /// <param name="topics">Allowed topic values (OR semantics).</param>
+    /// <returns>The same module instance for fluent chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public IEventsModule<TLog> WithTopic2(params ReadOnlySpan<Bytes32> topics);
+
+    /// <summary>
+    /// Matches logs where topic slot 2 equals any of the provided values.
+    /// </summary>
+    /// <param name="topics">Allowed topic values (OR semantics).</param>
+    /// <returns>The same module instance for fluent chaining.</returns>
+    public IEventsModule<TLog> WithTopic2(params IEnumerable<Bytes32> topics);
+
+    /// <summary>
+    /// Matches logs where topic slot 3 equals any of the provided values.
+    /// </summary>
+    /// <param name="topics">Allowed topic values (OR semantics).</param>
+    /// <returns>The same module instance for fluent chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public IEventsModule<TLog> WithTopic3(params ReadOnlySpan<Bytes32> topics);
+
+    /// <summary>
+    /// Matches logs where topic slot 3 equals any of the provided values.
+    /// </summary>
+    /// <param name="topics">Allowed topic values (OR semantics).</param>
+    /// <returns>The same module instance for fluent chaining.</returns>
+    public IEventsModule<TLog> WithTopic3(params IEnumerable<Bytes32> topics);
+
+    /// <summary>
+    /// Applies a complete immutable event filter to this module.
+    /// </summary>
+    /// <param name="eventFilter">The address and topic conditions to apply.</param>
+    /// <returns>The configured module.</returns>
+    /// <remarks>Replaces any address or topic conditions previously configured on this module.</remarks>
+    /// <exception cref="InvalidOperationException">A complete event filter is already applied.</exception>
+    public IConfiguredEventsModule<TLog> WithEventFilter(in EventFilter eventFilter);
 
     /// <summary>
     /// Restricts logs to any of the provided emitting contract addresses.
@@ -53,21 +90,14 @@ public interface IEventsModule<TLog> : IConfiguredEventsModule<TLog>
     /// <param name="contractAddresses">Contract addresses to match (OR semantics).</param>
     /// <returns>The same module instance for fluent chaining.</returns>
     [OverloadResolutionPriority(1)]
-    public IEventsModule<TLog> HasContractAddresses(params ReadOnlySpan<Address> contractAddresses);
+    public IEventsModule<TLog> WithContractAddresses(params ReadOnlySpan<Address> contractAddresses);
 
     /// <summary>
     /// Restricts logs to any of the provided emitting contract addresses.
     /// </summary>
     /// <param name="contractAddresses">Contract addresses to match (OR semantics).</param>
     /// <returns>The same module instance for fluent chaining.</returns>
-    public IEventsModule<TLog> HasContractAddresses(params IEnumerable<Address> contractAddresses);
-
-    /// <summary>
-    /// Restricts logs to a single emitting contract.
-    /// </summary>
-    /// <param name="contract">Contract instance whose address will be matched.</param>
-    /// <returns>The same module instance for fluent chaining.</returns>
-    public IEventsModule<TLog> HasContract(IEVMContract contract);
+    public IEventsModule<TLog> WithContractAddresses(params IEnumerable<Address> contractAddresses);
 
     /// <summary>
     /// Restricts logs to any of the provided emitting contracts.
@@ -75,12 +105,12 @@ public interface IEventsModule<TLog> : IConfiguredEventsModule<TLog>
     /// <param name="contracts">Contract instances whose addresses will be matched.</param>
     /// <returns>The same module instance for fluent chaining.</returns>
     [OverloadResolutionPriority(1)]
-    public IEventsModule<TLog> HasContracts(params ReadOnlySpan<IEVMContract> contracts);
+    public IEventsModule<TLog> WithContracts(params ReadOnlySpan<IEVMContract> contracts);
 
     /// <summary>
     /// Restricts logs to any of the provided emitting contracts.
     /// </summary>
     /// <param name="contracts">Contract instances whose addresses will be matched.</param>
     /// <returns>The same module instance for fluent chaining.</returns>
-    public IEventsModule<TLog> HasContracts(params IEnumerable<IEVMContract> contracts);
+    public IEventsModule<TLog> WithContracts(params IEnumerable<IEVMContract> contracts);
 }

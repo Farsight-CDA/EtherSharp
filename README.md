@@ -226,8 +226,8 @@ Query across multiple contracts or event topics using the client-level `Events()
 
 ```csharp
 var logs = await readClient.Events()
-    .HasContracts(usdt, usdc)
-    .HasTopics(0, IERC20.Logs.TransferEvent.TopicHex, IERC20.Logs.ApprovalEvent.TopicHex)
+    .WithContracts(usdt, usdc)
+    .WithTopic0(IERC20.Logs.TransferEvent.Topic, IERC20.Logs.ApprovalEvent.Topic)
     .GetAllAsync();
 
 // Manually match and decode raw logs using TryDecode
@@ -242,6 +242,20 @@ foreach (var log in logs)
         Console.WriteLine($"Approval on {log.Address}: {approval.Owner} allowed {approval.Spender}");
     }
 }
+```
+
+#### Reusable Event Filters
+Build an immutable address/topic filter once and apply it to multiple event queries.
+
+```csharp
+var tokenEvents = new EventFilterBuilder()
+    .WithContracts(usdt, usdc)
+    .WithTopic0(IERC20.Logs.TransferEvent.Topic, IERC20.Logs.ApprovalEvent.Topic)
+    .Build();
+
+var logs = await readClient.Events()
+    .WithEventFilter(tokenEvents)
+    .GetAllAsync();
 ```
 
 #### Real-time Subscriptions
@@ -269,7 +283,7 @@ await foreach (var transfer in subscription.ListenAsync())
 If you prefer polling over streaming subscriptions, create a filter and fetch incremental changes.
 
 ```csharp
-await using var filter = await erc20.Events.TransferEvent.CreateFilterAsync();
+await using var filter = await erc20.Events.TransferEvent.CreatePollingFilterAsync();
 var changes = await filter.GetChangesAsync();
 ```
 

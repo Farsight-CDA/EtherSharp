@@ -298,12 +298,11 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     private sealed record NewFilterRequest(
         TargetHeight FromBlock,
         TargetHeight ToBlock,
-        Address[]? Address,
-        string[]?[]? Topics
+        ReadOnlyMemory<Address>? Address,
+        EventTopics? Topics
     );
     public async Task<string> NewFilterAsync(
-        TargetHeight fromBlock, TargetHeight toBlock,
-        Address[]? address, string[]?[]? topics,
+        TargetHeight fromBlock, TargetHeight toBlock, EventFilter eventFilter,
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         if(!_rpcTransport.SupportsFilters)
@@ -311,7 +310,16 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             throw new InvalidOperationException("The underlying transport does not support filters");
         }
 
-        var filterOptions = new NewFilterRequest(fromBlock, toBlock, address, topics);
+        var filterOptions = new NewFilterRequest(
+            fromBlock,
+            toBlock,
+            eventFilter.Addresses.IsEmpty
+                ? null
+                : eventFilter.Addresses,
+            eventFilter.Topics.IsMatchAll
+                ? null
+                : eventFilter.Topics
+            );
         return await _rpcClient.SendRpcRequestAsync<NewFilterRequest, string>(
             "eth_newFilter", filterOptions, fromBlock, requestOptions, cancellationToken) switch
         {
@@ -370,16 +378,25 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     private sealed record GetLogsRequest(
         TargetHeight FromBlock,
         TargetHeight ToBlock,
-        Address[]? Address,
-        string[]?[]? Topics,
+        ReadOnlyMemory<Address>? Address,
+        EventTopics? Topics,
         Bytes32? BlockHash
     );
     public async Task<Log[]> GetLogsAsync(
         TargetHeight fromBlock, TargetHeight toBlock,
-        Address[]? addresses, string[]?[]? topics, Bytes32? blockHash,
+        EventFilter eventFilter, Bytes32? blockHash,
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
-        var filterOptions = new GetLogsRequest(fromBlock, toBlock, addresses, topics, blockHash);
+        var filterOptions = new GetLogsRequest(
+            fromBlock,
+            toBlock,
+            eventFilter.Addresses.IsEmpty
+                ? null
+                : eventFilter.Addresses,
+            eventFilter.Topics.IsMatchAll
+                ? null
+                : eventFilter.Topics,
+            blockHash);
         return await _rpcClient.SendRpcRequestAsync<GetLogsRequest, Log[]>(
             "eth_getLogs", filterOptions, fromBlock, requestOptions, cancellationToken) switch
         {
@@ -390,15 +407,22 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     }
 
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
-    private sealed record SubscribeLogsRequest(Address[]? Address, string[]?[]? Topics);
-    public async Task<string> SubscribeLogsAsync(Address[]? contracts, string[]?[]? topics, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
+    private sealed record SubscribeLogsRequest(ReadOnlyMemory<Address>? Address, EventTopics? Topics);
+    public async Task<string> SubscribeLogsAsync(EventFilter eventFilter, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         if(!_rpcTransport.SupportsSubscriptions)
         {
             throw new InvalidOperationException("The underlying transport does not support subscriptions");
         }
 
-        var request = new SubscribeLogsRequest(contracts, topics);
+        var request = new SubscribeLogsRequest(
+            eventFilter.Addresses.IsEmpty
+                ? null
+                : eventFilter.Addresses,
+            eventFilter.Topics.IsMatchAll
+                ? null
+                : eventFilter.Topics
+            );
         return await _rpcClient.SendRpcRequestAsync<string, SubscribeLogsRequest, string>(
             "eth_subscribe", "logs", request, TargetHeight.Latest, requestOptions, cancellationToken) switch
         {

@@ -1,5 +1,5 @@
 ﻿using EtherSharp.Realtime.Events;
-using EtherSharp.Realtime.Events.Filter;
+using EtherSharp.Realtime.Events.Polling;
 using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
@@ -13,6 +13,12 @@ namespace EtherSharp.Client.Modules.Events;
 public interface IConfiguredEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {
+    /// <summary>
+    /// Creates an immutable snapshot of the configured address and topic conditions.
+    /// </summary>
+    /// <returns>The configured event filter.</returns>
+    public EventFilter BuildEventFilter();
+
     /// <summary>
     /// Fetches historical logs matching the configured filters.
     /// </summary>
@@ -34,7 +40,7 @@ public interface IConfiguredEventsModule<TLog>
     /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Token used to cancel filter creation.</param>
     /// <returns>An initialized event filter handle.</returns>
-    public Task<IEventFilter<TLog>> CreateFilterAsync(
+    public Task<IPollingEventFilter<TLog>> CreatePollingFilterAsync(
         TargetHeight fromBlock = default, TargetHeight toBlock = default,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 

@@ -11,7 +11,7 @@ namespace EtherSharp.Realtime.Events.Subscription;
 
 internal sealed class EventSubscription<TLog>(
     IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
-    EtherSharpJsonSerializerContext jsonSerializerContext, Address[]? contractAddresses, string[]?[]? topics
+    EtherSharpJsonSerializerContext jsonSerializerContext, EventFilter eventFilter
 )
     : IEventSubscription<TLog>, ISubscription
     where TLog : ITxLog<TLog>
@@ -23,8 +23,7 @@ internal sealed class EventSubscription<TLog>(
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
     private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
 
-    private readonly Address[]? _contractAddresses = contractAddresses;
-    private readonly string[]?[]? _topics = topics;
+    private readonly EventFilter _eventFilter = eventFilter;
     private readonly Channel<Log> _channel = Channel.CreateUnbounded<Log>(new UnboundedChannelOptions()
     {
         SingleReader = true,
@@ -47,7 +46,7 @@ internal sealed class EventSubscription<TLog>(
     {
         ThrowIfClosed();
         RequestOptions = requestOptions;
-        Id = await _ethRpcModule.SubscribeLogsAsync(_contractAddresses, _topics, requestOptions, cancellationToken);
+        Id = await _ethRpcModule.SubscribeLogsAsync(_eventFilter, requestOptions, cancellationToken);
     }
 
     public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload)

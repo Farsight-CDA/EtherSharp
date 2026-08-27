@@ -115,7 +115,7 @@ public interface IEthRpcModule
     /// </summary>
     public Task<Log[]> GetLogsAsync(
         TargetHeight fromBlock, TargetHeight toBlock,
-        Address[]? addresses, string[]?[]? topics, Bytes32? blockHash,
+        EventFilter eventFilter, Bytes32? blockHash,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
@@ -124,7 +124,7 @@ public interface IEthRpcModule
     /// </summary>
     public Task<string> NewFilterAsync(
         TargetHeight fromBlock, TargetHeight toBlock,
-        Address[]? address, string[]?[]? topics,
+        EventFilter eventFilter,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
@@ -142,7 +142,7 @@ public interface IEthRpcModule
     /// Subscribes to log notifications.
     /// </summary>
     public Task<string> SubscribeLogsAsync(
-        Address[]? contracts, string[]?[]? topics, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
+        EventFilter eventFilter, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
