@@ -345,28 +345,17 @@ public interface IEtherClient : IAsyncDisposable
         ITxInput call, in CallOptions options, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Creates an access list for a transaction call using the default execution context.
+    /// Creates an access list for a transaction call.
     /// </summary>
     /// <param name="call">Transaction call definition.</param>
-    /// <param name="accessList">Optional access list used as the starting point for the simulation.</param>
-    /// <param name="requestOptions">Transport-specific request options.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The generated access list and simulated gas usage.</returns>
-    public Task<AccessListResult> CreateAccessListAsync(
-        ITxInput call, StateAccess[]? accessList = null, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
-        => CreateAccessListAsync(call, accessList, default, requestOptions, cancellationToken);
-
-    /// <summary>
-    /// Creates an access list for a transaction call using the specified execution context.
-    /// </summary>
-    /// <param name="call">Transaction call definition.</param>
-    /// <param name="accessList">Optional access list used as the starting point for the simulation.</param>
+    /// <param name="gasLimit">Optional gas limit applied to the simulated transaction. A value of <see langword="null"/> uses the configured <c>eth_call</c> gas limit, if present.</param>
     /// <param name="options">Call execution options, including optional state and block overrides.</param>
     /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The generated access list and simulated gas usage.</returns>
     public Task<AccessListResult> CreateAccessListAsync(
-        ITxInput call, StateAccess[]? accessList, in CallOptions options,
+        ITxInput call, ulong? gasLimit = null,
+        in CallOptions options = default,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>

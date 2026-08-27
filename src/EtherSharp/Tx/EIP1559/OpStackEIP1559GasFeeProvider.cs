@@ -120,8 +120,7 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
             txInput.To,
             txInput.Value,
             txInput.Data,
-            accessList,
-            new CallOptions { From = sender },
+            new CallOptions { From = sender, AccessList = accessList },
             requestOptions,
             cancellationToken
         );

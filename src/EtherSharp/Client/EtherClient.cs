@@ -405,14 +405,14 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         return options.From is null && _options.IsTxClient
             ? _ethRpcModule.EstimateGasAsync(
-                call.To, call.Value, call.Data, null, options with { From = _signer.Address }, requestOptions, cancellationToken)
+                call.To, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
             : _ethRpcModule.EstimateGasAsync(
-                call.To, call.Value, call.Data, null, options, requestOptions, cancellationToken);
+                call.To, call.Value, call.Data, options, requestOptions, cancellationToken);
     }
 
     public Task<AccessListResult> CreateAccessListAsync(
         ITxInput call,
-        StateAccess[]? accessList,
+        ulong? gasLimit,
         in CallOptions options,
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
@@ -420,9 +420,9 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         return options.From is null && _options.IsTxClient
             ? _ethRpcModule.CreateAccessListAsync(
-                call.To, call.Value, call.Data, accessList, options with { From = _signer.Address }, requestOptions, cancellationToken)
+                call.To, gasLimit, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
             : _ethRpcModule.CreateAccessListAsync(
-                call.To, call.Value, call.Data, accessList, options, requestOptions, cancellationToken);
+                call.To, gasLimit, call.Value, call.Data, options, requestOptions, cancellationToken);
     }
 
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(

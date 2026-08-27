@@ -1,3 +1,4 @@
+using EtherSharp.Tx;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client;
@@ -16,6 +17,11 @@ public readonly record struct CallOptions
     /// Gets the optional sender address.
     /// </summary>
     public Address? From { get; init; }
+
+    /// <summary>
+    /// Gets the optional transaction access list.
+    /// </summary>
+    public StateAccess[]? AccessList { get; init; }
 
     /// <summary>
     /// Gets the optional account state overrides.

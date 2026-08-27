@@ -59,7 +59,6 @@ public sealed class LegacyGasFeeProvider : IGasFeeProvider<LegacyTxParams, Legac
             txInput.To,
             txInput.Value,
             txInput.Data,
-            null,
             new CallOptions { From = from },
             requestOptions,
             cancellationToken

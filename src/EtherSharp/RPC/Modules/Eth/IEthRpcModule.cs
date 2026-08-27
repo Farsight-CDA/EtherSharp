@@ -26,14 +26,14 @@ public interface IEthRpcModule
     /// Estimates gas for a transaction call, optionally applying state and block overrides.
     /// </summary>
     public Task<ulong> EstimateGasAsync(
-        Address? to, UInt256 value, ReadOnlyMemory<byte> data, StateAccess[]? accessList,
+        Address? to, UInt256 value, ReadOnlyMemory<byte> data,
         in CallOptions options, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates an access list for a transaction call at the requested block.
     /// </summary>
     public Task<AccessListResult> CreateAccessListAsync(
-        Address? to, UInt256 value, ReadOnlyMemory<byte> data, StateAccess[]? accessList,
+        Address? to, ulong? gas, UInt256 value, ReadOnlyMemory<byte> data,
         CallOptions options, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>

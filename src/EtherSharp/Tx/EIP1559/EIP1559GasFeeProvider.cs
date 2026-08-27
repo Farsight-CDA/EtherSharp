@@ -80,8 +80,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
             txInput.To,
             txInput.Value,
             txInput.Data,
-            txParams.AccessList,
-            new CallOptions { From = from },
+            new CallOptions { From = from, AccessList = txParams.AccessList },
             requestOptions,
             cancellationToken
         );
