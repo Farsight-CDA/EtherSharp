@@ -42,6 +42,14 @@ public readonly partial struct UInt256
             ? throw new ArgumentException($"Expected a positive number and got {a}", nameof(a))
             : new UInt256((ulong) a);
 
+    public static implicit operator UInt256(UInt128 value)
+        => new UInt256((ulong) value, (ulong) (value >> 64));
+
+    public static explicit operator UInt256(Int128 value)
+        => value < 0
+            ? throw new ArgumentException($"Expected a positive number and got {value}", nameof(value))
+            : (UInt256) (UInt128) value;
+
     public static explicit operator UInt256(in BigInteger a)
     {
         if(a.Sign == -1)

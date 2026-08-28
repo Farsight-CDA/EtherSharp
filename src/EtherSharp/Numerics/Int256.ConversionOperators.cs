@@ -33,6 +33,23 @@ public readonly partial struct Int256
     public static implicit operator Int256(ulong a) => new Int256((UInt256) a);
     public static implicit operator Int256(long a) => new Int256(a);
 
+    public static implicit operator Int256(UInt128 value)
+        => new Int256((UInt256) value);
+
+    public static implicit operator Int256(Int128 value)
+    {
+        var bits = unchecked((UInt128) value);
+        ulong signExtension = value < 0
+            ? UInt64.MaxValue
+            : 0;
+        return new Int256(new UInt256(
+            (ulong) bits,
+            (ulong) (bits >> 64),
+            signExtension,
+            signExtension
+        ));
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator BigInteger(in Int256 x)
     {

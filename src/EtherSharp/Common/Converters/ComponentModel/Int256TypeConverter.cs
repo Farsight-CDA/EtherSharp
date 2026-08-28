@@ -38,8 +38,8 @@ public sealed class Int256TypeConverter : TypeConverter
             int number => (Int256) number,
             ulong number => (Int256) number,
             long number => (Int256) number,
-            UInt128 number => (Int256) (BigInteger) number,
-            Int128 number => (Int256) (BigInteger) number,
+            UInt128 number => (Int256) number,
+            Int128 number => (Int256) number,
             BigInteger number => (Int256) number,
             _ => throw GetConvertFromException(value),
         };
