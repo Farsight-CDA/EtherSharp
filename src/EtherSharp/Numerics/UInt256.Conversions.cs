@@ -19,18 +19,20 @@ public readonly partial struct UInt256
 
     public static bool TryParseFromHex(ReadOnlySpan<char> value, out UInt256 result)
     {
+        result = default;
+
         if(value.Length > 64)
         {
-            throw new ArgumentException("Value too long", nameof(value));
+            return false;
         }
 
         Span<byte> buffer = stackalloc byte[32];
 
-        var status = Convert.FromHexString(value, buffer, out int charsConsumed, out int bytesWritten);
+        var status = Convert.FromHexString(value, buffer, out _, out int bytesWritten);
 
         if(status != System.Buffers.OperationStatus.Done)
         {
-            throw new ArgumentException($"Hex parsing failed: {status}", nameof(value));
+            return false;
         }
 
         if(bytesWritten == 32)

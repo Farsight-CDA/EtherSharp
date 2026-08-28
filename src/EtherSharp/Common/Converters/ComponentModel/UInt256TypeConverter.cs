@@ -54,6 +54,6 @@ public sealed class UInt256TypeConverter : TypeConverter
 
         return UInt256.TryParseFromHex(hex, out var result)
             ? result
-            : throw new FormatException($"Failed parsing {nameof(UInt256)}.");
+            : throw new FormatException($"'{value}' is not a valid hexadecimal {nameof(UInt256)} value.");
     }
 }

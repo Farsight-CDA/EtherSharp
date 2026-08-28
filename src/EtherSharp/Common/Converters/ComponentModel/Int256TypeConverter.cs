@@ -54,6 +54,6 @@ public sealed class Int256TypeConverter : TypeConverter
 
         return Int256.TryParseFromHex(hex, out var result)
             ? result
-            : throw new FormatException($"Failed parsing {nameof(Int256)}.");
+            : throw new FormatException($"'{value}' is not a valid hexadecimal {nameof(Int256)} value.");
     }
 }

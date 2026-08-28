@@ -71,7 +71,7 @@ public sealed class Int256HexConverter : JsonConverter<Int256>
         }
 
         return !Int256.TryParseFromHex(sourceBuffer[startIndex..(startIndex + charsWritten)], out var result)
-            ? throw new JsonException($"Failed parsing {nameof(Int256)}")
+            ? throw new JsonException($"'{reader.GetString()}' is not a valid hexadecimal {nameof(Int256)} value.")
             : result;
     }
 
