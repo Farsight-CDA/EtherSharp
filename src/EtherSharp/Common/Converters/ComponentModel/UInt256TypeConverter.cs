@@ -10,12 +10,6 @@ namespace EtherSharp.Common.Converters.ComponentModel;
 /// </summary>
 public sealed class UInt256TypeConverter : TypeConverter
 {
-    /// <summary>
-    /// Registers this converter for <see cref="UInt256"/> values.
-    /// </summary>
-    public static void Register()
-        => TypeDescriptor.AddAttributes(typeof(UInt256), new TypeConverterAttribute(typeof(UInt256TypeConverter)));
-
     /// <inheritdoc/>
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
         => sourceType == typeof(string)

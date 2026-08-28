@@ -9,12 +9,6 @@ namespace EtherSharp.Common.Converters.ComponentModel;
 /// </summary>
 public sealed class AddressTypeConverter : TypeConverter
 {
-    /// <summary>
-    /// Registers this converter for <see cref="Address"/> values.
-    /// </summary>
-    public static void Register()
-        => TypeDescriptor.AddAttributes(typeof(Address), new TypeConverterAttribute(typeof(AddressTypeConverter)));
-
     /// <inheritdoc/>
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
         => sourceType == typeof(string);
