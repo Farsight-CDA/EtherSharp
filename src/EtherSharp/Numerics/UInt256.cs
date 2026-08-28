@@ -3,7 +3,7 @@
 
 #pragma warning disable CS1591
 
-using EtherSharp.Common.Json.Converters;
+using EtherSharp.Common.Converters.Json;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;

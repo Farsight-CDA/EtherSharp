@@ -14,7 +14,6 @@ using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common;
 using EtherSharp.Common.Extensions;
-using EtherSharp.Common.Json;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Debug;
 using EtherSharp.RPC.Modules.Eth;

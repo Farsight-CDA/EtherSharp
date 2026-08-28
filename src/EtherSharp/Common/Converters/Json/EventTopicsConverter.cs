@@ -2,7 +2,7 @@ using EtherSharp.Types;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Json.Converters;
+namespace EtherSharp.Common.Converters.Json;
 
 /// <summary>
 /// Converts <see cref="EventTopics"/> to and from the EVM JSON-RPC topic-filter representation.

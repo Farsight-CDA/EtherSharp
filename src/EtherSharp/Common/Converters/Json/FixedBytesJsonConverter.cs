@@ -2,7 +2,7 @@ using EtherSharp.Types;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Json.Converters;
+namespace EtherSharp.Common.Converters.Json;
 
 /// <summary>
 /// Converts fixed-width byte values to and from 0x-prefixed hex strings.

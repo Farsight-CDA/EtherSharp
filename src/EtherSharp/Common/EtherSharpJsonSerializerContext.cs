@@ -4,7 +4,7 @@ using EtherSharp.RPC.Transport.Json;
 using EtherSharp.Types;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Json;
+namespace EtherSharp.Common;
 
 [JsonSerializable(typeof(BlockHeader))]
 [JsonSerializable(typeof(Log))]

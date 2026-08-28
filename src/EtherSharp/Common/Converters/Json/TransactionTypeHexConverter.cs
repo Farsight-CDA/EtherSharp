@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Json.Converters;
+namespace EtherSharp.Common.Converters.Json;
 
 /// <summary>
 /// Converts a <see cref="TxType"/> value to or from a JSON number or hex-encoded string.

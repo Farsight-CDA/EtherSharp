@@ -192,7 +192,7 @@
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		  <LastGenOutput>ReadOnlySpanExtensions.cs</LastGenOutput>
 		</None>
-		<None Update="Common\Json\Converters\BytesConverters.tt">
+		<None Update="Common\Converters\Json\BytesConverters.tt">
 		  <Generator>TextTemplatingFileGenerator</Generator>
 		  <LastGenOutput>BytesConverters.generated.cs</LastGenOutput>
 		</None>
@@ -359,7 +359,7 @@
 		  <AutoGen>True</AutoGen>
 		  <DependentUpon>ReadOnlySpanExtensions.tt</DependentUpon>
 		</Compile>
-		<Compile Update="Common\Json\Converters\BytesConverters.generated.cs">
+		<Compile Update="Common\Converters\Json\BytesConverters.generated.cs">
 		  <DesignTime>True</DesignTime>
 		  <AutoGen>True</AutoGen>
 		  <DependentUpon>BytesConverters.tt</DependentUpon>

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Json.Converters;
+namespace EtherSharp.Common.Converters.Json;
 
 /// <summary>
 /// Converts JSON-RPC error data to a string, preserving non-string values as raw JSON.

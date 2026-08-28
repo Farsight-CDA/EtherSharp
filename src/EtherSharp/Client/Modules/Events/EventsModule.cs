@@ -1,7 +1,7 @@
 using EtherSharp.Client.Services.Subscriptions;
+using EtherSharp.Common;
 using EtherSharp.Common.Comparer;
 using EtherSharp.Common.Exceptions;
-using EtherSharp.Common.Json;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Events;
 using EtherSharp.Realtime.Events.Polling;

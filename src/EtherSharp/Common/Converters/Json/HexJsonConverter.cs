@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Text.Json;
 
-namespace EtherSharp.Common.Json.Converters;
+namespace EtherSharp.Common.Converters.Json;
 
 internal static class HexJsonConverter
 {

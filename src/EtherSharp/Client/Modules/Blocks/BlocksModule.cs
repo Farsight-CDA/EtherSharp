@@ -1,5 +1,5 @@
 using EtherSharp.Client.Services.Subscriptions;
-using EtherSharp.Common.Json;
+using EtherSharp.Common;
 using EtherSharp.Realtime.Blocks.Subscription;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;

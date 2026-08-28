@@ -3,25 +3,25 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EtherSharp.Common.Json.Converters;
+namespace EtherSharp.Common.Converters.Json;
 
 /// <summary>
-/// Converts an <see cref="Int32"/> to or from a hex-encoded JSON string.
+/// Converts a <see cref="UInt32"/> to or from a hex-encoded JSON string.
 /// </summary>
-public sealed class IntHexConverter : JsonConverter<int>
+public sealed class UIntHexConverter : JsonConverter<uint>
 {
     /// <summary>
     /// Gets the shared converter instance.
     /// </summary>
-    public static IntHexConverter Instance { get; } = new();
+    public static UIntHexConverter Instance { get; } = new();
 
     /// <inheritdoc/>
-    public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override uint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         switch(reader.TokenType)
         {
             case JsonTokenType.Number:
-                return reader.GetInt32();
+                return reader.GetUInt32();
             case JsonTokenType.String:
                 int valueLength = reader.HasValueSequence
                     ? (int) reader.ValueSequence.Length
@@ -37,14 +37,14 @@ public sealed class IntHexConverter : JsonConverter<int>
 
                 return charsWritten > 10
                     ? throw new InvalidOperationException("Unexpected number length")
-                    : Int32.Parse(sourceBuffer[2..charsWritten], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+                    : UInt32.Parse(sourceBuffer[2..charsWritten], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
             default:
-                throw new JsonException($"Cannot parse {nameof(Int32)} from token of type {reader.TokenType}");
+                throw new JsonException($"Cannot parse {nameof(UInt32)} from token of type {reader.TokenType}");
         }
     }
 
     /// <inheritdoc/>
-    public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, uint value, JsonSerializerOptions options)
     {
         if(value == 0)
         {
@@ -52,9 +52,9 @@ public sealed class IntHexConverter : JsonConverter<int>
             return;
         }
 
-        Span<byte> byteBuffer = stackalloc byte[sizeof(int)];
+        Span<byte> byteBuffer = stackalloc byte[sizeof(uint)];
 
-        BinaryPrimitives.WriteInt32BigEndian(byteBuffer, value);
+        BinaryPrimitives.WriteUInt32BigEndian(byteBuffer, value);
 
         byteBuffer = byteBuffer.TrimStart((byte) 0);
 

@@ -1,4 +1,4 @@
-using EtherSharp.Common.Json.Converters;
+using EtherSharp.Common.Converters.Json;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 

@@ -1,5 +1,5 @@
 using EtherSharp.Common;
-using EtherSharp.Common.Json.Converters;
+using EtherSharp.Common.Converters.Json;
 using EtherSharp.Crypto;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
