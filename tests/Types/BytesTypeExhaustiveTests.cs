@@ -43,6 +43,43 @@ public sealed class BytesTypeExhaustiveTests
         Validate<Bytes32>(32);
     }
 
+    [Fact]
+    public void Should_Apply_Bitwise_Operators_Across_Storage_Widths()
+    {
+        ValidateBitwise<Bytes1>(1, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes2>(2, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes3>(3, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes4>(4, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes5>(5, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes6>(6, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes7>(7, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes8>(8, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes9>(9, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes10>(10, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes11>(11, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes12>(12, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes13>(13, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes14>(14, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes15>(15, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes16>(16, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes17>(17, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes18>(18, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes19>(19, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes20>(20, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes21>(21, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes22>(22, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes23>(23, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes24>(24, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes25>(25, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes26>(26, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes27>(27, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes28>(28, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes29>(29, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes30>(30, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes31>(31, static (left, right) => left | right, static (left, right) => left & right);
+        ValidateBitwise<Bytes32>(32, static (left, right) => left | right, static (left, right) => left & right);
+    }
+
     private static void Validate<TBytes>(int length)
         where TBytes : struct, IFixedBytes<TBytes>, IComparable<TBytes>, IEquatable<TBytes>
     {
@@ -107,5 +144,27 @@ public sealed class BytesTypeExhaustiveTests
         }
 
         return bytes;
+    }
+
+    private static void ValidateBitwise<TBytes>(
+        int length,
+        Func<TBytes, TBytes, TBytes> bitwiseOr,
+        Func<TBytes, TBytes, TBytes> bitwiseAnd)
+        where TBytes : struct, IFixedBytes<TBytes>
+    {
+        byte[] left = CreateBytes(length, 0x31);
+        byte[] right = CreateBytes(length, 0xA4);
+        byte[] expectedOr = new byte[length];
+        byte[] expectedAnd = new byte[length];
+        for(int index = 0; index < length; index++)
+        {
+            expectedOr[index] = (byte) (left[index] | right[index]);
+            expectedAnd[index] = (byte) (left[index] & right[index]);
+        }
+
+        var leftValue = TBytes.FromBytes(left);
+        var rightValue = TBytes.FromBytes(right);
+        Assert.Equal(expectedOr, bitwiseOr(leftValue, rightValue).ToArray());
+        Assert.Equal(expectedAnd, bitwiseAnd(leftValue, rightValue).ToArray());
     }
 }

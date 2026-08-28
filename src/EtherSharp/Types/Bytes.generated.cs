@@ -7,6 +7,7 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Types;
@@ -402,6 +403,38 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
     public static bool operator >=(in Bytes1 left, in Bytes1 right)
         => left.CompareTo(in right) >= 0;
 
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes1 operator |(in Bytes1 left, in Bytes1 right)
+    {
+        var result = default(Bytes1);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes1 operator &(in Bytes1 left, in Bytes1 right)
+    {
+        var result = default(Bytes1);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
@@ -752,6 +785,38 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes2 left, in Bytes2 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes2 operator |(in Bytes2 left, in Bytes2 right)
+    {
+        var result = default(Bytes2);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes2 operator &(in Bytes2 left, in Bytes2 right)
+    {
+        var result = default(Bytes2);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -1111,6 +1176,40 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes3 left, in Bytes3 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes3 operator |(in Bytes3 left, in Bytes3 right)
+    {
+        var result = default(Bytes3);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 2), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 2)) | Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 2)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes3 operator &(in Bytes3 left, in Bytes3 right)
+    {
+        var result = default(Bytes3);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 2), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 2)) & Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 2)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -1478,6 +1577,38 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes4 left, in Bytes4 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes4 operator |(in Bytes4 left, in Bytes4 right)
+    {
+        var result = default(Bytes4);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes4 operator &(in Bytes4 left, in Bytes4 right)
+    {
+        var result = default(Bytes4);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -1853,6 +1984,40 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes5 left, in Bytes5 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes5 operator |(in Bytes5 left, in Bytes5 right)
+    {
+        var result = default(Bytes5);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 4), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 4)) | Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 4)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes5 operator &(in Bytes5 left, in Bytes5 right)
+    {
+        var result = default(Bytes5);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 4), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 4)) & Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 4)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -2236,6 +2401,40 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes6 left, in Bytes6 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes6 operator |(in Bytes6 left, in Bytes6 right)
+    {
+        var result = default(Bytes6);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 4), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 4)) | Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 4)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes6 operator &(in Bytes6 left, in Bytes6 right)
+    {
+        var result = default(Bytes6);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 4), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 4)) & Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 4)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -2628,6 +2827,40 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
     public static bool operator >=(in Bytes7 left, in Bytes7 right)
         => left.CompareTo(in right) >= 0;
 
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes7 operator |(in Bytes7 left, in Bytes7 right)
+    {
+        var result = default(Bytes7);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 3), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 3)) | Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 3)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes7 operator &(in Bytes7 left, in Bytes7 right)
+    {
+        var result = default(Bytes7);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 3), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 3)) & Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 3)));
+        return result;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
@@ -2972,6 +3205,38 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes8 left, in Bytes8 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes8 operator |(in Bytes8 left, in Bytes8 right)
+    {
+        var result = default(Bytes8);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes8 operator &(in Bytes8 left, in Bytes8 right)
+    {
+        var result = default(Bytes8);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -3325,6 +3590,40 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes9 left, in Bytes9 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes9 operator |(in Bytes9 left, in Bytes9 right)
+    {
+        var result = default(Bytes9);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 8), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 8)) | Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 8)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes9 operator &(in Bytes9 left, in Bytes9 right)
+    {
+        var result = default(Bytes9);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 8), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 8)) & Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 8)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -3685,6 +3984,40 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes10 left, in Bytes10 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes10 operator |(in Bytes10 left, in Bytes10 right)
+    {
+        var result = default(Bytes10);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 8), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 8)) | Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 8)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes10 operator &(in Bytes10 left, in Bytes10 right)
+    {
+        var result = default(Bytes10);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 8), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 8)) & Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 8)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -4052,6 +4385,42 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes11 left, in Bytes11 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes11 operator |(in Bytes11 left, in Bytes11 right)
+    {
+        var result = default(Bytes11);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 8), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 8)) | Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 8)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 10), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 10)) | Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 10)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes11 operator &(in Bytes11 left, in Bytes11 right)
+    {
+        var result = default(Bytes11);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 8), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 8)) & Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 8)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 10), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 10)) & Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 10)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -4426,6 +4795,40 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes12 left, in Bytes12 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes12 operator |(in Bytes12 left, in Bytes12 right)
+    {
+        var result = default(Bytes12);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 8), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 8)) | Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 8)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes12 operator &(in Bytes12 left, in Bytes12 right)
+    {
+        var result = default(Bytes12);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 8), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 8)) & Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 8)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -4807,6 +5210,40 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes13 left, in Bytes13 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes13 operator |(in Bytes13 left, in Bytes13 right)
+    {
+        var result = default(Bytes13);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 5), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 5)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 5)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes13 operator &(in Bytes13 left, in Bytes13 right)
+    {
+        var result = default(Bytes13);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 5), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 5)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 5)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -5195,6 +5632,40 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes14 left, in Bytes14 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes14 operator |(in Bytes14 left, in Bytes14 right)
+    {
+        var result = default(Bytes14);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 6), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 6)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 6)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes14 operator &(in Bytes14 left, in Bytes14 right)
+    {
+        var result = default(Bytes14);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 6), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 6)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 6)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -5591,6 +6062,40 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
     public static bool operator >=(in Bytes15 left, in Bytes15 right)
         => left.CompareTo(in right) >= 0;
 
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes15 operator |(in Bytes15 left, in Bytes15 right)
+    {
+        var result = default(Bytes15);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 7), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 7)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 7)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes15 operator &(in Bytes15 left, in Bytes15 right)
+    {
+        var result = default(Bytes15);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 7), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 7)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 7)));
+        return result;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
@@ -5945,6 +6450,38 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes16 left, in Bytes16 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes16 operator |(in Bytes16 left, in Bytes16 right)
+    {
+        var result = default(Bytes16);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes16 operator &(in Bytes16 left, in Bytes16 right)
+    {
+        var result = default(Bytes16);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -6308,6 +6845,40 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes17 left, in Bytes17 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes17 operator |(in Bytes17 left, in Bytes17 right)
+    {
+        var result = default(Bytes17);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 16)) | Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 16)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes17 operator &(in Bytes17 left, in Bytes17 right)
+    {
+        var result = default(Bytes17);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 16)) & Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 16)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -6678,6 +7249,40 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes18 left, in Bytes18 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes18 operator |(in Bytes18 left, in Bytes18 right)
+    {
+        var result = default(Bytes18);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 16)) | Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 16)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes18 operator &(in Bytes18 left, in Bytes18 right)
+    {
+        var result = default(Bytes18);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 16)) & Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 16)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -7055,6 +7660,42 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes19 left, in Bytes19 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes19 operator |(in Bytes19 left, in Bytes19 right)
+    {
+        var result = default(Bytes19);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 16)) | Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 16)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 18), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 18)) | Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 18)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes19 operator &(in Bytes19 left, in Bytes19 right)
+    {
+        var result = default(Bytes19);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 16)) & Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 16)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 18), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 18)) & Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 18)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -7439,6 +8080,40 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes20 left, in Bytes20 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes20 operator |(in Bytes20 left, in Bytes20 right)
+    {
+        var result = default(Bytes20);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 16)) | Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 16)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes20 operator &(in Bytes20 left, in Bytes20 right)
+    {
+        var result = default(Bytes20);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 16)) & Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 16)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -7830,6 +8505,42 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes21 left, in Bytes21 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes21 operator |(in Bytes21 left, in Bytes21 right)
+    {
+        var result = default(Bytes21);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 16)) | Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 16)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 20), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 20)) | Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 20)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes21 operator &(in Bytes21 left, in Bytes21 right)
+    {
+        var result = default(Bytes21);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 16)) & Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 16)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 20), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 20)) & Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 20)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -8228,6 +8939,42 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes22 left, in Bytes22 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes22 operator |(in Bytes22 left, in Bytes22 right)
+    {
+        var result = default(Bytes22);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 16)) | Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 16)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 20), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 20)) | Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 20)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes22 operator &(in Bytes22 left, in Bytes22 right)
+    {
+        var result = default(Bytes22);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 16)) & Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 16)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 20), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 20)) & Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 20)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -8634,6 +9381,44 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
     public static bool operator >=(in Bytes23 left, in Bytes23 right)
         => left.CompareTo(in right) >= 0;
 
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes23 operator |(in Bytes23 left, in Bytes23 right)
+    {
+        var result = default(Bytes23);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 16)) | Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 16)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 20), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 20)) | Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 20)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 22), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 22)) | Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 22)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes23 operator &(in Bytes23 left, in Bytes23 right)
+    {
+        var result = default(Bytes23);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref leftSource, 16)) & Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref rightSource, 16)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 20), Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref leftSource, 20)) & Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref rightSource, 20)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 22), Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref leftSource, 22)) & Unsafe.ReadUnaligned<byte>(ref Unsafe.Add(ref rightSource, 22)));
+        return result;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
@@ -8998,6 +9783,40 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes24 left, in Bytes24 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes24 operator |(in Bytes24 left, in Bytes24 right)
+    {
+        var result = default(Bytes24);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 16)) | Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 16)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes24 operator &(in Bytes24 left, in Bytes24 right)
+    {
+        var result = default(Bytes24);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 16), Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref leftSource, 16)) & Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref rightSource, 16)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -9371,6 +10190,40 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes25 left, in Bytes25 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes25 operator |(in Bytes25 left, in Bytes25 right)
+    {
+        var result = default(Bytes25);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 9), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 9)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 9)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes25 operator &(in Bytes25 left, in Bytes25 right)
+    {
+        var result = default(Bytes25);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 9), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 9)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 9)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -9751,6 +10604,40 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes26 left, in Bytes26 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes26 operator |(in Bytes26 left, in Bytes26 right)
+    {
+        var result = default(Bytes26);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 10), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 10)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 10)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes26 operator &(in Bytes26 left, in Bytes26 right)
+    {
+        var result = default(Bytes26);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 10), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 10)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 10)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -10138,6 +11025,40 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes27 left, in Bytes27 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes27 operator |(in Bytes27 left, in Bytes27 right)
+    {
+        var result = default(Bytes27);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 11), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 11)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 11)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes27 operator &(in Bytes27 left, in Bytes27 right)
+    {
+        var result = default(Bytes27);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 11), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 11)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 11)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -10532,6 +11453,40 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes28 left, in Bytes28 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes28 operator |(in Bytes28 left, in Bytes28 right)
+    {
+        var result = default(Bytes28);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 12), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 12)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 12)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes28 operator &(in Bytes28 left, in Bytes28 right)
+    {
+        var result = default(Bytes28);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 12), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 12)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 12)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -10933,6 +11888,40 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes29 left, in Bytes29 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes29 operator |(in Bytes29 left, in Bytes29 right)
+    {
+        var result = default(Bytes29);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 13), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 13)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 13)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes29 operator &(in Bytes29 left, in Bytes29 right)
+    {
+        var result = default(Bytes29);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 13), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 13)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 13)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -11341,6 +12330,40 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes30 left, in Bytes30 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes30 operator |(in Bytes30 left, in Bytes30 right)
+    {
+        var result = default(Bytes30);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 14), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 14)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 14)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes30 operator &(in Bytes30 left, in Bytes30 right)
+    {
+        var result = default(Bytes30);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 14), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 14)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 14)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
@@ -11757,6 +12780,40 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
     public static bool operator >=(in Bytes31 left, in Bytes31 right)
         => left.CompareTo(in right) >= 0;
 
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes31 operator |(in Bytes31 left, in Bytes31 right)
+    {
+        var result = default(Bytes31);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 15), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 15)) | Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 15)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes31 operator &(in Bytes31 left, in Bytes31 right)
+    {
+        var result = default(Bytes31);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 15), Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref leftSource, 15)) & Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref rightSource, 15)));
+        return result;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
@@ -12131,6 +13188,38 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
     /// <returns>True when <paramref name="left"/> is greater than or equal to <paramref name="right"/>.</returns>
     public static bool operator >=(in Bytes32 left, in Bytes32 right)
         => left.CompareTo(in right) >= 0;
+
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes32 operator |(in Bytes32 left, in Bytes32 right)
+    {
+        var result = default(Bytes32);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector256<byte>>(ref Unsafe.Add(ref leftSource, 0)) | Unsafe.ReadUnaligned<Vector256<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes32 operator &(in Bytes32 left, in Bytes32 right)
+    {
+        var result = default(Bytes32);
+        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);
+        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);
+        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, 0), Unsafe.ReadUnaligned<Vector256<byte>>(ref Unsafe.Add(ref leftSource, 0)) & Unsafe.ReadUnaligned<Vector256<byte>>(ref Unsafe.Add(ref rightSource, 0)));
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()

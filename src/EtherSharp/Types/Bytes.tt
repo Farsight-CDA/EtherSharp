@@ -8,6 +8,7 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Types;
@@ -401,6 +402,28 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
     public static bool operator >=(in Bytes<#= i #> left, in Bytes<#= i #> right)
         => left.CompareTo(in right) >= 0;
 
+    /// <summary>
+    /// Computes the bitwise OR of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise OR of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes<#= i #> operator |(in Bytes<#= i #> left, in Bytes<#= i #> right)
+    {
+<#= BuildBitwiseOperationLines(i, "|") #>
+    }
+
+    /// <summary>
+    /// Computes the bitwise AND of two values.
+    /// </summary>
+    /// <param name="left">The left-hand value.</param>
+    /// <param name="right">The right-hand value.</param>
+    /// <returns>The bitwise AND of <paramref name="left"/> and <paramref name="right"/>.</returns>
+    public static Bytes<#= i #> operator &(in Bytes<#= i #> left, in Bytes<#= i #> right)
+    {
+<#= BuildBitwiseOperationLines(i, "&") #>
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ReadOnlySpan<byte> AsReadOnlySpan()
         => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH);
@@ -516,4 +539,95 @@ private static string BuildCompareToLines(int length)
     lines.Add("        return 0;");
     return global::System.String.Join("\n", lines);
 }
+
+private static string BuildBitwiseOperationLines(int length, string operation)
+{
+    string storageType;
+    int width;
+    if(length >= 32)
+    {
+        storageType = "Vector256<byte>";
+        width = 32;
+    }
+    else if(length >= 16)
+    {
+        storageType = "Vector128<byte>";
+        width = 16;
+    }
+    else if(length >= 8)
+    {
+        storageType = "ulong";
+        width = 8;
+    }
+    else if(length >= 4)
+    {
+        storageType = "uint";
+        width = 4;
+    }
+    else if(length >= 2)
+    {
+        storageType = "ushort";
+        width = 2;
+    }
+    else
+    {
+        storageType = "byte";
+        width = 1;
+    }
+
+    var lines = new global::System.Collections.Generic.List<string>
+    {
+        $"        var result = default(Bytes{length});",
+        "        ref byte destination = ref Unsafe.AsRef(in result._bytes[0]);",
+        "        ref byte leftSource = ref Unsafe.AsRef(in left._bytes[0]);",
+        "        ref byte rightSource = ref Unsafe.AsRef(in right._bytes[0]);"
+    };
+
+    var full = (length / width) * width;
+    for(var offset = 0; offset < full; offset += width)
+    {
+        lines.Add(BuildBitwiseWriteLine(offset, storageType, operation));
+    }
+
+    if(length % width != 0)
+    {
+        var remaining = length - full;
+        if(remaining > width / 2)
+        {
+            lines.Add(BuildBitwiseWriteLine(length - width, storageType, operation));
+        }
+        else
+        {
+            var tailOffset = full;
+            foreach(var tailWidth in new[] { 16, 8, 4, 2, 1 })
+            {
+                if(tailWidth >= width || remaining < tailWidth)
+                {
+                    continue;
+                }
+
+                lines.Add(BuildBitwiseWriteLine(tailOffset, GetBitwiseStorageType(tailWidth), operation));
+                tailOffset += tailWidth;
+                remaining -= tailWidth;
+            }
+        }
+    }
+
+    lines.Add("        return result;");
+    return global::System.String.Join("\n", lines);
+}
+
+private static string BuildBitwiseWriteLine(int offset, string storageType, string operation)
+    => $"        Unsafe.WriteUnaligned(ref Unsafe.Add(ref destination, {offset}), Unsafe.ReadUnaligned<{storageType}>(ref Unsafe.Add(ref leftSource, {offset})) {operation} Unsafe.ReadUnaligned<{storageType}>(ref Unsafe.Add(ref rightSource, {offset})));";
+
+private static string GetBitwiseStorageType(int width)
+    => width switch
+    {
+        16 => "Vector128<byte>",
+        8 => "ulong",
+        4 => "uint",
+        2 => "ushort",
+        1 => "byte",
+        _ => throw new global::System.ArgumentOutOfRangeException(nameof(width))
+    };
 #>

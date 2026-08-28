@@ -147,6 +147,23 @@ public sealed class Bytes32Tests
     }
 
     [Fact]
+    public void Should_Apply_Bitwise_Operators()
+    {
+        Assert.Equal(Bytes1.Parse("ff"), Bytes1.Parse("f0") | Bytes1.Parse("0f"));
+        Assert.Equal(Bytes1.Zero, Bytes1.Parse("f0") & Bytes1.Parse("0f"));
+
+        var left = Bytes32.Parse("0x00ff0f0ff0f055aa123456789abcdef000ff0f0ff0f055aa123456789abcdef0");
+        var right = Bytes32.Parse("0xf00ffff00ff0aa550f0f0f0f0f0f0f0ff00ffff00ff0aa550f0f0f0f0f0f0f0f");
+
+        Assert.Equal(
+            Bytes32.Parse("0xf0fffffffff0ffff1f3f5f7f9fbfdffff0fffffffff0ffff1f3f5f7f9fbfdfff"),
+            left | right);
+        Assert.Equal(
+            Bytes32.Parse("0x000f0f0000f00000020406080a0c0e00000f0f0000f00000020406080a0c0e00"),
+            left & right);
+    }
+
+    [Fact]
     public void Should_Serialize_And_Deserialize_Using_Default_Json()
     {
         var bytes32 = Bytes32.Parse(SAMPLE_BYTES32);
