@@ -94,6 +94,16 @@ public sealed class Bytes32Tests
     }
 
     [Fact]
+    public void Should_Convert_From_UInt256_In_BigEndian_Byte_Order()
+    {
+        Assert.True(UInt256.TryParseFromHex(SAMPLE_BYTES32.AsSpan(2), out var value));
+
+        Assert.Equal(Bytes32.Parse(SAMPLE_BYTES32), (Bytes32) value);
+        Assert.Equal(Bytes32.Zero, (Bytes32) UInt256.Zero);
+        Assert.Equal(Bytes32.Parse($"0x{new string('f', 64)}"), (Bytes32) UInt256.MaxValue);
+    }
+
+    [Fact]
     public void Should_Convert_To_Int256_With_TwosComplement_Semantics()
     {
         var negativeOne = Bytes32.Parse($"0x{new string('f', 64)}");
@@ -101,6 +111,15 @@ public sealed class Bytes32Tests
 
         Assert.Equal((Int256) (-1L), (Int256) negativeOne);
         Assert.Equal(Int256.MinValue, (Int256) minValue);
+    }
+
+    [Fact]
+    public void Should_Convert_From_Int256_With_TwosComplement_Semantics()
+    {
+        Assert.Equal(Bytes32.Zero, (Bytes32) Int256.Zero);
+        Assert.Equal(Bytes32.Parse($"0x{new string('f', 64)}"), (Bytes32) (Int256) (-1L));
+        Assert.Equal(Bytes32.Parse($"0x8{new string('0', 63)}"), (Bytes32) Int256.MinValue);
+        Assert.Equal(Bytes32.Parse($"0x7{new string('f', 63)}"), (Bytes32) Int256.MaxValue);
     }
 
     [Fact]
