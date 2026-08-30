@@ -113,8 +113,8 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
             return result;
         }
 
-        UInt256.Subtract(in a._value, in b._value, out var result);
-        return result;
+        UInt256.Subtract(in a._value, in b._value, out var difference);
+        return difference;
     }
 
     public static void SubtractMod(in Int256 x, in Int256 y, in Int256 m, out Int256 res)

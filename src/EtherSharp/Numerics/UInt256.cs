@@ -263,8 +263,8 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
             return result;
         }
 
-        Subtract(in a, in b, out var result);
-        return result;
+        Subtract(in a, in b, out var difference);
+        return difference;
     }
 
     private static bool SubtractAvx2(in UInt256 a, in UInt256 b, out UInt256 res)
