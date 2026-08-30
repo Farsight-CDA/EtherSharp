@@ -1,6 +1,7 @@
 using EtherSharp.Client;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Transport;
+using EtherSharp.Tx;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Debug;
@@ -40,10 +41,36 @@ public interface IDebugModule
     /// Traces a simulated call using Geth's call tracer.
     /// </summary>
     public Task<CallTrace> TraceCallCallsAsync(
+        ITxInput call, ulong? gas = null, UInt256? gasPrice = null,
+        in TraceCallOptions options = default, bool onlyTopCall = false,
+        RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    ) => TraceCallCallsAsync(
+        call.To, gas, gasPrice, call.Value, call.Data,
+        in options, onlyTopCall, requestOptions, cancellationToken
+    );
+
+    /// <summary>
+    /// Traces a simulated call using Geth's call tracer.
+    /// </summary>
+    public Task<CallTrace> TraceCallCallsAsync(
         Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool onlyTopCall = false,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Captures the account state required to execute a simulated call.
+    /// </summary>
+    public Task<PrestateTrace> TraceCallPrestateAsync(
+        ITxInput call, ulong? gas = null, UInt256? gasPrice = null,
+        in TraceCallOptions options = default, bool disableCode = false, bool disableStorage = false,
+        RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    ) => TraceCallPrestateAsync(
+        call.To, gas, gasPrice, call.Value, call.Data,
+        in options, disableCode, disableStorage, requestOptions, cancellationToken
     );
 
     /// <summary>
@@ -60,10 +87,37 @@ public interface IDebugModule
     /// Captures account state changed by a simulated call.
     /// </summary>
     public Task<PrestateDiffTrace> TraceCallPrestateDiffAsync(
+        ITxInput call, ulong? gas = null, UInt256? gasPrice = null,
+        in TraceCallOptions options = default, bool disableCode = false, bool disableStorage = false,
+        RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    ) => TraceCallPrestateDiffAsync(
+        call.To, gas, gasPrice, call.Value, call.Data,
+        in options, disableCode, disableStorage, requestOptions, cancellationToken
+    );
+
+    /// <summary>
+    /// Captures account state changed by a simulated call.
+    /// </summary>
+    public Task<PrestateDiffTrace> TraceCallPrestateDiffAsync(
         Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool disableCode = false, bool disableStorage = false,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Traces a simulated call using a custom JavaScript tracer.
+    /// </summary>
+    public Task<TResult> TraceCallJavaScriptAsync<TTracerConfig, TResult>(
+        ITxInput call, JavaScriptTracer tracer, TTracerConfig tracerConfig,
+        ulong? gas = null, UInt256? gasPrice = null,
+        in TraceCallOptions options = default,
+        RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    ) => TraceCallJavaScriptAsync<TTracerConfig, TResult>(
+        call.To, gas, gasPrice, call.Value, call.Data,
+        in options, tracer, tracerConfig, requestOptions, cancellationToken
     );
 
     /// <summary>
