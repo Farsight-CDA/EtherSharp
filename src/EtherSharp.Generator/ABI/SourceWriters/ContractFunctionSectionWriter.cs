@@ -33,6 +33,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
     {
         var functionClassNames = new List<string>();
         var sectionBuilder = new ClassBuilder("Functions")
+            .WithIsPartial()
             .AddBaseType("EtherSharp.Contract.Sections.IFunctionsSection", true)
             .AddRawContent("private Functions() {}");
 
