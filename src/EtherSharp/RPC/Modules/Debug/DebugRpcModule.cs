@@ -12,33 +12,34 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
     private readonly RpcClient _rpcClient = rpcClient;
     private readonly record struct CallTracerOptions(string Tracer);
     public async Task<CallTrace?> TraceTransactionCallsAsync(
-        string transactionHash, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<string, CallTracerOptions, CallTrace>(
-            "debug_traceTransaction", transactionHash, new CallTracerOptions("callTracer"), TargetHeight.Latest, requestOptions, cancellationToken) switch
-        {
-            RpcResult<CallTrace>.Success result => result.Result,
-            RpcResult<CallTrace>.Null => null,
-            RpcResult<CallTrace>.Error error => throw RPCException.FromRPCError(error),
-            _ => throw new NotImplementedException(),
-        };
+        string transactionHash, RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    ) => await _rpcClient.SendRpcRequestAsync<string, CallTracerOptions, CallTrace>(
+        "debug_traceTransaction", transactionHash, new CallTracerOptions("callTracer"), TargetHeight.Latest, requestOptions, cancellationToken) switch
+    {
+        RpcResult<CallTrace>.Success result => result.Result,
+        RpcResult<CallTrace>.Null => null,
+        RpcResult<CallTrace>.Error error => throw RPCException.FromRPCError(error),
+        _ => throw new NotImplementedException(),
+    };
 
     public Task<CallTrace?> TraceTransactionCallsAsync(
-        in Bytes32 transactionHash, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
+        in Bytes32 transactionHash, RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    )
     {
         var transactionHashValue = transactionHash;
         return TraceTransactionCallsCoreAsync(transactionHashValue, requestOptions, cancellationToken);
     }
 
     private async Task<CallTrace?> TraceTransactionCallsCoreAsync(
-        Bytes32 transactionHash, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<Bytes32, CallTracerOptions, CallTrace>(
-            "debug_traceTransaction", transactionHash, new CallTracerOptions("callTracer"), TargetHeight.Latest, requestOptions, cancellationToken) switch
-        {
-            RpcResult<CallTrace>.Success result => result.Result,
-            RpcResult<CallTrace>.Null => null,
-            RpcResult<CallTrace>.Error error => throw RPCException.FromRPCError(error),
-            _ => throw new NotImplementedException(),
-        };
+        Bytes32 transactionHash, RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    ) => await _rpcClient.SendRpcRequestAsync<Bytes32, CallTracerOptions, CallTrace>(
+        "debug_traceTransaction", transactionHash, new CallTracerOptions("callTracer"), TargetHeight.Latest, requestOptions, cancellationToken) switch
+    {
+        RpcResult<CallTrace>.Success result => result.Result,
+        RpcResult<CallTrace>.Null => null,
+        RpcResult<CallTrace>.Error error => throw RPCException.FromRPCError(error),
+        _ => throw new NotImplementedException(),
+    };
 
     private sealed record TraceCallRequest(
         Address? From,
@@ -59,11 +60,12 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
 
     private sealed record CallTracerConfig(bool? OnlyTopCall);
     public Task<CallTrace> TraceCallCallsAsync(
-        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool onlyTopCall, RpcRequestOptions requestOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var request = new TraceCallRequest(options.From, to, gas, gasPrice, value, data);
+        var request = new TraceCallRequest(options.From, to, options.GasLimit, gasPrice, value, data);
         var targetHeight = options.TargetHeight;
         var config = new TraceCallConfig<CallTracerConfig>(
             "callTracer",
@@ -89,11 +91,12 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
 
     private sealed record PrestateTracerConfig(bool? DisableCode, bool? DisableStorage);
     public Task<PrestateTrace> TraceCallPrestateAsync(
-        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool disableCode, bool disableStorage, RpcRequestOptions requestOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var request = new TraceCallRequest(options.From, to, gas, gasPrice, value, data);
+        var request = new TraceCallRequest(options.From, to, options.GasLimit, gasPrice, value, data);
         var targetHeight = options.TargetHeight;
         var config = new TraceCallConfig<PrestateTracerConfig>(
             "prestateTracer",
@@ -118,11 +121,12 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
 
     private sealed record PrestateDiffTracerConfig(bool DiffMode, bool? DisableCode, bool? DisableStorage);
     public Task<PrestateDiffTrace> TraceCallPrestateDiffAsync(
-        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool disableCode, bool disableStorage, RpcRequestOptions requestOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var request = new TraceCallRequest(options.From, to, gas, gasPrice, value, data);
+        var request = new TraceCallRequest(options.From, to, options.GasLimit, gasPrice, value, data);
         var targetHeight = options.TargetHeight;
         var config = new TraceCallConfig<PrestateDiffTracerConfig>(
             "prestateTracer",
@@ -146,11 +150,12 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
     }
 
     public Task<TResult> TraceCallJavaScriptAsync<TTracerConfig, TResult>(
-        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, JavaScriptTracer tracer, TTracerConfig tracerConfig,
-        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    )
     {
-        var request = new TraceCallRequest(options.From, to, gas, gasPrice, value, data);
+        var request = new TraceCallRequest(options.From, to, options.GasLimit, gasPrice, value, data);
         var targetHeight = options.TargetHeight;
         var config = new TraceCallConfig<TTracerConfig>(
             tracer.Source,

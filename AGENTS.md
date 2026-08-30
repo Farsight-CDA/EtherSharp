@@ -19,7 +19,9 @@
 - Enforce all non-slient style guidelines from the .editorconfig
 
 Important style guides to remember:
-- Place the body of expression body methods onto a new line 
+- For expression-bodied methods with a single-line declaration, place the body on the next line.
+- When a method declaration spans multiple lines, place the final closing `)` on its own line.
+- For a multi-line expression-bodied method declaration, place `=>` on the same line as the final closing `)`.
 
 ## Benchmarks
 

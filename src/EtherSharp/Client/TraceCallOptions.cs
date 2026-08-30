@@ -18,6 +18,11 @@ public readonly record struct TraceCallOptions
     public Address? From { get; init; }
 
     /// <summary>
+    /// Gets the optional gas limit for the simulated call.
+    /// </summary>
+    public ulong? GasLimit { get; init; }
+
+    /// <summary>
     /// Gets the optional account state overrides.
     /// </summary>
     public IReadOnlyDictionary<Address, AccountOverride>? StateOverrides { get; init; }
@@ -45,6 +50,7 @@ public readonly record struct TraceCallOptions
         {
             TargetHeight = options.TargetHeight,
             From = options.From,
+            GasLimit = options.GasLimit,
             StateOverrides = options.StateOverrides,
             BlockOverrides = options.BlockOverrides
         };

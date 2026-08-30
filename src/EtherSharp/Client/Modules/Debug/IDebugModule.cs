@@ -22,7 +22,8 @@ public interface IDebugModule
     /// </returns>
     public Task<CallTrace?> TraceTransactionCallsAsync(
         in Bytes32 transactionHash, RpcRequestOptions requestOptions = default,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Traces call execution for a mined transaction.
@@ -35,18 +36,19 @@ public interface IDebugModule
     /// </returns>
     public Task<CallTrace?> TraceTransactionCallsAsync(
         string transactionHash, RpcRequestOptions requestOptions = default,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Traces a simulated call using Geth's call tracer.
     /// </summary>
     public Task<CallTrace> TraceCallCallsAsync(
-        ITxInput call, ulong? gas = null, UInt256? gasPrice = null,
+        ITxInput call, UInt256? gasPrice = null,
         in TraceCallOptions options = default, bool onlyTopCall = false,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     ) => TraceCallCallsAsync(
-        call.To, gas, gasPrice, call.Value, call.Data,
+        call.To, gasPrice, call.Value, call.Data,
         in options, onlyTopCall, requestOptions, cancellationToken
     );
 
@@ -54,7 +56,7 @@ public interface IDebugModule
     /// Traces a simulated call using Geth's call tracer.
     /// </summary>
     public Task<CallTrace> TraceCallCallsAsync(
-        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool onlyTopCall = false,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
@@ -64,12 +66,12 @@ public interface IDebugModule
     /// Captures the account state required to execute a simulated call.
     /// </summary>
     public Task<PrestateTrace> TraceCallPrestateAsync(
-        ITxInput call, ulong? gas = null, UInt256? gasPrice = null,
+        ITxInput call, UInt256? gasPrice = null,
         in TraceCallOptions options = default, bool disableCode = false, bool disableStorage = false,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     ) => TraceCallPrestateAsync(
-        call.To, gas, gasPrice, call.Value, call.Data,
+        call.To, gasPrice, call.Value, call.Data,
         in options, disableCode, disableStorage, requestOptions, cancellationToken
     );
 
@@ -77,7 +79,7 @@ public interface IDebugModule
     /// Captures the account state required to execute a simulated call.
     /// </summary>
     public Task<PrestateTrace> TraceCallPrestateAsync(
-        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool disableCode = false, bool disableStorage = false,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
@@ -87,12 +89,12 @@ public interface IDebugModule
     /// Captures account state changed by a simulated call.
     /// </summary>
     public Task<PrestateDiffTrace> TraceCallPrestateDiffAsync(
-        ITxInput call, ulong? gas = null, UInt256? gasPrice = null,
+        ITxInput call, UInt256? gasPrice = null,
         in TraceCallOptions options = default, bool disableCode = false, bool disableStorage = false,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     ) => TraceCallPrestateDiffAsync(
-        call.To, gas, gasPrice, call.Value, call.Data,
+        call.To, gasPrice, call.Value, call.Data,
         in options, disableCode, disableStorage, requestOptions, cancellationToken
     );
 
@@ -100,7 +102,7 @@ public interface IDebugModule
     /// Captures account state changed by a simulated call.
     /// </summary>
     public Task<PrestateDiffTrace> TraceCallPrestateDiffAsync(
-        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool disableCode = false, bool disableStorage = false,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
@@ -111,12 +113,12 @@ public interface IDebugModule
     /// </summary>
     public Task<TResult> TraceCallJavaScriptAsync<TTracerConfig, TResult>(
         ITxInput call, JavaScriptTracer tracer, TTracerConfig tracerConfig,
-        ulong? gas = null, UInt256? gasPrice = null,
+        UInt256? gasPrice = null,
         in TraceCallOptions options = default,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     ) => TraceCallJavaScriptAsync<TTracerConfig, TResult>(
-        call.To, gas, gasPrice, call.Value, call.Data,
+        call.To, gasPrice, call.Value, call.Data,
         in options, tracer, tracerConfig, requestOptions, cancellationToken
     );
 
@@ -124,7 +126,7 @@ public interface IDebugModule
     /// Traces a simulated call using a custom JavaScript tracer.
     /// </summary>
     public Task<TResult> TraceCallJavaScriptAsync<TTracerConfig, TResult>(
-        Address? to, ulong? gas, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
+        Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, JavaScriptTracer tracer, TTracerConfig tracerConfig,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
