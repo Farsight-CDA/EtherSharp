@@ -102,6 +102,21 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         return (aNeg != bNeg) && (aNeg != resNeg);
     }
 
+    /// <summary>
+    /// Returns the absolute difference between two <see cref="Int256"/> values.
+    /// </summary>
+    public static UInt256 AbsDiff(in Int256 a, in Int256 b)
+    {
+        if(LessThan(in a, in b))
+        {
+            UInt256.Subtract(in b._value, in a._value, out var result);
+            return result;
+        }
+
+        UInt256.Subtract(in a._value, in b._value, out var result);
+        return result;
+    }
+
     public static void SubtractMod(in Int256 x, in Int256 y, in Int256 m, out Int256 res)
     {
         var mt = m;

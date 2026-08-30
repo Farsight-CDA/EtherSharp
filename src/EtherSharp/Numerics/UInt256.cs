@@ -252,6 +252,21 @@ public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComp
             ? SubtractAvx2(a, b, out res)
             : SubtractScalar(a, b, out res);
 
+    /// <summary>
+    /// Returns the absolute difference between two <see cref="UInt256"/> values.
+    /// </summary>
+    public static UInt256 AbsDiff(in UInt256 a, in UInt256 b)
+    {
+        if(LessThan(in a, in b))
+        {
+            Subtract(in b, in a, out var result);
+            return result;
+        }
+
+        Subtract(in a, in b, out var result);
+        return result;
+    }
+
     private static bool SubtractAvx2(in UInt256 a, in UInt256 b, out UInt256 res)
     {
         var av = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
