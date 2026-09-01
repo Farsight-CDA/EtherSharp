@@ -1,5 +1,4 @@
 using EtherSharp.Contract;
-using EtherSharp.Crypto;
 using EtherSharp.Numerics;
 using EtherSharp.Tx;
 using EtherSharp.Types;
@@ -19,9 +18,9 @@ public partial interface IQuerier
     public static class StateOverride
     {
         /// <summary>
-        /// Gets the simulation-only account address derived from <see cref="Code.Runtime"/>.
+        /// Gets the fixed simulation-only account address.
         /// </summary>
-        public static Address Address { get; } = Address.FromBytes(Keccak256.HashData(Code.Runtime.ByteCode.Span).DangerousGetReadOnlySpan()[^Address.BYTES_LENGTH..]);
+        public static Address Address { get; } = Address.Parse("0x0000000000000000000000000000000000455351");
 
         /// <summary>
         /// Gets the account override that installs the querier runtime at <see cref="Address"/>.
