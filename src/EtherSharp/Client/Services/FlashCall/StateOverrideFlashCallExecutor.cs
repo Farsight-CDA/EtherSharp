@@ -1,5 +1,6 @@
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
+using EtherSharp.Query;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
@@ -12,8 +13,6 @@ internal sealed class StateOverrideFlashCallExecutor(
     StateOverrideFlashCallExecutor.Configuration configuration) : IFlashRuntimeExecutor
 {
     internal sealed record Configuration(int MaxPayloadSize, int MaxResultSize);
-
-    private static readonly Address _flashCodeAddress = Address.Parse("0x4574686572536861727051756572696572000000");
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly Configuration _configuration = configuration;
@@ -36,22 +35,21 @@ internal sealed class StateOverrideFlashCallExecutor(
             ? []
             : new Dictionary<Address, AccountOverride>(options.StateOverrides);
 
-        if(stateOverrides.ContainsKey(_flashCodeAddress))
+        var flashCodeOverride = new AccountOverride(balance: UInt256.Zero, nonce: 1, code: runtimeCode.ByteCode);
+        if(stateOverrides.TryGetValue(IQuerier.StateOverride.Address, out var existingOverride))
         {
-            throw new InvalidOperationException($"Flash call state overrides conflict at {_flashCodeAddress}.");
+            if(existingOverride != flashCodeOverride)
+            {
+                throw new InvalidOperationException($"Flash call state overrides conflict at {IQuerier.StateOverride.Address}.");
+            }
+        }
+        else
+        {
+            stateOverrides.Add(IQuerier.StateOverride.Address, flashCodeOverride);
         }
 
-        stateOverrides.Add(
-            _flashCodeAddress,
-            new AccountOverride(
-                balance: UInt256.Zero,
-                nonce: 1,
-                code: runtimeCode.ByteCode
-            )
-        );
-
         return _ethRpcModule.CallAsync(
-            _flashCodeAddress,
+            IQuerier.StateOverride.Address,
             null,
             call.Value,
             call.Data,

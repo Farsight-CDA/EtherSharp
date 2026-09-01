@@ -1,6 +1,8 @@
 using EtherSharp.Contract;
+using EtherSharp.Crypto;
 using EtherSharp.Numerics;
 using EtherSharp.Tx;
+using EtherSharp.Types;
 using System.Buffers;
 using System.Buffers.Binary;
 
@@ -11,6 +13,22 @@ namespace EtherSharp.Query;
 /// </summary>
 public partial interface IQuerier
 {
+    /// <summary>
+    /// Describes the ephemeral account used to execute the querier through state overrides.
+    /// </summary>
+    public static class StateOverride
+    {
+        /// <summary>
+        /// Gets the simulation-only account address derived from <see cref="Code.Runtime"/>.
+        /// </summary>
+        public static Address Address { get; } = EtherSharp.Types.Address.FromBytes(Keccak256.HashData(Code.Runtime.ByteCode.Span).DangerousGetReadOnlySpan()[^EtherSharp.Types.Address.BYTES_LENGTH..]);
+
+        /// <summary>
+        /// Gets the account override that installs the querier runtime at <see cref="Address"/>.
+        /// </summary>
+        public static AccountOverride Account { get; } = new(balance: UInt256.Zero, nonce: 1, code: Code.Runtime.ByteCode);
+    }
+
     /// <summary>
     /// Querier runtime bytecode.
     /// </summary>

@@ -10,39 +10,28 @@ namespace EtherSharp.Query;
 public partial interface IQuerierDelegate
 {
     /// <summary>
-    /// Caller override runtime bytecode factories.
+    /// Caller override runtime bytecode and factories.
     /// </summary>
     public static class Code
     {
-        private const int SIMPLE_QUERIER_ADDRESS_OFFSET = 36;
         private const int PRESERVING_ORIGINAL_CODE_ADDRESS_OFFSET = 3;
-        private const int PRESERVING_QUERIER_ADDRESS_OFFSET = 85;
-
-        private static byte[] SimpleTemplate { get; } = Convert.FromHexString(
-            "63ea41597b60003560e01c14156004361017604c5760008036600319018060048337817311111111111111111111111111111111111111115af43d6000803e156047573d6000f35b3d6000fd5b600080fd");
-
-        private static byte[] PreservingTemplate { get; } = Convert.FromHexString(
-            "600073222222222222222222222222222222222222222263ea41597b60003560e01c146003361116604e575b81600080939281933603809383375af43d6000803e156049573d6000f35b3d6000fd5b5060049050731111111111111111111111111111111111111111602b56");
 
         /// <summary>
-        /// Creates runtime code that only accepts delegated query calls.
+        /// Gets runtime code that only accepts delegated query calls.
         /// </summary>
-        public static EVMByteCode Create(in Address querierAddress)
-        {
-            byte[] code = [.. SimpleTemplate];
-            querierAddress.CopyTo(code.AsSpan(SIMPLE_QUERIER_ADDRESS_OFFSET, Address.BYTES_LENGTH));
-            return new EVMByteCode(code);
-        }
+        public static EVMByteCode Runtime { get; } = new(Convert.FromHexString(
+            "63ea41597b60003560e01c14156004361017604c57600080366003190180600483378173b5f60ad7fb973889f5806f4574f69861efd5c4495af43d6000803e156047573d6000f35b3d6000fd5b600080fd"));
+
+        private static byte[] PreservingTemplate { get; } = Convert.FromHexString(
+            "600073222222222222222222222222222222222222222263ea41597b60003560e01c146003361116604e575b81600080939281933603809383375af43d6000803e156049573d6000f35b3d6000fd5b506004905073b5f60ad7fb973889f5806f4574f69861efd5c449602b56");
 
         /// <summary>
         /// Creates runtime code that delegates non-query calls to the original implementation.
         /// </summary>
         public static EVMByteCode CreatePreserving(
-            in Address querierAddress,
             in Address originalCodeAddress)
         {
             byte[] code = [.. PreservingTemplate];
-            querierAddress.CopyTo(code.AsSpan(PRESERVING_QUERIER_ADDRESS_OFFSET, Address.BYTES_LENGTH));
             originalCodeAddress.CopyTo(code.AsSpan(PRESERVING_ORIGINAL_CODE_ADDRESS_OFFSET, Address.BYTES_LENGTH));
             return new EVMByteCode(code);
         }

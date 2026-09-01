@@ -9,8 +9,6 @@ namespace EtherSharp.Query;
 
 internal sealed class WithCallerQuery<T> : IQuery, IQuery<T>
 {
-    private static Address QuerierAddress { get; } = GetTransientAddress(IQuerier.Code.Runtime.ByteCode.Span);
-
     private readonly Address _caller;
     private readonly IQuery<T> _query;
     private readonly QueryPlan _innerPlan;
@@ -41,8 +39,6 @@ internal sealed class WithCallerQuery<T> : IQuery, IQuery<T>
 
     void IQuery<T>.AddTo(IQueryPlan plan)
     {
-        var querierAddress = QuerierAddress;
-
         if(_innerPlan.StateOverrides is { } innerOverrides)
         {
             foreach(var (address, accountOverride) in innerOverrides)
@@ -51,17 +47,16 @@ internal sealed class WithCallerQuery<T> : IQuery, IQuery<T>
             }
         }
 
-        plan.AddStateOverride(querierAddress, new AccountOverride(code: IQuerier.Code.Runtime.ByteCode));
+        plan.AddStateOverride(IQuerier.StateOverride.Address, IQuerier.StateOverride.Account);
 
         if(_originalByteCode is not { } originalByteCode)
         {
-            var delegateCode = IQuerierDelegate.Code.Create(in querierAddress);
-            plan.AddStateOverride(_caller, new AccountOverride(code: delegateCode.ByteCode));
+            plan.AddStateOverride(_caller, new AccountOverride(code: IQuerierDelegate.Code.Runtime.ByteCode));
         }
         else
         {
             var originalCodeAddress = GetTransientAddress(originalByteCode.ByteCode.Span);
-            var delegateCode = IQuerierDelegate.Code.CreatePreserving(in querierAddress, in originalCodeAddress);
+            var delegateCode = IQuerierDelegate.Code.CreatePreserving(in originalCodeAddress);
             plan.AddStateOverride(
                 _caller,
                 new AccountOverride(code: delegateCode.ByteCode));
