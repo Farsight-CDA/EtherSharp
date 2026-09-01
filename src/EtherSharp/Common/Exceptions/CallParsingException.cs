@@ -34,14 +34,46 @@ public abstract class CallParsingException(string message, Exception? innerExcep
     /// <summary>
     /// Thrown when return data cannot be decoded for the expected ABI.
     /// </summary>
-    /// <param name="returnData">Raw data returned by the call.</param>
-    /// <param name="parsingException">Underlying exception produced by the decoder, if any.</param>
-    public sealed class MalformedReturnDataException(ReadOnlyMemory<byte> returnData, Exception? parsingException = null)
-        : CallParsingException("Call returned malformed data. Check your ABI", parsingException)
+    public sealed class MalformedReturnDataException : CallParsingException
     {
+        /// <summary>
+        /// Creates an exception for malformed return data without additional details.
+        /// </summary>
+        /// <param name="returnData">Raw data returned by the call.</param>
+        public MalformedReturnDataException(ReadOnlyMemory<byte> returnData)
+            : this(returnData, "Call returned malformed data. Check your ABI", null)
+        {
+        }
+
+        /// <summary>
+        /// Creates an exception for malformed return data with a reason describing the failure.
+        /// </summary>
+        /// <param name="returnData">Raw data returned by the call.</param>
+        /// <param name="reason">Reason the return data is malformed.</param>
+        public MalformedReturnDataException(ReadOnlyMemory<byte> returnData, string reason)
+            : this(returnData, $"Call returned malformed data: {reason}", null)
+        {
+        }
+
+        /// <summary>
+        /// Creates an exception for malformed return data caused by a decoding exception.
+        /// </summary>
+        /// <param name="returnData">Raw data returned by the call.</param>
+        /// <param name="parsingException">Underlying exception produced by the decoder.</param>
+        public MalformedReturnDataException(ReadOnlyMemory<byte> returnData, Exception parsingException)
+            : this(returnData, "Call returned malformed data. Check your ABI", parsingException)
+        {
+        }
+
+        private MalformedReturnDataException(ReadOnlyMemory<byte> returnData, string message, Exception? parsingException)
+            : base(message, parsingException)
+        {
+            ReturnData = returnData;
+        }
+
         /// <summary>
         /// Raw return data from the call.
         /// </summary>
-        public ReadOnlyMemory<byte> ReturnData { get; } = returnData;
+        public ReadOnlyMemory<byte> ReturnData { get; }
     }
 }
