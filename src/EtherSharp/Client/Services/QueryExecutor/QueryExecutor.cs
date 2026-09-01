@@ -39,13 +39,8 @@ internal sealed class QueryExecutor(
 
         var outputs = new ReadOnlyMemory<byte>[plan.Queries.Count];
 
-        bool supportsCancun = _client.IsInitialized && _client.CompatibilityReport is not null && _client.CompatibilityReport.SupportsPush0;
-        var querier = supportsCancun && (options.TargetHeight == TargetHeight.Latest || options.TargetHeight == TargetHeight.Pending)
-            ? IQuerier.Code.Cancun.Flash
-            : IQuerier.Code.London.Flash;
-
-        int maxPayloadSize = _flashCallExecutor.GetMaxPayloadSize(querier, gasLimit, options.TargetHeight);
-        int maxResultSize = _flashCallExecutor.GetMaxResultSize(querier, options.TargetHeight);
+        int maxPayloadSize = _flashCallExecutor.GetMaxPayloadSize(IQuerier.Code.Flash, gasLimit, options.TargetHeight);
+        int maxResultSize = _flashCallExecutor.GetMaxResultSize(IQuerier.Code.Flash, options.TargetHeight);
         var buffer = ReadOnlyMemory<byte>.Empty;
         int requestCount = 0;
 
@@ -74,7 +69,7 @@ internal sealed class QueryExecutor(
                     }
 
                     var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
-                        querier,
+                        IQuerier.Code.Flash,
                         IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
                         gasLimit,
                         options with { StateOverrides = plan.StateOverrides },

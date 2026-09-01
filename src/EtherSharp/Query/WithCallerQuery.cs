@@ -9,7 +9,7 @@ namespace EtherSharp.Query;
 
 internal sealed class WithCallerQuery<T> : IQuery, IQuery<T>
 {
-    private static Address QuerierAddress { get; } = GetTransientAddress(IQuerier.Code.London.Runtime.ByteCode.Span);
+    private static Address QuerierAddress { get; } = GetTransientAddress(IQuerier.Code.Runtime.ByteCode.Span);
 
     private readonly Address _caller;
     private readonly IQuery<T> _query;
@@ -51,7 +51,7 @@ internal sealed class WithCallerQuery<T> : IQuery, IQuery<T>
             }
         }
 
-        plan.AddStateOverride(querierAddress, new AccountOverride(code: IQuerier.Code.London.Runtime.ByteCode));
+        plan.AddStateOverride(querierAddress, new AccountOverride(code: IQuerier.Code.Runtime.ByteCode));
 
         if(_originalByteCode is not { } originalByteCode)
         {
