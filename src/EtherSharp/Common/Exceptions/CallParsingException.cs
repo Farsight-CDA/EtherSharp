@@ -35,8 +35,8 @@ public abstract class CallParsingException(string message, Exception? innerExcep
     /// Thrown when return data cannot be decoded for the expected ABI.
     /// </summary>
     /// <param name="returnData">Raw data returned by the call.</param>
-    /// <param name="parsingException">Underlying exception produced by the decoder.</param>
-    public sealed class MalformedReturnDataException(ReadOnlyMemory<byte> returnData, Exception parsingException)
+    /// <param name="parsingException">Underlying exception produced by the decoder, if any.</param>
+    public sealed class MalformedReturnDataException(ReadOnlyMemory<byte> returnData, Exception? parsingException = null)
         : CallParsingException("Call returned malformed data. Check your ABI", parsingException)
     {
         /// <summary>
