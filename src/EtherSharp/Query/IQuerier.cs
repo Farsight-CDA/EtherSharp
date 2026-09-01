@@ -21,7 +21,7 @@ public partial interface IQuerier
         /// <summary>
         /// Gets the simulation-only account address derived from <see cref="Code.Runtime"/>.
         /// </summary>
-        public static Address Address { get; } = EtherSharp.Types.Address.FromBytes(Keccak256.HashData(Code.Runtime.ByteCode.Span).DangerousGetReadOnlySpan()[^EtherSharp.Types.Address.BYTES_LENGTH..]);
+        public static Address Address { get; } = Address.FromBytes(Keccak256.HashData(Code.Runtime.ByteCode.Span).DangerousGetReadOnlySpan()[^Address.BYTES_LENGTH..]);
 
         /// <summary>
         /// Gets the account override that installs the querier runtime at <see cref="Address"/>.

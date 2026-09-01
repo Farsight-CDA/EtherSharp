@@ -80,12 +80,12 @@ public readonly partial struct UInt256
 
     public static UInt256 operator ++(in UInt256 a)
     {
-        Add(in a, UInt256.One, out var res);
+        Add(in a, One, out var res);
         return res;
     }
 
     public static UInt256 operator checked ++(in UInt256 a)
-        => Add(in a, UInt256.One, out var res)
+        => Add(in a, One, out var res)
             ? throw new OverflowException($"Overflow in addition {a}++")
             : res;
 
@@ -102,12 +102,12 @@ public readonly partial struct UInt256
 
     public static UInt256 operator --(in UInt256 a)
     {
-        Subtract(in a, UInt256.One, out var res);
+        Subtract(in a, One, out var res);
         return res;
     }
 
     public static UInt256 operator checked --(in UInt256 a)
-        => Subtract(in a, UInt256.One, out var res)
+        => Subtract(in a, One, out var res)
             ? throw new OverflowException($"Underflow in subtraction {a} - 1")
             : res;
 
@@ -191,13 +191,13 @@ public readonly partial struct UInt256
 
     public static UInt256 operator <<(in UInt256 a, int n)
     {
-        UInt256.LeftShift(a, n, out var res);
+        LeftShift(a, n, out var res);
         return res;
     }
 
     public static UInt256 operator >>(in UInt256 a, int n)
     {
-        UInt256.RightShift(a, n, out var res);
+        RightShift(a, n, out var res);
         return res;
     }
 

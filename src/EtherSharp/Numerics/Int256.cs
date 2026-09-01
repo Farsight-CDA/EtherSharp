@@ -122,7 +122,7 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         var mt = m;
         if(mt.IsOne)
         {
-            res = Int256.Zero;
+            res = Zero;
             return;
         }
 

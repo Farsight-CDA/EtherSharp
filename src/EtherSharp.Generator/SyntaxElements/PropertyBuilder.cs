@@ -102,7 +102,7 @@ public sealed class PropertyBuilder(string type, string name) : ISyntaxBuilder
         };
 
     public override int GetHashCode()
-        => System.HashCode.Combine(
+        => HashCode.Combine(
             Type,
             Name
         );
