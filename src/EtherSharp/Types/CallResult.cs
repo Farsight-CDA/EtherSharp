@@ -63,7 +63,7 @@ public abstract record CallResult<T>(Address? CallTarget)
         }
         catch(Exception ex)
         {
-            return new Malformed(callTarget, data, new CallParsingException.MalformedCallDataException(data, ex));
+            return new Malformed(callTarget, data, new CallParsingException.MalformedReturnDataException(data, ex));
         }
     }
 }

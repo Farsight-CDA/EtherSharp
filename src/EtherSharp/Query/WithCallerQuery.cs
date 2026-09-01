@@ -106,11 +106,11 @@ internal sealed class WithCallerQuery<T> : IQuery, IQuery<T>
         }
         catch(Exception exception) when(exception is ArgumentException or ArgumentOutOfRangeException or IndexOutOfRangeException)
         {
-            throw new CallParsingException.MalformedCallDataException(returnData, exception);
+            throw new CallParsingException.MalformedReturnDataException(returnData, exception);
         }
 
         return offset != returnData.Length
-            ? throw new CallParsingException.RemainingCallDataException(returnData, offset)
+            ? throw new CallParsingException.RemainingReturnDataException(returnData, offset)
             : _query.ReadResultFrom(innerResults);
     }
 

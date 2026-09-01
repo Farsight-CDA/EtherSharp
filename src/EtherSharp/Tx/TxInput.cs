@@ -45,7 +45,7 @@ internal static class TxInputDecoder
     {
         if(data.Length == 0)
         {
-            throw new CallParsingException.EmptyCallDataException();
+            throw new CallParsingException.EmptyReturnDataException();
         }
 
         try
@@ -56,7 +56,7 @@ internal static class TxInputDecoder
         }
         catch(Exception ex)
         {
-            throw new CallParsingException.MalformedCallDataException(data, ex);
+            throw new CallParsingException.MalformedReturnDataException(data, ex);
         }
     }
 }

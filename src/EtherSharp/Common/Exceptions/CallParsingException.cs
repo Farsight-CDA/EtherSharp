@@ -10,20 +10,20 @@ public abstract class CallParsingException(string message, Exception? innerExcep
     /// <summary>
     /// Thrown when a call returns no bytes but return data was expected.
     /// </summary>
-    public sealed class EmptyCallDataException() : CallParsingException("Call returned no data", null);
+    public sealed class EmptyReturnDataException() : CallParsingException("Call returned no data", null);
 
     /// <summary>
-    /// Thrown when a decoder leaves unconsumed bytes in the returned call data.
+    /// Thrown when a decoder leaves unconsumed bytes in the returned data.
     /// </summary>
-    /// <param name="calldata">Raw data returned by the call.</param>
+    /// <param name="returnData">Raw data returned by the call.</param>
     /// <param name="bytesConsumed">Number of bytes consumed by the decoder.</param>
-    public sealed class RemainingCallDataException(ReadOnlyMemory<byte> calldata, int bytesConsumed)
-        : CallParsingException($"Call returned more data than expected, only consumed {bytesConsumed} out of {calldata.Length} bytes", null)
+    public sealed class RemainingReturnDataException(ReadOnlyMemory<byte> returnData, int bytesConsumed)
+        : CallParsingException($"Call returned more data than expected, only consumed {bytesConsumed} out of {returnData.Length} bytes", null)
     {
         /// <summary>
         /// Raw return data from the call.
         /// </summary>
-        public ReadOnlyMemory<byte> CallData { get; } = calldata;
+        public ReadOnlyMemory<byte> ReturnData { get; } = returnData;
 
         /// <summary>
         /// Number of bytes consumed by the decoder before it stopped.
@@ -32,16 +32,16 @@ public abstract class CallParsingException(string message, Exception? innerExcep
     }
 
     /// <summary>
-    /// Thrown when returned call data cannot be decoded for the expected ABI.
+    /// Thrown when return data cannot be decoded for the expected ABI.
     /// </summary>
-    /// <param name="calldata">Raw data returned by the call.</param>
+    /// <param name="returnData">Raw data returned by the call.</param>
     /// <param name="parsingException">Underlying exception produced by the decoder.</param>
-    public sealed class MalformedCallDataException(ReadOnlyMemory<byte> calldata, Exception parsingException)
+    public sealed class MalformedReturnDataException(ReadOnlyMemory<byte> returnData, Exception parsingException)
         : CallParsingException("Call returned malformed data. Check your ABI", parsingException)
     {
         /// <summary>
         /// Raw return data from the call.
         /// </summary>
-        public ReadOnlyMemory<byte> CallData { get; } = calldata;
+        public ReadOnlyMemory<byte> ReturnData { get; } = returnData;
     }
 }
