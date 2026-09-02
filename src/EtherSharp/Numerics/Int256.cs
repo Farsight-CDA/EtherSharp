@@ -318,8 +318,8 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         }
     }
 
-    // Mod sets res to (sign x) * { abs(x) modulus abs(y) }
-    // If y == 0, z is set to 0 (OBS: differs from the big.Int)
+    // Mod returns (sign x) * { abs(x) modulus abs(y) }.
+    // If y is zero, UInt256.Mod throws DivideByZeroException.
     public static Int256 Mod(in Int256 x, in Int256 y)
     {
         Int256 xIn = x, yIn = y;
