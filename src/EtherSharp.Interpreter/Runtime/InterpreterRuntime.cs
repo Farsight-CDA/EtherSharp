@@ -936,6 +936,25 @@ public class InterpreterRuntime(
                 }
                 case EvmOpcode.Invalid:
                     return callFrame.Revert();
+                case EvmOpcode.SelfDestruct:
+                {
+                    if(callFrame.IsStatic
+                        || !callFrame.Stack.TryPop(out Address beneficiary))
+                    {
+                        return callFrame.Revert();
+                    }
+
+                    var balance = await callFrame.AccountStorage.GetBalanceAsync();
+                    if(balance != UInt256.Zero && beneficiary != callFrame.To)
+                    {
+                        var beneficiaryStorage = _storage.GetAccountStorage(beneficiary);
+                        var beneficiaryBalance = await beneficiaryStorage.GetBalanceAsync();
+                        callFrame.AccountStorage.SetBalance(UInt256.Zero);
+                        beneficiaryStorage.SetBalance(beneficiaryBalance + balance);
+                    }
+
+                    return new TxCallResult(true, ReadOnlyMemory<byte>.Empty);
+                }
                 default:
                     return Enum.IsDefined(opcode)
                         ? throw new NotImplementedException($"Opcode {opcode} at program counter {programCounter} is not implemented.")
