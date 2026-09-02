@@ -9,9 +9,9 @@ using System.Diagnostics;
 namespace EtherSharp.Interpreter.Runtime;
 
 /// <summary>
-/// Executes EVM calls against a supplied global state.
+/// Executes EVM transactions and call simulations against a supplied global state.
 /// </summary>
-/// <param name="context">The block and transaction context for calls.</param>
+/// <param name="context">The block and transaction context for execution.</param>
 /// <param name="globalStateProvider">The provider used to read global state.</param>
 /// <param name="options">The interpreter resource limits.</param>
 public class InterpreterRuntime(
@@ -35,7 +35,7 @@ public class InterpreterRuntime(
     private readonly InterpreterStorage _storage = new(context, globalStateProvider);
 
     /// <summary>
-    /// Gets the block and transaction context for calls.
+    /// Gets the block and transaction context for execution.
     /// </summary>
     public InterpreterContext Context { get; } = context;
     /// <summary>
@@ -44,14 +44,15 @@ public class InterpreterRuntime(
     public InterpreterOptions Options { get; } = (options ?? new InterpreterOptions()).Validate();
 
     /// <summary>
-    /// Executes a call from the supplied sender.
+    /// Executes a transaction from the supplied sender and retains its state changes.
     /// </summary>
     /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
     /// <param name="to">The account whose code and storage are used.</param>
     /// <param name="value">The native value exposed through <c>msg.value</c>.</param>
     /// <param name="callData">The calldata supplied to the call.</param>
-    /// <returns>The call result.</returns>
-    public async ValueTask<TxCallResult> CallAsync(
+    /// <returns>The transaction execution result.</returns>
+    /// <remarks>The sender nonce is incremented even when EVM execution reverts.</remarks>
+    public async ValueTask<TxCallResult> ExecuteTransactionAsync(
         Address sender,
         Address to,
         UInt256 value,
@@ -61,6 +62,10 @@ public class InterpreterRuntime(
         var storageSnapshot = _storage.TakeSnapshot();
         try
         {
+            var senderStorage = _storage.GetAccountStorage(sender);
+            ulong senderNonce = await senderStorage.GetNonceAsync();
+            senderStorage.SetNonce(checked(senderNonce + 1));
+
             return await ExecuteMessageCallAsync(new MessageCall(
                 sender,
                 sender,
@@ -77,6 +82,47 @@ public class InterpreterRuntime(
         {
             _storage.Reset(storageSnapshot);
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Simulates a call from the supplied sender and discards all state changes.
+    /// </summary>
+    /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
+    /// <param name="to">The account whose code and storage are used.</param>
+    /// <param name="value">The native value exposed through <c>msg.value</c>.</param>
+    /// <param name="callData">The calldata supplied to the call.</param>
+    /// <returns>The simulated call result.</returns>
+    /// <remarks>The sender nonce is incremented during execution, then restored with the other simulated state changes.</remarks>
+    public async ValueTask<TxCallResult> SimulateCallAsync(
+        Address sender,
+        Address to,
+        UInt256 value,
+        ReadOnlyMemory<byte> callData
+    )
+    {
+        var storageSnapshot = _storage.TakeSnapshot();
+        try
+        {
+            var senderStorage = _storage.GetAccountStorage(sender);
+            ulong senderNonce = await senderStorage.GetNonceAsync();
+            senderStorage.SetNonce(checked(senderNonce + 1));
+
+            return await ExecuteMessageCallAsync(new MessageCall(
+                sender,
+                sender,
+                to,
+                to,
+                sender,
+                value,
+                callData,
+                0,
+                false
+            ));
+        }
+        finally
+        {
+            _storage.Reset(storageSnapshot);
         }
     }
 
