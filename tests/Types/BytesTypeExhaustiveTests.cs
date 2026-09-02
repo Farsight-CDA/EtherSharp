@@ -97,9 +97,13 @@ public sealed class BytesTypeExhaustiveTests
         {
             Assert.Equal(first[i], firstValue[i]);
         }
+        Assert.Equal(first[^1], firstValue[^1]);
+        Assert.Equal(first[0], firstValue[^length]);
 
         Assert.Throws<IndexOutOfRangeException>(() => _ = firstValue[-1]);
         Assert.Throws<IndexOutOfRangeException>(() => _ = firstValue[length]);
+        Assert.Throws<IndexOutOfRangeException>(() => _ = firstValue[^0]);
+        Assert.Throws<IndexOutOfRangeException>(() => _ = firstValue[^(length + 1)]);
 
         Span<byte> copied = stackalloc byte[length];
         Assert.True(firstValue.TryWriteTo(copied));

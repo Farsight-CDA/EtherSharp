@@ -9,7 +9,7 @@ namespace EtherSharp.Types;
 /// Represents an Ethereum compatible address.
 /// </summary>
 [JsonConverter(typeof(AddressConverter))]
-public readonly struct Address : IEquatable<Address>, IComparable<Address>
+public readonly struct Address : IEquatable<Address>, IComparable<Address>, IStackValue<Address>
 {
     /// <summary>
     /// Character length of an address including 0x prefix.
@@ -26,6 +26,17 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>
     public static Address Zero => default;
 
     internal readonly Bytes20 _bytes;
+
+    static Address IStackValue<Address>.FromStackWord(in Bytes32 value)
+        => FromBytes(value.DangerousGetReadOnlySpan()[^BYTES_LENGTH..]);
+
+    static Bytes32 IStackValue<Address>.ToStackWord(in Address value)
+    {
+        Span<byte> bytes = stackalloc byte[Bytes32.BYTE_LENGTH];
+        bytes[..(Bytes32.BYTE_LENGTH - BYTES_LENGTH)].Clear();
+        value.CopyTo(bytes[(Bytes32.BYTE_LENGTH - BYTES_LENGTH)..]);
+        return Bytes32.FromBytes(bytes);
+    }
 
     private Address(in Bytes20 bytes)
     {
@@ -137,15 +148,6 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>
     /// <returns></returns>
     public static Address FromBytes(ReadOnlySpan<byte> b)
         => new(Bytes20.FromBytes(b));
-
-    /// <summary>
-    /// Creates an <see cref="Address"/> from the leading 20 bytes of a <see cref="Bytes32"/>,
-    /// matching Solidity's <c>address(bytes20(value))</c> conversion.
-    /// </summary>
-    /// <param name="value">The fixed-size byte value to convert.</param>
-    /// <returns>The address represented by the leading 20 bytes.</returns>
-    public static Address FromBytes(in Bytes32 value)
-        => FromBytes(value.DangerousGetReadOnlySpan()[..BYTES_LENGTH]);
 
     /// <inheritdoc/>
     [OverloadResolutionPriority(1)]

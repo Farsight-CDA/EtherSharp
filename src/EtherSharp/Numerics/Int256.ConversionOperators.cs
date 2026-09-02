@@ -8,8 +8,14 @@ using System.Runtime.InteropServices;
 
 namespace EtherSharp.Numerics;
 
-public readonly partial struct Int256
+public readonly partial struct Int256 : IStackValue<Int256>
 {
+    static Int256 IStackValue<Int256>.FromStackWord(in Bytes32 value)
+        => (Int256) value;
+
+    static Bytes32 IStackValue<Int256>.ToStackWord(in Int256 value)
+        => (Bytes32) value;
+
     private static readonly BigInteger _minValueAsBigInteger = -(BigInteger.One << 255);
     private static readonly BigInteger _maxValueAsBigInteger = (BigInteger.One << 255) - BigInteger.One;
 

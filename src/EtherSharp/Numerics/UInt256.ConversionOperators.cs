@@ -8,8 +8,14 @@ using System.Runtime.InteropServices;
 
 namespace EtherSharp.Numerics;
 
-public readonly partial struct UInt256
+public readonly partial struct UInt256 : IStackValue<UInt256>
 {
+    static UInt256 IStackValue<UInt256>.FromStackWord(in Bytes32 value)
+        => (UInt256) value;
+
+    static Bytes32 IStackValue<UInt256>.ToStackWord(in UInt256 value)
+        => (Bytes32) value;
+
     /// <summary>
     /// Interprets the bytes as an unsigned 256-bit integer in big-endian byte order.
     /// </summary>

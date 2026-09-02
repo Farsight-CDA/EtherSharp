@@ -58,6 +58,9 @@
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
 			<_Parameter1>EtherSharp.ERC</_Parameter1>
 		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>EtherSharp.Interpreter</_Parameter1>
+		</AssemblyAttribute>
 	</ItemGroup>
 
 	<ItemGroup>

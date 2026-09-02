@@ -33,6 +33,13 @@ public interface IFixedBytes<TSelf>
     byte this[int index] { get; }
 
     /// <summary>
+    /// Gets the byte at the specified index.
+    /// </summary>
+    /// <param name="index">The index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    byte this[Index index] { get; }
+
+    /// <summary>
     /// Copies the bytes in this value into <paramref name="destination"/>.
     /// </summary>
     /// <param name="destination">The destination span.</param>
@@ -86,7 +93,7 @@ for(var i = 1; i <= 32; i++)
 /// Represents an immutable <#= i #>-byte fixed-size value.
 /// </summary>
 [JsonConverter(typeof(Bytes<#= i #>Converter))]
-public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<Bytes<#= i #>>, IFixedBytes<Bytes<#= i #>>
+public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<Bytes<#= i #>>, IFixedBytes<Bytes<#= i #>><#= i == 32 ? ", IStackValue<Bytes32>" : string.Empty #>
 {
     /// <summary>
     /// Gets the fixed length of the value, in bytes.
@@ -110,6 +117,14 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
     /// Gets the zero value for <see cref="Bytes<#= i #>"/>.
     /// </summary>
     public static Bytes<#= i #> Zero => default;
+<# if(i == 32) { #>
+
+    static Bytes32 IStackValue<Bytes32>.FromStackWord(in Bytes32 value)
+        => value;
+
+    static Bytes32 IStackValue<Bytes32>.ToStackWord(in Bytes32 value)
+        => value;
+<# } #>
 
     static int IFixedBytes<Bytes<#= i #>>.BYTE_LENGTH => BYTE_LENGTH;
 
@@ -119,6 +134,14 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
     /// <param name="index">The zero-based index of the byte to retrieve.</param>
     /// <returns>The byte at the specified index.</returns>
     public readonly byte this[int index]
+        => AsReadOnlySpan()[index];
+
+    /// <summary>
+    /// Gets the byte at the specified index.
+    /// </summary>
+    /// <param name="index">The index of the byte to retrieve.</param>
+    /// <returns>The byte at the specified index.</returns>
+    public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
     private Bytes<#= i #>(ReadOnlySpan<byte> bytes)
