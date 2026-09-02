@@ -11,6 +11,7 @@ internal sealed class StorageJournal
         int PersistentStorageCount,
         int TransientStorageCount,
         int BalanceCount,
+        int NonceCount,
         int CodeCount,
         int LogCount
     );
@@ -25,6 +26,7 @@ internal sealed class StorageJournal
     private readonly List<StorageWrite> _persistentStorageWrites = [];
     private readonly List<StorageWrite> _transientStorageWrites = [];
     private readonly List<UInt256> _balanceWrites = [];
+    private readonly List<ulong> _nonceWrites = [];
     private readonly List<EVMByteCode> _codeWrites = [];
     private readonly List<JournalLog> _logs = [];
 
@@ -32,6 +34,7 @@ internal sealed class StorageJournal
         _persistentStorageWrites.Count,
         _transientStorageWrites.Count,
         _balanceWrites.Count,
+        _nonceWrites.Count,
         _codeWrites.Count,
         _logs.Count
     );
@@ -44,6 +47,9 @@ internal sealed class StorageJournal
 
     public void SetBalance(in UInt256 value)
         => _balanceWrites.Add(value);
+
+    public void SetNonce(ulong value)
+        => _nonceWrites.Add(value);
 
     public void SetCode(in EVMByteCode value)
         => _codeWrites.Add(value);
@@ -97,6 +103,18 @@ internal sealed class StorageJournal
         return true;
     }
 
+    public bool TryGetNonce(out ulong value)
+    {
+        if(_nonceWrites.Count == 0)
+        {
+            value = default;
+            return false;
+        }
+
+        value = _nonceWrites[^1];
+        return true;
+    }
+
     public bool TryGetCode(out EVMByteCode value)
     {
         if(_codeWrites.Count == 0)
@@ -117,6 +135,8 @@ internal sealed class StorageJournal
             || snapshot.TransientStorageCount > _transientStorageWrites.Count
             || snapshot.BalanceCount < 0
             || snapshot.BalanceCount > _balanceWrites.Count
+            || snapshot.NonceCount < 0
+            || snapshot.NonceCount > _nonceWrites.Count
             || snapshot.CodeCount < 0
             || snapshot.CodeCount > _codeWrites.Count
             || snapshot.LogCount < 0
@@ -134,6 +154,7 @@ internal sealed class StorageJournal
             _transientStorageWrites.Count - snapshot.TransientStorageCount
         );
         _balanceWrites.RemoveRange(snapshot.BalanceCount, _balanceWrites.Count - snapshot.BalanceCount);
+        _nonceWrites.RemoveRange(snapshot.NonceCount, _nonceWrites.Count - snapshot.NonceCount);
         _codeWrites.RemoveRange(snapshot.CodeCount, _codeWrites.Count - snapshot.CodeCount);
         _logs.RemoveRange(snapshot.LogCount, _logs.Count - snapshot.LogCount);
     }

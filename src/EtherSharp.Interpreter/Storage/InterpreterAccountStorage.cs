@@ -15,6 +15,7 @@ internal sealed class InterpreterAccountStorage
     private readonly StorageJournal _journal = new();
     private readonly Dictionary<Bytes32, Bytes32> _persistentStorageCache = [];
     private UInt256? _balanceCache;
+    private ulong? _nonceCache;
     private AccountCode? _accountCodeCache;
 
     public StorageJournal.Snapshot CurrentSnapshot => _journal.CurrentSnapshot;
@@ -77,6 +78,25 @@ internal sealed class InterpreterAccountStorage
 
     public void SetBalance(in UInt256 value)
         => _journal.SetBalance(in value);
+
+    public async ValueTask<ulong> GetNonceAsync()
+    {
+        if(_journal.TryGetNonce(out ulong value))
+        {
+            return value;
+        }
+        if(_nonceCache.HasValue)
+        {
+            return _nonceCache.Value;
+        }
+
+        value = await _globalStateProvider.GetNonceAsync(_context, _address);
+        _nonceCache = value;
+        return value;
+    }
+
+    public void SetNonce(ulong value)
+        => _journal.SetNonce(value);
 
     public async ValueTask<EVMByteCode> GetCodeAsync()
         => _journal.TryGetCode(out var value)

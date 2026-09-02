@@ -27,6 +27,14 @@ public interface IGlobalStateProvider
     public Task<UInt256> GetBalanceAsync(InterpreterContext context, Address address);
 
     /// <summary>
+    /// Gets the transaction count (nonce) for an account.
+    /// </summary>
+    /// <param name="context">The context at which state is read.</param>
+    /// <param name="address">The account address.</param>
+    /// <returns>The account's transaction count.</returns>
+    public Task<ulong> GetNonceAsync(InterpreterContext context, Address address);
+
+    /// <summary>
     /// Gets a persistent storage value for an account.
     /// </summary>
     /// <param name="context">The context at which state is read.</param>
