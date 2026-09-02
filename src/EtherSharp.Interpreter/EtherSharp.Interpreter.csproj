@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<IsAotCompatible>true</IsAotCompatible>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Title>EtherSharp.Interpreter</Title>
+		<Description>A barebones EVM bytecode interpreter.</Description>
+		<Company>Farsight CDA Crypto Development &amp; Analytics UG</Company>
+		<Authors>Playwo</Authors>
+		<RepositoryUrl>https://github.com/farsight-CDA/EtherSharp</RepositoryUrl>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageIcon>logo.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\EtherSharp\EtherSharp.csproj" PrivateAssets="" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="../../resources/logo.png" Pack="true" PackagePath="" />
+		<None Include="../../README.md" Pack="true" PackagePath="" />
+	</ItemGroup>
+</Project>

@@ -12,5 +12,6 @@
   </Folder>
   <Project Path="src/EtherSharp.ERC/EtherSharp.ERC.csproj" />
   <Project Path="src/EtherSharp.Generator/EtherSharp.Generator.csproj" />
+  <Project Path="src/EtherSharp.Interpreter/EtherSharp.Interpreter.csproj" />
   <Project Path="src/EtherSharp/EtherSharp.csproj" />
 </Solution>

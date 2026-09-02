@@ -12,6 +12,7 @@
   <ItemGroup>
 	  <ProjectReference Include="..\src\EtherSharp\EtherSharp.csproj" />
 	  <ProjectReference Include="..\src\EtherSharp.ERC\EtherSharp.ERC.csproj" />
+	  <ProjectReference Include="..\src\EtherSharp.Interpreter\EtherSharp.Interpreter.csproj" />
     <PackageReference Include="coverlet.collector" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
