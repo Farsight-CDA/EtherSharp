@@ -926,6 +926,16 @@ public class InterpreterRuntime(
                     callFrame.Stack.Push(callResult.Success ? UInt256.One : UInt256.Zero);
                     break;
                 }
+                case EvmOpcode.Revert:
+                {
+                    return callFrame.Stack.TryPop(out UInt256 offset, out UInt256 length)
+                        ? callFrame.Revert(
+                            callFrame.Memory.Access(offset, length).ReadOnlyMemory
+                        )
+                        : callFrame.Revert();
+                }
+                case EvmOpcode.Invalid:
+                    return callFrame.Revert();
                 default:
                     return Enum.IsDefined(opcode)
                         ? throw new NotImplementedException($"Opcode {opcode} at program counter {programCounter} is not implemented.")
