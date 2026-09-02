@@ -76,15 +76,6 @@ public interface IEventsModule<TLog> : IConfiguredEventsModule<TLog>
     public IEventsModule<TLog> WithTopic3(params IEnumerable<Bytes32> topics);
 
     /// <summary>
-    /// Applies a complete immutable event filter to this module.
-    /// </summary>
-    /// <param name="eventFilter">The address and topic conditions to apply.</param>
-    /// <returns>The configured module.</returns>
-    /// <remarks>Replaces any address or topic conditions previously configured on this module.</remarks>
-    /// <exception cref="InvalidOperationException">A complete event filter is already applied.</exception>
-    public IConfiguredEventsModule<TLog> WithEventFilter(in EventFilter eventFilter);
-
-    /// <summary>
     /// Restricts logs to any of the provided emitting contract addresses.
     /// </summary>
     /// <param name="contractAddresses">Contract addresses to match (OR semantics).</param>

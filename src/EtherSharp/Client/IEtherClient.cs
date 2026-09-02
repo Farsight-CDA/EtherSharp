@@ -121,10 +121,25 @@ public interface IEtherClient : IAsyncDisposable
     public IEventsModule<TEvent> Events<TEvent>() where TEvent : ITxLog<TEvent>;
 
     /// <summary>
+    /// Gets a typed event-stream module with a complete event filter.
+    /// </summary>
+    /// <typeparam name="TEvent">Event DTO implementing <see cref="ITxLog{TEvent}"/>.</typeparam>
+    /// <param name="eventFilter">The address and topic conditions to apply.</param>
+    /// <returns>A configured events module specialized for <typeparamref name="TEvent"/>.</returns>
+    public IConfiguredEventsModule<TEvent> Events<TEvent>(in EventFilter eventFilter) where TEvent : ITxLog<TEvent>;
+
+    /// <summary>
     /// Gets an untyped event-stream module for raw <see cref="Log"/> entries.
     /// </summary>
     /// <returns>An events module for raw logs.</returns>
     public IEventsModule<Log> Events() => Events<Log>();
+
+    /// <summary>
+    /// Gets an untyped event-stream module for raw <see cref="Log"/> entries with a complete event filter.
+    /// </summary>
+    /// <param name="eventFilter">The address and topic conditions to apply.</param>
+    /// <returns>A configured events module for raw logs.</returns>
+    public IConfiguredEventsModule<Log> Events(in EventFilter eventFilter) => Events<Log>(eventFilter);
 
     /// <summary>
     /// Exposes internal client capabilities used by advanced infrastructure components.

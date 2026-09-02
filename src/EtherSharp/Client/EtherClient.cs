@@ -172,6 +172,12 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         return new EventsModule<TEvent>(_rpcTransport, _ethRpcModule, _subscriptionsManager, _jsonSerializerContext);
     }
 
+    IConfiguredEventsModule<TEvent> IEtherClient.Events<TEvent>(in EventFilter eventFilter)
+    {
+        AssertReady();
+        return new EventsModule<TEvent>(_rpcTransport, _ethRpcModule, _subscriptionsManager, _jsonSerializerContext, eventFilter);
+    }
+
     void IEtherClient.SetDefaultCallGasLimits(ulong? ethCallGasLimit, ulong? flashCallGasLimit)
         => _callGasLimitSettings.Set(ethCallGasLimit, flashCallGasLimit);
 

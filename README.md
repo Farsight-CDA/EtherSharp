@@ -253,9 +253,7 @@ var tokenEvents = new EventFilterBuilder()
     .WithTopic0(IERC20.Logs.TransferEvent.Topic, IERC20.Logs.ApprovalEvent.Topic)
     .Build();
 
-var logs = await readClient.Events()
-    .WithEventFilter(tokenEvents)
-    .GetAllAsync();
+var logs = await readClient.Events(tokenEvents).GetAllAsync();
 ```
 
 #### Real-time Subscriptions
