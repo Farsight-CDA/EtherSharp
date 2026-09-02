@@ -53,16 +53,16 @@ public interface IFlashCode
         byte[] initCode = new byte[GetInitCodeLength(runtimeCode)];
         var header = initCode.AsSpan(0, RUNTIME_OFFSET);
 
-        header[0] = 0x61; // PUSH2 runtime length
+        header[0] = (byte) EvmOpcode.Push2;
         BinaryPrimitives.WriteUInt16BigEndian(header[1..], (ushort) runtimeCode.Length);
-        header[3] = 0x60; // PUSH1 runtime offset
+        header[3] = (byte) EvmOpcode.Push1;
         header[4] = RUNTIME_OFFSET;
-        header[5] = 0x3D; // RETURNDATASIZE
-        header[6] = 0x39; // CODECOPY
-        header[7] = 0x61; // PUSH2 runtime length
+        header[5] = (byte) EvmOpcode.ReturnDataSize;
+        header[6] = (byte) EvmOpcode.CodeCopy;
+        header[7] = (byte) EvmOpcode.Push2;
         BinaryPrimitives.WriteUInt16BigEndian(header[8..], (ushort) runtimeCode.Length);
-        header[10] = 0x3D; // RETURNDATASIZE
-        header[11] = 0xF3; // RETURN
+        header[10] = (byte) EvmOpcode.ReturnDataSize;
+        header[11] = (byte) EvmOpcode.Return;
         runtimeCode.ByteCode.Span.CopyTo(initCode.AsSpan(RUNTIME_OFFSET));
 
         return new EVMByteCode(initCode);

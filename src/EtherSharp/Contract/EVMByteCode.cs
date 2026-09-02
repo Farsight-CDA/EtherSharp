@@ -33,9 +33,9 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// <summary>
     /// Checks if the given opcode exists in the contract code, ignoring bytes used as PUSH data and compiler metadata.
     /// </summary>
-    /// <param name="opcode">The opcode byte to find.</param>
+    /// <param name="opcode">The opcode to find.</param>
     /// <returns>True if the opcode appears outside PUSH data; otherwise false.</returns>
-    public readonly bool ContainsOpcode(byte opcode)
+    public readonly bool ContainsOpcode(EvmOpcode opcode)
     {
         var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
 
@@ -43,7 +43,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
         {
             byte currentOpcode = byteCode[i];
 
-            if(currentOpcode == opcode)
+            if(currentOpcode == (byte) opcode)
             {
                 return true;
             }

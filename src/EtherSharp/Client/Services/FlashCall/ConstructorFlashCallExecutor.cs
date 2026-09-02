@@ -108,58 +108,58 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
     {
         int offset = 0;
 
-        destination[offset++] = 0x38; // CODESIZE
-        destination[offset++] = 0x3D; // RETURNDATASIZE
-        destination[offset++] = 0x3D; // RETURNDATASIZE
-        destination[offset++] = 0x39; // CODECOPY
+        destination[offset++] = (byte) EvmOpcode.CodeSize;
+        destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
+        destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
+        destination[offset++] = (byte) EvmOpcode.CodeCopy;
         offset = WritePush(destination, offset, (ulong) deploymentLength);
-        destination[offset++] = 0x60; // PUSH1
+        destination[offset++] = (byte) EvmOpcode.Push1;
         destination[offset++] = (byte) helperLength;
-        destination[offset++] = 0x3D; // RETURNDATASIZE
-        destination[offset++] = 0xF0; // CREATE
-        destination[offset++] = 0x3D; // RETURNDATASIZE
-        destination[offset++] = 0x3D; // RETURNDATASIZE
-        destination[offset++] = 0x3D; // RETURNDATASIZE
+        destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
+        destination[offset++] = (byte) EvmOpcode.Create;
+        destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
+        destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
+        destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
         offset = WritePush(destination, offset, (ulong) callLength);
         offset = WritePush(destination, offset, (ulong) (helperLength + deploymentLength));
-        destination[offset++] = 0x34; // CALLVALUE
-        destination[offset++] = 0x86; // DUP7
+        destination[offset++] = (byte) EvmOpcode.CallValue;
+        destination[offset++] = (byte) EvmOpcode.Dup7;
 
         if(flashCallGasLimit is null)
         {
-            destination[offset++] = 0x5A; // GAS
+            destination[offset++] = (byte) EvmOpcode.Gas;
         }
         else
         {
             offset = WritePush(destination, offset, flashCallGasLimit.Value);
         }
 
-        destination[offset++] = 0xF1; // CALL
-        destination[offset++] = 0x81; // DUP2
-        destination[offset++] = 0x53; // MSTORE8
-        destination[offset++] = 0x3D; // RETURNDATASIZE
-        destination[offset++] = 0x81; // DUP2
-        destination[offset++] = 0x60; // PUSH1
+        destination[offset++] = (byte) EvmOpcode.Call;
+        destination[offset++] = (byte) EvmOpcode.Dup2;
+        destination[offset++] = (byte) EvmOpcode.MStore8;
+        destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
+        destination[offset++] = (byte) EvmOpcode.Dup2;
+        destination[offset++] = (byte) EvmOpcode.Push1;
         destination[offset++] = 0x01;
-        destination[offset++] = 0x3E; // RETURNDATACOPY
-        destination[offset++] = 0x3D; // RETURNDATASIZE
-        destination[offset++] = 0x60; // PUSH1
+        destination[offset++] = (byte) EvmOpcode.ReturnDataCopy;
+        destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
+        destination[offset++] = (byte) EvmOpcode.Push1;
         destination[offset++] = 0x01;
-        destination[offset++] = 0x01; // ADD
-        destination[offset++] = 0x81; // DUP2
-        destination[offset++] = 0xF3; // RETURN
+        destination[offset++] = (byte) EvmOpcode.Add;
+        destination[offset++] = (byte) EvmOpcode.Dup2;
+        destination[offset++] = (byte) EvmOpcode.Return;
     }
 
     private static int WritePush(Span<byte> destination, int offset, ulong value)
     {
         if(value == 0)
         {
-            destination[offset] = 0x3D; // RETURNDATASIZE
+            destination[offset] = (byte) EvmOpcode.ReturnDataSize;
             return offset + 1;
         }
 
         int valueLength = GetPushInstructionLength(value) - 1;
-        destination[offset] = (byte) (0x5F + valueLength);
+        destination[offset] = (byte) ((byte) EvmOpcode.Push0 + valueLength);
 
         for(int i = valueLength; i > 0; i--)
         {

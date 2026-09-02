@@ -21,7 +21,7 @@ public sealed class EVMByteCodeTests
     {
         var byteCode = CreateByteCode(0x60, 0x00, 0x52);
 
-        Assert.True(byteCode.ContainsOpcode(0x52));
+        Assert.True(byteCode.ContainsOpcode(EvmOpcode.MStore));
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public sealed class EVMByteCodeTests
     {
         var byteCode = CreateByteCode(0x60, 0x52, 0x00);
 
-        Assert.False(byteCode.ContainsOpcode(0x52));
+        Assert.False(byteCode.ContainsOpcode(EvmOpcode.MStore));
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class EVMByteCodeTests
     {
         var byteCode = CreateByteCode(0x60, 0xFF);
 
-        Assert.True(byteCode.ContainsOpcode(0x60));
+        Assert.True(byteCode.ContainsOpcode(EvmOpcode.Push1));
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class EVMByteCodeTests
 
         var byteCode = new EVMByteCode(bytes);
 
-        Assert.False(byteCode.ContainsOpcode(0x52));
+        Assert.False(byteCode.ContainsOpcode(EvmOpcode.MStore));
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public sealed class EVMByteCodeTests
     {
         var byteCode = CreateByteCode(0x61, 0xFF);
 
-        Assert.False(byteCode.ContainsOpcode(0xFF));
+        Assert.False(byteCode.ContainsOpcode(EvmOpcode.SelfDestruct));
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public sealed class EVMByteCodeTests
             0xA1, 0x64, 0x73, 0x6F, 0x6C, 0x63, 0x43, 0x52, 0xFF, 0x00,
             0x00, 0x0A);
 
-        Assert.False(byteCode.ContainsOpcode(0x52));
+        Assert.False(byteCode.ContainsOpcode(EvmOpcode.MStore));
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public sealed class EVMByteCodeTests
     {
         var byteCode = CreateByteCode(0xFF, 0x52, 0x00, 0x00);
 
-        Assert.True(byteCode.ContainsOpcode(0x52));
+        Assert.True(byteCode.ContainsOpcode(EvmOpcode.MStore));
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public sealed class EVMByteCodeTests
     {
         var byteCode = CreateByteCode(0xFF, 0x52, 0x00, 0x01);
 
-        Assert.True(byteCode.ContainsOpcode(0x52));
+        Assert.True(byteCode.ContainsOpcode(EvmOpcode.MStore));
     }
 
     [Fact]
