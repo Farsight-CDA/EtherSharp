@@ -847,6 +847,15 @@ public class InterpreterRuntime(
                     callFrame.Stack.Push(callResult.Success ? UInt256.One : UInt256.Zero);
                     break;
                 }
+                case EvmOpcode.Return:
+                {
+                    return callFrame.Stack.TryPop(out UInt256 offset, out UInt256 length)
+                        ? new TxCallResult(
+                            true,
+                            callFrame.Memory.Access(offset, length).ReadOnlyMemory
+                        )
+                        : callFrame.Revert();
+                }
                 case EvmOpcode.DelegateCall:
                 {
                     if(!callFrame.Stack.TryPop(
