@@ -39,9 +39,9 @@ public class InterpreterRuntime(
     /// </summary>
     public InterpreterContext Context { get; } = context;
     /// <summary>
-    /// Gets the immutable interpreter configuration snapshot.
+    /// Gets the interpreter configuration.
     /// </summary>
-    public InterpreterOptions Options { get; } = (options ?? new InterpreterOptions()).CloneAndValidate();
+    public InterpreterOptions Options { get; } = (options ?? new InterpreterOptions()).Validate();
 
     /// <summary>
     /// Executes a call from the supplied sender.

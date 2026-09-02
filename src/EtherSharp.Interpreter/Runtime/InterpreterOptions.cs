@@ -15,13 +15,13 @@ public sealed class InterpreterOptions
     public int MaxMemorySize { get; init; } = 64 * 1024 * 1024;
 
     /// <summary>
-    /// Creates and validates an independent copy of these options.
+    /// Validates these options.
     /// </summary>
-    /// <returns>The validated options copy.</returns>
+    /// <returns>These validated options.</returns>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <see cref="MaxMemorySize"/> is invalid.
     /// </exception>
-    internal InterpreterOptions CloneAndValidate()
+    internal InterpreterOptions Validate()
     {
         ArgumentOutOfRangeException.ThrowIfNegative(MaxMemorySize);
 
@@ -31,9 +31,6 @@ public sealed class InterpreterOptions
                 nameof(MaxMemorySize),
                 $"Maximum memory size must be a multiple of {Bytes32.BYTE_LENGTH} bytes and no greater than {_maxMemorySize}."
             )
-            : new InterpreterOptions
-            {
-                MaxMemorySize = MaxMemorySize
-            };
+            : this;
     }
 }
