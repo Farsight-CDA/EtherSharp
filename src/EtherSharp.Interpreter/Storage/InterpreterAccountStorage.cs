@@ -23,7 +23,7 @@ internal sealed class InterpreterAccountStorage(
     private readonly JournaledValue<UInt256> _balance = new();
     private readonly JournaledValue<ulong> _nonce = new();
     private readonly JournaledValue<AccountCode> _code = new();
-    private readonly JournaledValue<bool> _persistentStorageReplaced = new();
+    private readonly JournaledFlag _persistentStorageReplaced = new();
 
     public async ValueTask<Bytes32> SLoadAsync(Bytes32 key)
     {
@@ -32,8 +32,7 @@ internal sealed class InterpreterAccountStorage(
             return value;
         }
 
-        if(_persistentStorageReplaced.TryGetValue(out bool persistentStorageReplaced)
-            && persistentStorageReplaced)
+        if(_persistentStorageReplaced.IsSet)
         {
             return Bytes32.Zero;
         }
@@ -112,7 +111,7 @@ internal sealed class InterpreterAccountStorage(
         {
             long revision = _nextRevision();
             _persistentStorage.Clear(revision);
-            _persistentStorageReplaced.Set(revision, true);
+            _persistentStorageReplaced.Set(revision);
             foreach(var (key, value) in state)
             {
                 SStore(in key, in value);
