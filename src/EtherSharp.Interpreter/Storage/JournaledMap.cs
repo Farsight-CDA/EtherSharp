@@ -4,7 +4,7 @@ internal sealed class JournaledMap<TKey, TValue>
     where TKey : notnull
 {
     private readonly record struct Change(
-        int Revision,
+        long Revision,
         TKey Key,
         bool HadValue,
         TValue Value
@@ -13,7 +13,7 @@ internal sealed class JournaledMap<TKey, TValue>
     private readonly Dictionary<TKey, TValue> _values = [];
     private readonly List<Change> _changes = [];
 
-    public void Set(int revision, in TKey key, in TValue value)
+    public void Set(long revision, in TKey key, in TValue value)
     {
         bool hadValue = _values.TryGetValue(key, out var previousValue);
         _changes.Add(new Change(revision, key, hadValue, previousValue!));
@@ -26,7 +26,7 @@ internal sealed class JournaledMap<TKey, TValue>
     public bool TryGetValue(in TKey key, out TValue value)
         => _values.TryGetValue(key, out value!);
 
-    public void Reset(int revision)
+    public void Reset(long revision)
     {
         for(int i = _changes.Count - 1; i >= 0 && _changes[i].Revision > revision; i--)
         {
@@ -47,7 +47,7 @@ internal sealed class JournaledMap<TKey, TValue>
     public void Commit()
         => _changes.Clear();
 
-    public void Clear(int revision)
+    public void Clear(long revision)
     {
         foreach(var (key, value) in _values)
         {

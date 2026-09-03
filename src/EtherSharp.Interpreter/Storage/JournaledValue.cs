@@ -3,7 +3,7 @@ namespace EtherSharp.Interpreter.Storage;
 internal sealed class JournaledValue<TValue>
 {
     private readonly record struct Change(
-        int Revision,
+        long Revision,
         bool HadValue,
         TValue Value
     );
@@ -12,7 +12,7 @@ internal sealed class JournaledValue<TValue>
     private bool _hasValue;
     private TValue _value = default!;
 
-    public void Set(int revision, in TValue value)
+    public void Set(long revision, in TValue value)
     {
         _changes.Add(new Change(revision, _hasValue, _value));
         _hasValue = true;
@@ -36,7 +36,7 @@ internal sealed class JournaledValue<TValue>
         return _hasValue;
     }
 
-    public void Reset(int revision)
+    public void Reset(long revision)
     {
         for(int i = _changes.Count - 1; i >= 0 && _changes[i].Revision > revision; i--)
         {

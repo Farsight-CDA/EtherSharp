@@ -1,6 +1,5 @@
 using EtherSharp.Interpreter.Runtime;
 using EtherSharp.Types;
-using System.Collections.Immutable;
 
 namespace EtherSharp.Interpreter.Storage;
 
@@ -9,12 +8,8 @@ internal sealed class InterpreterStorage(
     IInterpreterHost host
 )
 {
-    public readonly record struct AccountSnapshot(
-        Address Address,
-        InterpreterAccountStorage.Snapshot StorageSnapshot
-    );
     public readonly record struct Snapshot(
-        ImmutableArray<AccountSnapshot> AccountSnapshots,
+        long Revision,
         int LogCount
     );
     private readonly record struct JournalLog(
@@ -25,12 +20,13 @@ internal sealed class InterpreterStorage(
 
     private readonly Dictionary<Address, InterpreterAccountStorage> _accountStorages = [];
     private readonly List<JournalLog> _logs = [];
+    private long _revision;
 
     public InterpreterAccountStorage GetAccountStorage(Address address)
     {
         if(!_accountStorages.TryGetValue(address, out var accountStorage))
         {
-            accountStorage = new InterpreterAccountStorage(address, context, host);
+            accountStorage = new InterpreterAccountStorage(address, context, host, NextRevision);
             _accountStorages.Add(address, accountStorage);
         }
 
@@ -46,15 +42,7 @@ internal sealed class InterpreterStorage(
     }
 
     public Snapshot TakeSnapshot()
-    {
-        var accountSnapshots = ImmutableArray.CreateBuilder<AccountSnapshot>(_accountStorages.Count);
-        foreach(var (address, accountStorage) in _accountStorages)
-        {
-            accountSnapshots.Add(new AccountSnapshot(address, accountStorage.TakeSnapshot()));
-        }
-
-        return new Snapshot(accountSnapshots.MoveToImmutable(), _logs.Count);
-    }
+        => new(_revision, _logs.Count);
 
     public void AddLog(Address address, Bytes32[] topics, byte[] data)
         => _logs.Add(new JournalLog(address, topics, data));
@@ -67,32 +55,29 @@ internal sealed class InterpreterStorage(
         }
 
         _logs.Clear();
+        _revision = 0;
     }
 
     public void Reset(Snapshot snapshot)
     {
-        if(snapshot.AccountSnapshots.IsDefault)
+        if(snapshot.Revision < 0 || snapshot.Revision > _revision)
         {
-            throw new ArgumentException("Snapshot is uninitialized.", nameof(snapshot));
+            throw new ArgumentOutOfRangeException(nameof(snapshot));
         }
         if(snapshot.LogCount < 0 || snapshot.LogCount > _logs.Count)
         {
             throw new ArgumentOutOfRangeException(nameof(snapshot));
         }
 
-        foreach(var accountSnapshot in snapshot.AccountSnapshots)
+        foreach(var accountStorage in _accountStorages.Values)
         {
-            _accountStorages[accountSnapshot.Address].Reset(accountSnapshot.StorageSnapshot);
-        }
-
-        foreach(var (address, accountStorage) in _accountStorages)
-        {
-            if(!snapshot.AccountSnapshots.Any(accountSnapshot => accountSnapshot.Address == address))
-            {
-                accountStorage.Reset(default);
-            }
+            accountStorage.Reset(snapshot.Revision);
         }
 
         _logs.RemoveRange(snapshot.LogCount, _logs.Count - snapshot.LogCount);
+        _revision = snapshot.Revision;
     }
+
+    private long NextRevision()
+        => _revision = checked(_revision + 1);
 }

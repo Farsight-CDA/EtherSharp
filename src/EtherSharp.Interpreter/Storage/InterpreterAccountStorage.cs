@@ -8,36 +8,31 @@ namespace EtherSharp.Interpreter.Storage;
 
 internal sealed class InterpreterAccountStorage
 {
-    public readonly record struct Snapshot(
-        int Revision,
-        bool PersistentStorageReplaced
-    );
-
     private readonly Address _address;
     private readonly InterpreterContext _context;
     private readonly IInterpreterHost _host;
+    private readonly Func<long> _nextRevision;
     private readonly JournaledMap<Bytes32, Bytes32> _persistentStorage = new();
     private readonly JournaledMap<Bytes32, Bytes32> _transientStorage = new();
     private readonly JournaledValue<UInt256> _balance = new();
     private readonly JournaledValue<ulong> _nonce = new();
     private readonly JournaledValue<AccountCode> _code = new();
-    private bool _persistentStorageReplaced;
-    private int _revision;
-
-    public Snapshot TakeSnapshot()
-        => new(_revision, _persistentStorageReplaced);
+    private readonly JournaledValue<bool> _persistentStorageReplaced = new();
 
     public InterpreterAccountStorage(
         Address address,
         InterpreterContext context,
-        IInterpreterHost host
+        IInterpreterHost host,
+        Func<long> nextRevision
     )
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(host);
+        ArgumentNullException.ThrowIfNull(nextRevision);
         _address = address;
         _context = context;
         _host = host;
+        _nextRevision = nextRevision;
     }
 
     public async ValueTask<Bytes32> SLoadAsync(Bytes32 key)
@@ -47,7 +42,8 @@ internal sealed class InterpreterAccountStorage
             return value;
         }
 
-        if(_persistentStorageReplaced)
+        if(_persistentStorageReplaced.TryGetValue(out bool persistentStorageReplaced)
+            && persistentStorageReplaced)
         {
             return Bytes32.Zero;
         }
@@ -58,7 +54,7 @@ internal sealed class InterpreterAccountStorage
     }
 
     public void SStore(in Bytes32 key, in Bytes32 value)
-        => _persistentStorage.Set(NextRevision(), in key, in value);
+        => _persistentStorage.Set(_nextRevision(), in key, in value);
 
     public Bytes32 TLoad(in Bytes32 key)
         => _transientStorage.TryGetValue(in key, out var value)
@@ -66,7 +62,7 @@ internal sealed class InterpreterAccountStorage
             : Bytes32.Zero;
 
     public void TStore(in Bytes32 key, in Bytes32 value)
-        => _transientStorage.Set(NextRevision(), in key, in value);
+        => _transientStorage.Set(_nextRevision(), in key, in value);
 
     public async ValueTask<UInt256> GetBalanceAsync()
     {
@@ -81,7 +77,7 @@ internal sealed class InterpreterAccountStorage
     }
 
     public void SetBalance(in UInt256 value)
-        => _balance.Set(NextRevision(), in value);
+        => _balance.Set(_nextRevision(), in value);
 
     public async ValueTask<ulong> GetNonceAsync()
     {
@@ -95,7 +91,7 @@ internal sealed class InterpreterAccountStorage
     }
 
     public void SetNonce(ulong value)
-        => _nonce.Set(NextRevision(), in value);
+        => _nonce.Set(_nextRevision(), in value);
 
     public async ValueTask<EVMByteCode> GetCodeAsync()
         => _code.TryGetValue(out var value)
@@ -105,7 +101,7 @@ internal sealed class InterpreterAccountStorage
     public void SetCode(in EVMByteCode value)
     {
         var accountCode = new AccountCode(value, Keccak256.HashData(value.ByteCode.Span));
-        _code.Set(NextRevision(), in accountCode);
+        _code.Set(_nextRevision(), in accountCode);
     }
 
     public void ApplyOverride(AccountOverride accountOverride)
@@ -124,8 +120,9 @@ internal sealed class InterpreterAccountStorage
         }
         if(accountOverride.State is { } state)
         {
-            _persistentStorage.Clear(NextRevision());
-            _persistentStorageReplaced = true;
+            long revision = _nextRevision();
+            _persistentStorage.Clear(revision);
+            _persistentStorageReplaced.Set(revision, true);
             foreach(var (key, value) in state)
             {
                 SStore(in key, in value);
@@ -164,25 +161,16 @@ internal sealed class InterpreterAccountStorage
         _balance.Commit();
         _nonce.Commit();
         _code.Commit();
-        _revision = 0;
+        _persistentStorageReplaced.Commit();
     }
 
-    public void Reset(Snapshot snapshot)
+    public void Reset(long revision)
     {
-        if(snapshot.Revision < 0 || snapshot.Revision > _revision)
-        {
-            throw new ArgumentOutOfRangeException(nameof(snapshot));
-        }
-
-        _persistentStorage.Reset(snapshot.Revision);
-        _transientStorage.Reset(snapshot.Revision);
-        _balance.Reset(snapshot.Revision);
-        _nonce.Reset(snapshot.Revision);
-        _code.Reset(snapshot.Revision);
-        _persistentStorageReplaced = snapshot.PersistentStorageReplaced;
-        _revision = snapshot.Revision;
+        _persistentStorage.Reset(revision);
+        _transientStorage.Reset(revision);
+        _balance.Reset(revision);
+        _nonce.Reset(revision);
+        _code.Reset(revision);
+        _persistentStorageReplaced.Reset(revision);
     }
-
-    private int NextRevision()
-        => _revision = checked(_revision + 1);
 }
