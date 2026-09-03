@@ -13,7 +13,7 @@ namespace EtherSharp.Client.Services.ResiliencyLayer;
 public sealed record TxSubmissionStorage(
     ulong ChainId,
     uint Sequence,
-    uint Nonce,
+    ulong Nonce,
     Bytes32 TxHash,
     string SignedTx,
     string? To,

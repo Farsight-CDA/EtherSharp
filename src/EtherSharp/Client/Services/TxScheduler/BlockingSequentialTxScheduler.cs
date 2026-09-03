@@ -56,10 +56,10 @@ public sealed class BlockingSequentialTxScheduler(
     private ulong _chainId;
     private RpcRequestOptions _requestOptions;
 
-    private uint _confirmedNonce;
-    private uint _peakNonce;
+    private ulong _confirmedNonce;
+    private ulong _peakNonce;
 
-    private readonly Dictionary<uint, TaskCompletionSource> _nonceGates = [];
+    private readonly Dictionary<ulong, TaskCompletionSource> _nonceGates = [];
 
     /// <inheritdoc/>
     public async ValueTask InitializeAsync(
@@ -78,11 +78,11 @@ public sealed class BlockingSequentialTxScheduler(
         }
         else
         {
-            uint? dbNonce = await _resiliencyLayer.GetLastSubmittedNonceAsync(cancellationToken);
+            ulong? dbNonce = await _resiliencyLayer.GetLastSubmittedNonceAsync(cancellationToken);
 
             _peakNonce = dbNonce switch
             {
-                uint nonce => Math.Max(nonce + 1, _confirmedNonce),
+                ulong nonce => Math.Max(nonce + 1, _confirmedNonce),
                 _ => _confirmedNonce
             };
         }
@@ -90,14 +90,14 @@ public sealed class BlockingSequentialTxScheduler(
         _ = Task.Run(() => AdaptiveNoncePollerAsync(_cts.Token), cancellationToken);
     }
 
-    private void AdvanceConfirmedNonceLocked(uint actualNonce)
+    private void AdvanceConfirmedNonceLocked(ulong actualNonce)
     {
         if(actualNonce <= _confirmedNonce)
         {
             return;
         }
 
-        for(uint i = _confirmedNonce; i < actualNonce; i++)
+        for(ulong i = _confirmedNonce; i < actualNonce; i++)
         {
             if(_logger?.IsEnabled(LogLevel.Information) == true)
             {
@@ -118,7 +118,7 @@ public sealed class BlockingSequentialTxScheduler(
         }
     }
 
-    private Task WaitForNonceCompletionAsync(uint nonceToWaitFor)
+    private Task WaitForNonceCompletionAsync(ulong nonceToWaitFor)
     {
         lock(_stateLock)
         {
@@ -165,7 +165,7 @@ public sealed class BlockingSequentialTxScheduler(
                     continue;
                 }
 
-                uint actualNonce = await ethRpcModule.GetTransactionCountAsync(
+                ulong actualNonce = await ethRpcModule.GetTransactionCountAsync(
                     signer.Address, TargetHeight.Latest, _requestOptions, cancellationToken);
 
                 lock(_stateLock)
@@ -206,7 +206,7 @@ public sealed class BlockingSequentialTxScheduler(
         {
             if(_nonceMode == NonceMode.RefreshOnAllocate)
             {
-                uint latestNonce = await ethRpcModule.GetTransactionCountAsync(
+                ulong latestNonce = await ethRpcModule.GetTransactionCountAsync(
                     signer.Address, TargetHeight.Latest, _requestOptions, cts.Token);
 
                 lock(_stateLock)
@@ -218,7 +218,7 @@ public sealed class BlockingSequentialTxScheduler(
                 }
             }
 
-            uint myNonce;
+            ulong myNonce;
             lock(_stateLock)
             {
                 myNonce = _peakNonce;
@@ -267,7 +267,7 @@ public sealed class BlockingSequentialTxScheduler(
         }
     }
 
-    private async Task<bool> TryCancelTransactionAsync(uint nonce, CancellationToken cancellationToken)
+    private async Task<bool> TryCancelTransactionAsync(ulong nonce, CancellationToken cancellationToken)
     {
         await _preparationLock.WaitAsync(cancellationToken);
         try
@@ -306,7 +306,7 @@ public sealed class BlockingSequentialTxScheduler(
 
     /// <inheritdoc/>
     public async Task<IPendingTxHandler<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        uint nonce, CancellationToken cancellationToken)
+        ulong nonce, CancellationToken cancellationToken)
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>

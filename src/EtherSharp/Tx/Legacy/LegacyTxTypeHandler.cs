@@ -39,7 +39,7 @@ public sealed class LegacyTxTypeHandler(IEtherSigner signer)
         ITxInput txInput,
         LegacyTxParams txParams,
         LegacyGasParams txGasParams,
-        uint nonce,
+        ulong nonce,
         CancellationToken cancellationToken = default)
     {
         if(!_isInitialized)

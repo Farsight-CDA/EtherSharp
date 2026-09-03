@@ -56,7 +56,7 @@ public interface IEtherTxClient : IEtherClient
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A pending-transaction handler bound to the existing transaction.</returns>
     public Task<IPendingTxHandler<EIP1559TxParams, EIP1559GasParams>> AttachPendingTxAsync(
-        uint nonce, CancellationToken cancellationToken = default)
+        ulong nonce, CancellationToken cancellationToken = default)
         => AttachPendingTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
             nonce, cancellationToken);
 
@@ -70,7 +70,7 @@ public interface IEtherTxClient : IEtherClient
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A pending-transaction handler bound to the existing transaction.</returns>
     public Task<IPendingTxHandler<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        uint nonce, CancellationToken cancellationToken = default)
+        ulong nonce, CancellationToken cancellationToken = default)
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>;

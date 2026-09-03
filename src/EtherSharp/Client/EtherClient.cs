@@ -358,7 +358,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         return _ethRpcModule.GetTransactionReceiptAsync(in hash, requestOptions, cancellationToken);
     }
 
-    Task<uint> IEtherClient.GetTransactionCount(
+    Task<ulong> IEtherClient.GetTransactionCount(
         in Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
@@ -534,7 +534,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             call, txParams, txGasParams, cancellationToken);
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        uint nonce, CancellationToken cancellationToken)
+        ulong nonce, CancellationToken cancellationToken)
         => await _txScheduler.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
             nonce, cancellationToken);
 }

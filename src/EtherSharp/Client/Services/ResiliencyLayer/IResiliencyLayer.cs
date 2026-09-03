@@ -19,14 +19,14 @@ public interface IResiliencyLayer
     /// <param name="nonce">The nonce whose submissions should be removed.</param>
     /// <param name="cancellationToken">A token used to cancel the delete operation.</param>
     /// <returns>A task that completes when matching submissions have been deleted.</returns>
-    public Task DeleteTxSubmissionsForNonceAsync(uint nonce, CancellationToken cancellationToken = default);
+    public Task DeleteTxSubmissionsForNonceAsync(ulong nonce, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the highest nonce that has been persisted.
     /// </summary>
     /// <param name="cancellationToken">A token used to cancel the read operation.</param>
     /// <returns>The highest persisted nonce.</returns>
-    public Task<uint?> GetLastSubmittedNonceAsync(CancellationToken cancellationToken = default);
+    public Task<ulong?> GetLastSubmittedNonceAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves all persisted submissions for the specified nonce.
@@ -34,5 +34,5 @@ public interface IResiliencyLayer
     /// <param name="nonce">The nonce whose submissions should be loaded.</param>
     /// <param name="cancellationToken">A token used to cancel the read operation.</param>
     /// <returns>The submissions previously stored for the nonce.</returns>
-    public Task<IReadOnlyList<TxSubmissionStorage>> FetchTxSubmissionsAsync(uint nonce, CancellationToken cancellationToken = default);
+    public Task<IReadOnlyList<TxSubmissionStorage>> FetchTxSubmissionsAsync(ulong nonce, CancellationToken cancellationToken = default);
 }

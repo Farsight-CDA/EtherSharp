@@ -12,7 +12,7 @@ namespace EtherSharp.RPC.Modules.Trace.Types;
 /// <param name="Storage">Storage changes keyed by slot.</param>
 public sealed record AccountStateDiff(
     StateChange<UInt256> Balance,
-    StateChange<UInt256> Nonce,
+    StateChange<ulong> Nonce,
     StateChange<byte[]> Code,
     IReadOnlyDictionary<Bytes32, StateChange<Bytes32>> Storage
 );

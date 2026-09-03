@@ -39,7 +39,7 @@ public interface ITxScheduler
     /// <param name="cancellationToken">A token used to cancel recovery.</param>
     /// <returns>A pending transaction handler attached to the existing on-chain submission flow.</returns>
     public Task<IPendingTxHandler<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        uint nonce, CancellationToken cancellationToken = default
+        ulong nonce, CancellationToken cancellationToken = default
     )
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>

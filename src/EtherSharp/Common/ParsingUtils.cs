@@ -49,6 +49,7 @@ public static class ParsingUtils
         options.Converters.Add(TransactionTypeHexConverter.Instance);
         options.Converters.Add(UInt256HexConverter.Instance);
         options.Converters.Add(Int256HexConverter.Instance);
+        options.Converters.Add(new StateChangeJsonConverter<ulong>(ULongHexConverter.Instance));
         options.Converters.Add(new StateChangeJsonConverter<UInt256>(UInt256HexConverter.Instance));
         options.Converters.Add(new StateChangeJsonConverter<byte[]>(HexStringByteArrayConverter.Instance));
         options.Converters.Add(new StateChangeJsonConverter<Bytes32>(Bytes32Converter.Instance));

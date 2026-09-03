@@ -14,7 +14,7 @@ public interface IPendingTxHandler<TTxParams, TTxGasParams>
     /// <summary>
     /// Nonce of the pending transaction managed by this handler.
     /// </summary>
-    public uint Nonce { get; }
+    public ulong Nonce { get; }
 
     /// <summary>
     /// Collection of parameters that the transaction with this nonce was submitted with.

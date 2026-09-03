@@ -33,7 +33,7 @@ public sealed record TxSubmission<TTxParams, TTxGasParams>(
     /// </summary>
     /// <param name="nonce">Account nonce associated with this submission chain.</param>
     /// <returns>The storage model used by the resiliency layer.</returns>
-    public TxSubmissionStorage ToStorageType(uint nonce)
+    public TxSubmissionStorage ToStorageType(ulong nonce)
         => new TxSubmissionStorage(
             ChainId,
             Sequence,

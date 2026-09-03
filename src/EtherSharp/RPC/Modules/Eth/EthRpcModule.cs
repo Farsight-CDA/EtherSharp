@@ -46,18 +46,18 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             _ => throw new NotImplementedException(),
         };
 
-    public Task<uint> GetTransactionCountAsync(in Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
+    public Task<ulong> GetTransactionCountAsync(in Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         var addressValue = address;
         return GetTransactionCountCoreAsync(addressValue, targetHeight, requestOptions, cancellationToken);
     }
 
-    private async Task<uint> GetTransactionCountCoreAsync(Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<Address, TargetHeight, uint>(
+    private async Task<ulong> GetTransactionCountCoreAsync(Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
+        => await _rpcClient.SendRpcRequestAsync<Address, TargetHeight, ulong>(
             "eth_getTransactionCount", address, targetHeight, targetHeight, requestOptions, cancellationToken) switch
         {
-            RpcResult<uint>.Success result => result.Result,
-            RpcResult<uint>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<ulong>.Success result => result.Result,
+            RpcResult<ulong>.Error error => throw RPCException.FromRPCError(error),
             _ => throw new NotImplementedException(),
         };
 

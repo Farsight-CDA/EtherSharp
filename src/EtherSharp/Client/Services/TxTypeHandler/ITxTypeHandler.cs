@@ -28,6 +28,6 @@ public interface ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
         ITxInput txInput,
         TTxParams txParams,
         TTxGasParams txGasParams,
-        uint nonce,
+        ulong nonce,
         CancellationToken cancellationToken = default);
 }

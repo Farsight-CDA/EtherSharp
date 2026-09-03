@@ -11,7 +11,7 @@ namespace EtherSharp.Bench.Rlp;
 public class RLPEncoderBenchmarks
 {
     private readonly ulong _chainId = 137;
-    private readonly uint _nonce = 1_000;
+    private readonly ulong _nonce = 1_000;
     private readonly UInt256 _maxPriorityFeePerGas = 10 * UInt256.Pow(10, 18);
     private readonly UInt256 _maxFeePerGas = 30 * UInt256.Zero;
     private readonly ulong _gas = 3_000_000;
@@ -25,7 +25,7 @@ public class RLPEncoderBenchmarks
     private readonly UInt256 _largeUInt256 = (UInt256.One << 200) + 123456789;
 
     private readonly int _chainIdForNethereum;
-    private readonly int _nonceForNethereum;
+    private readonly BigInteger _nonceForNethereum;
     private readonly BigInteger _maxPriorityFeePerGasForNethereum;
     private readonly BigInteger _maxFeePerGasForNethereum;
     private readonly long _gasForNethereum;
@@ -40,7 +40,7 @@ public class RLPEncoderBenchmarks
         new Random(12345).NextBytes(_longString);
 
         _chainIdForNethereum = (int) _chainId;
-        _nonceForNethereum = (int) _nonce;
+        _nonceForNethereum = _nonce;
         _maxPriorityFeePerGasForNethereum = (BigInteger) _maxPriorityFeePerGas;
         _maxFeePerGasForNethereum = (BigInteger) _maxFeePerGas;
         _gasForNethereum = (long) _gas;

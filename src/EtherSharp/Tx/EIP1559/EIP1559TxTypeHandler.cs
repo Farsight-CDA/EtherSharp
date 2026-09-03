@@ -37,7 +37,7 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer)
         ITxInput txInput,
         EIP1559TxParams txParams,
         EIP1559GasParams txGasParams,
-        uint nonce,
+        ulong nonce,
         CancellationToken cancellationToken = default)
     {
         if(!_isInitialized)

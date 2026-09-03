@@ -85,7 +85,7 @@ public interface IEthRpcModule
     /// <summary>
     /// Gets transaction count (nonce) at a target block.
     /// </summary>
-    public Task<uint> GetTransactionCountAsync(
+    public Task<ulong> GetTransactionCountAsync(
         in Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 

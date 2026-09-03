@@ -15,7 +15,7 @@ namespace EtherSharp.Tx.Legacy;
 public sealed record LegacyTransaction(
     ulong ChainId,
     ulong Gas,
-    uint Nonce,
+    ulong Nonce,
     ITxInput Input,
     UInt256 GasPrice
 ) : ITransaction<LegacyTransaction, LegacyTxParams, LegacyGasParams>
@@ -33,7 +33,7 @@ public sealed record LegacyTransaction(
     /// <param name="txInput">Destination, calldata, and value.</param>
     /// <param name="nonce">Sender nonce.</param>
     /// <returns>A transaction value built from the provided parameters.</returns>
-    public static LegacyTransaction Create(ulong chainId, LegacyGasParams gasParams, ITxInput txInput, uint nonce)
+    public static LegacyTransaction Create(ulong chainId, LegacyGasParams gasParams, ITxInput txInput, ulong nonce)
         => new LegacyTransaction(
             chainId,
             gasParams.GasLimit,

@@ -17,7 +17,7 @@ namespace EtherSharp.Tx.EIP1559;
 public sealed record EIP1559Transaction(
     ulong ChainId,
     ulong Gas,
-    uint Nonce,
+    ulong Nonce,
     ITxInput Input,
     UInt256 MaxFeePerGas,
     UInt256 MaxPriorityFeePerGas,
@@ -43,7 +43,7 @@ public sealed record EIP1559Transaction(
     /// <param name="txInput">Destination, calldata, and value.</param>
     /// <param name="nonce">Sender nonce.</param>
     /// <returns>A transaction value built from the provided parameters.</returns>
-    public static EIP1559Transaction Create(ulong chainId, EIP1559TxParams txParams, EIP1559GasParams gasParams, ITxInput txInput, uint nonce)
+    public static EIP1559Transaction Create(ulong chainId, EIP1559TxParams txParams, EIP1559GasParams gasParams, ITxInput txInput, ulong nonce)
         => new EIP1559Transaction(
             chainId,
             gasParams.GasLimit,

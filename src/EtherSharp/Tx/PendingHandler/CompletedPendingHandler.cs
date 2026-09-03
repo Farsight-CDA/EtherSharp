@@ -3,14 +3,14 @@
 namespace EtherSharp.Tx.PendingHandler;
 
 internal sealed class CompletedPendingHandler<TTxParams, TTxGasParams>(
-    uint nonce,
+    ulong nonce,
     IEnumerable<TxSubmission<TTxParams, TTxGasParams>> txSubmissions,
     TxConfirmationResult result
 ) : IPendingTxHandler<TTxParams, TTxGasParams>
     where TTxParams : class, ITxParams<TTxParams>
     where TTxGasParams : class, ITxGasParams<TTxGasParams>
 {
-    public uint Nonce { get; } = nonce;
+    public ulong Nonce { get; } = nonce;
     public IReadOnlyList<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions { get; } = [.. txSubmissions];
 
     private readonly TxConfirmationResult _result = result;

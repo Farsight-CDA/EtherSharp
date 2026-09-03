@@ -192,7 +192,7 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The account nonce.</returns>
-    public Task<uint> GetTransactionCount(in Address address, TargetHeight targetHeight = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
+    public Task<ulong> GetTransactionCount(in Address address, TargetHeight targetHeight = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reads a storage slot from contract storage.
