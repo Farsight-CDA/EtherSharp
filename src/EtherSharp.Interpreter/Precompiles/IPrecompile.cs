@@ -8,6 +8,11 @@ namespace EtherSharp.Interpreter.Precompiles;
 public interface IPrecompile
 {
     /// <summary>
+    /// Gets the address at which this precompile executes.
+    /// </summary>
+    public Address Address { get; }
+
+    /// <summary>
     /// Executes the precompile for the supplied message call.
     /// </summary>
     /// <param name="call">The message-call context and input.</param>

@@ -1,17 +1,16 @@
 using EtherSharp.Contract;
 using EtherSharp.Interpreter.Precompiles;
 using EtherSharp.Types;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Frozen;
+using System.Collections.Immutable;
 
 namespace EtherSharp.Interpreter.Runtime;
 
 /// <summary>
 /// Defines consensus behavior selected for an interpreter execution.
 /// </summary>
-public sealed class InterpreterExecutionSpec
+public sealed record InterpreterExecutionSpec
 {
-    private readonly Dictionary<Address, IPrecompile> _precompiles;
-
     /// <summary>
     /// Gets the maximum permitted initcode length in bytes.
     /// </summary>
@@ -23,42 +22,43 @@ public sealed class InterpreterExecutionSpec
     public int MaxRuntimeCodeLength { get; init; } = EVMByteCode.MAX_RUNTIME_LENGTH;
 
     /// <summary>
+    /// Gets the precompiles enabled by this execution specification.
+    /// </summary>
+    public ImmutableArray<IPrecompile> Precompiles { get; init; } = [];
+
+    /// <summary>
     /// Gets an execution specification with no registered precompiles.
     /// </summary>
     public static InterpreterExecutionSpec Empty { get; } = new();
 
-    /// <summary>
-    /// Creates an execution specification with no registered precompiles.
-    /// </summary>
-    public InterpreterExecutionSpec()
+    internal InterpreterExecutionSpec Validate()
     {
-        _precompiles = [];
-    }
+        ArgumentOutOfRangeException.ThrowIfNegative(MaxInitCodeLength);
+        ArgumentOutOfRangeException.ThrowIfNegative(MaxRuntimeCodeLength);
 
-    /// <summary>
-    /// Creates an execution specification with the supplied precompile registrations.
-    /// </summary>
-    /// <param name="precompiles">Precompiles keyed by their native execution address.</param>
-    public InterpreterExecutionSpec(IEnumerable<KeyValuePair<Address, IPrecompile>> precompiles)
-    {
-        ArgumentNullException.ThrowIfNull(precompiles);
+        if(Precompiles.IsDefault)
+        {
+            throw new InvalidOperationException("The precompile collection is uninitialized.");
+        }
 
-        _precompiles = [];
-        foreach(var (address, precompile) in precompiles)
+        HashSet<Address> precompileAddresses = [];
+        foreach(var precompile in Precompiles)
         {
             ArgumentNullException.ThrowIfNull(precompile);
-            _precompiles.Add(address, precompile);
+            if(!precompileAddresses.Add(precompile.Address))
+            {
+                throw new ArgumentException(
+                    $"Multiple precompiles are registered at address {precompile.Address}.",
+                    nameof(Precompiles)
+                );
+            }
         }
+
+        return this;
     }
 
-    /// <summary>
-    /// Attempts to resolve a precompile at the supplied code address.
-    /// </summary>
-    /// <param name="codeAddress">The message call's code address.</param>
-    /// <param name="precompile">The resolved precompile when registered.</param>
-    /// <returns><see langword="true"/> when a precompile is registered at the address.</returns>
-    public bool TryGetPrecompile(
-        in Address codeAddress,
-        [NotNullWhen(true)] out IPrecompile? precompile
-    ) => _precompiles.TryGetValue(codeAddress, out precompile);
+    internal FrozenDictionary<Address, IPrecompile> CreatePrecompileLookup()
+        => Precompiles.IsEmpty
+            ? FrozenDictionary<Address, IPrecompile>.Empty
+            : Precompiles.ToFrozenDictionary(precompile => precompile.Address);
 }

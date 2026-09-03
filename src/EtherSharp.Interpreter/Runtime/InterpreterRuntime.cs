@@ -5,6 +5,7 @@ using EtherSharp.Interpreter.Precompiles;
 using EtherSharp.Interpreter.Storage;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
+using System.Collections.Frozen;
 using System.Diagnostics;
 
 namespace EtherSharp.Interpreter.Runtime;
@@ -39,6 +40,10 @@ public class InterpreterRuntime(
         context ?? throw new ArgumentNullException(nameof(context)),
         globalStateProvider ?? throw new ArgumentNullException(nameof(globalStateProvider))
     );
+    private readonly FrozenDictionary<Address, IPrecompile> _precompiles = (executionSpec
+        ?? throw new ArgumentNullException(nameof(executionSpec)))
+            .Validate()
+            .CreatePrecompileLookup();
 
     /// <summary>
     /// Gets the block and transaction context for execution.
@@ -179,7 +184,7 @@ public class InterpreterRuntime(
         }
 
         TxCallResult result;
-        if(ExecutionSpec.TryGetPrecompile(messageCall.CodeAddress, out var precompile))
+        if(_precompiles.TryGetValue(messageCall.CodeAddress, out var precompile))
         {
             result = await precompile.ExecuteAsync(new PrecompileCall(
                 Context,
