@@ -7,6 +7,7 @@ namespace EtherSharp.Query.Operations;
 internal sealed class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<CallResult<T>>
 {
     private readonly IContractCall<T> _txInput = txInput;
+    private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom = txInput.ReadResultFrom;
 
     public int CallDataLength => CallQueryEncoding.GetCallDataLength(_txInput.Data.Length);
     public UInt256 EthValue => _txInput.Value;
@@ -28,7 +29,7 @@ internal sealed class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, 
 
         return success switch
         {
-            true => CallResult<T>.ParseSuccessFrom(returnData, _txInput.To, _txInput.ReadResultFrom),
+            true => CallResult<T>.ParseSuccessFrom(returnData, _txInput.To, _readResultFrom),
             false => new CallResult<T>.Reverted(_txInput.To, returnData)
         };
     }

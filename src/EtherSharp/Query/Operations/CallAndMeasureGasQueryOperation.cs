@@ -8,6 +8,7 @@ namespace EtherSharp.Query.Operations;
 internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<(CallResult<T>, ulong)>
 {
     private readonly IContractCall<T> _txInput = txInput;
+    private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom = txInput.ReadResultFrom;
 
     public int CallDataLength => 4 + 20 + 32 + _txInput.Data.Length;
     public UInt256 EthValue => _txInput.Value;
@@ -41,7 +42,7 @@ internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInpu
 
         var result = success switch
         {
-            true => CallResult<T>.ParseSuccessFrom(queryResult[13..], _txInput.To, _txInput.ReadResultFrom),
+            true => CallResult<T>.ParseSuccessFrom(queryResult[13..], _txInput.To, _readResultFrom),
             false => new CallResult<T>.Reverted(_txInput.To, queryResult[13..])
         };
 

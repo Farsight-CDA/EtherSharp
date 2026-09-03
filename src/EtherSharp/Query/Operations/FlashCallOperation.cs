@@ -10,6 +10,7 @@ namespace EtherSharp.Query.Operations;
 internal sealed class SafeFlashCallQueryOperation<T> : IQuery, IQuery<CallResult<T>>
 {
     private readonly IFlashCall<T> _txInput;
+    private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom;
     private readonly EVMByteCode _initCode;
 
     public SafeFlashCallQueryOperation(IFlashCode code, IFlashCall<T> txInput)
@@ -20,6 +21,7 @@ internal sealed class SafeFlashCallQueryOperation<T> : IQuery, IQuery<CallResult
         }
 
         _txInput = txInput;
+        _readResultFrom = txInput.ReadResultFrom;
         _initCode = code.GetInitCode();
 
         if(_initCode.Length > UInt16.MaxValue)
@@ -58,7 +60,7 @@ internal sealed class SafeFlashCallQueryOperation<T> : IQuery, IQuery<CallResult
 
         return success switch
         {
-            true => CallResult<T>.ParseSuccessFrom(returnData, null, _txInput.ReadResultFrom),
+            true => CallResult<T>.ParseSuccessFrom(returnData, null, _readResultFrom),
             false => new CallResult<T>.Reverted(null, returnData)
         };
     }
