@@ -568,7 +568,7 @@ public class InterpreterRuntime(
                         return callFrame.Revert();
                     }
 
-                    callFrame.Stack.Push(await _storage.GetAccountStorage(address).GetCodeHashAsync());
+                    callFrame.Stack.Push(await _storage.GetAccountStorage(address).GetExtCodeHashAsync());
                     break;
                 }
                 case EvmOpcode.BlockHash:

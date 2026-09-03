@@ -1,4 +1,3 @@
-using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 
@@ -10,36 +9,12 @@ namespace EtherSharp.Interpreter.Runtime;
 public interface IInterpreterHost
 {
     /// <summary>
-    /// Gets the bytecode for an account.
+    /// Gets the state for an account.
     /// </summary>
     /// <param name="context">The context at which state is read.</param>
     /// <param name="address">The account address.</param>
-    /// <returns>The account bytecode.</returns>
-    public Task<EVMByteCode> GetCodeAsync(InterpreterContext context, Address address);
-
-    /// <summary>
-    /// Gets the code hash for an account.
-    /// </summary>
-    /// <param name="context">The context at which state is read.</param>
-    /// <param name="address">The account address.</param>
-    /// <returns>The account code hash.</returns>
-    public Task<Bytes32> GetCodeHashAsync(InterpreterContext context, Address address);
-
-    /// <summary>
-    /// Gets the native balance for an account.
-    /// </summary>
-    /// <param name="context">The context at which state is read.</param>
-    /// <param name="address">The account address.</param>
-    /// <returns>The account's native balance.</returns>
-    public Task<UInt256> GetBalanceAsync(InterpreterContext context, Address address);
-
-    /// <summary>
-    /// Gets the transaction count (nonce) for an account.
-    /// </summary>
-    /// <param name="context">The context at which state is read.</param>
-    /// <param name="address">The account address.</param>
-    /// <returns>The account's transaction count.</returns>
-    public Task<ulong> GetNonceAsync(InterpreterContext context, Address address);
+    /// <returns>The account state, or <see langword="null"/> when the account does not exist.</returns>
+    public Task<InterpreterAccountInfo?> GetAccountAsync(InterpreterContext context, Address address);
 
     /// <summary>
     /// Gets a persistent storage value for an account.

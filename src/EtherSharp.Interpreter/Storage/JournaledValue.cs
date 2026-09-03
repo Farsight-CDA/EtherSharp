@@ -19,17 +19,6 @@ internal sealed class JournaledValue<TValue>
         _value = value;
     }
 
-    public void Cache(in TValue value)
-    {
-        if(_hasValue)
-        {
-            throw new InvalidOperationException("A value is already cached.");
-        }
-
-        _hasValue = true;
-        _value = value;
-    }
-
     public bool TryGetValue(out TValue value)
     {
         value = _value;

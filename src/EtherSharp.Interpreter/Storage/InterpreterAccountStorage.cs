@@ -13,10 +13,29 @@ internal sealed class InterpreterAccountStorage(
     Func<long> nextRevision
 )
 {
+    private readonly struct BaseAccount
+    {
+        public InterpreterAccountInfo Info { get; }
+        public bool IsPresent { get; }
+
+        public BaseAccount(InterpreterAccountInfo? account)
+        {
+            if(account is { CodeHash: var codeHash } && codeHash == Bytes32.Zero)
+            {
+                throw new InvalidOperationException("Existing accounts must have a canonical nonzero code hash.");
+            }
+
+            Info = account ?? InterpreterAccountInfo.Empty;
+            IsPresent = account.HasValue;
+        }
+    }
+
     private readonly Address _address = address;
     private readonly InterpreterContext _context = context;
     private readonly IInterpreterHost _host = host;
     private readonly Func<long> _nextRevision = nextRevision;
+
+    private BaseAccount? _baseAccount;
 
     private readonly JournaledMap<Bytes32, Bytes32> _persistentStorage = new();
     private readonly JournaledMap<Bytes32, Bytes32> _transientStorage = new();
@@ -24,6 +43,7 @@ internal sealed class InterpreterAccountStorage(
     private readonly JournaledValue<ulong> _nonce = new();
     private readonly JournaledValue<EVMByteCode> _code = new();
     private readonly JournaledValue<Bytes32> _codeHash = new();
+    private readonly JournaledFlag _present = new();
     private readonly JournaledFlag _persistentStorageReplaced = new();
 
     public async ValueTask<Bytes32> SLoadAsync(Bytes32 key)
@@ -43,7 +63,11 @@ internal sealed class InterpreterAccountStorage(
     }
 
     public void SStore(in Bytes32 key, in Bytes32 value)
-        => _persistentStorage.Set(_nextRevision(), in key, in value);
+    {
+        long revision = _nextRevision();
+        _present.Set(revision);
+        _persistentStorage.Set(revision, in key, in value);
+    }
 
     public Bytes32 TLoad(in Bytes32 key)
         => _transientStorage.TryGetValue(in key, out var value)
@@ -54,50 +78,39 @@ internal sealed class InterpreterAccountStorage(
         => _transientStorage.Set(_nextRevision(), in key, in value);
 
     public async ValueTask<UInt256> GetBalanceAsync()
-    {
-        if(_balance.TryGetValue(out var value))
-        {
-            return value;
-        }
-
-        value = await _host.GetBalanceAsync(_context, _address);
-        _balance.Cache(in value);
-        return value;
-    }
+        => _balance.TryGetValue(out var value)
+            ? value
+            : (await GetBaseAccountAsync()).Info.Balance;
 
     public void SetBalance(in UInt256 value)
-        => _balance.Set(_nextRevision(), in value);
+    {
+        long revision = _nextRevision();
+        _present.Set(revision);
+        _balance.Set(revision, in value);
+    }
 
     public async ValueTask<ulong> GetNonceAsync()
-    {
-        if(_nonce.TryGetValue(out ulong value))
-        {
-            return value;
-        }
-        value = await _host.GetNonceAsync(_context, _address);
-        _nonce.Cache(in value);
-        return value;
-    }
+        => _nonce.TryGetValue(out ulong value)
+            ? value
+            : (await GetBaseAccountAsync()).Info.Nonce;
 
     public void SetNonce(ulong value)
-        => _nonce.Set(_nextRevision(), in value);
+    {
+        long revision = _nextRevision();
+        _present.Set(revision);
+        _nonce.Set(revision, in value);
+    }
 
     public async ValueTask<EVMByteCode> GetCodeAsync()
-    {
-        if(_code.TryGetValue(out var value))
-        {
-            return value;
-        }
-
-        value = await _host.GetCodeAsync(_context, _address);
-        _code.Cache(in value);
-        return value;
-    }
+        => _code.TryGetValue(out var value)
+            ? value
+            : (await GetBaseAccountAsync()).Info.Code;
 
     public void SetCode(in EVMByteCode value)
     {
         long revision = _nextRevision();
         var codeHash = Keccak256.HashData(value.ByteCode.Span);
+        _present.Set(revision);
         _code.Set(revision, in value);
         _codeHash.Set(revision, in codeHash);
     }
@@ -135,17 +148,24 @@ internal sealed class InterpreterAccountStorage(
         }
     }
 
-    public async ValueTask<Bytes32> GetCodeHashAsync()
+    public async ValueTask<Bytes32> GetExtCodeHashAsync()
     {
-        if(_codeHash.TryGetValue(out var value))
+        if(!_present.IsSet && !(await GetBaseAccountAsync()).IsPresent)
         {
-            return value;
+            return Bytes32.Zero;
         }
 
-        value = await _host.GetCodeHashAsync(_context, _address);
-        _codeHash.Cache(in value);
-        return value;
+        var codeHash = await GetStateCodeHashAsync();
+        return codeHash == InterpreterAccountInfo.EmptyCodeHash
+            && await GetNonceAsync() == 0
+            && await GetBalanceAsync() == UInt256.Zero
+                ? Bytes32.Zero
+                : codeHash;
     }
+
+    public async ValueTask<bool> HasCreateCollisionAsync()
+        => await GetNonceAsync() != 0
+            || await GetStateCodeHashAsync() != InterpreterAccountInfo.EmptyCodeHash;
 
     public void Commit()
     {
@@ -155,6 +175,7 @@ internal sealed class InterpreterAccountStorage(
         _nonce.Commit();
         _code.Commit();
         _codeHash.Commit();
+        _present.Commit();
         _persistentStorageReplaced.Commit();
     }
 
@@ -166,6 +187,23 @@ internal sealed class InterpreterAccountStorage(
         _nonce.Reset(revision);
         _code.Reset(revision);
         _codeHash.Reset(revision);
+        _present.Reset(revision);
         _persistentStorageReplaced.Reset(revision);
+    }
+
+    private async ValueTask<Bytes32> GetStateCodeHashAsync()
+        => _codeHash.TryGetValue(out var value)
+            ? value
+            : (await GetBaseAccountAsync()).Info.CodeHash;
+
+    private async ValueTask<BaseAccount> GetBaseAccountAsync()
+    {
+        if(_baseAccount is not BaseAccount account)
+        {
+            account = new BaseAccount(await _host.GetAccountAsync(_context, _address));
+            _baseAccount = account;
+        }
+
+        return account;
     }
 }
