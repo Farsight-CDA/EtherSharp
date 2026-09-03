@@ -63,7 +63,9 @@ public ref struct Keccak256
 
         var keccak = new Keccak256(dataQueue, state);
 
-        keccak.BlockUpdate(data);
+        MemoryMarshal.Cast<byte, ulong>(data[..RATE_BYTES]).CopyTo(state);
+        keccak.KeccakPermutation();
+        keccak.BlockUpdate(data[RATE_BYTES..]);
         keccak.DoFinal(destination);
         return true;
     }
@@ -73,20 +75,9 @@ public ref struct Keccak256
         Span<ulong> state = stackalloc ulong[25];
         state.Clear();
 
-        int fullWordCount = data.Length / sizeof(ulong);
-        for(int i = 0; i < fullWordCount; i++)
-        {
-            state[i] = BinaryPrimitives.ReadUInt64LittleEndian(data[(i * sizeof(ulong))..]);
-        }
-
-        int remainingByteCount = data.Length % sizeof(ulong);
-        ulong finalWord = 1UL << (remainingByteCount * 8);
-        for(int i = 0; i < remainingByteCount; i++)
-        {
-            finalWord |= (ulong) data[(fullWordCount * sizeof(ulong)) + i] << (i * 8);
-        }
-
-        state[fullWordCount] = finalWord;
+        var stateBytes = MemoryMarshal.AsBytes(state);
+        data.CopyTo(stateBytes);
+        stateBytes[data.Length] = 1;
         state[RATE_64 - 1] |= 1UL << 63;
 
         var keccak = new Keccak256([], state);
