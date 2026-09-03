@@ -51,6 +51,12 @@ public ref struct Keccak256
             return false;
         }
 
+        if(data.Length < RATE_BYTES)
+        {
+            HashSingleBlock(data, destination);
+            return true;
+        }
+
         Span<byte> dataQueue = stackalloc byte[RATE_BYTES];
         Span<ulong> state = stackalloc ulong[25];
 
@@ -59,6 +65,36 @@ public ref struct Keccak256
         keccak.BlockUpdate(data);
         keccak.DoFinal(destination);
         return true;
+    }
+
+    private static void HashSingleBlock(ReadOnlySpan<byte> data, Span<byte> destination)
+    {
+        Span<ulong> state = stackalloc ulong[25];
+        state.Clear();
+
+        int fullWordCount = data.Length / sizeof(ulong);
+        for(int i = 0; i < fullWordCount; i++)
+        {
+            state[i] = BinaryPrimitives.ReadUInt64LittleEndian(data[(i * sizeof(ulong))..]);
+        }
+
+        int remainingByteCount = data.Length % sizeof(ulong);
+        ulong finalWord = 1UL << (remainingByteCount * 8);
+        for(int i = 0; i < remainingByteCount; i++)
+        {
+            finalWord |= (ulong) data[(fullWordCount * sizeof(ulong)) + i] << (i * 8);
+        }
+
+        state[fullWordCount] = finalWord;
+        state[RATE_64 - 1] |= 1UL << 63;
+
+        var keccak = new Keccak256([], state);
+        keccak.KeccakPermutation();
+
+        BinaryPrimitives.WriteUInt64LittleEndian(destination, state[0]);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination[8..], state[1]);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination[16..], state[2]);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination[24..], state[3]);
     }
 
     /// <summary>
