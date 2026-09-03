@@ -6,7 +6,7 @@ namespace EtherSharp.Interpreter.Storage;
 
 internal sealed class InterpreterStorage(
     InterpreterContext context,
-    IGlobalStateProvider globalStateProvider
+    IInterpreterHost host
 )
 {
     public readonly record struct AccountSnapshot(
@@ -30,7 +30,7 @@ internal sealed class InterpreterStorage(
     {
         if(!_accountStorages.TryGetValue(address, out var accountStorage))
         {
-            accountStorage = new InterpreterAccountStorage(address, context, globalStateProvider);
+            accountStorage = new InterpreterAccountStorage(address, context, host);
             _accountStorages.Add(address, accountStorage);
         }
 

@@ -14,12 +14,12 @@ namespace EtherSharp.Interpreter.Runtime;
 /// Executes EVM transactions and call simulations against a supplied global state.
 /// </summary>
 /// <param name="context">The block and transaction context for execution.</param>
-/// <param name="globalStateProvider">The provider used to read global state.</param>
+/// <param name="host">The host used to read upstream state and execute calls.</param>
 /// <param name="executionSpec">The consensus behavior used for execution.</param>
 /// <param name="options">The interpreter resource limits.</param>
 public class InterpreterRuntime(
     InterpreterContext context,
-    IGlobalStateProvider globalStateProvider,
+    IInterpreterHost host,
     InterpreterExecutionSpec executionSpec,
     InterpreterOptions? options = null
 )
@@ -38,8 +38,9 @@ public class InterpreterRuntime(
 
     private readonly InterpreterStorage _storage = new(
         context ?? throw new ArgumentNullException(nameof(context)),
-        globalStateProvider ?? throw new ArgumentNullException(nameof(globalStateProvider))
+        host ?? throw new ArgumentNullException(nameof(host))
     );
+    private readonly IInterpreterHost _host = host;
     private readonly FrozenDictionary<Address, IPrecompile> _precompiles = (executionSpec
         ?? throw new ArgumentNullException(nameof(executionSpec)))
             .Validate()
@@ -186,16 +187,19 @@ public class InterpreterRuntime(
         TxCallResult result;
         if(_precompiles.TryGetValue(messageCall.CodeAddress, out var precompile))
         {
-            result = await precompile.ExecuteAsync(new PrecompileCall(
-                Context,
-                messageCall.Origin,
-                messageCall.Caller,
-                messageCall.Address,
-                messageCall.Value,
-                messageCall.Input,
-                messageCall.Depth,
-                messageCall.IsStatic
-            ));
+            result = await precompile.ExecuteAsync(
+                _host,
+                new PrecompileCall(
+                    Context,
+                    messageCall.Origin,
+                    messageCall.Caller,
+                    messageCall.Address,
+                    messageCall.Value,
+                    messageCall.Input,
+                    messageCall.Depth,
+                    messageCall.IsStatic
+                )
+            );
         }
         else
         {

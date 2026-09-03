@@ -15,7 +15,7 @@ internal sealed class InterpreterAccountStorage
 
     private readonly Address _address;
     private readonly InterpreterContext _context;
-    private readonly IGlobalStateProvider _globalStateProvider;
+    private readonly IInterpreterHost _host;
     private readonly JournaledMap<Bytes32, Bytes32> _persistentStorage = new();
     private readonly JournaledMap<Bytes32, Bytes32> _transientStorage = new();
     private readonly JournaledValue<UInt256> _balance = new();
@@ -30,14 +30,14 @@ internal sealed class InterpreterAccountStorage
     public InterpreterAccountStorage(
         Address address,
         InterpreterContext context,
-        IGlobalStateProvider globalStateProvider
+        IInterpreterHost host
     )
     {
         ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(globalStateProvider);
+        ArgumentNullException.ThrowIfNull(host);
         _address = address;
         _context = context;
-        _globalStateProvider = globalStateProvider;
+        _host = host;
     }
 
     public async ValueTask<Bytes32> SLoadAsync(Bytes32 key)
@@ -52,7 +52,7 @@ internal sealed class InterpreterAccountStorage
             return Bytes32.Zero;
         }
 
-        value = await _globalStateProvider.GetStorageAtAsync(_context, _address, key);
+        value = await _host.GetStorageAtAsync(_context, _address, key);
         _persistentStorage.Cache(in key, in value);
         return value;
     }
@@ -75,7 +75,7 @@ internal sealed class InterpreterAccountStorage
             return value;
         }
 
-        value = await _globalStateProvider.GetBalanceAsync(_context, _address);
+        value = await _host.GetBalanceAsync(_context, _address);
         _balance.Cache(in value);
         return value;
     }
@@ -89,7 +89,7 @@ internal sealed class InterpreterAccountStorage
         {
             return value;
         }
-        value = await _globalStateProvider.GetNonceAsync(_context, _address);
+        value = await _host.GetNonceAsync(_context, _address);
         _nonce.Cache(in value);
         return value;
     }
@@ -152,7 +152,7 @@ internal sealed class InterpreterAccountStorage
             return value;
         }
 
-        value = await _globalStateProvider.GetAccountCodeAsync(_context, _address);
+        value = await _host.GetAccountCodeAsync(_context, _address);
         _code.Cache(in value);
         return value;
     }
