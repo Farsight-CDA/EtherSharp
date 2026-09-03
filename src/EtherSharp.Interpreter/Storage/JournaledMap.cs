@@ -47,6 +47,16 @@ internal sealed class JournaledMap<TKey, TValue>
     public void Commit()
         => _changes.Clear();
 
+    public void Clear(int revision)
+    {
+        foreach(var (key, value) in _values)
+        {
+            _changes.Add(new Change(revision, key, true, value));
+        }
+
+        _values.Clear();
+    }
+
     public void Clear()
     {
         _values.Clear();

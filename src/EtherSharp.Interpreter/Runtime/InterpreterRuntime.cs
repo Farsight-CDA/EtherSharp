@@ -90,24 +90,31 @@ public class InterpreterRuntime(
     }
 
     /// <summary>
-    /// Simulates a call from the supplied sender and discards all state changes.
+    /// Simulates a call from the supplied sender with the specified options and discards all state changes.
     /// </summary>
     /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
     /// <param name="to">The account whose code and storage are used.</param>
     /// <param name="value">The native value exposed through <c>msg.value</c>.</param>
     /// <param name="callData">The calldata supplied to the call.</param>
+    /// <param name="options">The simulation options.</param>
     /// <returns>The simulated call result.</returns>
     /// <remarks>The sender nonce is incremented during execution, then restored with the other simulated state changes.</remarks>
     public async ValueTask<TxCallResult> SimulateCallAsync(
         Address sender,
         Address to,
         UInt256 value,
-        ReadOnlyMemory<byte> callData
+        ReadOnlyMemory<byte> callData,
+        InterpreterCallOptions options = default
     )
     {
         var storageSnapshot = _storage.TakeSnapshot();
         try
         {
+            if(options.StateOverrides is { } stateOverrides)
+            {
+                _storage.ApplyStateOverrides(stateOverrides);
+            }
+
             var senderStorage = _storage.GetAccountStorage(sender);
             ulong senderNonce = await senderStorage.GetNonceAsync();
             senderStorage.SetNonce(checked(senderNonce + 1));

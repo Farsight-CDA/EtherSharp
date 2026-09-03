@@ -37,6 +37,14 @@ internal sealed class InterpreterStorage(
         return accountStorage;
     }
 
+    public void ApplyStateOverrides(IReadOnlyDictionary<Address, AccountOverride> stateOverrides)
+    {
+        foreach(var (address, accountOverride) in stateOverrides)
+        {
+            GetAccountStorage(address).ApplyOverride(accountOverride);
+        }
+    }
+
     public Snapshot TakeSnapshot()
     {
         var accountSnapshots = ImmutableArray.CreateBuilder<AccountSnapshot>(_accountStorages.Count);

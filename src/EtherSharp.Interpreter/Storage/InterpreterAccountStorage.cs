@@ -8,7 +8,10 @@ namespace EtherSharp.Interpreter.Storage;
 
 internal sealed class InterpreterAccountStorage
 {
-    public readonly record struct Snapshot(int Revision);
+    public readonly record struct Snapshot(
+        int Revision,
+        bool PersistentStorageReplaced
+    );
 
     private readonly Address _address;
     private readonly InterpreterContext _context;
@@ -18,10 +21,11 @@ internal sealed class InterpreterAccountStorage
     private readonly JournaledValue<UInt256> _balance = new();
     private readonly JournaledValue<ulong> _nonce = new();
     private readonly JournaledValue<AccountCode> _code = new();
+    private bool _persistentStorageReplaced;
     private int _revision;
 
     public Snapshot TakeSnapshot()
-        => new(_revision);
+        => new(_revision, _persistentStorageReplaced);
 
     public InterpreterAccountStorage(
         Address address,
@@ -41,6 +45,11 @@ internal sealed class InterpreterAccountStorage
         if(_persistentStorage.TryGetValue(in key, out var value))
         {
             return value;
+        }
+
+        if(_persistentStorageReplaced)
+        {
+            return Bytes32.Zero;
         }
 
         value = await _globalStateProvider.GetStorageAtAsync(_context, _address, key);
@@ -99,6 +108,38 @@ internal sealed class InterpreterAccountStorage
         _code.Set(NextRevision(), in accountCode);
     }
 
+    public void ApplyOverride(AccountOverride accountOverride)
+    {
+        if(accountOverride.Balance is { } balance)
+        {
+            SetBalance(in balance);
+        }
+        if(accountOverride.Nonce is { } nonce)
+        {
+            SetNonce(nonce);
+        }
+        if(accountOverride.Code is { } code)
+        {
+            SetCode(new EVMByteCode(code));
+        }
+        if(accountOverride.State is { } state)
+        {
+            _persistentStorage.Clear(NextRevision());
+            _persistentStorageReplaced = true;
+            foreach(var (key, value) in state)
+            {
+                SStore(in key, in value);
+            }
+        }
+        else if(accountOverride.StateDiff is { } stateDiff)
+        {
+            foreach(var (key, value) in stateDiff)
+            {
+                SStore(in key, in value);
+            }
+        }
+    }
+
     public async ValueTask<Bytes32> GetCodeHashAsync()
         => _code.TryGetValue(out var value)
             ? value.Hash
@@ -138,6 +179,7 @@ internal sealed class InterpreterAccountStorage
         _balance.Reset(snapshot.Revision);
         _nonce.Reset(snapshot.Revision);
         _code.Reset(snapshot.Revision);
+        _persistentStorageReplaced = snapshot.PersistentStorageReplaced;
         _revision = snapshot.Revision;
     }
 
