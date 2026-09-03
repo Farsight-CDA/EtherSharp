@@ -13,6 +13,8 @@ namespace EtherSharp.Query;
 /// </summary>
 public partial interface IQuery
 {
+    private const int DEFAULT_NONCE_SEARCH_COUNT = 16_384;
+
     private static IQuery<ulong> ArbitrumBlockNumberQuery { get; } = Call(IContractCall<UInt256>.ForContractCall(
         "0x0000000000000000000000000000000000000064",
         0,
@@ -169,6 +171,24 @@ public partial interface IQuery
     /// </summary>
     public static IQuery<UInt256> GetBalance(in Address user)
         => new GetBalanceQueryOperation(in user);
+
+    /// <summary>
+    /// Creates a query that searches a bounded range for an account's nonce.
+    /// </summary>
+    /// <param name="account">Account whose nonce should be found.</param>
+    /// <param name="startNonce">First nonce to test.</param>
+    /// <param name="searchCount">Number of consecutive nonces to test.</param>
+    /// <returns>A query that reports whether the nonce was found in the requested range.</returns>
+    /// <remarks>
+    /// The query temporarily executes a contract creation as <paramref name="account"/> and matches the resulting
+    /// address against locally derived CREATE addresses. An account should appear at most once in a query plan because
+    /// each probe increments its simulated nonce for the remainder of that call.
+    /// </remarks>
+    public static IQuery<NonceSearchResult> GetNonce(
+        in Address account,
+        ulong startNonce = 0,
+        int searchCount = DEFAULT_NONCE_SEARCH_COUNT
+    ) => new GetNonceQuery(in account, startNonce, searchCount);
 
     /// <summary>
     /// Executes <paramref name="query"/> from <paramref name="caller"/> by temporarily installing a querier at that address.
