@@ -1,3 +1,4 @@
+using EtherSharp.Contract;
 using EtherSharp.Interpreter.Precompiles;
 using EtherSharp.Types;
 using System.Diagnostics.CodeAnalysis;
@@ -10,6 +11,16 @@ namespace EtherSharp.Interpreter.Runtime;
 public sealed class InterpreterExecutionSpec
 {
     private readonly Dictionary<Address, IPrecompile> _precompiles;
+
+    /// <summary>
+    /// Gets the maximum permitted initcode length in bytes.
+    /// </summary>
+    public int MaxInitCodeLength { get; init; } = EVMByteCode.MAX_INIT_LENGTH;
+
+    /// <summary>
+    /// Gets the maximum permitted runtime-code length in bytes.
+    /// </summary>
+    public int MaxRuntimeCodeLength { get; init; } = EVMByteCode.MAX_RUNTIME_LENGTH;
 
     /// <summary>
     /// Gets an execution specification with no registered precompiles.
