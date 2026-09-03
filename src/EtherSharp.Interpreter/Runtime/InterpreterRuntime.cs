@@ -212,7 +212,11 @@ public class InterpreterRuntime(
                 messageCall.IsStatic
             );
 
-            result = await ExecuteOpcodesAsync(callFrame);
+            var codeStorage = callFrame.CodeAddress == callFrame.To
+                ? callFrame.AccountStorage
+                : _storage.GetAccountStorage(callFrame.CodeAddress);
+            var byteCode = await codeStorage.GetCodeAsync();
+            result = await ExecuteOpcodesAsync(callFrame, byteCode);
         }
 
         if(!result.Success)
@@ -223,12 +227,12 @@ public class InterpreterRuntime(
         return result;
     }
 
-    private async ValueTask<TxCallResult> ExecuteOpcodesAsync(CallFrame callFrame)
+    private async ValueTask<TxCallResult> ExecuteOpcodesAsync(
+        CallFrame callFrame,
+        EVMByteCode byteCode
+    )
     {
-        var codeStorage = callFrame.CodeAddress == callFrame.To
-            ? callFrame.AccountStorage
-            : _storage.GetAccountStorage(callFrame.CodeAddress);
-        var code = new ZeroPaddedData((await codeStorage.GetCodeAsync()).ByteCode);
+        var code = new ZeroPaddedData(byteCode.ByteCode);
 
         int programCounter = 0;
 
