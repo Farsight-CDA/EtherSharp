@@ -1,5 +1,4 @@
 using EtherSharp.Contract;
-using EtherSharp.Interpreter.Storage;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 
@@ -11,12 +10,20 @@ namespace EtherSharp.Interpreter.Runtime;
 public interface IInterpreterHost
 {
     /// <summary>
-    /// Gets the bytecode and code hash for an account.
+    /// Gets the bytecode for an account.
     /// </summary>
     /// <param name="context">The context at which state is read.</param>
     /// <param name="address">The account address.</param>
-    /// <returns>The account bytecode and its state hash.</returns>
-    public Task<AccountCode> GetAccountCodeAsync(InterpreterContext context, Address address);
+    /// <returns>The account bytecode.</returns>
+    public Task<EVMByteCode> GetCodeAsync(InterpreterContext context, Address address);
+
+    /// <summary>
+    /// Gets the code hash for an account.
+    /// </summary>
+    /// <param name="context">The context at which state is read.</param>
+    /// <param name="address">The account address.</param>
+    /// <returns>The account code hash.</returns>
+    public Task<Bytes32> GetCodeHashAsync(InterpreterContext context, Address address);
 
     /// <summary>
     /// Gets the native balance for an account.

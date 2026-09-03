@@ -22,7 +22,8 @@ internal sealed class InterpreterAccountStorage(
     private readonly JournaledMap<Bytes32, Bytes32> _transientStorage = new();
     private readonly JournaledValue<UInt256> _balance = new();
     private readonly JournaledValue<ulong> _nonce = new();
-    private readonly JournaledValue<AccountCode> _code = new();
+    private readonly JournaledValue<EVMByteCode> _code = new();
+    private readonly JournaledValue<Bytes32> _codeHash = new();
     private readonly JournaledFlag _persistentStorageReplaced = new();
 
     public async ValueTask<Bytes32> SLoadAsync(Bytes32 key)
@@ -82,14 +83,23 @@ internal sealed class InterpreterAccountStorage(
         => _nonce.Set(_nextRevision(), in value);
 
     public async ValueTask<EVMByteCode> GetCodeAsync()
-        => _code.TryGetValue(out var value)
-            ? value.Code
-            : (await GetAccountCodeAsync()).Code;
+    {
+        if(_code.TryGetValue(out var value))
+        {
+            return value;
+        }
+
+        value = await _host.GetCodeAsync(_context, _address);
+        _code.Cache(in value);
+        return value;
+    }
 
     public void SetCode(in EVMByteCode value)
     {
-        var accountCode = new AccountCode(value, Keccak256.HashData(value.ByteCode.Span));
-        _code.Set(_nextRevision(), in accountCode);
+        long revision = _nextRevision();
+        var codeHash = Keccak256.HashData(value.ByteCode.Span);
+        _code.Set(revision, in value);
+        _codeHash.Set(revision, in codeHash);
     }
 
     public void ApplyOverride(AccountOverride accountOverride)
@@ -126,19 +136,14 @@ internal sealed class InterpreterAccountStorage(
     }
 
     public async ValueTask<Bytes32> GetCodeHashAsync()
-        => _code.TryGetValue(out var value)
-            ? value.Hash
-            : (await GetAccountCodeAsync()).Hash;
-
-    private async ValueTask<AccountCode> GetAccountCodeAsync()
     {
-        if(_code.TryGetValue(out var value))
+        if(_codeHash.TryGetValue(out var value))
         {
             return value;
         }
 
-        value = await _host.GetAccountCodeAsync(_context, _address);
-        _code.Cache(in value);
+        value = await _host.GetCodeHashAsync(_context, _address);
+        _codeHash.Cache(in value);
         return value;
     }
 
@@ -149,6 +154,7 @@ internal sealed class InterpreterAccountStorage(
         _balance.Commit();
         _nonce.Commit();
         _code.Commit();
+        _codeHash.Commit();
         _persistentStorageReplaced.Commit();
     }
 
@@ -159,6 +165,7 @@ internal sealed class InterpreterAccountStorage(
         _balance.Reset(revision);
         _nonce.Reset(revision);
         _code.Reset(revision);
+        _codeHash.Reset(revision);
         _persistentStorageReplaced.Reset(revision);
     }
 }
