@@ -4,6 +4,7 @@ using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace EtherSharp.Crypto;
@@ -91,10 +92,7 @@ public ref struct Keccak256
         var keccak = new Keccak256([], state);
         keccak.KeccakPermutation();
 
-        BinaryPrimitives.WriteUInt64LittleEndian(destination, state[0]);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[8..], state[1]);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[16..], state[2]);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[24..], state[3]);
+        state[..4].CopyTo(MemoryMarshal.Cast<byte, ulong>(destination));
     }
 
     /// <summary>
@@ -272,10 +270,7 @@ public ref struct Keccak256
         PadAndSwitchToSqueezingPhase();
         KeccakPermutation();
 
-        BinaryPrimitives.WriteUInt64LittleEndian(output, _state[0]);
-        BinaryPrimitives.WriteUInt64LittleEndian(output[8..], _state[1]);
-        BinaryPrimitives.WriteUInt64LittleEndian(output[16..], _state[2]);
-        BinaryPrimitives.WriteUInt64LittleEndian(output[24..], _state[3]);
+        _state[..4].CopyTo(MemoryMarshal.Cast<byte, ulong>(output));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
