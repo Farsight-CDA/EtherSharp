@@ -35,7 +35,10 @@ public class InterpreterRuntime(
         bool IsStatic
     );
 
-    private readonly InterpreterStorage _storage = new(context, globalStateProvider);
+    private readonly InterpreterStorage _storage = new(
+        context ?? throw new ArgumentNullException(nameof(context)),
+        globalStateProvider ?? throw new ArgumentNullException(nameof(globalStateProvider))
+    );
 
     /// <summary>
     /// Gets the block and transaction context for execution.
@@ -48,7 +51,8 @@ public class InterpreterRuntime(
     /// <summary>
     /// Gets the consensus behavior used for execution.
     /// </summary>
-    public InterpreterExecutionSpec ExecutionSpec { get; } = executionSpec;
+    public InterpreterExecutionSpec ExecutionSpec { get; } = executionSpec
+        ?? throw new ArgumentNullException(nameof(executionSpec));
 
     /// <summary>
     /// Executes a transaction from the supplied sender and retains its state changes.
