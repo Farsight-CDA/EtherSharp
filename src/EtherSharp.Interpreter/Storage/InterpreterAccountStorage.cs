@@ -115,6 +115,15 @@ internal sealed class InterpreterAccountStorage(
         _codeHash.Set(revision, in codeHash);
     }
 
+    public void InitializeCreatedContract()
+    {
+        long revision = _nextRevision();
+        _present.Set(revision);
+        _nonce.Set(revision, 1);
+        _code.Set(revision, InterpreterAccountInfo.Empty.Code);
+        _codeHash.Set(revision, InterpreterAccountInfo.EmptyCodeHash);
+    }
+
     public void ApplyOverride(AccountOverride accountOverride)
     {
         if(accountOverride.Balance is { } balance)
