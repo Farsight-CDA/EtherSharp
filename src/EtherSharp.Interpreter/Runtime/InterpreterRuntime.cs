@@ -972,12 +972,12 @@ public class InterpreterRuntime(
                     }
 
                     var initCode = callFrame.Memory.Access(offset, length).ReadOnlyMemory;
-                    callFrame.ReturnData.Clear();
                     var createdAddress = Address.DeriveCreate2(
                         callFrame.To,
                         salt,
                         Keccak256.HashData(initCode.Span)
                     );
+                    callFrame.ReturnData.Clear();
                     var creationResult = await ExecuteContractCreationAsync(
                         callFrame,
                         createdAddress,
