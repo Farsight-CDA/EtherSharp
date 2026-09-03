@@ -1,7 +1,5 @@
 using EtherSharp.Contract;
-using EtherSharp.Crypto;
 using EtherSharp.Numerics;
-using EtherSharp.RLP;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 
@@ -43,24 +41,12 @@ internal sealed class GetNonceQuery : IQuery<NonceSearchResult>
         params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
         var createdAddress = _probe.ReadResultFrom(queryResults);
-        int encodedAddressLength = RLPEncoder.GetStringSize(_account.DangerousGetReadOnlySpan());
-
-        Span<byte> payload = stackalloc byte[RLPEncoder.GetListSize(encodedAddressLength + 1 + sizeof(ulong))];
-        Span<byte> hash = stackalloc byte[Bytes32.BYTE_LENGTH];
 
         for(int i = 0; i < _searchCount; i++)
         {
             ulong nonce = _startNonce + (ulong) i;
-            int encodedNonceLength = RLPEncoder.GetIntSize(nonce);
-            int listContentLength = encodedAddressLength + encodedNonceLength;
-            int payloadLength = RLPEncoder.GetListSize(listContentLength);
-            new RLPEncoder(payload)
-                .EncodeList(listContentLength)
-                .EncodeString(_account.DangerousGetReadOnlySpan())
-                .EncodeInt(nonce);
-            Keccak256.TryHashData(payload[..payloadLength], hash);
 
-            if(hash[^Address.BYTES_LENGTH..].SequenceEqual(createdAddress.DangerousGetReadOnlySpan()))
+            if(Address.DeriveCreate(in _account, nonce) == createdAddress)
             {
                 return new NonceSearchResult.Found(nonce);
             }

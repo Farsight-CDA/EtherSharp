@@ -1,6 +1,7 @@
 using EtherSharp.Common;
 using EtherSharp.Common.Converters.Json;
 using EtherSharp.Crypto;
+using EtherSharp.RLP;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
@@ -148,6 +149,48 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>, ISta
     /// <returns></returns>
     public static Address FromBytes(ReadOnlySpan<byte> b)
         => new(Bytes20.FromBytes(b));
+
+    /// <summary>
+    /// Derives the address created by the CREATE opcode.
+    /// </summary>
+    /// <param name="creator">The account creating the contract.</param>
+    /// <param name="oldNonce">The creator nonce before the CREATE operation.</param>
+    /// <returns>The address of the created contract.</returns>
+    public static Address DeriveCreate(in Address creator, ulong oldNonce)
+    {
+        int addressLength = RLPEncoder.GetStringSize(creator.DangerousGetReadOnlySpan());
+        int contentLength = addressLength + RLPEncoder.GetIntSize(oldNonce);
+        int payloadLength = RLPEncoder.GetListSize(contentLength);
+
+        Span<byte> payload = stackalloc byte[payloadLength];
+        Span<byte> hash = stackalloc byte[Bytes32.BYTE_LENGTH];
+        new RLPEncoder(payload)
+            .EncodeList(contentLength)
+            .EncodeString(creator.DangerousGetReadOnlySpan())
+            .EncodeInt(oldNonce);
+        _ = Keccak256.TryHashData(payload, hash);
+        return FromBytes(hash[^BYTES_LENGTH..]);
+    }
+
+    /// <summary>
+    /// Derives the address created by the CREATE2 opcode.
+    /// </summary>
+    /// <param name="creator">The account creating the contract.</param>
+    /// <param name="salt">The 32-byte CREATE2 salt.</param>
+    /// <param name="initCodeHash">The Keccak-256 hash of the contract initialization code.</param>
+    /// <returns>The address of the created contract.</returns>
+    public static Address DeriveCreate2(in Address creator, in Bytes32 salt, in Bytes32 initCodeHash)
+    {
+        Span<byte> payload = stackalloc byte[1 + BYTES_LENGTH + Bytes32.BYTE_LENGTH + Bytes32.BYTE_LENGTH];
+        payload[0] = 0xff;
+        creator.CopyTo(payload[1..]);
+        salt.CopyTo(payload[(1 + BYTES_LENGTH)..]);
+        initCodeHash.CopyTo(payload[^Bytes32.BYTE_LENGTH..]);
+
+        Span<byte> hash = stackalloc byte[Bytes32.BYTE_LENGTH];
+        _ = Keccak256.TryHashData(payload, hash);
+        return FromBytes(hash[^BYTES_LENGTH..]);
+    }
 
     /// <inheritdoc/>
     [OverloadResolutionPriority(1)]
