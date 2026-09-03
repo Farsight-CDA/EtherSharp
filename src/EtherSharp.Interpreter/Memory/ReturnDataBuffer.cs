@@ -8,9 +8,6 @@ internal sealed class ReturnDataBuffer
 
     public int Length => _data.Length;
 
-    public void Clear()
-        => _data = ReadOnlyMemory<byte>.Empty;
-
     public void Set(ReadOnlyMemory<byte> data)
         => _data = data;
 

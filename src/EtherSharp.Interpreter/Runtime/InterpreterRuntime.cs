@@ -985,7 +985,6 @@ public class InterpreterRuntime(
                         return callFrame.Revert();
                     }
 
-                    callFrame.ReturnData.Clear();
                     var createdAddress = Address.DeriveCreate(
                         callFrame.To,
                         await callFrame.AccountStorage.GetNonceAsync()
@@ -1028,7 +1027,6 @@ public class InterpreterRuntime(
                         salt,
                         Keccak256.HashData(initCode.Span)
                     );
-                    callFrame.ReturnData.Clear();
                     var creationResult = await ExecuteContractCreationAsync(
                         transaction,
                         callFrame,
@@ -1065,8 +1063,6 @@ public class InterpreterRuntime(
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    callFrame.ReturnData.Clear();
-
                     var callResult = await ExecuteMessageCallAsync(transaction, new MessageCall(
                         callFrame.Origin,
                         callFrame.To,
@@ -1101,8 +1097,6 @@ public class InterpreterRuntime(
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    callFrame.ReturnData.Clear();
-
                     bool hasSufficientBalance = value == UInt256.Zero
                         || await callFrame.AccountStorage.GetBalanceAsync() >= value;
                     var callResult = hasSufficientBalance
@@ -1149,8 +1143,6 @@ public class InterpreterRuntime(
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    callFrame.ReturnData.Clear();
-
                     var callResult = await ExecuteMessageCallAsync(transaction, new MessageCall(
                         callFrame.Origin,
                         callFrame.From,
@@ -1184,8 +1176,6 @@ public class InterpreterRuntime(
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    callFrame.ReturnData.Clear();
-
                     var callResult = await ExecuteMessageCallAsync(transaction, new MessageCall(
                         callFrame.Origin,
                         callFrame.To,
