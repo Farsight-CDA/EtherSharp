@@ -231,6 +231,80 @@ public class InterpreterRuntime(
         return result;
     }
 
+    private async ValueTask<TxCallResult> ExecuteContractCreationAsync(
+        CallFrame creatorFrame,
+        Address createdAddress,
+        UInt256 endowment,
+        ReadOnlyMemory<byte> initCode
+    )
+    {
+        if(creatorFrame.Depth + 1 >= CallFrame.MAX_DEPTH)
+        {
+            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+        }
+
+        var creatorStorage = creatorFrame.AccountStorage;
+        var creatorBalance = await creatorStorage.GetBalanceAsync();
+        if(creatorBalance < endowment)
+        {
+            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+        }
+
+        ulong creatorNonce = await creatorStorage.GetNonceAsync();
+        if(creatorNonce == UInt64.MaxValue)
+        {
+            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+        }
+
+        creatorStorage.SetNonce(creatorNonce + 1);
+        var createdStorage = _storage.GetAccountStorage(createdAddress);
+        if(await createdStorage.HasCreateCollisionAsync())
+        {
+            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+        }
+
+        var creationSnapshot = _storage.TakeSnapshot();
+        createdStorage.InitializeCreatedContract();
+        if(endowment != UInt256.Zero)
+        {
+            var createdBalance = await createdStorage.GetBalanceAsync();
+            creatorStorage.SetBalance(creatorBalance - endowment);
+            createdStorage.SetBalance(createdBalance + endowment);
+        }
+
+        var creationFrame = new CallFrame(
+            creatorFrame.Origin,
+            creatorFrame.To,
+            createdAddress,
+            createdAddress,
+            endowment,
+            ReadOnlyMemory<byte>.Empty,
+            createdStorage,
+            Options,
+            creatorFrame.Depth + 1,
+            false
+        );
+        var creationResult = await ExecuteOpcodesAsync(
+            creationFrame,
+            new EVMByteCode(initCode)
+        );
+        if(!creationResult.Success)
+        {
+            _storage.Reset(creationSnapshot);
+            return creationResult;
+        }
+        if(creationResult.Data.Length > ExecutionSpec.MaxRuntimeCodeLength
+            || (!creationResult.Data.IsEmpty && creationResult.Data.Span[0] == 0xEF))
+        {
+            _storage.Reset(creationSnapshot);
+            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+        }
+
+        var runtimeCode = new EVMByteCode(creationResult.Data.ToArray());
+        createdStorage.SetCode(in runtimeCode);
+        return new TxCallResult(true, ReadOnlyMemory<byte>.Empty);
+    }
+
     private async ValueTask<TxCallResult> ExecuteOpcodesAsync(
         CallFrame callFrame,
         EVMByteCode byteCode
@@ -846,12 +920,78 @@ public class InterpreterRuntime(
                     break;
                 }
                 case EvmOpcode.Create:
+                {
                     if(callFrame.IsStatic)
                     {
                         return callFrame.Revert();
                     }
 
-                    throw new NotSupportedException("Contract creation is not supported.");
+                    if(!callFrame.Stack.TryPop(
+                        out UInt256 endowment,
+                        out UInt256 offset,
+                        out UInt256 length
+                    ) || length > (UInt256) ExecutionSpec.MaxInitCodeLength)
+                    {
+                        return callFrame.Revert();
+                    }
+
+                    callFrame.ReturnData.Clear();
+                    var createdAddress = Address.DeriveCreate(
+                        callFrame.To,
+                        await callFrame.AccountStorage.GetNonceAsync()
+                    );
+                    var creationResult = await ExecuteContractCreationAsync(
+                        callFrame,
+                        createdAddress,
+                        endowment,
+                        callFrame.Memory.Access(offset, length).ReadOnlyMemory
+                    );
+                    callFrame.ReturnData.Set(creationResult.Data);
+                    callFrame.Stack.Push(creationResult.Success
+                        ? createdAddress
+                        : Address.Zero
+                    );
+
+                    break;
+                }
+                case EvmOpcode.Create2:
+                {
+                    if(callFrame.IsStatic)
+                    {
+                        return callFrame.Revert();
+                    }
+
+                    if(!callFrame.Stack.TryPop(
+                        out UInt256 endowment,
+                        out UInt256 offset,
+                        out UInt256 length,
+                        out Bytes32 salt
+                    ) || length > (UInt256) ExecutionSpec.MaxInitCodeLength)
+                    {
+                        return callFrame.Revert();
+                    }
+
+                    var initCode = callFrame.Memory.Access(offset, length).ReadOnlyMemory;
+                    callFrame.ReturnData.Clear();
+                    var createdAddress = Address.DeriveCreate2(
+                        callFrame.To,
+                        salt,
+                        Keccak256.HashData(initCode.Span)
+                    );
+                    var creationResult = await ExecuteContractCreationAsync(
+                        callFrame,
+                        createdAddress,
+                        endowment,
+                        initCode
+                    );
+                    callFrame.ReturnData.Set(creationResult.Data);
+                    callFrame.Stack.Push(creationResult.Success
+                        ? createdAddress
+                        : Address.Zero
+                    );
+
+                    break;
+                }
                 case EvmOpcode.Call:
                 {
                     if(!callFrame.Stack.TryPop(
