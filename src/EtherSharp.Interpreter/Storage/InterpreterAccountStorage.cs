@@ -11,7 +11,7 @@ internal sealed class InterpreterAccountStorage(
     InterpreterContext context,
     IInterpreterHost host,
     Func<long> nextRevision
-    )
+)
 {
     private readonly Address _address = address;
     private readonly InterpreterContext _context = context;
@@ -31,7 +31,6 @@ internal sealed class InterpreterAccountStorage(
         {
             return value;
         }
-
         if(_persistentStorageReplaced.IsSet)
         {
             return Bytes32.Zero;
