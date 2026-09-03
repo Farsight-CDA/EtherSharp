@@ -60,13 +60,14 @@ public class InterpreterRuntime(
     )
     {
         var storageSnapshot = _storage.TakeSnapshot();
+        TxCallResult result;
         try
         {
             var senderStorage = _storage.GetAccountStorage(sender);
             ulong senderNonce = await senderStorage.GetNonceAsync();
             senderStorage.SetNonce(checked(senderNonce + 1));
 
-            return await ExecuteMessageCallAsync(new MessageCall(
+            result = await ExecuteMessageCallAsync(new MessageCall(
                 sender,
                 sender,
                 to,
@@ -83,6 +84,9 @@ public class InterpreterRuntime(
             _storage.Reset(storageSnapshot);
             throw;
         }
+
+        _storage.Commit();
+        return result;
     }
 
     /// <summary>
@@ -134,9 +138,7 @@ public class InterpreterRuntime(
         }
 
         var accountStorage = _storage.GetAccountStorage(messageCall.Address);
-        var accountSnapshot = accountStorage.CurrentSnapshot;
-        InterpreterAccountStorage? transferredValueSourceStorage = null;
-        StorageJournal.Snapshot valueSourceSnapshot = default;
+        var callSnapshot = _storage.TakeSnapshot();
 
         if(messageCall.ValueSource is Address valueSource
             && messageCall.Value != UInt256.Zero)
@@ -153,10 +155,8 @@ public class InterpreterRuntime(
             if(valueSource != messageCall.Address)
             {
                 var targetBalance = await accountStorage.GetBalanceAsync();
-                valueSourceSnapshot = valueSourceStorage.CurrentSnapshot;
                 valueSourceStorage.SetBalance(sourceBalance - messageCall.Value);
                 accountStorage.SetBalance(targetBalance + messageCall.Value);
-                transferredValueSourceStorage = valueSourceStorage;
             }
         }
 
@@ -173,18 +173,11 @@ public class InterpreterRuntime(
             messageCall.IsStatic
         );
 
-        var callSnapshot = _storage.TakeSnapshot();
         var result = await ExecuteOpcodesAsync(callFrame);
 
         if(!result.Success)
         {
             _storage.Reset(callSnapshot);
-        }
-
-        if(!result.Success && transferredValueSourceStorage is not null)
-        {
-            transferredValueSourceStorage.Reset(valueSourceSnapshot);
-            accountStorage.Reset(accountSnapshot);
         }
 
         return result;
@@ -802,7 +795,7 @@ public class InterpreterRuntime(
                     }
 
                     byte[] data = callFrame.Memory.Access(offset, length).Span.ToArray();
-                    callFrame.AccountStorage.AddLog(topics, data);
+                    _storage.AddLog(callFrame.To, topics, data);
                     break;
                 }
                 case EvmOpcode.Create:

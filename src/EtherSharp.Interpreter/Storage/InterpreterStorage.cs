@@ -11,11 +11,20 @@ internal sealed class InterpreterStorage(
 {
     public readonly record struct AccountSnapshot(
         Address Address,
-        StorageJournal.Snapshot JournalSnapshot
+        InterpreterAccountStorage.Snapshot StorageSnapshot
     );
-    public readonly record struct Snapshot(ImmutableArray<AccountSnapshot> AccountSnapshots);
+    public readonly record struct Snapshot(
+        ImmutableArray<AccountSnapshot> AccountSnapshots,
+        int LogCount
+    );
+    private readonly record struct JournalLog(
+        Address Address,
+        ReadOnlyMemory<Bytes32> Topics,
+        ReadOnlyMemory<byte> Data
+    );
 
     private readonly Dictionary<Address, InterpreterAccountStorage> _accountStorages = [];
+    private readonly List<JournalLog> _logs = [];
 
     public InterpreterAccountStorage GetAccountStorage(Address address)
     {
@@ -33,10 +42,23 @@ internal sealed class InterpreterStorage(
         var accountSnapshots = ImmutableArray.CreateBuilder<AccountSnapshot>(_accountStorages.Count);
         foreach(var (address, accountStorage) in _accountStorages)
         {
-            accountSnapshots.Add(new AccountSnapshot(address, accountStorage.CurrentSnapshot));
+            accountSnapshots.Add(new AccountSnapshot(address, accountStorage.TakeSnapshot()));
         }
 
-        return new Snapshot(accountSnapshots.MoveToImmutable());
+        return new Snapshot(accountSnapshots.MoveToImmutable(), _logs.Count);
+    }
+
+    public void AddLog(Address address, Bytes32[] topics, byte[] data)
+        => _logs.Add(new JournalLog(address, topics, data));
+
+    public void Commit()
+    {
+        foreach(var accountStorage in _accountStorages.Values)
+        {
+            accountStorage.Commit();
+        }
+
+        _logs.Clear();
     }
 
     public void Reset(Snapshot snapshot)
@@ -45,18 +67,24 @@ internal sealed class InterpreterStorage(
         {
             throw new ArgumentException("Snapshot is uninitialized.", nameof(snapshot));
         }
-
-        var accountSnapshots = snapshot.AccountSnapshots;
-        foreach(var accountSnapshot in accountSnapshots)
+        if(snapshot.LogCount < 0 || snapshot.LogCount > _logs.Count)
         {
-            _accountStorages[accountSnapshot.Address].Reset(accountSnapshot.JournalSnapshot);
+            throw new ArgumentOutOfRangeException(nameof(snapshot));
         }
+
+        foreach(var accountSnapshot in snapshot.AccountSnapshots)
+        {
+            _accountStorages[accountSnapshot.Address].Reset(accountSnapshot.StorageSnapshot);
+        }
+
         foreach(var (address, accountStorage) in _accountStorages)
         {
-            if(!accountSnapshots.Any(accountSnapshot => accountSnapshot.Address == address))
+            if(!snapshot.AccountSnapshots.Any(accountSnapshot => accountSnapshot.Address == address))
             {
                 accountStorage.Reset(default);
             }
         }
+
+        _logs.RemoveRange(snapshot.LogCount, _logs.Count - snapshot.LogCount);
     }
 }
