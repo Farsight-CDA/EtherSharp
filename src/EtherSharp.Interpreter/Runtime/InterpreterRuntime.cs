@@ -233,7 +233,6 @@ public class InterpreterRuntime(
     )
     {
         var code = new ZeroPaddedData(byteCode.ByteCode);
-
         int programCounter = 0;
 
         while(true)
