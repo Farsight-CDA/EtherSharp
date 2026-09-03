@@ -1,6 +1,7 @@
 using EtherSharp.Contract;
 using EtherSharp.Crypto;
 using EtherSharp.Interpreter.Memory;
+using EtherSharp.Interpreter.Precompiles;
 using EtherSharp.Interpreter.Storage;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
@@ -13,10 +14,12 @@ namespace EtherSharp.Interpreter.Runtime;
 /// </summary>
 /// <param name="context">The block and transaction context for execution.</param>
 /// <param name="globalStateProvider">The provider used to read global state.</param>
+/// <param name="executionSpec">The consensus behavior used for execution.</param>
 /// <param name="options">The interpreter resource limits.</param>
 public class InterpreterRuntime(
     InterpreterContext context,
     IGlobalStateProvider globalStateProvider,
+    InterpreterExecutionSpec executionSpec,
     InterpreterOptions? options = null
 )
 {
@@ -42,6 +45,10 @@ public class InterpreterRuntime(
     /// Gets the interpreter configuration.
     /// </summary>
     public InterpreterOptions Options { get; } = (options ?? new InterpreterOptions()).Validate();
+    /// <summary>
+    /// Gets the consensus behavior used for execution.
+    /// </summary>
+    public InterpreterExecutionSpec ExecutionSpec { get; } = executionSpec;
 
     /// <summary>
     /// Executes a transaction from the supplied sender and retains its state changes.
@@ -167,20 +174,37 @@ public class InterpreterRuntime(
             }
         }
 
-        var callFrame = new CallFrame(
-            messageCall.Origin,
-            messageCall.Caller,
-            messageCall.Address,
-            messageCall.CodeAddress,
-            messageCall.Value,
-            messageCall.Input,
-            accountStorage,
-            Options,
-            messageCall.Depth,
-            messageCall.IsStatic
-        );
+        TxCallResult result;
+        if(ExecutionSpec.TryGetPrecompile(messageCall.CodeAddress, out var precompile))
+        {
+            result = await precompile.ExecuteAsync(new PrecompileCall(
+                Context,
+                messageCall.Origin,
+                messageCall.Caller,
+                messageCall.Address,
+                messageCall.Value,
+                messageCall.Input,
+                messageCall.Depth,
+                messageCall.IsStatic
+            ));
+        }
+        else
+        {
+            var callFrame = new CallFrame(
+                messageCall.Origin,
+                messageCall.Caller,
+                messageCall.Address,
+                messageCall.CodeAddress,
+                messageCall.Value,
+                messageCall.Input,
+                accountStorage,
+                Options,
+                messageCall.Depth,
+                messageCall.IsStatic
+            );
 
-        var result = await ExecuteOpcodesAsync(callFrame);
+            result = await ExecuteOpcodesAsync(callFrame);
+        }
 
         if(!result.Success)
         {
