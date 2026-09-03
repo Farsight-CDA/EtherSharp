@@ -6,34 +6,24 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Storage;
 
-internal sealed class InterpreterAccountStorage
+internal sealed class InterpreterAccountStorage(
+    Address address,
+    InterpreterContext context,
+    IInterpreterHost host,
+    Func<long> nextRevision
+    )
 {
-    private readonly Address _address;
-    private readonly InterpreterContext _context;
-    private readonly IInterpreterHost _host;
-    private readonly Func<long> _nextRevision;
+    private readonly Address _address = address;
+    private readonly InterpreterContext _context = context;
+    private readonly IInterpreterHost _host = host;
+    private readonly Func<long> _nextRevision = nextRevision;
+
     private readonly JournaledMap<Bytes32, Bytes32> _persistentStorage = new();
     private readonly JournaledMap<Bytes32, Bytes32> _transientStorage = new();
     private readonly JournaledValue<UInt256> _balance = new();
     private readonly JournaledValue<ulong> _nonce = new();
     private readonly JournaledValue<AccountCode> _code = new();
     private readonly JournaledValue<bool> _persistentStorageReplaced = new();
-
-    public InterpreterAccountStorage(
-        Address address,
-        InterpreterContext context,
-        IInterpreterHost host,
-        Func<long> nextRevision
-    )
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(host);
-        ArgumentNullException.ThrowIfNull(nextRevision);
-        _address = address;
-        _context = context;
-        _host = host;
-        _nextRevision = nextRevision;
-    }
 
     public async ValueTask<Bytes32> SLoadAsync(Bytes32 key)
     {
