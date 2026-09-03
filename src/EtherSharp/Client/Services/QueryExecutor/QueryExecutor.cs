@@ -3,20 +3,13 @@ using EtherSharp.Common.Exceptions;
 using EtherSharp.Query;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
-using EtherSharp.Types;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System.Buffers;
 
 namespace EtherSharp.Client.Services.QueryExecutor;
 
-internal sealed class QueryExecutor(
-    FlashCallExecutor flashCallExecutor,
-    IServiceProvider provider)
+internal sealed class QueryExecutor(FlashCallExecutor flashCallExecutor)
 {
     private readonly FlashCallExecutor _flashCallExecutor = flashCallExecutor;
-    private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<QueryExecutor>();
-    private readonly IEtherClient _client = provider.GetRequiredService<IEtherClient>();
 
     public async Task<TQuery> ExecuteQueryAsync<TQuery>(
         IQuery<TQuery> query,
@@ -30,100 +23,53 @@ internal sealed class QueryExecutor(
             return query.ReadResultFrom([]);
         }
 
-        var blockNumberQuery = options.TargetHeight.IsNumeric
-            ? IQuery.Noop(options.TargetHeight.Value.GetValueOrDefault())
-            : IQuery.GetBlockNumber();
-        var plan = new QueryPlan(query.OperationCount + blockNumberQuery.OperationCount, options.StateOverrides);
-        plan.Add(blockNumberQuery);
+        var plan = new QueryPlan(query.OperationCount, options.StateOverrides);
         plan.Add(query);
 
         var outputs = new ReadOnlyMemory<byte>[plan.Queries.Count];
+        byte[] payloadBytes = IQuerier.Functions.Query.Encode(
+            plan.Queries,
+            out int payloadSize,
+            out var ethValue
+        );
 
-        int maxPayloadSize = _flashCallExecutor.GetMaxPayloadSize(IQuerier.Code.Flash, gasLimit, options.TargetHeight);
-        int maxResultSize = _flashCallExecutor.GetMaxResultSize(IQuerier.Code.Flash, options.TargetHeight);
-        var buffer = ReadOnlyMemory<byte>.Empty;
-        int requestCount = 0;
-
-        for(int i = 0; i < plan.Queries.Count; i++)
+        try
         {
-            var q = plan.Queries[i];
-            if(buffer.Length == 0)
+            var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
+                IQuerier.Code.Flash,
+                IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
+                gasLimit,
+                options with { StateOverrides = plan.StateOverrides },
+                requestOptions,
+                cancellationToken
+            );
+
+            if(!callResult.Success)
             {
-                requestCount++;
-
-                byte[] payloadBytes = IQuerier.Functions.Query.Encode(
-                    plan.Queries,
-                    i,
-                    maxPayloadSize,
-                    maxResultSize,
-                    out int payloadSize,
-                    out int callCount,
-                    out var ethValue
-                );
-
-                try
-                {
-                    if(callCount == 0)
-                    {
-                        throw new InvalidOperationException("Call is too large to be executed within batch");
-                    }
-
-                    var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
-                        IQuerier.Code.Flash,
-                        IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
-                        gasLimit,
-                        options with { StateOverrides = plan.StateOverrides },
-                        requestOptions,
-                        cancellationToken
-                    );
-
-                    if(!callResult.Success)
-                    {
-                        throw CallRevertedException.Parse(null, callResult.Data.Span);
-                    }
-
-                    var output = callResult.Data;
-
-                    if(output.Length == 0)
-                    {
-                        throw new InvalidOperationException("Call is too expensive to be executed within batch");
-                    }
-
-                    buffer = output;
-
-                    if(_logger?.IsEnabled(LogLevel.Trace) == true)
-                    {
-                        _logger.LogTrace(
-                            "Query request {request} completed with {operations} operation(s)",
-                            requestCount,
-                            callCount);
-                    }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(payloadBytes);
-                }
+                throw CallRevertedException.Parse(null, callResult.Data.Span);
             }
 
-            int sliceLength = q.ParseResultLength(buffer.Span);
-            outputs[i] = buffer[0..sliceLength];
-            buffer = buffer[sliceLength..];
+            var output = callResult.Data;
+            var buffer = output;
 
-            if(i == 0)
+            for(int i = 0; i < plan.Queries.Count; i++)
             {
-                ulong blockNumber = blockNumberQuery.ReadResultFrom(outputs);
-                if(blockNumber > 0)
-                {
-                    options = options with { TargetHeight = TargetHeight.Height(blockNumber) };
-                }
+                var operation = plan.Queries[i];
+                int sliceLength = operation.ParseResultLength(buffer.Span);
+                outputs[i] = buffer[..sliceLength];
+                buffer = buffer[sliceLength..];
             }
-        }
 
-        if(requestCount > 1 && _logger?.IsEnabled(LogLevel.Debug) == true)
+            return buffer.Length > 0
+                ? throw new CallParsingException.RemainingReturnDataException(
+                    output,
+                    output.Length - buffer.Length
+                )
+                : query.ReadResultFrom(outputs);
+        }
+        finally
         {
-            _logger.LogDebug("Batch query processing too expensive, required {requests} requests", requestCount);
+            ArrayPool<byte>.Shared.Return(payloadBytes);
         }
-
-        return query.ReadResultFrom(outputs.AsSpan(blockNumberQuery.OperationCount));
     }
 }

@@ -1,6 +1,5 @@
 using EtherSharp.Contract;
 using EtherSharp.Types;
-using System.Buffers.Binary;
 
 namespace EtherSharp.Query;
 
@@ -56,7 +55,7 @@ public partial interface IQuerierDelegate
             /// Gets the encoded calldata length for operations of the supplied total length.
             /// </summary>
             public static int GetCallDataLength(int operationsLength)
-                => Bytes4.BYTE_LENGTH + sizeof(uint) + operationsLength;
+                => Bytes4.BYTE_LENGTH + operationsLength;
 
             /// <summary>
             /// Encodes a delegated query call.
@@ -64,9 +63,8 @@ public partial interface IQuerierDelegate
             public static void Encode(Span<byte> buffer, IReadOnlyList<IQuery> operations)
             {
                 Selector.CopyTo(buffer);
-                BinaryPrimitives.WriteUInt32BigEndian(buffer[Bytes4.BYTE_LENGTH..], UInt32.MaxValue);
 
-                var operationBuffer = buffer[(Bytes4.BYTE_LENGTH + sizeof(uint))..];
+                var operationBuffer = buffer[Bytes4.BYTE_LENGTH..];
                 foreach(var operation in operations)
                 {
                     operation.Encode(operationBuffer);

@@ -9,19 +9,9 @@ using EtherSharp.Types;
 namespace EtherSharp.Client.Services.FlashCall;
 
 internal sealed class StateOverrideFlashCallExecutor(
-    IEthRpcModule ethRpcModule,
-    StateOverrideFlashCallExecutor.Configuration configuration) : IFlashRuntimeExecutor
+    IEthRpcModule ethRpcModule) : IFlashRuntimeExecutor
 {
-    internal sealed record Configuration(int MaxPayloadSize, int MaxResultSize);
-
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
-    private readonly Configuration _configuration = configuration;
-
-    public int GetMaxPayloadSize(ulong? flashCallGasLimit, TargetHeight targetHeight)
-        => _configuration.MaxPayloadSize;
-
-    public int GetMaxResultSize(TargetHeight targetHeight)
-        => _configuration.MaxResultSize;
 
     public Task<TxCallResult> ExecuteFlashCallAsync(
         EVMByteCode runtimeCode,

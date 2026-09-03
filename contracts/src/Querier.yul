@@ -7,10 +7,8 @@ object "Querier" {
     object "runtime" {
         code {
             let RETURN_GAS_BUFFER := 50000
-            let ABORT_GAS_BUFFER := 55000
 
-            let maxReturnSize := shr(224, calldataload(0))
-            let inputOffset := 4
+            let inputOffset := 0
             let outputOffset := 0
 
             for {} lt(inputOffset, calldatasize()) {} {
@@ -40,10 +38,6 @@ object "Querier" {
                             0
                         )
 
-                        if and(iszero(success), lt(gas(), ABORT_GAS_BUFFER)) {
-                            break
-                        }
-
                         mstore(outputOffset, shl(224, returndatasize()))
                         mstore8(outputOffset, success)
                         returndatacopy(add(outputOffset, 4), 0, returndatasize())
@@ -61,10 +55,6 @@ object "Querier" {
                             0
                         )
                         let gasUsed := sub(gasBefore, gas())
-
-                        if and(iszero(success), lt(gas(), ABORT_GAS_BUFFER)) {
-                            break
-                        }
 
                         mstore(
                             outputOffset,
@@ -100,10 +90,6 @@ object "Querier" {
                         0,
                         0
                     )
-
-                    if and(iszero(success), lt(gas(), ABORT_GAS_BUFFER)) {
-                        break
-                    }
 
                     mstore(outputOffset, shl(224, returndatasize()))
                     mstore8(outputOffset, success)
@@ -175,9 +161,6 @@ object "Querier" {
                 }
                 }
 
-                if gt(add(outputOffset, outputLength), maxReturnSize) {
-                    return(0, outputOffset)
-                }
                 outputOffset := add(outputOffset, outputLength)
             }
 

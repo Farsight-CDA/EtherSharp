@@ -4,7 +4,7 @@ out = "out"
 libs = ["lib"]
 
 additional_compiler_profiles = [
-    { name = "querier", optimizer = true, optimizer_runs = 1 },
+    { name = "querier", optimizer = true, optimizer_runs = 1, evm_version = "london" },
 ]
 
 compilation_restrictions = [

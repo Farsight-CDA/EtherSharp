@@ -12,22 +12,8 @@ namespace EtherSharp.Client.Services.FlashCall;
 internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlashInitCodeExecutor
 {
     private const int FIXED_HELPER_LENGTH = 27;
-    private const int MAX_UNLIMITED_HELPER_LENGTH = 37;
-    private const int MAX_LIMITED_HELPER_LENGTH = 45;
-    private const int MAX_RUNTIMECODE_SIZE = 24 * 1024;
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
-
-    public int GetMaxPayloadSize(int initCodeLength, ulong? flashCallGasLimit, TargetHeight targetHeight)
-        => Int32.MaxValue
-            - (flashCallGasLimit is null
-                ? MAX_UNLIMITED_HELPER_LENGTH
-                : MAX_LIMITED_HELPER_LENGTH
-                )
-            - initCodeLength;
-
-    public int GetMaxResultSize(TargetHeight targetHeight)
-        => MAX_RUNTIMECODE_SIZE;
 
     public async Task<TxCallResult> ExecuteFlashCallAsync(
         EVMByteCode initCode,

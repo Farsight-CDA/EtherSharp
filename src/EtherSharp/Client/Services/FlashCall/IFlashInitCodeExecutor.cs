@@ -7,9 +7,6 @@ namespace EtherSharp.Client.Services.FlashCall;
 
 internal interface IFlashInitCodeExecutor
 {
-    public int GetMaxPayloadSize(int initCodeLength, ulong? flashCallGasLimit, TargetHeight targetHeight);
-    public int GetMaxResultSize(TargetHeight targetHeight);
-
     public Task<TxCallResult> ExecuteFlashCallAsync(
         EVMByteCode initCode,
         IFlashCall call,

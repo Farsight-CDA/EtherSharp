@@ -453,31 +453,20 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="enableStateOverrides">Whether runtime code should execute directly through account code overrides.</param>
     /// <param name="contractAddress">Optional deployed FlashCall contract used for initcode execution.</param>
     /// <param name="allowConstructorFallback">Whether initcode may fall back to constructor-based execution when the deployed contract is unavailable.</param>
-    /// <param name="maxPayloadSize">Maximum payload size supported by configured state-override and deployed-contract backends.</param>
-    /// <param name="maxResultSize">Maximum result size supported by configured state-override and deployed-contract backends.</param>
     /// <returns></returns>
     public EtherClientBuilder WithFlashCalls(
         ulong? gasLimit = null,
         bool enableStateOverrides = false,
         Address? contractAddress = null,
-        bool allowConstructorFallback = true,
-        int maxPayloadSize = 3 * 1024 * 1024,
-        int maxResultSize = 3 * 1024 * 1024)
+        bool allowConstructorFallback = true)
     {
         CallGasLimitSettings.Validate(_ethCallGasLimit, gasLimit);
-        ArgumentOutOfRangeException.ThrowIfLessThan(maxPayloadSize, 5);
-        ArgumentOutOfRangeException.ThrowIfLessThan(maxResultSize, 1);
 
         _flashCallGasLimit = gasLimit;
 
-        _services.RemoveAll<StateOverrideFlashCallExecutor.Configuration>();
         _services.RemoveAll<IFlashRuntimeExecutor>();
         if(enableStateOverrides)
         {
-            _services.AddSingleton(new StateOverrideFlashCallExecutor.Configuration(
-                maxPayloadSize,
-                maxResultSize
-            ));
             _services.AddSingleton<IFlashRuntimeExecutor, StateOverrideFlashCallExecutor>();
         }
 
@@ -487,9 +476,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         {
             _services.AddSingleton(new DeployedFlashCallExecutor.Configuration(
                 deployedContractAddress,
-                allowConstructorFallback,
-                maxPayloadSize,
-                maxResultSize
+                allowConstructorFallback
             ));
             _services.AddSingleton<IFlashInitCodeExecutor, DeployedFlashCallExecutor>();
         }

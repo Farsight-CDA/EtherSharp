@@ -3,7 +3,6 @@ using EtherSharp.Numerics;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Buffers;
-using System.Buffers.Binary;
 
 namespace EtherSharp.Query;
 
@@ -37,7 +36,7 @@ public partial interface IQuerier
         /// Gets the deployed runtime bytecode.
         /// </summary>
         public static EVMByteCode Runtime { get; } = new(Convert.FromHexString(
-            "60003560e01c600460005b81368110156101d257600060018235821a920193600283106001146101da575050806002146101775780600a146101515780600b1461013c5780600c146101265780601414610118578060151461010a57806016146100fc57806017146100ee57806018146100e357806019146100d85780601e146100c35780601f146100b15760281461009757600080fd5b5a815260205b8101908382116100ad575061000a565b6000f35b5060208235920191548152602061009d565b506014823560601c920191318152602061009d565b50488152602061009d565b503a8152602061009d565b504560c01b8152600861009d565b504260c01b8152600861009d565b504360c01b8152600861009d565b504660c01b8152600861009d565b5060148201913560601c3b15158153600161009d565b506014823560601c9201913f8152602061009d565b5060006014833560601c930192803b9182918260e81b855260038501903c60030161009d565b50600080833560f01c600285013560e81c90602560058701359683830190818382018937010195818685f09186019161c34f195a01f161d6d85a108115166101d2573d60e01b825281533d6000600483013e3d60040161009d565b509150506000f35b90919383903560e81c91600481013560601c936038846018840135938183820187370101961561024e5750916000929183925a9561c34f195a01f1905a900361d6d85a108215166102455760981b3d60d81b179060f81b1781523d6000600d83013e3d600d0161009d565b50509150506000f35b9391849391849361c34f195a01f161d6d85a10811516610245573d60e01b835282533d90600483013e3d60040161009d56"));
+            "6000805b813681101561024557600060018235821a920193600283106001146101be5750508060021461016e5780600a146101475780600b146101315780600c1461011a578060141461010b57806015146100fc57806016146100ed57806017146100de57806018146100d257806019146100c65780601e146100b05780601f1461009d5760281461009057600080fd5b5a81526020905b01610003565b5060208235920191548152602090610097565b506014823560601c920191318152602090610097565b50488152602090610097565b503a8152602090610097565b504560c01b8152600890610097565b504260c01b8152600890610097565b504360c01b8152600890610097565b504660c01b8152600890610097565b5060148201913560601c3b15158153600190610097565b506014823560601c9201913f8152602090610097565b5060006014833560601c930192803b9182918260e81b855260038501903c60030190610097565b50600080833560f01c600285013560e81c90602560058701359683830190818382018937010195818685f09186019161c34f195a01f13d60e01b825281533d6000600483013e3d60040190610097565b90919383903560e81c91600481013560601c936038846018840135938183820187370101961561021e5750916000929183925a9561c34f195a01f1905a900360981b3d60d81b179060f81b1781523d6000600d83013e3d600d0190610097565b9391849391849361c34f195a01f13d60e01b835282533d90600483013e3d60040190610097565b506000f3"));
 
         /// <summary>
         /// Gets the runtime as flash-call code.
@@ -56,49 +55,30 @@ public partial interface IQuerier
         public static class Query
         {
             /// <summary>
-            /// Encodes as many operations as fit in the supplied provider limits.
+            /// Encodes all supplied operations into one query payload.
             /// </summary>
             public static byte[] Encode(
                 IReadOnlyList<IQuery> queries,
-                int startIndex,
-                int maxPayloadSize,
-                int maxResultSize,
                 out int payloadSize,
-                out int encodedCallCount,
                 out UInt256 ethValue)
             {
                 ethValue = 0;
-                payloadSize = sizeof(uint);
-                int callCount = 0;
+                payloadSize = 0;
 
-                for(int i = startIndex; i < queries.Count; i++)
+                foreach(var query in queries)
                 {
-                    var query = queries[i];
-                    int newDataLength = payloadSize + query.CallDataLength;
-
-                    if(newDataLength > maxPayloadSize)
-                    {
-                        break;
-                    }
-
-                    payloadSize = newDataLength;
-                    callCount++;
+                    payloadSize = checked(payloadSize + query.CallDataLength);
                     ethValue += query.EthValue;
                 }
 
-                encodedCallCount = callCount;
-
                 byte[] result = ArrayPool<byte>.Shared.Rent(payloadSize);
                 result.AsSpan(0, payloadSize).Clear();
-                BinaryPrimitives.WriteUInt32BigEndian(result.AsSpan(0, sizeof(uint)), (uint) maxResultSize);
 
-                var buffer = result.AsSpan(sizeof(uint));
-                for(int i = startIndex; callCount > 0; i++)
+                var buffer = result.AsSpan(0, payloadSize);
+                foreach(var query in queries)
                 {
-                    var query = queries[i];
                     query.Encode(buffer);
                     buffer = buffer[query.CallDataLength..];
-                    callCount--;
                 }
 
                 return result;

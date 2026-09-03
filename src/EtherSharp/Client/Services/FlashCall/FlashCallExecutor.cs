@@ -14,19 +14,6 @@ internal sealed class FlashCallExecutor(
     private readonly IFlashRuntimeExecutor? _runtimeExecutor = runtimeExecutor;
     private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
 
-    public int GetMaxPayloadSize(IFlashCode code, ulong? flashCallGasLimit, TargetHeight targetHeight)
-    {
-        ulong? resolvedGasLimit = flashCallGasLimit ?? _callGasLimitSettings.GetFlashCallGasLimit();
-        return _runtimeExecutor is not null && code.TryGetRuntimeCode(out _)
-            ? _runtimeExecutor.GetMaxPayloadSize(resolvedGasLimit, targetHeight)
-            : _initCodeExecutor.GetMaxPayloadSize(code.GetInitCodeLength(), resolvedGasLimit, targetHeight);
-    }
-
-    public int GetMaxResultSize(IFlashCode code, TargetHeight targetHeight)
-        => _runtimeExecutor is not null && code.TryGetRuntimeCode(out _)
-            ? _runtimeExecutor.GetMaxResultSize(targetHeight)
-            : _initCodeExecutor.GetMaxResultSize(targetHeight);
-
     public Task<TxCallResult> ExecuteFlashCallAsync(
         IFlashCode code,
         IFlashCall call,

@@ -14,9 +14,7 @@ internal sealed class DeployedFlashCallExecutor(
 {
     internal sealed record Configuration(
         Address ContractAddress,
-        bool AllowFallback,
-        int MaxPayloadSize,
-        int MaxResultSize
+        bool AllowFallback
     );
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
@@ -29,23 +27,6 @@ internal sealed class DeployedFlashCallExecutor(
 
     public void SetDeploymentHeight(ulong deploymentHeight)
         => _deploymentHeight = deploymentHeight;
-
-    public int GetMaxPayloadSize(int initCodeLength, ulong? flashCallGasLimit, TargetHeight targetHeight)
-    {
-        bool useFallback = _deploymentHeight is null
-            || (targetHeight.IsNumeric && targetHeight.Value < _deploymentHeight.Value);
-        return useFallback
-            ? _constructorFlashCallExecutor.GetMaxPayloadSize(initCodeLength, flashCallGasLimit, targetHeight)
-            : _configuration.MaxPayloadSize - 10 - initCodeLength;
-    }
-    public int GetMaxResultSize(TargetHeight targetHeight)
-    {
-        bool useFallback = _deploymentHeight is null
-            || (targetHeight.IsNumeric && targetHeight.Value < _deploymentHeight.Value);
-        return useFallback
-            ? _constructorFlashCallExecutor.GetMaxResultSize(targetHeight)
-            : _configuration.MaxResultSize;
-    }
 
     public async Task<TxCallResult> ExecuteFlashCallAsync(
         EVMByteCode initCode,
