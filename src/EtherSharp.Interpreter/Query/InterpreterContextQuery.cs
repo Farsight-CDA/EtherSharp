@@ -21,7 +21,6 @@ internal sealed class InterpreterContextQuery : IQuery<InterpreterContext>
     private static readonly IQuery<ulong> _blockNumber = IQuery.GetBlockNumber();
     private static readonly IQuery<DateTimeOffset> _blockTimestamp = IQuery.GetBlockTimestamp();
     private static readonly IQuery<ulong> _blockGasLimit = IQuery.GetBlockGasLimit();
-    private static readonly IQuery<UInt256> _gasPrice = IQuery.GetBlockGasPrice();
     private static readonly IQuery<Address> _coinbase = IQuery.FlashCall(
         IFlashCode.FromRuntimeCode(new EVMByteCode(Convert.FromHexString("416000526014600cf3"))),
         IFlashCall.ForRawFlashCall(0, ReadOnlyMemory<byte>.Empty, static data => Address.FromBytes(data.Span)));
@@ -57,7 +56,6 @@ internal sealed class InterpreterContextQuery : IQuery<InterpreterContext>
             + _blockNumber.OperationCount
             + _blockTimestamp.OperationCount
             + _blockGasLimit.OperationCount
-            + _gasPrice.OperationCount
             + _coinbase.OperationCount
             + _prevRandao.OperationCount
             + _baseFee.OperationCount
@@ -70,7 +68,6 @@ internal sealed class InterpreterContextQuery : IQuery<InterpreterContext>
         plan.Add(_blockNumber);
         plan.Add(_blockTimestamp);
         plan.Add(_blockGasLimit);
-        plan.Add(_gasPrice);
         plan.Add(_coinbase);
         plan.Add(_prevRandao);
         plan.Add(_baseFee);
@@ -86,7 +83,6 @@ internal sealed class InterpreterContextQuery : IQuery<InterpreterContext>
         ulong blockNumber = _blockNumber.ReadResultFrom(queryResults[offset..(offset += _blockNumber.OperationCount)]);
         var blockTimestamp = _blockTimestamp.ReadResultFrom(queryResults[offset..(offset += _blockTimestamp.OperationCount)]);
         ulong blockGasLimit = _blockGasLimit.ReadResultFrom(queryResults[offset..(offset += _blockGasLimit.OperationCount)]);
-        var gasPrice = _gasPrice.ReadResultFrom(queryResults[offset..(offset += _gasPrice.OperationCount)]);
         var coinbase = _coinbase.ReadResultFrom(queryResults[offset..(offset += _coinbase.OperationCount)]);
         var prevRandao = _prevRandao.ReadResultFrom(queryResults[offset..(offset += _prevRandao.OperationCount)]);
         var baseFeeResult = _baseFee.ReadResultFrom(queryResults[offset..(offset += _baseFee.OperationCount)]);
@@ -101,7 +97,6 @@ internal sealed class InterpreterContextQuery : IQuery<InterpreterContext>
             blockNumber,
             blockTimestamp,
             recentBlockHashes,
-            gasPrice,
             baseFeeResult switch
             {
                 CallResult<UInt256>.Success success => success.Value,

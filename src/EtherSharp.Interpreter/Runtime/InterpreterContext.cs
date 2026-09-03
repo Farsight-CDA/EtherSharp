@@ -10,7 +10,6 @@ namespace EtherSharp.Interpreter.Runtime;
 /// <param name="BlockNumber">The current block number.</param>
 /// <param name="BlockTimestamp">The current block timestamp.</param>
 /// <param name="RecentBlockHashes">Recent block hashes ordered from the parent block backwards.</param>
-/// <param name="GasPrice">The effective transaction gas price.</param>
 /// <param name="BaseFee">The block base fee, or <see langword="null"/> when <c>BASEFEE</c> is unsupported.</param>
 /// <param name="BlobBaseFee">
 /// The blob base fee, or <see langword="null"/> when blob opcodes are unsupported.
@@ -23,7 +22,6 @@ public record InterpreterContext(
     ulong BlockNumber,
     DateTimeOffset BlockTimestamp,
     Bytes32[] RecentBlockHashes,
-    UInt256 GasPrice,
     UInt256? BaseFee,
     UInt256? BlobBaseFee,
     Address Coinbase,

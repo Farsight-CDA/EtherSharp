@@ -3,9 +3,9 @@ using EtherSharp.Types;
 namespace EtherSharp.Interpreter.Runtime;
 
 /// <summary>
-/// Configures the execution state for an interpreter call simulation.
+/// Configures state applied temporarily during interpreter simulation.
 /// </summary>
-public readonly record struct InterpreterCallOptions
+public readonly record struct InterpreterSimulationOptions
 {
     /// <summary>
     /// Gets the optional account state overrides applied for the duration of the call.

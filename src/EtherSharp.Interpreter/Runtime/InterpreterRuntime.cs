@@ -4,6 +4,8 @@ using EtherSharp.Interpreter.Memory;
 using EtherSharp.Interpreter.Precompiles;
 using EtherSharp.Interpreter.Storage;
 using EtherSharp.Numerics;
+using EtherSharp.Tx;
+using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 using System.Collections.Frozen;
 using System.Diagnostics;
@@ -13,7 +15,7 @@ namespace EtherSharp.Interpreter.Runtime;
 /// <summary>
 /// Executes EVM transactions and call simulations against a supplied global state.
 /// </summary>
-/// <param name="context">The block and transaction context for execution.</param>
+/// <param name="context">The block context for execution.</param>
 /// <param name="host">The host used to read upstream state and execute calls.</param>
 /// <param name="executionSpec">The consensus behavior used for execution.</param>
 /// <param name="options">The interpreter resource limits.</param>
@@ -47,7 +49,7 @@ public class InterpreterRuntime(
             .CreatePrecompileLookup();
 
     /// <summary>
-    /// Gets the block and transaction context for execution.
+    /// Gets the block context for execution.
     /// </summary>
     public InterpreterContext Context { get; } = context;
     /// <summary>
@@ -63,65 +65,42 @@ public class InterpreterRuntime(
     /// <summary>
     /// Executes a transaction from the supplied sender and retains its state changes.
     /// </summary>
-    /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
-    /// <param name="to">The account whose code and storage are used.</param>
-    /// <param name="value">The native value exposed through <c>msg.value</c>.</param>
-    /// <param name="callData">The calldata supplied to the call.</param>
+    /// <param name="sender">The transaction sender.</param>
+    /// <param name="transaction">The unsigned transaction payload.</param>
     /// <returns>The transaction execution result.</returns>
     /// <remarks>The sender nonce is incremented even when EVM execution reverts.</remarks>
     public async ValueTask<TxCallResult> ExecuteTransactionAsync(
         Address sender,
-        Address to,
-        UInt256 value,
-        ReadOnlyMemory<byte> callData
+        ITransaction transaction
     )
     {
         var storageSnapshot = _storage.TakeSnapshot();
-        TxCallResult result;
         try
         {
-            var senderStorage = _storage.GetAccountStorage(sender);
-            ulong senderNonce = await senderStorage.GetNonceAsync();
-            senderStorage.SetNonce(checked(senderNonce + 1));
-
-            result = await ExecuteMessageCallAsync(new MessageCall(
-                sender,
-                sender,
-                to,
-                to,
-                sender,
-                value,
-                callData,
-                0,
-                false
-            ));
+            var environment = TransactionEnvironment.CreateFrom(sender, transaction, Context);
+            var result = await ExecuteTopLevelCallAsync(environment);
+            _storage.Commit();
+            return result;
         }
         catch
         {
             _storage.Reset(storageSnapshot);
             throw;
         }
-
-        _storage.Commit();
-        return result;
     }
 
     /// <summary>
-    /// Simulates a call from the supplied sender with the specified options and discards all state changes.
+    /// Simulates a transaction from the supplied sender and discards all state changes.
     /// </summary>
-    /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
-    /// <param name="to">The account whose code and storage are used.</param>
-    /// <param name="value">The native value exposed through <c>msg.value</c>.</param>
-    /// <param name="callData">The calldata supplied to the call.</param>
+    /// <param name="sender">The transaction sender.</param>
+    /// <param name="transaction">The unsigned transaction payload.</param>
     /// <param name="options">The simulation options.</param>
     /// <returns>The simulated call result.</returns>
     /// <remarks>The sender nonce is incremented during execution, then restored with the other simulated state changes.</remarks>
-    public async ValueTask<TxCallResult> SimulateCallAsync(
+    public async ValueTask<TxCallResult> SimulateTransactionAsync(
         Address sender,
-        Address to,
-        UInt256 value,
-        ReadOnlyMemory<byte> callData,
-        InterpreterCallOptions options = default
+        ITransaction transaction,
+        InterpreterSimulationOptions options = default
     )
     {
         var storageSnapshot = _storage.TakeSnapshot();
@@ -132,21 +111,8 @@ public class InterpreterRuntime(
                 _storage.ApplyStateOverrides(stateOverrides);
             }
 
-            var senderStorage = _storage.GetAccountStorage(sender);
-            ulong senderNonce = await senderStorage.GetNonceAsync();
-            senderStorage.SetNonce(checked(senderNonce + 1));
-
-            return await ExecuteMessageCallAsync(new MessageCall(
-                sender,
-                sender,
-                to,
-                to,
-                sender,
-                value,
-                callData,
-                0,
-                false
-            ));
+            var environment = TransactionEnvironment.CreateFrom(sender, transaction, Context);
+            return await ExecuteTopLevelCallAsync(environment);
         }
         finally
         {
@@ -154,7 +120,84 @@ public class InterpreterRuntime(
         }
     }
 
-    private async ValueTask<TxCallResult> ExecuteMessageCallAsync(MessageCall messageCall)
+    /// <summary>
+    /// Simulates a call from the supplied sender and discards all state changes.
+    /// </summary>
+    /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
+    /// <param name="call">The destination, value, and calldata supplied to the call.</param>
+    /// <param name="options">The simulation options.</param>
+    /// <returns>The simulated call result.</returns>
+    /// <remarks>The call uses a zero gas price, an empty access list, and no blob hashes.</remarks>
+    public async ValueTask<TxCallResult> SimulateCallAsync(
+        Address sender,
+        ITxInput call,
+        InterpreterSimulationOptions options = default
+    )
+    {
+        ArgumentNullException.ThrowIfNull(call);
+
+        var storageSnapshot = _storage.TakeSnapshot();
+        try
+        {
+            if(options.StateOverrides is { } stateOverrides)
+            {
+                _storage.ApplyStateOverrides(stateOverrides);
+            }
+
+            ulong nonce = await _storage.GetAccountStorage(sender).GetNonceAsync();
+            var environment = new TransactionEnvironment(
+                sender,
+                nonce,
+                (ulong) Context.GasLimit,
+                UInt256.Zero,
+                call,
+                [],
+                []
+            );
+            return await ExecuteTopLevelCallAsync(environment);
+        }
+        finally
+        {
+            _storage.Reset(storageSnapshot);
+        }
+    }
+
+    private async ValueTask<TxCallResult> ExecuteTopLevelCallAsync(
+        TransactionEnvironment transaction
+    )
+    {
+        var senderStorage = _storage.GetAccountStorage(transaction.Sender);
+        ulong senderNonce = await senderStorage.GetNonceAsync();
+        if(senderNonce != transaction.Nonce)
+        {
+            throw new InvalidOperationException(
+                $"Invalid transaction nonce. Expected {senderNonce}, received {transaction.Nonce}."
+            );
+        }
+
+        senderStorage.SetNonce(checked(senderNonce + 1));
+
+        var target = transaction.Input.To is Address destination
+            ? destination
+            : throw new NotSupportedException("Creation transactions are not supported.");
+
+        return await ExecuteMessageCallAsync(transaction, new MessageCall(
+            transaction.Sender,
+            transaction.Sender,
+            target,
+            target,
+            transaction.Sender,
+            transaction.Input.Value,
+            transaction.Input.Data,
+            0,
+            false
+        ));
+    }
+
+    private async ValueTask<TxCallResult> ExecuteMessageCallAsync(
+        TransactionEnvironment transaction,
+        MessageCall messageCall
+    )
     {
         if(messageCall.Depth >= CallFrame.MAX_DEPTH)
         {
@@ -220,7 +263,7 @@ public class InterpreterRuntime(
                 ? callFrame.AccountStorage
                 : _storage.GetAccountStorage(callFrame.CodeAddress);
             var byteCode = await codeStorage.GetCodeAsync();
-            result = await ExecuteOpcodesAsync(callFrame, byteCode);
+            result = await ExecuteOpcodesAsync(transaction, callFrame, byteCode);
         }
 
         if(!result.Success)
@@ -232,6 +275,7 @@ public class InterpreterRuntime(
     }
 
     private async ValueTask<TxCallResult> ExecuteContractCreationAsync(
+        TransactionEnvironment transaction,
         CallFrame creatorFrame,
         Address createdAddress,
         UInt256 endowment,
@@ -285,6 +329,7 @@ public class InterpreterRuntime(
             false
         );
         var creationResult = await ExecuteOpcodesAsync(
+            transaction,
             creationFrame,
             new EVMByteCode(initCode)
         );
@@ -306,6 +351,7 @@ public class InterpreterRuntime(
     }
 
     private async ValueTask<TxCallResult> ExecuteOpcodesAsync(
+        TransactionEnvironment transaction,
         CallFrame callFrame,
         EVMByteCode byteCode
     )
@@ -583,7 +629,7 @@ public class InterpreterRuntime(
                     break;
                 }
                 case EvmOpcode.GasPrice:
-                    callFrame.Stack.Push(Context.GasPrice);
+                    callFrame.Stack.Push(transaction.EffectiveGasPrice);
                     break;
                 case EvmOpcode.ExtCodeSize:
                 {
@@ -697,12 +743,16 @@ public class InterpreterRuntime(
                     break;
                 case EvmOpcode.BlobHash:
                     if(!Context.BlobBaseFee.HasValue
-                        || !callFrame.Stack.TryPop(out UInt256 _))
+                        || !callFrame.Stack.TryPop(out UInt256 blobIndex))
                     {
                         return callFrame.Revert();
                     }
 
-                    callFrame.Stack.Push(Bytes32.Zero);
+                    callFrame.Stack.Push(
+                        blobIndex < (UInt256) transaction.BlobHashes.Length
+                            ? transaction.BlobHashes[(int) blobIndex]
+                            : Bytes32.Zero
+                    );
                     break;
                 case EvmOpcode.BlobBaseFee:
                     if(!Context.BlobBaseFee.HasValue)
@@ -941,6 +991,7 @@ public class InterpreterRuntime(
                         await callFrame.AccountStorage.GetNonceAsync()
                     );
                     var creationResult = await ExecuteContractCreationAsync(
+                        transaction,
                         callFrame,
                         createdAddress,
                         endowment,
@@ -979,6 +1030,7 @@ public class InterpreterRuntime(
                     );
                     callFrame.ReturnData.Clear();
                     var creationResult = await ExecuteContractCreationAsync(
+                        transaction,
                         callFrame,
                         createdAddress,
                         endowment,
@@ -1015,7 +1067,7 @@ public class InterpreterRuntime(
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
                     callFrame.ReturnData.Clear();
 
-                    var callResult = await ExecuteMessageCallAsync(new MessageCall(
+                    var callResult = await ExecuteMessageCallAsync(transaction, new MessageCall(
                         callFrame.Origin,
                         callFrame.To,
                         address,
@@ -1054,7 +1106,7 @@ public class InterpreterRuntime(
                     bool hasSufficientBalance = value == UInt256.Zero
                         || await callFrame.AccountStorage.GetBalanceAsync() >= value;
                     var callResult = hasSufficientBalance
-                        ? await ExecuteMessageCallAsync(new MessageCall(
+                        ? await ExecuteMessageCallAsync(transaction, new MessageCall(
                             callFrame.Origin,
                             callFrame.To,
                             callFrame.To,
@@ -1099,7 +1151,7 @@ public class InterpreterRuntime(
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
                     callFrame.ReturnData.Clear();
 
-                    var callResult = await ExecuteMessageCallAsync(new MessageCall(
+                    var callResult = await ExecuteMessageCallAsync(transaction, new MessageCall(
                         callFrame.Origin,
                         callFrame.From,
                         callFrame.To,
@@ -1134,7 +1186,7 @@ public class InterpreterRuntime(
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
                     callFrame.ReturnData.Clear();
 
-                    var callResult = await ExecuteMessageCallAsync(new MessageCall(
+                    var callResult = await ExecuteMessageCallAsync(transaction, new MessageCall(
                         callFrame.Origin,
                         callFrame.To,
                         address,
