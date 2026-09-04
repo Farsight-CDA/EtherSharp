@@ -20,4 +20,7 @@ internal sealed class JournaledFlag
 
     public void Commit()
         => _setRevision = _setRevision is null ? null : 0;
+
+    public void Clear()
+        => _setRevision = null;
 }

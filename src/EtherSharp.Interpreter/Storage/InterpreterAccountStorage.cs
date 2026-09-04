@@ -45,6 +45,10 @@ internal sealed class InterpreterAccountStorage(
     private readonly JournaledValue<Bytes32> _codeHash = new();
     private readonly JournaledFlag _present = new();
     private readonly JournaledFlag _persistentStorageReplaced = new();
+    private readonly JournaledFlag _createdInTransaction = new();
+
+    public bool IsCreatedInTransaction
+        => _createdInTransaction.IsSet;
 
     public async ValueTask<Bytes32> SLoadAsync(Bytes32 key)
     {
@@ -122,6 +126,7 @@ internal sealed class InterpreterAccountStorage(
         _nonce.Set(revision, 1);
         _code.Set(revision, InterpreterAccountInfo.Empty.Code);
         _codeHash.Set(revision, InterpreterAccountInfo.EmptyCodeHash);
+        _createdInTransaction.Set(revision);
     }
 
     public void ApplyOverride(AccountOverride accountOverride)
@@ -186,6 +191,7 @@ internal sealed class InterpreterAccountStorage(
         _codeHash.Commit();
         _present.Commit();
         _persistentStorageReplaced.Commit();
+        _createdInTransaction.Clear();
     }
 
     public void Reset(long revision)
@@ -198,6 +204,7 @@ internal sealed class InterpreterAccountStorage(
         _codeHash.Reset(revision);
         _present.Reset(revision);
         _persistentStorageReplaced.Reset(revision);
+        _createdInTransaction.Reset(revision);
     }
 
     private async ValueTask<Bytes32> GetStateCodeHashAsync()
