@@ -127,6 +127,8 @@ internal sealed class InterpreterAccountStorage(
         _nonce.Set(revision, 1);
         _code.Set(revision, InterpreterAccountInfo.Empty.Code);
         _codeHash.Set(revision, InterpreterAccountInfo.EmptyCodeHash);
+        _persistentStorage.Clear(revision);
+        _persistentStorageReplaced.Set(revision);
         _createdInTransaction.Set(revision);
     }
 

@@ -38,6 +38,15 @@ public class InterpreterRuntime(
         bool IsStatic
     );
 
+    private readonly record struct ContractCreation(
+        Address Origin,
+        Address Creator,
+        Address CreatedAddress,
+        UInt256 Endowment,
+        ReadOnlyMemory<byte> InitCode,
+        int Depth
+    );
+
     private readonly InterpreterStorage _storage = new(
         context ?? throw new ArgumentNullException(nameof(context)),
         host ?? throw new ArgumentNullException(nameof(host))
@@ -78,7 +87,7 @@ public class InterpreterRuntime(
         try
         {
             var environment = TransactionEnvironment.CreateFrom(sender, transaction, Context);
-            var result = await ExecuteTopLevelCallAsync(environment);
+            var result = await ExecuteTopLevelAsync(environment);
             _storage.Commit();
             return result;
         }
@@ -112,7 +121,7 @@ public class InterpreterRuntime(
             }
 
             var environment = TransactionEnvironment.CreateFrom(sender, transaction, Context);
-            return await ExecuteTopLevelCallAsync(environment);
+            return await ExecuteTopLevelAsync(environment);
         }
         finally
         {
@@ -154,7 +163,7 @@ public class InterpreterRuntime(
                 [],
                 []
             );
-            return await ExecuteTopLevelCallAsync(environment);
+            return await ExecuteTopLevelAsync(environment);
         }
         finally
         {
@@ -162,7 +171,7 @@ public class InterpreterRuntime(
         }
     }
 
-    private async ValueTask<TxCallResult> ExecuteTopLevelCallAsync(
+    private async ValueTask<TxCallResult> ExecuteTopLevelAsync(
         TransactionEnvironment transaction
     )
     {
@@ -174,23 +183,40 @@ public class InterpreterRuntime(
                 $"Invalid transaction nonce. Expected {senderNonce}, received {transaction.Nonce}."
             );
         }
+        if(senderNonce == UInt64.MaxValue)
+        {
+            throw new InvalidOperationException("Transaction sender nonce cannot be incremented.");
+        }
 
-        senderStorage.SetNonce(checked(senderNonce + 1));
+        if(transaction.Input.To is Address target)
+        {
+            senderStorage.SetNonce(senderNonce + 1);
+            return await ExecuteMessageCallAsync(transaction, new MessageCall(
+                transaction.Sender,
+                transaction.Sender,
+                target,
+                target,
+                transaction.Sender,
+                transaction.Input.Value,
+                transaction.Input.Data,
+                0,
+                false
+            ));
+        }
 
-        var target = transaction.Input.To is Address destination
-            ? destination
-            : throw new NotSupportedException("Creation transactions are not supported.");
+        if(transaction.Input.Data.Length > ExecutionSpec.MaxInitCodeLength)
+        {
+            throw new InvalidOperationException("Transaction initcode exceeds the configured limit.");
+        }
 
-        return await ExecuteMessageCallAsync(transaction, new MessageCall(
+        var createdAddress = Address.DeriveCreate(transaction.Sender, senderNonce);
+        return await ExecuteContractCreationAsync(transaction, new ContractCreation(
             transaction.Sender,
             transaction.Sender,
-            target,
-            target,
-            transaction.Sender,
+            createdAddress,
             transaction.Input.Value,
             transaction.Input.Data,
-            0,
-            false
+            0
         ));
     }
 
@@ -276,20 +302,17 @@ public class InterpreterRuntime(
 
     private async ValueTask<TxCallResult> ExecuteContractCreationAsync(
         TransactionEnvironment transaction,
-        CallFrame creatorFrame,
-        Address createdAddress,
-        UInt256 endowment,
-        ReadOnlyMemory<byte> initCode
+        ContractCreation creation
     )
     {
-        if(creatorFrame.Depth + 1 >= CallFrame.MAX_DEPTH)
+        if(creation.Depth >= CallFrame.MAX_DEPTH)
         {
             return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
         }
 
-        var creatorStorage = creatorFrame.AccountStorage;
+        var creatorStorage = _storage.GetAccountStorage(creation.Creator);
         var creatorBalance = await creatorStorage.GetBalanceAsync();
-        if(creatorBalance < endowment)
+        if(creatorBalance < creation.Endowment)
         {
             return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
         }
@@ -301,7 +324,7 @@ public class InterpreterRuntime(
         }
 
         creatorStorage.SetNonce(creatorNonce + 1);
-        var createdStorage = _storage.GetAccountStorage(createdAddress);
+        var createdStorage = _storage.GetAccountStorage(creation.CreatedAddress);
         if(await createdStorage.HasCreateCollisionAsync())
         {
             return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
@@ -309,29 +332,29 @@ public class InterpreterRuntime(
 
         var creationSnapshot = _storage.TakeSnapshot();
         createdStorage.InitializeCreatedContract();
-        if(endowment != UInt256.Zero)
+        if(creation.Endowment != UInt256.Zero)
         {
             var createdBalance = await createdStorage.GetBalanceAsync();
-            creatorStorage.SetBalance(creatorBalance - endowment);
-            createdStorage.SetBalance(createdBalance + endowment);
+            creatorStorage.SetBalance(creatorBalance - creation.Endowment);
+            createdStorage.SetBalance(createdBalance + creation.Endowment);
         }
 
         var creationFrame = new CallFrame(
-            creatorFrame.Origin,
-            creatorFrame.To,
-            createdAddress,
-            createdAddress,
-            endowment,
+            creation.Origin,
+            creation.Creator,
+            creation.CreatedAddress,
+            creation.CreatedAddress,
+            creation.Endowment,
             ReadOnlyMemory<byte>.Empty,
             createdStorage,
             Options,
-            creatorFrame.Depth + 1,
+            creation.Depth,
             false
         );
         var creationResult = await ExecuteOpcodesAsync(
             transaction,
             creationFrame,
-            new EVMByteCode(initCode)
+            new EVMByteCode(creation.InitCode)
         );
         if(!creationResult.Success)
         {
@@ -347,7 +370,7 @@ public class InterpreterRuntime(
 
         var runtimeCode = new EVMByteCode(creationResult.Data.ToArray());
         createdStorage.SetCode(in runtimeCode);
-        return new TxCallResult(true, ReadOnlyMemory<byte>.Empty);
+        return creationResult;
     }
 
     private async ValueTask<TxCallResult> ExecuteOpcodesAsync(
@@ -991,12 +1014,19 @@ public class InterpreterRuntime(
                     );
                     var creationResult = await ExecuteContractCreationAsync(
                         transaction,
-                        callFrame,
-                        createdAddress,
-                        endowment,
-                        callFrame.Memory.Access(offset, length).ReadOnlyMemory
+                        new ContractCreation(
+                            callFrame.Origin,
+                            callFrame.To,
+                            createdAddress,
+                            endowment,
+                            callFrame.Memory.Access(offset, length).ReadOnlyMemory,
+                            callFrame.Depth + 1
+                        )
                     );
-                    callFrame.ReturnData.Set(creationResult.Data);
+                    callFrame.ReturnData.Set(creationResult.Success
+                        ? ReadOnlyMemory<byte>.Empty
+                        : creationResult.Data
+                    );
                     callFrame.Stack.Push(creationResult.Success
                         ? createdAddress
                         : Address.Zero
@@ -1029,12 +1059,19 @@ public class InterpreterRuntime(
                     );
                     var creationResult = await ExecuteContractCreationAsync(
                         transaction,
-                        callFrame,
-                        createdAddress,
-                        endowment,
-                        initCode
+                        new ContractCreation(
+                            callFrame.Origin,
+                            callFrame.To,
+                            createdAddress,
+                            endowment,
+                            initCode,
+                            callFrame.Depth + 1
+                        )
                     );
-                    callFrame.ReturnData.Set(creationResult.Data);
+                    callFrame.ReturnData.Set(creationResult.Success
+                        ? ReadOnlyMemory<byte>.Empty
+                        : creationResult.Data
+                    );
                     callFrame.Stack.Push(creationResult.Success
                         ? createdAddress
                         : Address.Zero
