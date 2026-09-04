@@ -86,20 +86,13 @@ object "Querier" {
                     inputOffset := add(inputOffset, totalLength)
 
                     let to := create(0, outputOffset, codeLength)
-                    let success := call(
-                        sub(gas(), RETURN_GAS_BUFFER),
+                    outputLength := executeCall(
                         to,
                         value,
                         add(outputOffset, codeLength),
                         calldataLength,
-                        0,
-                        0
+                        outputOffset
                     )
-
-                    mstore(outputOffset, shl(224, returndatasize()))
-                    mstore8(outputOffset, success)
-                    returndatacopy(add(outputOffset, 4), 0, returndatasize())
-                    outputLength := add(4, returndatasize())
                 }
                 case 3 {
                     let length := shr(232, calldataload(inputOffset))
