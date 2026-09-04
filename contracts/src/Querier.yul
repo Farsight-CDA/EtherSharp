@@ -73,109 +73,124 @@ object "Querier" {
                     }
                 }
                 default {
-                    switch opCode
-                case 2 {
-                    let codeLength := shr(240, calldataload(inputOffset))
-                    let calldataLength := shr(232, calldataload(add(inputOffset, 2)))
-                    let value := calldataload(add(inputOffset, 5))
+                    switch iszero(lt(opCode, 4))
+                    case 0 {
+                        switch opCode
+                        case 2 {
+                            let codeLength := shr(240, calldataload(inputOffset))
+                            let calldataLength := shr(232, calldataload(add(inputOffset, 2)))
+                            let value := calldataload(add(inputOffset, 5))
 
-                    inputOffset := add(inputOffset, 37)
-                    let totalLength := add(codeLength, calldataLength)
+                            inputOffset := add(inputOffset, 37)
+                            let totalLength := add(codeLength, calldataLength)
 
-                    calldatacopy(outputOffset, inputOffset, totalLength)
-                    inputOffset := add(inputOffset, totalLength)
+                            calldatacopy(outputOffset, inputOffset, totalLength)
+                            inputOffset := add(inputOffset, totalLength)
 
-                    let to := create(0, outputOffset, codeLength)
-                    outputLength := executeCall(
-                        to,
-                        value,
-                        add(outputOffset, codeLength),
-                        calldataLength,
-                        outputOffset
-                    )
-                }
-                case 3 {
-                    let length := shr(232, calldataload(inputOffset))
-                    let value := calldataload(add(inputOffset, 3))
+                            let to := create(0, outputOffset, codeLength)
+                            outputLength := executeCall(
+                                to,
+                                value,
+                                add(outputOffset, codeLength),
+                                calldataLength,
+                                outputOffset
+                            )
+                        }
+                        default {
+                            let length := shr(232, calldataload(inputOffset))
+                            let value := calldataload(add(inputOffset, 3))
 
-                    inputOffset := add(inputOffset, 35)
-                    mstore(outputOffset, shl(224, 0xea41597b))
-                    calldatacopy(add(outputOffset, 4), inputOffset, length)
-                    inputOffset := add(inputOffset, length)
+                            inputOffset := add(inputOffset, 35)
+                            mstore(outputOffset, shl(224, 0xea41597b))
+                            calldatacopy(add(outputOffset, 4), inputOffset, length)
+                            inputOffset := add(inputOffset, length)
 
-                    let to := address()
-                    let selectorLength := mul(iszero(eq(extcodesize(to), codesize())), 4)
-                    outputLength := executeCall(
-                        to,
-                        value,
-                        add(outputOffset, sub(4, selectorLength)),
-                        add(length, selectorLength),
-                        outputOffset
-                    )
-                }
-                case 10 {
-                    let to := shr(96, calldataload(inputOffset))
-                    inputOffset := add(inputOffset, 20)
-                    let codeSize := extcodesize(to)
-                    mstore(outputOffset, shl(232, codeSize))
-                    extcodecopy(to, add(outputOffset, 3), 0, codeSize)
-                    outputLength := add(3, codeSize)
-                }
-                case 11 {
-                    let to := shr(96, calldataload(inputOffset))
-                    inputOffset := add(inputOffset, 20)
-                    mstore(outputOffset, extcodehash(to))
-                    outputLength := 32
-                }
-                case 12 {
-                    let to := shr(96, calldataload(inputOffset))
-                    inputOffset := add(inputOffset, 20)
-                    mstore8(outputOffset, gt(extcodesize(to), 0))
-                    outputLength := 1
-                }
-                case 20 {
-                    mstore(outputOffset, shl(192, chainid()))
-                    outputLength := 8
-                }
-                case 21 {
-                    mstore(outputOffset, shl(192, number()))
-                    outputLength := 8
-                }
-                case 22 {
-                    mstore(outputOffset, shl(192, timestamp()))
-                    outputLength := 8
-                }
-                case 23 {
-                    mstore(outputOffset, shl(192, gaslimit()))
-                    outputLength := 8
-                }
-                case 24 {
-                    mstore(outputOffset, gasprice())
-                    outputLength := 32
-                }
-                case 25 {
-                    mstore(outputOffset, basefee())
-                    outputLength := 32
-                }
-                case 30 {
-                    let to := shr(96, calldataload(inputOffset))
-                    inputOffset := add(inputOffset, 20)
-                    mstore(outputOffset, balance(to))
-                    outputLength := 32
-                }
-                case 31 {
-                    let slot := calldataload(inputOffset)
-                    inputOffset := add(inputOffset, 32)
-                    mstore(outputOffset, sload(slot))
-                    outputLength := 32
-                }
-                case 40 {
-                    mstore(outputOffset, gas())
-                    outputLength := 32
-                }
-                default {
-                    revert(0, outputOffset)
-                }
+                            let to := address()
+                            let selectorLength := mul(iszero(eq(extcodesize(to), codesize())), 4)
+                            outputLength := executeCall(
+                                to,
+                                value,
+                                add(outputOffset, sub(4, selectorLength)),
+                                add(length, selectorLength),
+                                outputOffset
+                            )
+                        }
+                    }
+                    default {
+                        switch iszero(lt(sub(opCode, 10), 3))
+                        case 0 {
+                            let to := shr(96, calldataload(inputOffset))
+                            inputOffset := add(inputOffset, 20)
+
+                            switch opCode
+                            case 10 {
+                                let codeSize := extcodesize(to)
+                                mstore(outputOffset, shl(232, codeSize))
+                                extcodecopy(to, add(outputOffset, 3), 0, codeSize)
+                                outputLength := add(3, codeSize)
+                            }
+                            case 11 {
+                                mstore(outputOffset, extcodehash(to))
+                                outputLength := 32
+                            }
+                            default {
+                                mstore8(outputOffset, gt(extcodesize(to), 0))
+                                outputLength := 1
+                            }
+                        }
+                        default {
+                            switch iszero(lt(sub(opCode, 20), 6))
+                            case 0 {
+                                switch opCode
+                                case 20 {
+                                    mstore(outputOffset, shl(192, chainid()))
+                                    outputLength := 8
+                                }
+                                case 21 {
+                                    mstore(outputOffset, shl(192, number()))
+                                    outputLength := 8
+                                }
+                                case 22 {
+                                    mstore(outputOffset, shl(192, timestamp()))
+                                    outputLength := 8
+                                }
+                                case 23 {
+                                    mstore(outputOffset, shl(192, gaslimit()))
+                                    outputLength := 8
+                                }
+                                case 24 {
+                                    mstore(outputOffset, gasprice())
+                                    outputLength := 32
+                                }
+                                default {
+                                    mstore(outputOffset, basefee())
+                                    outputLength := 32
+                                }
+                            }
+                            default {
+                                switch opCode
+                                case 30 {
+                                    let to := shr(96, calldataload(inputOffset))
+                                    inputOffset := add(inputOffset, 20)
+                                    mstore(outputOffset, balance(to))
+                                    outputLength := 32
+                                }
+                                case 31 {
+                                    let slot := calldataload(inputOffset)
+                                    inputOffset := add(inputOffset, 32)
+                                    mstore(outputOffset, sload(slot))
+                                    outputLength := 32
+                                }
+                                case 40 {
+                                    mstore(outputOffset, gas())
+                                    outputLength := 32
+                                }
+                                default {
+                                    revert(0, outputOffset)
+                                }
+                            }
+                        }
+                    }
                 }
 
                 outputOffset := add(outputOffset, outputLength)
