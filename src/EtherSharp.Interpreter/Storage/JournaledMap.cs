@@ -20,9 +20,6 @@ internal sealed class JournaledMap<TKey, TValue>
         _values[key] = value;
     }
 
-    public void Cache(in TKey key, in TValue value)
-        => _values.Add(key, value);
-
     public bool TryGetValue(in TKey key, out TValue value)
         => _values.TryGetValue(key, out value!);
 

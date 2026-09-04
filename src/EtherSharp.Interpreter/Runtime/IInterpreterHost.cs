@@ -1,3 +1,4 @@
+using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 
@@ -9,12 +10,38 @@ namespace EtherSharp.Interpreter.Runtime;
 public interface IInterpreterHost
 {
     /// <summary>
-    /// Gets the state for an account.
+    /// Gets an account's native balance.
     /// </summary>
     /// <param name="context">The context at which state is read.</param>
     /// <param name="address">The account address.</param>
-    /// <returns>The account state, or <see langword="null"/> when the account does not exist.</returns>
-    public Task<InterpreterAccountInfo?> GetAccountAsync(InterpreterContext context, Address address);
+    /// <returns>The account balance.</returns>
+    public ValueTask<UInt256> GetBalanceAsync(InterpreterContext context, Address address);
+
+    /// <summary>
+    /// Gets an account's nonce.
+    /// </summary>
+    /// <param name="context">The context at which state is read.</param>
+    /// <param name="address">The account address.</param>
+    /// <returns>The account nonce.</returns>
+    public ValueTask<ulong> GetNonceAsync(InterpreterContext context, Address address);
+
+    /// <summary>
+    /// Gets an account's bytecode.
+    /// </summary>
+    /// <param name="context">The context at which state is read.</param>
+    /// <param name="address">The account address.</param>
+    /// <returns>The account bytecode.</returns>
+    public ValueTask<EVMByteCode> GetCodeAsync(InterpreterContext context, Address address);
+
+    /// <summary>
+    /// Gets an account's external code hash.
+    /// </summary>
+    /// <param name="context">The context at which state is read.</param>
+    /// <param name="address">The account address.</param>
+    /// <returns>
+    /// The canonical code hash, or <see langword="null"/> when the account does not exist or is empty according to EIP-161.
+    /// </returns>
+    public ValueTask<Bytes32?> GetCodeHashAsync(InterpreterContext context, Address address);
 
     /// <summary>
     /// Gets a persistent storage value for an account.
@@ -23,7 +50,7 @@ public interface IInterpreterHost
     /// <param name="address">The account address.</param>
     /// <param name="key">The storage key.</param>
     /// <returns>The persistent storage value.</returns>
-    public Task<Bytes32> GetStorageAtAsync(InterpreterContext context, Address address, Bytes32 key);
+    public ValueTask<Bytes32> GetStorageAtAsync(InterpreterContext context, Address address, Bytes32 key);
 
     /// <summary>
     /// Simulates a call against upstream state at the supplied interpreter context.

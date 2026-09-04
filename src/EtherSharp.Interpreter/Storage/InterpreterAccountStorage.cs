@@ -13,29 +13,12 @@ internal sealed class InterpreterAccountStorage(
     Func<long> nextRevision
 )
 {
-    private readonly struct BaseAccount
-    {
-        public InterpreterAccountInfo Info { get; }
-        public bool IsPresent { get; }
-
-        public BaseAccount(InterpreterAccountInfo? account)
-        {
-            if(account is { CodeHash: var codeHash } && codeHash == Bytes32.Zero)
-            {
-                throw new InvalidOperationException("Existing accounts must have a canonical nonzero code hash.");
-            }
-
-            Info = account ?? InterpreterAccountInfo.Empty;
-            IsPresent = account.HasValue;
-        }
-    }
+    private static Bytes32 EmptyCodeHash { get; } = Keccak256.HashData([]);
 
     private readonly Address _address = address;
     private readonly InterpreterContext _context = context;
     private readonly IInterpreterHost _host = host;
     private readonly Func<long> _nextRevision = nextRevision;
-
-    private BaseAccount? _baseAccount;
 
     private readonly JournaledMap<Bytes32, Bytes32> _persistentStorage = new();
     private readonly JournaledMap<Bytes32, Bytes32> _transientStorage = new();
@@ -52,20 +35,11 @@ internal sealed class InterpreterAccountStorage(
         => _createdInTransaction.IsSet;
 
     public async ValueTask<Bytes32> SLoadAsync(Bytes32 key)
-    {
-        if(_persistentStorage.TryGetValue(in key, out var value))
-        {
-            return value;
-        }
-        if(_persistentStorageReplaced.IsSet)
-        {
-            return Bytes32.Zero;
-        }
-
-        value = await _host.GetStorageAtAsync(_context, _address, key);
-        _persistentStorage.Cache(in key, in value);
-        return value;
-    }
+        => _persistentStorage.TryGetValue(in key, out var value)
+            ? value
+            : _persistentStorageReplaced.IsSet
+                ? Bytes32.Zero
+                : await _host.GetStorageAtAsync(_context, _address, key);
 
     public void SStore(in Bytes32 key, in Bytes32 value)
     {
@@ -85,7 +59,7 @@ internal sealed class InterpreterAccountStorage(
     public async ValueTask<UInt256> GetBalanceAsync()
         => _balance.TryGetValue(out var value)
             ? value
-            : (await GetBaseAccountAsync()).Info.Balance;
+            : await _host.GetBalanceAsync(_context, _address);
 
     public void SetBalance(in UInt256 value)
     {
@@ -97,7 +71,7 @@ internal sealed class InterpreterAccountStorage(
     public async ValueTask<ulong> GetNonceAsync()
         => _nonce.TryGetValue(out ulong value)
             ? value
-            : (await GetBaseAccountAsync()).Info.Nonce;
+            : await _host.GetNonceAsync(_context, _address);
 
     public void SetNonce(ulong value)
     {
@@ -109,7 +83,7 @@ internal sealed class InterpreterAccountStorage(
     public async ValueTask<EVMByteCode> GetCodeAsync()
         => _code.TryGetValue(out var value)
             ? value
-            : (await GetBaseAccountAsync()).Info.Code;
+            : await _host.GetCodeAsync(_context, _address);
 
     public void SetCode(in EVMByteCode value)
     {
@@ -125,8 +99,8 @@ internal sealed class InterpreterAccountStorage(
         long revision = _nextRevision();
         _present.Set(revision, true);
         _nonce.Set(revision, 1);
-        _code.Set(revision, InterpreterAccountInfo.Empty.Code);
-        _codeHash.Set(revision, InterpreterAccountInfo.EmptyCodeHash);
+        _code.Set(revision, EVMByteCode.Empty);
+        _codeHash.Set(revision, EmptyCodeHash);
         _persistentStorage.Clear(revision);
         _persistentStorageReplaced.Set(revision);
         _createdInTransaction.Set(revision);
@@ -170,25 +144,31 @@ internal sealed class InterpreterAccountStorage(
 
     public async ValueTask<Bytes32> GetExtCodeHashAsync()
     {
-        bool isPresent = _present.TryGetValue(out bool present)
-            ? present
-            : (await GetBaseAccountAsync()).IsPresent;
-        if(!isPresent)
+        bool hasLocalPresence = _present.TryGetValue(out bool isPresent);
+        if(hasLocalPresence && !isPresent)
         {
             return Bytes32.Zero;
         }
 
-        var codeHash = await GetStateCodeHashAsync();
-        return codeHash == InterpreterAccountInfo.EmptyCodeHash
+        var codeHash = _codeHash.TryGetValue(out var localCodeHash)
+            ? localCodeHash
+            : await _host.GetCodeHashAsync(_context, _address);
+        if(codeHash is null && !hasLocalPresence)
+        {
+            return Bytes32.Zero;
+        }
+
+        var effectiveCodeHash = codeHash ?? EmptyCodeHash;
+        return effectiveCodeHash == EmptyCodeHash
             && await GetNonceAsync() == 0
             && await GetBalanceAsync() == UInt256.Zero
                 ? Bytes32.Zero
-                : codeHash;
+                : effectiveCodeHash;
     }
 
     public async ValueTask<bool> HasCreateCollisionAsync()
         => await GetNonceAsync() != 0
-            || await GetStateCodeHashAsync() != InterpreterAccountInfo.EmptyCodeHash;
+            || await GetStateCodeHashAsync() != EmptyCodeHash;
 
     public void Commit()
     {
@@ -199,8 +179,8 @@ internal sealed class InterpreterAccountStorage(
             _persistentStorageReplaced.Set(revision);
             _balance.Set(revision, UInt256.Zero);
             _nonce.Set(revision, 0);
-            _code.Set(revision, InterpreterAccountInfo.Empty.Code);
-            _codeHash.Set(revision, InterpreterAccountInfo.EmptyCodeHash);
+            _code.Set(revision, EVMByteCode.Empty);
+            _codeHash.Set(revision, EmptyCodeHash);
             _present.Set(revision, false);
         }
 
@@ -231,18 +211,11 @@ internal sealed class InterpreterAccountStorage(
     }
 
     private async ValueTask<Bytes32> GetStateCodeHashAsync()
-        => _codeHash.TryGetValue(out var value)
-            ? value
-            : (await GetBaseAccountAsync()).Info.CodeHash;
-
-    private async ValueTask<BaseAccount> GetBaseAccountAsync()
     {
-        if(_baseAccount is not BaseAccount account)
-        {
-            account = new BaseAccount(await _host.GetAccountAsync(_context, _address));
-            _baseAccount = account;
-        }
+        var codeHash = _codeHash.TryGetValue(out var value)
+            ? value
+            : await _host.GetCodeHashAsync(_context, _address);
 
-        return account;
+        return codeHash ?? EmptyCodeHash;
     }
 }

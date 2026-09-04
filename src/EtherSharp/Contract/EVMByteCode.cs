@@ -21,6 +21,11 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     public const int MAX_INIT_LENGTH = 49_152;
 
     /// <summary>
+    /// Gets empty EVM bytecode.
+    /// </summary>
+    public static EVMByteCode Empty { get; } = new(ReadOnlyMemory<byte>.Empty);
+
+    /// <summary>
     /// Raw bytecode bytes.
     /// </summary>
     public ReadOnlyMemory<byte> ByteCode { get; } = byteCode;
