@@ -43,9 +43,10 @@ internal sealed class InterpreterAccountStorage(
     private readonly JournaledValue<ulong> _nonce = new();
     private readonly JournaledValue<EVMByteCode> _code = new();
     private readonly JournaledValue<Bytes32> _codeHash = new();
-    private readonly JournaledFlag _present = new();
+    private readonly JournaledValue<bool> _present = new();
     private readonly JournaledFlag _persistentStorageReplaced = new();
     private readonly JournaledFlag _createdInTransaction = new();
+    private readonly JournaledFlag _scheduledForDeletion = new();
 
     public bool IsCreatedInTransaction
         => _createdInTransaction.IsSet;
@@ -69,7 +70,7 @@ internal sealed class InterpreterAccountStorage(
     public void SStore(in Bytes32 key, in Bytes32 value)
     {
         long revision = _nextRevision();
-        _present.Set(revision);
+        _present.Set(revision, true);
         _persistentStorage.Set(revision, in key, in value);
     }
 
@@ -89,7 +90,7 @@ internal sealed class InterpreterAccountStorage(
     public void SetBalance(in UInt256 value)
     {
         long revision = _nextRevision();
-        _present.Set(revision);
+        _present.Set(revision, true);
         _balance.Set(revision, in value);
     }
 
@@ -101,7 +102,7 @@ internal sealed class InterpreterAccountStorage(
     public void SetNonce(ulong value)
     {
         long revision = _nextRevision();
-        _present.Set(revision);
+        _present.Set(revision, true);
         _nonce.Set(revision, in value);
     }
 
@@ -114,7 +115,7 @@ internal sealed class InterpreterAccountStorage(
     {
         long revision = _nextRevision();
         var codeHash = Keccak256.HashData(value.ByteCode.Span);
-        _present.Set(revision);
+        _present.Set(revision, true);
         _code.Set(revision, in value);
         _codeHash.Set(revision, in codeHash);
     }
@@ -122,12 +123,15 @@ internal sealed class InterpreterAccountStorage(
     public void InitializeCreatedContract()
     {
         long revision = _nextRevision();
-        _present.Set(revision);
+        _present.Set(revision, true);
         _nonce.Set(revision, 1);
         _code.Set(revision, InterpreterAccountInfo.Empty.Code);
         _codeHash.Set(revision, InterpreterAccountInfo.EmptyCodeHash);
         _createdInTransaction.Set(revision);
     }
+
+    public void ScheduleDeletion()
+        => _scheduledForDeletion.Set(_nextRevision());
 
     public void ApplyOverride(AccountOverride accountOverride)
     {
@@ -164,7 +168,10 @@ internal sealed class InterpreterAccountStorage(
 
     public async ValueTask<Bytes32> GetExtCodeHashAsync()
     {
-        if(!_present.IsSet && !(await GetBaseAccountAsync()).IsPresent)
+        bool isPresent = _present.TryGetValue(out bool present)
+            ? present
+            : (await GetBaseAccountAsync()).IsPresent;
+        if(!isPresent)
         {
             return Bytes32.Zero;
         }
@@ -183,6 +190,18 @@ internal sealed class InterpreterAccountStorage(
 
     public void Commit()
     {
+        if(_scheduledForDeletion.IsSet)
+        {
+            long revision = _nextRevision();
+            _persistentStorage.Clear(revision);
+            _persistentStorageReplaced.Set(revision);
+            _balance.Set(revision, UInt256.Zero);
+            _nonce.Set(revision, 0);
+            _code.Set(revision, InterpreterAccountInfo.Empty.Code);
+            _codeHash.Set(revision, InterpreterAccountInfo.EmptyCodeHash);
+            _present.Set(revision, false);
+        }
+
         _persistentStorage.Commit();
         _transientStorage.Clear();
         _balance.Commit();
@@ -192,6 +211,7 @@ internal sealed class InterpreterAccountStorage(
         _present.Commit();
         _persistentStorageReplaced.Commit();
         _createdInTransaction.Clear();
+        _scheduledForDeletion.Clear();
     }
 
     public void Reset(long revision)
@@ -205,6 +225,7 @@ internal sealed class InterpreterAccountStorage(
         _present.Reset(revision);
         _persistentStorageReplaced.Reset(revision);
         _createdInTransaction.Reset(revision);
+        _scheduledForDeletion.Reset(revision);
     }
 
     private async ValueTask<Bytes32> GetStateCodeHashAsync()

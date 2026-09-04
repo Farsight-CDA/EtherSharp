@@ -1213,12 +1213,27 @@ public class InterpreterRuntime(
                     }
 
                     var balance = await callFrame.AccountStorage.GetBalanceAsync();
-                    if(balance != UInt256.Zero && beneficiary != callFrame.To)
+                    bool isSelfBeneficiary = beneficiary == callFrame.To;
+                    bool shouldDelete = callFrame.AccountStorage.IsCreatedInTransaction;
+
+                    if(balance != UInt256.Zero)
                     {
-                        var beneficiaryStorage = _storage.GetAccountStorage(beneficiary);
-                        var beneficiaryBalance = await beneficiaryStorage.GetBalanceAsync();
-                        callFrame.AccountStorage.SetBalance(UInt256.Zero);
-                        beneficiaryStorage.SetBalance(beneficiaryBalance + balance);
+                        if(!isSelfBeneficiary)
+                        {
+                            var beneficiaryStorage = _storage.GetAccountStorage(beneficiary);
+                            var beneficiaryBalance = await beneficiaryStorage.GetBalanceAsync();
+                            beneficiaryStorage.SetBalance(beneficiaryBalance + balance);
+                        }
+
+                        if(!isSelfBeneficiary || shouldDelete)
+                        {
+                            callFrame.AccountStorage.SetBalance(UInt256.Zero);
+                        }
+                    }
+
+                    if(shouldDelete)
+                    {
+                        callFrame.AccountStorage.ScheduleDeletion();
                     }
 
                     return new TxCallResult(true, ReadOnlyMemory<byte>.Empty);
