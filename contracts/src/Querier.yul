@@ -8,6 +8,23 @@ object "Querier" {
         code {
             let RETURN_GAS_BUFFER := 50000
 
+            function executeCall(to, value, inputOffset, inputLength, outputOffset) -> outputLength {
+                let success := call(
+                    sub(gas(), 50000),
+                    to,
+                    value,
+                    inputOffset,
+                    inputLength,
+                    0,
+                    0
+                )
+
+                mstore(outputOffset, shl(224, returndatasize()))
+                mstore8(outputOffset, success)
+                returndatacopy(add(outputOffset, 4), 0, returndatasize())
+                outputLength := add(4, returndatasize())
+            }
+
             let inputOffset := 0
             let outputOffset := 0
 
@@ -28,20 +45,7 @@ object "Querier" {
 
                     switch opCode
                     case 0 {
-                        let success := call(
-                            sub(gas(), RETURN_GAS_BUFFER),
-                            to,
-                            value,
-                            outputOffset,
-                            length,
-                            0,
-                            0
-                        )
-
-                        mstore(outputOffset, shl(224, returndatasize()))
-                        mstore8(outputOffset, success)
-                        returndatacopy(add(outputOffset, 4), 0, returndatasize())
-                        outputLength := add(4, returndatasize())
+                        outputLength := executeCall(to, value, outputOffset, length, outputOffset)
                     }
                     default {
                         let gasBefore := gas()
@@ -95,6 +99,25 @@ object "Querier" {
                     mstore8(outputOffset, success)
                     returndatacopy(add(outputOffset, 4), 0, returndatasize())
                     outputLength := add(4, returndatasize())
+                }
+                case 3 {
+                    let length := shr(232, calldataload(inputOffset))
+                    let value := calldataload(add(inputOffset, 3))
+
+                    inputOffset := add(inputOffset, 35)
+                    mstore(outputOffset, shl(224, 0xea41597b))
+                    calldatacopy(add(outputOffset, 4), inputOffset, length)
+                    inputOffset := add(inputOffset, length)
+
+                    let to := address()
+                    let selectorLength := mul(iszero(eq(extcodesize(to), codesize())), 4)
+                    outputLength := executeCall(
+                        to,
+                        value,
+                        add(outputOffset, sub(4, selectorLength)),
+                        add(length, selectorLength),
+                        outputOffset
+                    )
                 }
                 case 10 {
                     let to := shr(96, calldataload(inputOffset))
@@ -157,7 +180,7 @@ object "Querier" {
                     outputLength := 32
                 }
                 default {
-                    revert(0, 0)
+                    revert(0, outputOffset)
                 }
                 }
 

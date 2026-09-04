@@ -207,6 +207,13 @@ public partial interface IQuery
         => new WithCallerQuery<T>(in caller, query, originalByteCode);
 
     /// <summary>
+    /// Executes <paramref name="query"/> atomically and rolls back its state changes before subsequent operations execute.
+    /// </summary>
+    /// <remarks>The query's result is preserved even though its EVM execution frame reverts.</remarks>
+    public static IQuery<T> Isolate<T>(IQuery<T> query)
+        => new IsolatedQuery<T>(query);
+
+    /// <summary>
     /// Creates a query that reads a raw slot from the current execution context's storage.
     /// </summary>
     public static IQuery<Bytes32> ReadStorage(in Bytes32 slot)

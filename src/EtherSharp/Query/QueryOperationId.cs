@@ -5,6 +5,7 @@ internal enum QueryOperationId : byte
     Call = 0,
     CallAndMeasureGas = 1,
     FlashCall = 2,
+    Isolate = 3,
 
     GetCode = 10,
     GetCodeHash = 11,
