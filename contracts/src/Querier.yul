@@ -8,6 +8,11 @@ object "Querier" {
         code {
             let RETURN_GAS_BUFFER := 50000
 
+            function write8(outputOffset, value) -> outputLength {
+                mstore(outputOffset, shl(192, value))
+                outputLength := 8
+            }
+
             function executeCall(to, value, inputOffset, inputLength, outputOffset) -> outputLength {
                 let success := call(
                     sub(gas(), 50000),
@@ -155,8 +160,7 @@ object "Querier" {
                                     outputLength := 8
                                 }
                                 case 23 {
-                                    mstore(outputOffset, shl(192, gaslimit()))
-                                    outputLength := 8
+                                    outputLength := write8(outputOffset, gaslimit())
                                 }
                                 case 24 {
                                     mstore(outputOffset, gasprice())
