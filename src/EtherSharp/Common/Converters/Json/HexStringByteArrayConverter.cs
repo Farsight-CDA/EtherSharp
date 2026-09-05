@@ -6,6 +6,7 @@ namespace EtherSharp.Common.Converters.Json;
 
 /// <summary>
 /// Converts a hex-encoded <see cref="Byte"/> array to or from JSON.
+/// Odd-length hex strings are read as if prefixed with a zero nibble.
 /// </summary>
 public sealed class HexStringByteArrayConverter : JsonConverter<byte[]>
 {
@@ -30,28 +31,37 @@ public sealed class HexStringByteArrayConverter : JsonConverter<byte[]>
 
         if(!reader.ValueIsEscaped && !reader.HasValueSequence)
         {
-            return reader.ValueSpan.StartsWith("0x"u8) || reader.ValueSpan.StartsWith("0X"u8)
-                ? Convert.FromHexString(reader.ValueSpan[2..])
-                : Convert.FromHexString(reader.ValueSpan);
+            var hex = reader.ValueSpan.StartsWith("0x"u8) || reader.ValueSpan.StartsWith("0X"u8)
+                ? reader.ValueSpan[2..]
+                : reader.ValueSpan;
+            if(hex.Length % 2 == 0)
+            {
+                return Convert.FromHexString(hex);
+            }
         }
 
         int length = reader.HasValueSequence
             ? (int) reader.ValueSequence.Length
             : reader.ValueSpan.Length;
+        int bufferLength = length + 1;
 
         char[]? rented = null;
-        var buffer = length <= STACK_BUFFER_SIZE
-            ? stackalloc char[length]
-            : (rented = ArrayPool<char>.Shared.Rent(length));
+        var buffer = bufferLength <= STACK_BUFFER_SIZE
+            ? stackalloc char[bufferLength]
+            : (rented = ArrayPool<char>.Shared.Rent(bufferLength));
 
         try
         {
-            int written = reader.CopyString(buffer);
-            ReadOnlySpan<char> hex = buffer[..written];
+            int written = reader.CopyString(buffer[1..]);
+            buffer = buffer[..(written + 1)];
+            int start = buffer[1..].StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? 3 : 1;
 
-            return hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-                ? Convert.FromHexString(hex[2..])
-                : Convert.FromHexString(hex);
+            if((buffer.Length - start) % 2 != 0)
+            {
+                buffer[--start] = '0';
+            }
+
+            return Convert.FromHexString(buffer[start..]);
         }
         finally
         {
