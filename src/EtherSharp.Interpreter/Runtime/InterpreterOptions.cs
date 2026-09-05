@@ -7,7 +7,10 @@ namespace EtherSharp.Interpreter.Runtime;
 /// </summary>
 public sealed class InterpreterOptions
 {
-    private static readonly int _maxMemorySize = Array.MaxLength - (Array.MaxLength % Bytes32.BYTE_LENGTH);
+    /// <summary>
+    /// Gets the default interpreter resource limits.
+    /// </summary>
+    public static InterpreterOptions Default { get; } = new();
 
     /// <summary>
     /// Gets the maximum number of bytes of active memory permitted in each call frame.
@@ -26,10 +29,9 @@ public sealed class InterpreterOptions
         ArgumentOutOfRangeException.ThrowIfNegative(MaxMemorySize);
 
         return (MaxMemorySize & (Bytes32.BYTE_LENGTH - 1)) != 0
-            || MaxMemorySize > _maxMemorySize
             ? throw new ArgumentOutOfRangeException(
                 nameof(MaxMemorySize),
-                $"Maximum memory size must be a multiple of {Bytes32.BYTE_LENGTH} bytes and no greater than {_maxMemorySize}."
+                $"Maximum memory size must be a multiple of {Bytes32.BYTE_LENGTH} bytes."
             )
             : this;
     }

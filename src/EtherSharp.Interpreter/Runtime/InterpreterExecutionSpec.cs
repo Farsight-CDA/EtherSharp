@@ -1,5 +1,5 @@
 using EtherSharp.Contract;
-using EtherSharp.Interpreter.Precompiles;
+using EtherSharp.Interpreter.Runtime.Precompiles;
 using EtherSharp.Types;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
@@ -31,7 +31,7 @@ public sealed record InterpreterExecutionSpec
     /// </summary>
     public static InterpreterExecutionSpec Empty { get; } = new();
 
-    internal InterpreterExecutionSpec Validate()
+    internal FrozenDictionary<Address, IPrecompile> ValidateAndCreatePrecompileLookup()
     {
         ArgumentOutOfRangeException.ThrowIfNegative(MaxInitCodeLength);
         ArgumentOutOfRangeException.ThrowIfNegative(MaxRuntimeCodeLength);
@@ -41,11 +41,16 @@ public sealed record InterpreterExecutionSpec
             throw new InvalidOperationException("The precompile collection is uninitialized.");
         }
 
-        HashSet<Address> precompileAddresses = [];
+        if(Precompiles.IsEmpty)
+        {
+            return FrozenDictionary<Address, IPrecompile>.Empty;
+        }
+
+        var precompiles = new Dictionary<Address, IPrecompile>(Precompiles.Length);
         foreach(var precompile in Precompiles)
         {
             ArgumentNullException.ThrowIfNull(precompile);
-            if(!precompileAddresses.Add(precompile.Address))
+            if(!precompiles.TryAdd(precompile.Address, precompile))
             {
                 throw new ArgumentException(
                     $"Multiple precompiles are registered at address {precompile.Address}.",
@@ -54,11 +59,6 @@ public sealed record InterpreterExecutionSpec
             }
         }
 
-        return this;
+        return precompiles.ToFrozenDictionary();
     }
-
-    internal FrozenDictionary<Address, IPrecompile> CreatePrecompileLookup()
-        => Precompiles.IsEmpty
-            ? FrozenDictionary<Address, IPrecompile>.Empty
-            : Precompiles.ToFrozenDictionary(precompile => precompile.Address);
 }

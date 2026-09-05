@@ -2,7 +2,7 @@ using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 
-namespace EtherSharp.Interpreter.Runtime;
+namespace EtherSharp.Interpreter.Forking;
 
 /// <summary>
 /// Represents one resolved interpreter data request.

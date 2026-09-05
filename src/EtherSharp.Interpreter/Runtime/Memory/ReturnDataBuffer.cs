@@ -1,6 +1,6 @@
 using EtherSharp.Numerics;
 
-namespace EtherSharp.Interpreter.Memory;
+namespace EtherSharp.Interpreter.Runtime.Memory;
 
 internal sealed class ReturnDataBuffer
 {

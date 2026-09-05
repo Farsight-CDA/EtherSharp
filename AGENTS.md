@@ -22,6 +22,7 @@ Important style guides to remember:
 - For expression-bodied methods with a single-line declaration, place the body on the next line.
 - When a method declaration spans multiple lines, place the final closing `)` on its own line.
 - For a multi-line expression-bodied method declaration, place `=>` on the same line as the final closing `)`.
+- When a function call's arguments span multiple lines, place its closing `)` on a separate line from the final argument.
 
 ## Benchmarks
 

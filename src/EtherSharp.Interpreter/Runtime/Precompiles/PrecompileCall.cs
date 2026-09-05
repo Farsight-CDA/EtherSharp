@@ -2,7 +2,7 @@ using EtherSharp.Interpreter.Runtime;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 
-namespace EtherSharp.Interpreter.Precompiles;
+namespace EtherSharp.Interpreter.Runtime.Precompiles;
 
 /// <summary>
 /// Represents the message-call context supplied to a precompile.

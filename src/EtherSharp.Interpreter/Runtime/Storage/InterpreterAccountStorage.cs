@@ -4,11 +4,10 @@ using EtherSharp.Interpreter.Runtime;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 
-namespace EtherSharp.Interpreter.Storage;
+namespace EtherSharp.Interpreter.Runtime.Storage;
 
 internal sealed class InterpreterAccountStorage(
     Address address,
-    InterpreterContext context,
     IInterpreterHost host,
     Func<long> nextRevision
 )
@@ -16,7 +15,6 @@ internal sealed class InterpreterAccountStorage(
     private static Bytes32 EmptyCodeHash { get; } = Keccak256.HashData([]);
 
     private readonly Address _address = address;
-    private readonly InterpreterContext _context = context;
     private readonly IInterpreterHost _host = host;
     private readonly Func<long> _nextRevision = nextRevision;
 
@@ -39,7 +37,7 @@ internal sealed class InterpreterAccountStorage(
             ? value
             : _persistentStorageReplaced.IsSet
                 ? Bytes32.Zero
-                : await _host.GetStorageAtAsync(_context, _address, key);
+                : await _host.GetStorageAtAsync(_address, key);
 
     public void SStore(in Bytes32 key, in Bytes32 value)
     {
@@ -59,7 +57,7 @@ internal sealed class InterpreterAccountStorage(
     public async ValueTask<UInt256> GetBalanceAsync()
         => _balance.TryGetValue(out var value)
             ? value
-            : await _host.GetBalanceAsync(_context, _address);
+            : await _host.GetBalanceAsync(_address);
 
     public void SetBalance(in UInt256 value)
     {
@@ -71,7 +69,7 @@ internal sealed class InterpreterAccountStorage(
     public async ValueTask<ulong> GetNonceAsync()
         => _nonce.TryGetValue(out ulong value)
             ? value
-            : await _host.GetNonceAsync(_context, _address);
+            : await _host.GetNonceAsync(_address);
 
     public void SetNonce(ulong value)
     {
@@ -83,7 +81,7 @@ internal sealed class InterpreterAccountStorage(
     public async ValueTask<EVMByteCode> GetCodeAsync()
         => _code.TryGetValue(out var value)
             ? value
-            : await _host.GetCodeAsync(_context, _address);
+            : await _host.GetCodeAsync(_address);
 
     public void SetCode(in EVMByteCode value)
     {
@@ -152,7 +150,7 @@ internal sealed class InterpreterAccountStorage(
 
         var codeHash = _codeHash.TryGetValue(out var localCodeHash)
             ? localCodeHash
-            : await _host.GetCodeHashAsync(_context, _address);
+            : await _host.GetCodeHashAsync(_address);
         if(codeHash is null && !hasLocalPresence)
         {
             return Bytes32.Zero;
@@ -214,7 +212,7 @@ internal sealed class InterpreterAccountStorage(
     {
         var codeHash = _codeHash.TryGetValue(out var value)
             ? value
-            : await _host.GetCodeHashAsync(_context, _address);
+            : await _host.GetCodeHashAsync(_address);
 
         return codeHash ?? EmptyCodeHash;
     }

@@ -1,8 +1,8 @@
 using EtherSharp.Contract;
 using EtherSharp.Crypto;
-using EtherSharp.Interpreter.Memory;
-using EtherSharp.Interpreter.Precompiles;
-using EtherSharp.Interpreter.Storage;
+using EtherSharp.Interpreter.Runtime.Memory;
+using EtherSharp.Interpreter.Runtime.Precompiles;
+using EtherSharp.Interpreter.Runtime.Storage;
 using EtherSharp.Numerics;
 using EtherSharp.Tx;
 using EtherSharp.Tx.Types;
@@ -13,18 +13,13 @@ using System.Diagnostics;
 namespace EtherSharp.Interpreter.Runtime;
 
 /// <summary>
-/// Executes EVM transactions and call simulations against a supplied global state.
+/// Executes EVM transactions and call simulations against an interpreter state fork.
 /// </summary>
-/// <param name="context">The block context for execution.</param>
-/// <param name="host">The host used to read upstream state and execute calls.</param>
-/// <param name="executionSpec">The consensus behavior used for execution.</param>
-/// <param name="options">The interpreter resource limits.</param>
-public class InterpreterRuntime(
-    InterpreterContext context,
-    IInterpreterHost host,
-    InterpreterExecutionSpec executionSpec,
-    InterpreterOptions? options = null
-)
+/// <remarks>
+/// Instances are not thread-safe. Await each operation before starting another operation or disposing
+/// the runtime. Concurrent use of a single runtime is unsupported and is not guarded at runtime.
+/// </remarks>
+public class InterpreterRuntime : IDisposable
 {
     private readonly record struct MessageCall(
         Address Origin,
@@ -47,29 +42,52 @@ public class InterpreterRuntime(
         int Depth
     );
 
-    private readonly InterpreterStorage _storage = new(
-        context ?? throw new ArgumentNullException(nameof(context)),
-        host ?? throw new ArgumentNullException(nameof(host))
-    );
-    private readonly IInterpreterHost _host = host;
-    private readonly FrozenDictionary<Address, IPrecompile> _precompiles = (executionSpec
-        ?? throw new ArgumentNullException(nameof(executionSpec)))
-            .Validate()
-            .CreatePrecompileLookup();
+    private readonly InterpreterStorage _storage;
+    private readonly IInterpreterHost _host;
+    private readonly FrozenDictionary<Address, IPrecompile> _precompiles;
+    private readonly InterpreterContext _context;
+    private bool _isDisposed;
 
-    /// <summary>
-    /// Gets the block context for execution.
-    /// </summary>
-    public InterpreterContext Context { get; } = context;
+    internal InterpreterRuntime(
+        InterpreterContext context,
+        IInterpreterHost host,
+        InterpreterExecutionSpec executionSpec,
+        InterpreterOptions options,
+        FrozenDictionary<Address, IPrecompile> precompiles
+    )
+    {
+        ExecutionSpec = executionSpec;
+        Options = options;
+        _context = context;
+        _host = host;
+        _storage = new InterpreterStorage(host);
+        _precompiles = precompiles;
+    }
+
     /// <summary>
     /// Gets the interpreter configuration.
     /// </summary>
-    public InterpreterOptions Options { get; } = (options ?? new InterpreterOptions()).Validate();
+    public InterpreterOptions Options { get; }
     /// <summary>
     /// Gets the consensus behavior used for execution.
     /// </summary>
-    public InterpreterExecutionSpec ExecutionSpec { get; } = executionSpec
-        ?? throw new ArgumentNullException(nameof(executionSpec));
+    public InterpreterExecutionSpec ExecutionSpec { get; }
+
+    /// <summary>
+    /// Removes this interpreter from its state fork's batching participants.
+    /// </summary>
+    /// <remarks>This method must not be called while an interpreter operation is in progress.</remarks>
+    public void Dispose()
+    {
+        if(_isDisposed)
+        {
+            return;
+        }
+
+        _isDisposed = true;
+        _host.Unregister();
+        GC.SuppressFinalize(this);
+    }
 
     /// <summary>
     /// Executes a transaction from the supplied sender and retains its state changes.
@@ -83,10 +101,11 @@ public class InterpreterRuntime(
         ITransaction transaction
     )
     {
+        ThrowIfDisposed();
         var storageSnapshot = _storage.TakeSnapshot();
         try
         {
-            var environment = TransactionEnvironment.CreateFrom(sender, transaction, Context);
+            var environment = TransactionEnvironment.CreateFrom(sender, transaction, _context);
             var result = await ExecuteTopLevelAsync(environment);
             _storage.Commit();
             return result;
@@ -112,6 +131,7 @@ public class InterpreterRuntime(
         InterpreterSimulationOptions options = default
     )
     {
+        ThrowIfDisposed();
         var storageSnapshot = _storage.TakeSnapshot();
         try
         {
@@ -120,7 +140,7 @@ public class InterpreterRuntime(
                 _storage.ApplyStateOverrides(stateOverrides);
             }
 
-            var environment = TransactionEnvironment.CreateFrom(sender, transaction, Context);
+            var environment = TransactionEnvironment.CreateFrom(sender, transaction, _context);
             return await ExecuteTopLevelAsync(environment);
         }
         finally
@@ -143,6 +163,7 @@ public class InterpreterRuntime(
         InterpreterSimulationOptions options = default
     )
     {
+        ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(call);
 
         var storageSnapshot = _storage.TakeSnapshot();
@@ -157,7 +178,7 @@ public class InterpreterRuntime(
             var environment = new TransactionEnvironment(
                 sender,
                 nonce,
-                (ulong) Context.GasLimit,
+                (ulong) _context.GasLimit,
                 UInt256.Zero,
                 call,
                 [],
@@ -170,6 +191,9 @@ public class InterpreterRuntime(
             _storage.Reset(storageSnapshot);
         }
     }
+
+    private void ThrowIfDisposed()
+        => ObjectDisposedException.ThrowIf(_isDisposed, this);
 
     private async ValueTask<TxCallResult> ExecuteTopLevelAsync(
         TransactionEnvironment transaction
@@ -259,7 +283,7 @@ public class InterpreterRuntime(
             result = await precompile.ExecuteAsync(
                 _host,
                 new PrecompileCall(
-                    Context,
+                    _context,
                     messageCall.Origin,
                     messageCall.Caller,
                     messageCall.Address,
@@ -721,51 +745,51 @@ public class InterpreterRuntime(
                         return callFrame.Revert();
                     }
 
-                    if(blockNumber >= (UInt256) Context.BlockNumber)
+                    if(blockNumber >= (UInt256) _context.BlockNumber)
                     {
                         callFrame.Stack.Push(Bytes32.Zero);
                         break;
                     }
 
-                    var distance = (UInt256) Context.BlockNumber - blockNumber;
+                    var distance = (UInt256) _context.BlockNumber - blockNumber;
                     callFrame.Stack.Push(
-                        distance <= 256 && distance <= (UInt256) Context.RecentBlockHashes.Length
-                            ? Context.RecentBlockHashes[(int) distance - 1]
+                        distance <= 256 && distance <= (UInt256) _context.RecentBlockHashes.Length
+                            ? _context.RecentBlockHashes[(int) distance - 1]
                             : Bytes32.Zero
                     );
                     break;
                 }
                 case EvmOpcode.Coinbase:
-                    callFrame.Stack.Push(Context.Coinbase);
+                    callFrame.Stack.Push(_context.Coinbase);
                     break;
                 case EvmOpcode.Timestamp:
-                    callFrame.Stack.Push((UInt256) Context.BlockTimestamp.ToUnixTimeSeconds());
+                    callFrame.Stack.Push((UInt256) _context.BlockTimestamp.ToUnixTimeSeconds());
                     break;
                 case EvmOpcode.Number:
-                    callFrame.Stack.Push((UInt256) Context.BlockNumber);
+                    callFrame.Stack.Push((UInt256) _context.BlockNumber);
                     break;
                 case EvmOpcode.PrevRandao:
-                    callFrame.Stack.Push(Context.PrevRandao);
+                    callFrame.Stack.Push(_context.PrevRandao);
                     break;
                 case EvmOpcode.GasLimit:
-                    callFrame.Stack.Push(Context.GasLimit);
+                    callFrame.Stack.Push(_context.GasLimit);
                     break;
                 case EvmOpcode.ChainId:
-                    callFrame.Stack.Push((UInt256) Context.ChainId);
+                    callFrame.Stack.Push((UInt256) _context.ChainId);
                     break;
                 case EvmOpcode.SelfBalance:
                     callFrame.Stack.Push(await callFrame.AccountStorage.GetBalanceAsync());
                     break;
                 case EvmOpcode.BaseFee:
-                    if(!Context.BaseFee.HasValue)
+                    if(!_context.BaseFee.HasValue)
                     {
                         return callFrame.Revert();
                     }
 
-                    callFrame.Stack.Push(Context.BaseFee.Value);
+                    callFrame.Stack.Push(_context.BaseFee.Value);
                     break;
                 case EvmOpcode.BlobHash:
-                    if(!Context.BlobBaseFee.HasValue
+                    if(!_context.BlobBaseFee.HasValue
                         || !callFrame.Stack.TryPop(out UInt256 blobIndex))
                     {
                         return callFrame.Revert();
@@ -778,12 +802,12 @@ public class InterpreterRuntime(
                     );
                     break;
                 case EvmOpcode.BlobBaseFee:
-                    if(!Context.BlobBaseFee.HasValue)
+                    if(!_context.BlobBaseFee.HasValue)
                     {
                         return callFrame.Revert();
                     }
 
-                    callFrame.Stack.Push(Context.BlobBaseFee.Value);
+                    callFrame.Stack.Push(_context.BlobBaseFee.Value);
                     break;
                 case EvmOpcode.Pop:
                     if(!callFrame.Stack.TryPop(out Bytes32 _))

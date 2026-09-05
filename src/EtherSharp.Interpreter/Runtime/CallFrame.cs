@@ -1,6 +1,6 @@
-using EtherSharp.Interpreter.Memory;
-using EtherSharp.Interpreter.Stack;
-using EtherSharp.Interpreter.Storage;
+using EtherSharp.Interpreter.Runtime.Memory;
+using EtherSharp.Interpreter.Runtime.Stack;
+using EtherSharp.Interpreter.Runtime.Storage;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 

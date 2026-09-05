@@ -1,4 +1,4 @@
-namespace EtherSharp.Interpreter.Storage;
+namespace EtherSharp.Interpreter.Runtime.Storage;
 
 internal sealed class JournaledMap<TKey, TValue>
     where TKey : notnull

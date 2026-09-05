@@ -1,7 +1,7 @@
 using EtherSharp.Interpreter.Runtime;
 using EtherSharp.Types;
 
-namespace EtherSharp.Interpreter.Precompiles;
+namespace EtherSharp.Interpreter.Runtime.Precompiles;
 
 /// <summary>
 /// Executes a native contract implementation selected by an EVM execution specification.

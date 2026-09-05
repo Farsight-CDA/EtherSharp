@@ -1,10 +1,9 @@
 using EtherSharp.Interpreter.Runtime;
 using EtherSharp.Types;
 
-namespace EtherSharp.Interpreter.Storage;
+namespace EtherSharp.Interpreter.Runtime.Storage;
 
 internal sealed class InterpreterStorage(
-    InterpreterContext context,
     IInterpreterHost host
 )
 {
@@ -26,7 +25,7 @@ internal sealed class InterpreterStorage(
     {
         if(!_accountStorages.TryGetValue(address, out var accountStorage))
         {
-            accountStorage = new InterpreterAccountStorage(address, context, host, NextRevision);
+            accountStorage = new InterpreterAccountStorage(address, host, NextRevision);
             _accountStorages.Add(address, accountStorage);
         }
 

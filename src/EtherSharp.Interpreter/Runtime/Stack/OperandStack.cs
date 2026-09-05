@@ -1,6 +1,6 @@
 using EtherSharp.Types;
 
-namespace EtherSharp.Interpreter.Stack;
+namespace EtherSharp.Interpreter.Runtime.Stack;
 
 internal sealed class OperandStack
 {

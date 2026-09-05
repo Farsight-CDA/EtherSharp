@@ -1,7 +1,7 @@
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 
-namespace EtherSharp.Interpreter.Memory;
+namespace EtherSharp.Interpreter.Runtime.Memory;
 
 internal sealed class LinearMemory(int maxSize)
 {

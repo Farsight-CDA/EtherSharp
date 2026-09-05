@@ -1,7 +1,7 @@
 using EtherSharp.Interpreter.Runtime;
 using EtherSharp.Types;
 
-namespace EtherSharp.Interpreter.Precompiles;
+namespace EtherSharp.Interpreter.Runtime.Precompiles;
 
 /// <summary>
 /// Implements the EVM identity precompile.

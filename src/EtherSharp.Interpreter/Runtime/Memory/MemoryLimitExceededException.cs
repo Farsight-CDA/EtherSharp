@@ -1,6 +1,6 @@
 using EtherSharp.Numerics;
 
-namespace EtherSharp.Interpreter.Memory;
+namespace EtherSharp.Interpreter.Runtime.Memory;
 
 /// <summary>
 /// Indicates that an EVM memory access exceeds the configured per-frame limit.
