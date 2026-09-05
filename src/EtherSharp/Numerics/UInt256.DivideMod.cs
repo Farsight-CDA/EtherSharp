@@ -1869,10 +1869,37 @@ public readonly partial struct UInt256
     private static void KnuthStep(ref ulong u0, ref ulong u1, ref ulong u2, ulong d0, ulong d1, ulong reciprocal)
     {
         ulong oldU2 = u2;
-        ulong qhat = X86Base.X64.IsSupported
-            ? EstimateQhatEstX86Base(u2, u1, d1)
-            : EstimateQhatEst(u2, u1, d1, reciprocal);
+        ulong qhat;
+        if(X86Base.X64.IsSupported)
+        {
+            if(oldU2 >= d1)
+            {
+                // Saturation has no usable 64-bit remainder identity.
+                qhat = UInt64.MaxValue;
+                goto FullSubMul;
+            }
 
+            (qhat, ulong rhat) = X86Base.X64.DivRem(u1, oldU2, d1);
+            ulong v0 = u0;
+            ulong hi0 = Multiply64(d0, qhat, out ulong lo0);
+            u0 = v0 - lo0;
+            ulong b0 = hi0 + (lo0 > v0 ? 1UL : 0UL);
+            // DivRem already computed (u2:u1) - qhat*d1.
+            u1 = rhat - b0;
+            if(b0 <= rhat)
+            {
+                u2 = 0;
+                return;
+            }
+
+            u2 = UInt64.MaxValue;
+            CorrectStep(ref u0, ref u1, ref u2, d0, d1);
+            return;
+        }
+
+        qhat = EstimateQhatEst(oldU2, u1, d1, reciprocal);
+
+    FullSubMul:
         ulong borrow = SubMulTo2(ref u0, ref u1, d0, d1, qhat);
         u2 = oldU2 - borrow;
 
@@ -1888,19 +1915,6 @@ public readonly partial struct UInt256
             => u2 >= dh
                 ? UInt64.MaxValue
                 : UDivRem2By1(u2, reciprocal, dh, u1, out _);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static ulong EstimateQhatEstX86Base(ulong u2, ulong u1, ulong dh)
-        {
-            if(u2 >= dh)
-            {
-                // Quotient digit saturates at b - 1. No correction needed (rhat would be >= b).
-                return UInt64.MaxValue;
-            }
-
-            (ulong qhat, _) = X86Base.X64.DivRem(u1, u2, dh);
-            return qhat;
-        }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static void CorrectStep(ref ulong u0, ref ulong u1, ref ulong u2, ulong d0, ulong d1)
