@@ -64,7 +64,8 @@ public interface IInterpreterHost
     /// <returns>The raw call result.</returns>
     /// <remarks>
     /// This operation is not for arbitrary contract calls or stateful precompiles. Results must not depend
-    /// on contract code or storage. Upstream state changes are discarded and do not affect the interpreter journal.
+    /// on the execution caller, contract code, or storage. Providers may execute through a query helper
+    /// without reproducing the original msg.sender. Upstream state changes are discarded and do not affect the interpreter journal.
     /// </remarks>
     public Task<TxCallResult> CallPrecompileAsync(
         Address caller,

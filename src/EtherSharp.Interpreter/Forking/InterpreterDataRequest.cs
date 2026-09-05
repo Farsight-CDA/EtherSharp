@@ -11,6 +11,9 @@ namespace EtherSharp.Interpreter.Forking;
 /// </summary>
 public abstract record InterpreterDataRequest
 {
+    /// <summary>Gets the account address, or the target address for a precompile call.</summary>
+    public abstract Address GetAddress();
+
     private InterpreterDataRequest()
     {
     }
@@ -19,32 +22,57 @@ public abstract record InterpreterDataRequest
     /// Requests an account's native balance.
     /// </summary>
     /// <param name="Address">The account address.</param>
-    public sealed record Balance(Address Address) : InterpreterDataRequest;
+    public sealed record Balance(Address Address) : InterpreterDataRequest
+    {
+        /// <inheritdoc/>
+        public override Address GetAddress()
+            => Address;
+    }
 
     /// <summary>
     /// Requests an account's nonce.
     /// </summary>
     /// <param name="Address">The account address.</param>
-    public sealed record Nonce(Address Address) : InterpreterDataRequest;
+    public sealed record Nonce(Address Address) : InterpreterDataRequest
+    {
+        /// <inheritdoc/>
+        public override Address GetAddress()
+            => Address;
+    }
 
     /// <summary>
     /// Requests an account's bytecode.
     /// </summary>
     /// <param name="Address">The account address.</param>
-    public sealed record Code(Address Address) : InterpreterDataRequest;
+    public sealed record Code(Address Address) : InterpreterDataRequest
+    {
+        /// <inheritdoc/>
+        public override Address GetAddress()
+            => Address;
+    }
 
     /// <summary>
     /// Requests an account's canonical code hash.
     /// </summary>
     /// <param name="Address">The account address.</param>
-    public sealed record CodeHash(Address Address) : InterpreterDataRequest;
+    public sealed record CodeHash(Address Address) : InterpreterDataRequest
+    {
+        /// <inheritdoc/>
+        public override Address GetAddress()
+            => Address;
+    }
 
     /// <summary>
     /// Requests one persistent storage slot.
     /// </summary>
     /// <param name="Address">The account address.</param>
     /// <param name="Key">The storage key.</param>
-    public sealed record Storage(Address Address, Bytes32 Key) : InterpreterDataRequest;
+    public sealed record Storage(Address Address, Bytes32 Key) : InterpreterDataRequest
+    {
+        /// <inheritdoc/>
+        public override Address GetAddress()
+            => Address;
+    }
 
     /// <summary>
     /// Requests execution of an input-only upstream precompile, not arbitrary contract code.
@@ -55,6 +83,7 @@ public abstract record InterpreterDataRequest
     /// <param name="Input">The borrowed call input.</param>
     /// <param name="Id">The Keccak-256 digest of caller (20 bytes), target (20 bytes), value (32-byte big-endian), and input.</param>
     /// <remarks>
+    /// The result must not depend on the execution caller; providers may call through a query helper.
     /// The input buffer must remain unchanged until the request completes. An explicitly supplied
     /// <paramref name="Id"/> must match the call fields; callers modifying those fields must also update it.
     /// </remarks>
@@ -66,6 +95,10 @@ public abstract record InterpreterDataRequest
         Bytes32 Id
     ) : InterpreterDataRequest
     {
+        /// <inheritdoc/>
+        public override Address GetAddress()
+            => Target;
+
         /// <summary>Creates an upstream precompile call request and computes its identity.</summary>
         /// <param name="caller">The immediate message caller.</param>
         /// <param name="target">The account to call.</param>

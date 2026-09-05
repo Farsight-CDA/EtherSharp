@@ -20,7 +20,7 @@ public interface IInterpreterDataProvider
     /// completes satisfied reads, and includes unanswered requests in the next batch. A response must
     /// resolve at least one pending read to allow execution to resume; otherwise dispatched reads fail.
     /// </remarks>
-    public Task<InterpreterDataResult[]> FetchAsync(
+    public Task<IReadOnlyList<InterpreterDataResult>> FetchAsync(
         InterpreterContext context,
         ReadOnlyMemory<InterpreterDataRequest> requests
     );
