@@ -1,5 +1,6 @@
 using EtherSharp.Contract;
 using EtherSharp.Crypto;
+using EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 using EtherSharp.Interpreter.Runtime.Memory;
 using EtherSharp.Interpreter.Runtime.Precompiles;
 using EtherSharp.Interpreter.Runtime.Storage;

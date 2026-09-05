@@ -4,12 +4,12 @@ using EtherSharp.Types;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 
-namespace EtherSharp.Interpreter.Runtime;
+namespace EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 
 /// <summary>
 /// Defines consensus behavior selected for an interpreter execution.
 /// </summary>
-public sealed record InterpreterExecutionSpec
+public sealed partial record InterpreterExecutionSpec
 {
     /// <summary>
     /// Gets the maximum permitted initcode length in bytes.
@@ -30,6 +30,13 @@ public sealed record InterpreterExecutionSpec
     /// Gets an execution specification with no registered precompiles.
     /// </summary>
     public static InterpreterExecutionSpec Empty { get; } = new();
+
+    /// <summary>
+    /// Gets the latest execution preset supplied by this library, currently <see cref="Osaka"/>.
+    /// </summary>
+    /// <remarks>This does not select rules based on the fork's block height or chain.</remarks>
+    public static InterpreterExecutionSpec Latest
+        => Osaka;
 
     internal FrozenDictionary<Address, IPrecompile> ValidateAndCreatePrecompileLookup()
     {

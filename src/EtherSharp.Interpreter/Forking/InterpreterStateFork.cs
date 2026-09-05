@@ -1,4 +1,5 @@
 using EtherSharp.Interpreter.Runtime;
+using EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 using System.Diagnostics;
 
 namespace EtherSharp.Interpreter.Forking;
@@ -39,7 +40,7 @@ public sealed partial class InterpreterStateFork(
     /// <summary>
     /// Creates and registers an independent interpreter over this state fork.
     /// </summary>
-    /// <param name="executionSpec">The consensus behavior used by the interpreter.</param>
+    /// <param name="executionSpec">The execution preset, or <see langword="null"/> to use <see cref="InterpreterExecutionSpec.Latest"/>.</param>
     /// <param name="options">The interpreter resource limits.</param>
     /// <returns>An interpreter that must be disposed when it no longer participates in batching.</returns>
     /// <remarks>
@@ -48,11 +49,11 @@ public sealed partial class InterpreterStateFork(
     /// neither executing nor waiting for state prevents the fork from flushing.
     /// </remarks>
     public InterpreterRuntime CreateInterpreter(
-        InterpreterExecutionSpec executionSpec,
+        InterpreterExecutionSpec? executionSpec = null,
         InterpreterOptions? options = null
     )
     {
-        ArgumentNullException.ThrowIfNull(executionSpec);
+        executionSpec ??= InterpreterExecutionSpec.Latest;
         var session = new InterpreterSession(this);
         var runtime = new InterpreterRuntime(
             Context,
