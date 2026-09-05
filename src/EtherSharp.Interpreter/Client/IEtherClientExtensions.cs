@@ -13,38 +13,53 @@ namespace EtherSharp.Interpreter.Client;
 public static class IEtherClientExtensions
 {
     /// <summary>
-    /// Creates an interpreter fork using a data provider compatible with the client's query backend.
+    /// Creates an interpreter fork using the target block's post-state and execution context.
     /// </summary>
-    /// <param name="client">The client whose query backend will fetch upstream state.</param>
-    /// <param name="targetHeight">The numeric or named block target to fork.</param>
-    /// <param name="blockHeightQuery">
-    /// Optional query for the RPC block height on chains where it differs from EVM NUMBER.
-    /// Runs alongside the context query, defaulting to EVM NUMBER. Numeric targets remain authoritative
-    /// for subsequent provider reads regardless of the query's result.
-    /// </param>
-    /// <param name="requestOptions">Options applied to context and subsequent state reads.</param>
-    /// <param name="cancellationToken">Token used to cancel fork creation, not subsequent interpreter operations.</param>
-    /// <returns>A fork with its own provider and nonce-probe history.</returns>
-    /// <exception cref="InvalidOperationException">No provider is available for the configured query backend.</exception>
     /// <remarks>
-    /// WithFlashCalls(enableStateOverrides: true) automatically enables the built-in provider.
-    /// Named targets use the context's EVM block number unless blockHeightQuery is supplied.
-    /// Context and optional height are fetched together; subsequent provider reads use the resolved numeric height.
-    /// The client must remain alive while the fork is fetching state. Numeric pinning does not protect
-    /// against reorganizations; use a suitably finalized block where consistency is required.
+    /// Requires WithFlashCalls(enableStateOverrides: true). Named targets resolve once using
+    /// blockHeightQuery or EVM NUMBER; numeric targets take precedence. Pending is unsupported.
+    /// Keep the client alive for state reads. Cancellation applies only to creation; numeric pinning is not reorg-safe.
     /// </remarks>
-    public static async Task<InterpreterStateFork> ForkAsync(
+    public static Task<InterpreterStateFork> ForkPostBlockAsync(
         this IEtherClient client,
         TargetHeight targetHeight,
         IQuery<ulong>? blockHeightQuery = null,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
+    ) => ForkBlockAsync(client, targetHeight, false, blockHeightQuery, requestOptions, cancellationToken);
+
+    /// <summary>
+    /// Creates an interpreter fork using the parent block's post-state and the target block's execution context.
+    /// </summary>
+    /// <remarks>
+    /// Uses ForkPostBlockAsync's resolution and lifetime rules, but pins state to the parent height.
+    /// Rejects genesis and pending. Does not apply block-start transitions or replay transactions.
+    /// </remarks>
+    public static Task<InterpreterStateFork> ForkPreBlockAsync(
+        this IEtherClient client,
+        TargetHeight targetHeight,
+        IQuery<ulong>? blockHeightQuery = null,
+        RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    ) => ForkBlockAsync(client, targetHeight, true, blockHeightQuery, requestOptions, cancellationToken);
+
+    private static async Task<InterpreterStateFork> ForkBlockAsync(
+        IEtherClient client,
+        TargetHeight targetHeight,
+        bool useParentState,
+        IQuery<ulong>? blockHeightQuery,
+        RpcRequestOptions requestOptions,
+        CancellationToken cancellationToken
     )
     {
         ArgumentNullException.ThrowIfNull(client);
         if(targetHeight == TargetHeight.Pending)
         {
             throw new ArgumentException("A fork requires a mined block, not the pending block.", nameof(targetHeight));
+        }
+        if(useParentState && targetHeight.Value == 0)
+        {
+            throw new ArgumentException("Genesis has no parent state to fork.", nameof(targetHeight));
         }
 
         var (context, height) = await client.QueryAsync(
@@ -55,12 +70,20 @@ public static class IEtherClientExtensions
             cancellationToken: cancellationToken
         );
 
+        ulong stateHeight = targetHeight.Value ?? height;
+        if(useParentState)
+        {
+            if(stateHeight == 0)
+            {
+                throw new ArgumentException("Genesis has no parent state to fork.", nameof(targetHeight));
+            }
+            stateHeight--;
+        }
+
         return new InterpreterStateFork(
             InterpreterDataProviderFactory.Create(
                 client,
-                targetHeight.IsNumeric
-                    ? targetHeight
-                    : TargetHeight.Height(height),
+                TargetHeight.Height(stateHeight),
                 requestOptions
             ),
             context
@@ -70,18 +93,11 @@ public static class IEtherClientExtensions
     /// <summary>
     /// Creates an interpreter fork at the requested block using the supplied state provider.
     /// </summary>
-    /// <param name="client">The client used to fetch the block context.</param>
-    /// <param name="targetHeight">The numeric or named block target passed to the context query.</param>
-    /// <param name="dataProvider">The provider responsible for resolving state at the fork's context.</param>
-    /// <param name="requestOptions">Options for the context-fetching RPC requests.</param>
-    /// <param name="cancellationToken">Token used to cancel fork creation.</param>
-    /// <returns>An independent upstream state fork.</returns>
     /// <remarks>
-    /// Pending blocks are not supported. The provider is responsible for pinning subsequent state reads
-    /// to the captured context. The fork does not own the client or provider;
-    /// any client used by the provider must remain alive while the fork is fetching state.
+    /// The target selects context only; the provider controls state pinning. Pending is unsupported.
+    /// The fork borrows the client and provider; keep them alive for state reads.
     /// </remarks>
-    public static async Task<InterpreterStateFork> ForkAsync(
+    public static async Task<InterpreterStateFork> ForkWithProviderAsync(
         this IEtherClient client,
         TargetHeight targetHeight,
         IInterpreterDataProvider dataProvider,
