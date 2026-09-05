@@ -250,7 +250,7 @@ public class InterpreterRuntime : IDisposable
         MessageCall messageCall
     )
     {
-        if(messageCall.Depth >= CallFrame.MAX_DEPTH)
+        if(messageCall.Depth > CallFrame.MAX_DEPTH)
         {
             return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
         }
@@ -339,7 +339,7 @@ public class InterpreterRuntime : IDisposable
         ContractCreation creation
     )
     {
-        if(creation.Depth >= CallFrame.MAX_DEPTH)
+        if(creation.Depth > CallFrame.MAX_DEPTH)
         {
             return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
         }
