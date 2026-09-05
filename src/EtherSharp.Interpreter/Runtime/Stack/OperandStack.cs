@@ -7,6 +7,7 @@ internal sealed class OperandStack
     private const int MAX_DEPTH = 1024;
 
     private int Count { get; set; }
+    public bool IsFull => Count == MAX_DEPTH;
     private readonly Bytes32[] _values = new Bytes32[MAX_DEPTH];
 
     public bool TryPush<T>(in T value)

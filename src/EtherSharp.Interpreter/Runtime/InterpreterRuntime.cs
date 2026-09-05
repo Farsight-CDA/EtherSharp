@@ -109,7 +109,7 @@ public class InterpreterRuntime : IDisposable
             var environment = TransactionEnvironment.CreateFrom(sender, transaction, _context);
             var result = await ExecuteTopLevelAsync(environment);
             _storage.Commit();
-            return result;
+            return new TxCallResult(result.IsSuccess, result.Data);
         }
         catch
         {
@@ -142,7 +142,8 @@ public class InterpreterRuntime : IDisposable
             }
 
             var environment = TransactionEnvironment.CreateFrom(sender, transaction, _context);
-            return await ExecuteTopLevelAsync(environment);
+            var result = await ExecuteTopLevelAsync(environment);
+            return new TxCallResult(result.IsSuccess, result.Data);
         }
         finally
         {
@@ -185,7 +186,8 @@ public class InterpreterRuntime : IDisposable
                 [],
                 []
             );
-            return await ExecuteTopLevelAsync(environment);
+            var result = await ExecuteTopLevelAsync(environment);
+            return new TxCallResult(result.IsSuccess, result.Data);
         }
         finally
         {
@@ -196,7 +198,7 @@ public class InterpreterRuntime : IDisposable
     private void ThrowIfDisposed()
         => ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-    private async ValueTask<TxCallResult> ExecuteTopLevelAsync(
+    private async ValueTask<ExecutionResult> ExecuteTopLevelAsync(
         TransactionEnvironment transaction
     )
     {
@@ -245,14 +247,14 @@ public class InterpreterRuntime : IDisposable
         ));
     }
 
-    private async ValueTask<TxCallResult> ExecuteMessageCallAsync(
+    private async ValueTask<ExecutionResult> ExecuteMessageCallAsync(
         TransactionEnvironment transaction,
         MessageCall messageCall
     )
     {
         if(messageCall.Depth > CallFrame.MAX_DEPTH)
         {
-            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+            return ExecutionResult.CallEntryFailure(CallEntryFailureReason.DepthExceeded);
         }
 
         var accountStorage = _storage.GetAccountStorage(messageCall.Address);
@@ -267,7 +269,7 @@ public class InterpreterRuntime : IDisposable
             var sourceBalance = await valueSourceStorage.GetBalanceAsync();
             if(sourceBalance < messageCall.Value)
             {
-                return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+                return ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
             }
 
             if(valueSource != messageCall.Address)
@@ -278,10 +280,10 @@ public class InterpreterRuntime : IDisposable
             }
         }
 
-        TxCallResult result;
+        ExecutionResult result;
         if(_precompiles.TryGetValue(messageCall.CodeAddress, out var precompile))
         {
-            result = await precompile.ExecuteAsync(
+            var precompileResult = await precompile.ExecuteAsync(
                 _host,
                 new PrecompileCall(
                     _context,
@@ -294,6 +296,10 @@ public class InterpreterRuntime : IDisposable
                     messageCall.IsStatic
                 )
             );
+            // Native precompile failure is exceptional, not execution of the REVERT opcode.
+            result = precompileResult.Success
+                ? ExecutionResult.Success(precompileResult.Data)
+                : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.PrecompileFailure);
         }
         else
         {
@@ -326,7 +332,7 @@ public class InterpreterRuntime : IDisposable
             result = await ExecuteOpcodesAsync(transaction, callFrame, byteCode);
         }
 
-        if(!result.Success)
+        if(!result.IsSuccess)
         {
             _storage.Reset(callSnapshot);
         }
@@ -334,34 +340,34 @@ public class InterpreterRuntime : IDisposable
         return result;
     }
 
-    private async ValueTask<TxCallResult> ExecuteContractCreationAsync(
+    private async ValueTask<ExecutionResult> ExecuteContractCreationAsync(
         TransactionEnvironment transaction,
         ContractCreation creation
     )
     {
         if(creation.Depth > CallFrame.MAX_DEPTH)
         {
-            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+            return ExecutionResult.CallEntryFailure(CallEntryFailureReason.DepthExceeded);
         }
 
         var creatorStorage = _storage.GetAccountStorage(creation.Creator);
         var creatorBalance = await creatorStorage.GetBalanceAsync();
         if(creatorBalance < creation.Endowment)
         {
-            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+            return ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
         }
 
         ulong creatorNonce = await creatorStorage.GetNonceAsync();
         if(creatorNonce == UInt64.MaxValue)
         {
-            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+            return ExecutionResult.CallEntryFailure(CallEntryFailureReason.CreatorNonceOverflow);
         }
 
         creatorStorage.SetNonce(creatorNonce + 1);
         var createdStorage = _storage.GetAccountStorage(creation.CreatedAddress);
         if(await createdStorage.HasCreateCollisionAsync())
         {
-            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+            return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.ContractAddressCollision);
         }
 
         var creationSnapshot = _storage.TakeSnapshot();
@@ -390,16 +396,20 @@ public class InterpreterRuntime : IDisposable
             creationFrame,
             new EVMByteCode(creation.InitCode)
         );
-        if(!creationResult.Success)
+        if(!creationResult.IsSuccess)
         {
             _storage.Reset(creationSnapshot);
             return creationResult;
         }
-        if(creationResult.Data.Length > ExecutionSpec.MaxRuntimeCodeLength
-            || (!creationResult.Data.IsEmpty && creationResult.Data.Span[0] == 0xEF))
+        if(creationResult.Data.Length > ExecutionSpec.MaxRuntimeCodeLength)
         {
             _storage.Reset(creationSnapshot);
-            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+            return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.RuntimeCodeTooLarge);
+        }
+        if(!creationResult.Data.IsEmpty && creationResult.Data.Span[0] == 0xEF)
+        {
+            _storage.Reset(creationSnapshot);
+            return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidRuntimeCode);
         }
 
         var runtimeCode = new EVMByteCode(creationResult.Data.ToArray());
@@ -407,7 +417,7 @@ public class InterpreterRuntime : IDisposable
         return creationResult;
     }
 
-    private async ValueTask<TxCallResult> ExecuteOpcodesAsync(
+    private async ValueTask<ExecutionResult> ExecuteOpcodesAsync(
         TransactionEnvironment transaction,
         CallFrame callFrame,
         EVMByteCode byteCode
@@ -423,12 +433,12 @@ public class InterpreterRuntime : IDisposable
             switch(opcode)
             {
                 case EvmOpcode.Stop:
-                    return new TxCallResult(true, ReadOnlyMemory<byte>.Empty);
+                    return ExecutionResult.Success();
                 case >= EvmOpcode.Add and <= EvmOpcode.SMod:
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 first, out UInt256 second))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
                     if(opcode is EvmOpcode.Div or EvmOpcode.SDiv or EvmOpcode.Mod or EvmOpcode.SMod
                         && second == UInt256.Zero)
@@ -454,7 +464,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 first, out UInt256 second, out UInt256 modulus))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
                     if(modulus == UInt256.Zero)
                     {
@@ -492,7 +502,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 first, out UInt256 second))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push(UInt256.Pow(first, second));
@@ -502,7 +512,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 byteIndex, out Int256 value))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     if(byteIndex > 31)
@@ -520,7 +530,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 first, out UInt256 second))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push(opcode switch
@@ -541,7 +551,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 value))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push(opcode switch
@@ -557,7 +567,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 byteIndex, out Bytes32 value))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push(byteIndex < Bytes32.BYTE_LENGTH
@@ -570,7 +580,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 shift, out UInt256 value))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     if(shift >= 256)
@@ -591,7 +601,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 shift, out Int256 value))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push(shift >= 256
@@ -603,7 +613,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 offset, out UInt256 length))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     var data = callFrame.Memory.Access(offset, length);
@@ -611,32 +621,48 @@ public class InterpreterRuntime : IDisposable
                     break;
                 }
                 case EvmOpcode.Address:
-                    callFrame.Stack.Push(callFrame.To);
+                    if(!callFrame.Stack.TryPush(callFrame.To))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.Balance:
                 {
                     if(!callFrame.Stack.TryPop(out Address address))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push(await _storage.GetAccountStorage(address).GetBalanceAsync());
                     break;
                 }
                 case EvmOpcode.Origin:
-                    callFrame.Stack.Push(callFrame.Origin);
+                    if(!callFrame.Stack.TryPush(callFrame.Origin))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.Caller:
-                    callFrame.Stack.Push(callFrame.From);
+                    if(!callFrame.Stack.TryPush(callFrame.From))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.CallValue:
-                    callFrame.Stack.Push(callFrame.Value);
+                    if(!callFrame.Stack.TryPush(callFrame.Value))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.CallDataLoad:
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 offset))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     if(offset >= (UInt256) callFrame.CallData.Length)
@@ -649,7 +675,11 @@ public class InterpreterRuntime : IDisposable
                     break;
                 }
                 case EvmOpcode.CallDataSize:
-                    callFrame.Stack.Push((UInt256) callFrame.CallData.Length);
+                    if(!callFrame.Stack.TryPush((UInt256) callFrame.CallData.Length))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.CallDataCopy:
                 {
@@ -659,7 +689,7 @@ public class InterpreterRuntime : IDisposable
                         out UInt256 length
                     ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.CallData.CopyTo(
@@ -669,7 +699,11 @@ public class InterpreterRuntime : IDisposable
                     break;
                 }
                 case EvmOpcode.CodeSize:
-                    callFrame.Stack.Push((UInt256) code.Length);
+                    if(!callFrame.Stack.TryPush((UInt256) code.Length))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.CodeCopy:
                 {
@@ -679,20 +713,24 @@ public class InterpreterRuntime : IDisposable
                         out UInt256 length
                     ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     code.CopyTo(sourceOffset, callFrame.Memory.Access(destinationOffset, length));
                     break;
                 }
                 case EvmOpcode.GasPrice:
-                    callFrame.Stack.Push(transaction.EffectiveGasPrice);
+                    if(!callFrame.Stack.TryPush(transaction.EffectiveGasPrice))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.ExtCodeSize:
                 {
                     if(!callFrame.Stack.TryPop(out Address address))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push((UInt256) (await _storage.GetAccountStorage(address).GetCodeAsync()).Length);
@@ -707,7 +745,7 @@ public class InterpreterRuntime : IDisposable
                         out UInt256 length
                     ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     var externalCode = new ZeroPaddedData((await _storage.GetAccountStorage(address).GetCodeAsync()).ByteCode);
@@ -715,7 +753,11 @@ public class InterpreterRuntime : IDisposable
                     break;
                 }
                 case EvmOpcode.ReturnDataSize:
-                    callFrame.Stack.Push((UInt256) callFrame.ReturnData.Length);
+                    if(!callFrame.Stack.TryPush((UInt256) callFrame.ReturnData.Length))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.ReturnDataCopy:
                 {
@@ -725,7 +767,7 @@ public class InterpreterRuntime : IDisposable
                         out UInt256 length
                     ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     if(!callFrame.ReturnData.TryCopyTo(
@@ -733,7 +775,7 @@ public class InterpreterRuntime : IDisposable
                         callFrame.Memory.Access(destinationOffset, length)
                     ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.ReturnDataOutOfBounds);
                     }
 
                     break;
@@ -742,7 +784,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out Address address))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push(await _storage.GetAccountStorage(address).GetExtCodeHashAsync());
@@ -752,7 +794,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 blockNumber))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     if(blockNumber >= (UInt256) _context.BlockNumber)
@@ -770,39 +812,74 @@ public class InterpreterRuntime : IDisposable
                     break;
                 }
                 case EvmOpcode.Coinbase:
-                    callFrame.Stack.Push(_context.Coinbase);
+                    if(!callFrame.Stack.TryPush(_context.Coinbase))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.Timestamp:
-                    callFrame.Stack.Push((UInt256) _context.BlockTimestamp.ToUnixTimeSeconds());
+                    if(!callFrame.Stack.TryPush((UInt256) _context.BlockTimestamp.ToUnixTimeSeconds()))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.Number:
-                    callFrame.Stack.Push((UInt256) _context.BlockNumber);
+                    if(!callFrame.Stack.TryPush((UInt256) _context.BlockNumber))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.PrevRandao:
-                    callFrame.Stack.Push(_context.PrevRandao);
+                    if(!callFrame.Stack.TryPush(_context.PrevRandao))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.GasLimit:
-                    callFrame.Stack.Push(_context.GasLimit);
+                    if(!callFrame.Stack.TryPush(_context.GasLimit))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.ChainId:
-                    callFrame.Stack.Push((UInt256) _context.ChainId);
+                    if(!callFrame.Stack.TryPush((UInt256) _context.ChainId))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.SelfBalance:
-                    callFrame.Stack.Push(await callFrame.AccountStorage.GetBalanceAsync());
+                    if(!callFrame.Stack.TryPush(await callFrame.AccountStorage.GetBalanceAsync()))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.BaseFee:
                     if(!_context.BaseFee.HasValue)
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidOpcode);
                     }
 
-                    callFrame.Stack.Push(_context.BaseFee.Value);
+                    if(!callFrame.Stack.TryPush(_context.BaseFee.Value))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.BlobHash:
-                    if(!_context.BlobBaseFee.HasValue
-                        || !callFrame.Stack.TryPop(out UInt256 blobIndex))
+                    if(!_context.BlobBaseFee.HasValue)
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidOpcode);
+                    }
+                    if(!callFrame.Stack.TryPop(out UInt256 blobIndex))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push(
@@ -814,15 +891,19 @@ public class InterpreterRuntime : IDisposable
                 case EvmOpcode.BlobBaseFee:
                     if(!_context.BlobBaseFee.HasValue)
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidOpcode);
                     }
 
-                    callFrame.Stack.Push(_context.BlobBaseFee.Value);
+                    if(!callFrame.Stack.TryPush(_context.BlobBaseFee.Value))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.Pop:
                     if(!callFrame.Stack.TryPop(out Bytes32 _))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     break;
@@ -830,7 +911,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 offset))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push(Bytes32.FromBytes(
@@ -842,7 +923,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 offset, out Bytes32 value))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     value.CopyTo(callFrame.Memory.Access(offset, Bytes32.BYTE_LENGTH).Span);
@@ -852,7 +933,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 offset, out Bytes32 value))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Memory.Access(offset, 1).Span[0] = value[^1];
@@ -862,7 +943,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out Bytes32 key))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push(await callFrame.AccountStorage.SLoadAsync(key));
@@ -872,12 +953,12 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(callFrame.IsStatic)
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.WriteProtection);
                     }
 
                     if(!callFrame.Stack.TryPop(out Bytes32 key, out Bytes32 value))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.AccountStorage.SStore(in key, in value);
@@ -885,10 +966,13 @@ public class InterpreterRuntime : IDisposable
                 }
                 case EvmOpcode.Jump:
                 {
-                    if(!callFrame.Stack.TryPop(out UInt256 destination)
-                        || !IsValidJumpDestination(code.Data.Span, destination))
+                    if(!callFrame.Stack.TryPop(out UInt256 destination))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
+                    }
+                    if(!IsValidJumpDestination(code.Data.Span, destination))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidJumpDestination);
                     }
 
                     programCounter = (int) destination;
@@ -898,7 +982,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out UInt256 destination, out UInt256 condition))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
                     if(condition == UInt256.Zero)
                     {
@@ -906,21 +990,33 @@ public class InterpreterRuntime : IDisposable
                     }
                     if(!IsValidJumpDestination(code.Data.Span, destination))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidJumpDestination);
                     }
 
                     programCounter = (int) destination;
                     continue;
                 }
                 case EvmOpcode.Pc:
-                    callFrame.Stack.Push((UInt256) programCounter);
+                    if(!callFrame.Stack.TryPush((UInt256) programCounter))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.MSize:
-                    callFrame.Stack.Push((UInt256) callFrame.Memory.Size);
+                    if(!callFrame.Stack.TryPush((UInt256) callFrame.Memory.Size))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.Gas:
                     //ToDo: Gas tracking
-                    callFrame.Stack.Push(UInt256.MaxValue);
+                    if(!callFrame.Stack.TryPush(UInt256.MaxValue))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
+                    }
+
                     break;
                 case EvmOpcode.JumpDest:
                     break;
@@ -928,7 +1024,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(!callFrame.Stack.TryPop(out Bytes32 key))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Stack.Push(callFrame.AccountStorage.TLoad(in key));
@@ -938,12 +1034,12 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(callFrame.IsStatic)
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.WriteProtection);
                     }
 
                     if(!callFrame.Stack.TryPop(out Bytes32 key, out Bytes32 value))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.AccountStorage.TStore(in key, in value);
@@ -957,7 +1053,7 @@ public class InterpreterRuntime : IDisposable
                         out UInt256 length
                     ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     callFrame.Memory.Copy(destinationOffset, sourceOffset, length);
@@ -974,7 +1070,7 @@ public class InterpreterRuntime : IDisposable
                         );
                     if(!callFrame.Stack.TryPush(in value))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
                     }
 
                     programCounter += pushLength;
@@ -985,7 +1081,10 @@ public class InterpreterRuntime : IDisposable
                     int depth = (byte) opcode - ((byte) EvmOpcode.Dup1 - 1);
                     if(!callFrame.Stack.TryDup(depth))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(callFrame.Stack.IsFull
+                            ? ExceptionalHaltReason.StackOverflow
+                            : ExceptionalHaltReason.StackUnderflow
+                        );
                     }
 
                     break;
@@ -995,7 +1094,7 @@ public class InterpreterRuntime : IDisposable
                     int depth = (byte) opcode - ((byte) EvmOpcode.Swap1 - 1);
                     if(!callFrame.Stack.TrySwap(depth))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     break;
@@ -1004,13 +1103,13 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(callFrame.IsStatic)
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.WriteProtection);
                     }
 
                     int topicCount = (byte) opcode - (byte) EvmOpcode.Log0;
                     if(!callFrame.Stack.TryPop(out UInt256 offset, out UInt256 length))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     var topics = new Bytes32[topicCount];
@@ -1018,7 +1117,7 @@ public class InterpreterRuntime : IDisposable
                     {
                         if(!callFrame.Stack.TryPop(out topics[i]))
                         {
-                            return callFrame.Revert();
+                            return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                         }
                     }
 
@@ -1030,16 +1129,20 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(callFrame.IsStatic)
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.WriteProtection);
                     }
 
                     if(!callFrame.Stack.TryPop(
                         out UInt256 endowment,
                         out UInt256 offset,
                         out UInt256 length
-                    ) || length > (UInt256) ExecutionSpec.MaxInitCodeLength)
+                    ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
+                    }
+                    if(length > (UInt256) ExecutionSpec.MaxInitCodeLength)
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InitCodeTooLarge);
                     }
 
                     var createdAddress = Address.DeriveCreate(
@@ -1057,11 +1160,11 @@ public class InterpreterRuntime : IDisposable
                             callFrame.Depth + 1
                         )
                     );
-                    callFrame.ReturnData.Set(creationResult.Success
-                        ? ReadOnlyMemory<byte>.Empty
-                        : creationResult.Data
+                    callFrame.ReturnData.Set(creationResult.IsRevert(out var revertData)
+                        ? revertData
+                        : ReadOnlyMemory<byte>.Empty
                     );
-                    callFrame.Stack.Push(creationResult.Success
+                    callFrame.Stack.Push(creationResult.IsSuccess
                         ? createdAddress
                         : Address.Zero
                     );
@@ -1072,7 +1175,7 @@ public class InterpreterRuntime : IDisposable
                 {
                     if(callFrame.IsStatic)
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.WriteProtection);
                     }
 
                     if(!callFrame.Stack.TryPop(
@@ -1080,9 +1183,13 @@ public class InterpreterRuntime : IDisposable
                         out UInt256 offset,
                         out UInt256 length,
                         out Bytes32 salt
-                    ) || length > (UInt256) ExecutionSpec.MaxInitCodeLength)
+                    ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
+                    }
+                    if(length > (UInt256) ExecutionSpec.MaxInitCodeLength)
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InitCodeTooLarge);
                     }
 
                     var initCode = callFrame.Memory.Access(offset, length).ReadOnlyMemory;
@@ -1102,11 +1209,11 @@ public class InterpreterRuntime : IDisposable
                             callFrame.Depth + 1
                         )
                     );
-                    callFrame.ReturnData.Set(creationResult.Success
-                        ? ReadOnlyMemory<byte>.Empty
-                        : creationResult.Data
+                    callFrame.ReturnData.Set(creationResult.IsRevert(out var revertData)
+                        ? revertData
+                        : ReadOnlyMemory<byte>.Empty
                     );
-                    callFrame.Stack.Push(creationResult.Success
+                    callFrame.Stack.Push(creationResult.IsSuccess
                         ? createdAddress
                         : Address.Zero
                     );
@@ -1125,12 +1232,12 @@ public class InterpreterRuntime : IDisposable
                         out UInt256 outputLength
                     ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     if(callFrame.IsStatic && value != UInt256.Zero)
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.WriteProtection);
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
@@ -1149,7 +1256,7 @@ public class InterpreterRuntime : IDisposable
                     callFrame.ReturnData.Set(callResult.Data);
                     var output = callFrame.Memory.Access(outputOffset, outputSize);
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
-                    callFrame.Stack.Push(callResult.Success ? UInt256.One : UInt256.Zero);
+                    callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
                 }
                 case EvmOpcode.CallCode:
@@ -1164,7 +1271,7 @@ public class InterpreterRuntime : IDisposable
                         out UInt256 outputLength
                     ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
@@ -1182,22 +1289,21 @@ public class InterpreterRuntime : IDisposable
                             callFrame.Depth + 1,
                             callFrame.IsStatic
                         ))
-                        : new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+                        : ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
 
                     callFrame.ReturnData.Set(callResult.Data);
                     var output = callFrame.Memory.Access(outputOffset, outputSize);
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
-                    callFrame.Stack.Push(callResult.Success ? UInt256.One : UInt256.Zero);
+                    callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
                 }
                 case EvmOpcode.Return:
                 {
                     return callFrame.Stack.TryPop(out UInt256 offset, out UInt256 length)
-                        ? new TxCallResult(
-                            true,
+                        ? ExecutionResult.Success(
                             callFrame.Memory.Access(offset, length).ReadOnlyMemory
                         )
-                        : callFrame.Revert();
+                        : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                 }
                 case EvmOpcode.DelegateCall:
                 {
@@ -1210,7 +1316,7 @@ public class InterpreterRuntime : IDisposable
                         out UInt256 outputLength
                     ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
@@ -1229,7 +1335,7 @@ public class InterpreterRuntime : IDisposable
                     callFrame.ReturnData.Set(callResult.Data);
                     var output = callFrame.Memory.Access(outputOffset, outputSize);
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
-                    callFrame.Stack.Push(callResult.Success ? UInt256.One : UInt256.Zero);
+                    callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
                 }
                 case EvmOpcode.StaticCall:
@@ -1243,7 +1349,7 @@ public class InterpreterRuntime : IDisposable
                         out UInt256 outputLength
                     ))
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
@@ -1262,25 +1368,28 @@ public class InterpreterRuntime : IDisposable
                     callFrame.ReturnData.Set(callResult.Data);
                     var output = callFrame.Memory.Access(outputOffset, outputSize);
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
-                    callFrame.Stack.Push(callResult.Success ? UInt256.One : UInt256.Zero);
+                    callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
                 }
                 case EvmOpcode.Revert:
                 {
                     return callFrame.Stack.TryPop(out UInt256 offset, out UInt256 length)
-                        ? callFrame.Revert(
+                        ? ExecutionResult.Revert(
                             callFrame.Memory.Access(offset, length).ReadOnlyMemory
                         )
-                        : callFrame.Revert();
+                        : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                 }
                 case EvmOpcode.Invalid:
-                    return callFrame.Revert();
+                    return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidOpcode);
                 case EvmOpcode.SelfDestruct:
                 {
-                    if(callFrame.IsStatic
-                        || !callFrame.Stack.TryPop(out Address beneficiary))
+                    if(callFrame.IsStatic)
                     {
-                        return callFrame.Revert();
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.WriteProtection);
+                    }
+                    if(!callFrame.Stack.TryPop(out Address beneficiary))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
                     var balance = await callFrame.AccountStorage.GetBalanceAsync();
@@ -1307,12 +1416,12 @@ public class InterpreterRuntime : IDisposable
                         callFrame.AccountStorage.ScheduleDeletion();
                     }
 
-                    return new TxCallResult(true, ReadOnlyMemory<byte>.Empty);
+                    return ExecutionResult.Success();
                 }
                 default:
                     return Enum.IsDefined(opcode)
                         ? throw new NotImplementedException($"Opcode {opcode} at program counter {programCounter} is not implemented.")
-                        : callFrame.Revert();
+                        : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidOpcode);
             }
 
             programCounter++;

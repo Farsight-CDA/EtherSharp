@@ -33,7 +33,4 @@ internal sealed class CallFrame(
     public LinearMemory Memory { get; } = new(options.MaxMemorySize);
     public ReturnDataBuffer ReturnData { get; } = new();
     public InterpreterAccountStorage AccountStorage { get; } = accountStorage;
-
-    public TxCallResult Revert(ReadOnlyMemory<byte> data = default)
-        => new(false, data);
 }
