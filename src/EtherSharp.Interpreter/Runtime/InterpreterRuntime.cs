@@ -314,6 +314,15 @@ public class InterpreterRuntime : IDisposable
                 ? callFrame.AccountStorage
                 : _storage.GetAccountStorage(callFrame.CodeAddress);
             var byteCode = await codeStorage.GetCodeAsync();
+            // EIP-7702 delegation: load the target's code without following further delegations.
+            if(byteCode.Length == 3 + Address.BYTES_LENGTH
+                && byteCode.ByteCode.Span[0] == 0xEF
+                && byteCode.ByteCode.Span[1] == 0x01
+                && byteCode.ByteCode.Span[2] == 0x00)
+            {
+                var delegationTarget = Address.FromBytes(byteCode.ByteCode.Span[3..]);
+                byteCode = await _storage.GetAccountStorage(delegationTarget).GetCodeAsync();
+            }
             result = await ExecuteOpcodesAsync(transaction, callFrame, byteCode);
         }
 
