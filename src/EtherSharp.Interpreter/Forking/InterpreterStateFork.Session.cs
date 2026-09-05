@@ -38,14 +38,14 @@ public sealed partial class InterpreterStateFork
                 static key => new InterpreterDataRequest.Storage(key.Address, key.Slot)
             );
 
-        public Task<TxCallResult> CallAsync(
+        public Task<TxCallResult> CallPrecompileAsync(
             Address caller,
             Address target,
             UInt256 value,
             ReadOnlyMemory<byte> input
-        ) => fork.GetAsync(this, fork._cache.Calls,
-            InterpreterDataRequest.Call.ComputeId(caller, target, value, input.Span),
-            id => new InterpreterDataRequest.Call(caller, target, value, input, id)
+        ) => fork.GetAsync(this, fork._cache.PrecompileCalls,
+            InterpreterDataRequest.PrecompileCall.ComputeId(caller, target, value, input.Span),
+            id => new InterpreterDataRequest.PrecompileCall(caller, target, value, input, id)
         ).AsTask();
 
         public void Unregister()

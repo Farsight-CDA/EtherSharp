@@ -68,14 +68,14 @@ public abstract record InterpreterDataResult
     ) : InterpreterDataResult;
 
     /// <summary>
-    /// Contains an upstream call result.
+    /// Contains an input-only upstream precompile call result.
     /// </summary>
     /// <param name="Caller">The immediate message caller.</param>
     /// <param name="Target">The called account.</param>
     /// <param name="Value">The native value supplied to the call.</param>
     /// <param name="Input">The call input.</param>
     /// <param name="Result">The call result.</param>
-    public sealed record Call(
+    public sealed record PrecompileCall(
         Address Caller,
         Address Target,
         UInt256 Value,

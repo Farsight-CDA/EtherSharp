@@ -13,5 +13,5 @@ public sealed class UpstreamPrecompile(Address address) : IPrecompile
 
     /// <inheritdoc/>
     public ValueTask<TxCallResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
-        => new(host.CallAsync(call.Caller, Address, call.Value, call.Input));
+        => new(host.CallPrecompileAsync(call.Caller, Address, call.Value, call.Input));
 }

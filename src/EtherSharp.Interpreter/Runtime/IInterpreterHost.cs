@@ -55,15 +55,18 @@ public interface IInterpreterHost
     public ValueTask<Bytes32> GetStorageAtAsync(Address address, Bytes32 key);
 
     /// <summary>
-    /// Simulates a call against upstream state at the interpreter state fork's context.
+    /// Executes an input-only precompile against upstream state at the interpreter state fork's context.
     /// </summary>
     /// <param name="caller">The immediate message caller.</param>
     /// <param name="target">The account to call.</param>
     /// <param name="value">The native value supplied to the call.</param>
     /// <param name="input">The call input. Its backing memory must remain unchanged until the returned task completes.</param>
     /// <returns>The raw call result.</returns>
-    /// <remarks>State changes made by the upstream call are discarded and do not affect the interpreter journal.</remarks>
-    public Task<TxCallResult> CallAsync(
+    /// <remarks>
+    /// This operation is not for arbitrary contract calls or stateful precompiles. Results must not depend
+    /// on contract code or storage. Upstream state changes are discarded and do not affect the interpreter journal.
+    /// </remarks>
+    public Task<TxCallResult> CallPrecompileAsync(
         Address caller,
         Address target,
         UInt256 value,

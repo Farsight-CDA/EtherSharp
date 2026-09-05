@@ -15,7 +15,7 @@ internal sealed class InterpreterStateCache
     public Dictionary<Address, EVMByteCode> Code { get; } = [];
     public Dictionary<Address, Bytes32?> CodeHashes { get; } = [];
     public Dictionary<(Address Address, Bytes32 Slot), Bytes32> Storage { get; } = [];
-    public Dictionary<Bytes32, TxCallResult> Calls { get; } = [];
+    public Dictionary<Bytes32, TxCallResult> PrecompileCalls { get; } = [];
 
     public bool Contains(InterpreterDataRequest request)
         => request switch
@@ -25,7 +25,7 @@ internal sealed class InterpreterStateCache
             InterpreterDataRequest.Code code => Code.ContainsKey(code.Address),
             InterpreterDataRequest.CodeHash codeHash => CodeHashes.ContainsKey(codeHash.Address),
             InterpreterDataRequest.Storage storage => Storage.ContainsKey((storage.Address, storage.Key)),
-            InterpreterDataRequest.Call call => Calls.ContainsKey(call.Id),
+            InterpreterDataRequest.PrecompileCall call => PrecompileCalls.ContainsKey(call.Id),
             _ => throw new NotSupportedException(),
         };
 
@@ -48,8 +48,8 @@ internal sealed class InterpreterStateCache
             case InterpreterDataResult.Storage storage:
                 Storage[(storage.Address, storage.Key)] = storage.Value;
                 break;
-            case InterpreterDataResult.Call call:
-                Calls[InterpreterDataRequest.Call.ComputeId(call.Caller, call.Target, call.Value, call.Input.Span)] = call.Result;
+            case InterpreterDataResult.PrecompileCall call:
+                PrecompileCalls[InterpreterDataRequest.PrecompileCall.ComputeId(call.Caller, call.Target, call.Value, call.Input.Span)] = call.Result;
                 break;
             default:
                 throw new NotSupportedException();

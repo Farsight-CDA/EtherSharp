@@ -47,7 +47,7 @@ public abstract record InterpreterDataRequest
     public sealed record Storage(Address Address, Bytes32 Key) : InterpreterDataRequest;
 
     /// <summary>
-    /// Requests execution of an upstream call whose state changes are discarded.
+    /// Requests execution of an input-only upstream precompile, not arbitrary contract code.
     /// </summary>
     /// <param name="Caller">The immediate message caller.</param>
     /// <param name="Target">The account to call.</param>
@@ -58,7 +58,7 @@ public abstract record InterpreterDataRequest
     /// The input buffer must remain unchanged until the request completes. An explicitly supplied
     /// <paramref name="Id"/> must match the call fields; callers modifying those fields must also update it.
     /// </remarks>
-    public sealed record Call(
+    public sealed record PrecompileCall(
         Address Caller,
         Address Target,
         UInt256 Value,
@@ -66,12 +66,12 @@ public abstract record InterpreterDataRequest
         Bytes32 Id
     ) : InterpreterDataRequest
     {
-        /// <summary>Creates an upstream call request and computes its identity.</summary>
+        /// <summary>Creates an upstream precompile call request and computes its identity.</summary>
         /// <param name="caller">The immediate message caller.</param>
         /// <param name="target">The account to call.</param>
         /// <param name="value">The native value supplied to the call.</param>
         /// <param name="input">The input, which must remain unchanged until completion.</param>
-        public Call(Address caller, Address target, UInt256 value, ReadOnlyMemory<byte> input)
+        public PrecompileCall(Address caller, Address target, UInt256 value, ReadOnlyMemory<byte> input)
             : this(caller, target, value, input, ComputeId(caller, target, value, input.Span))
         {
         }
@@ -102,7 +102,7 @@ public abstract record InterpreterDataRequest
         }
 
         /// <inheritdoc/>
-        public bool Equals(Call? other)
+        public bool Equals(PrecompileCall? other)
             => other is not null && Id == other.Id;
 
         /// <inheritdoc/>
