@@ -192,6 +192,13 @@ public readonly partial struct Int256
         return res;
     }
 
+    /// <summary>
+    /// Shifts right with sign extension. Counts of 256 or more produce zero or minus one.
+    /// </summary>
+    /// <remarks>
+    /// Negative multiples of 64 also produce zero or minus one. Other negative counts
+    /// shift by <c>n &amp; 63</c> without a whole-limb shift.
+    /// </remarks>
     public static Int256 operator >>(in Int256 a, int n)
     {
         RightShift(a, n, out var res);

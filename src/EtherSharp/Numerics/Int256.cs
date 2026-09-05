@@ -25,11 +25,27 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
 
     internal readonly UInt256 _value;
 
-    public int Sign => _value.IsZero ? 0 : _value._u3 < 0x8000000000000000ul ? 1 : -1;
-    public bool IsNegative => Sign < 0;
+    public int Sign
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _value.IsZero ? 0 : IsNegative ? -1 : 1;
+    }
+    public bool IsNegative
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => unchecked((long) _value._u3) < 0;
+    }
 
-    public bool IsZero => this == Zero;
-    public bool IsOne => this == One;
+    public bool IsZero
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _value.IsZero;
+    }
+    public bool IsOne
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _value.IsOne;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void Add(in Int256 a, in Int256 b, out Int256 res)
@@ -59,20 +75,20 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
             return;
         }
 
-        if(m.Sign < 0)
+        if(m.IsNegative)
         {
             mt = Negate(m);
         }
-        int xSign = x.Sign;
-        int ySign = y.Sign;
-        if(xSign < 0 && ySign < 0)
+        bool xIsNegative = x.IsNegative;
+        bool yIsNegative = y.IsNegative;
+        if(xIsNegative && yIsNegative)
         {
             var xNeg = Negate(x);
             var yNeg = Negate(y);
             xNeg._value.AddMod(yNeg._value, mt._value, out var ures);
             res = Negate(new Int256(ures));
         }
-        else if(xSign > 0 && ySign > 0)
+        else if(!xIsNegative && !yIsNegative)
         {
             x._value.AddMod(y._value, mt._value, out var ures);
             res = new Int256(ures);
@@ -126,19 +142,19 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
             return;
         }
 
-        if(m.Sign < 0)
+        if(m.IsNegative)
         {
             mt = Negate(m);
         }
-        int xSign = x.Sign;
-        int ySign = y.Sign;
-        if(xSign < 0 && ySign > 0)
+        bool xIsNegative = x.IsNegative;
+        bool yIsNegative = y.IsNegative;
+        if(xIsNegative && !yIsNegative)
         {
             var xNeg = Negate(x);
             xNeg._value.AddMod(y._value, mt._value, out var ures);
             res = Negate(new Int256(ures));
         }
-        else if(xSign > 0 && ySign < 0)
+        else if(!xIsNegative && yIsNegative)
         {
             var yNeg = Negate(y);
             x._value.AddMod(yNeg._value, mt._value, out var ures);
@@ -152,37 +168,21 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
 
     internal static void Multiply(in Int256 a, in Int256 b, out Int256 res)
     {
-        Int256 av = a, bv = b;
-        int aSign = a.Sign;
-        int bSign = b.Sign;
-        if(aSign < 0)
-        {
-            av = Negate(a);
-        }
-        if(bSign < 0)
-        {
-            bv = Negate(b);
-        }
-        UInt256.Multiply(av._value, bv._value, out var ures);
-        res = new Int256(ures);
-        if((aSign < 0 && bSign < 0) || (aSign >= 0 && bSign >= 0))
-        {
-            return;
-        }
-
-        res = Negate(res);
+        // Truncated multiplication is sign-agnostic in two's complement, modulo 2**256.
+        Unsafe.SkipInit(out res);
+        UInt256.Multiply(in a._value, in b._value, out Unsafe.As<Int256, UInt256>(ref res));
     }
 
     public static bool MultiplyOverflow(in Int256 x, in Int256 y, out Int256 res)
     {
-        int xSign = x.Sign;
-        int ySign = y.Sign;
-        var xAbs = xSign < 0 ? Negate(x) : x;
-        var yAbs = ySign < 0 ? Negate(y) : y;
+        bool xIsNegative = x.IsNegative;
+        bool yIsNegative = y.IsNegative;
+        var xAbs = xIsNegative ? Negate(x) : x;
+        var yAbs = yIsNegative ? Negate(y) : y;
 
         UInt256.Multiply(in xAbs._value, in yAbs._value, out var low, out var high);
 
-        bool isNegative = (xSign < 0 && ySign >= 0) || (xSign >= 0 && ySign < 0);
+        bool isNegative = xIsNegative != yIsNegative;
         res = new Int256(low);
         if(isNegative)
         {
@@ -196,17 +196,17 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
     public static void MultiplyMod(in Int256 x, in Int256 y, in Int256 m, out Int256 res)
     {
         var mAbs = m;
-        if(m.Sign < 0)
+        if(m.IsNegative)
         {
             mAbs = Negate(m);
         }
-        int xSign = x.Sign;
-        int ySign = y.Sign;
-        if((xSign < 0 && ySign >= 0) || (xSign >= 0 && ySign < 0))
+        bool xIsNegative = x.IsNegative;
+        bool yIsNegative = y.IsNegative;
+        if(xIsNegative != yIsNegative)
         {
             var xAbs = x;
             var yAbs = y;
-            if(xSign < 0)
+            if(xIsNegative)
             {
                 xAbs = Negate(x);
             }
@@ -222,7 +222,7 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         {
             var xAbs = x;
             var yAbs = y;
-            if(xSign < 0)
+            if(xIsNegative)
             {
                 xAbs = Negate(x);
                 yAbs = Negate(y);
@@ -234,10 +234,12 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
 
     internal static void Divide(in Int256 n, in Int256 d, out Int256 res)
     {
+        bool nIsNegative = n.IsNegative;
+        bool dIsNegative = d.IsNegative;
         UInt256 value;
-        if(n.Sign >= 0)
+        if(!nIsNegative)
         {
-            if(d.Sign >= 0)
+            if(!dIsNegative)
             {
                 // pos / pos
                 UInt256.Divide(n._value, d._value, out value);
@@ -256,7 +258,7 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         }
 
         var nNeg = Negate(n);
-        if(d.Sign < 0)
+        if(dIsNegative)
         {
             // neg / neg
             var dNeg = Negate(d);
@@ -272,41 +274,29 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
 
     public static Int256 Pow(in Int256 b, in Int256 e)
     {
-        if(e.Sign < 0)
+        if(e.IsNegative)
         {
             throw new ArgumentException("exponent must be non-negative");
         }
-        if(b.Sign < 0)
-        {
-            var neg = Negate(b);
-            var ures = UInt256.Pow(neg._value, e._value);
-
-            return !e._value.Bit(0)
-                ? new Int256(ures)
-                : Negate(new Int256(ures));
-        }
-        else
-        {
-            var ures = UInt256.Pow(b._value, e._value);
-            return new Int256(ures);
-        }
+        // Repeated raw multiplication also gives the signed power modulo 2**256.
+        return new Int256(UInt256.Pow(in b._value, in e._value));
     }
 
     public static void ExpMod(in Int256 bs, in Int256 exp, in Int256 m, out Int256 res)
     {
-        if(exp < Zero)
+        if(exp.IsNegative)
         {
             throw new ArgumentException("exponent must not be negative");
         }
         var bv = bs;
         bool switchSign = false;
-        if(bs.Sign < 0)
+        if(bs.IsNegative)
         {
             bv = Negate(bv);
             switchSign = exp._value.Bit(0);
         }
         var mAbs = m;
-        if(mAbs.Sign < 0)
+        if(mAbs.IsNegative)
         {
             mAbs = Negate(mAbs);
         }
@@ -323,21 +313,21 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
     public static Int256 Mod(in Int256 x, in Int256 y)
     {
         Int256 xIn = x, yIn = y;
-        int xs = x.Sign;
+        bool xIsNegative = x.IsNegative;
 
         // abs x
-        if(xs == -1)
+        if(xIsNegative)
         {
             xIn = Negate(x);
         }
         // abs y
-        if(y.Sign == -1)
+        if(y.IsNegative)
         {
             yIn = Negate(y);
         }
         UInt256.Mod(in xIn._value, in yIn._value, out var value);
         var res = new Int256(value);
-        return xs == -1
+        return xIsNegative
             ? Negate(res)
             : res;
     }
@@ -348,7 +338,7 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
     //   Abs(2**255)   = -2**255
     //   Abs(2**256-1) = -1
     public static Int256 Abs(in Int256 value)
-        => value.Sign >= 0
+        => !value.IsNegative
             ? value
             : -value;
 
@@ -365,101 +355,8 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         res = new Int256(ures);
     }
 
-    private void Srsh64(out Int256 res)
-        => res = new Int256(new UInt256(_value._u1, _value._u2, _value._u3, UInt64.MaxValue));
-
-    private void Srsh128(out Int256 res)
-        => res = new Int256(new UInt256(_value._u2, _value._u3, UInt64.MaxValue, UInt64.MaxValue));
-
-    private void Srsh192(out Int256 res)
-        => res = new Int256(new UInt256(_value._u3, UInt64.MaxValue, UInt64.MaxValue, UInt64.MaxValue));
-
-    internal static void RightShift(in Int256 x, int n, out Int256 res)
-    {
-        if(x.Sign >= 0)
-        {
-            var ures = x._value >> n;
-            res = new Int256(ures);
-            return;
-        }
-        if(n % 64 == 0)
-        {
-            switch(n)
-            {
-                case 0:
-                    res = x;
-                    return;
-                case 64:
-                    x.Srsh64(out res);
-                    return;
-                case 128:
-                    x.Srsh128(out res);
-                    return;
-                case 192:
-                    x.Srsh192(out res);
-                    return;
-                default:
-                    res = Negate(One);
-                    return;
-            }
-        }
-
-        ulong z0, z1, z2, z3;
-        ulong a = UInt256.Lsh(UInt64.MaxValue, 64 - (n % 64));
-        // Big swaps first
-        if(n > 192)
-        {
-            if(n > 256)
-            {
-                res = Negate(One);
-                return;
-            }
-            x.Srsh192(out res);
-            z1 = res._value._u1;
-            z2 = res._value._u2;
-            z3 = res._value._u3;
-            n -= 192;
-            goto sh192;
-        }
-        else if(n > 128)
-        {
-            x.Srsh128(out res);
-            z2 = res._value._u2;
-            z3 = res._value._u3;
-            n -= 128;
-            goto sh128;
-        }
-        else if(n > 64)
-        {
-            x.Srsh64(out res);
-            z3 = res._value._u3;
-            n -= 64;
-            goto sh64;
-        }
-        else
-        {
-            res = x;
-        }
-
-        // remaining shifts
-        z3 = UInt256.Rsh(res._value._u3, n) | a;
-        a = UInt256.Lsh(res._value._u3, 64 - n);
-
-    sh64:
-        z2 = UInt256.Rsh(res._value._u2, n) | a;
-        a = UInt256.Lsh(res._value._u2, 64 - n);
-
-    sh128:
-        z1 = UInt256.Rsh(res._value._u1, n) | a;
-        a = UInt256.Lsh(res._value._u1, 64 - n);
-
-    sh192:
-        z0 = UInt256.Rsh(res._value._u0, n) | a;
-
-        res = new Int256(new UInt256(z0, z1, z2, z3));
-    }
-
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(in Int256 other)
         => _value.Equals(other._value);
     public bool Equals(Int256 other)
@@ -476,8 +373,20 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
             : CompareTo(int256);
 
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(in Int256 b)
-        => this < b ? -1 : Equals(b) ? 0 : 1;
+    {
+        long top = unchecked((long) _value._u3);
+        long bTop = unchecked((long) b._value._u3);
+        return top != bTop
+            ? top < bTop ? -1 : 1
+            : _value._u2 != b._value._u2
+            ? _value._u2 < b._value._u2 ? -1 : 1
+            : _value._u1 != b._value._u1
+            ? _value._u1 < b._value._u1 ? -1 : 1
+            : _value._u0 == b._value._u0 ? 0 : _value._u0 < b._value._u0 ? -1 : 1;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Int256 b)
         => CompareTo(in b);
 
@@ -505,23 +414,16 @@ public readonly partial struct Int256 : IEquatable<Int256>, IComparable, ICompar
         return new Int256(o);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool LessThan(in Int256 a, in Int256 b)
     {
-        int zSign = a.Sign;
-        int xSign = b.Sign;
-
-        if(zSign >= 0)
-        {
-            if(xSign < 0)
-            {
-                return false;
-            }
-        }
-        else if(xSign >= 0)
-        {
-            return true;
-        }
-
-        return a._value < b._value;
+        // Compare the top limb signed and all remaining limbs unsigned.
+        long top = unchecked((long) a._value._u3);
+        long bTop = unchecked((long) b._value._u3);
+        return top != bTop
+            ? top < bTop
+            : a._value._u2 != b._value._u2
+            ? a._value._u2 < b._value._u2
+            : a._value._u1 != b._value._u1 ? a._value._u1 < b._value._u1 : a._value._u0 < b._value._u0;
     }
 }
