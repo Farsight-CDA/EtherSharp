@@ -348,7 +348,7 @@ public class InterpreterRuntime : IDisposable
                 var delegationTarget = Address.FromBytes(byteCode.ByteCode.Span[3..]);
                 byteCode = await _storage.GetAccountStorage(delegationTarget).GetCodeAsync();
             }
-            result = await ExecuteOpcodesAsync(callFrame, byteCode);
+            result = await ExecuteOpcodesAsync(callFrame, new ZeroPaddedData(byteCode.ByteCode));
         }
 
         if(!result.IsSuccess)
@@ -409,7 +409,7 @@ public class InterpreterRuntime : IDisposable
         );
         var creationResult = await ExecuteOpcodesAsync(
             creationFrame,
-            new EVMByteCode(creation.InitCode)
+            new ZeroPaddedData(creation.InitCode)
         );
         if(!creationResult.IsSuccess)
         {
@@ -432,11 +432,10 @@ public class InterpreterRuntime : IDisposable
         return creationResult;
     }
 
-    private async ValueTask<ExecutionResult> ExecuteOpcodesAsync(CallFrame callFrame, EVMByteCode byteCode)
+    private async ValueTask<ExecutionResult> ExecuteOpcodesAsync(CallFrame callFrame, ZeroPaddedData code)
     {
         var transaction = _executionState!.Transaction;
         var hooks = _executionState!.Hooks;
-        var code = new ZeroPaddedData(byteCode.ByteCode);
         int programCounter = 0;
 
         while(true)
