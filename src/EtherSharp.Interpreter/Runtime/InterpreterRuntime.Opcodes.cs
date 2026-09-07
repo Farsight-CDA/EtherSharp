@@ -717,6 +717,10 @@ public partial class InterpreterRuntime
 
                     byte[] data = callFrame.Memory.Access(offset, length).Span.ToArray();
                     _storage.AddLog(callFrame.Call.Address, topics, data);
+                    if(_executionState!.Hooks is not null)
+                    {
+                        await _executionState.Hooks.OnLogAsync(callFrame.Call, topics, data, _storage);
+                    }
                     break;
                 }
                 case EvmOpcode.Create:

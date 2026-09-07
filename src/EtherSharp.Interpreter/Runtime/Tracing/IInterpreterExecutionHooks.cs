@@ -36,6 +36,19 @@ public interface IInterpreterExecutionHooks
         IInterpreterStateReader state
     ) => ValueTask.CompletedTask;
 
+    /// <summary>Runs after a LOG0 through LOG4 instruction records a log.</summary>
+    /// <remarks>The log may still be rolled back by the current or an enclosing invocation.</remarks>
+    /// <param name="frame">The active invocation emitting the log. Its Address is the emitting account.</param>
+    /// <param name="topics">The log topics in emission order.</param>
+    /// <param name="data">The log data.</param>
+    /// <param name="state">The state after the log was recorded.</param>
+    ValueTask OnLogAsync(
+        IInterpreterFrameReader frame,
+        ReadOnlyMemory<Bytes32> topics,
+        ReadOnlyMemory<byte> data,
+        IInterpreterStateReader state
+    ) => ValueTask.CompletedTask;
+
     /// <summary>Runs after SELFDESTRUCT applies its balance changes and schedules deletion when applicable.</summary>
     /// <remarks>The effects may still be rolled back by an enclosing invocation.</remarks>
     /// <param name="frame">The active invocation executing SELFDESTRUCT.</param>
