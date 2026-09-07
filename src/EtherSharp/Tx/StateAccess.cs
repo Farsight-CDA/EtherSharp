@@ -15,7 +15,7 @@ public sealed record StateAccess
     /// <param name="address">The contract address whose storage is accessed.</param>
     /// <param name="storageKeys">The storage slot keys accessed for <paramref name="address"/>.</param>
     [JsonConstructor]
-    public StateAccess(Address address, Bytes32[] storageKeys)
+    public StateAccess(Address address, ReadOnlyMemory<Bytes32> storageKeys)
         : this(in address, storageKeys)
     {
     }
@@ -26,7 +26,7 @@ public sealed record StateAccess
     /// <param name="address">The contract address whose storage is accessed.</param>
     /// <param name="storageKeys">The storage slot keys accessed for <paramref name="address"/>.</param>
     [OverloadResolutionPriority(1)]
-    public StateAccess(in Address address, Bytes32[] storageKeys)
+    public StateAccess(in Address address, ReadOnlyMemory<Bytes32> storageKeys)
     {
         Address = address;
         StorageKeys = storageKeys;
@@ -40,5 +40,5 @@ public sealed record StateAccess
     /// <summary>
     /// The storage slot keys accessed for <see cref="Address"/>.
     /// </summary>
-    public Bytes32[] StorageKeys { get; init; }
+    public ReadOnlyMemory<Bytes32> StorageKeys { get; init; }
 }

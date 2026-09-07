@@ -17,14 +17,15 @@ public sealed class EIP1559TxParamsTests
         [
             new StateAccess(
                 Address.Parse("0x1111111111111111111111111111111111111111"),
-                [
+                new Bytes32[]
+                {
                     Bytes32.Parse("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
                     Bytes32.Parse("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-                ]
+                }
             ),
             new StateAccess(
                 Address.Parse("0x2222222222222222222222222222222222222222"),
-                []
+                ReadOnlyMemory<Bytes32>.Empty
             )
         ]
         );
@@ -54,9 +55,10 @@ public sealed class EIP1559TxParamsTests
             [
                 new StateAccess(
                     Address.Parse("0x3333333333333333333333333333333333333333"),
-                    [
+                    new Bytes32[]
+                    {
                         Bytes32.Parse("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-                    ]
+                    }
                 )
             ]
             )
@@ -78,7 +80,7 @@ public sealed class EIP1559TxParamsTests
 
             for(int j = 0; j < expected[i].StorageKeys.Length; j++)
             {
-                Assert.Equal(expected[i].StorageKeys[j], actual[i].StorageKeys[j]);
+                Assert.Equal(expected[i].StorageKeys.Span[j], actual[i].StorageKeys.Span[j]);
             }
         }
     }

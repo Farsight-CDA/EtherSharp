@@ -7,17 +7,25 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime;
 
-internal readonly record struct TransactionEnvironment(
+/// <summary>Describes the transaction environment used by an interpreter execution.</summary>
+/// <param name="Sender">The transaction sender.</param>
+/// <param name="Nonce">The sender nonce used for execution.</param>
+/// <param name="GasLimit">The transaction gas limit.</param>
+/// <param name="EffectiveGasPrice">The effective gas price exposed to executing code.</param>
+/// <param name="Input">The destination, value, and call data or creation initcode.</param>
+/// <param name="AccessList">The transaction access list.</param>
+/// <param name="BlobHashes">The transaction's versioned blob hashes.</param>
+public readonly record struct TransactionEnvironment(
     Address Sender,
     ulong Nonce,
     ulong GasLimit,
     UInt256 EffectiveGasPrice,
     ITxInput Input,
-    StateAccess[] AccessList,
-    Bytes32[] BlobHashes
+    ReadOnlyMemory<StateAccess> AccessList,
+    ReadOnlyMemory<Bytes32> BlobHashes
 )
 {
-    public static TransactionEnvironment CreateFrom(
+    internal static TransactionEnvironment CreateFrom(
         Address sender,
         ITransaction transaction,
         InterpreterContext context
@@ -56,8 +64,8 @@ internal readonly record struct TransactionEnvironment(
             transaction.Gas,
             transaction.GasPrice,
             transaction.Input,
-            [],
-            []
+            ReadOnlyMemory<StateAccess>.Empty,
+            ReadOnlyMemory<Bytes32>.Empty
         );
         return environment;
     }
@@ -92,7 +100,7 @@ internal readonly record struct TransactionEnvironment(
             effectiveGasPrice,
             transaction.Input,
             transaction.AccessList,
-            []
+            ReadOnlyMemory<Bytes32>.Empty
         );
     }
 }

@@ -119,8 +119,10 @@ public class InterpreterRuntime : IDisposable
         var storageSnapshot = _storage.TakeSnapshot();
         try
         {
-            execution.Transaction = TransactionEnvironment.CreateFrom(sender, transaction, _context);
-            var result = await ExecuteTopLevelAsync();
+            var result = await ExecuteTopLevelAsync(
+                execution,
+                TransactionEnvironment.CreateFrom(sender, transaction, _context)
+            );
             _storage.Commit();
             return new TxCallResult(result.IsSuccess, result.Data);
         }
@@ -156,8 +158,10 @@ public class InterpreterRuntime : IDisposable
                 _storage.ApplyStateOverrides(stateOverrides);
             }
 
-            execution.Transaction = TransactionEnvironment.CreateFrom(sender, transaction, _context);
-            var result = await ExecuteTopLevelAsync();
+            var result = await ExecuteTopLevelAsync(
+                execution,
+                TransactionEnvironment.CreateFrom(sender, transaction, _context)
+            );
             return new TxCallResult(result.IsSuccess, result.Data);
         }
         finally
@@ -194,16 +198,18 @@ public class InterpreterRuntime : IDisposable
             }
 
             ulong nonce = await _storage.GetAccountStorage(sender).GetNonceAsync();
-            execution.Transaction = new TransactionEnvironment(
-                sender,
-                nonce,
-                (ulong) _context.GasLimit,
-                UInt256.Zero,
-                call,
-                [],
-                []
+            var result = await ExecuteTopLevelAsync(
+                execution,
+                new TransactionEnvironment(
+                    sender,
+                    nonce,
+                    (ulong) _context.GasLimit,
+                    UInt256.Zero,
+                    call,
+                    ReadOnlyMemory<StateAccess>.Empty,
+                    ReadOnlyMemory<Bytes32>.Empty
+                )
             );
-            var result = await ExecuteTopLevelAsync();
             return new TxCallResult(result.IsSuccess, result.Data);
         }
         finally
@@ -221,9 +227,9 @@ public class InterpreterRuntime : IDisposable
             : throw new InvalidOperationException("An execution is already in progress on this interpreter.");
     }
 
-    private async ValueTask<ExecutionResult> ExecuteTopLevelAsync()
+    private async ValueTask<ExecutionResult> ExecuteTopLevelAsync(ExecutionState execution, TransactionEnvironment transaction)
     {
-        var transaction = _executionState!.Transaction;
+        execution.Transaction = transaction;
         var senderStorage = _storage.GetAccountStorage(transaction.Sender);
         ulong senderNonce = await senderStorage.GetNonceAsync();
         if(senderNonce != transaction.Nonce)
@@ -237,10 +243,11 @@ public class InterpreterRuntime : IDisposable
             throw new InvalidOperationException("Transaction sender nonce cannot be incremented.");
         }
 
+        ExecutionResult result;
         if(transaction.Input.To is Address target)
         {
             senderStorage.SetNonce(senderNonce + 1);
-            return await ExecuteMessageCallAsync(new MessageCall(
+            result = await ExecuteMessageCallAsync(new MessageCall(
                 transaction.Sender,
                 transaction.Sender,
                 target,
@@ -252,21 +259,29 @@ public class InterpreterRuntime : IDisposable
                 false
             ));
         }
-
-        if(transaction.Input.Data.Length > ExecutionSpec.MaxInitCodeLength)
+        else
         {
-            throw new InvalidOperationException("Transaction initcode exceeds the configured limit.");
+            if(transaction.Input.Data.Length > ExecutionSpec.MaxInitCodeLength)
+            {
+                throw new InvalidOperationException("Transaction initcode exceeds the configured limit.");
+            }
+
+            result = await ExecuteContractCreationAsync(new ContractCreation(
+                transaction.Sender,
+                transaction.Sender,
+                Address.DeriveCreate(transaction.Sender, senderNonce),
+                transaction.Input.Value,
+                transaction.Input.Data,
+                0
+            ));
         }
 
-        var createdAddress = Address.DeriveCreate(transaction.Sender, senderNonce);
-        return await ExecuteContractCreationAsync(new ContractCreation(
-            transaction.Sender,
-            transaction.Sender,
-            createdAddress,
-            transaction.Input.Value,
-            transaction.Input.Data,
-            0
-        ));
+        if(execution.Hooks is { } hooks)
+        {
+            await hooks.OnExecutionEndAsync(_context, transaction, result, _storage);
+        }
+
+        return result;
     }
 
     private async ValueTask<ExecutionResult> ExecuteMessageCallAsync(MessageCall messageCall)
@@ -930,7 +945,7 @@ public class InterpreterRuntime : IDisposable
 
                     callFrame.Stack.Push(
                         blobIndex < (UInt256) transaction.BlobHashes.Length
-                            ? transaction.BlobHashes[(int) blobIndex]
+                            ? transaction.BlobHashes.Span[(int) blobIndex]
                             : Bytes32.Zero
                     );
                     break;

@@ -88,7 +88,7 @@ public sealed record EIP1559TxParams(
         {
             size = size + Address.BYTES_LENGTH + LENGTH_PREFIX_SIZE;
 
-            foreach(var storageKey in access.StorageKeys)
+            foreach(var storageKey in access.StorageKeys.Span)
             {
                 size = size + LENGTH_PREFIX_SIZE + Bytes32.BYTE_LENGTH;
             }
@@ -109,7 +109,7 @@ public sealed record EIP1559TxParams(
             BinaryPrimitives.WriteInt32BigEndian(span.Slice(offset, LENGTH_PREFIX_SIZE), access.StorageKeys.Length);
             offset += LENGTH_PREFIX_SIZE;
 
-            foreach(var storageKey in access.StorageKeys)
+            foreach(var storageKey in access.StorageKeys.Span)
             {
                 BinaryPrimitives.WriteInt32BigEndian(span.Slice(offset, LENGTH_PREFIX_SIZE), Bytes32.BYTE_LENGTH);
                 offset += LENGTH_PREFIX_SIZE;

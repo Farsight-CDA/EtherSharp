@@ -71,7 +71,7 @@ public sealed class RLPEncoderTests
     {
         StateAccess[] accessList =
         [
-            new StateAccess(Address.Parse("0x1111111111111111111111111111111111111111"), [])
+            new StateAccess(Address.Parse("0x1111111111111111111111111111111111111111"), ReadOnlyMemory<Bytes32>.Empty)
         ];
         int contentSize = TxRLPEncoder.GetAccessListLength(accessList);
         byte[] buffer = new byte[RLPEncoder.GetListSize(contentSize)];

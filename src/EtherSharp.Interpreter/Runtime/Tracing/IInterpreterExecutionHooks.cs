@@ -42,4 +42,21 @@ public interface IInterpreterExecutionHooks
         ExecutionResult result,
         IInterpreterStateReader state
     ) => ValueTask.CompletedTask;
+
+    /// <summary>Runs once after the outer execution has finalized, before its state is committed or discarded.</summary>
+    /// <remarks>
+    /// Includes precompile calls and EVM entry failures. Exceptions that abort execution do not emit this callback.
+    /// State reflects the execution outcome, including EVM rollback, before simulation cleanup.
+    /// Context and transaction data are borrowed and must not be modified.
+    /// </remarks>
+    /// <param name="context">The block environment used for execution.</param>
+    /// <param name="transaction">The transaction environment, including for simulated calls.</param>
+    /// <param name="result">The finalized outer execution outcome.</param>
+    /// <param name="state">The current interpreter state.</param>
+    ValueTask OnExecutionEndAsync(
+        InterpreterContext context,
+        TransactionEnvironment transaction,
+        ExecutionResult result,
+        IInterpreterStateReader state
+    ) => ValueTask.CompletedTask;
 }
