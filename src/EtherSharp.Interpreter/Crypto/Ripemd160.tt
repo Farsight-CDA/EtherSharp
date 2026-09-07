@@ -134,9 +134,9 @@ internal static class Ripemd160
             switch(function)
             {
                 case 0: mix = b + " ^ " + c + " ^ " + d; break;
-                case 1: mix = "(" + b + " & " + c + ") | (~" + b + " & " + d + ")"; break;
+                case 1: mix = d + " ^ (" + b + " & (" + c + " ^ " + d + "))"; break;
                 case 2: mix = "(" + b + " | ~" + c + ") ^ " + d; break;
-                case 3: mix = "(" + b + " & " + d + ") | (" + c + " & ~" + d + ")"; break;
+                case 3: mix = c + " ^ (" + d + " & (" + b + " ^ " + c + "))"; break;
                 default: mix = b + " ^ (" + c + " | ~" + d + ")"; break;
             }
 #>
