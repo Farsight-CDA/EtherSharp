@@ -92,8 +92,9 @@ internal static class Blake2F
         int[][] lanes = diagonal == 0 ? columns : diagonals;
         for(int half = 0; half < 2; half++)
         {
-            // Schedule each arithmetic stage across all four independent lanes.
-            for(int stage = 0; stage < 5; stage++)
+            // Interleave the lanes, keeping each state sum next to its consuming XOR
+            // so the JIT can use the sum directly instead of reloading a spilled value.
+            for(int stage = 0; stage < 4; stage++)
             {
                 for(int lane = 0; lane < 4; lane++)
                 {
@@ -109,9 +110,8 @@ internal static class Blake2F
                 v<#= registers[3] #> = BitOperations.RotateRight(v<#= registers[3] #> ^ v<#= registers[0] #>, <#= half == 0 ? 32 : 16 #>);
 <# break; case 2: #>
                 v<#= registers[2] #> += v<#= registers[3] #>;
-<# break; case 3: #>
                 v<#= registers[1] #> ^= v<#= registers[2] #>;
-<# break; case 4: #>
+<# break; case 3: #>
                 v<#= registers[1] #> = BitOperations.RotateRight(v<#= registers[1] #>, <#= half == 0 ? 24 : 63 #>);
 <# break;
                     }

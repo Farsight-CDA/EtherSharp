@@ -18,7 +18,8 @@ EtherSharp changes:
   rounds still perform initialization and final state folding.
 - Use endian-explicit decoding and portable scalar rotations and arithmetic.
 - Use a single unrolled scalar implementation on every platform.
-- Interleave each arithmetic stage across the four independent mixing lanes.
+- Interleave arithmetic stages across the four independent mixing lanes, keeping
+  each state sum next to its consuming XOR to avoid reloading spilled values.
 - Use fixed-size spans and eight-byte word slices to eliminate per-word bounds
   checks in the scalar core.
 
