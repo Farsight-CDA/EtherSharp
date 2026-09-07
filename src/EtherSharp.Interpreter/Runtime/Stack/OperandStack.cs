@@ -1,12 +1,13 @@
+using EtherSharp.Interpreter.Runtime.Tracing;
 using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Stack;
 
-internal sealed class OperandStack
+internal sealed class OperandStack : IInterpreterStackReader
 {
     private const int MAX_DEPTH = 1024;
 
-    private int Count { get; set; }
+    public int Count { get; private set; }
     public bool IsFull => Count == MAX_DEPTH;
     private readonly Bytes32[] _values = new Bytes32[MAX_DEPTH];
 

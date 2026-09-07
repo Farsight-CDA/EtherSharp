@@ -1,6 +1,7 @@
 using EtherSharp.Interpreter.Runtime.Memory;
 using EtherSharp.Interpreter.Runtime.Stack;
 using EtherSharp.Interpreter.Runtime.Storage;
+using EtherSharp.Interpreter.Runtime.Tracing;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 
@@ -17,7 +18,7 @@ internal sealed class CallFrame(
     InterpreterOptions options,
     int depth,
     bool isStatic
-)
+) : IInterpreterFrameReader
 {
     public const int MAX_DEPTH = 1024;
 

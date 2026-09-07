@@ -4,12 +4,11 @@ namespace EtherSharp.Interpreter.Runtime.Memory;
 
 internal sealed class ReturnDataBuffer
 {
-    private ReadOnlyMemory<byte> _data;
-
-    public int Length => _data.Length;
+    public int Length => Data.Length;
+    public ReadOnlyMemory<byte> Data { get; private set; }
 
     public void Set(ReadOnlyMemory<byte> data)
-        => _data = data;
+        => Data = data;
 
     public bool TryCopyTo(UInt256 offset, LinearMemory.Slice destination)
     {
@@ -24,7 +23,7 @@ internal sealed class ReturnDataBuffer
             return false;
         }
 
-        _data.Span.Slice(start, destination.Length).CopyTo(destination.Span);
+        Data.Span.Slice(start, destination.Length).CopyTo(destination.Span);
         return true;
     }
 }

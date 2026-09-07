@@ -1,11 +1,12 @@
 using EtherSharp.Interpreter.Runtime;
+using EtherSharp.Interpreter.Runtime.Tracing;
 using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Storage;
 
 internal sealed class InterpreterStorage(
     IInterpreterHost host
-)
+) : IInterpreterStateReader
 {
     public readonly record struct Snapshot(
         long Revision,

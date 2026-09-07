@@ -1,9 +1,10 @@
+using EtherSharp.Interpreter.Runtime.Tracing;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Memory;
 
-internal sealed class LinearMemory(int maxSize)
+internal sealed class LinearMemory(int maxSize) : IInterpreterMemoryReader
 {
     public readonly ref struct Slice(LinearMemory owner, int offset, int length)
     {
