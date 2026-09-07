@@ -45,15 +45,7 @@ public sealed class UInt256TypeConverter : TypeConverter
         };
 
     private static UInt256 ParseHex(string value)
-    {
-        ReadOnlySpan<char> hex = value;
-        if(hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-        {
-            hex = hex[2..];
-        }
-
-        return UInt256.TryParseFromHex(hex, out var result)
+        => UInt256.TryParseFromHex(value, out var result)
             ? result
             : throw new FormatException($"'{value}' is not a valid hexadecimal {nameof(UInt256)} value.");
-    }
 }

@@ -47,30 +47,15 @@ public sealed class UInt256HexConverter : JsonConverter<UInt256>
             throw new JsonException("Unexpected number length");
         }
 
-        Span<char> sourceBuffer = stackalloc char[valueLength + 1];
-        int charsWritten = reader.CopyString(sourceBuffer[1..]);
+        Span<char> sourceBuffer = stackalloc char[valueLength];
+        int charsWritten = reader.CopyString(sourceBuffer);
 
         if(charsWritten > 66)
         {
             throw new JsonException("Unexpected number length");
         }
 
-        int startIndex = 1;
-
-        if(sourceBuffer[1..].StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-        {
-            startIndex += 2;
-            charsWritten -= 2;
-        }
-
-        if(charsWritten % 2 != 0)
-        {
-            startIndex--;
-            charsWritten++;
-            sourceBuffer[startIndex] = '0';
-        }
-
-        return !UInt256.TryParseFromHex(sourceBuffer[startIndex..(startIndex + charsWritten)], out var result)
+        return !UInt256.TryParseFromHex(sourceBuffer[..charsWritten], out var result)
             ? throw new JsonException($"'{reader.GetString()}' is not a valid hexadecimal {nameof(UInt256)} value.")
             : result;
     }
