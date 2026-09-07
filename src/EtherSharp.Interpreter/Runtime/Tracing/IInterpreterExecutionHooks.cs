@@ -1,4 +1,6 @@
 using EtherSharp.Contract;
+using EtherSharp.Numerics;
+using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Tracing;
 
@@ -21,7 +23,7 @@ public interface IInterpreterExecutionHooks
         IInterpreterStateReader state
     ) => ValueTask.CompletedTask;
 
-    /// <summary>Runs before an invocation's entry checks or SELFDESTRUCT transfer.</summary>
+    /// <summary>Runs before an invocation's entry checks.</summary>
     /// <remarks>Includes the outer invocation, precompiles, and rejected entries.</remarks>
     ValueTask OnCallEnterAsync(IInterpreterFrameReader frame, IInterpreterStateReader state)
         => ValueTask.CompletedTask;
@@ -31,6 +33,19 @@ public interface IInterpreterExecutionHooks
         IInterpreterFrameReader frame,
         int programCounter,
         EvmOpcode opcode,
+        IInterpreterStateReader state
+    ) => ValueTask.CompletedTask;
+
+    /// <summary>Runs after SELFDESTRUCT applies its balance changes and schedules deletion when applicable.</summary>
+    /// <remarks>The effects may still be rolled back by an enclosing invocation.</remarks>
+    /// <param name="frame">The active invocation executing SELFDESTRUCT.</param>
+    /// <param name="beneficiary">The beneficiary specified by the instruction.</param>
+    /// <param name="balance">The contract balance before SELFDESTRUCT applied its changes.</param>
+    /// <param name="state">The state after the instruction's changes.</param>
+    ValueTask OnSelfDestructAsync(
+        IInterpreterFrameReader frame,
+        Address beneficiary,
+        UInt256 balance,
         IInterpreterStateReader state
     ) => ValueTask.CompletedTask;
 

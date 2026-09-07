@@ -974,17 +974,6 @@ public partial class InterpreterRuntime
                     bool isSelfBeneficiary = beneficiary == callFrame.Call.Address;
                     bool shouldDelete = callFrame.AccountStorage.IsCreatedInTransaction;
 
-                    var transfer = _executionState!.Hooks is not null ? CallFrame.CreateSelfDestruct(
-                        checked(_executionState.NextFrameId++),
-                        callFrame.Call,
-                        beneficiary,
-                        balance
-                    ) : null;
-                    if(_executionState.Hooks is not null)
-                    {
-                        await _executionState.Hooks.OnCallEnterAsync(transfer!, _storage);
-                    }
-
                     if(!balance.IsZero)
                     {
                         if(!isSelfBeneficiary)
@@ -1005,9 +994,9 @@ public partial class InterpreterRuntime
                         callFrame.AccountStorage.ScheduleDeletion();
                     }
 
-                    if(_executionState.Hooks is not null)
+                    if(_executionState!.Hooks is not null)
                     {
-                        await _executionState.Hooks.OnCallExitAsync(transfer!, ExecutionResult.Success(), _storage);
+                        await _executionState.Hooks.OnSelfDestructAsync(callFrame.Call, beneficiary, balance, _storage);
                     }
                     return ExecutionResult.Success();
                 }

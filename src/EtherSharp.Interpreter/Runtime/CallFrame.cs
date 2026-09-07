@@ -64,10 +64,4 @@ internal sealed record CallFrame(
         id, type, parent.Origin, parent, parent.Address, address, address,
         endowment, initCode
     );
-
-    public static CallFrame CreateSelfDestruct(int id, CallFrame parent, Address beneficiary, UInt256 balance)
-        => new(
-            id, EvmOpcode.SelfDestruct, parent.Origin, parent, parent.Address, parent.Address, beneficiary,
-            balance, ReadOnlyMemory<byte>.Empty
-        );
 }

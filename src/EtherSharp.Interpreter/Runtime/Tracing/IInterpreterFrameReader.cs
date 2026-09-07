@@ -11,17 +11,17 @@ public interface IInterpreterFrameReader
     int Id { get; }
     /// <summary>Gets the parent invocation, or <see langword="null"/> for the outer invocation.</summary>
     IInterpreterFrameReader? Parent { get; }
-    /// <summary>Gets the CALL, CALLCODE, DELEGATECALL, STATICCALL, CREATE, CREATE2, or SELFDESTRUCT operation.</summary>
+    /// <summary>Gets the CALL, CALLCODE, DELEGATECALL, STATICCALL, CREATE, or CREATE2 operation.</summary>
     EvmOpcode Type { get; }
     /// <summary>Gets the account initiating this invocation.</summary>
     Address From { get; }
-    /// <summary>Gets the invoked code address, created address, or SELFDESTRUCT beneficiary.</summary>
+    /// <summary>Gets the invoked code address or created address.</summary>
     Address To { get; }
     /// <summary>Gets the execution address, which can differ from the invoked code address.</summary>
     Address Address { get; }
     /// <summary>Gets the caller exposed to executing code, including inherited DELEGATECALL context.</summary>
     Address Caller { get; }
-    /// <summary>Gets the call value, creation endowment, or SELFDESTRUCT transfer amount.</summary>
+    /// <summary>Gets the call value or creation endowment.</summary>
     UInt256 Value { get; }
     /// <summary>Gets borrowed calldata or creation initcode.</summary>
     ReadOnlyMemory<byte> Input { get; }
