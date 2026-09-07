@@ -15,7 +15,7 @@ public sealed partial record InterpreterExecutionSpec
     public static InterpreterExecutionSpec Osaka { get; } = new()
     {
         Precompiles = [
-            new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000001")), // ECRECOVER
+            EcRecoverPrecompile.Instance, // 0x01: ECRECOVER
             Sha256Precompile.Instance, // 0x02: SHA-256
             new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000003")), // RIPEMD-160
             IdentityPrecompile.Instance, // 0x04: identity
