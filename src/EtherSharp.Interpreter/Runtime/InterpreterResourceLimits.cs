@@ -5,17 +5,17 @@ namespace EtherSharp.Interpreter.Runtime;
 /// <summary>
 /// Configures resource limits for interpreter execution.
 /// </summary>
-public sealed class InterpreterOptions
+public sealed class InterpreterResourceLimits
 {
     /// <summary>The default resource limits.</summary>
-    public static InterpreterOptions Default { get; } = new();
+    public static InterpreterResourceLimits Default { get; } = new();
 
     /// <summary>The per-frame active memory limit in bytes.</summary>
     public int MaxMemorySize { get; init; } = 64 * 1024 * 1024;
 
-    /// <summary>Validates and returns these options.</summary>
+    /// <summary>Validates and returns these resource limits.</summary>
     /// <exception cref="ArgumentOutOfRangeException"><see cref="MaxMemorySize"/> is invalid.</exception>
-    internal InterpreterOptions Validate()
+    internal InterpreterResourceLimits Validate()
     {
         ArgumentOutOfRangeException.ThrowIfNegative(MaxMemorySize);
 

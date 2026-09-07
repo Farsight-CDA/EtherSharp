@@ -39,7 +39,7 @@ public sealed partial class InterpreterStateFork(
     /// Creates and registers an independent interpreter over this state fork.
     /// </summary>
     /// <param name="executionSpec">The execution preset, or <see langword="null"/> to use <see cref="InterpreterExecutionSpec.Latest"/>.</param>
-    /// <param name="options">The interpreter resource limits.</param>
+    /// <param name="resourceLimits">The interpreter resource limits.</param>
     /// <returns>An interpreter that must be disposed when it no longer participates in batching.</returns>
     /// <remarks>
     /// Interpreters may run concurrently; each follows <see cref="InterpreterRuntime"/>'s concurrency rules.
@@ -47,7 +47,7 @@ public sealed partial class InterpreterStateFork(
     /// </remarks>
     public InterpreterRuntime CreateInterpreter(
         InterpreterExecutionSpec? executionSpec = null,
-        InterpreterOptions? options = null
+        InterpreterResourceLimits? resourceLimits = null
     )
     {
         executionSpec ??= InterpreterExecutionSpec.Latest;
@@ -56,7 +56,7 @@ public sealed partial class InterpreterStateFork(
             Context,
             session,
             executionSpec,
-            options?.Validate() ?? InterpreterOptions.Default,
+            resourceLimits?.Validate() ?? InterpreterResourceLimits.Default,
             executionSpec.ValidateAndCreatePrecompileLookup()
         );
 

@@ -40,12 +40,12 @@ public partial class InterpreterRuntime : IDisposable
         InterpreterContext context,
         IInterpreterHost host,
         InterpreterExecutionSpec executionSpec,
-        InterpreterOptions options,
+        InterpreterResourceLimits resourceLimits,
         FrozenDictionary<Address, IPrecompile> precompiles
     )
     {
         ExecutionSpec = executionSpec;
-        Options = options;
+        ResourceLimits = resourceLimits;
         _context = context;
         _host = host;
         _storage = new InterpreterStorage(host);
@@ -53,7 +53,7 @@ public partial class InterpreterRuntime : IDisposable
     }
 
     /// <summary>The interpreter resource limits.</summary>
-    public InterpreterOptions Options { get; }
+    public InterpreterResourceLimits ResourceLimits { get; }
     /// <summary>The consensus rules used for execution.</summary>
     public InterpreterExecutionSpec ExecutionSpec { get; }
 
@@ -319,7 +319,7 @@ public partial class InterpreterRuntime : IDisposable
                     var delegationTarget = Address.FromBytes(byteCode.ByteCode.Span[3..]);
                     byteCode = await _storage.GetAccountStorage(delegationTarget).GetCodeAsync();
                 }
-                result = await ExecuteOpcodesAsync(new BytecodeFrame(call, accountStorage, Options), new ZeroPaddedData(byteCode.ByteCode));
+                result = await ExecuteOpcodesAsync(new BytecodeFrame(call, accountStorage, ResourceLimits), new ZeroPaddedData(byteCode.ByteCode));
             }
         }
 
@@ -386,7 +386,7 @@ public partial class InterpreterRuntime : IDisposable
                 }
 
                 result = await ExecuteOpcodesAsync(
-                    new BytecodeFrame(call, createdStorage, Options),
+                    new BytecodeFrame(call, createdStorage, ResourceLimits),
                     new ZeroPaddedData(call.Input)
                 );
                 if(!result.IsSuccess)

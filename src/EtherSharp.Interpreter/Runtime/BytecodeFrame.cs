@@ -8,7 +8,7 @@ namespace EtherSharp.Interpreter.Runtime;
 internal sealed class BytecodeFrame(
     CallFrame call,
     InterpreterAccountStorage accountStorage,
-    InterpreterOptions options
+    InterpreterResourceLimits resourceLimits
 )
 {
     public CallFrame Call { get; } = call;
@@ -18,7 +18,7 @@ internal sealed class BytecodeFrame(
     );
 
     public OperandStack Stack { get; } = new();
-    public LinearMemory Memory { get; } = new(options.MaxMemorySize);
+    public LinearMemory Memory { get; } = new(resourceLimits.MaxMemorySize);
     public ReturnDataBuffer ReturnData { get; } = new();
     public InterpreterAccountStorage AccountStorage { get; } = accountStorage;
 }
