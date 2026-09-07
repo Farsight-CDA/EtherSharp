@@ -261,7 +261,7 @@ public class InterpreterRuntime : IDisposable
         var callSnapshot = _storage.TakeSnapshot();
 
         if(messageCall.ValueSource is Address valueSource
-            && messageCall.Value != UInt256.Zero)
+            && !messageCall.Value.IsZero)
         {
             var valueSourceStorage = valueSource == messageCall.Address
                 ? accountStorage
@@ -372,7 +372,7 @@ public class InterpreterRuntime : IDisposable
 
         var creationSnapshot = _storage.TakeSnapshot();
         createdStorage.InitializeCreatedContract();
-        if(creation.Endowment != UInt256.Zero)
+        if(!creation.Endowment.IsZero)
         {
             var createdBalance = await createdStorage.GetBalanceAsync();
             creatorStorage.SetBalance(creatorBalance - creation.Endowment);
@@ -441,7 +441,7 @@ public class InterpreterRuntime : IDisposable
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
                     if(opcode is EvmOpcode.Div or EvmOpcode.SDiv or EvmOpcode.Mod or EvmOpcode.SMod
-                        && second == UInt256.Zero)
+                        && second.IsZero)
                     {
                         callFrame.Stack.Push(Bytes32.Zero);
                         break;
@@ -455,6 +455,8 @@ public class InterpreterRuntime : IDisposable
                         EvmOpcode.Div => first / second,
                         EvmOpcode.SDiv => (UInt256) ((Int256) first / (Int256) second),
                         EvmOpcode.Mod => first % second,
+                        // Yul smod returns zero for a divisor of -1, including MinValue % -1.
+                        EvmOpcode.SMod when second == UInt256.MaxValue => UInt256.Zero,
                         EvmOpcode.SMod => (UInt256) ((Int256) first % (Int256) second),
                         _ => throw new UnreachableException()
                     });
@@ -466,7 +468,7 @@ public class InterpreterRuntime : IDisposable
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
-                    if(modulus == UInt256.Zero)
+                    if(modulus.IsZero)
                     {
                         callFrame.Stack.Push(Bytes32.Zero);
                         break;
@@ -556,7 +558,7 @@ public class InterpreterRuntime : IDisposable
 
                     callFrame.Stack.Push(opcode switch
                     {
-                        EvmOpcode.IsZero => value == UInt256.Zero ? UInt256.One : UInt256.Zero,
+                        EvmOpcode.IsZero => value.IsZero ? UInt256.One : UInt256.Zero,
                         EvmOpcode.Not => ~value,
                         EvmOpcode.Clz => (UInt256) UInt256.LeadingZeroCount(in value),
                         _ => throw new UnreachableException()
@@ -984,7 +986,7 @@ public class InterpreterRuntime : IDisposable
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
-                    if(condition == UInt256.Zero)
+                    if(condition.IsZero)
                     {
                         break;
                     }
@@ -1235,7 +1237,7 @@ public class InterpreterRuntime : IDisposable
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    if(callFrame.IsStatic && value != UInt256.Zero)
+                    if(callFrame.IsStatic && !value.IsZero)
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.WriteProtection);
                     }
@@ -1275,7 +1277,7 @@ public class InterpreterRuntime : IDisposable
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    bool hasSufficientBalance = value == UInt256.Zero
+                    bool hasSufficientBalance = value.IsZero
                         || await callFrame.AccountStorage.GetBalanceAsync() >= value;
                     var callResult = hasSufficientBalance
                         ? await ExecuteMessageCallAsync(transaction, new MessageCall(
@@ -1396,7 +1398,7 @@ public class InterpreterRuntime : IDisposable
                     bool isSelfBeneficiary = beneficiary == callFrame.To;
                     bool shouldDelete = callFrame.AccountStorage.IsCreatedInTransaction;
 
-                    if(balance != UInt256.Zero)
+                    if(!balance.IsZero)
                     {
                         if(!isSelfBeneficiary)
                         {

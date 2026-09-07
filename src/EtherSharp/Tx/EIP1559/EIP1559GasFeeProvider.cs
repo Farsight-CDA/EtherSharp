@@ -103,7 +103,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
             baseFee = summedBaseFees / (uint) feeHistory.BaseFeePerGas.Length;
         }
 
-        var nonZeroRewards = feeHistory.Reward.Where(x => x[0] != 0).ToArray();
+        var nonZeroRewards = feeHistory.Reward.Where(x => !x[0].IsZero).ToArray();
         if(nonZeroRewards.Length == 0)
         {
             priorityFee = await _ethRpcModule.MaxPriorityFeePerGasAsync(requestOptions, cancellationToken);

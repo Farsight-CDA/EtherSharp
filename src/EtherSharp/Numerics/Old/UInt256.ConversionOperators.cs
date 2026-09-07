@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace EtherSharp.Numerics;
+namespace EtherSharp.Numerics.Old;
 
 public readonly partial struct UInt256 : IStackValue<UInt256>
 {
@@ -30,7 +30,7 @@ public readonly partial struct UInt256 : IStackValue<UInt256>
     public static explicit operator Bytes32(in UInt256 value)
     {
         Span<byte> bytes = stackalloc byte[Bytes32.BYTE_LENGTH];
-        BinaryPrimitives.WriteUInt256BigEndian(bytes, value);
+        //BinaryPrimitives.WriteUInt256BigEndian(bytes, value);
         return Bytes32.FromBytes(bytes);
     }
 

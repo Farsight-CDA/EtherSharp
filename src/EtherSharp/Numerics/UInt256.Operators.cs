@@ -1,236 +1,270 @@
-// SPDX-FileCopyrightText: 2025 Demerzel Solutions Limited
-// SPDX-License-Identifier: MIT
-
-#pragma warning disable CS1591
+using System.Runtime.CompilerServices;
+using CoreUInt256 = Nethermind.Int256.UInt256;
 
 namespace EtherSharp.Numerics;
 
 public readonly partial struct UInt256
 {
-    public static bool operator ==(in UInt256 a, in UInt256 b) => a.Equals(b);
-    public static bool operator ==(in UInt256 a, int b) => a.Equals(b);
-    public static bool operator ==(int a, in UInt256 b) => b.Equals(a);
-    public static bool operator ==(in UInt256 a, uint b) => a.Equals(b);
-    public static bool operator ==(uint a, in UInt256 b) => b.Equals(a);
-    public static bool operator ==(in UInt256 a, long b) => a.Equals(b);
-    public static bool operator ==(long a, in UInt256 b) => b.Equals(a);
-    public static bool operator ==(in UInt256 a, ulong b) => a.Equals(b);
-    public static bool operator ==(ulong a, in UInt256 b) => b.Equals(a);
+    /// <summary>
+    /// Determines whether two values are equal.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator ==(in UInt256 a, in UInt256 b)
+        => a.Equals(in b);
 
-    public static bool operator !=(in UInt256 a, in UInt256 b) => !a.Equals(b);
-    public static bool operator !=(in UInt256 a, int b) => !a.Equals(b);
-    public static bool operator !=(int a, in UInt256 b) => !b.Equals(a);
-    public static bool operator !=(in UInt256 a, uint b) => !a.Equals(b);
-    public static bool operator !=(uint a, in UInt256 b) => !b.Equals(a);
-    public static bool operator !=(in UInt256 a, long b) => !a.Equals(b);
-    public static bool operator !=(long a, in UInt256 b) => !b.Equals(a);
-    public static bool operator !=(in UInt256 a, ulong b) => !a.Equals(b);
-    public static bool operator !=(ulong a, in UInt256 b) => !b.Equals(a);
+    /// <summary>
+    /// Determines whether two values are not equal.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(in UInt256 a, in UInt256 b)
+        => !a.Equals(in b);
 
-    public static bool operator <(in UInt256 a, in UInt256 b) => LessThan(in a, in b);
-    public static bool operator <(in UInt256 a, int b) => LessThan(in a, b);
-    public static bool operator <(int a, in UInt256 b) => LessThan(a, in b);
-    public static bool operator <(in UInt256 a, uint b) => LessThan(in a, b);
-    public static bool operator <(uint a, in UInt256 b) => LessThan(a, in b);
-    public static bool operator <(in UInt256 a, long b) => LessThan(in a, b);
-    public static bool operator <(long a, in UInt256 b) => LessThan(a, in b);
-    public static bool operator <(in UInt256 a, ulong b) => LessThan(in a, b);
-    public static bool operator <(ulong a, in UInt256 b) => LessThan(a, in b);
+    /// <summary>
+    /// Determines whether the first value is less than the second value.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator <(in UInt256 a, in UInt256 b)
+        => AsUpstream(in a) < AsUpstream(in b);
 
-    public static bool operator <=(in UInt256 a, in UInt256 b) => !LessThan(in b, in a);
-    public static bool operator <=(in UInt256 a, int b) => !LessThan(b, in a);
-    public static bool operator <=(int a, in UInt256 b) => !LessThan(in b, a);
-    public static bool operator <=(in UInt256 a, uint b) => !LessThan(b, in a);
-    public static bool operator <=(uint a, in UInt256 b) => !LessThan(in b, a);
-    public static bool operator <=(in UInt256 a, long b) => !LessThan(b, in a);
-    public static bool operator <=(long a, in UInt256 b) => !LessThan(in b, a);
-    public static bool operator <=(in UInt256 a, ulong b) => !LessThan(b, in a);
-    public static bool operator <=(ulong a, in UInt256 b) => !LessThan(in b, a);
+    /// <summary>
+    /// Determines whether the first value is greater than the second value.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator >(in UInt256 a, in UInt256 b)
+        => AsUpstream(in a) > AsUpstream(in b);
 
-    public static bool operator >(in UInt256 a, in UInt256 b) => LessThan(in b, in a);
-    public static bool operator >(in UInt256 a, int b) => LessThan(b, in a);
-    public static bool operator >(int a, in UInt256 b) => LessThan(in b, a);
-    public static bool operator >(in UInt256 a, uint b) => LessThan(b, in a);
-    public static bool operator >(uint a, in UInt256 b) => LessThan(in b, a);
-    public static bool operator >(in UInt256 a, long b) => LessThan(b, in a);
-    public static bool operator >(long a, in UInt256 b) => LessThan(in b, a);
-    public static bool operator >(in UInt256 a, ulong b) => LessThan(b, in a);
-    public static bool operator >(ulong a, in UInt256 b) => LessThan(in b, a);
+    /// <summary>
+    /// Determines whether the first value is less than or equal to the second value.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator <=(in UInt256 a, in UInt256 b)
+        => AsUpstream(in a) <= AsUpstream(in b);
 
-    public static bool operator >=(in UInt256 a, in UInt256 b) => !LessThan(in a, in b);
-    public static bool operator >=(in UInt256 a, int b) => !LessThan(in a, b);
-    public static bool operator >=(int a, in UInt256 b) => !LessThan(a, in b);
-    public static bool operator >=(in UInt256 a, uint b) => !LessThan(in a, b);
-    public static bool operator >=(uint a, in UInt256 b) => !LessThan(a, in b);
-    public static bool operator >=(in UInt256 a, long b) => !LessThan(in a, b);
-    public static bool operator >=(long a, in UInt256 b) => !LessThan(a, in b);
-    public static bool operator >=(in UInt256 a, ulong b) => !LessThan(in a, b);
-    public static bool operator >=(ulong a, in UInt256 b) => !LessThan(a, in b);
+    /// <summary>
+    /// Determines whether the first value is greater than or equal to the second value.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator >=(in UInt256 a, in UInt256 b)
+        => AsUpstream(in a) >= AsUpstream(in b);
 
+    /// <summary>
+    /// Returns the value unchanged.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator +(in UInt256 value)
+        => value;
+
+    /// <summary>
+    /// Negates a value, wrapping modulo 2^256.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator -(in UInt256 value)
+    {
+        Negate(in value, out var result);
+        return result;
+    }
+
+    /// <summary>
+    /// Negates a value.
+    /// </summary>
+    /// <exception cref="OverflowException">The value is not zero.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator checked -(in UInt256 value)
+        => value.IsZero
+            ? Zero
+            : throw new OverflowException();
+
+    /// <summary>
+    /// Adds two values, wrapping modulo 2^256 on overflow.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator +(in UInt256 a, in UInt256 b)
     {
-        Add(in a, in b, out var res);
-        return res;
+        Add(in a, in b, out var result);
+        return result;
     }
 
+    /// <summary>
+    /// Adds two values.
+    /// </summary>
+    /// <exception cref="OverflowException">The sum exceeds <see cref="MaxValue"/>.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator checked +(in UInt256 a, in UInt256 b)
-        => Add(in a, in b, out var res)
-            ? throw new OverflowException($"Overflow in addition {a} + {b}")
-            : res;
+        => Add(in a, in b, out var result)
+            ? throw new OverflowException()
+            : result;
 
-    public static UInt256 operator ++(in UInt256 a)
-    {
-        Add(in a, One, out var res);
-        return res;
-    }
-
-    public static UInt256 operator checked ++(in UInt256 a)
-        => Add(in a, One, out var res)
-            ? throw new OverflowException($"Overflow in addition {a}++")
-            : res;
-
+    /// <summary>
+    /// Subtracts two values, wrapping modulo 2^256 on underflow.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator -(in UInt256 a, in UInt256 b)
     {
-        Subtract(in a, in b, out var res);
-        return res;
+        Subtract(in a, in b, out var result);
+        return result;
     }
 
+    /// <summary>
+    /// Subtracts two values.
+    /// </summary>
+    /// <exception cref="OverflowException">The difference is below <see cref="MinValue"/>.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator checked -(in UInt256 a, in UInt256 b)
-        => Subtract(in a, in b, out var res)
-            ? throw new OverflowException($"Underflow in subtraction {a} - {b}")
-            : res;
+        => Subtract(in a, in b, out var result)
+            ? throw new OverflowException()
+            : result;
 
-    public static UInt256 operator --(in UInt256 a)
-    {
-        Subtract(in a, One, out var res);
-        return res;
-    }
-
-    public static UInt256 operator checked --(in UInt256 a)
-        => Subtract(in a, One, out var res)
-            ? throw new OverflowException($"Underflow in subtraction {a} - 1")
-            : res;
-
+    /// <summary>
+    /// Multiplies two values, wrapping modulo 2^256 on overflow.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator *(in UInt256 a, in UInt256 b)
     {
-        Multiply(in a, in b, out var c);
-        return c;
+        Multiply(in a, in b, out var result);
+        return result;
     }
 
+    /// <summary>
+    /// Multiplies two values.
+    /// </summary>
+    /// <exception cref="OverflowException">The product exceeds <see cref="MaxValue"/>.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator checked *(in UInt256 a, in UInt256 b)
-        => MultiplyOverflow(in a, in b, out var c)
-            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
-            : c;
+        => MultiplyOverflow(in a, in b, out var result)
+            ? throw new OverflowException()
+            : result;
 
-    public static UInt256 operator *(in UInt256 a, uint b)
-    {
-        Multiply(in a, b, out var c);
-        return c;
-    }
-
-    public static UInt256 operator checked *(in UInt256 a, uint b)
-    {
-        UInt256 bb = b;
-        return MultiplyOverflow(in a, in bb, out var c)
-            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
-            : c;
-    }
-
-    public static UInt256 operator *(uint a, in UInt256 b)
-    {
-        Multiply(a, in b, out var c);
-        return c;
-    }
-
-    public static UInt256 operator checked *(uint a, in UInt256 b)
-    {
-        UInt256 aa = a;
-        return MultiplyOverflow(in aa, in b, out var c)
-            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
-            : c;
-    }
-
-    public static UInt256 operator *(in UInt256 a, ulong b)
-    {
-        Multiply(in a, b, out var c);
-        return c;
-    }
-
-    public static UInt256 operator checked *(in UInt256 a, ulong b)
-    {
-        UInt256 bb = b;
-        return MultiplyOverflow(in a, in bb, out var c)
-            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
-            : c;
-    }
-
-    public static UInt256 operator *(ulong a, in UInt256 b)
-    {
-        Multiply(a, in b, out var c);
-        return c;
-    }
-
-    public static UInt256 operator checked *(ulong a, in UInt256 b)
-    {
-        UInt256 aa = a;
-        return MultiplyOverflow(in aa, in b, out var c)
-            ? throw new OverflowException($"Overflow in multiplication {a} * {b}")
-            : c;
-    }
-
+    /// <summary>
+    /// Divides two values, returning the integer quotient.
+    /// </summary>
+    /// <exception cref="DivideByZeroException"><paramref name="b"/> is zero.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator /(in UInt256 a, in UInt256 b)
     {
-        Divide(in a, in b, out var res);
-        return res;
-    }
-    public static UInt256 operator /(in UInt256 a, uint b)
-    {
-        Divide(in a, b, out var c);
-        return c;
+        Divide(in a, in b, out var result);
+        return result;
     }
 
-    public static UInt256 operator <<(in UInt256 a, int n)
-    {
-        LeftShift(a, n, out var res);
-        return res;
-    }
-
-    public static UInt256 operator >>(in UInt256 a, int n)
-    {
-        RightShift(a, n, out var res);
-        return res;
-    }
-
-    public static UInt256 operator ^(in UInt256 a, in UInt256 b)
-    {
-        Xor(a, b, out var res);
-        return res;
-    }
-
-    public static UInt256 operator ~(in UInt256 a)
-    {
-        Not(in a, out var res);
-        return res;
-    }
-
-    public static UInt256 operator |(in UInt256 a, in UInt256 b)
-    {
-        Or(a, b, out var res);
-        return res;
-    }
-
-    public static UInt256 operator &(in UInt256 a, in UInt256 b)
-    {
-        And(a, b, out var res);
-        return res;
-    }
-
+    /// <summary>
+    /// Computes the remainder of dividing <paramref name="a"/> by <paramref name="b"/>.
+    /// </summary>
+    /// <exception cref="DivideByZeroException"><paramref name="b"/> is zero.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator %(in UInt256 a, in UInt256 b)
     {
-        Mod(a, b, out var res);
-        return res;
+        Remainder(in a, in b, out var result);
+        return result;
     }
 
-    public static UInt256 operator -(in UInt256 value) => Negate(in value);
-    public static UInt256 operator +(in UInt256 value) => value;
+    /// <summary>
+    /// Increments a value, wrapping modulo 2^256 on overflow.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator ++(in UInt256 value)
+        => unchecked(value + One);
+
+    /// <summary>
+    /// Increments a value.
+    /// </summary>
+    /// <exception cref="OverflowException">The value is <see cref="MaxValue"/>.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator checked ++(in UInt256 value)
+        => checked(value + One);
+
+    /// <summary>
+    /// Decrements a value, wrapping modulo 2^256 on underflow.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator --(in UInt256 value)
+        => unchecked(value - One);
+
+    /// <summary>
+    /// Decrements a value.
+    /// </summary>
+    /// <exception cref="OverflowException">The value is <see cref="MinValue"/>.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator checked --(in UInt256 value)
+        => checked(value - One);
+
+    /// <summary>
+    /// Computes the bitwise AND of two 256-bit values.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator &(in UInt256 a, in UInt256 b)
+    {
+        And(in a, in b, out var result);
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise OR of two 256-bit values.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator |(in UInt256 a, in UInt256 b)
+    {
+        Or(in a, in b, out var result);
+        return result;
+    }
+
+    /// <summary>
+    /// Computes the bitwise exclusive OR of two 256-bit values.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator ^(in UInt256 a, in UInt256 b)
+    {
+        Xor(in a, in b, out var result);
+        return result;
+    }
+
+    /// <summary>
+    /// Complements every bit of the 256-bit representation.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator ~(in UInt256 value)
+    {
+        Not(in value, out var result);
+        return result;
+    }
+
+    /// <summary>
+    /// Shifts left, discarding bits shifted out of the 256-bit range.
+    /// </summary>
+    /// <remarks>
+    /// Only the low eight bits of the shift count are used: <c>n &amp; 255</c>.
+    /// Shifts behave identically in checked and unchecked contexts.
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator <<(in UInt256 a, int n)
+    {
+        ShiftLeft(in a, n, out var result);
+        return result;
+    }
+
+    /// <summary>
+    /// Shifts right, filling the vacated high bits with zero.
+    /// </summary>
+    /// <remarks>
+    /// Only the low eight bits of the shift count are used: <c>n &amp; 255</c>.
+    /// Shifts behave identically in checked and unchecked contexts.
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator >>(in UInt256 a, int n)
+    {
+        ShiftRightLogical(in a, n, out var result);
+        return result;
+    }
+
+    /// <summary>
+    /// Shifts right, filling the vacated high bits with zero.
+    /// </summary>
+    /// <remarks>
+    /// Only the low eight bits of the shift count are used: <c>n &amp; 255</c>.
+    /// Shifts behave identically in checked and unchecked contexts.
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt256 operator >>>(in UInt256 a, int n)
+    {
+        ShiftRightLogical(in a, n, out var result);
+        return result;
+    }
 }

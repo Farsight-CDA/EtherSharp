@@ -3,7 +3,7 @@
 
 #pragma warning disable CS1591
 
-namespace EtherSharp.Numerics;
+namespace EtherSharp.Numerics.Old;
 
 public readonly partial struct UInt256
 {

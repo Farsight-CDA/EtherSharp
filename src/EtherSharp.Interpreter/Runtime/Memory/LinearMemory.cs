@@ -25,7 +25,7 @@ internal sealed class LinearMemory(int maxSize)
 
     public Slice Access(UInt256 offset, UInt256 length)
     {
-        if(length == UInt256.Zero)
+        if(length.IsZero)
         {
             return new Slice(this, 0, 0);
         }
@@ -36,7 +36,7 @@ internal sealed class LinearMemory(int maxSize)
 
     public void Copy(UInt256 destinationOffset, UInt256 sourceOffset, UInt256 length)
     {
-        if(length == UInt256.Zero)
+        if(length.IsZero)
         {
             return;
         }

@@ -23,7 +23,7 @@ public static partial class AbiTypes
             }
 
             int bitLength = byteLength * 8;
-            if(value.BitLength > bitLength)
+            if(value.GetShortestBitLength() > bitLength)
             {
                 throw new ArgumentException($"Value is too large to fit in a {bitLength}-bit unsigned integer", nameof(value));
             }
@@ -58,6 +58,6 @@ public static partial class AbiTypes
         /// Decodes an unsigned 256-bit value from an ABI word.
         /// </summary>
         public static Numerics.UInt256 Decode(ReadOnlySpan<byte> bytes)
-            => new Numerics.UInt256(bytes, true);
+            => BinaryPrimitives.ReadUInt256BigEndian(bytes);
     }
 }

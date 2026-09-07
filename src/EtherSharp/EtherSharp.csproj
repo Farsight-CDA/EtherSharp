@@ -49,6 +49,7 @@
 	<ItemGroup>
 		<None Include="../../resources/logo.png" Pack="true" PackagePath="" />
 		<None Include="../../README.md" Pack="true" PackagePath="" />
+		<None Update="Numerics/Upstream/LICENSE" Pack="true" PackagePath="licenses/Nethermind.Int256/" />
 	</ItemGroup>
 
 	<ItemGroup>

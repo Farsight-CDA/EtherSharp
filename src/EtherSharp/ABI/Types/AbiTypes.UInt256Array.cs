@@ -26,7 +26,7 @@ public static partial class AbiTypes
             {
                 var entry = Value[i];
 
-                if(entry.BitLength > bitSize)
+                if(entry.GetShortestBitLength() > bitSize)
                 {
                     throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit unsigned integer", nameof(value));
                 }
@@ -64,7 +64,7 @@ public static partial class AbiTypes
             {
                 var slot = data[(i * 32)..((i * 32) + 32)];
                 var value = UInt256.Decode(slot.Span);
-                if(value.BitLength > bitSize)
+                if(value.GetShortestBitLength() > bitSize)
                 {
                     throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit unsigned integer", nameof(bytes));
                 }

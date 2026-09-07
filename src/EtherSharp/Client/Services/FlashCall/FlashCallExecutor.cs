@@ -32,7 +32,7 @@ internal sealed class FlashCallExecutor(
 
         var initCode = code.GetInitCode();
 
-        if(code is IContractDeployment deployment && deployment.Value > 0)
+        if(code is IContractDeployment deployment && !deployment.Value.IsZero)
         {
             throw new NotSupportedException("Contract deployment cannot contain any value");
         }

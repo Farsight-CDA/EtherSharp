@@ -177,6 +177,7 @@ public ref struct RLPEncoder
     {
         if(value._u3 == 0 && value._u2 == 0 && value._u1 == 0)
         {
+            // The upper limbs are already zero; avoid reloading the by-value argument as a vector.
             if(value._u0 == 0)
             {
                 return EncodeString();

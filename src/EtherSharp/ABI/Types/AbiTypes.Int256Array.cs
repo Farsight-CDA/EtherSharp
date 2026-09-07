@@ -25,7 +25,7 @@ public static partial class AbiTypes
             for(int i = 0; i < Value.Length; i++)
             {
                 var entry = Value[i];
-                if(bitSize < 256 && ((entry > 0 && entry >> (bitSize - 1) != 0) || (entry < 0 && entry >> (bitSize - 1) != -1)))
+                if(bitSize < 256 && ((entry > 0 && !(entry >> (bitSize - 1)).IsZero) || (entry < 0 && entry >> (bitSize - 1) != -1)))
                 {
                     throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit signed integer", nameof(value));
                 }
@@ -63,7 +63,7 @@ public static partial class AbiTypes
             {
                 var slot = data[(i * 32)..((i * 32) + 32)];
                 var value = Int256.Decode(slot.Span);
-                if(bitSize < 256 && ((value > 0 && value >> ((int) bitSize - 1) != 0) || (value < 0 && value >> ((int) bitSize - 1) != -1)))
+                if(bitSize < 256 && ((value > 0 && !(value >> ((int) bitSize - 1)).IsZero) || (value < 0 && value >> ((int) bitSize - 1) != -1)))
                 {
                     throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit signed integer", nameof(bytes));
                 }

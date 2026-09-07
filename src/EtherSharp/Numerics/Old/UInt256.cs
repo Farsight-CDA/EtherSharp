@@ -1,0 +1,1433 @@
+// SPDX-FileCopyrightText: 2025 Demerzel Solutions Limited
+// SPDX-License-Identifier: MIT
+
+#pragma warning disable CS1591
+
+using EtherSharp.Common.Converters.Json;
+using System.Diagnostics;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.Arm;
+using System.Runtime.Intrinsics.X86;
+using System.Text.Json.Serialization;
+using Arm = System.Runtime.Intrinsics.Arm;
+using x64 = System.Runtime.Intrinsics.X86;
+
+namespace EtherSharp.Numerics.Old;
+
+/// <summary>
+/// Represents an unsigned 256-bit integer used for EVM-compatible arithmetic.
+/// </summary>
+[StructLayout(LayoutKind.Explicit)]
+[JsonConverter(typeof(UInt256HexConverter))]
+public readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComparable<UInt256>
+{
+    public static UInt256 Zero { get; } = 0ul;
+    public static UInt256 One { get; } = 1ul;
+
+    public static UInt256 MinValue { get; } = Zero;
+    public static UInt256 MaxValue { get; } = ~Zero;
+
+    public static UInt256 WAD { get; } = Pow(10, 18);
+    public static UInt256 RAY { get; } = Pow(10, 27);
+
+    /* in little endian order so u3 is the most significant ulong */
+    [FieldOffset(0)]
+    internal readonly ulong _u0;
+    [FieldOffset(8)]
+    internal readonly ulong _u1;
+    [FieldOffset(16)]
+    internal readonly ulong _u2;
+    [FieldOffset(24)]
+    internal readonly ulong _u3;
+
+    internal int BitLength
+        => _u3 != 0
+            ? 256 - BitOperations.LeadingZeroCount(_u3)
+            : _u2 != 0
+                ? 192 - BitOperations.LeadingZeroCount(_u2)
+                : _u1 != 0
+                    ? 128 - BitOperations.LeadingZeroCount(_u1)
+                    : 64 - BitOperations.LeadingZeroCount(_u0);
+    internal bool IsUint64 => (_u1 | _u2 | _u3) == 0;
+
+    public bool IsZero
+        => Vector256.IsHardwareAccelerated
+            ? Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0)) == default
+            : (_u0 | _u1 | _u2 | _u3) == 0;
+    public bool IsOne
+        => Vector256.IsHardwareAccelerated
+                ? Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0)) == Vector256.CreateScalar(1UL)
+                : ((_u0 ^ 1UL) | _u1 | _u2 | _u3) == 0;
+
+    public static int LeadingZeroCount(in UInt256 value)
+        => value._u3 != 0
+            ? BitOperations.LeadingZeroCount(value._u3)
+            : value._u2 != 0
+                ? 64 + BitOperations.LeadingZeroCount(value._u2)
+                : value._u1 != 0
+                    ? 128 + BitOperations.LeadingZeroCount(value._u1)
+                    : 192 + BitOperations.LeadingZeroCount(value._u0);
+
+    public static int TrailingZeroCount(in UInt256 value)
+        => value._u0 != 0
+            ? BitOperations.TrailingZeroCount(value._u0)
+            : value._u1 != 0
+                ? 64 + BitOperations.TrailingZeroCount(value._u1)
+                : value._u2 != 0
+                    ? 128 + BitOperations.TrailingZeroCount(value._u2)
+                    : 192 + BitOperations.TrailingZeroCount(value._u3);
+
+    /// <summary>
+    /// Adds two <see cref="UInt256"/> values and reports whether the addition overflowed.
+    /// </summary>
+    /// <remarks>
+    /// Computes the full 256-bit sum of <paramref name="a"/> and <paramref name="b"/> and stores the low 256 bits in
+    /// <paramref name="res"/>. The return value indicates whether the true mathematical sum exceeded the range
+    /// <c>[0, 2^256 - 1]</c>.
+    /// </remarks>
+    /// <param name="a">The first 256-bit addend.</param>
+    /// <param name="b">The second 256-bit addend.</param>
+    /// <param name="res">
+    /// On return, contains the low 256 bits of <c>a + b</c>.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if <c>a + b</c> overflowed (carry out of the most-significant bit); otherwise <see langword="false"/>.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool Add(in UInt256 a, in UInt256 b, out UInt256 res)
+    {
+        if(!Avx2.IsSupported && !Vector256.IsHardwareAccelerated)
+        {
+            return AddScalar(in a, in b, out res);
+        }
+        //
+        return Avx2.IsSupported
+            ? AddAvx2(in a, in b, out res)
+            : AddVector256(in a, in b, out res);
+    }
+
+    private static bool AddScalar(in UInt256 a, in UInt256 b, out UInt256 res)
+    {
+        ulong a0 = a._u0;
+        ulong b0 = b._u0;
+        if((a._u1 | a._u2 | a._u3 | b._u1 | b._u2 | b._u3) == 0)
+        {
+            // Fast add for numbers less than 2^64 (18,446,744,073,709,551,615)
+            ulong u0 = a0 + b0;
+            // Assignment to res after in case is used as input for a or b (by ref aliasing)
+            res = default;
+            Unsafe.AsRef(in res._u0) = u0;
+            if(u0 < a0)
+            {
+                Unsafe.AsRef(in res._u1) = 1;
+            }
+            // Never overflows UInt256
+            return false;
+        }
+
+        ulong c = 0;
+        AddWithCarry(a0, b0, ref c, out ulong r0);
+        AddWithCarry(a._u1, b._u1, ref c, out ulong r1);
+        AddWithCarry(a._u2, b._u2, ref c, out ulong r2);
+        AddWithCarry(a._u3, b._u3, ref c, out ulong r3);
+        res = new UInt256(r0, r1, r2, r3);
+        return c != 0;
+    }
+
+    private static bool AddAvx2(in UInt256 a, in UInt256 b, out UInt256 res)
+    {
+        var av = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
+        var bv = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in b));
+
+        var result = Avx2.Add(av, bv);
+        Vector256<ulong> vCarry;
+        if(Avx512F.VL.IsSupported)
+        {
+            vCarry = Avx512F.VL.CompareLessThan(result, av);
+        }
+        else
+        {
+            // Work around for missing Vector256.CompareLessThan
+            var carryFromBothHighBits = Avx2.And(av, bv);
+            var eitherHighBit = Avx2.Or(av, bv);
+            var highBitNotInResult = Avx2.AndNot(result, eitherHighBit);
+
+            // Set high bits where carry occurs
+            vCarry = Avx2.Or(carryFromBothHighBits, highBitNotInResult);
+        }
+        // Move carry from Vector space to uint
+        uint carry = (uint) (Avx512DQ.IsSupported
+            ? Avx512DQ.MoveMask(vCarry)
+            : Avx.MoveMask(vCarry.AsDouble()));
+
+        // All bits set will cascade another carry when carry is added to it
+        var vCascade = Avx2.CompareEqual(result, Vector256<ulong>.AllBitsSet);
+        // Move cascade from Vector space to uint
+        uint cascade = (uint) (Avx512DQ.IsSupported
+            ? Avx512DQ.MoveMask(vCascade)
+            : Avx.MoveMask(Unsafe.As<Vector256<ulong>, Vector256<double>>(ref vCascade)));
+
+        // Use ints to work out the Vector cross lane cascades
+        // Move carry to next bit and add cascade
+        carry = cascade + (2 * carry); // lea
+        // Remove cascades not affected by carry
+        cascade ^= carry;
+        // Choice of 16 vectors
+        cascade &= 0x0f;
+
+        // Lookup the carries to broadcast to the Vectors
+        var cascadedCarries = Unsafe.Add(ref Unsafe.As<byte, Vector256<ulong>>(ref MemoryMarshal.GetReference(BroadcastLookup)), cascade);
+
+        // Mark res as initialized so we can use it as left side of ref assignment
+        Unsafe.SkipInit(out res);
+        // Add the cascadedCarries to the result
+        Unsafe.As<UInt256, Vector256<ulong>>(ref res) = Avx2.Add(result, cascadedCarries);
+
+        return (carry & 0b1_0000) != 0;
+    }
+
+    private static bool AddVector256(in UInt256 a, in UInt256 b, out UInt256 res)
+    {
+        var av = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
+        var bv = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in b));
+
+        var result = Vector256.Add(av, bv);
+        var vCarry = Vector256.LessThan(result, av);
+
+        uint carry = Vector256.ExtractMostSignificantBits(vCarry);
+
+        // All bits set will cascade another carry when carry is added to it
+        var vCascade = Vector256.Equals(result, Vector256<ulong>.AllBitsSet);
+        // Move cascade from Vector space to uint
+        uint cascade = Vector256.ExtractMostSignificantBits(vCascade);
+
+        // Use ints to work out the Vector cross lane cascades
+        // Move carry to next bit and add cascade
+        carry = cascade + (2 * carry); // lea
+        // Remove cascades not affected by carry
+        cascade ^= carry;
+        // Choice of 16 vectors
+        cascade &= 0x0f;
+
+        // Lookup the carries to broadcast to the Vectors
+        var cascadedCarries = Unsafe.Add(ref Unsafe.As<byte, Vector256<ulong>>(ref MemoryMarshal.GetReference(BroadcastLookup)), cascade);
+
+        // Mark res as initialized so we can use it as left side of ref assignment
+        Unsafe.SkipInit(out res);
+        // Add the cascadedCarries to the result
+        Unsafe.As<UInt256, Vector256<ulong>>(ref res) = Vector256.Add(result, cascadedCarries);
+
+        return (carry & 0b1_0000) != 0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void AddWithCarry(ulong x, ulong y, ref ulong carry, out ulong sum)
+    {
+        ulong t = x + y;
+        ulong r = t + carry;
+        carry = (t < x ? 1UL : 0UL) + (r < t ? 1UL : 0UL);
+        sum = r;
+    }
+
+    /// <summary>
+    /// Subtracts two <see cref="UInt256"/> values and reports whether the subtraction underflowed.
+    /// </summary>
+    /// <remarks>
+    /// Computes the difference of <paramref name="a"/> and <paramref name="b"/> and stores the result in <paramref name="res"/>.
+    /// </remarks>
+    /// <param name="a">The minuend.</param>
+    /// <param name="b">The subtrahend.</param>
+    /// <param name="res">
+    /// On return, contains the result of <c>a - b</c>.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if <c>a - b</c> underflowed (borrow out of the most-significant bit); otherwise <see langword="false"/>.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool Subtract(in UInt256 a, in UInt256 b, out UInt256 res)
+        => Avx2.IsSupported
+            ? SubtractAvx2(a, b, out res)
+            : SubtractScalar(a, b, out res);
+
+    /// <summary>
+    /// Returns the absolute difference between two <see cref="UInt256"/> values.
+    /// </summary>
+    public static UInt256 AbsDiff(in UInt256 a, in UInt256 b)
+    {
+        if(LessThan(in a, in b))
+        {
+            Subtract(in b, in a, out var result);
+            return result;
+        }
+
+        Subtract(in a, in b, out var difference);
+        return difference;
+    }
+
+    private static bool SubtractAvx2(in UInt256 a, in UInt256 b, out UInt256 res)
+    {
+        var av = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
+        var bv = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in b));
+
+        var result = Avx2.Subtract(av, bv);
+        Vector256<ulong> vBorrow;
+        if(Avx512F.VL.IsSupported)
+        {
+            vBorrow = Avx512F.VL.CompareGreaterThan(result, av);
+        }
+        else
+        {
+            // Invert top bits as Avx2.CompareGreaterThan is only available for longs, not unsigned
+            var signFlip = Vector256.Create(0x8000_0000_0000_0000UL);
+            var resultSigned = Avx2.Xor(result, signFlip);
+            var avSigned = Avx2.Xor(av, signFlip);
+
+            // Which vectors need to borrow from the next
+            vBorrow = Avx2.CompareGreaterThan(resultSigned.AsInt64(), avSigned.AsInt64()).AsUInt64();
+        }
+        // Move borrow from Vector space to int
+        int borrow = Avx.MoveMask(vBorrow.AsDouble());
+
+        // All zeros will cascade another borrow when borrow is subtracted from it
+        var vCascade = Avx2.CompareEqual(result, Vector256<ulong>.Zero);
+        // Move cascade from Vector space to int
+        int cascade = Avx.MoveMask(vCascade.AsDouble());
+
+        // Use ints to work out the Vector cross lane cascades
+        // Move borrow to next bit and add cascade
+        borrow = cascade + (2 * borrow); // lea
+                                         // Remove cascades not effected by borrow
+        cascade ^= borrow;
+        // Choice of 16 vectors
+        cascade &= 0x0f;
+
+        // Lookup the borrows to broadcast to the Vectors
+        var cascadedBorrows = Unsafe.Add(ref Unsafe.As<byte, Vector256<ulong>>(ref MemoryMarshal.GetReference(BroadcastLookup)), cascade);
+
+        // Mark res as initialized so we can use it as left said of ref assignment
+        Unsafe.SkipInit(out res);
+        // Subtract the cascadedBorrows from the result
+        Unsafe.As<UInt256, Vector256<ulong>>(ref res) = Avx2.Subtract(result, cascadedBorrows);
+        return (borrow & 0b1_0000) != 0;
+    }
+
+    private static bool SubtractScalar(in UInt256 a, in UInt256 b, out UInt256 res)
+    {
+        ulong borrow = 0ul;
+        SubtractWithBorrow(a._u0, b._u0, ref borrow, out ulong res0);
+        SubtractWithBorrow(a._u1, b._u1, ref borrow, out ulong res1);
+        SubtractWithBorrow(a._u2, b._u2, ref borrow, out ulong res2);
+        SubtractWithBorrow(a._u3, b._u3, ref borrow, out ulong res3);
+        res = new UInt256(res0, res1, res2, res3);
+        return borrow != 0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SubtractWithBorrow(ulong a, ulong b, ref ulong borrow, out ulong res)
+    {
+        ulong result = a - b - borrow;
+        borrow = (((~a) & b) | ((~(a ^ b)) & result)) >> 63;
+        res = result;
+    }
+
+    /// <summary>
+    /// Multiplies two 256‑bit unsigned integers (<paramref name="x"/> and <paramref name="y"/>) and
+    /// writes the 256‑bit product to <paramref name="res"/>.
+    /// </summary>
+    /// <param name="x">The first 256‑bit unsigned integer.</param>
+    /// <param name="y">The second 256‑bit unsigned integer.</param>
+    /// <param name="res">When this method returns, contains the 256‑bit product of x and y.</param>
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Multiply(in UInt256 x, in UInt256 y, out UInt256 res)
+    {
+        ulong x0 = x._u0;
+        ulong y0 = y._u0;
+        ulong xHi = x._u1 | x._u2 | x._u3;
+        ulong yHi = y._u1 | y._u2 | y._u3;
+
+        if((x0 | xHi) == 0 || (y0 | yHi) == 0)
+        {
+            res = default;
+            return;
+        }
+
+        if(yHi == 0)
+        {
+            if(y0 == 1)
+            {
+                res = x;
+                return;
+            }
+
+            // If both inputs fit in 64 bits, use a simple multiplication routine.
+            if(xHi == 0)
+            {
+                // Fast multiply for numbers less than 2^64 (18,446,744,073,709,551,615)
+                ulong high = Multiply64(x0, y0, out ulong low);
+                // Assignment to res after multiply in case is used as input for x or y (by ref aliasing)
+                res = default;
+                Unsafe.AsRef(in res._u0) = low;
+                Unsafe.AsRef(in res._u1) = high;
+                return;
+            }
+        }
+
+        if(xHi == 0 && x0 == 1)
+        {
+            res = y;
+            return;
+        }
+
+        // Recent optimizations have made scalar faster
+        if(false && Avx512F.IsSupported && Avx512DQ.IsSupported && Avx512DQ.VL.IsSupported)
+        {
+            MultiplyAvx512F(in x, in y, out res);
+        }
+        else
+        {
+            MultiplyScalar(in x, in y, out res);
+        }
+    }
+
+    [SkipLocalsInit]
+    private static void MultiplyScalar(in UInt256 x, in UInt256 y, out UInt256 res)
+    {
+        ulong x0 = x._u0;
+        ulong y0 = y._u0;
+        ulong x1 = x._u1;
+        ulong y1 = y._u1;
+        ulong x2 = x._u2;
+        ulong y2 = y._u2;
+
+        Unsafe.SkipInit(out res);
+        ref ulong pr = ref Unsafe.As<UInt256, ulong>(ref res);
+
+        ulong a0 = Multiply64(x0, y0, out pr);
+
+        // Column 1
+        ulong a1 = 0;
+        ulong a2 = 0;
+        MultiplyAddCarry(ref a0, ref a1, ref a2, x0, y1);
+        MultiplyAddCarry(ref a0, ref a1, ref a2, x1, y0);
+        Unsafe.Add(ref pr, 1) = a0;
+
+        // carry into column 2 is (a2:a1) as a 128-bit value, aligned as (lo=a1, hi=a2)
+
+        // Column 2
+        a0 = a1;
+        a1 = a2;
+        a2 = 0;
+        MultiplyAddCarry(ref a0, ref a1, ref a2, x0, y2);
+        MultiplyAddCarry(ref a0, ref a1, ref a2, x1, y1);
+        MultiplyAddCarry(ref a0, ref a1, ref a2, x2, y0);
+        ulong s1 = (x0 * y._u3) + (x._u3 * y0);
+        ulong s0 = (x1 * y2) + (x2 * y1);
+        Unsafe.Add(ref pr, 2) = a0;
+
+        // For r3 we only need the low 64 of the incoming carry, which is a1 here.
+        Unsafe.Add(ref pr, 3) = a1 + s0 + s1;
+    }
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void MultiplyAddCarry(ref ulong a0, ref ulong a1, ref ulong a2, ulong x, ulong y)
+    {
+        ulong hi = Multiply64(x, y, out ulong lo);
+
+        // a0 += lo; c0 = carry out
+        ulong s0 = a0 + lo;
+        ulong c0 = s0 < a0 ? 1UL : 0UL;
+        a0 = s0;
+
+        // a1 += hi + c0; c1 = carry out (0..2)
+        ulong s1 = a1 + hi;
+        ulong c1 = s1 < a1 ? 1UL : 0UL;
+        s1 += c0;
+        c1 += s1 < c0 ? 1UL : 0UL;
+        a1 = s1;
+
+        // a2 += c1 (a2 stays small here)
+        a2 += c1;
+    }
+
+    [SkipLocalsInit]
+    private static void MultiplyAvx512F(in UInt256 x, in UInt256 y, out UInt256 res)
+    {
+        var vecX = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in x));
+        var vecY = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in y));
+
+        // Load the inputs and prepare the mask constant.
+        var mask32 = Vector512.Create(0xFFFFFFFFUL);
+
+        // Indices that reproduce the layout:
+        // xRearranged = [ x0, x0, x1, x0,  x1, x2, x0, x1 ]
+        // yRearranged = [ y0, y1, y0, y2,  y1, y0, y3, y2 ]
+        var idxX = Vector512.Create(0UL, 0UL, 1UL, 0UL, 1UL, 2UL, 0UL, 1UL);
+        var idxY = Vector512.Create(0UL, 1UL, 0UL, 2UL, 1UL, 0UL, 3UL, 2UL);
+
+        // Lane setup - pure shuffle work.
+        // Replace 4x Permute4x64 (ymm) + 4x InsertVector256 (zmm) with:
+        // 2x InsertVector256 (just put vecX/vecY in low half) + 2x PermuteVar8x64 (zmm).
+
+        var z = Vector512<ulong>.Zero;
+
+        // Put vecX/vecY into the low 256 bits only.
+        // Upper 256 bits remain zero, which is fine because we only index 0..3.
+        var xRearranged = Avx512F.InsertVector256(z, vecX, 0);
+        var yRearranged = Avx512F.InsertVector256(z, vecY, 0);
+        xRearranged = Avx512F.PermuteVar8x64(xRearranged, idxX);
+        yRearranged = Avx512F.PermuteVar8x64(yRearranged, idxY);
+
+        // "Side multiplies" - independent of the 32x32 widening multiplies.
+        // Low-only products we need for limb3 later: p21_lo and p30_lo.
+        var xHigh = Avx2.ExtractVector128(vecX, 1);  // [x2, x3]
+
+        // yRearranged elements 4..5 are [y1, y0] -> 128-bit lane index 2
+        var yLow = Avx512F.ExtractVector128(yRearranged, 2); // [y1, y0]
+
+        var finalProdLow = Avx512DQ.VL.MultiplyLow(xHigh, yLow); // [p21_lo, p30_lo]
+
+        // 32x32 widening multiplies. This block is the "main event"
+        // everything around it should try to overlap with it.
+        var xUpperParts = Avx512F.ShiftRightLogical(xRearranged, 32);
+        var yUpperParts = Avx512F.ShiftRightLogical(yRearranged, 32);
+
+        var prodLL = Avx512F.Multiply(xRearranged.AsUInt32(), yRearranged.AsUInt32()); // low(x)  * low(y)
+        var prodHL = Avx512F.Multiply(xUpperParts.AsUInt32(), yRearranged.AsUInt32()); // high(x) * low(y)
+        var prodHH = Avx512F.Multiply(xUpperParts.AsUInt32(), yUpperParts.AsUInt32()); // high(x) * high(y)
+        var prodLH = Avx512F.Multiply(xRearranged.AsUInt32(), yUpperParts.AsUInt32()); // low(x)  * high(y)
+
+        // 64x64 reconstruction.
+        // Mostly ALU ops (vpaddq/vpsrlq/vpsllq) - lower pressure than shuffles.
+        var prodLL_hi = Avx512F.ShiftRightLogical(prodLL, 32);
+        var prodLH_lo = Avx512F.And(prodLH, mask32);
+        var prodHL_lo = Avx512F.And(prodHL, mask32);
+        var termT = Avx512F.Add(prodLL_hi, Avx512F.Add(prodLH_lo, prodHL_lo));
+
+        var shiftedT = Avx512F.ShiftLeftLogical(termT, 32);
+
+        // lowerPartial uses vpternlog - typically a throughput win over separate and/or.
+        var lowerPartial = Avx512F.TernaryLogic(prodLL, mask32, shiftedT, 0xEA);
+
+        // higherPartial is add-heavy - so we can use an add-tree
+        var hiA = Avx512F.Add(prodHH, Avx512F.ShiftRightLogical(prodLH, 32));
+        var hiB = Avx512F.Add(Avx512F.ShiftRightLogical(prodHL, 32),
+                                           Avx512F.ShiftRightLogical(termT, 32));
+        var higherPartial = Avx512F.Add(hiA, hiB);
+
+        // Interleave lo/hi into [lo,hi] pairs per product.
+        // These unpacks are shuffle-port work; JIT likes to keep them early.
+
+        var productLow = Avx512F.UnpackLow(lowerPartial, higherPartial);
+        var productHi = Avx512F.UnpackHigh(lowerPartial, higherPartial);
+
+        // Hoist common "views" of the product vectors now.
+        // This is intentionally earlier than point-of-use - it gives OoO a longer window
+        // to overlap shuffle latency with the later ALU+compare chain.
+        var productLow_r2 = Avx512F.AlignRight64(productLow, productLow, 2);
+        var product1High = Avx512BW.IsSupported
+            ? Avx512BW.ShiftRightLogical128BitLane(productHi.AsByte(), 8).AsUInt64()
+            : Avx512F.AlignRight64(productHi, productHi, 1);
+        var productHi_r2 = Avx512F.AlignRight64(productHi, productHi, 2);
+
+        // Also hoist this extract even though its used late - it is independent work.
+        var extraLow = Avx512F.ExtractVector128(lowerPartial, 3);
+
+        // Carry-emulated 128-bit adds inside each 128-bit chunk.
+        // Cost centres here are:
+        // - vpcmpltuq + vpmovm2q (mask materialisation tax)
+        // - shuffle ops (valignq/vpslldq) feeding the carry path
+
+        var crossAndGroup2Sum = Add128(productHi, productLow_r2);
+        var crossSumHigh = Avx512BW.IsSupported
+            ? Avx512BW.ShiftRightLogical128BitLane(crossAndGroup2Sum.AsByte(), 8).AsUInt64()
+            : Avx512F.AlignRight64(crossAndGroup2Sum, crossAndGroup2Sum, 1);
+
+        // Perform the group 1 cross-term addition (in 512-bit form, then extract only the final 128-bit lane).
+        var crossAddMask = Avx512BW.IsSupported
+            ? Avx512BW.ShiftLeftLogical128BitLane(crossAndGroup2Sum.AsByte(), 8).AsUInt64()
+            : Avx512F.UnpackLow(Vector512<ulong>.Zero, crossAndGroup2Sum);
+        var updatedProduct0Vec = Avx512F.Add(productLow, crossAddMask);
+
+        // Carry-out for updatedProduct0Vec = productLow + crossAddMask (0/1 per lane, no k-masks).
+        var carryMaskVec = Avx512F.ShiftRightLogical(
+            Avx512F.TernaryLogic(productLow, crossAddMask, updatedProduct0Vec, 0xD4), 63);
+
+        // Move the carry from each 128-bit chunk’s high lane into its low lane (where crossSumHigh lives).
+        var carryMaskToHigh = Avx512BW.IsSupported
+            ? Avx512BW.ShiftRightLogical128BitLane(carryMaskVec.AsByte(), 8).AsUInt64()
+            : Avx512F.AlignRight64(carryMaskVec, carryMaskVec, 1);
+
+        var limb2Vec = Avx512F.Add(crossSumHigh, carryMaskToHigh);
+
+        // Carry-out for limb2Vec = crossSumHigh + carryMaskToHigh (0/1 per lane, no k-masks).
+        var limb2CarryMask = Avx512F.ShiftRightLogical(
+            Avx512F.TernaryLogic(carryMaskToHigh, crossSumHigh, limb2Vec, 0xD4), 63);
+
+        // limb3 = (product1High > crossSumHigh) ? 1 : 0
+        var limb3Mask = Avx512F.CompareGreaterThan(product1High, crossSumHigh);
+        var limb3Vec = Avx512F.ShiftRightLogical(limb3Mask, 63);
+
+        // propagate overflow from (crossSumHigh + carryFlag) into limb3
+        limb3Vec = Avx512F.Add(limb3Vec, limb2CarryMask);
+
+        var upperIntermediateVec = Avx512F.UnpackLow(limb2Vec, limb3Vec);
+
+        // Combine group 2 partial results (still in 512-bit form).
+        // totalGroup2 = group2Sum + product5
+        var totalGroup2Vec = Add128(crossAndGroup2Sum, productHi_r2);
+
+        // Move totalGroup2 (lane1) down into lane0, then newHalf = upperIntermediate + totalGroup2.
+        var totalGroup2ToLow = Avx512F.AlignRight64(totalGroup2Vec, totalGroup2Vec, 2);
+        var newHalfVec = Add128(upperIntermediateVec, totalGroup2ToLow);
+
+        // Extract the two 128-bit results that form the final 256-bit product.
+        var updatedProduct0 = Avx512F.ExtractVector128(updatedProduct0Vec, 0);
+        var newHalf = Avx512F.ExtractVector128(newHalfVec, 0);
+
+        // Process group 3 cross-terms.
+        finalProdLow = Sse2.Add(finalProdLow, extraLow);
+        // swap qwords via pshufd imm=0x4E
+        var swapped = Sse2.Shuffle(finalProdLow.AsInt32(), 0x4E).AsUInt64();
+        // sum both lanes => [a0+a1, a1+a0]
+        var sum = Sse2.Add(finalProdLow, swapped);
+        // keep only the high-qword in the high lane: shift-left by 8 => [0, a0+a1]
+        var hiOnly = Sse2.ShiftLeftLogical128BitLane(sum.AsByte(), 8).AsUInt64();
+        newHalf = Sse2.Add(newHalf, hiOnly);
+
+        // Combine the results into the final 256-bit value.
+        var finalResult = Vector256.Create(updatedProduct0, newHalf);
+        Unsafe.SkipInit(out res);
+        Unsafe.As<UInt256, Vector256<ulong>>(ref res) = finalResult;
+
+        // Adds two 512-bit vectors that conceptually contain four independent 128-bit unsigned integers.
+        // Within each 128-bit chunk, propagates an overflow (carry) from the lower 64-bit lane to the higher lane.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static Vector512<ulong> Add128(Vector512<ulong> left, Vector512<ulong> right)
+        {
+            // Compute the raw lane-wise sum; carries between 64-bit lanes within a 128-bit chunk
+            // are not yet propagated and will be handled by the carry logic below.
+            var sum = Avx512F.Add(left, right);
+
+            if(Avx512BW.IsSupported)
+            {
+                // carryBits = (left & right) | (~sum & (left | right))  (imm8 = 0xD4)
+                var carryBits = Avx512F.TernaryLogic(left, right, sum, 0xD4);
+                // carryOut (0 or 1 in each 64-bit lane)
+                var carry01 = Avx512F.ShiftRightLogical(carryBits, 63);
+                // Promote carry from lane0->lane1, lane2->lane3, ... within each 128-bit chunk
+                var promoted = Avx512BW.ShiftLeftLogical128BitLane(carry01.AsByte(), 8).AsUInt64();
+                // Finalise
+                return Avx512F.Add(sum, promoted);
+            }
+            else
+            {
+                var overflowMask = Avx512F.CompareLessThan(sum, left);
+                // Promote carry from each 128-bit chunk’s low lane into its high lane:
+                // lanes: [0, mask0, 0, mask2, 0, mask4, 0, mask6] where mask is 0 or 0xFFFF..FFFF
+                var promotedCarryAllOnes = Avx512F.UnpackLow(Vector512<ulong>.Zero, overflowMask);
+                // Subtracting 0xFFFF..FFFF is identical to adding 1 (mod 2^64)
+                return Avx512F.Subtract(sum, promotedCarryAllOnes);
+            }
+        }
+    }
+
+    public static bool MultiplyOverflow(in UInt256 x, in UInt256 y, out UInt256 res)
+    {
+        Multiply256To512Bit(in x, in y, out res, out var high);
+        return !high.IsZero;
+    }
+
+    public static void Multiply(in UInt256 x, in UInt256 y, out UInt256 res, out UInt256 high)
+        => Multiply256To512Bit(in x, in y, out res, out high);
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void Squared(out UInt256 result)
+    {
+        ulong x0 = _u0;
+        ulong x1 = _u1;
+        ulong x2 = _u2;
+
+        Unsafe.SkipInit(out result);
+        ref ulong pr = ref Unsafe.As<UInt256, ulong>(ref result);
+
+        // Column 0
+        ulong a0 = Multiply64(x0, x0, out pr);
+
+        // Column 1: 2*x0*x1
+        ulong a1 = 0;
+        ulong a2 = 0;
+        MultiplyAddCarryDouble(ref a0, ref a1, ref a2, x0, x1);
+        Unsafe.Add(ref pr, 1) = a0;
+
+        // carry into column 2 is (a2:a1) as a 128-bit value, aligned as (lo=a1, hi=a2)
+
+        // Column 2: 2*x0*x2 + x1*x1
+        a0 = a1;
+        a1 = a2;
+        a2 = 0;
+        MultiplyAddCarryDouble(ref a0, ref a1, ref a2, x0, x2);
+        MultiplyAddCarry(ref a0, ref a1, ref a2, x1, x1);
+        Unsafe.Add(ref pr, 2) = a0;
+
+        // For r3 we only need the low 64 of the incoming carry, which is a1 here.
+        ulong x3 = _u3;
+
+        // Column 3: 2*x0*x3 + 2*x1*x2 (low 64 only - anything spilling past 64 goes to r4+)
+        ulong s0 = (x1 * x2) << 1;
+        ulong s1 = (x0 * x3) << 1;
+        Unsafe.Add(ref pr, 3) = a1 + s0 + s1;
+    }
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void MultiplyAddCarryDouble(ref ulong a0, ref ulong a1, ref ulong a2, ulong x, ulong y)
+    {
+        // 128-bit product in (hi:lo)
+        ulong hi = Multiply64(x, y, out ulong lo);
+
+        // Double it: (hi:lo) <<= 1, producing a 129-bit value.
+        ulong extra = hi >> 63;                 // bit 128 (carry out of hi when shifted)
+        hi = (hi << 1) | (lo >> 63);            // new high 64
+        lo <<= 1;                               // new low 64
+
+        // a0 += lo; c0 = carry out
+        ulong s0 = a0 + lo;
+        ulong c0 = s0 < a0 ? 1UL : 0UL;
+        a0 = s0;
+
+        // a1 += hi + c0; c1 = carry out (0..2)
+        ulong s1 = a1 + hi;
+        ulong c1 = s1 < a1 ? 1UL : 0UL;
+        s1 += c0;
+        c1 += s1 < c0 ? 1UL : 0UL;
+        a1 = s1;
+
+        // a2 += c1 + extra (a2 stays small here)
+        a2 += c1 + extra;
+    }
+
+    public static UInt256 Pow(in UInt256 b, in UInt256 e)
+    {
+        int bitLen = e.BitLength;
+        if(bitLen == 0)
+        {
+            return One;
+        }
+        if(b.IsUint64)
+        {
+            if(b.IsZero)
+            {
+                return default;
+            }
+            if(b.IsOne)
+            {
+                return One;
+            }
+        }
+
+        // Seed with b so we do not need to "include" the always-set top bit via a multiply.
+        var val = b;
+        for(int i = bitLen - 2; i >= 0; --i)
+        {
+            // val = val * val
+            val.Squared(out val);
+
+            if(e.Bit(i))
+            {
+                MultiplyScalar(in val, in b, out val);
+            }
+        }
+
+        return val;
+    }
+
+    // It avoids c#'s way of shifting a 64-bit number by 64-bit, i.e. in c# a << 64 == a, in our version a << 64 == 0.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ulong Lsh(ulong a, int n)
+    {
+        int n1 = n >> 1;
+        int n2 = n - n1;
+        return a << n1 << n2;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ulong Rsh(ulong a, int n)
+    {
+        int n1 = n >> 1;
+        int n2 = n - n1;
+        return a >> n1 >> n2;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ulong NativeLsh(ulong a, int n)
+    {
+        Debug.Assert(n < 64);
+        return a << n;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ulong NativeRsh(ulong a, int n)
+    {
+        Debug.Assert(n < 64);
+        return a >> n;
+    }
+
+    public static void LeftShift(in UInt256 x, int n, out UInt256 res)
+    {
+        if((n % 64) == 0)
+        {
+            switch(n)
+            {
+                case 0:
+                    res = x;
+                    return;
+                case 64:
+                    x.Lsh64(out res);
+                    return;
+                case 128:
+                    x.Lsh128(out res);
+                    return;
+                case 192:
+                    x.Lsh192(out res);
+                    return;
+                default:
+                    res = Zero;
+                    return;
+            }
+        }
+
+        ulong z0 = 0, z1 = 0, z2 = 0;
+        ulong a = 0, b = 0;
+        // Big swaps first
+        if(n > 192)
+        {
+            if(n > 256)
+            {
+                res = Zero;
+                return;
+            }
+
+            x.Lsh192(out res);
+            n -= 192;
+            goto sh192;
+        }
+        else if(n > 128)
+        {
+            x.Lsh128(out res);
+            n -= 128;
+            goto sh128;
+        }
+        else if(n > 64)
+        {
+            x.Lsh64(out res);
+            n -= 64;
+            goto sh64;
+        }
+        else
+        {
+            res = x;
+        }
+
+        // remaining shifts
+        a = NativeRsh(res._u0, 64 - n);
+        z0 = NativeLsh(res._u0, n);
+
+    sh64:
+        b = NativeRsh(res._u1, 64 - n);
+        z1 = NativeLsh(res._u1, n) | a;
+
+    sh128:
+        a = NativeRsh(res._u2, 64 - n);
+        z2 = NativeLsh(res._u2, n) | b;
+        ulong z3;
+    sh192:
+        z3 = NativeLsh(res._u3, n) | a;
+
+        res = new UInt256(z0, z1, z2, z3);
+    }
+
+    public bool Bit(int n)
+    {
+        uint bucket = (uint) n / 64 % 4;
+        int position = n % 64;
+        return (Unsafe.Add(ref Unsafe.AsRef(in _u0), bucket) & ((ulong) 1 << position)) != 0;
+    }
+
+    public static void RightShift(in UInt256 x, int n, out UInt256 res)
+    {
+        // n % 64 == 0
+        if((n & 0x3f) == 0)
+        {
+            switch(n)
+            {
+                case 0:
+                    res = x;
+                    return;
+                case 64:
+                    x.Rsh64(out res);
+                    return;
+                case 128:
+                    x.Rsh128(out res);
+                    return;
+                case 192:
+                    x.Rsh192(out res);
+                    return;
+                default:
+                    res = Zero;
+                    return;
+            }
+        }
+
+        ulong a = 0, b = 0;
+        ulong z3;
+        ulong z2;
+        ulong z1;
+
+        ulong z0;
+        // Big swaps first
+        if(n > 192)
+        {
+            if(n > 256)
+            {
+                res = Zero;
+                return;
+            }
+
+            x.Rsh192(out res);
+            z1 = res._u1;
+            z2 = res._u2;
+            z3 = res._u3;
+            n -= 192;
+            goto sh192;
+        }
+        else if(n > 128)
+        {
+            x.Rsh128(out res);
+            z2 = res._u2;
+            z3 = res._u3;
+            n -= 128;
+            goto sh128;
+        }
+        else if(n > 64)
+        {
+            x.Rsh64(out res);
+            z3 = res._u3;
+            n -= 64;
+            goto sh64;
+        }
+        else
+        {
+            res = x;
+        }
+
+        // remaining shifts
+        a = NativeLsh(res._u3, 64 - n);
+        z3 = NativeRsh(res._u3, n);
+
+    sh64:
+        b = NativeLsh(res._u2, 64 - n);
+        z2 = NativeRsh(res._u2, n) | a;
+
+    sh128:
+        a = NativeLsh(res._u1, 64 - n);
+        z1 = NativeRsh(res._u1, n) | b;
+
+    sh192:
+        z0 = NativeRsh(res._u0, n) | a;
+
+        res = new UInt256(z0, z1, z2, z3);
+    }
+
+    internal void Lsh64(out UInt256 res)
+        => res = new UInt256(0, _u0, _u1, _u2);
+
+    internal void Lsh128(out UInt256 res)
+        => res = new UInt256(0, 0, _u0, _u1);
+
+    internal void Lsh192(out UInt256 res)
+        => res = new UInt256(0, 0, 0, _u0);
+
+    internal void Rsh64(out UInt256 res)
+        => res = new UInt256(_u1, _u2, _u3);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void Rsh128(out UInt256 res)
+        => res = new UInt256(_u2, _u3);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void Rsh192(out UInt256 res)
+        => res = new UInt256(_u3);
+
+    public static UInt256 Negate(in UInt256 a)
+    {
+        Subtract(Zero, a, out var res);
+        return res;
+    }
+
+    public static void Not(in UInt256 a, out UInt256 res)
+    {
+        if(Vector256.IsHardwareAccelerated)
+        {
+            var av = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
+            // Mark res as initalized so we can use it as left said of ref assignment
+            Unsafe.SkipInit(out res);
+            Unsafe.As<UInt256, Vector256<ulong>>(ref res) = Vector256.Xor(av, Vector256<ulong>.AllBitsSet);
+        }
+        else
+        {
+            ulong u0 = ~a._u0;
+            ulong u1 = ~a._u1;
+            ulong u2 = ~a._u2;
+            ulong u3 = ~a._u3;
+            res = new UInt256(u0, u1, u2, u3);
+        }
+    }
+
+    public static void Or(in UInt256 a, in UInt256 b, out UInt256 res)
+    {
+        if(Vector256.IsHardwareAccelerated)
+        {
+            var av = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
+            var bv = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in b));
+            // Mark res as initalized so we can use it as left said of ref assignment
+            Unsafe.SkipInit(out res);
+            Unsafe.As<UInt256, Vector256<ulong>>(ref res) = Vector256.BitwiseOr(av, bv);
+        }
+        else
+        {
+            res = new UInt256(a._u0 | b._u0, a._u1 | b._u1, a._u2 | b._u2, a._u3 | b._u3);
+        }
+    }
+
+    public static void And(in UInt256 a, in UInt256 b, out UInt256 res)
+    {
+        if(Vector256.IsHardwareAccelerated)
+        {
+            var av = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
+            var bv = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in b));
+            // Mark res as initalized so we can use it as left said of ref assignment
+            Unsafe.SkipInit(out res);
+            Unsafe.As<UInt256, Vector256<ulong>>(ref res) = Vector256.BitwiseAnd(av, bv);
+        }
+        else
+        {
+            res = new UInt256(a._u0 & b._u0, a._u1 & b._u1, a._u2 & b._u2, a._u3 & b._u3);
+        }
+    }
+
+    public static void Xor(in UInt256 a, in UInt256 b, out UInt256 res)
+    {
+        if(Vector256.IsHardwareAccelerated)
+        {
+            var av = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
+            var bv = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in b));
+            // Mark res as initalized so we can use it as left said of ref assignment
+            Unsafe.SkipInit(out res);
+            Unsafe.As<UInt256, Vector256<ulong>>(ref res) = Vector256.Xor(av, bv);
+        }
+        else
+        {
+            res = new UInt256(a._u0 ^ b._u0, a._u1 ^ b._u1, a._u2 ^ b._u2, a._u3 ^ b._u3);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThan(in UInt256 a, long b) => b >= 0 && a._u3 == 0 && a._u2 == 0 && a._u1 == 0 && a._u0 < (ulong) b;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThan(long a, in UInt256 b) => a < 0 || b._u1 != 0 || b._u2 != 0 || b._u3 != 0 || (ulong) a < b._u0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThan(in UInt256 a, ulong b) => a._u3 == 0 && a._u2 == 0 && a._u1 == 0 && a._u0 < b;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThan(ulong a, in UInt256 b) => b._u3 != 0 || b._u2 != 0 || b._u1 != 0 || a < b._u0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThan(in UInt256 a, in UInt256 b)
+    {
+        if(!Avx2.IsSupported && !Vector256.IsHardwareAccelerated)
+        {
+            return LessThanScalar(in a, in b);
+        }
+        //
+        return Avx2.IsSupported
+            ? LessThanAvx2(in a, in b)
+            : LessThanVector256(in a, in b);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThanScalar(in UInt256 a, in UInt256 b)
+    {
+        if(a._u3 != b._u3)
+        {
+            return a._u3 < b._u3;
+        }
+
+        if(a._u2 != b._u2)
+        {
+            return a._u2 < b._u2;
+        }
+
+        if(a._u1 != b._u1)
+        {
+            return a._u1 < b._u1;
+        }
+        //
+        return a._u0 < b._u0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThanAvx2(in UInt256 a, in UInt256 b)
+    {
+        // Load the four 64-bit words into a 256-bit register.
+        var vecL = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
+        var vecR = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in b));
+
+        uint eqMask;
+        uint ltMask;
+        if(Avx512F.VL.IsSupported && Avx512DQ.IsSupported)
+        {
+            // Best case: AVX-512 compare produces k-mask; MoveMask uses KMOVB.
+            // Avx512DQ.MoveMask is documented as KMOVB r32,k1.
+            eqMask = (uint) Avx512DQ.MoveMask(Avx512F.VL.CompareEqual(vecL, vecR));     // VPCMPUQ + KMOVB
+            ltMask = (uint) Avx512DQ.MoveMask(Avx512F.VL.CompareLessThan(vecL, vecR));  // VPCMPUQ + KMOVB
+        }
+        else
+        {
+            // Equality mask - AVX2 compare -> movmskpd
+            eqMask = (uint) Avx.MoveMask(Avx2.CompareEqual(vecL, vecR).AsDouble());
+            // AVX2 unsigned-compare trick (flip sign bit, signed compare)
+            var signFlip = Vector256.Create(0x8000_0000_0000_0000UL);
+            var sL = Avx2.Xor(vecL, signFlip).AsInt64();
+            var sR = Avx2.Xor(vecR, signFlip).AsInt64();
+            ltMask = (uint) Avx.MoveMask(Avx2.CompareGreaterThan(sR, sL).AsDouble());
+        }
+
+        uint diff = eqMask ^ 0xFu;
+        if(diff == 0)
+        {
+            return false;
+        }
+
+        // Slightly nicer than BitOperations.Log2 here:
+        // diff != 0 and diff <= 0xF => LZCNT in [28..31] => (31 - lzcnt) == (31 ^ lzcnt)
+        int idx = BitOperations.LeadingZeroCount(diff) ^ 31;
+        return ((ltMask >> idx) & 1u) != 0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThanVector256(in UInt256 a, in UInt256 b)
+    {
+        // Load the four 64-bit words into a 256-bit register.
+        var vecL = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in a));
+        var vecR = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in b));
+
+        uint eqMask = Vector256.ExtractMostSignificantBits(Vector256.Equals(vecL, vecR));
+        uint ltMask = Vector256.ExtractMostSignificantBits(Vector256.LessThan(vecL, vecR));
+
+        uint diff = eqMask ^ 0xFu;
+        if(diff == 0)
+        {
+            return false;
+        }
+
+        // Slightly nicer than BitOperations.Log2 here:
+        // diff != 0 and diff <= 0xF => LZCNT in [28..31] => (31 - lzcnt) == (31 ^ lzcnt)
+        int idx = BitOperations.LeadingZeroCount(diff) ^ 31;
+        return ((ltMask >> idx) & 1u) != 0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThanBoth(in UInt256 x, in UInt256 y, in UInt256 m)
+    {
+        if(!Avx2.IsSupported && !Vector256.IsHardwareAccelerated)
+        {
+            return LessThanScalar(in x, in m) && LessThanScalar(in y, in m);
+        }
+        //
+        return Avx512F.VL.IsSupported && Avx512DQ.IsSupported
+            ? LessThanBothAvx512(in x, in y, in m)
+            : Avx2.IsSupported
+                ? LessThanBothAvx2(in x, in y, in m)
+                : LessThanBothVector256(in x, in y, in m);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThanBothAvx512(in UInt256 x, in UInt256 y, in UInt256 m)
+    {
+        var vx = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in x));
+        var vy = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in y));
+        var vm = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in m));
+
+        var vxy = Vector512.Create(vx, vy);
+        var vmm = Vector512.Create(vm, vm); // can be improved to vbroadcasti64x4 - see below
+
+        uint eq8 = (uint) Avx512DQ.MoveMask(Avx512F.CompareEqual(vxy, vmm)) & 0xFFu;
+        uint lt8 = (uint) Avx512DQ.MoveMask(Avx512F.CompareLessThan(vxy, vmm)) & 0xFFu;
+
+        // d has 1s where lanes differ, in both nibbles
+        uint d = eq8 ^ 0xFFu;
+
+        // saturate within each nibble (no cross-nibble bleed)
+        d |= (d >> 1) & 0x77u;
+        d |= (d >> 2) & 0x33u;
+
+        // isolate the top mismatch bit in each nibble
+        uint msb = d & ~((d >> 1) & 0x77u);
+
+        // pick lt at that mismatch bit (still per nibble)
+        uint chosen = lt8 & msb;
+
+        // low nibble -> x, high nibble -> y
+        return ((chosen & 0x0Fu) != 0) & ((chosen & 0xF0u) != 0);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThanBothAvx2(in UInt256 x, in UInt256 y, in UInt256 m)
+    {
+        var vecM = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in m));
+
+        var signFlip = Vector256.Create(0x8000_0000_0000_0000UL);
+        var low32Mask = Vector256.Create(0x0000_0000_FFFF_FFFFUL);
+
+        var sM = Avx2.Xor(vecM, signFlip).AsInt64();
+
+        var vecX2 = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in x));
+        var vecY2 = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in y));
+
+        // All compares first (lets the core overlap work before any movemask/LZCNT).
+        var eqXv = Avx2.CompareEqual(vecX2, vecM);
+        var eqYv = Avx2.CompareEqual(vecY2, vecM);
+
+        var sX = Avx2.Xor(vecX2, signFlip).AsInt64();
+        var sY = Avx2.Xor(vecY2, signFlip).AsInt64();
+
+        var ltXv = Avx2.CompareGreaterThan(sM, sX).AsUInt64();
+        var ltYv = Avx2.CompareGreaterThan(sM, sY).AsUInt64();
+
+        // Pack eq(low dword) + lt(high dword) so one movmskps yields both.
+        var packedX = Avx2.Or(Avx2.And(eqXv, low32Mask), Avx2.AndNot(low32Mask, ltXv));
+        var packedY = Avx2.Or(Avx2.And(eqYv, low32Mask), Avx2.AndNot(low32Mask, ltYv));
+
+        uint maskX = (uint) Avx.MoveMask(packedX.AsSingle());
+        uint maskY = (uint) Avx.MoveMask(packedY.AsSingle());
+
+        return LessThanFromPackedMask8(maskX) & LessThanFromPackedMask8(maskY);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThanBothFromEqLt8(uint eq8, uint lt8)
+    {
+        // eq8/lt8 are 0..255 (low 8 bits used)
+        uint d = eq8 ^ 0xFFu;           // mismatch bits (1 where not equal), per nibble
+
+        // saturate within each nibble (prevent bit4 spilling into bit3 etc)
+        d |= (d >> 1) & 0x77u;
+        d |= (d >> 2) & 0x33u;
+
+        // isolate most-significant mismatch bit in each nibble
+        uint msb = d & ~((d >> 1) & 0x77u);
+
+        // pick lt bit at that msb position for each nibble
+        uint chosen = lt8 & msb;
+
+        // low nibble -> x decision, high nibble -> y decision
+        return ((chosen & 0x0Fu) != 0) & ((chosen & 0xF0u) != 0);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThanFromPackedMask8(uint mask8)
+    {
+        // even bits are eq, odd bits are lt
+        uint mismatchEven = (~mask8) & 0x55u;
+        if(mismatchEven == 0)
+        {
+            return false; // all words equal => not less
+        }
+
+        int pos = BitOperations.LeadingZeroCount(mismatchEven) ^ 31; // highest mismatching even bit
+        return ((mask8 >> (pos + 1)) & 1u) != 0; // corresponding lt bit
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThanBothVector256(in UInt256 x, in UInt256 y, in UInt256 m)
+    {
+        var vecM = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in m));
+
+        // x < m
+        var vecX = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in x));
+        uint eqMaskX = Vector256.ExtractMostSignificantBits(Vector256.Equals(vecX, vecM));
+        uint ltMaskX = Vector256.ExtractMostSignificantBits(Vector256.LessThan(vecX, vecM));
+        if(!LessThanBothFromEqLt8(eqMaskX, ltMaskX))
+        {
+            return false;
+        }
+
+        // y < m
+        var vecY = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in y));
+        uint eqMaskY = Vector256.ExtractMostSignificantBits(Vector256.Equals(vecY, vecM));
+        uint ltMaskY = Vector256.ExtractMostSignificantBits(Vector256.LessThan(vecY, vecM));
+        return LessThanBothFromEqLt8(eqMaskY, ltMaskY);
+    }
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private unsafe static ulong Multiply64(ulong a, ulong b, out ulong low)
+    {
+        if(Bmi2.X64.IsSupported)
+        {
+            // Two multiplies ends up being faster as it doesn't force spill to stack.
+            ulong lowLocal;
+            ulong high = Bmi2.X64.MultiplyNoFlags(a, b, &lowLocal);
+            low = lowLocal;
+            return high;
+        }
+        else if(ArmBase.Arm64.IsSupported)
+        {
+            low = a * b;
+            return ArmBase.Arm64.MultiplyHigh(a, b);
+        }
+        else
+        {
+            return Math.BigMul(a, b, out low);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ulong Sub(ulong x, ulong y, ref ulong borrow)
+    {
+        ulong t = x - y;
+        ulong b1 = (x < y) ? 1UL : 0UL;
+        ulong t2 = t - borrow;
+        ulong b2 = (t < borrow) ? 1UL : 0UL;
+        borrow = b1 | b2;
+        return t2;
+    }
+
+    public bool Equals(int other)
+        => other >= 0 && Equals((uint) other);
+
+    public bool Equals(uint other)
+    {
+        if(Vector256.IsHardwareAccelerated)
+        {
+            var v = Unsafe.As<ulong, Vector256<uint>>(ref Unsafe.AsRef(in _u0));
+            return v == Vector256.CreateScalar(other);
+        }
+        else
+        {
+            return _u0 == other && IsUint64;
+        }
+    }
+
+    public bool Equals(long other)
+        => other >= 0 && Equals((ulong) other);
+    public bool Equals(ulong other)
+    {
+        if(Vector256.IsHardwareAccelerated)
+        {
+            var v = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0));
+            return v == Vector256.CreateScalar(other);
+        }
+        else
+        {
+            return _u0 == other && IsUint64;
+        }
+    }
+
+    public override bool Equals(object? obj)
+        => obj is UInt256 other && Equals(other);
+
+    [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Equals(in UInt256 other)
+    {
+        var v1 = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0));
+        var v2 = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in other));
+        return v1 == v2;
+    }
+    public bool Equals(UInt256 other)
+    {
+        var v1 = Unsafe.As<ulong, Vector256<ulong>>(ref Unsafe.AsRef(in _u0));
+        var v2 = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in other));
+        return v1 == v2;
+    }
+
+    public int CompareTo(object? obj)
+        => obj is not UInt256 int256
+            ? throw new InvalidOperationException()
+            : CompareTo(int256);
+
+    [OverloadResolutionPriority(1)]
+    public int CompareTo(in UInt256 b)
+        => this < b
+            ? -1
+            : Equals(b)
+                ? 0
+                : 1;
+    public int CompareTo(UInt256 b)
+        => CompareTo(in b);
+
+    [SkipLocalsInit]
+    public readonly override int GetHashCode()
+    {
+        const uint HASH_SEED = 2098026241U;
+
+        // Very fast hardware accelerated non-cryptographic hash function
+        uint seed = HASH_SEED;
+
+        if(x64.Aes.IsSupported)
+        {
+            var key = Unsafe.As<ulong, Vector128<byte>>(ref Unsafe.AsRef(in _u0));
+            var data = Unsafe.As<ulong, Vector128<byte>>(ref Unsafe.AsRef(in _u2));
+            // Mix in the hash seed
+            key ^= Vector128.CreateScalar(seed).AsByte();
+            // Single AESENC is a powerful mixer - 4 cycles, full diffusion
+            var mixed = x64.Aes.Encrypt(data, key);
+            ulong compressed = mixed.AsUInt64().GetElement(0) ^ mixed.AsUInt64().GetElement(1);
+            return (int) (uint) (compressed ^ (compressed >> 32));
+        }
+        else if(Arm.Aes.IsSupported)
+        {
+            var key = Unsafe.As<ulong, Vector128<byte>>(ref Unsafe.AsRef(in _u0));
+            var data = Unsafe.As<ulong, Vector128<byte>>(ref Unsafe.AsRef(in _u2));
+            // Mix in the hash seed
+            key ^= Vector128.CreateScalar(seed).AsByte();
+            // ARM needs explicit MixColumns for equivalent diffusion
+            var mixed = Arm.Aes.MixColumns(Arm.Aes.Encrypt(data, key));
+            ulong compressed = mixed.AsUInt64().GetElement(0) ^ mixed.AsUInt64().GetElement(1);
+            return (int) (uint) (compressed ^ (compressed >> 32));
+        }
+
+        uint hash0 = BitOperations.Crc32C(seed, _u0);
+        uint hash1 = BitOperations.Crc32C(seed ^ 0x9E3779B9u, _u1);
+        uint hash2 = BitOperations.Crc32C(seed ^ 0x85EBCA6Bu, _u2);
+        uint hash3 = BitOperations.Crc32C(seed ^ 0xC2B2AE35u, _u3);
+
+        hash0 += BitOperations.RotateLeft(hash1, 11);
+        hash2 = BitOperations.RotateLeft(hash2, 17) + BitOperations.RotateLeft(hash3, 23);
+        uint hash = hash2 + hash0;
+        return FinalMix(hash);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static int FinalMix(uint x)
+        {
+            x ^= x >> 16;
+            x *= 0x9E3779B1u;
+            x ^= x >> 16;
+            return (int) x;
+        }
+    }
+
+    public static UInt256 Max(in UInt256 a, in UInt256 b)
+        => LessThan(in b, in a) ? a : b;
+    public static UInt256 Min(in UInt256 a, in UInt256 b)
+        => LessThan(in b, in a) ? b : a;
+}

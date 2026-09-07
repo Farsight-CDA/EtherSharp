@@ -159,7 +159,7 @@ internal sealed class InterpreterAccountStorage(
         var effectiveCodeHash = codeHash ?? EmptyCodeHash;
         return effectiveCodeHash == EmptyCodeHash
             && await GetNonceAsync() == 0
-            && await GetBalanceAsync() == UInt256.Zero
+            && (await GetBalanceAsync()).IsZero
                 ? Bytes32.Zero
                 : effectiveCodeHash;
     }

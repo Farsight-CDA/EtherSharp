@@ -15,7 +15,7 @@ internal sealed class SafeFlashCallQueryOperation<T> : IQuery, IQuery<CallResult
 
     public SafeFlashCallQueryOperation(IFlashCode code, IFlashCall<T> txInput)
     {
-        if(code is IContractDeployment deployment && deployment.Value > 0)
+        if(code is IContractDeployment deployment && !deployment.Value.IsZero)
         {
             throw new NotSupportedException("Contract deployment cannot contain any value");
         }

@@ -91,7 +91,7 @@ public sealed class Int256HexConverter : JsonConverter<Int256>
 
     private static int FormatHex(Int256 value, scoped Span<char> hexBuffer)
     {
-        if(value == 0)
+        if(value.IsZero)
         {
             "0x0".AsSpan().CopyTo(hexBuffer);
             return 3;

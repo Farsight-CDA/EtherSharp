@@ -10,7 +10,7 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 
-namespace EtherSharp.Numerics;
+namespace EtherSharp.Numerics.Old;
 
 public readonly partial struct UInt256
 {

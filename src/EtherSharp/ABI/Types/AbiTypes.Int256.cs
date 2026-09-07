@@ -23,7 +23,7 @@ public static partial class AbiTypes
             }
 
             int bitLength = byteLength * 8;
-            if(byteLength < 32 && ((value > 0 && value >> (bitLength - 1) != 0) || (value < 0 && value >> (bitLength - 1) != -1)))
+            if(byteLength < 32 && ((value > 0 && !(value >> (bitLength - 1)).IsZero) || (value < 0 && value >> (bitLength - 1) != -1)))
             {
                 throw new ArgumentException($"Value is too large to fit in a {bitLength}-bit signed integer", nameof(value));
             }
@@ -58,6 +58,6 @@ public static partial class AbiTypes
         /// Decodes a signed 256-bit value from an ABI word.
         /// </summary>
         public static Numerics.Int256 Decode(ReadOnlySpan<byte> bytes)
-            => new Numerics.Int256(bytes, true);
+            => BinaryPrimitives.ReadInt256BigEndian(bytes);
     }
 }

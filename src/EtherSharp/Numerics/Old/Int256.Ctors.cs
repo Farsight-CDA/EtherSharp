@@ -1,4 +1,4 @@
-namespace EtherSharp.Numerics;
+namespace EtherSharp.Numerics.Old;
 
 #pragma warning disable CS1591
 

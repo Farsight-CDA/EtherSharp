@@ -6,15 +6,11 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace EtherSharp.Numerics;
+namespace EtherSharp.Numerics.Old;
 
-public readonly partial struct Int256 : IStackValue<Int256>
+public readonly partial struct Int256
 {
-    static Int256 IStackValue<Int256>.FromStackWord(in Bytes32 value)
-        => (Int256) value;
 
-    static Bytes32 IStackValue<Int256>.ToStackWord(in Int256 value)
-        => (Bytes32) value;
 
     private static readonly BigInteger _minValueAsBigInteger = -(BigInteger.One << 255);
     private static readonly BigInteger _maxValueAsBigInteger = (BigInteger.One << 255) - BigInteger.One;
@@ -25,17 +21,6 @@ public readonly partial struct Int256 : IStackValue<Int256>
     /// <param name="value">The fixed-size bytes to interpret.</param>
     public static explicit operator Int256(in Bytes32 value)
         => new Int256(value.DangerousGetReadOnlySpan(), true);
-
-    /// <summary>
-    /// Represents the value as fixed-size two's-complement bytes in big-endian byte order.
-    /// </summary>
-    /// <param name="value">The signed 256-bit integer to represent.</param>
-    public static explicit operator Bytes32(in Int256 value)
-    {
-        Span<byte> bytes = stackalloc byte[Bytes32.BYTE_LENGTH];
-        BinaryPrimitives.WriteInt256BigEndian(bytes, value);
-        return Bytes32.FromBytes(bytes);
-    }
 
     public static explicit operator Int256(in UInt256 value) => new Int256(value);
 
