@@ -32,7 +32,7 @@ public sealed partial record InterpreterExecutionSpec
             new UnsupportedPrecompile(Address.FromString("0x000000000000000000000000000000000000000f")), // BLS12-381 PAIRING
             new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000010")), // BLS12-381 MAP_FP_TO_G1
             new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000011")), // BLS12-381 MAP_FP2_TO_G2
-            new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000100")), // P256VERIFY (EIP-7951)
+            P256VerifyPrecompile.Instance, // 0x0100: P256VERIFY (EIP-7951)
         ]
     };
 }
