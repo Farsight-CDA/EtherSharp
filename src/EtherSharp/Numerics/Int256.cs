@@ -2,6 +2,7 @@ using EtherSharp.Common.Converters.Json;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
+using CoreInt256 = Nethermind.Int256.Int256;
 
 namespace EtherSharp.Numerics;
 
@@ -105,4 +106,12 @@ public readonly partial struct Int256
         => IsNegative
             ? (~UInt256.AsUpstream(in _value)).BitLen + 1
             : _value.GetShortestBitLength();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ref readonly CoreInt256 AsUpstream(in Int256 value)
+        => ref Unsafe.As<Int256, CoreInt256>(ref Unsafe.AsRef(in value));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static Int256 FromUpstream(CoreInt256 value)
+        => Unsafe.BitCast<CoreInt256, Int256>(value);
 }
