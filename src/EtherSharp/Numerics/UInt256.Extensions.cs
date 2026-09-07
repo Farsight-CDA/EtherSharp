@@ -121,10 +121,15 @@ public static class UInt256Extensions
             }
             else
             {
-                BinaryPrimitives.WriteUInt64LittleEndian(destination[..8], value._u0);
-                BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8, 8), value._u1);
-                BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(16, 8), value._u2);
-                BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(24, 8), value._u3);
+                // Capture all limbs before writing because destination may overlap value.
+                ulong u0 = value._u0;
+                ulong u1 = value._u1;
+                ulong u2 = value._u2;
+                ulong u3 = value._u3;
+                BinaryPrimitives.WriteUInt64LittleEndian(destination[..8], u0);
+                BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8, 8), u1);
+                BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(16, 8), u2);
+                BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(24, 8), u3);
             }
         }
 
@@ -173,10 +178,15 @@ public static class UInt256Extensions
             }
             else
             {
-                BinaryPrimitives.WriteUInt64BigEndian(destination[..8], value._u3);
-                BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(8, 8), value._u2);
-                BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(16, 8), value._u1);
-                BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(24, 8), value._u0);
+                // Capture all limbs before writing because destination may overlap value.
+                ulong u0 = value._u0;
+                ulong u1 = value._u1;
+                ulong u2 = value._u2;
+                ulong u3 = value._u3;
+                BinaryPrimitives.WriteUInt64BigEndian(destination[..8], u3);
+                BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(8, 8), u2);
+                BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(16, 8), u1);
+                BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(24, 8), u0);
             }
         }
     }
