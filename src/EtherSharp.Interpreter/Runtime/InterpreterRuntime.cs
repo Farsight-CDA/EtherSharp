@@ -299,61 +299,78 @@ public class InterpreterRuntime : IDisposable
             }
         }
 
+        var hooks = _executionState!.Hooks;
         ExecutionResult result;
         if(_precompiles.TryGetValue(messageCall.CodeAddress, out var precompile))
         {
-            var precompileResult = await precompile.ExecuteAsync(
-                _host,
-                new PrecompileCall(
-                    _context,
-                    messageCall.Origin,
-                    messageCall.Caller,
-                    messageCall.Address,
-                    messageCall.Value,
-                    messageCall.Input,
-                    messageCall.Depth,
-                    messageCall.IsStatic
-                )
+            var call = new PrecompileCall(
+                _context,
+                messageCall.Origin,
+                messageCall.Caller,
+                messageCall.Address,
+                messageCall.Value,
+                messageCall.Input,
+                messageCall.Depth,
+                messageCall.IsStatic
             );
+            var precompileResult = await precompile.ExecuteAsync(_host, call);
             // Native precompile failure is exceptional, not execution of the REVERT opcode.
             result = precompileResult.Success
                 ? ExecutionResult.Success(precompileResult.Data)
                 : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.PrecompileFailure);
-        }
-        else
-        {
-            var callFrame = new CallFrame(
-                messageCall.Origin,
-                messageCall.Caller,
-                messageCall.Address,
-                messageCall.CodeAddress,
-                messageCall.Value,
-                messageCall.Input,
-                accountStorage,
-                Options,
-                messageCall.Depth,
-                messageCall.IsStatic
-            );
-
-            var codeStorage = callFrame.CodeAddress == callFrame.To
-                ? callFrame.AccountStorage
-                : _storage.GetAccountStorage(callFrame.CodeAddress);
-            var byteCode = await codeStorage.GetCodeAsync();
-            // EIP-7702 delegation: load the target's code without following further delegations.
-            if(byteCode.Length == 3 + Address.BYTES_LENGTH
-                && byteCode.ByteCode.Span[0] == 0xEF
-                && byteCode.ByteCode.Span[1] == 0x01
-                && byteCode.ByteCode.Span[2] == 0x00)
+            if(!result.IsSuccess)
             {
-                var delegationTarget = Address.FromBytes(byteCode.ByteCode.Span[3..]);
-                byteCode = await _storage.GetAccountStorage(delegationTarget).GetCodeAsync();
+                _storage.Reset(callSnapshot);
             }
-            result = await ExecuteOpcodesAsync(callFrame, new ZeroPaddedData(byteCode.ByteCode));
+            if(hooks is not null)
+            {
+                await hooks.OnPrecompileCallAsync(messageCall.CodeAddress, call, result, _storage);
+            }
+
+            return result;
         }
+
+        var callFrame = new CallFrame(
+            messageCall.Origin,
+            messageCall.Caller,
+            messageCall.Address,
+            messageCall.CodeAddress,
+            messageCall.Value,
+            messageCall.Input,
+            accountStorage,
+            Options,
+            messageCall.Depth,
+            messageCall.IsStatic
+        );
+
+        if(hooks is not null)
+        {
+            await hooks.OnFrameEnterAsync(callFrame, _storage);
+        }
+
+        var codeStorage = callFrame.CodeAddress == callFrame.To
+            ? callFrame.AccountStorage
+            : _storage.GetAccountStorage(callFrame.CodeAddress);
+        var byteCode = await codeStorage.GetCodeAsync();
+        // EIP-7702 delegation: load the target's code without following further delegations.
+        if(byteCode.Length == 3 + Address.BYTES_LENGTH
+            && byteCode.ByteCode.Span[0] == 0xEF
+            && byteCode.ByteCode.Span[1] == 0x01
+            && byteCode.ByteCode.Span[2] == 0x00)
+        {
+            var delegationTarget = Address.FromBytes(byteCode.ByteCode.Span[3..]);
+            byteCode = await _storage.GetAccountStorage(delegationTarget).GetCodeAsync();
+        }
+        result = await ExecuteOpcodesAsync(callFrame, new ZeroPaddedData(byteCode.ByteCode));
 
         if(!result.IsSuccess)
         {
             _storage.Reset(callSnapshot);
+        }
+
+        if(hooks is not null)
+        {
+            await hooks.OnFrameExitAsync(callFrame, result, _storage);
         }
 
         return result;
@@ -407,6 +424,13 @@ public class InterpreterRuntime : IDisposable
             creation.Depth,
             false
         );
+
+        var hooks = _executionState!.Hooks;
+        if(hooks is not null)
+        {
+            await hooks.OnFrameEnterAsync(creationFrame, _storage);
+        }
+
         var creationResult = await ExecuteOpcodesAsync(
             creationFrame,
             new ZeroPaddedData(creation.InitCode)
@@ -414,21 +438,28 @@ public class InterpreterRuntime : IDisposable
         if(!creationResult.IsSuccess)
         {
             _storage.Reset(creationSnapshot);
-            return creationResult;
         }
-        if(creationResult.Data.Length > ExecutionSpec.MaxRuntimeCodeLength)
+        else if(creationResult.Data.Length > ExecutionSpec.MaxRuntimeCodeLength)
         {
             _storage.Reset(creationSnapshot);
-            return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.RuntimeCodeTooLarge);
+            creationResult = ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.RuntimeCodeTooLarge);
         }
-        if(!creationResult.Data.IsEmpty && creationResult.Data.Span[0] == 0xEF)
+        else if(!creationResult.Data.IsEmpty && creationResult.Data.Span[0] == 0xEF)
         {
             _storage.Reset(creationSnapshot);
-            return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidRuntimeCode);
+            creationResult = ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidRuntimeCode);
+        }
+        else
+        {
+            var runtimeCode = new EVMByteCode(creationResult.Data.ToArray());
+            createdStorage.SetCode(in runtimeCode);
         }
 
-        var runtimeCode = new EVMByteCode(creationResult.Data.ToArray());
-        createdStorage.SetCode(in runtimeCode);
+        if(hooks is not null)
+        {
+            await hooks.OnFrameExitAsync(creationFrame, creationResult, _storage);
+        }
+
         return creationResult;
     }
 

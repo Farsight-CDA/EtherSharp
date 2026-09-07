@@ -1,13 +1,15 @@
 namespace EtherSharp.Interpreter.Runtime;
 
-internal readonly struct ExecutionResult
+/// <summary>Describes the outcome of an EVM execution.</summary>
+public readonly struct ExecutionResult
 {
     private readonly ExecutionHaltKind _haltKind;
     private readonly int _failureReason;
 
+    /// <summary>Gets whether execution succeeded.</summary>
     public bool IsSuccess => _haltKind == ExecutionHaltKind.Success;
 
-    // Return/revert data on those outcomes; empty on either kind of failure.
+    /// <summary>Gets borrowed return or revert bytes; empty for entry failures and exceptional halts.</summary>
     public ReadOnlyMemory<byte> Data { get; }
 
     private ExecutionResult(
@@ -21,22 +23,23 @@ internal readonly struct ExecutionResult
         Data = data;
     }
 
-    public static ExecutionResult Success(ReadOnlyMemory<byte> data = default)
+    internal static ExecutionResult Success(ReadOnlyMemory<byte> data = default)
         => new(ExecutionHaltKind.Success, data);
 
-    public static ExecutionResult Revert(ReadOnlyMemory<byte> data = default)
+    internal static ExecutionResult Revert(ReadOnlyMemory<byte> data = default)
         => new(ExecutionHaltKind.Revert, data);
 
-    public static ExecutionResult ExceptionalHalt(ExceptionalHaltReason reason)
+    internal static ExecutionResult ExceptionalHalt(ExceptionalHaltReason reason)
         => Enum.IsDefined(reason)
             ? new(ExecutionHaltKind.ExceptionalHalt, failureReason: (int) reason)
             : throw new ArgumentOutOfRangeException(nameof(reason));
 
-    public static ExecutionResult CallEntryFailure(CallEntryFailureReason reason)
+    internal static ExecutionResult CallEntryFailure(CallEntryFailureReason reason)
         => Enum.IsDefined(reason)
             ? new(ExecutionHaltKind.CallEntryFailure, failureReason: (int) reason)
             : throw new ArgumentOutOfRangeException(nameof(reason));
 
+    /// <summary>Determines whether execution explicitly reverted and returns its borrowed revert data.</summary>
     public bool IsRevert(out ReadOnlyMemory<byte> data)
     {
         bool isRevert = _haltKind == ExecutionHaltKind.Revert;
@@ -44,6 +47,7 @@ internal readonly struct ExecutionResult
         return isRevert;
     }
 
+    /// <summary>Determines whether execution halted exceptionally and returns the reason.</summary>
     public bool IsExceptionalHalt(out ExceptionalHaltReason reason)
     {
         bool isExceptionalHalt = _haltKind == ExecutionHaltKind.ExceptionalHalt;
@@ -51,6 +55,7 @@ internal readonly struct ExecutionResult
         return isExceptionalHalt;
     }
 
+    /// <summary>Determines whether an invocation entry check failed and returns the reason.</summary>
     public bool IsCallEntryFailure(out CallEntryFailureReason reason)
     {
         bool isCallEntryFailure = _haltKind == ExecutionHaltKind.CallEntryFailure;
