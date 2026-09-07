@@ -19,6 +19,8 @@ EtherSharp changes:
 - Use endian-explicit decoding and portable scalar rotations and arithmetic.
 - Use a single unrolled scalar implementation on every platform.
 - Interleave each arithmetic stage across the four independent mixing lanes.
+- Use fixed-size spans and eight-byte word slices to eliminate per-word bounds
+  checks in the scalar core.
 
 Regenerate from the repository root:
 

@@ -58,17 +58,21 @@ internal static class Blake2F
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static void CompressScalar(ReadOnlySpan<byte> input, Span<byte> destination, uint rounds)
     {
+        // Fixed span and word lengths let the JIT eliminate per-word bounds checks.
+        input = input[..INPUT_LENGTH];
+        destination = destination[..OUTPUT_LENGTH];
+
 <# for(int i = 0; i < 8; i++) { #>
-        ulong h<#= i #> = BinaryPrimitives.ReadUInt64LittleEndian(input[<#= 4 + (i * 8) #>..]);
+        ulong h<#= i #> = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(<#= 4 + (i * 8) #>, 8));
 <# } #>
 <# for(int i = 0; i < 16; i++) { #>
-        ulong m<#= i #> = BinaryPrimitives.ReadUInt64LittleEndian(input[<#= 68 + (i * 8) #>..]);
+        ulong m<#= i #> = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(<#= 68 + (i * 8) #>, 8));
 <# } #>
 <# for(int i = 0; i < 16; i++) { #>
         ulong v<#= i #> = <#= i < 8 ? "h" + i : iv[i - 8] #>;
 <# } #>
-        v12 ^= BinaryPrimitives.ReadUInt64LittleEndian(input[196..]);
-        v13 ^= BinaryPrimitives.ReadUInt64LittleEndian(input[204..]);
+        v12 ^= BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(196, 8));
+        v13 ^= BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(204, 8));
         if(input[212] == 1)
         {
             v14 = ~v14;
@@ -125,7 +129,7 @@ internal static class Blake2F
         }
 
 <# for(int i = 0; i < 8; i++) { #>
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[<#= i * 8 #>..], h<#= i #> ^ v<#= i #> ^ v<#= i + 8 #>);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(<#= i * 8 #>, 8), h<#= i #> ^ v<#= i #> ^ v<#= i + 8 #>);
 <# } #>
     }
 }

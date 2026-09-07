@@ -34,30 +34,34 @@ internal static class Blake2F
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static void CompressScalar(ReadOnlySpan<byte> input, Span<byte> destination, uint rounds)
     {
-        ulong h0 = BinaryPrimitives.ReadUInt64LittleEndian(input[4..]);
-        ulong h1 = BinaryPrimitives.ReadUInt64LittleEndian(input[12..]);
-        ulong h2 = BinaryPrimitives.ReadUInt64LittleEndian(input[20..]);
-        ulong h3 = BinaryPrimitives.ReadUInt64LittleEndian(input[28..]);
-        ulong h4 = BinaryPrimitives.ReadUInt64LittleEndian(input[36..]);
-        ulong h5 = BinaryPrimitives.ReadUInt64LittleEndian(input[44..]);
-        ulong h6 = BinaryPrimitives.ReadUInt64LittleEndian(input[52..]);
-        ulong h7 = BinaryPrimitives.ReadUInt64LittleEndian(input[60..]);
-        ulong m0 = BinaryPrimitives.ReadUInt64LittleEndian(input[68..]);
-        ulong m1 = BinaryPrimitives.ReadUInt64LittleEndian(input[76..]);
-        ulong m2 = BinaryPrimitives.ReadUInt64LittleEndian(input[84..]);
-        ulong m3 = BinaryPrimitives.ReadUInt64LittleEndian(input[92..]);
-        ulong m4 = BinaryPrimitives.ReadUInt64LittleEndian(input[100..]);
-        ulong m5 = BinaryPrimitives.ReadUInt64LittleEndian(input[108..]);
-        ulong m6 = BinaryPrimitives.ReadUInt64LittleEndian(input[116..]);
-        ulong m7 = BinaryPrimitives.ReadUInt64LittleEndian(input[124..]);
-        ulong m8 = BinaryPrimitives.ReadUInt64LittleEndian(input[132..]);
-        ulong m9 = BinaryPrimitives.ReadUInt64LittleEndian(input[140..]);
-        ulong m10 = BinaryPrimitives.ReadUInt64LittleEndian(input[148..]);
-        ulong m11 = BinaryPrimitives.ReadUInt64LittleEndian(input[156..]);
-        ulong m12 = BinaryPrimitives.ReadUInt64LittleEndian(input[164..]);
-        ulong m13 = BinaryPrimitives.ReadUInt64LittleEndian(input[172..]);
-        ulong m14 = BinaryPrimitives.ReadUInt64LittleEndian(input[180..]);
-        ulong m15 = BinaryPrimitives.ReadUInt64LittleEndian(input[188..]);
+        // Fixed span and word lengths let the JIT eliminate per-word bounds checks.
+        input = input[..INPUT_LENGTH];
+        destination = destination[..OUTPUT_LENGTH];
+
+        ulong h0 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(4, 8));
+        ulong h1 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(12, 8));
+        ulong h2 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(20, 8));
+        ulong h3 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(28, 8));
+        ulong h4 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(36, 8));
+        ulong h5 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(44, 8));
+        ulong h6 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(52, 8));
+        ulong h7 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(60, 8));
+        ulong m0 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(68, 8));
+        ulong m1 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(76, 8));
+        ulong m2 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(84, 8));
+        ulong m3 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(92, 8));
+        ulong m4 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(100, 8));
+        ulong m5 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(108, 8));
+        ulong m6 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(116, 8));
+        ulong m7 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(124, 8));
+        ulong m8 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(132, 8));
+        ulong m9 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(140, 8));
+        ulong m10 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(148, 8));
+        ulong m11 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(156, 8));
+        ulong m12 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(164, 8));
+        ulong m13 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(172, 8));
+        ulong m14 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(180, 8));
+        ulong m15 = BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(188, 8));
         ulong v0 = h0;
         ulong v1 = h1;
         ulong v2 = h2;
@@ -74,8 +78,8 @@ internal static class Blake2F
         ulong v13 = 0x9B05688C2B3E6C1FUL;
         ulong v14 = 0x1F83D9ABFB41BD6BUL;
         ulong v15 = 0x5BE0CD19137E2179UL;
-        v12 ^= BinaryPrimitives.ReadUInt64LittleEndian(input[196..]);
-        v13 ^= BinaryPrimitives.ReadUInt64LittleEndian(input[204..]);
+        v12 ^= BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(196, 8));
+        v13 ^= BinaryPrimitives.ReadUInt64LittleEndian(input.Slice(204, 8));
         if(input[212] == 1)
         {
             v14 = ~v14;
@@ -1100,13 +1104,13 @@ internal static class Blake2F
             }
         }
 
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[0..], h0 ^ v0 ^ v8);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[8..], h1 ^ v1 ^ v9);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[16..], h2 ^ v2 ^ v10);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[24..], h3 ^ v3 ^ v11);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[32..], h4 ^ v4 ^ v12);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[40..], h5 ^ v5 ^ v13);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[48..], h6 ^ v6 ^ v14);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination[56..], h7 ^ v7 ^ v15);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0, 8), h0 ^ v0 ^ v8);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8, 8), h1 ^ v1 ^ v9);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(16, 8), h2 ^ v2 ^ v10);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(24, 8), h3 ^ v3 ^ v11);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(32, 8), h4 ^ v4 ^ v12);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(40, 8), h5 ^ v5 ^ v13);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(48, 8), h6 ^ v6 ^ v14);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(56, 8), h7 ^ v7 ^ v15);
     }
 }
