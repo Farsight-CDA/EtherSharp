@@ -38,23 +38,24 @@ public sealed class UInt256HexConverter : JsonConverter<UInt256>
             throw new JsonException($"Cannot parse {nameof(UInt256)} from token of type {reader.TokenType}");
         }
 
-        int valueLength = reader.HasValueSequence
-            ? (int) reader.ValueSequence.Length
+        long valueLength = reader.HasValueSequence
+            ? reader.ValueSequence.Length
             : reader.ValueSpan.Length;
 
-        if(valueLength > 68)
+        // Each of the 66 decoded characters can occupy six bytes as a JSON Unicode escape.
+        if(valueLength > 66 * 6)
         {
             throw new JsonException("Unexpected number length");
         }
 
-        Span<char> sourceBuffer = stackalloc char[valueLength];
+        Span<char> sourceBuffer = stackalloc char[(int) valueLength];
         int charsWritten = reader.CopyString(sourceBuffer);
 
         if(charsWritten > 66)
         {
             throw new JsonException("Unexpected number length");
         }
-
+        //
         return !UInt256.TryParseFromHex(sourceBuffer[..charsWritten], out var result)
             ? throw new JsonException($"'{reader.GetString()}' is not a valid hexadecimal {nameof(UInt256)} value.")
             : result;
