@@ -1,9 +1,10 @@
+using EtherSharp.Interpreter.Runtime.Tracing;
 using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime;
 
 /// <summary>
-/// Configures state applied temporarily during interpreter simulation.
+/// Configures temporary state and tracing for interpreter simulation.
 /// </summary>
 public readonly record struct InterpreterSimulationOptions
 {
@@ -11,4 +12,9 @@ public readonly record struct InterpreterSimulationOptions
     /// Gets the optional account state overrides applied for the duration of the call.
     /// </summary>
     public IReadOnlyDictionary<Address, AccountOverride>? StateOverrides { get; init; }
+
+    /// <summary>
+    /// Gets the optional execution observers for the simulation.
+    /// </summary>
+    public IInterpreterExecutionHooks? Hooks { get; init; }
 }

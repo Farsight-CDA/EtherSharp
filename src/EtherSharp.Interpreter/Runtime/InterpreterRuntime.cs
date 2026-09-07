@@ -23,13 +23,10 @@ namespace EtherSharp.Interpreter.Runtime;
 /// </remarks>
 public class InterpreterRuntime : IDisposable
 {
-    private sealed class ExecutionState(InterpreterRuntime owner, IInterpreterExecutionHooks? hooks) : IDisposable
+    private sealed class ExecutionState(IInterpreterExecutionHooks? hooks)
     {
         public IInterpreterExecutionHooks? Hooks { get; } = hooks;
         public TransactionEnvironment Transaction { get; set; }
-
-        public void Dispose()
-            => Volatile.Write(ref owner._executionState, null);
     }
 
     private readonly record struct MessageCall(
@@ -106,32 +103,10 @@ public class InterpreterRuntime : IDisposable
     /// </summary>
     /// <param name="sender">The transaction sender.</param>
     /// <param name="transaction">The unsigned transaction payload.</param>
-    /// <param name="hooks">Optional execution observers.</param>
     /// <returns>The transaction execution result.</returns>
     /// <remarks>The sender nonce is incremented even when EVM execution reverts.</remarks>
-    public async ValueTask<TxCallResult> ExecuteTransactionAsync(
-        Address sender,
-        ITransaction transaction,
-        IInterpreterExecutionHooks? hooks = null
-    )
-    {
-        using var execution = BeginExecution(hooks);
-        var storageSnapshot = _storage.TakeSnapshot();
-        try
-        {
-            var result = await ExecuteTopLevelAsync(
-                execution,
-                TransactionEnvironment.CreateFrom(sender, transaction, _context)
-            );
-            _storage.Commit();
-            return new TxCallResult(result.IsSuccess, result.Data);
-        }
-        catch
-        {
-            _storage.Reset(storageSnapshot);
-            throw;
-        }
-    }
+    public ValueTask<TxCallResult> ExecuteTransactionAsync(Address sender, ITransaction transaction)
+        => ExecuteTopLevelAsync(sender, transaction);
 
     /// <summary>
     /// Simulates a transaction from the supplied sender and discards all state changes.
@@ -139,36 +114,13 @@ public class InterpreterRuntime : IDisposable
     /// <param name="sender">The transaction sender.</param>
     /// <param name="transaction">The unsigned transaction payload.</param>
     /// <param name="options">The simulation options.</param>
-    /// <param name="hooks">Optional execution observers.</param>
     /// <returns>The simulated call result.</returns>
     /// <remarks>The sender nonce is incremented during execution, then restored with the other simulated state changes.</remarks>
-    public async ValueTask<TxCallResult> SimulateTransactionAsync(
+    public ValueTask<TxCallResult> SimulateTransactionAsync(
         Address sender,
         ITransaction transaction,
-        InterpreterSimulationOptions options = default,
-        IInterpreterExecutionHooks? hooks = null
-    )
-    {
-        using var execution = BeginExecution(hooks);
-        var storageSnapshot = _storage.TakeSnapshot();
-        try
-        {
-            if(options.StateOverrides is { } stateOverrides)
-            {
-                _storage.ApplyStateOverrides(stateOverrides);
-            }
-
-            var result = await ExecuteTopLevelAsync(
-                execution,
-                TransactionEnvironment.CreateFrom(sender, transaction, _context)
-            );
-            return new TxCallResult(result.IsSuccess, result.Data);
-        }
-        finally
-        {
-            _storage.Reset(storageSnapshot);
-        }
-    }
+        InterpreterSimulationOptions options = default
+    ) => ExecuteTopLevelAsync(sender, transaction, options: options);
 
     /// <summary>
     /// Simulates a call from the supplied sender and discards all state changes.
@@ -176,112 +128,125 @@ public class InterpreterRuntime : IDisposable
     /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
     /// <param name="call">The destination, value, and calldata supplied to the call.</param>
     /// <param name="options">The simulation options.</param>
-    /// <param name="hooks">Optional execution observers.</param>
     /// <returns>The simulated call result.</returns>
     /// <remarks>The call uses a zero gas price, an empty access list, and no blob hashes.</remarks>
-    public async ValueTask<TxCallResult> SimulateCallAsync(
+    public ValueTask<TxCallResult> SimulateCallAsync(
         Address sender,
         ITxInput call,
-        InterpreterSimulationOptions options = default,
-        IInterpreterExecutionHooks? hooks = null
+        InterpreterSimulationOptions options = default
+    ) => ExecuteTopLevelAsync(sender, call: call, options: options);
+
+    // Supplying simulation options, including default options, discards execution state instead of committing it.
+    private async ValueTask<TxCallResult> ExecuteTopLevelAsync(
+        Address sender,
+        ITransaction? transaction = null,
+        ITxInput? call = null,
+        InterpreterSimulationOptions? options = null
     )
     {
-        using var execution = BeginExecution(hooks);
-        ArgumentNullException.ThrowIfNull(call);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        var execution = new ExecutionState(options?.Hooks);
+        if(Interlocked.CompareExchange(ref _executionState, execution, null) is not null)
+        {
+            throw new InvalidOperationException("An execution is already in progress on this interpreter.");
+        }
 
-        var storageSnapshot = _storage.TakeSnapshot();
+        InterpreterStorage.Snapshot? snapshot = null;
         try
         {
-            if(options.StateOverrides is { } stateOverrides)
+            snapshot = _storage.TakeSnapshot();
+            if(options?.StateOverrides is { } stateOverrides)
             {
                 _storage.ApplyStateOverrides(stateOverrides);
             }
 
-            ulong nonce = await _storage.GetAccountStorage(sender).GetNonceAsync();
-            var result = await ExecuteTopLevelAsync(
-                execution,
-                new TransactionEnvironment(
+            var environment = (transaction, call) switch
+            {
+                ({ } tx, _) => TransactionEnvironment.CreateFrom(sender, tx, _context),
+                (null, { } input) => new TransactionEnvironment(
                     sender,
-                    nonce,
+                    await _storage.GetAccountStorage(sender).GetNonceAsync(),
                     (ulong) _context.GasLimit,
                     UInt256.Zero,
-                    call,
+                    input,
                     ReadOnlyMemory<StateAccess>.Empty,
                     ReadOnlyMemory<Bytes32>.Empty
-                )
-            );
+                ),
+                _ => throw new ArgumentNullException(nameof(call))
+            };
+
+            execution.Transaction = environment;
+            var senderStorage = _storage.GetAccountStorage(sender);
+            ulong senderNonce = await senderStorage.GetNonceAsync();
+            if(senderNonce != environment.Nonce)
+            {
+                throw new InvalidOperationException(
+                    $"Invalid transaction nonce. Expected {senderNonce}, received {environment.Nonce}."
+                );
+            }
+            if(senderNonce == UInt64.MaxValue)
+            {
+                throw new InvalidOperationException("Transaction sender nonce cannot be incremented.");
+            }
+
+            ExecutionResult result;
+            if(environment.Input.To is Address target)
+            {
+                senderStorage.SetNonce(senderNonce + 1);
+                result = await ExecuteMessageCallAsync(new MessageCall(
+                    sender,
+                    sender,
+                    target,
+                    target,
+                    sender,
+                    environment.Input.Value,
+                    environment.Input.Data,
+                    0,
+                    false
+                ));
+            }
+            else
+            {
+                if(environment.Input.Data.Length > ExecutionSpec.MaxInitCodeLength)
+                {
+                    throw new InvalidOperationException("Transaction initcode exceeds the configured limit.");
+                }
+
+                result = await ExecuteContractCreationAsync(new ContractCreation(
+                    sender,
+                    sender,
+                    Address.DeriveCreate(sender, senderNonce),
+                    environment.Input.Value,
+                    environment.Input.Data,
+                    0
+                ));
+            }
+
+            if(execution.Hooks is { } hooks)
+            {
+                await hooks.OnExecutionEndAsync(_context, environment, result, _storage);
+            }
+            if(options is null)
+            {
+                _storage.Commit();
+                snapshot = null;
+            }
             return new TxCallResult(result.IsSuccess, result.Data);
         }
         finally
         {
-            _storage.Reset(storageSnapshot);
-        }
-    }
-
-    private ExecutionState BeginExecution(IInterpreterExecutionHooks? hooks)
-    {
-        ObjectDisposedException.ThrowIf(_isDisposed, this);
-        var execution = new ExecutionState(this, hooks);
-        return Interlocked.CompareExchange(ref _executionState, execution, null) is null
-            ? execution
-            : throw new InvalidOperationException("An execution is already in progress on this interpreter.");
-    }
-
-    private async ValueTask<ExecutionResult> ExecuteTopLevelAsync(ExecutionState execution, TransactionEnvironment transaction)
-    {
-        execution.Transaction = transaction;
-        var senderStorage = _storage.GetAccountStorage(transaction.Sender);
-        ulong senderNonce = await senderStorage.GetNonceAsync();
-        if(senderNonce != transaction.Nonce)
-        {
-            throw new InvalidOperationException(
-                $"Invalid transaction nonce. Expected {senderNonce}, received {transaction.Nonce}."
-            );
-        }
-        if(senderNonce == UInt64.MaxValue)
-        {
-            throw new InvalidOperationException("Transaction sender nonce cannot be incremented.");
-        }
-
-        ExecutionResult result;
-        if(transaction.Input.To is Address target)
-        {
-            senderStorage.SetNonce(senderNonce + 1);
-            result = await ExecuteMessageCallAsync(new MessageCall(
-                transaction.Sender,
-                transaction.Sender,
-                target,
-                target,
-                transaction.Sender,
-                transaction.Input.Value,
-                transaction.Input.Data,
-                0,
-                false
-            ));
-        }
-        else
-        {
-            if(transaction.Input.Data.Length > ExecutionSpec.MaxInitCodeLength)
+            try
             {
-                throw new InvalidOperationException("Transaction initcode exceeds the configured limit.");
+                if(snapshot is { } startingState)
+                {
+                    _storage.Reset(startingState);
+                }
             }
-
-            result = await ExecuteContractCreationAsync(new ContractCreation(
-                transaction.Sender,
-                transaction.Sender,
-                Address.DeriveCreate(transaction.Sender, senderNonce),
-                transaction.Input.Value,
-                transaction.Input.Data,
-                0
-            ));
+            finally
+            {
+                Volatile.Write(ref _executionState, null);
+            }
         }
-
-        if(execution.Hooks is { } hooks)
-        {
-            await hooks.OnExecutionEndAsync(_context, transaction, result, _storage);
-        }
-
-        return result;
     }
 
     private async ValueTask<ExecutionResult> ExecuteMessageCallAsync(MessageCall messageCall)
