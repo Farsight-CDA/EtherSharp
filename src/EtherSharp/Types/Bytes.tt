@@ -314,8 +314,15 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes<#= i #> other)
-        => <#= BuildEqualityExpression(i) #>;
+<# if(i < 16) { #>
+        => <#= BuildScalarEqualityExpression(i) #>;
+<# } else { #>
+    {
+<#= BuildEqualityLines(i) #>
+    }
+<# } #>
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -448,6 +455,24 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+<# if(i >= 2 && i <= 7) { #>
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly <#= i < 4 ? "ushort" : "uint" #> LoadEqualityWord(int offset)
+        => Unsafe.ReadUnaligned<<#= i < 4 ? "ushort" : "uint" #>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+<# } #>
+<# if(i >= 16) { #>
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+<# } #>
+<# if(i == 32) { #>
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector256<byte> LoadEqualityVector256()
+        => Unsafe.ReadUnaligned<Vector256<byte>>(ref Unsafe.AsRef(in _bytes[0]));
+<# } #>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -464,7 +489,39 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
 #pragma warning restore CS1591, CS0675
 
 <#+
-private static string BuildEqualityExpression(int length)
+private static string BuildEqualityLines(int length)
+{
+    var lines = new global::System.Collections.Generic.List<string>();
+    if(length == 32)
+    {
+        lines.Add("        if(Vector256.IsHardwareAccelerated)");
+        lines.Add("        {");
+        lines.Add("            return (LoadEqualityVector256() ^ other.LoadEqualityVector256()) == Vector256<byte>.Zero;");
+        lines.Add("        }");
+        lines.Add(string.Empty);
+    }
+
+    // Reduce all vector differences before testing once. The overlapping tail
+    // stays inside the value, including when the length is not a vector multiple.
+    string vector = "(LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))";
+    if(length > 16)
+    {
+        vector = "(" + vector
+            + $"\n                | (LoadEqualityVector128({length - 16}) ^ other.LoadEqualityVector128({length - 16})))";
+    }
+
+    lines.Add("        if(Vector128.IsHardwareAccelerated)");
+    lines.Add("        {");
+    lines.Add("            var difference = " + vector + ";");
+    lines.Add("            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);");
+    lines.Add("        }");
+    lines.Add(string.Empty);
+    lines.Add("        return " + BuildScalarEqualityExpression(length) + ";");
+
+    return global::System.String.Join("\n", lines);
+}
+
+private static string BuildScalarEqualityExpression(int length)
 {
     if(length == 1)
     {
@@ -474,10 +531,15 @@ private static string BuildEqualityExpression(int length)
     var terms = new global::System.Collections.Generic.List<string>();
     if(length < 8)
     {
-        for(var offset = 0; offset < length; offset++)
+        int width = length < 4 ? 2 : 4;
+        if(length == width)
         {
-            terms.Add($"((ulong) (LoadU8Raw({offset}) ^ other.LoadU8Raw({offset})))");
+            return "LoadEqualityWord(0) == other.LoadEqualityWord(0)";
         }
+
+        // Overlap the final word so both loads stay entirely inside the value.
+        terms.Add("(LoadEqualityWord(0) ^ other.LoadEqualityWord(0))");
+        terms.Add($"(LoadEqualityWord({length - width}) ^ other.LoadEqualityWord({length - width}))");
     }
     else
     {
@@ -490,20 +552,7 @@ private static string BuildEqualityExpression(int length)
         if(length % 8 != 0)
         {
             var tailOffset = length - 8;
-            var tailIncluded = false;
-            for(var offset = 0; offset < full; offset += 8)
-            {
-                if(offset == tailOffset)
-                {
-                    tailIncluded = true;
-                    break;
-                }
-            }
-
-            if(!tailIncluded)
-            {
-                terms.Add($"(LoadU64Raw({tailOffset}) ^ other.LoadU64Raw({tailOffset}))");
-            }
+            terms.Add($"(LoadU64Raw({tailOffset}) ^ other.LoadU64Raw({tailOffset}))");
         }
     }
 

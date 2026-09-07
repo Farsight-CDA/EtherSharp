@@ -301,6 +301,7 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes1 other)
         => LoadU8Raw(0) == other.LoadU8Raw(0);
 
@@ -678,9 +679,9 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes2 other)
-        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
-            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1))))) == 0;
+        => LoadEqualityWord(0) == other.LoadEqualityWord(0);
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -836,6 +837,10 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly ushort LoadEqualityWord(int offset)
+        => Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -1063,10 +1068,10 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes3 other)
-        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
-            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
-            | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2))))) == 0;
+        => (((LoadEqualityWord(0) ^ other.LoadEqualityWord(0))
+            | (LoadEqualityWord(1) ^ other.LoadEqualityWord(1)))) == 0;
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -1231,6 +1236,10 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly ushort LoadEqualityWord(int offset)
+        => Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -1458,11 +1467,9 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes4 other)
-        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
-            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
-            | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2)))
-            | ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3))))) == 0;
+        => LoadEqualityWord(0) == other.LoadEqualityWord(0);
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -1632,6 +1639,10 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly uint LoadEqualityWord(int offset)
+        => Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -1859,12 +1870,10 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes5 other)
-        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
-            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
-            | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2)))
-            | ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3)))
-            | ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4))))) == 0;
+        => (((LoadEqualityWord(0) ^ other.LoadEqualityWord(0))
+            | (LoadEqualityWord(1) ^ other.LoadEqualityWord(1)))) == 0;
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -2043,6 +2052,10 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly uint LoadEqualityWord(int offset)
+        => Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -2270,13 +2283,10 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes6 other)
-        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
-            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
-            | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2)))
-            | ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3)))
-            | ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4)))
-            | ((ulong) (LoadU8Raw(5) ^ other.LoadU8Raw(5))))) == 0;
+        => (((LoadEqualityWord(0) ^ other.LoadEqualityWord(0))
+            | (LoadEqualityWord(2) ^ other.LoadEqualityWord(2)))) == 0;
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -2462,6 +2472,10 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly uint LoadEqualityWord(int offset)
+        => Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -2689,14 +2703,10 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes7 other)
-        => ((((ulong) (LoadU8Raw(0) ^ other.LoadU8Raw(0)))
-            | ((ulong) (LoadU8Raw(1) ^ other.LoadU8Raw(1)))
-            | ((ulong) (LoadU8Raw(2) ^ other.LoadU8Raw(2)))
-            | ((ulong) (LoadU8Raw(3) ^ other.LoadU8Raw(3)))
-            | ((ulong) (LoadU8Raw(4) ^ other.LoadU8Raw(4)))
-            | ((ulong) (LoadU8Raw(5) ^ other.LoadU8Raw(5)))
-            | ((ulong) (LoadU8Raw(6) ^ other.LoadU8Raw(6))))) == 0;
+        => (((LoadEqualityWord(0) ^ other.LoadEqualityWord(0))
+            | (LoadEqualityWord(3) ^ other.LoadEqualityWord(3)))) == 0;
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -2889,6 +2899,10 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly uint LoadEqualityWord(int offset)
+        => Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -3116,6 +3130,7 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes8 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0)))) == 0;
 
@@ -3495,6 +3510,7 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes9 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(1) ^ other.LoadU64Raw(1)))) == 0;
@@ -3884,6 +3900,7 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes10 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(2) ^ other.LoadU64Raw(2)))) == 0;
@@ -4280,6 +4297,7 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes11 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(3) ^ other.LoadU64Raw(3)))) == 0;
@@ -4685,6 +4703,7 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes12 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(4) ^ other.LoadU64Raw(4)))) == 0;
@@ -5095,6 +5114,7 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes13 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(5) ^ other.LoadU64Raw(5)))) == 0;
@@ -5512,6 +5532,7 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes14 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(6) ^ other.LoadU64Raw(6)))) == 0;
@@ -5936,6 +5957,7 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes15 other)
         => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(7) ^ other.LoadU64Raw(7)))) == 0;
@@ -6367,9 +6389,18 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes16 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = (LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -6529,6 +6560,10 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -6756,10 +6791,20 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes17 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(1) ^ other.LoadEqualityVector128(1)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(9) ^ other.LoadU64Raw(9)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -6928,6 +6973,10 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -7155,10 +7204,20 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes18 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(2) ^ other.LoadEqualityVector128(2)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(10) ^ other.LoadU64Raw(10)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -7334,6 +7393,10 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -7561,10 +7624,20 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes19 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(3) ^ other.LoadEqualityVector128(3)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(11) ^ other.LoadU64Raw(11)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -7749,6 +7822,10 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -7976,10 +8053,20 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes20 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(4) ^ other.LoadEqualityVector128(4)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(12) ^ other.LoadU64Raw(12)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -8169,6 +8256,10 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -8396,10 +8487,20 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes21 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(5) ^ other.LoadEqualityVector128(5)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(13) ^ other.LoadU64Raw(13)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -8598,6 +8699,10 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -8825,10 +8930,20 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes22 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(6) ^ other.LoadEqualityVector128(6)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(14) ^ other.LoadU64Raw(14)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -9034,6 +9149,10 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -9261,10 +9380,20 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes23 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(7) ^ other.LoadEqualityVector128(7)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(15) ^ other.LoadU64Raw(15)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -9479,6 +9608,10 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -9706,10 +9839,20 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes24 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(8) ^ other.LoadEqualityVector128(8)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -9880,6 +10023,10 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -10107,11 +10254,21 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes25 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(9) ^ other.LoadEqualityVector128(9)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(17) ^ other.LoadU64Raw(17)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -10289,6 +10446,10 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -10516,11 +10677,21 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes26 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(10) ^ other.LoadEqualityVector128(10)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(18) ^ other.LoadU64Raw(18)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -10705,6 +10876,10 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -10932,11 +11107,21 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes27 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(11) ^ other.LoadEqualityVector128(11)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(19) ^ other.LoadU64Raw(19)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -11128,6 +11313,10 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -11355,11 +11544,21 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes28 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(12) ^ other.LoadEqualityVector128(12)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(20) ^ other.LoadU64Raw(20)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -11558,6 +11757,10 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -11785,11 +11988,21 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes29 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(13) ^ other.LoadEqualityVector128(13)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(21) ^ other.LoadU64Raw(21)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -11995,6 +12208,10 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -12222,11 +12439,21 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes30 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(14) ^ other.LoadEqualityVector128(14)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(22) ^ other.LoadU64Raw(22)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -12439,6 +12666,10 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -12666,11 +12897,21 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes31 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(15) ^ other.LoadEqualityVector128(15)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(23) ^ other.LoadU64Raw(23)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -12890,6 +13131,10 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
@@ -13123,11 +13368,26 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
     /// <param name="other">The value to compare with.</param>
     /// <returns>True if both values are equal.</returns>
     [OverloadResolutionPriority(1)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(in Bytes32 other)
-        => (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
+    {
+        if(Vector256.IsHardwareAccelerated)
+        {
+            return (LoadEqualityVector256() ^ other.LoadEqualityVector256()) == Vector256<byte>.Zero;
+        }
+
+        if(Vector128.IsHardwareAccelerated)
+        {
+            var difference = ((LoadEqualityVector128(0) ^ other.LoadEqualityVector128(0))
+                | (LoadEqualityVector128(16) ^ other.LoadEqualityVector128(16)));
+            return Vector128.EqualsAll(difference, Vector128<byte>.Zero);
+        }
+
+        return (((LoadU64Raw(0) ^ other.LoadU64Raw(0))
             | (LoadU64Raw(8) ^ other.LoadU64Raw(8))
             | (LoadU64Raw(16) ^ other.LoadU64Raw(16))
             | (LoadU64Raw(24) ^ other.LoadU64Raw(24)))) == 0;
+    }
 
     /// <summary>
     /// Checks equality with another value by value.
@@ -13305,6 +13565,14 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly ulong LoadU64Raw(int offset)
         => Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector128<byte> LoadEqualityVector128(int offset)
+        => Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.Add(ref Unsafe.AsRef(in _bytes[0]), offset));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly Vector256<byte> LoadEqualityVector256()
+        => Unsafe.ReadUnaligned<Vector256<byte>>(ref Unsafe.AsRef(in _bytes[0]));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly byte LoadU8Raw(int offset)
