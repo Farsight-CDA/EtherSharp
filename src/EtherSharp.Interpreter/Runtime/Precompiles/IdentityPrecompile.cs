@@ -3,14 +3,10 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Precompiles;
 
-/// <summary>
-/// Implements the EVM identity precompile.
-/// </summary>
+/// <summary>The EVM identity precompile.</summary>
 public sealed class IdentityPrecompile : IPrecompile
 {
-    /// <summary>
-    /// Gets the shared identity precompile instance.
-    /// </summary>
+    /// <summary>The shared instance.</summary>
     public static IdentityPrecompile Instance { get; } = new();
 
     private IdentityPrecompile()

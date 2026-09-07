@@ -3,14 +3,10 @@ using System.Security.Cryptography;
 
 namespace EtherSharp.Interpreter.Runtime.Precompiles;
 
-/// <summary>
-/// Implements the EVM SHA-256 precompile.
-/// </summary>
+/// <summary>The EVM SHA-256 precompile.</summary>
 public sealed class Sha256Precompile : IPrecompile
 {
-    /// <summary>
-    /// Gets the shared SHA-256 precompile instance.
-    /// </summary>
+    /// <summary>The shared instance.</summary>
     public static Sha256Precompile Instance { get; } = new();
 
     private Sha256Precompile()

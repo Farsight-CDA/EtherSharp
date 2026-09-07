@@ -3,14 +3,10 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Precompiles;
 
-/// <summary>
-/// Implements the EIP-152 BLAKE2F precompile.
-/// </summary>
+/// <summary>The EIP-152 BLAKE2F precompile.</summary>
 public sealed class Blake2FPrecompile : IPrecompile
 {
-    /// <summary>
-    /// Gets the shared BLAKE2F precompile instance.
-    /// </summary>
+    /// <summary>The shared instance.</summary>
     public static Blake2FPrecompile Instance { get; } = new();
 
     private Blake2FPrecompile()

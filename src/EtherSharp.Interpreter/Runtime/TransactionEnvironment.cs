@@ -2,7 +2,6 @@ using EtherSharp.Numerics;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Legacy;
-using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime;
@@ -25,29 +24,22 @@ public readonly record struct TransactionEnvironment(
     ReadOnlyMemory<Bytes32> BlobHashes
 )
 {
-    internal static TransactionEnvironment CreateFrom(
+    internal static TransactionEnvironment CreateForCall(
         Address sender,
-        ITransaction transaction,
+        ITxInput input,
+        ulong nonce,
         InterpreterContext context
-    )
-    {
-        if(transaction.ChainId != context.ChainId)
-        {
-            throw new InvalidOperationException("Transaction chain ID does not match the execution context.");
-        }
+    ) => new(
+        sender,
+        nonce,
+        (ulong) context.GasLimit,
+        UInt256.Zero,
+        input,
+        ReadOnlyMemory<StateAccess>.Empty,
+        ReadOnlyMemory<Bytes32>.Empty
+    );
 
-        var environment = transaction switch
-        {
-            LegacyTransaction legacy => CreateFrom(sender, legacy, context),
-            EIP1559Transaction eip1559 => CreateFrom(sender, eip1559, context),
-            _ => throw new NotSupportedException(
-                $"Transaction type {transaction.GetType().FullName} is not supported."
-            )
-        };
-        return environment;
-    }
-
-    private static TransactionEnvironment CreateFrom(
+    internal static TransactionEnvironment CreateForTransaction(
         Address sender,
         LegacyTransaction transaction,
         InterpreterContext context
@@ -70,7 +62,7 @@ public readonly record struct TransactionEnvironment(
         return environment;
     }
 
-    private static TransactionEnvironment CreateFrom(
+    internal static TransactionEnvironment CreateForTransaction(
         Address sender,
         EIP1559Transaction transaction,
         InterpreterContext context

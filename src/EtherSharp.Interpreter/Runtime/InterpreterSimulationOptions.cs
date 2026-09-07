@@ -8,13 +8,9 @@ namespace EtherSharp.Interpreter.Runtime;
 /// </summary>
 public readonly record struct InterpreterSimulationOptions
 {
-    /// <summary>
-    /// Gets the optional account state overrides applied for the duration of the call.
-    /// </summary>
+    /// <summary>Optional account overrides applied for the duration of the call.</summary>
     public IReadOnlyDictionary<Address, AccountOverride>? StateOverrides { get; init; }
 
-    /// <summary>
-    /// Gets the optional execution observers for the simulation.
-    /// </summary>
+    /// <summary>Optional execution hooks for the simulation.</summary>
     public IInterpreterExecutionHooks? Hooks { get; init; }
 }

@@ -10,15 +10,12 @@ public interface IInterpreterDataProvider
     /// <summary>
     /// Resolves a batch of requests at the supplied interpreter context.
     /// </summary>
-    /// <param name="context">The state and block context against which the requests are resolved.</param>
-    /// <param name="requests">The requests to resolve.</param>
     /// <returns>
     /// Self-identifying results for requested values and any additional values prefetched by the provider.
     /// </returns>
     /// <remarks>
-    /// Providers may limit each fetch to their source's batch capacity. The fork retains returned values,
-    /// completes satisfied reads, and includes unanswered requests in the next batch. A response must
-    /// resolve at least one pending read to allow execution to resume; otherwise dispatched reads fail.
+    /// Partial batches are allowed; the fork caches results and retries unanswered requests.
+    /// Each response must resolve at least one pending read, or dispatched reads fail.
     /// </remarks>
     public Task<IReadOnlyList<InterpreterDataResult>> FetchAsync(
         InterpreterContext context,

@@ -15,14 +15,10 @@ public sealed class ModExpPrecompile : IPrecompile
 
     private readonly UInt256 _maxOperandLength;
 
-    /// <summary>
-    /// Gets the maximum permitted length of each operand in bytes.
-    /// </summary>
+    /// <summary>The per-operand size limit in bytes.</summary>
     public int MaxOperandLength { get; }
 
-    /// <summary>
-    /// Creates a modular exponentiation precompile with the specified operand-length limit.
-    /// </summary>
+    /// <summary>Creates a precompile with the given operand-size limit.</summary>
     /// <param name="maxOperandLength">The maximum permitted length of each operand in bytes.</param>
     /// <exception cref="ArgumentOutOfRangeException">The operand-length limit is negative.</exception>
     public ModExpPrecompile(int maxOperandLength)

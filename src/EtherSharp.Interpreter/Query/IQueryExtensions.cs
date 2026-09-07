@@ -17,7 +17,6 @@ public static class IQueryExtensions
         /// Base and blob base fees are returned as <see langword="null"/> when the corresponding
         /// opcodes are unsupported by the execution environment.
         /// </remarks>
-        /// <returns>A query that yields the current interpreter context.</returns>
         public static IQuery<InterpreterContext> InterpreterContext()
             => InterpreterContextQuery.Instance;
     }

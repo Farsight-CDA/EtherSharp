@@ -12,13 +12,10 @@ namespace EtherSharp.Interpreter.Forking.Providers;
 /// Resolves interpreter state through state-override queries, with exact RPC fallback for nonce-search misses.
 /// </summary>
 /// <remarks>
-/// Each instance belongs to one fork at a fixed numeric RPC height and must not fetch concurrently.
-/// Code and code-hash reads cannot share a batch with code overrides at the same address.
-/// Requests are grouped by address, with code/hash reads and precompile calls taking priority over code overrides.
-/// Storage slots at an address share one caller context, without prefetching. Nonce probes and
-/// precompile calls are isolated so their simulated changes do not affect subsequent operations.
-/// A lone nonce request uses exact RPC immediately; unsuccessful bounded probes are not repeated.
-/// The provider borrows its client and does not protect numeric block targets against reorganizations.
+/// One instance per fork, pinned to a numeric RPC height; fetches must be sequential.
+/// Code/hash reads cannot share a batch with code overrides at the same address.
+/// Nonce probes and precompile calls are isolated to prevent simulated state leaking between operations.
+/// The client is borrowed; numeric pinning is not reorg-safe.
 /// </remarks>
 internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataProvider
 {

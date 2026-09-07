@@ -31,9 +31,7 @@ public sealed partial class InterpreterStateFork(
     private int _waitingCount;
     private bool _isFetching;
 
-    /// <summary>
-    /// Gets the block context shared by interpreters created from this fork.
-    /// </summary>
+    /// <summary>The block context shared by this fork's interpreters.</summary>
     public InterpreterContext Context { get; } = context
         ?? throw new ArgumentNullException(nameof(context));
 
@@ -44,9 +42,8 @@ public sealed partial class InterpreterStateFork(
     /// <param name="options">The interpreter resource limits.</param>
     /// <returns>An interpreter that must be disposed when it no longer participates in batching.</returns>
     /// <remarks>
-    /// Separate interpreters created from this fork may execute concurrently, but each interpreter must
-    /// be used sequentially and must not be disposed during an operation. A live interpreter that is
-    /// neither executing nor waiting for state prevents the fork from flushing.
+    /// Interpreters may run concurrently; each follows <see cref="InterpreterRuntime"/>'s concurrency rules.
+    /// A live interpreter neither executing nor waiting for state blocks batch flushing.
     /// </remarks>
     public InterpreterRuntime CreateInterpreter(
         InterpreterExecutionSpec? executionSpec = null,

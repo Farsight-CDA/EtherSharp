@@ -11,9 +11,7 @@ public sealed class P256VerifyPrecompile : IPrecompile
     private static readonly byte[] _order = Convert.FromHexString("ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551");
     private static readonly byte[] _prime = Convert.FromHexString("ffffffff00000001000000000000000000000000ffffffffffffffffffffffff");
 
-    /// <summary>
-    /// Gets the shared P256VERIFY precompile instance.
-    /// </summary>
+    /// <summary>The shared instance.</summary>
     public static P256VerifyPrecompile Instance { get; } = new();
 
     private P256VerifyPrecompile()

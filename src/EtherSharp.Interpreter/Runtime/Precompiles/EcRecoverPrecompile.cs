@@ -4,17 +4,13 @@ using Secp256k1Net;
 
 namespace EtherSharp.Interpreter.Runtime.Precompiles;
 
-/// <summary>
-/// Implements the EVM ECRECOVER precompile.
-/// </summary>
+/// <summary>The EVM ECRECOVER precompile.</summary>
 public sealed class EcRecoverPrecompile : IPrecompile
 {
     // Lock initialization and retain the read-only recovery context for the process lifetime.
     private static readonly Lazy<Secp256k1> _secp256k1 = new(() => new(), LazyThreadSafetyMode.ExecutionAndPublication);
 
-    /// <summary>
-    /// Gets the shared ECRECOVER precompile instance.
-    /// </summary>
+    /// <summary>The shared instance.</summary>
     public static EcRecoverPrecompile Instance { get; } = new();
 
     private EcRecoverPrecompile()

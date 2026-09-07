@@ -4,18 +4,14 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Forking;
 
-/// <summary>
-/// Represents one resolved interpreter data request.
-/// </summary>
+/// <summary>A resolved interpreter data request.</summary>
 public abstract record InterpreterDataResult
 {
     private InterpreterDataResult()
     {
     }
 
-    /// <summary>
-    /// Contains a resolved account balance.
-    /// </summary>
+    /// <summary>A resolved account balance.</summary>
     /// <param name="Address">The account address.</param>
     /// <param name="Value">The account balance.</param>
     public sealed record Balance(
@@ -23,9 +19,7 @@ public abstract record InterpreterDataResult
         UInt256 Value
     ) : InterpreterDataResult;
 
-    /// <summary>
-    /// Contains a resolved account nonce.
-    /// </summary>
+    /// <summary>A resolved account nonce.</summary>
     /// <param name="Address">The account address.</param>
     /// <param name="Value">The account nonce.</param>
     public sealed record Nonce(
@@ -33,9 +27,7 @@ public abstract record InterpreterDataResult
         ulong Value
     ) : InterpreterDataResult;
 
-    /// <summary>
-    /// Contains resolved account bytecode.
-    /// </summary>
+    /// <summary>Resolved account bytecode.</summary>
     /// <param name="Address">The account address.</param>
     /// <param name="Value">The account bytecode.</param>
     public sealed record Code(
@@ -43,9 +35,7 @@ public abstract record InterpreterDataResult
         EVMByteCode Value
     ) : InterpreterDataResult;
 
-    /// <summary>
-    /// Contains a resolved upstream external code hash.
-    /// </summary>
+    /// <summary>A resolved upstream external code hash.</summary>
     /// <param name="Address">The account address.</param>
     /// <param name="Value">
     /// The external code hash, or zero when the account does not exist or is empty according to EIP-161.
@@ -55,9 +45,7 @@ public abstract record InterpreterDataResult
         Bytes32 Value
     ) : InterpreterDataResult;
 
-    /// <summary>
-    /// Contains a resolved persistent storage value.
-    /// </summary>
+    /// <summary>A resolved persistent storage value.</summary>
     /// <param name="Address">The account address.</param>
     /// <param name="Key">The storage key.</param>
     /// <param name="Value">The storage value.</param>
@@ -67,9 +55,7 @@ public abstract record InterpreterDataResult
         Bytes32 Value
     ) : InterpreterDataResult;
 
-    /// <summary>
-    /// Contains an input-only upstream precompile call result.
-    /// </summary>
+    /// <summary>An input-only upstream precompile call result.</summary>
     /// <param name="Caller">The immediate message caller.</param>
     /// <param name="Target">The called account.</param>
     /// <param name="Value">The native value supplied to the call.</param>

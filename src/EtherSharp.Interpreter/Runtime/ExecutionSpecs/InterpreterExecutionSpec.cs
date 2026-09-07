@@ -11,29 +11,19 @@ namespace EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 /// </summary>
 public sealed partial record InterpreterExecutionSpec
 {
-    /// <summary>
-    /// Gets the maximum permitted initcode length in bytes.
-    /// </summary>
+    /// <summary>The initcode size limit in bytes.</summary>
     public int MaxInitCodeLength { get; init; } = EVMByteCode.MAX_INIT_LENGTH;
 
-    /// <summary>
-    /// Gets the maximum permitted runtime-code length in bytes.
-    /// </summary>
+    /// <summary>The runtime-code size limit in bytes.</summary>
     public int MaxRuntimeCodeLength { get; init; } = EVMByteCode.MAX_RUNTIME_LENGTH;
 
-    /// <summary>
-    /// Gets the precompiles enabled by this execution specification.
-    /// </summary>
+    /// <summary>The enabled precompiles.</summary>
     public ImmutableArray<IPrecompile> Precompiles { get; init; } = [];
 
-    /// <summary>
-    /// Gets an execution specification with no registered precompiles.
-    /// </summary>
+    /// <summary>An execution specification with no precompiles.</summary>
     public static InterpreterExecutionSpec Empty { get; } = new();
 
-    /// <summary>
-    /// Gets the latest execution preset supplied by this library, currently <see cref="Osaka"/>.
-    /// </summary>
+    /// <summary>The latest supplied preset, currently <see cref="Osaka"/>.</summary>
     /// <remarks>This does not select rules based on the fork's block height or chain.</remarks>
     public static InterpreterExecutionSpec Latest
         => Osaka;

@@ -32,7 +32,7 @@ public static class IEtherClientExtensions
     /// Creates an interpreter fork using the parent block's post-state and the target block's execution context.
     /// </summary>
     /// <remarks>
-    /// Uses ForkPostBlockAsync's resolution and lifetime rules, but pins state to the parent height.
+    /// Uses <see cref="ForkPostBlockAsync"/>'s resolution and lifetime rules.
     /// Rejects genesis and pending. Does not apply block-start transitions or replay transactions.
     /// </remarks>
     public static Task<InterpreterStateFork> ForkPreBlockAsync(

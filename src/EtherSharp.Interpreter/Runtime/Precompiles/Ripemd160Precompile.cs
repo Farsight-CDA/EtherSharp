@@ -3,14 +3,10 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Precompiles;
 
-/// <summary>
-/// Implements the EVM RIPEMD-160 precompile.
-/// </summary>
+/// <summary>The EVM RIPEMD-160 precompile.</summary>
 public sealed class Ripemd160Precompile : IPrecompile
 {
-    /// <summary>
-    /// Gets the shared RIPEMD-160 precompile instance.
-    /// </summary>
+    /// <summary>The shared instance.</summary>
     public static Ripemd160Precompile Instance { get; } = new();
 
     private Ripemd160Precompile()

@@ -16,42 +16,22 @@ public interface IInterpreterHost
     /// <remarks>Must not be called while an interpreter operation is in progress.</remarks>
     public void Unregister();
 
-    /// <summary>
-    /// Gets an account's native balance.
-    /// </summary>
-    /// <param name="address">The account address.</param>
-    /// <returns>The account balance.</returns>
+    /// <summary>Gets an account's native balance.</summary>
     public ValueTask<UInt256> GetBalanceAsync(Address address);
 
-    /// <summary>
-    /// Gets an account's nonce.
-    /// </summary>
-    /// <param name="address">The account address.</param>
-    /// <returns>The account nonce.</returns>
+    /// <summary>Gets an account's nonce.</summary>
     public ValueTask<ulong> GetNonceAsync(Address address);
 
-    /// <summary>
-    /// Gets an account's bytecode.
-    /// </summary>
-    /// <param name="address">The account address.</param>
-    /// <returns>The account bytecode.</returns>
+    /// <summary>Gets an account's bytecode.</summary>
     public ValueTask<EVMByteCode> GetCodeAsync(Address address);
 
-    /// <summary>
-    /// Gets an account's external code hash.
-    /// </summary>
-    /// <param name="address">The account address.</param>
+    /// <summary>Gets an account's external code hash.</summary>
     /// <returns>
     /// The canonical code hash, or <see langword="null"/> when the account does not exist or is empty according to EIP-161.
     /// </returns>
     public ValueTask<Bytes32?> GetCodeHashAsync(Address address);
 
-    /// <summary>
-    /// Gets a persistent storage value for an account.
-    /// </summary>
-    /// <param name="address">The account address.</param>
-    /// <param name="key">The storage key.</param>
-    /// <returns>The persistent storage value.</returns>
+    /// <summary>Reads an account's persistent storage slot.</summary>
     public ValueTask<Bytes32> GetStorageAtAsync(Address address, Bytes32 key);
 
     /// <summary>
@@ -61,11 +41,9 @@ public interface IInterpreterHost
     /// <param name="target">The account to call.</param>
     /// <param name="value">The native value supplied to the call.</param>
     /// <param name="input">The call input. Its backing memory must remain unchanged until the returned task completes.</param>
-    /// <returns>The raw call result.</returns>
     /// <remarks>
-    /// This operation is not for arbitrary contract calls or stateful precompiles. Results must not depend
-    /// on the execution caller, contract code, or storage. Providers may execute through a query helper
-    /// without reproducing the original msg.sender. Upstream state changes are discarded and do not affect the interpreter journal.
+    /// Results must be independent of caller, contract code, and storage; providers may use a query helper
+    /// with a different <c>msg.sender</c>. Upstream state changes are discarded without affecting the interpreter journal.
     /// </remarks>
     public Task<TxCallResult> CallPrecompileAsync(
         Address caller,
