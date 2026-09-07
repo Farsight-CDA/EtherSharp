@@ -131,12 +131,6 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes1(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 1-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -208,7 +202,7 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
             return false;
         }
 
-        parsed = new Bytes1(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes1>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -225,7 +219,7 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
             throw new ArgumentException("Bytes1 requires exactly 1 bytes", nameof(bytes));
         }
 
-        return new Bytes1(bytes);
+        return Unsafe.ReadUnaligned<Bytes1>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -514,12 +508,6 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes2(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 2-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -591,7 +579,7 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
             return false;
         }
 
-        parsed = new Bytes2(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes2>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -608,7 +596,7 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
             throw new ArgumentException("Bytes2 requires exactly 2 bytes", nameof(bytes));
         }
 
-        return new Bytes2(bytes);
+        return Unsafe.ReadUnaligned<Bytes2>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -905,12 +893,6 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes3(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 3-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -982,7 +964,7 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
             return false;
         }
 
-        parsed = new Bytes3(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes3>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -999,7 +981,7 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
             throw new ArgumentException("Bytes3 requires exactly 3 bytes", nameof(bytes));
         }
 
-        return new Bytes3(bytes);
+        return Unsafe.ReadUnaligned<Bytes3>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -1306,12 +1288,6 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes4(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 4-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -1383,7 +1359,7 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
             return false;
         }
 
-        parsed = new Bytes4(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes4>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -1400,7 +1376,7 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
             throw new ArgumentException("Bytes4 requires exactly 4 bytes", nameof(bytes));
         }
 
-        return new Bytes4(bytes);
+        return Unsafe.ReadUnaligned<Bytes4>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -1713,12 +1689,6 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes5(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 5-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -1790,7 +1760,7 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
             return false;
         }
 
-        parsed = new Bytes5(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes5>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -1807,7 +1777,7 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
             throw new ArgumentException("Bytes5 requires exactly 5 bytes", nameof(bytes));
         }
 
-        return new Bytes5(bytes);
+        return Unsafe.ReadUnaligned<Bytes5>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -2130,12 +2100,6 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes6(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 6-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -2207,7 +2171,7 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
             return false;
         }
 
-        parsed = new Bytes6(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes6>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -2224,7 +2188,7 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
             throw new ArgumentException("Bytes6 requires exactly 6 bytes", nameof(bytes));
         }
 
-        return new Bytes6(bytes);
+        return Unsafe.ReadUnaligned<Bytes6>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -2555,12 +2519,6 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes7(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 7-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -2632,7 +2590,7 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
             return false;
         }
 
-        parsed = new Bytes7(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes7>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -2649,7 +2607,7 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
             throw new ArgumentException("Bytes7 requires exactly 7 bytes", nameof(bytes));
         }
 
-        return new Bytes7(bytes);
+        return Unsafe.ReadUnaligned<Bytes7>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -2988,12 +2946,6 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes8(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 8-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -3065,7 +3017,7 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
             return false;
         }
 
-        parsed = new Bytes8(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes8>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -3082,7 +3034,7 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
             throw new ArgumentException("Bytes8 requires exactly 8 bytes", nameof(bytes));
         }
 
-        return new Bytes8(bytes);
+        return Unsafe.ReadUnaligned<Bytes8>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -3373,12 +3325,6 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes9(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 9-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -3450,7 +3396,7 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
             return false;
         }
 
-        parsed = new Bytes9(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes9>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -3467,7 +3413,7 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
             throw new ArgumentException("Bytes9 requires exactly 9 bytes", nameof(bytes));
         }
 
-        return new Bytes9(bytes);
+        return Unsafe.ReadUnaligned<Bytes9>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -3768,12 +3714,6 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes10(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 10-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -3845,7 +3785,7 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
             return false;
         }
 
-        parsed = new Bytes10(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes10>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -3862,7 +3802,7 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
             throw new ArgumentException("Bytes10 requires exactly 10 bytes", nameof(bytes));
         }
 
-        return new Bytes10(bytes);
+        return Unsafe.ReadUnaligned<Bytes10>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -4170,12 +4110,6 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes11(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 11-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -4247,7 +4181,7 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
             return false;
         }
 
-        parsed = new Bytes11(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes11>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -4264,7 +4198,7 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
             throw new ArgumentException("Bytes11 requires exactly 11 bytes", nameof(bytes));
         }
 
-        return new Bytes11(bytes);
+        return Unsafe.ReadUnaligned<Bytes11>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -4581,12 +4515,6 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes12(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 12-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -4658,7 +4586,7 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
             return false;
         }
 
-        parsed = new Bytes12(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes12>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -4675,7 +4603,7 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
             throw new ArgumentException("Bytes12 requires exactly 12 bytes", nameof(bytes));
         }
 
-        return new Bytes12(bytes);
+        return Unsafe.ReadUnaligned<Bytes12>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -4997,12 +4925,6 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes13(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 13-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -5074,7 +4996,7 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
             return false;
         }
 
-        parsed = new Bytes13(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes13>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -5091,7 +5013,7 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
             throw new ArgumentException("Bytes13 requires exactly 13 bytes", nameof(bytes));
         }
 
-        return new Bytes13(bytes);
+        return Unsafe.ReadUnaligned<Bytes13>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -5420,12 +5342,6 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes14(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 14-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -5497,7 +5413,7 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
             return false;
         }
 
-        parsed = new Bytes14(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes14>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -5514,7 +5430,7 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
             throw new ArgumentException("Bytes14 requires exactly 14 bytes", nameof(bytes));
         }
 
-        return new Bytes14(bytes);
+        return Unsafe.ReadUnaligned<Bytes14>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -5850,12 +5766,6 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes15(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 15-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -5927,7 +5837,7 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
             return false;
         }
 
-        parsed = new Bytes15(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes15>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -5944,7 +5854,7 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
             throw new ArgumentException("Bytes15 requires exactly 15 bytes", nameof(bytes));
         }
 
-        return new Bytes15(bytes);
+        return Unsafe.ReadUnaligned<Bytes15>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -6287,12 +6197,6 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes16(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 16-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -6364,7 +6268,7 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
             return false;
         }
 
-        parsed = new Bytes16(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes16>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -6381,7 +6285,7 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
             throw new ArgumentException("Bytes16 requires exactly 16 bytes", nameof(bytes));
         }
 
-        return new Bytes16(bytes);
+        return Unsafe.ReadUnaligned<Bytes16>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -6682,12 +6586,6 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes17(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 17-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -6759,7 +6657,7 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
             return false;
         }
 
-        parsed = new Bytes17(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes17>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -6776,7 +6674,7 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
             throw new ArgumentException("Bytes17 requires exactly 17 bytes", nameof(bytes));
         }
 
-        return new Bytes17(bytes);
+        return Unsafe.ReadUnaligned<Bytes17>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -7087,12 +6985,6 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes18(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 18-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -7164,7 +7056,7 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
             return false;
         }
 
-        parsed = new Bytes18(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes18>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -7181,7 +7073,7 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
             throw new ArgumentException("Bytes18 requires exactly 18 bytes", nameof(bytes));
         }
 
-        return new Bytes18(bytes);
+        return Unsafe.ReadUnaligned<Bytes18>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -7499,12 +7391,6 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes19(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 19-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -7576,7 +7462,7 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
             return false;
         }
 
-        parsed = new Bytes19(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes19>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -7593,7 +7479,7 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
             throw new ArgumentException("Bytes19 requires exactly 19 bytes", nameof(bytes));
         }
 
-        return new Bytes19(bytes);
+        return Unsafe.ReadUnaligned<Bytes19>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -7920,12 +7806,6 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes20(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 20-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -7997,7 +7877,7 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
             return false;
         }
 
-        parsed = new Bytes20(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes20>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -8014,7 +7894,7 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
             throw new ArgumentException("Bytes20 requires exactly 20 bytes", nameof(bytes));
         }
 
-        return new Bytes20(bytes);
+        return Unsafe.ReadUnaligned<Bytes20>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -8346,12 +8226,6 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes21(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 21-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -8423,7 +8297,7 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
             return false;
         }
 
-        parsed = new Bytes21(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes21>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -8440,7 +8314,7 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
             throw new ArgumentException("Bytes21 requires exactly 21 bytes", nameof(bytes));
         }
 
-        return new Bytes21(bytes);
+        return Unsafe.ReadUnaligned<Bytes21>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -8781,12 +8655,6 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes22(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 22-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -8858,7 +8726,7 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
             return false;
         }
 
-        parsed = new Bytes22(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes22>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -8875,7 +8743,7 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
             throw new ArgumentException("Bytes22 requires exactly 22 bytes", nameof(bytes));
         }
 
-        return new Bytes22(bytes);
+        return Unsafe.ReadUnaligned<Bytes22>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -9223,12 +9091,6 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes23(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 23-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -9300,7 +9162,7 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
             return false;
         }
 
-        parsed = new Bytes23(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes23>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -9317,7 +9179,7 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
             throw new ArgumentException("Bytes23 requires exactly 23 bytes", nameof(bytes));
         }
 
-        return new Bytes23(bytes);
+        return Unsafe.ReadUnaligned<Bytes23>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -9674,12 +9536,6 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes24(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 24-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -9751,7 +9607,7 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
             return false;
         }
 
-        parsed = new Bytes24(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes24>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -9768,7 +9624,7 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
             throw new ArgumentException("Bytes24 requires exactly 24 bytes", nameof(bytes));
         }
 
-        return new Bytes24(bytes);
+        return Unsafe.ReadUnaligned<Bytes24>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -10081,12 +9937,6 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes25(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 25-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -10158,7 +10008,7 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
             return false;
         }
 
-        parsed = new Bytes25(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes25>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -10175,7 +10025,7 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
             throw new ArgumentException("Bytes25 requires exactly 25 bytes", nameof(bytes));
         }
 
-        return new Bytes25(bytes);
+        return Unsafe.ReadUnaligned<Bytes25>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -10496,12 +10346,6 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes26(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 26-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -10573,7 +10417,7 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
             return false;
         }
 
-        parsed = new Bytes26(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes26>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -10590,7 +10434,7 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
             throw new ArgumentException("Bytes26 requires exactly 26 bytes", nameof(bytes));
         }
 
-        return new Bytes26(bytes);
+        return Unsafe.ReadUnaligned<Bytes26>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -10918,12 +10762,6 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes27(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 27-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -10995,7 +10833,7 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
             return false;
         }
 
-        parsed = new Bytes27(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes27>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -11012,7 +10850,7 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
             throw new ArgumentException("Bytes27 requires exactly 27 bytes", nameof(bytes));
         }
 
-        return new Bytes27(bytes);
+        return Unsafe.ReadUnaligned<Bytes27>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -11347,12 +11185,6 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes28(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 28-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -11424,7 +11256,7 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
             return false;
         }
 
-        parsed = new Bytes28(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes28>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -11441,7 +11273,7 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
             throw new ArgumentException("Bytes28 requires exactly 28 bytes", nameof(bytes));
         }
 
-        return new Bytes28(bytes);
+        return Unsafe.ReadUnaligned<Bytes28>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -11783,12 +11615,6 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes29(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 29-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -11860,7 +11686,7 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
             return false;
         }
 
-        parsed = new Bytes29(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes29>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -11877,7 +11703,7 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
             throw new ArgumentException("Bytes29 requires exactly 29 bytes", nameof(bytes));
         }
 
-        return new Bytes29(bytes);
+        return Unsafe.ReadUnaligned<Bytes29>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -12226,12 +12052,6 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes30(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 30-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -12303,7 +12123,7 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
             return false;
         }
 
-        parsed = new Bytes30(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes30>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -12320,7 +12140,7 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
             throw new ArgumentException("Bytes30 requires exactly 30 bytes", nameof(bytes));
         }
 
-        return new Bytes30(bytes);
+        return Unsafe.ReadUnaligned<Bytes30>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -12676,12 +12496,6 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes31(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 31-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -12753,7 +12567,7 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
             return false;
         }
 
-        parsed = new Bytes31(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes31>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -12770,7 +12584,7 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
             throw new ArgumentException("Bytes31 requires exactly 31 bytes", nameof(bytes));
         }
 
-        return new Bytes31(bytes);
+        return Unsafe.ReadUnaligned<Bytes31>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
@@ -13139,12 +12953,6 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes32(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a 32-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -13216,7 +13024,7 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
             return false;
         }
 
-        parsed = new Bytes32(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes32>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -13233,7 +13041,7 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
             throw new ArgumentException("Bytes32 requires exactly 32 bytes", nameof(bytes));
         }
 
-        return new Bytes32(bytes);
+        return Unsafe.ReadUnaligned<Bytes32>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>

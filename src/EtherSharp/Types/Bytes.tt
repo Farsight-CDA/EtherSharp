@@ -144,12 +144,6 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
     public readonly byte this[Index index]
         => AsReadOnlySpan()[index];
 
-    private Bytes<#= i #>(ReadOnlySpan<byte> bytes)
-    {
-        _bytes = default;
-        bytes.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in _bytes[0]), BYTE_LENGTH));
-    }
-
     /// <summary>
     /// Parses a <#= i #>-byte value from a hex string. The prefix <c>0x</c> is optional.
     /// </summary>
@@ -221,7 +215,7 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
             return false;
         }
 
-        parsed = new Bytes<#= i #>(bytes);
+        parsed = Unsafe.ReadUnaligned<Bytes<#= i #>>(ref MemoryMarshal.GetReference(bytes));
         return true;
     }
 
@@ -238,7 +232,7 @@ public readonly struct Bytes<#= i #> : IEquatable<Bytes<#= i #>>, IComparable<By
             throw new ArgumentException("Bytes<#= i #> requires exactly <#= i #> bytes", nameof(bytes));
         }
 
-        return new Bytes<#= i #>(bytes);
+        return Unsafe.ReadUnaligned<Bytes<#= i #>>(ref MemoryMarshal.GetReference(bytes));
     }
 
     /// <summary>
