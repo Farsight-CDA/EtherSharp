@@ -313,11 +313,7 @@ public class InterpreterRuntime : IDisposable
                 messageCall.Depth,
                 messageCall.IsStatic
             );
-            var precompileResult = await precompile.ExecuteAsync(_host, call);
-            // Native precompile failure is exceptional, not execution of the REVERT opcode.
-            result = precompileResult.Success
-                ? ExecutionResult.Success(precompileResult.Data)
-                : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.PrecompileFailure);
+            result = await precompile.ExecuteAsync(_host, call);
             if(!result.IsSuccess)
             {
                 _storage.Reset(callSnapshot);

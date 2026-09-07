@@ -36,10 +36,10 @@ public sealed class ModExpPrecompile : IPrecompile
     public Address Address { get; } = Address.FromString("0x0000000000000000000000000000000000000005");
 
     /// <inheritdoc/>
-    public ValueTask<TxCallResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
+    public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
         => ValueTask.FromResult(Execute(call.Input.Span));
 
-    private TxCallResult Execute(ReadOnlySpan<byte> input)
+    private ExecutionResult Execute(ReadOnlySpan<byte> input)
     {
         // EIP-198 treats all missing input bytes, including header bytes, as trailing zeros.
         Span<byte> header = stackalloc byte[HEADER_LENGTH];
@@ -53,11 +53,11 @@ public sealed class ModExpPrecompile : IPrecompile
         // Validate full-width lengths before narrowing or taking any empty-result shortcut.
         if(baseLength > _maxOperandLength || exponentLength > _maxOperandLength || modulusLength > _maxOperandLength)
         {
-            return new TxCallResult(false, ReadOnlyMemory<byte>.Empty);
+            return ExecutionResult.PrecompileFailure(PrecompileFailureReason.ModExpOperandLengthExceeded);
         }
         if(modulusLength.IsZero)
         {
-            return new TxCallResult(true, ReadOnlyMemory<byte>.Empty);
+            return ExecutionResult.Success();
         }
 
         int baseSize = (int) baseLength;
@@ -77,7 +77,7 @@ public sealed class ModExpPrecompile : IPrecompile
         byte[] output = new byte[modulusSize];
         if(modulusBytes.IsEmpty)
         {
-            return new TxCallResult(true, output);
+            return ExecutionResult.Success(output);
         }
 
         if(baseBytes.Length <= WORD_LENGTH && exponentBytes.Length <= WORD_LENGTH && modulusBytes.Length <= WORD_LENGTH)
@@ -101,7 +101,7 @@ public sealed class ModExpPrecompile : IPrecompile
             _ = result.TryWriteBytes(output.AsSpan(modulusSize - result.GetByteCount(isUnsigned: true)), out _, isUnsigned: true, isBigEndian: true);
         }
 
-        return new TxCallResult(true, output);
+        return ExecutionResult.Success(output);
     }
 
     private static UInt256 ReadUInt256(ReadOnlySpan<byte> bytes)

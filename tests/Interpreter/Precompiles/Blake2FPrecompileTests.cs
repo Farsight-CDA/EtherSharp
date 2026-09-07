@@ -43,7 +43,34 @@ public sealed class Blake2FPrecompileTests
             Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input) }
         );
 
-        Assert.True(result.Success, name);
+        Assert.True(result.IsSuccess, name);
         Assert.Equal(Convert.FromHexString(expected), result.Data.ToArray());
+    }
+
+    [Theory]
+    [InlineData(0, 0, PrecompileFailureReason.InvalidInputLength)]
+    [InlineData(212, 0, PrecompileFailureReason.InvalidInputLength)]
+    [InlineData(214, 0, PrecompileFailureReason.InvalidInputLength)]
+    [InlineData(213, 2, PrecompileFailureReason.Blake2FInvalidFinalBlockFlag)]
+    [InlineData(213, 255, PrecompileFailureReason.Blake2FInvalidFinalBlockFlag)]
+    public async Task ExecuteAsync_ShouldReportSpecificInputFailures(int length, byte flag, PrecompileFailureReason expected)
+    {
+        byte[] input = new byte[length];
+        if(length == 213)
+        {
+            input[212] = flag;
+        }
+
+        var result = await Blake2FPrecompile.Instance.ExecuteAsync(
+            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = input }
+        );
+
+        Assert.False(result.IsSuccess);
+        Assert.False(result.IsRevert(out _));
+        Assert.True(result.IsExceptionalHalt(out var halt));
+        Assert.Equal(ExceptionalHaltReason.PrecompileFailure, halt);
+        Assert.True(result.IsPrecompileFailure(out var reason));
+        Assert.Equal(expected, reason);
+        Assert.Empty(result.Data.ToArray());
     }
 }

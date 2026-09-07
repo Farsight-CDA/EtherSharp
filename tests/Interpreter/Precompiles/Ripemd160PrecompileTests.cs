@@ -36,7 +36,7 @@ public sealed class Ripemd160PrecompileTests
             Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input) }
         );
 
-        Assert.True(result.Success);
+        Assert.True(result.IsSuccess);
         Assert.Equal(Convert.FromHexString(expectedData), result.Data.ToArray());
     }
 }

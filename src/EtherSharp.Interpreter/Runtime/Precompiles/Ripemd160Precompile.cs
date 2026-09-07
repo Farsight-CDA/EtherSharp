@@ -21,11 +21,11 @@ public sealed class Ripemd160Precompile : IPrecompile
     public Address Address { get; } = Address.FromString("0x0000000000000000000000000000000000000003");
 
     /// <inheritdoc/>
-    public ValueTask<TxCallResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
+    public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
     {
         // EVM results are left-padded to 32 bytes; the digest retains its byte order.
         byte[] output = new byte[32];
         Ripemd160.HashData(call.Input.Span, output.AsSpan(12));
-        return ValueTask.FromResult(new TxCallResult(true, output));
+        return ValueTask.FromResult(ExecutionResult.Success(output));
     }
 }

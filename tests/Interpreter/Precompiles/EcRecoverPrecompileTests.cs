@@ -99,7 +99,7 @@ public sealed class EcRecoverPrecompileTests
             Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input) }
         );
 
-        Assert.Equal(expectedSuccess, result.Success);
+        Assert.Equal(expectedSuccess, result.IsSuccess);
         Assert.Equal(Convert.FromHexString(expectedData), result.Data.ToArray());
     }
 }

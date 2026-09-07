@@ -25,7 +25,7 @@ public sealed class EcRecoverPrecompile : IPrecompile
     public Address Address { get; } = Address.FromString("0x0000000000000000000000000000000000000001");
 
     /// <inheritdoc/>
-    public ValueTask<TxCallResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
+    public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
     {
         // Input is hash || v || r || s, right-padded with zeros and truncated to 128 bytes.
         Span<byte> input = stackalloc byte[128];
@@ -34,7 +34,7 @@ public sealed class EcRecoverPrecompile : IPrecompile
 
         if(input[32..63].ContainsAnyExcept((byte) 0) || input[63] is not (27 or 28))
         {
-            return ValueTask.FromResult(new TxCallResult(true, ReadOnlyMemory<byte>.Empty));
+            return ValueTask.FromResult(ExecutionResult.Success());
         }
 
         var secp256k1 = _secp256k1.Value;
@@ -44,7 +44,7 @@ public sealed class EcRecoverPrecompile : IPrecompile
         if(!secp256k1.EcdsaRecoverableSignatureParseCompact(signature, input[64..], input[63] - 27)
             || !secp256k1.EcdsaRecover(publicKey, signature, input[..32]))
         {
-            return ValueTask.FromResult(new TxCallResult(true, ReadOnlyMemory<byte>.Empty));
+            return ValueTask.FromResult(ExecutionResult.Success());
         }
 
         Span<byte> serialized = stackalloc byte[65];
@@ -54,6 +54,6 @@ public sealed class EcRecoverPrecompile : IPrecompile
         byte[] output = new byte[32];
         _ = Keccak256.TryHashData(serialized[1..], output);
         output.AsSpan(0, 12).Clear();
-        return ValueTask.FromResult(new TxCallResult(true, output));
+        return ValueTask.FromResult(ExecutionResult.Success(output));
     }
 }

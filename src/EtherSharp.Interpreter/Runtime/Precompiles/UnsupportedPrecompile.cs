@@ -13,6 +13,6 @@ public sealed class UnsupportedPrecompile(Address address) : IPrecompile
 
     /// <inheritdoc/>
     /// <exception cref="NotSupportedException">The precompile is not implemented.</exception>
-    public ValueTask<TxCallResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
+    public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
         => throw new NotSupportedException($"Precompile at {Address} is not implemented.");
 }

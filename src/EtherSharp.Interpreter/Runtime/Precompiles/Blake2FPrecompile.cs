@@ -21,15 +21,19 @@ public sealed class Blake2FPrecompile : IPrecompile
     public Address Address { get; } = Address.FromString("0x0000000000000000000000000000000000000009");
 
     /// <inheritdoc/>
-    public ValueTask<TxCallResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
+    public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
     {
-        if(call.Input.Span.Length != Blake2F.INPUT_LENGTH || call.Input.Span[212] > 1)
+        if(call.Input.Length != Blake2F.INPUT_LENGTH)
         {
-            return ValueTask.FromResult(new TxCallResult(false, ReadOnlyMemory<byte>.Empty));
+            return ValueTask.FromResult(ExecutionResult.PrecompileFailure(PrecompileFailureReason.InvalidInputLength));
+        }
+        if(call.Input.Span[212] > 1)
+        {
+            return ValueTask.FromResult(ExecutionResult.PrecompileFailure(PrecompileFailureReason.Blake2FInvalidFinalBlockFlag));
         }
 
         byte[] output = new byte[Blake2F.OUTPUT_LENGTH];
         Blake2F.Compress(call.Input.Span, output);
-        return ValueTask.FromResult(new TxCallResult(true, output));
+        return ValueTask.FromResult(ExecutionResult.Success(output));
     }
 }

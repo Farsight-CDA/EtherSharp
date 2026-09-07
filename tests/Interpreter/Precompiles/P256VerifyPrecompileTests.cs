@@ -35,7 +35,7 @@ public sealed class P256VerifyPrecompileTests
             Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input) }
         );
 
-        Assert.True(result.Success, name);
+        Assert.True(result.IsSuccess, name);
         Assert.Equal(Convert.FromHexString(expected), result.Data.ToArray());
     }
 }

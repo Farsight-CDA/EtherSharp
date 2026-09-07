@@ -21,6 +21,6 @@ public sealed class Sha256Precompile : IPrecompile
     public Address Address { get; } = Address.FromString("0x0000000000000000000000000000000000000002");
 
     /// <inheritdoc/>
-    public ValueTask<TxCallResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
-        => ValueTask.FromResult(new TxCallResult(true, SHA256.HashData(call.Input.Span)));
+    public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
+        => ValueTask.FromResult(ExecutionResult.Success(SHA256.HashData(call.Input.Span)));
 }

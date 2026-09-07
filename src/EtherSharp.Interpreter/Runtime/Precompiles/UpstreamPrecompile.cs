@@ -12,6 +12,11 @@ public sealed class UpstreamPrecompile(Address address) : IPrecompile
     public Address Address { get; } = address;
 
     /// <inheritdoc/>
-    public ValueTask<TxCallResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
-        => new(host.CallPrecompileAsync(call.Caller, Address, call.Value, call.Input));
+    public async ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
+    {
+        var result = await host.CallPrecompileAsync(call.Caller, Address, call.Value, call.Input);
+        return result.Success
+            ? ExecutionResult.Success(result.Data)
+            : ExecutionResult.PrecompileFailure(PrecompileFailureReason.Unspecified);
+    }
 }

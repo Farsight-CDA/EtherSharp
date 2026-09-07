@@ -6,5 +6,7 @@ internal enum ExecutionHaltKind
     Revert,
     ExceptionalHalt,
     // The call did not enter execution; its allocated execution gas is not consumed.
-    CallEntryFailure
+    CallEntryFailure,
+    // An exceptional halt carrying a precompile-specific failure reason.
+    PrecompileFailure
 }

@@ -18,6 +18,6 @@ public interface IPrecompile
     /// </summary>
     /// <param name="host">The upstream host available to the precompile.</param>
     /// <param name="call">The message-call context and input.</param>
-    /// <returns>The raw EVM call result.</returns>
-    public ValueTask<TxCallResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call);
+    /// <returns>The EVM execution outcome, including any specific precompile failure reason.</returns>
+    public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call);
 }

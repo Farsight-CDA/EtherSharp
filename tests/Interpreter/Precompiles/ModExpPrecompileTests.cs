@@ -60,7 +60,12 @@ public sealed class ModExpPrecompileTests
             Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input) }
         );
 
-        Assert.Equal(expectedSuccess, result.Success);
+        Assert.Equal(expectedSuccess, result.IsSuccess);
         Assert.Equal(Convert.FromHexString(expectedData), result.Data.ToArray());
+        if(!expectedSuccess)
+        {
+            Assert.True(result.IsPrecompileFailure(out var reason));
+            Assert.Equal(PrecompileFailureReason.ModExpOperandLengthExceeded, reason);
+        }
     }
 }
