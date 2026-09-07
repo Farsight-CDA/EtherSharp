@@ -57,7 +57,7 @@ public sealed class Int256HexConverter : JsonConverter<Int256>
 
         int startIndex = 1;
 
-        if(sourceBuffer[1..].StartsWith("0x"))
+        if(sourceBuffer[1..].StartsWith("0x", StringComparison.OrdinalIgnoreCase))
         {
             startIndex += 2;
             charsWritten -= 2;
