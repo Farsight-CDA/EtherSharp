@@ -60,6 +60,8 @@ public static class Int256Extensions
         /// <returns>The sum of the values in <c>e</c>.</returns>
         public Int256 Sum()
         {
+            ArgumentNullException.ThrowIfNull(e);
+
             var result = Int256.Zero;
             foreach(var value in e)
             {
@@ -78,6 +80,9 @@ public static class Int256Extensions
         /// <returns>The sum of the projected values in <c>e</c>.</returns>
         public Int256 Sum(Func<T, Int256> selector)
         {
+            ArgumentNullException.ThrowIfNull(e);
+            ArgumentNullException.ThrowIfNull(selector);
+
             var result = Int256.Zero;
             foreach(var item in e)
             {

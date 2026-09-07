@@ -199,6 +199,8 @@ public static class UInt256Extensions
         /// <returns>The sum of the values in <c>e</c>.</returns>
         public UInt256 Sum()
         {
+            ArgumentNullException.ThrowIfNull(e);
+
             var result = UInt256.Zero;
             foreach(var value in e)
             {
@@ -217,6 +219,9 @@ public static class UInt256Extensions
         /// <returns>The sum of the projected values in <c>e</c>.</returns>
         public UInt256 Sum(Func<T, UInt256> selector)
         {
+            ArgumentNullException.ThrowIfNull(e);
+            ArgumentNullException.ThrowIfNull(selector);
+
             var result = UInt256.Zero;
             foreach(var item in e)
             {
