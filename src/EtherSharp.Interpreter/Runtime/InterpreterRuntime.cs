@@ -4,6 +4,7 @@ using EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 using EtherSharp.Interpreter.Runtime.Memory;
 using EtherSharp.Interpreter.Runtime.Precompiles;
 using EtherSharp.Interpreter.Runtime.Storage;
+using EtherSharp.Interpreter.Runtime.Tracing;
 using EtherSharp.Numerics;
 using EtherSharp.Tx;
 using EtherSharp.Tx.Types;
@@ -95,11 +96,13 @@ public class InterpreterRuntime : IDisposable
     /// </summary>
     /// <param name="sender">The transaction sender.</param>
     /// <param name="transaction">The unsigned transaction payload.</param>
+    /// <param name="hooks">Optional execution observers.</param>
     /// <returns>The transaction execution result.</returns>
     /// <remarks>The sender nonce is incremented even when EVM execution reverts.</remarks>
     public async ValueTask<TxCallResult> ExecuteTransactionAsync(
         Address sender,
-        ITransaction transaction
+        ITransaction transaction,
+        IInterpreterExecutionHooks? hooks = null
     )
     {
         ThrowIfDisposed();
@@ -107,7 +110,7 @@ public class InterpreterRuntime : IDisposable
         try
         {
             var environment = TransactionEnvironment.CreateFrom(sender, transaction, _context);
-            var result = await ExecuteTopLevelAsync(environment);
+            var result = await ExecuteTopLevelAsync(environment, hooks);
             _storage.Commit();
             return new TxCallResult(result.IsSuccess, result.Data);
         }
@@ -124,12 +127,14 @@ public class InterpreterRuntime : IDisposable
     /// <param name="sender">The transaction sender.</param>
     /// <param name="transaction">The unsigned transaction payload.</param>
     /// <param name="options">The simulation options.</param>
+    /// <param name="hooks">Optional execution observers.</param>
     /// <returns>The simulated call result.</returns>
     /// <remarks>The sender nonce is incremented during execution, then restored with the other simulated state changes.</remarks>
     public async ValueTask<TxCallResult> SimulateTransactionAsync(
         Address sender,
         ITransaction transaction,
-        InterpreterSimulationOptions options = default
+        InterpreterSimulationOptions options = default,
+        IInterpreterExecutionHooks? hooks = null
     )
     {
         ThrowIfDisposed();
@@ -142,7 +147,7 @@ public class InterpreterRuntime : IDisposable
             }
 
             var environment = TransactionEnvironment.CreateFrom(sender, transaction, _context);
-            var result = await ExecuteTopLevelAsync(environment);
+            var result = await ExecuteTopLevelAsync(environment, hooks);
             return new TxCallResult(result.IsSuccess, result.Data);
         }
         finally
@@ -157,12 +162,14 @@ public class InterpreterRuntime : IDisposable
     /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
     /// <param name="call">The destination, value, and calldata supplied to the call.</param>
     /// <param name="options">The simulation options.</param>
+    /// <param name="hooks">Optional execution observers.</param>
     /// <returns>The simulated call result.</returns>
     /// <remarks>The call uses a zero gas price, an empty access list, and no blob hashes.</remarks>
     public async ValueTask<TxCallResult> SimulateCallAsync(
         Address sender,
         ITxInput call,
-        InterpreterSimulationOptions options = default
+        InterpreterSimulationOptions options = default,
+        IInterpreterExecutionHooks? hooks = null
     )
     {
         ThrowIfDisposed();
@@ -186,7 +193,7 @@ public class InterpreterRuntime : IDisposable
                 [],
                 []
             );
-            var result = await ExecuteTopLevelAsync(environment);
+            var result = await ExecuteTopLevelAsync(environment, hooks);
             return new TxCallResult(result.IsSuccess, result.Data);
         }
         finally
@@ -199,7 +206,8 @@ public class InterpreterRuntime : IDisposable
         => ObjectDisposedException.ThrowIf(_isDisposed, this);
 
     private async ValueTask<ExecutionResult> ExecuteTopLevelAsync(
-        TransactionEnvironment transaction
+        TransactionEnvironment transaction,
+        IInterpreterExecutionHooks? hooks
     )
     {
         var senderStorage = _storage.GetAccountStorage(transaction.Sender);
@@ -218,7 +226,7 @@ public class InterpreterRuntime : IDisposable
         if(transaction.Input.To is Address target)
         {
             senderStorage.SetNonce(senderNonce + 1);
-            return await ExecuteMessageCallAsync(transaction, new MessageCall(
+            return await ExecuteMessageCallAsync(transaction, hooks, new MessageCall(
                 transaction.Sender,
                 transaction.Sender,
                 target,
@@ -237,7 +245,7 @@ public class InterpreterRuntime : IDisposable
         }
 
         var createdAddress = Address.DeriveCreate(transaction.Sender, senderNonce);
-        return await ExecuteContractCreationAsync(transaction, new ContractCreation(
+        return await ExecuteContractCreationAsync(transaction, hooks, new ContractCreation(
             transaction.Sender,
             transaction.Sender,
             createdAddress,
@@ -249,6 +257,7 @@ public class InterpreterRuntime : IDisposable
 
     private async ValueTask<ExecutionResult> ExecuteMessageCallAsync(
         TransactionEnvironment transaction,
+        IInterpreterExecutionHooks? hooks,
         MessageCall messageCall
     )
     {
@@ -329,7 +338,7 @@ public class InterpreterRuntime : IDisposable
                 var delegationTarget = Address.FromBytes(byteCode.ByteCode.Span[3..]);
                 byteCode = await _storage.GetAccountStorage(delegationTarget).GetCodeAsync();
             }
-            result = await ExecuteOpcodesAsync(transaction, callFrame, byteCode);
+            result = await ExecuteOpcodesAsync(transaction, hooks, callFrame, byteCode);
         }
 
         if(!result.IsSuccess)
@@ -342,6 +351,7 @@ public class InterpreterRuntime : IDisposable
 
     private async ValueTask<ExecutionResult> ExecuteContractCreationAsync(
         TransactionEnvironment transaction,
+        IInterpreterExecutionHooks? hooks,
         ContractCreation creation
     )
     {
@@ -393,6 +403,7 @@ public class InterpreterRuntime : IDisposable
         );
         var creationResult = await ExecuteOpcodesAsync(
             transaction,
+            hooks,
             creationFrame,
             new EVMByteCode(creation.InitCode)
         );
@@ -419,6 +430,7 @@ public class InterpreterRuntime : IDisposable
 
     private async ValueTask<ExecutionResult> ExecuteOpcodesAsync(
         TransactionEnvironment transaction,
+        IInterpreterExecutionHooks? hooks,
         CallFrame callFrame,
         EVMByteCode byteCode
     )
@@ -429,6 +441,11 @@ public class InterpreterRuntime : IDisposable
         while(true)
         {
             var opcode = (EvmOpcode) code[programCounter];
+
+            if(hooks is not null)
+            {
+                await hooks.OnInstructionAsync(callFrame, programCounter, opcode, _storage);
+            }
 
             switch(opcode)
             {
@@ -1153,6 +1170,7 @@ public class InterpreterRuntime : IDisposable
                     );
                     var creationResult = await ExecuteContractCreationAsync(
                         transaction,
+                        hooks,
                         new ContractCreation(
                             callFrame.Origin,
                             callFrame.To,
@@ -1202,6 +1220,7 @@ public class InterpreterRuntime : IDisposable
                     );
                     var creationResult = await ExecuteContractCreationAsync(
                         transaction,
+                        hooks,
                         new ContractCreation(
                             callFrame.Origin,
                             callFrame.To,
@@ -1243,7 +1262,7 @@ public class InterpreterRuntime : IDisposable
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    var callResult = await ExecuteMessageCallAsync(transaction, new MessageCall(
+                    var callResult = await ExecuteMessageCallAsync(transaction, hooks, new MessageCall(
                         callFrame.Origin,
                         callFrame.To,
                         address,
@@ -1280,7 +1299,7 @@ public class InterpreterRuntime : IDisposable
                     bool hasSufficientBalance = value.IsZero
                         || await callFrame.AccountStorage.GetBalanceAsync() >= value;
                     var callResult = hasSufficientBalance
-                        ? await ExecuteMessageCallAsync(transaction, new MessageCall(
+                        ? await ExecuteMessageCallAsync(transaction, hooks, new MessageCall(
                             callFrame.Origin,
                             callFrame.To,
                             callFrame.To,
@@ -1322,7 +1341,7 @@ public class InterpreterRuntime : IDisposable
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    var callResult = await ExecuteMessageCallAsync(transaction, new MessageCall(
+                    var callResult = await ExecuteMessageCallAsync(transaction, hooks, new MessageCall(
                         callFrame.Origin,
                         callFrame.From,
                         callFrame.To,
@@ -1355,7 +1374,7 @@ public class InterpreterRuntime : IDisposable
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    var callResult = await ExecuteMessageCallAsync(transaction, new MessageCall(
+                    var callResult = await ExecuteMessageCallAsync(transaction, hooks, new MessageCall(
                         callFrame.Origin,
                         callFrame.To,
                         address,
