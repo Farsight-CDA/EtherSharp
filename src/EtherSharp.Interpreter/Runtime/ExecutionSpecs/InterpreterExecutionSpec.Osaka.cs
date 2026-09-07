@@ -19,7 +19,7 @@ public sealed partial record InterpreterExecutionSpec
             Sha256Precompile.Instance, // 0x02: SHA-256
             new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000003")), // RIPEMD-160
             IdentityPrecompile.Instance, // 0x04: identity
-            new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000005")), // MODEXP
+            new ModExpPrecompile(maxOperandLength: 1024), // 0x05: MODEXP (EIP-7823)
             new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000006")), // BN254 ADD
             new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000007")), // BN254 MUL
             new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000008")), // BN254 PAIRING
