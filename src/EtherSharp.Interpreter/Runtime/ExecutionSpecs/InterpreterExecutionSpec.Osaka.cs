@@ -9,7 +9,7 @@ public sealed partial record InterpreterExecutionSpec
     /// Gets the Osaka code-size limits and standard precompile configuration.
     /// </summary>
     /// <remarks>
-    /// Identity and SHA-256 execute locally; other standard precompiles throw <see cref="NotSupportedException"/>.
+    /// Identity, SHA-256, RIPEMD-160, and ModExp execute locally; other standard precompiles throw <see cref="NotSupportedException"/>.
     /// This preset does not imply full gas or consensus validation.
     /// </remarks>
     public static InterpreterExecutionSpec Osaka { get; } = new()
@@ -17,7 +17,7 @@ public sealed partial record InterpreterExecutionSpec
         Precompiles = [
             EcRecoverPrecompile.Instance, // 0x01: ECRECOVER
             Sha256Precompile.Instance, // 0x02: SHA-256
-            new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000003")), // RIPEMD-160
+            Ripemd160Precompile.Instance, // 0x03: RIPEMD-160
             IdentityPrecompile.Instance, // 0x04: identity
             new ModExpPrecompile(maxOperandLength: 1024), // 0x05: MODEXP (EIP-7823)
             new UnsupportedPrecompile(Address.FromString("0x0000000000000000000000000000000000000006")), // BN254 ADD
