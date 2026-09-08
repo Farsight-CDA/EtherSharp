@@ -456,7 +456,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
         byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, _jsonSerializerOptions);
-        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
+        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, requestOptions, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -466,7 +466,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
         byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, t1, _jsonSerializerOptions);
-        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
+        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, requestOptions, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -476,7 +476,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
         byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, t1, t2, _jsonSerializerOptions);
-        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
+        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, requestOptions, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -486,7 +486,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
         byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, t1, t2, t3, _jsonSerializerOptions);
-        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
+        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, requestOptions, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -496,11 +496,12 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     {
         int requestId = Interlocked.Increment(ref _requestIdCounter);
         byte[] payload = JsonRpcRequestPayload.SerializeToUtf8Bytes(requestId, method, t1, t2, t3, t4, _jsonSerializerOptions);
-        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, cancellationToken);
+        return SendRpcRequestInternalAsync<TResult>(requestId, method, payload, requestOptions, cancellationToken);
     }
 
     private async Task<RpcResult<TResult>> SendRpcRequestInternalAsync<TResult>(
-        int requestId, string method, byte[] payload, CancellationToken cancellationToken)
+        int requestId, string method, byte[] payload, RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    )
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
@@ -520,6 +521,8 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 await _sendSemaphore.WaitAsync(cancellationToken);
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    requestOptions.Statistics?.RecordRequest();
                     await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
                 }
                 finally

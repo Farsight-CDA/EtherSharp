@@ -90,6 +90,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             id,
             method,
             CreateHttpContent(JsonRpcRequestPayload.SerializeToUtf8Bytes(id, method, _jsonSerializerOptions)),
+            requestOptions,
             cancellationToken
         );
     }
@@ -104,6 +105,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             id,
             method,
             CreateHttpContent(JsonRpcRequestPayload.SerializeToUtf8Bytes(id, method, t1, _jsonSerializerOptions)),
+            requestOptions,
             cancellationToken
         );
     }
@@ -118,6 +120,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             id,
             method,
             CreateHttpContent(JsonRpcRequestPayload.SerializeToUtf8Bytes(id, method, t1, t2, _jsonSerializerOptions)),
+            requestOptions,
             cancellationToken
         );
     }
@@ -132,6 +135,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             id,
             method,
             CreateHttpContent(JsonRpcRequestPayload.SerializeToUtf8Bytes(id, method, t1, t2, t3, _jsonSerializerOptions)),
+            requestOptions,
             cancellationToken
         );
     }
@@ -146,6 +150,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             id,
             method,
             CreateHttpContent(JsonRpcRequestPayload.SerializeToUtf8Bytes(id, method, t1, t2, t3, t4, _jsonSerializerOptions)),
+            requestOptions,
             cancellationToken
         );
     }
@@ -158,7 +163,8 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     }
 
     private async Task<RpcResult<TResult>> SendRpcRequestCoreAsync<TResult>(
-        int id, string method, HttpContent requestContent, CancellationToken cancellationToken)
+        int id, string method, HttpContent requestContent, RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    )
     {
         using var httpRequestMessage = new HttpRequestMessage()
         {
@@ -170,6 +176,8 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
 
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            requestOptions.Statistics?.RecordRequest();
             response = await _client.SendAsync(httpRequestMessage, cancellationToken);
         }
         catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested)
