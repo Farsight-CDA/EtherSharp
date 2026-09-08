@@ -151,6 +151,14 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>, ISta
         => new(Bytes20.FromBytes(b));
 
     /// <summary>
+    /// Creates an <see cref="Address"/> instance from a <see cref="Bytes20"/> value.
+    /// </summary>
+    /// <param name="value">The fixed-size byte value that represents the address.</param>
+    /// <returns>The address represented by <paramref name="value"/>.</returns>
+    public static Address FromBytes(in Bytes20 value)
+        => new(value);
+
+    /// <summary>
     /// Derives the address created by the CREATE opcode.
     /// </summary>
     /// <param name="creator">The account creating the contract.</param>
