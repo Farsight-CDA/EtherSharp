@@ -77,10 +77,6 @@ public partial class InterpreterRuntime : IDisposable
     /// <summary>
     /// Executes a transaction from the supplied sender with optional tracing hooks and retains its state changes.
     /// </summary>
-    /// <remarks>
-    /// The sender nonce is incremented even when EVM execution reverts.
-    /// Hooks run before state is committed; hook exceptions restore the starting state.
-    /// </remarks>
     public ValueTask<TxCallResult> ExecuteTransactionAsync(
         Address sender,
         LegacyTransaction transaction,
@@ -91,7 +87,7 @@ public partial class InterpreterRuntime : IDisposable
         return transaction.ChainId != _context.ChainId
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
-                sender, retainState: true, transaction: TransactionEnvironment.CreateForTransaction(sender, transaction, _context),
+                TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: true, isCall: false,
                 options: new InterpreterSimulationOptions { Hooks = hooks }
             );
     }
@@ -107,7 +103,7 @@ public partial class InterpreterRuntime : IDisposable
         return transaction.ChainId != _context.ChainId
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
-                sender, retainState: true, transaction: TransactionEnvironment.CreateForTransaction(sender, transaction, _context),
+                TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: true, isCall: false,
                 options: new InterpreterSimulationOptions { Hooks = hooks }
             );
     }
@@ -115,7 +111,6 @@ public partial class InterpreterRuntime : IDisposable
     /// <summary>
     /// Simulates a transaction from the supplied sender and discards all state changes.
     /// </summary>
-    /// <remarks>The sender nonce is incremented during execution, then restored with the other simulated state changes.</remarks>
     public ValueTask<TxCallResult> SimulateTransactionAsync(
         Address sender,
         LegacyTransaction transaction,
@@ -126,7 +121,7 @@ public partial class InterpreterRuntime : IDisposable
         return transaction.ChainId != _context.ChainId
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
-                sender, retainState: false, transaction: TransactionEnvironment.CreateForTransaction(sender, transaction, _context), options: options
+                TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: false, isCall: false, options: options
             );
     }
 
@@ -141,7 +136,7 @@ public partial class InterpreterRuntime : IDisposable
         return transaction.ChainId != _context.ChainId
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
-                sender, retainState: false, transaction: TransactionEnvironment.CreateForTransaction(sender, transaction, _context), options: options
+                TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: false, isCall: false, options: options
             );
     }
 
@@ -158,7 +153,9 @@ public partial class InterpreterRuntime : IDisposable
     )
     {
         ArgumentNullException.ThrowIfNull(call);
-        return ExecuteTopLevelAsync(sender, retainState: false, call: call, options: options);
+        return ExecuteTopLevelAsync(
+            TransactionEnvironment.CreateForCall(sender, call, 0, _context), retainState: false, isCall: true, options: options
+        );
     }
 
     /// <summary>
@@ -168,7 +165,6 @@ public partial class InterpreterRuntime : IDisposable
     /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
     /// <param name="call">The destination, value, calldata, and result decoder supplied to the call.</param>
     /// <param name="options">The simulation options.</param>
-    /// <returns>The decoded return value.</returns>
     /// <exception cref="CallRevertedException">Thrown when execution reverts.</exception>
     /// <exception cref="CallParsingException">Thrown when the return data cannot be decoded.</exception>
     public async ValueTask<T> SimulateCallAsync<T>(
@@ -184,11 +180,9 @@ public partial class InterpreterRuntime : IDisposable
     /// <summary>
     /// Simulates a call from the supplied sender, discards all state changes, and returns its typed outcome.
     /// </summary>
-    /// <typeparam name="T">The decoded return type.</typeparam>
     /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
     /// <param name="call">The destination, value, calldata, and result decoder supplied to the call.</param>
     /// <param name="options">The simulation options.</param>
-    /// <returns>A decoded success, revert payload, or malformed return-data result.</returns>
     public async ValueTask<CallResult<T>> SafeSimulateCallAsync<T>(
         Address sender,
         ITxInput<T> call,
@@ -200,14 +194,23 @@ public partial class InterpreterRuntime : IDisposable
     }
 
     private async ValueTask<TxCallResult> ExecuteTopLevelAsync(
-        Address sender,
+        TransactionEnvironment environment,
         bool retainState,
-        TransactionEnvironment? transaction = null,
-        ITxInput? call = null,
+        bool isCall,
         InterpreterSimulationOptions options = default
     )
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
+        bool skipTopLevelNonceChecks = options.TopLevelNonceHandling switch
+        {
+            TopLevelNonceHandling.Default => isCall && environment.Input.To is not null,
+            TopLevelNonceHandling.Validate => false,
+            TopLevelNonceHandling.Skip when environment.Input.To is null
+                => throw new InvalidOperationException("Top-level contract creation requires sender nonce checks."),
+            TopLevelNonceHandling.Skip => true,
+            _ => throw new ArgumentOutOfRangeException(nameof(options), options.TopLevelNonceHandling, "Invalid top-level nonce handling mode.")
+        };
+
         var execution = new ExecutionState(options.Hooks);
         if(Interlocked.CompareExchange(ref _executionState, execution, null) is not null)
         {
@@ -223,42 +226,48 @@ public partial class InterpreterRuntime : IDisposable
                 _storage.ApplyStateOverrides(stateOverrides);
             }
 
-            var environment = transaction ?? TransactionEnvironment.CreateForCall(
-                sender,
-                call!,
-                await _storage.GetAccountStorage(sender).GetNonceAsync(),
-                _context
-            );
+            var senderStorage = _storage.GetAccountStorage(environment.Sender);
+            if(isCall && !skipTopLevelNonceChecks)
+            {
+                environment = environment with { Nonce = await senderStorage.GetNonceAsync() };
+            }
 
             execution.Transaction = environment;
             if(execution.Hooks is not null)
             {
                 await execution.Hooks.OnExecutionStartAsync(_context, environment, _storage);
             }
-            var senderStorage = _storage.GetAccountStorage(sender);
-            ulong senderNonce = await senderStorage.GetNonceAsync();
-            if(senderNonce != environment.Nonce)
+
+            ulong senderNonce = 0;
+            if(!skipTopLevelNonceChecks)
             {
-                throw new InvalidOperationException(
-                    $"Invalid transaction nonce. Expected {senderNonce}, received {environment.Nonce}."
-                );
-            }
-            if(senderNonce == UInt64.MaxValue)
-            {
-                throw new InvalidOperationException("Transaction sender nonce cannot be incremented.");
+                senderNonce = await senderStorage.GetNonceAsync();
+                if(senderNonce != environment.Nonce)
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid transaction nonce. Expected {senderNonce}, received {environment.Nonce}."
+                    );
+                }
+                if(senderNonce == UInt64.MaxValue)
+                {
+                    throw new InvalidOperationException("Transaction sender nonce cannot be incremented.");
+                }
             }
 
             ExecutionResult result;
             if(environment.Input.To is Address target)
             {
-                senderStorage.SetNonce(senderNonce + 1);
+                if(!skipTopLevelNonceChecks)
+                {
+                    senderStorage.SetNonce(senderNonce + 1);
+                }
                 result = await ExecuteMessageCallAsync(
                     new CallFrame(
                         checked(execution.NextFrameId++),
                         EvmOpcode.Call,
-                        sender,
+                        environment.Sender,
                         null,
-                        sender,
+                        environment.Sender,
                         target,
                         target,
                         environment.Input.Value,
@@ -273,13 +282,13 @@ public partial class InterpreterRuntime : IDisposable
                     throw new InvalidOperationException("Transaction initcode exceeds the configured limit.");
                 }
 
-                var createdAddress = Address.DeriveCreate(sender, senderNonce);
+                var createdAddress = Address.DeriveCreate(environment.Sender, senderNonce);
                 result = await ExecuteContractCreationAsync(new CallFrame(
                     checked(execution.NextFrameId++),
                     EvmOpcode.Create,
-                    sender,
+                    environment.Sender,
                     null,
-                    sender,
+                    environment.Sender,
                     createdAddress,
                     createdAddress,
                     environment.Input.Value,
