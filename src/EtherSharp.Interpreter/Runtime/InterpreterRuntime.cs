@@ -1,3 +1,4 @@
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 using EtherSharp.Interpreter.Runtime.Memory;
@@ -150,7 +151,6 @@ public partial class InterpreterRuntime : IDisposable
     /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
     /// <param name="call">The destination, value, and calldata supplied to the call.</param>
     /// <param name="options">The simulation options.</param>
-    /// <remarks>The call uses a zero gas price, an empty access list, and no blob hashes.</remarks>
     public ValueTask<TxCallResult> SimulateCallAsync(
         Address sender,
         ITxInput call,
@@ -159,6 +159,44 @@ public partial class InterpreterRuntime : IDisposable
     {
         ArgumentNullException.ThrowIfNull(call);
         return ExecuteTopLevelAsync(sender, retainState: false, call: call, options: options);
+    }
+
+    /// <summary>
+    /// Simulates a call from the supplied sender, discards all state changes, and returns the decoded value.
+    /// </summary>
+    /// <typeparam name="T">The decoded return type.</typeparam>
+    /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
+    /// <param name="call">The destination, value, calldata, and result decoder supplied to the call.</param>
+    /// <param name="options">The simulation options.</param>
+    /// <returns>The decoded return value.</returns>
+    /// <exception cref="CallRevertedException">Thrown when execution reverts.</exception>
+    /// <exception cref="CallParsingException">Thrown when the return data cannot be decoded.</exception>
+    public async ValueTask<T> SimulateCallAsync<T>(
+        Address sender,
+        ITxInput<T> call,
+        InterpreterSimulationOptions options = default
+    )
+    {
+        var result = await SafeSimulateCallAsync(sender, call, options);
+        return result.Unwrap();
+    }
+
+    /// <summary>
+    /// Simulates a call from the supplied sender, discards all state changes, and returns its typed outcome.
+    /// </summary>
+    /// <typeparam name="T">The decoded return type.</typeparam>
+    /// <param name="sender">The caller exposed through <c>msg.sender</c>.</param>
+    /// <param name="call">The destination, value, calldata, and result decoder supplied to the call.</param>
+    /// <param name="options">The simulation options.</param>
+    /// <returns>A decoded success, revert payload, or malformed return-data result.</returns>
+    public async ValueTask<CallResult<T>> SafeSimulateCallAsync<T>(
+        Address sender,
+        ITxInput<T> call,
+        InterpreterSimulationOptions options = default
+    )
+    {
+        var result = await SimulateCallAsync(sender, (ITxInput) call, options);
+        return CallResult<T>.ParseFrom(result, call.To, call.ReadResultFrom);
     }
 
     private async ValueTask<TxCallResult> ExecuteTopLevelAsync(
