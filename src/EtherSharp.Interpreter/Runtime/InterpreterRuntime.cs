@@ -74,24 +74,41 @@ public partial class InterpreterRuntime : IDisposable
     }
 
     /// <summary>
-    /// Executes a transaction from the supplied sender and retains its state changes.
+    /// Executes a transaction from the supplied sender with optional tracing hooks and retains its state changes.
     /// </summary>
-    /// <remarks>The sender nonce is incremented even when EVM execution reverts.</remarks>
-    public ValueTask<TxCallResult> ExecuteTransactionAsync(Address sender, LegacyTransaction transaction)
+    /// <remarks>
+    /// The sender nonce is incremented even when EVM execution reverts.
+    /// Hooks run before state is committed; hook exceptions restore the starting state.
+    /// </remarks>
+    public ValueTask<TxCallResult> ExecuteTransactionAsync(
+        Address sender,
+        LegacyTransaction transaction,
+        IInterpreterExecutionHooks? hooks = default
+    )
     {
         ArgumentNullException.ThrowIfNull(transaction);
         return transaction.ChainId != _context.ChainId
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
-            : ExecuteTopLevelAsync(sender, retainState: true, transaction: TransactionEnvironment.CreateForTransaction(sender, transaction, _context));
+            : ExecuteTopLevelAsync(
+                sender, retainState: true, transaction: TransactionEnvironment.CreateForTransaction(sender, transaction, _context),
+                options: new InterpreterSimulationOptions { Hooks = hooks }
+            );
     }
 
-    /// <inheritdoc cref="ExecuteTransactionAsync(Address, LegacyTransaction)"/>
-    public ValueTask<TxCallResult> ExecuteTransactionAsync(Address sender, EIP1559Transaction transaction)
+    /// <inheritdoc cref="ExecuteTransactionAsync(Address, LegacyTransaction, IInterpreterExecutionHooks)"/>
+    public ValueTask<TxCallResult> ExecuteTransactionAsync(
+        Address sender,
+        EIP1559Transaction transaction,
+        IInterpreterExecutionHooks? hooks = default
+    )
     {
         ArgumentNullException.ThrowIfNull(transaction);
         return transaction.ChainId != _context.ChainId
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
-            : ExecuteTopLevelAsync(sender, retainState: true, transaction: TransactionEnvironment.CreateForTransaction(sender, transaction, _context));
+            : ExecuteTopLevelAsync(
+                sender, retainState: true, transaction: TransactionEnvironment.CreateForTransaction(sender, transaction, _context),
+                options: new InterpreterSimulationOptions { Hooks = hooks }
+            );
     }
 
     /// <summary>
