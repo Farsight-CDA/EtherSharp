@@ -11,6 +11,23 @@ internal sealed class OperandStack : IInterpreterStackReader
     public bool IsFull => Count == MAX_DEPTH;
     private readonly Bytes32[] _values = new Bytes32[MAX_DEPTH];
 
+    public Bytes32 Peek(int index)
+        => (uint) index < (uint) Count
+            ? _values[Count - index - 1]
+            : throw new ArgumentOutOfRangeException(nameof(index), index, "Index must refer to a word on the stack.");
+
+    public bool TryPeek(int index, out Bytes32 value)
+    {
+        if((uint) index >= (uint) Count)
+        {
+            value = default;
+            return false;
+        }
+
+        value = _values[Count - index - 1];
+        return true;
+    }
+
     public bool TryPush<T>(in T value)
         where T : struct, IStackValue<T>
     {
