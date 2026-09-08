@@ -27,7 +27,8 @@ public interface IInterpreterExecutionHooks
     ValueTask OnInstructionAsync(
         IInterpreterExecutionReader execution,
         int programCounter,
-        EvmOpcode opcode
+        EvmOpcode opcode,
+        IInterpreterStateReader state
     ) => ValueTask.CompletedTask;
 
     /// <summary>Runs after a LOG0 through LOG4 instruction records a log.</summary>
@@ -35,10 +36,12 @@ public interface IInterpreterExecutionHooks
     /// <param name="execution">The active execution after the log was recorded. Its frame's Address is the emitting account.</param>
     /// <param name="topics">The log topics in emission order.</param>
     /// <param name="data">The log data.</param>
+    /// <param name="state">The state after the log was recorded.</param>
     ValueTask OnLogAsync(
         IInterpreterExecutionReader execution,
         ReadOnlyMemory<Bytes32> topics,
-        ReadOnlyMemory<byte> data
+        ReadOnlyMemory<byte> data,
+        IInterpreterStateReader state
     ) => ValueTask.CompletedTask;
 
     /// <summary>Runs after SELFDESTRUCT applies its balance changes and schedules deletion when applicable.</summary>
@@ -46,10 +49,12 @@ public interface IInterpreterExecutionHooks
     /// <param name="execution">The active execution after SELFDESTRUCT applied its changes.</param>
     /// <param name="beneficiary">The beneficiary specified by the instruction.</param>
     /// <param name="balance">The contract balance before SELFDESTRUCT applied its changes.</param>
+    /// <param name="state">The state after the instruction's changes.</param>
     ValueTask OnSelfDestructAsync(
         IInterpreterExecutionReader execution,
         Address beneficiary,
-        UInt256 balance
+        UInt256 balance,
+        IInterpreterStateReader state
     ) => ValueTask.CompletedTask;
 
     /// <summary>Runs before an invocation's entry checks.</summary>

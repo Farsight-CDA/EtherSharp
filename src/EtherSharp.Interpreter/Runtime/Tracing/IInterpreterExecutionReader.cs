@@ -10,6 +10,4 @@ public interface IInterpreterExecutionReader
     IInterpreterStackReader Stack { get; }
     /// <summary>Gets the live execution memory.</summary>
     IInterpreterMemoryReader Memory { get; }
-    /// <summary>Gets the interpreter state, including account storage.</summary>
-    IInterpreterStateReader State { get; }
 }

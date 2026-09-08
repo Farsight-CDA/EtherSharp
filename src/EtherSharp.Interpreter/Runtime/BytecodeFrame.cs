@@ -9,7 +9,6 @@ namespace EtherSharp.Interpreter.Runtime;
 internal sealed class BytecodeFrame(
     CallFrame call,
     InterpreterAccountStorage accountStorage,
-    InterpreterStorage storage,
     InterpreterResourceLimits resourceLimits
 ) : IInterpreterExecutionReader
 {
@@ -27,5 +26,4 @@ internal sealed class BytecodeFrame(
     IInterpreterFrameReader IInterpreterExecutionReader.Frame => Call;
     IInterpreterStackReader IInterpreterExecutionReader.Stack => Stack;
     IInterpreterMemoryReader IInterpreterExecutionReader.Memory => Memory;
-    IInterpreterStateReader IInterpreterExecutionReader.State => storage;
 }

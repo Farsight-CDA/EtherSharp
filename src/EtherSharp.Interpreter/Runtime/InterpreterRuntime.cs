@@ -319,7 +319,7 @@ public partial class InterpreterRuntime : IDisposable
                     var delegationTarget = Address.FromBytes(byteCode.ByteCode.Span[3..]);
                     byteCode = await _storage.GetAccountStorage(delegationTarget).GetCodeAsync();
                 }
-                result = await ExecuteOpcodesAsync(new BytecodeFrame(call, accountStorage, _storage, ResourceLimits), new ZeroPaddedData(byteCode.ByteCode));
+                result = await ExecuteOpcodesAsync(new BytecodeFrame(call, accountStorage, ResourceLimits), new ZeroPaddedData(byteCode.ByteCode));
             }
         }
 
@@ -386,7 +386,7 @@ public partial class InterpreterRuntime : IDisposable
                 }
 
                 result = await ExecuteOpcodesAsync(
-                    new BytecodeFrame(call, createdStorage, _storage, ResourceLimits),
+                    new BytecodeFrame(call, createdStorage, ResourceLimits),
                     new ZeroPaddedData(call.Input)
                 );
                 if(!result.IsSuccess)
