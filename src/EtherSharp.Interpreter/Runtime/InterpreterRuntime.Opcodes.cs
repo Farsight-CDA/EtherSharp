@@ -19,7 +19,7 @@ public partial class InterpreterRuntime
 
             if(_executionState!.Hooks is not null)
             {
-                await _executionState.Hooks.OnInstructionAsync(callFrame.Call, programCounter, opcode, _storage);
+                await _executionState.Hooks.OnInstructionAsync(callFrame, programCounter, opcode);
             }
 
             switch(opcode)
@@ -719,7 +719,7 @@ public partial class InterpreterRuntime
                     _storage.AddLog(callFrame.Call.Address, topics, data);
                     if(_executionState!.Hooks is not null)
                     {
-                        await _executionState.Hooks.OnLogAsync(callFrame.Call, topics, data, _storage);
+                        await _executionState.Hooks.OnLogAsync(callFrame, topics, data);
                     }
                     break;
                 }
@@ -1000,7 +1000,7 @@ public partial class InterpreterRuntime
 
                     if(_executionState!.Hooks is not null)
                     {
-                        await _executionState.Hooks.OnSelfDestructAsync(callFrame.Call, beneficiary, balance, _storage);
+                        await _executionState.Hooks.OnSelfDestructAsync(callFrame, beneficiary, balance);
                     }
                     return ExecutionResult.Success();
                 }

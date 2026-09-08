@@ -23,44 +23,39 @@ public interface IInterpreterExecutionHooks
         IInterpreterStateReader state
     ) => ValueTask.CompletedTask;
 
-    /// <summary>Runs before an invocation's entry checks.</summary>
-    /// <remarks>Includes the outer invocation, precompiles, and rejected entries.</remarks>
-    ValueTask OnCallEnterAsync(IInterpreterFrameReader frame, IInterpreterStateReader state)
-        => ValueTask.CompletedTask;
-
     /// <summary>Runs before instruction validation or operand mutation.</summary>
     ValueTask OnInstructionAsync(
-        IInterpreterFrameReader frame,
+        IInterpreterExecutionReader execution,
         int programCounter,
-        EvmOpcode opcode,
-        IInterpreterStateReader state
+        EvmOpcode opcode
     ) => ValueTask.CompletedTask;
 
     /// <summary>Runs after a LOG0 through LOG4 instruction records a log.</summary>
     /// <remarks>The log may still be rolled back by the current or an enclosing invocation.</remarks>
-    /// <param name="frame">The active invocation emitting the log. Its Address is the emitting account.</param>
+    /// <param name="execution">The active execution after the log was recorded. Its frame's Address is the emitting account.</param>
     /// <param name="topics">The log topics in emission order.</param>
     /// <param name="data">The log data.</param>
-    /// <param name="state">The state after the log was recorded.</param>
     ValueTask OnLogAsync(
-        IInterpreterFrameReader frame,
+        IInterpreterExecutionReader execution,
         ReadOnlyMemory<Bytes32> topics,
-        ReadOnlyMemory<byte> data,
-        IInterpreterStateReader state
+        ReadOnlyMemory<byte> data
     ) => ValueTask.CompletedTask;
 
     /// <summary>Runs after SELFDESTRUCT applies its balance changes and schedules deletion when applicable.</summary>
     /// <remarks>The effects may still be rolled back by an enclosing invocation.</remarks>
-    /// <param name="frame">The active invocation executing SELFDESTRUCT.</param>
+    /// <param name="execution">The active execution after SELFDESTRUCT applied its changes.</param>
     /// <param name="beneficiary">The beneficiary specified by the instruction.</param>
     /// <param name="balance">The contract balance before SELFDESTRUCT applied its changes.</param>
-    /// <param name="state">The state after the instruction's changes.</param>
     ValueTask OnSelfDestructAsync(
-        IInterpreterFrameReader frame,
+        IInterpreterExecutionReader execution,
         Address beneficiary,
-        UInt256 balance,
-        IInterpreterStateReader state
+        UInt256 balance
     ) => ValueTask.CompletedTask;
+
+    /// <summary>Runs before an invocation's entry checks.</summary>
+    /// <remarks>Includes the outer invocation, precompiles, and rejected entries.</remarks>
+    ValueTask OnCallEnterAsync(IInterpreterFrameReader frame, IInterpreterStateReader state)
+        => ValueTask.CompletedTask;
 
     /// <summary>Runs after an invocation finalizes, including rollback and creation-code validation.</summary>
     /// <remarks>Shares the frame instance with entry and instruction callbacks.</remarks>
