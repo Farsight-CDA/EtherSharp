@@ -7,16 +7,18 @@ internal sealed class OperandStack : IInterpreterStack
 {
     private const int MAX_DEPTH = 1024;
 
-    public int Count { get; private set; }
+    private int Count { get; set; }
     public bool IsFull => Count == MAX_DEPTH;
     private readonly Bytes32[] _values = new Bytes32[MAX_DEPTH];
 
-    public Bytes32 Peek(int index)
+    int IInterpreterStack.Count => Count;
+
+    Bytes32 IInterpreterStack.Peek(int index)
         => (uint) index < (uint) Count
             ? _values[Count - index - 1]
             : throw new ArgumentOutOfRangeException(nameof(index), index, "Index must refer to a word on the stack.");
 
-    public bool TryPeek(int index, out Bytes32 value)
+    bool IInterpreterStack.TryPeek(int index, out Bytes32 value)
     {
         if((uint) index >= (uint) Count)
         {
