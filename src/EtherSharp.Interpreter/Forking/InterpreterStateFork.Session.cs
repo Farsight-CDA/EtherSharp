@@ -9,6 +9,8 @@ public sealed partial class InterpreterStateFork
 {
     private sealed class InterpreterSession(InterpreterStateFork fork) : IInterpreterHost
     {
+        public InterpreterStateFork Fork => fork;
+
         // Passive participant state: only the fork changes these flags, under its state lock.
         public bool IsUnregistered { get; set; }
         public bool IsReadInProgress { get; set; }

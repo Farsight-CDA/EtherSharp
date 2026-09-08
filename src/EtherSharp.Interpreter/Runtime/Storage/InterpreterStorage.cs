@@ -45,6 +45,14 @@ internal sealed class InterpreterStorage(
     public Snapshot TakeSnapshot()
         => new(_revision, _logs.Count);
 
+    public void CopyTo(InterpreterStorage target)
+    {
+        foreach(var (address, accountStorage) in _accountStorages)
+        {
+            accountStorage.CopyTo(target.GetAccountStorage(address));
+        }
+    }
+
     public void AddLog(Address address, Bytes32[] topics, byte[] data)
         => _logs.Add(new JournalLog(address, topics, data));
 

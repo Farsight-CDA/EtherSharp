@@ -31,11 +31,17 @@ public partial class InterpreterRuntime : IDisposable
     }
 
     private readonly InterpreterStorage _storage;
-    private readonly IInterpreterHost _host;
     private readonly FrozenDictionary<Address, IPrecompile> _precompiles;
     private readonly InterpreterContext _context;
     private ExecutionState? _executionState;
     private bool _isDisposed;
+
+    /// <summary>The interpreter resource limits.</summary>
+    public InterpreterResourceLimits ResourceLimits { get; }
+    /// <summary>The consensus rules used for execution.</summary>
+    public InterpreterExecutionSpec ExecutionSpec { get; }
+
+    internal IInterpreterHost Host { get; }
 
     internal InterpreterRuntime(
         InterpreterContext context,
@@ -48,15 +54,18 @@ public partial class InterpreterRuntime : IDisposable
         ExecutionSpec = executionSpec;
         ResourceLimits = resourceLimits;
         _context = context;
-        _host = host;
+        Host = host;
         _storage = new InterpreterStorage(host);
         _precompiles = precompiles;
     }
 
-    /// <summary>The interpreter resource limits.</summary>
-    public InterpreterResourceLimits ResourceLimits { get; }
-    /// <summary>The consensus rules used for execution.</summary>
-    public InterpreterExecutionSpec ExecutionSpec { get; }
+    internal InterpreterRuntime Clone(IInterpreterHost host)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        var clone = new InterpreterRuntime(_context, host, ExecutionSpec, ResourceLimits, _precompiles);
+        _storage.CopyTo(clone._storage);
+        return clone;
+    }
 
     /// <summary>
     /// Removes this interpreter from its state fork's batching participants.
@@ -70,7 +79,7 @@ public partial class InterpreterRuntime : IDisposable
         }
 
         _isDisposed = true;
-        _host.Unregister();
+        Host.Unregister();
         GC.SuppressFinalize(this);
     }
 
@@ -369,7 +378,7 @@ public partial class InterpreterRuntime : IDisposable
         {
             if(precompile is not null)
             {
-                result = await precompile.ExecuteAsync(_host, new PrecompileCall(
+                result = await precompile.ExecuteAsync(Host, new PrecompileCall(
                     _context,
                     call.Origin,
                     call.Caller,

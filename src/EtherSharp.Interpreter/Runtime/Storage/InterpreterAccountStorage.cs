@@ -32,6 +32,24 @@ internal sealed class InterpreterAccountStorage(
     public bool IsCreatedInTransaction
         => _createdInTransaction.IsSet;
 
+    public void CopyTo(InterpreterAccountStorage target)
+    {
+        _persistentStorage.CopyTo(target._persistentStorage);
+        _balance.CopyTo(target._balance);
+        _nonce.CopyTo(target._nonce);
+        _codeHash.CopyTo(target._codeHash);
+        _present.CopyTo(target._present);
+        if(_code.TryGetValue(out var code))
+        {
+            target._code.Set(0, new EVMByteCode(code.ByteCode.ToArray()));
+            target._code.Commit();
+        }
+        if(_persistentStorageReplaced.IsSet)
+        {
+            target._persistentStorageReplaced.Set(0);
+        }
+    }
+
     public async ValueTask<Bytes32> SLoadAsync(Bytes32 key)
         => _persistentStorage.TryGetValue(in key, out var value)
             ? value

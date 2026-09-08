@@ -39,6 +39,12 @@ internal sealed class JournaledValue<TValue>
     public void Commit()
         => _changes.Clear();
 
+    public void CopyTo(JournaledValue<TValue> target)
+    {
+        target._hasValue = _hasValue;
+        target._value = _value;
+    }
+
     public void Clear()
     {
         _changes.Clear();

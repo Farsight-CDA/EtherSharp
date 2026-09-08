@@ -68,6 +68,26 @@ public sealed partial class InterpreterStateFork(
         return runtime;
     }
 
+    /// <summary>Creates and registers an independent interpreter from another interpreter's retained state.</summary>
+    /// <param name="source">An idle, undisposed interpreter belonging to this fork.</param>
+    /// <returns>An interpreter with independent local state and the source's execution configuration.</returns>
+    public InterpreterRuntime CloneInterpreter(InterpreterRuntime source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        if(source.Host is not InterpreterSession session || !ReferenceEquals(session.Fork, this))
+        {
+            throw new ArgumentException("The source interpreter must belong to this fork.", nameof(source));
+        }
+
+        var clone = source.Clone(new InterpreterSession(this));
+        lock(_lock)
+        {
+            _participantCount++;
+        }
+
+        return clone;
+    }
+
     private ValueTask<TValue> GetAsync<TKey, TValue>(
         InterpreterSession session,
         Dictionary<TKey, TValue> cache,
