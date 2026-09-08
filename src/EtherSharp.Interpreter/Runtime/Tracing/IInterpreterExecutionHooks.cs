@@ -57,14 +57,27 @@ public interface IInterpreterExecutionHooks
         IInterpreterStorage storage
     ) => ValueTask.CompletedTask;
 
-    /// <summary>Runs before an invocation's entry checks.</summary>
-    /// <remarks>Includes the outer invocation, precompiles, and rejected entries.</remarks>
-    ValueTask OnCallEnterAsync(IInterpreterFrame frame, IInterpreterStorage storage)
+    /// <summary>Runs before a contract call or creation's entry checks.</summary>
+    /// <remarks>Includes outer contract invocations, empty-code calls, and rejected entries. Precompiles use their own hooks.</remarks>
+    ValueTask OnContractEnterAsync(IInterpreterFrame frame, IInterpreterStorage storage)
         => ValueTask.CompletedTask;
 
-    /// <summary>Runs after an invocation finalizes, including rollback and creation-code validation.</summary>
+    /// <summary>Runs after a contract call or creation finalizes, including rollback and creation-code validation.</summary>
     /// <remarks>Shares the frame instance with entry and instruction callbacks.</remarks>
-    ValueTask OnCallExitAsync(
+    ValueTask OnContractExitAsync(
+        IInterpreterFrame frame,
+        ExecutionResult result,
+        IInterpreterStorage storage
+    ) => ValueTask.CompletedTask;
+
+    /// <summary>Runs before a precompile invocation's entry checks and value transfer.</summary>
+    /// <remarks>Includes outer precompile invocations and rejected entries.</remarks>
+    ValueTask OnPrecompileEnterAsync(IInterpreterFrame frame, IInterpreterStorage storage)
+        => ValueTask.CompletedTask;
+
+    /// <summary>Runs after a precompile invocation finalizes, including rollback.</summary>
+    /// <remarks>Shares the frame instance with the entry callback.</remarks>
+    ValueTask OnPrecompileExitAsync(
         IInterpreterFrame frame,
         ExecutionResult result,
         IInterpreterStorage storage

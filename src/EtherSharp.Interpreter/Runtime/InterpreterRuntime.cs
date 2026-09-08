@@ -261,9 +261,17 @@ public partial class InterpreterRuntime : IDisposable
 
     private async ValueTask<ExecutionResult> ExecuteMessageCallAsync(CallFrame call)
     {
+        _precompiles.TryGetValue(call.To, out var precompile);
         if(_executionState!.Hooks is not null)
         {
-            await _executionState.Hooks.OnCallEnterAsync(call, _storage);
+            if(precompile is not null)
+            {
+                await _executionState.Hooks.OnPrecompileEnterAsync(call, _storage);
+            }
+            else
+            {
+                await _executionState.Hooks.OnContractEnterAsync(call, _storage);
+            }
         }
 
         var result = call.Depth > CallFrame.MAX_DEPTH
@@ -293,7 +301,7 @@ public partial class InterpreterRuntime : IDisposable
 
         if(result.IsSuccess)
         {
-            if(_precompiles.TryGetValue(call.To, out var precompile))
+            if(precompile is not null)
             {
                 result = await precompile.ExecuteAsync(_host, new PrecompileCall(
                     _context,
@@ -330,7 +338,14 @@ public partial class InterpreterRuntime : IDisposable
 
         if(_executionState.Hooks is not null)
         {
-            await _executionState.Hooks.OnCallExitAsync(call, result, _storage);
+            if(precompile is not null)
+            {
+                await _executionState.Hooks.OnPrecompileExitAsync(call, result, _storage);
+            }
+            else
+            {
+                await _executionState.Hooks.OnContractExitAsync(call, result, _storage);
+            }
         }
 
         return result;
@@ -340,7 +355,7 @@ public partial class InterpreterRuntime : IDisposable
     {
         if(_executionState!.Hooks is not null)
         {
-            await _executionState.Hooks.OnCallEnterAsync(call, _storage);
+            await _executionState.Hooks.OnContractEnterAsync(call, _storage);
         }
 
         var result = call.Depth > CallFrame.MAX_DEPTH
@@ -413,7 +428,7 @@ public partial class InterpreterRuntime : IDisposable
 
         if(_executionState.Hooks is not null)
         {
-            await _executionState.Hooks.OnCallExitAsync(call, result, _storage);
+            await _executionState.Hooks.OnContractExitAsync(call, result, _storage);
         }
 
         return result;
