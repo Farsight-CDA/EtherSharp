@@ -18,6 +18,9 @@ internal sealed class LinearMemory(int maxSize) : IInterpreterMemory
 
     public int Size { get; private set; }
 
+    ReadOnlyMemory<byte> IInterpreterMemory.Slice(int offset, int length)
+        => _buffer.AsMemory(0, Size).Slice(offset, length);
+
     public Slice Access(UInt256 offset, int length)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(length);
