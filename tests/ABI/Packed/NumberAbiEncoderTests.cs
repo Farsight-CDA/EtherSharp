@@ -27,7 +27,7 @@ public sealed class AbiSizedNumberEncodingTests
             16 => Int16.MinValue,
             > 16 and <= 32 => Int32.MinValue >> (32 - bitSize),
             > 32 and <= 64 => Int64.MinValue >> (64 - bitSize),
-            > 64 and <= 256 => -Int256.Pow(2, bitSize - 1),
+            > 64 and <= 256 => (object) -Int256.Pow(2, bitSize - 1),
             _ => throw new NotSupportedException()
         };
 
@@ -50,7 +50,7 @@ public sealed class AbiSizedNumberEncodingTests
             16 => Int16.MaxValue,
             > 16 and <= 32 => Int32.MaxValue >> (32 - bitSize),
             > 32 and <= 64 => Int64.MaxValue >> (64 - bitSize),
-            > 64 and <= 256 => Int256.Pow(2, bitSize - 1) - 1,
+            > 64 and <= 256 => (object) (Int256.Pow(2, bitSize - 1) - 1),
             _ => throw new NotSupportedException()
         };
 
@@ -93,7 +93,7 @@ public sealed class AbiSizedNumberEncodingTests
             16 => (short) 0,
             > 16 and <= 32 => 0,
             > 32 and <= 64 => (long) 0,
-            > 64 and <= 256 => Int256.Zero,
+            > 64 and <= 256 => (object) Int256.Zero,
             _ => throw new NotSupportedException()
         };
 
@@ -130,7 +130,7 @@ public sealed class AbiSizedNumberEncodingTests
         {
             24 => (Int32.MinValue >> (32 - bitSize)) - 1,
             > 32 and < 64 => (Int64.MinValue >> (64 - bitSize)) - 1,
-            > 64 and < 256 => -Int256.Pow(2, bitSize - 1) - 1,
+            > 64 and < 256 => (object) (-Int256.Pow(2, bitSize - 1) - 1),
             _ => throw new NotSupportedException()
         };
 
@@ -160,7 +160,7 @@ public sealed class AbiSizedNumberEncodingTests
         {
             24 => (Int32.MaxValue >> (32 - bitSize)) + 1,
             > 32 and < 64 => (Int64.MaxValue >> (64 - bitSize)) + 1,
-            > 64 and < 256 => Int256.Pow(2, bitSize - 1),
+            > 64 and < 256 => (object) Int256.Pow(2, bitSize - 1),
             _ => throw new NotSupportedException()
         };
 
