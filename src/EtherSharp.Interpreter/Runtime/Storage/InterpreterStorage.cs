@@ -1,5 +1,6 @@
 using EtherSharp.Interpreter.Runtime;
 using EtherSharp.Interpreter.Runtime.Tracing;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Storage;
@@ -77,6 +78,24 @@ internal sealed class InterpreterStorage(
         _logs.RemoveRange(snapshot.LogCount, _logs.Count - snapshot.LogCount);
         _revision = snapshot.Revision;
     }
+
+    ValueTask<UInt256> IInterpreterStorage.GetBalanceAsync(Address address)
+        => GetAccountStorage(address).GetBalanceAsync();
+
+    ValueTask<ulong> IInterpreterStorage.GetNonceAsync(Address address)
+        => GetAccountStorage(address).GetNonceAsync();
+
+    async ValueTask<ReadOnlyMemory<byte>> IInterpreterStorage.GetCodeAsync(Address address)
+        => (await GetAccountStorage(address).GetCodeAsync()).ByteCode;
+
+    ValueTask<Bytes32> IInterpreterStorage.GetCodeHashAsync(Address address)
+        => GetAccountStorage(address).GetExtCodeHashAsync();
+
+    ValueTask<Bytes32> IInterpreterStorage.GetStorageAsync(Address address, Bytes32 key)
+        => GetAccountStorage(address).SLoadAsync(key);
+
+    Bytes32 IInterpreterStorage.GetTransientStorage(Address address, Bytes32 key)
+        => GetAccountStorage(address).TLoad(in key);
 
     private long NextRevision()
         => _revision = checked(_revision + 1);
