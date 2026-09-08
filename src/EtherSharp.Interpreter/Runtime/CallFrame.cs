@@ -15,7 +15,7 @@ internal sealed record CallFrame(
     Address To,
     UInt256 Value,
     ReadOnlyMemory<byte> Input
-) : IInterpreterFrameReader
+) : IInterpreterFrame
 {
     public const int MAX_DEPTH = 1024;
 
@@ -23,7 +23,7 @@ internal sealed record CallFrame(
     public int Depth { get; } = Parent is null ? 0 : Parent.Depth + 1;
     public bool IsStatic { get; } = Parent?.IsStatic == true || Type == EvmOpcode.StaticCall;
 
-    IInterpreterFrameReader? IInterpreterFrameReader.Parent => Parent;
+    IInterpreterFrame? IInterpreterFrame.Parent => Parent;
 
     public static CallFrame CreateMessageCall(
         int id,

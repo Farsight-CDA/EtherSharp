@@ -5,12 +5,12 @@ using EtherSharp.Types;
 namespace EtherSharp.Interpreter.Runtime.Tracing;
 
 /// <summary>Provides read-only access to a call invocation, including calls that do not execute bytecode.</summary>
-public interface IInterpreterFrameReader
+public interface IInterpreterFrame
 {
     /// <summary>Gets the invocation ID, assigned sequentially within an execution with zero identifying the outer invocation.</summary>
     int Id { get; }
     /// <summary>Gets the parent invocation, or <see langword="null"/> for the outer invocation.</summary>
-    IInterpreterFrameReader? Parent { get; }
+    IInterpreterFrame? Parent { get; }
     /// <summary>Gets the CALL, CALLCODE, DELEGATECALL, STATICCALL, CREATE, or CREATE2 operation.</summary>
     EvmOpcode Type { get; }
     /// <summary>Gets the account initiating this invocation.</summary>

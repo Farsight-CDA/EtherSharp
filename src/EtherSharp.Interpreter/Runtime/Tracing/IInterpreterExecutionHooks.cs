@@ -16,19 +16,19 @@ public interface IInterpreterExecutionHooks
     /// <remarks>Includes outer bytecode, creation, and precompile invocations.</remarks>
     /// <param name="context">The block environment used for execution.</param>
     /// <param name="transaction">The transaction environment, including for simulated calls.</param>
-    /// <param name="state">The interpreter state with simulation overrides applied.</param>
+    /// <param name="storage">The interpreter state with simulation overrides applied.</param>
     ValueTask OnExecutionStartAsync(
         InterpreterContext context,
         TransactionEnvironment transaction,
-        IInterpreterStateReader state
+        IInterpreterStorage storage
     ) => ValueTask.CompletedTask;
 
     /// <summary>Runs before instruction validation or operand mutation.</summary>
     ValueTask OnInstructionAsync(
-        IInterpreterExecutionReader execution,
+        IInterpreterExecution execution,
         int programCounter,
         EvmOpcode opcode,
-        IInterpreterStateReader state
+        IInterpreterStorage storage
     ) => ValueTask.CompletedTask;
 
     /// <summary>Runs after a LOG0 through LOG4 instruction records a log.</summary>
@@ -36,12 +36,12 @@ public interface IInterpreterExecutionHooks
     /// <param name="execution">The active execution after the log was recorded. Its frame's Address is the emitting account.</param>
     /// <param name="topics">The log topics in emission order.</param>
     /// <param name="data">The log data.</param>
-    /// <param name="state">The state after the log was recorded.</param>
+    /// <param name="storage">The state after the log was recorded.</param>
     ValueTask OnLogAsync(
-        IInterpreterExecutionReader execution,
+        IInterpreterExecution execution,
         ReadOnlyMemory<Bytes32> topics,
         ReadOnlyMemory<byte> data,
-        IInterpreterStateReader state
+        IInterpreterStorage storage
     ) => ValueTask.CompletedTask;
 
     /// <summary>Runs after SELFDESTRUCT applies its balance changes and schedules deletion when applicable.</summary>
@@ -49,25 +49,25 @@ public interface IInterpreterExecutionHooks
     /// <param name="execution">The active execution after SELFDESTRUCT applied its changes.</param>
     /// <param name="beneficiary">The beneficiary specified by the instruction.</param>
     /// <param name="balance">The contract balance before SELFDESTRUCT applied its changes.</param>
-    /// <param name="state">The state after the instruction's changes.</param>
+    /// <param name="storage">The state after the instruction's changes.</param>
     ValueTask OnSelfDestructAsync(
-        IInterpreterExecutionReader execution,
+        IInterpreterExecution execution,
         Address beneficiary,
         UInt256 balance,
-        IInterpreterStateReader state
+        IInterpreterStorage storage
     ) => ValueTask.CompletedTask;
 
     /// <summary>Runs before an invocation's entry checks.</summary>
     /// <remarks>Includes the outer invocation, precompiles, and rejected entries.</remarks>
-    ValueTask OnCallEnterAsync(IInterpreterFrameReader frame, IInterpreterStateReader state)
+    ValueTask OnCallEnterAsync(IInterpreterFrame frame, IInterpreterStorage storage)
         => ValueTask.CompletedTask;
 
     /// <summary>Runs after an invocation finalizes, including rollback and creation-code validation.</summary>
     /// <remarks>Shares the frame instance with entry and instruction callbacks.</remarks>
     ValueTask OnCallExitAsync(
-        IInterpreterFrameReader frame,
+        IInterpreterFrame frame,
         ExecutionResult result,
-        IInterpreterStateReader state
+        IInterpreterStorage storage
     ) => ValueTask.CompletedTask;
 
     /// <summary>Runs once after the outer execution has finalized, before its state is committed or discarded.</summary>
@@ -77,11 +77,11 @@ public interface IInterpreterExecutionHooks
     /// <param name="context">The block environment used for execution.</param>
     /// <param name="transaction">The transaction environment, including for simulated calls.</param>
     /// <param name="result">The finalized outer execution outcome.</param>
-    /// <param name="state">The current interpreter state.</param>
+    /// <param name="storage">The current interpreter state.</param>
     ValueTask OnExecutionEndAsync(
         InterpreterContext context,
         TransactionEnvironment transaction,
         ExecutionResult result,
-        IInterpreterStateReader state
+        IInterpreterStorage storage
     ) => ValueTask.CompletedTask;
 }

@@ -10,7 +10,7 @@ internal sealed class BytecodeFrame(
     CallFrame call,
     InterpreterAccountStorage accountStorage,
     InterpreterResourceLimits resourceLimits
-) : IInterpreterExecutionReader
+) : IInterpreterExecution
 {
     public CallFrame Call { get; } = call;
     public ZeroPaddedData CallData { get; } = new(call.Type is EvmOpcode.Create or EvmOpcode.Create2
@@ -23,7 +23,7 @@ internal sealed class BytecodeFrame(
     public ReturnDataBuffer ReturnData { get; } = new();
     public InterpreterAccountStorage AccountStorage { get; } = accountStorage;
 
-    IInterpreterFrameReader IInterpreterExecutionReader.Frame => Call;
-    IInterpreterStackReader IInterpreterExecutionReader.Stack => Stack;
-    IInterpreterMemoryReader IInterpreterExecutionReader.Memory => Memory;
+    IInterpreterFrame IInterpreterExecution.Frame => Call;
+    IInterpreterStack IInterpreterExecution.Stack => Stack;
+    IInterpreterMemory IInterpreterExecution.Memory => Memory;
 }

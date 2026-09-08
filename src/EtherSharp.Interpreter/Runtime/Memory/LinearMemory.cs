@@ -4,7 +4,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Memory;
 
-internal sealed class LinearMemory(int maxSize) : IInterpreterMemoryReader
+internal sealed class LinearMemory(int maxSize) : IInterpreterMemory
 {
     public readonly ref struct Slice(LinearMemory owner, int offset, int length)
     {

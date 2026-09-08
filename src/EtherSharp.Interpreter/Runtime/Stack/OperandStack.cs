@@ -3,7 +3,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Stack;
 
-internal sealed class OperandStack : IInterpreterStackReader
+internal sealed class OperandStack : IInterpreterStack
 {
     private const int MAX_DEPTH = 1024;
 

@@ -6,7 +6,7 @@ namespace EtherSharp.Interpreter.Runtime.Storage;
 
 internal sealed class InterpreterStorage(
     IInterpreterHost host
-) : IInterpreterStateReader
+) : IInterpreterStorage
 {
     public readonly record struct Snapshot(
         long Revision,
