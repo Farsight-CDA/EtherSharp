@@ -80,7 +80,8 @@ public partial class InterpreterRuntime : IDisposable
     public ValueTask<TxCallResult> ExecuteTransactionAsync(
         Address sender,
         LegacyTransaction transaction,
-        IInterpreterExecutionHooks? hooks = default
+        IInterpreterExecutionHooks? hooks = default,
+        TopLevelNonceHandling topLevelNonceHandling = TopLevelNonceHandling.Default
     )
     {
         ArgumentNullException.ThrowIfNull(transaction);
@@ -88,15 +89,16 @@ public partial class InterpreterRuntime : IDisposable
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
                 TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: true, isCall: false,
-                options: new InterpreterSimulationOptions { Hooks = hooks }
+                options: new InterpreterSimulationOptions { Hooks = hooks, TopLevelNonceHandling = topLevelNonceHandling }
             );
     }
 
-    /// <inheritdoc cref="ExecuteTransactionAsync(Address, LegacyTransaction, IInterpreterExecutionHooks)"/>
+    /// <inheritdoc cref="ExecuteTransactionAsync(Address, LegacyTransaction, IInterpreterExecutionHooks, TopLevelNonceHandling)"/>
     public ValueTask<TxCallResult> ExecuteTransactionAsync(
         Address sender,
         EIP1559Transaction transaction,
-        IInterpreterExecutionHooks? hooks = default
+        IInterpreterExecutionHooks? hooks = default,
+        TopLevelNonceHandling topLevelNonceHandling = TopLevelNonceHandling.Default
     )
     {
         ArgumentNullException.ThrowIfNull(transaction);
@@ -104,7 +106,7 @@ public partial class InterpreterRuntime : IDisposable
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
                 TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: true, isCall: false,
-                options: new InterpreterSimulationOptions { Hooks = hooks }
+                options: new InterpreterSimulationOptions { Hooks = hooks, TopLevelNonceHandling = topLevelNonceHandling }
             );
     }
 
