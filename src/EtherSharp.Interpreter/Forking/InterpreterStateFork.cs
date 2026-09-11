@@ -7,12 +7,7 @@ namespace EtherSharp.Interpreter.Forking;
 /// <summary>
 /// Creates independent interpreters over one cached upstream state and block context.
 /// </summary>
-/// <param name="dataProvider">The provider used to fetch upstream state.</param>
-/// <param name="context">The block context shared by every interpreter created from this fork.</param>
-public sealed partial class InterpreterStateFork(
-    IInterpreterDataProvider dataProvider,
-    InterpreterContext context
-)
+public sealed partial class InterpreterStateFork
 {
     private sealed class PendingRequest(InterpreterDataRequest request)
     {
@@ -21,19 +16,42 @@ public sealed partial class InterpreterStateFork(
         public int WaiterCount { get; set; }
     }
 
-    private readonly IInterpreterDataProvider _dataProvider = dataProvider
-        ?? throw new ArgumentNullException(nameof(dataProvider));
-
+    private readonly IInterpreterDataProvider _dataProvider;
     private readonly Lock _lock = new();
     private readonly Dictionary<InterpreterDataRequest, PendingRequest> _pending = [];
-    private readonly InterpreterStateCache _cache = new();
+    private readonly InterpreterStateCache _cache;
     private int _participantCount;
     private int _waitingCount;
     private bool _isFetching;
 
     /// <summary>The block context shared by this fork's interpreters.</summary>
-    public InterpreterContext Context { get; } = context
-        ?? throw new ArgumentNullException(nameof(context));
+    public InterpreterContext Context { get; }
+
+    /// <summary>Creates a fork without application-known upstream values.</summary>
+    public InterpreterStateFork(
+        IInterpreterDataProvider dataProvider,
+        InterpreterContext context
+    )
+    {
+        _dataProvider = dataProvider ?? throw new ArgumentNullException(nameof(dataProvider));
+        Context = context ?? throw new ArgumentNullException(nameof(context));
+        _cache = new InterpreterStateCache();
+    }
+
+    /// <summary>Creates a fork from application-known upstream values.</summary>
+    /// <param name="dataProvider">The provider used to fetch missing upstream state.</param>
+    /// <param name="context">The block context shared by every interpreter created from this fork.</param>
+    /// <param name="initialState">Application-known upstream values matching the provider's state snapshot.</param>
+    public InterpreterStateFork(
+        IInterpreterDataProvider dataProvider,
+        InterpreterContext context,
+        IReadOnlyList<InterpreterDataResult>? initialState
+    )
+    {
+        _dataProvider = dataProvider ?? throw new ArgumentNullException(nameof(dataProvider));
+        Context = context ?? throw new ArgumentNullException(nameof(context));
+        _cache = new InterpreterStateCache(initialState);
+    }
 
     /// <summary>
     /// Creates and registers an independent interpreter over this state fork.

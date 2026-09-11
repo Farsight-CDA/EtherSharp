@@ -17,6 +17,26 @@ internal sealed class InterpreterStateCache
     public Dictionary<(Address Address, Bytes32 Slot), Bytes32> Storage { get; } = [];
     public Dictionary<Bytes32, TxCallResult> PrecompileCalls { get; } = [];
 
+    public InterpreterStateCache(IReadOnlyList<InterpreterDataResult>? initialState = null)
+    {
+        if(initialState is null)
+        {
+            return;
+        }
+
+        for(int i = 0; i < initialState.Count; i++)
+        {
+            ArgumentNullException.ThrowIfNull(initialState[i]);
+            if(!TryStore(initialState[i], copyBuffers: true))
+            {
+                throw new ArgumentException(
+                    $"The initial state contains multiple values for the same logical key: {result}.",
+                    nameof(initialState)
+                );
+            }
+        }
+    }
+
     public bool Contains(InterpreterDataRequest request)
         => request switch
         {
@@ -30,29 +50,32 @@ internal sealed class InterpreterStateCache
         };
 
     public void Store(InterpreterDataResult result)
-    {
-        switch(result)
+        => TryStore(result, copyBuffers: false);
+
+    private bool TryStore(InterpreterDataResult result, bool copyBuffers)
+        => result switch
         {
-            case InterpreterDataResult.Balance balance:
-                Balances[balance.Address] = balance.Value;
-                break;
-            case InterpreterDataResult.Nonce nonce:
-                Nonces[nonce.Address] = nonce.Value;
-                break;
-            case InterpreterDataResult.Code code:
-                Code[code.Address] = code.Value;
-                break;
-            case InterpreterDataResult.CodeHash codeHash:
-                CodeHashes[codeHash.Address] = codeHash.Value == Bytes32.Zero ? null : codeHash.Value;
-                break;
-            case InterpreterDataResult.Storage storage:
-                Storage[(storage.Address, storage.Key)] = storage.Value;
-                break;
-            case InterpreterDataResult.PrecompileCall call:
-                PrecompileCalls[InterpreterDataRequest.PrecompileCall.ComputeId(call.Caller, call.Target, call.Value, call.Input.Span)] = call.Result;
-                break;
-            default:
-                throw new NotSupportedException();
-        }
-    }
+            InterpreterDataResult.Balance balance => Balances.TryAdd(balance.Address, balance.Value),
+            InterpreterDataResult.Nonce nonce => Nonces.TryAdd(nonce.Address, nonce.Value),
+            InterpreterDataResult.Code code => Code.TryAdd(
+                code.Address,
+                copyBuffers
+                    ? new EVMByteCode(code.Value.ByteCode.ToArray())
+                    : code.Value
+            ),
+            InterpreterDataResult.CodeHash codeHash => CodeHashes.TryAdd(
+                codeHash.Address,
+                codeHash.Value == Bytes32.Zero
+                    ? null
+                    : codeHash.Value
+            ),
+            InterpreterDataResult.Storage storage => Storage.TryAdd((storage.Address, storage.Key), storage.Value),
+            InterpreterDataResult.PrecompileCall call => PrecompileCalls.TryAdd(
+                InterpreterDataRequest.PrecompileCall.ComputeId(call.Caller, call.Target, call.Value, call.Input.Span),
+                copyBuffers
+                    ? new TxCallResult(call.Result.Success, call.Result.Data.ToArray())
+                    : call.Result
+            ),
+            _ => throw new NotSupportedException(),
+        };
 }
