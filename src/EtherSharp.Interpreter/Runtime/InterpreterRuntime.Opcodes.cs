@@ -605,8 +605,7 @@ public partial class InterpreterRuntime
 
                     break;
                 case EvmOpcode.Gas:
-                    //ToDo: Gas tracking
-                    if(!callFrame.Stack.TryPush(UInt256.MaxValue))
+                    if(!callFrame.Stack.TryPush((UInt256) callFrame.Call.Gas.Remaining))
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
                     }
@@ -747,16 +746,16 @@ public partial class InterpreterRuntime
                         callFrame.Call.Address,
                         await callFrame.AccountStorage.GetNonceAsync()
                     );
-                    var creationResult = await ExecuteContractCreationAsync(
-                        CallFrame.CreateContractCreation(
-                            checked(_executionState!.NextFrameId++),
-                            EvmOpcode.Create,
-                            callFrame.Call,
-                            createdAddress,
-                            endowment,
-                            callFrame.Memory.Access(offset, length).ReadOnlyMemory
-                        )
+                    var child = CallFrame.CreateContractCreation(
+                        checked(_executionState!.NextFrameId++),
+                        EvmOpcode.Create,
+                        callFrame.Call,
+                        createdAddress,
+                        endowment,
+                        callFrame.Memory.Access(offset, length).ReadOnlyMemory
                     );
+                    var creationResult = await ExecuteContractCreationAsync(child);
+                    callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(creationResult.IsRevert(out var revertData)
                         ? revertData
                         : ReadOnlyMemory<byte>.Empty
@@ -795,16 +794,16 @@ public partial class InterpreterRuntime
                         salt,
                         Keccak256.HashData(initCode.Span)
                     );
-                    var creationResult = await ExecuteContractCreationAsync(
-                        CallFrame.CreateContractCreation(
-                            checked(_executionState!.NextFrameId++),
-                            EvmOpcode.Create2,
-                            callFrame.Call,
-                            createdAddress,
-                            endowment,
-                            initCode
-                        )
+                    var child = CallFrame.CreateContractCreation(
+                        checked(_executionState!.NextFrameId++),
+                        EvmOpcode.Create2,
+                        callFrame.Call,
+                        createdAddress,
+                        endowment,
+                        initCode
                     );
+                    var creationResult = await ExecuteContractCreationAsync(child);
+                    callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(creationResult.IsRevert(out var revertData)
                         ? revertData
                         : ReadOnlyMemory<byte>.Empty
@@ -819,7 +818,7 @@ public partial class InterpreterRuntime
                 case EvmOpcode.Call:
                 {
                     if(!callFrame.Stack.TryPop(
-                        out UInt256 _,
+                        out UInt256 requestedGas,
                         out Address address,
                         out UInt256 value,
                         out UInt256 inputOffset,
@@ -837,17 +836,17 @@ public partial class InterpreterRuntime
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    var callResult = await ExecuteMessageCallAsync(
-                        CallFrame.CreateMessageCall(
-                            checked(_executionState!.NextFrameId++),
-                            EvmOpcode.Call,
-                            callFrame.Call,
-                            address,
-                            callFrame.Memory.Access(inputOffset, inputLength).ReadOnlyMemory,
-                            value
-                        )
+                    var child = CallFrame.CreateMessageCall(
+                        checked(_executionState!.NextFrameId++),
+                        EvmOpcode.Call,
+                        callFrame.Call,
+                        requestedGas,
+                        address,
+                        callFrame.Memory.Access(inputOffset, inputLength).ReadOnlyMemory,
+                        value
                     );
-
+                    var callResult = await ExecuteMessageCallAsync(child);
+                    callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(callResult.Data);
                     var output = callFrame.Memory.Access(outputOffset, outputSize);
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
@@ -857,7 +856,7 @@ public partial class InterpreterRuntime
                 case EvmOpcode.CallCode:
                 {
                     if(!callFrame.Stack.TryPop(
-                        out UInt256 _,
+                        out UInt256 requestedGas,
                         out Address codeAddress,
                         out UInt256 value,
                         out UInt256 inputOffset,
@@ -870,17 +869,17 @@ public partial class InterpreterRuntime
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    var callResult = await ExecuteMessageCallAsync(
-                        CallFrame.CreateMessageCall(
-                            checked(_executionState!.NextFrameId++),
-                            EvmOpcode.CallCode,
-                            callFrame.Call,
-                            codeAddress,
-                            callFrame.Memory.Access(inputOffset, inputLength).ReadOnlyMemory,
-                            value
-                        )
+                    var child = CallFrame.CreateMessageCall(
+                        checked(_executionState!.NextFrameId++),
+                        EvmOpcode.CallCode,
+                        callFrame.Call,
+                        requestedGas,
+                        codeAddress,
+                        callFrame.Memory.Access(inputOffset, inputLength).ReadOnlyMemory,
+                        value
                     );
-
+                    var callResult = await ExecuteMessageCallAsync(child);
+                    callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(callResult.Data);
                     var output = callFrame.Memory.Access(outputOffset, outputSize);
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
@@ -898,7 +897,7 @@ public partial class InterpreterRuntime
                 case EvmOpcode.DelegateCall:
                 {
                     if(!callFrame.Stack.TryPop(
-                        out UInt256 _,
+                        out UInt256 requestedGas,
                         out Address codeAddress,
                         out UInt256 inputOffset,
                         out UInt256 inputLength,
@@ -910,14 +909,16 @@ public partial class InterpreterRuntime
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    var callResult = await ExecuteMessageCallAsync(CallFrame.CreateMessageCall(
+                    var child = CallFrame.CreateMessageCall(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.DelegateCall,
                         callFrame.Call,
+                        requestedGas,
                         codeAddress,
                         callFrame.Memory.Access(inputOffset, inputLength).ReadOnlyMemory
-                    ));
-
+                    );
+                    var callResult = await ExecuteMessageCallAsync(child);
+                    callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(callResult.Data);
                     var output = callFrame.Memory.Access(outputOffset, outputSize);
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
@@ -927,7 +928,7 @@ public partial class InterpreterRuntime
                 case EvmOpcode.StaticCall:
                 {
                     if(!callFrame.Stack.TryPop(
-                        out UInt256 _,
+                        out UInt256 requestedGas,
                         out Address address,
                         out UInt256 inputOffset,
                         out UInt256 inputLength,
@@ -939,14 +940,16 @@ public partial class InterpreterRuntime
                     }
 
                     int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
-                    var callResult = await ExecuteMessageCallAsync(CallFrame.CreateMessageCall(
+                    var child = CallFrame.CreateMessageCall(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.StaticCall,
                         callFrame.Call,
+                        requestedGas,
                         address,
                         callFrame.Memory.Access(inputOffset, inputLength).ReadOnlyMemory
-                    ));
-
+                    );
+                    var callResult = await ExecuteMessageCallAsync(child);
+                    callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(callResult.Data);
                     var output = callFrame.Memory.Access(outputOffset, outputSize);
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);

@@ -14,7 +14,8 @@ internal sealed record CallFrame(
     Address Address,
     Address To,
     UInt256 Value,
-    ReadOnlyMemory<byte> Input
+    ReadOnlyMemory<byte> Input,
+    GasBudget Gas
 ) : IInterpreterFrame
 {
     public const int MAX_DEPTH = 1024;
@@ -29,6 +30,7 @@ internal sealed record CallFrame(
         int id,
         EvmOpcode type,
         CallFrame parent,
+        UInt256 requestedGas,
         Address target,
         ReadOnlyMemory<byte> input,
         UInt256 value = default
@@ -50,7 +52,8 @@ internal sealed record CallFrame(
             EvmOpcode.StaticCall => UInt256.Zero,
             _ => value
         },
-        input
+        input,
+        ForwardGas(parent, requestedGas)
     );
 
     public static CallFrame CreateContractCreation(
@@ -62,6 +65,15 @@ internal sealed record CallFrame(
         ReadOnlyMemory<byte> initCode
     ) => new(
         id, type, parent.Origin, parent, parent.Address, address, address,
-        endowment, initCode
+        endowment, initCode, ForwardGas(parent, UInt256.MaxValue)
     );
+
+    private static GasBudget ForwardGas(CallFrame parent, UInt256 requestedGas)
+    {
+        // EIP-150: reserve one sixty-fourth of the caller's available execution gas.
+        // CALL overhead and the value stipend will be applied with dynamic opcode pricing.
+        ulong maximum = parent.Gas.Remaining - (parent.Gas.Remaining / 64);
+        ulong amount = requestedGas < (UInt256) maximum ? (ulong) requestedGas : maximum;
+        return parent.Gas.Forward(amount);
+    }
 }

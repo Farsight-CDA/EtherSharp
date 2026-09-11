@@ -282,7 +282,8 @@ public partial class InterpreterRuntime : IDisposable
                         target,
                         target,
                         environment.Input.Value,
-                        environment.Input.Data
+                        environment.Input.Data,
+                        new GasBudget(environment.GasLimit)
                     )
                 );
             }
@@ -303,7 +304,8 @@ public partial class InterpreterRuntime : IDisposable
                     createdAddress,
                     createdAddress,
                     environment.Input.Value,
-                    environment.Input.Data
+                    environment.Input.Data,
+                    new GasBudget(environment.GasLimit)
                 ));
             }
 
@@ -386,7 +388,8 @@ public partial class InterpreterRuntime : IDisposable
                     call.Value,
                     call.Input,
                     call.Depth,
-                    call.IsStatic
+                    call.IsStatic,
+                    call.Gas
                 ));
             }
             else
@@ -409,6 +412,10 @@ public partial class InterpreterRuntime : IDisposable
         if(!result.IsSuccess)
         {
             _storage.Reset(callSnapshot);
+        }
+        if(result.IsExceptionalHalt(out _))
+        {
+            call.Gas.ConsumeAll();
         }
 
         if(_executionState.Hooks is not null)
@@ -433,79 +440,80 @@ public partial class InterpreterRuntime : IDisposable
             await _executionState.Hooks.OnContractEnterAsync(call, _storage);
         }
 
-        var result = call.Depth > CallFrame.MAX_DEPTH
-            ? ExecutionResult.CallEntryFailure(CallEntryFailureReason.DepthExceeded)
-            : ExecutionResult.Success();
-        var creatorStorage = _storage.GetAccountStorage(call.From);
-        var creatorBalance = UInt256.Zero;
-        ulong creatorNonce = 0;
-        if(result.IsSuccess)
+        var result = await ExecuteContractCreationCoreAsync(call);
+        if(result.IsExceptionalHalt(out _))
         {
-            creatorBalance = await creatorStorage.GetBalanceAsync();
-            if(creatorBalance < call.Value)
-            {
-                result = ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
-            }
-            else
-            {
-                creatorNonce = await creatorStorage.GetNonceAsync();
-                if(creatorNonce == UInt64.MaxValue)
-                {
-                    result = ExecutionResult.CallEntryFailure(CallEntryFailureReason.CreatorNonceOverflow);
-                }
-            }
+            call.Gas.ConsumeAll();
         }
-
-        if(result.IsSuccess)
-        {
-            creatorStorage.SetNonce(creatorNonce + 1);
-            var createdStorage = _storage.GetAccountStorage(call.Address);
-            if(await createdStorage.HasCreateCollisionAsync())
-            {
-                result = ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.ContractAddressCollision);
-            }
-            else
-            {
-                var creationSnapshot = _storage.TakeSnapshot();
-                createdStorage.InitializeCreatedContract();
-                if(!call.Value.IsZero)
-                {
-                    var createdBalance = await createdStorage.GetBalanceAsync();
-                    creatorStorage.SetBalance(creatorBalance - call.Value);
-                    createdStorage.SetBalance(createdBalance + call.Value);
-                }
-
-                result = await ExecuteOpcodesAsync(
-                    new BytecodeFrame(call, createdStorage, ResourceLimits),
-                    new ZeroPaddedData(call.Input)
-                );
-                if(!result.IsSuccess)
-                {
-                    _storage.Reset(creationSnapshot);
-                }
-                else if(result.Data.Length > ExecutionSpec.MaxRuntimeCodeLength)
-                {
-                    _storage.Reset(creationSnapshot);
-                    result = ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.RuntimeCodeTooLarge);
-                }
-                else if(!result.Data.IsEmpty && result.Data.Span[0] == 0xEF)
-                {
-                    _storage.Reset(creationSnapshot);
-                    result = ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidRuntimeCode);
-                }
-                else
-                {
-                    var runtimeCode = new EVMByteCode(result.Data.ToArray());
-                    createdStorage.SetCode(in runtimeCode);
-                }
-            }
-        }
-
         if(_executionState.Hooks is not null)
         {
             await _executionState.Hooks.OnContractExitAsync(call, result, _storage);
         }
 
+        return result;
+    }
+
+    private async ValueTask<ExecutionResult> ExecuteContractCreationCoreAsync(CallFrame call)
+    {
+        if(call.Depth > CallFrame.MAX_DEPTH)
+        {
+            return ExecutionResult.CallEntryFailure(CallEntryFailureReason.DepthExceeded);
+        }
+
+        var creatorStorage = _storage.GetAccountStorage(call.From);
+        var creatorBalance = UInt256.Zero;
+        if(!call.Value.IsZero)
+        {
+            creatorBalance = await creatorStorage.GetBalanceAsync();
+            if(creatorBalance < call.Value)
+            {
+                return ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
+            }
+        }
+
+        ulong creatorNonce = await creatorStorage.GetNonceAsync();
+        if(creatorNonce == UInt64.MaxValue)
+        {
+            return ExecutionResult.CallEntryFailure(CallEntryFailureReason.CreatorNonceOverflow);
+        }
+
+        creatorStorage.SetNonce(creatorNonce + 1);
+        var createdStorage = _storage.GetAccountStorage(call.Address);
+        if(await createdStorage.HasCreateCollisionAsync())
+        {
+            return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.ContractAddressCollision);
+        }
+
+        var creationSnapshot = _storage.TakeSnapshot();
+        createdStorage.InitializeCreatedContract();
+        if(!call.Value.IsZero)
+        {
+            var createdBalance = await createdStorage.GetBalanceAsync();
+            creatorStorage.SetBalance(creatorBalance - call.Value);
+            createdStorage.SetBalance(createdBalance + call.Value);
+        }
+
+        var result = await ExecuteOpcodesAsync(
+            new BytecodeFrame(call, createdStorage, ResourceLimits),
+            new ZeroPaddedData(call.Input)
+        );
+
+        result = result switch
+        {
+            { IsSuccess: true } when result.Data.Length > ExecutionSpec.MaxRuntimeCodeLength
+                => ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.RuntimeCodeTooLarge),
+            { IsSuccess: true } when !result.Data.IsEmpty && result.Data.Span[0] == 0xEF
+                => ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidRuntimeCode),
+            _ => result
+        };
+
+        if(!result.IsSuccess)
+        {
+            _storage.Reset(creationSnapshot);
+            return result;
+        }
+
+        createdStorage.SetCode(new EVMByteCode(result.Data.ToArray()));
         return result;
     }
 }

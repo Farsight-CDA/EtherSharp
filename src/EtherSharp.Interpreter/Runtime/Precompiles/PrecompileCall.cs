@@ -15,6 +15,7 @@ namespace EtherSharp.Interpreter.Runtime.Precompiles;
 /// <param name="Input">The complete message-call input.</param>
 /// <param name="Depth">The zero-based message-call depth.</param>
 /// <param name="IsStatic">Whether state changes are prohibited.</param>
+/// <param name="Gas">The invocation's shared execution gas budget, charged directly by the precompile.</param>
 public readonly record struct PrecompileCall(
     InterpreterContext Context,
     Address Origin,
@@ -23,5 +24,6 @@ public readonly record struct PrecompileCall(
     UInt256 Value,
     ReadOnlyMemory<byte> Input,
     int Depth,
-    bool IsStatic
+    bool IsStatic,
+    GasBudget Gas
 );
