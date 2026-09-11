@@ -16,6 +16,7 @@ internal static class InterpreterDataProviderFactory
     public static IInterpreterDataProvider Create(
         IEtherClient client,
         TargetHeight targetHeight,
+        InterpreterDataProviderOptions options = default,
         RpcRequestOptions requestOptions = default
     )
     {
@@ -30,7 +31,7 @@ internal static class InterpreterDataProviderFactory
         return internalClient.Provider.GetService<IFlashRuntimeExecutor>() switch
         {
             StateOverrideFlashCallExecutor => new StateOverrideInterpreterDataProvider(
-                client, targetHeight, requestOptions
+                client, targetHeight, options, requestOptions
             ),
             _ => throw new InvalidOperationException(
                 "No interpreter data provider is available for the configured query backend. Configure WithFlashCalls(enableStateOverrides: true)."

@@ -17,35 +17,33 @@ public static class IEtherClientExtensions
     /// </summary>
     /// <param name="client">The client supplying the upstream block context and state backend.</param>
     /// <param name="targetHeight">The target block. Pending is unsupported.</param>
-    /// <param name="blockHeightQuery">
-    /// The query used to resolve named targets, or <see langword="null"/> to use EVM NUMBER.
-    /// </param>
-    /// <param name="initialState">Values that describe the target block's post-state.</param>
+    /// <param name="options">Fork configuration. Initial state must describe the target block's post-state.</param>
+    /// <param name="dataProviderOptions">Configuration for creating the upstream data provider.</param>
     /// <param name="requestOptions">Options applied to upstream requests.</param>
     /// <param name="cancellationToken">Cancellation for fork creation only.</param>
     /// <remarks>
     /// Requires WithFlashCalls(enableStateOverrides: true). Named targets resolve once using
-    /// blockHeightQuery or EVM NUMBER; numeric targets take precedence. Pending is unsupported.
+    /// <see cref="InterpreterForkOptions.BlockHeightQuery"/> or EVM NUMBER; numeric targets take precedence. Pending is unsupported.
     /// Keep the client alive for state reads. Cancellation applies only to creation; numeric pinning is not reorg-safe.
     /// </remarks>
     public static Task<InterpreterStateFork> ForkPostBlockAsync(
         this IEtherClient client,
         TargetHeight targetHeight,
-        IQuery<ulong>? blockHeightQuery = null,
-        IReadOnlyList<InterpreterDataResult>? initialState = null,
+        InterpreterForkOptions options = default,
+        InterpreterDataProviderOptions dataProviderOptions = default,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
-    ) => ForkBlockAsync(client, targetHeight, useParentState: false, initialState, blockHeightQuery, requestOptions, cancellationToken);
+    ) => ForkBlockAsync(
+        client, targetHeight, useParentState: false, options, dataProviderOptions, requestOptions, cancellationToken
+    );
 
     /// <summary>
     /// Creates an interpreter fork using the parent block's post-state and the target block's execution context.
     /// </summary>
     /// <param name="client">The client supplying the upstream block context and state backend.</param>
     /// <param name="targetHeight">The target block. Rejects genesis and pending.</param>
-    /// <param name="blockHeightQuery">
-    /// The query used to resolve named targets, or <see langword="null"/> to use EVM NUMBER.
-    /// </param>
-    /// <param name="initialState">Values that describe the parent block's post-state.</param>
+    /// <param name="options">Fork configuration. Initial state must describe the parent block's post-state.</param>
+    /// <param name="dataProviderOptions">Configuration for creating the upstream data provider.</param>
     /// <param name="requestOptions">Options applied to upstream requests.</param>
     /// <param name="cancellationToken">Cancellation for fork creation only.</param>
     /// <remarks>
@@ -55,18 +53,20 @@ public static class IEtherClientExtensions
     public static Task<InterpreterStateFork> ForkPreBlockAsync(
         this IEtherClient client,
         TargetHeight targetHeight,
-        IQuery<ulong>? blockHeightQuery = null,
-        IReadOnlyList<InterpreterDataResult>? initialState = null,
+        InterpreterForkOptions options = default,
+        InterpreterDataProviderOptions dataProviderOptions = default,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
-    ) => ForkBlockAsync(client, targetHeight, useParentState: true, initialState, blockHeightQuery, requestOptions, cancellationToken);
+    ) => ForkBlockAsync(
+        client, targetHeight, useParentState: true, options, dataProviderOptions, requestOptions, cancellationToken
+    );
 
     private static async Task<InterpreterStateFork> ForkBlockAsync(
         IEtherClient client,
         TargetHeight targetHeight,
         bool useParentState,
-        IReadOnlyList<InterpreterDataResult>? initialState,
-        IQuery<ulong>? blockHeightQuery,
+        InterpreterForkOptions options,
+        InterpreterDataProviderOptions dataProviderOptions,
         RpcRequestOptions requestOptions,
         CancellationToken cancellationToken
     )
@@ -83,7 +83,7 @@ public static class IEtherClientExtensions
 
         var (context, height) = await client.QueryAsync(
             IQuery.InterpreterContext(),
-            blockHeightQuery ?? IQuery.GetBlockNumber(),
+            options.BlockHeightQuery ?? IQuery.GetBlockNumber(),
             options: new CallOptions { TargetHeight = targetHeight },
             requestOptions: requestOptions,
             cancellationToken: cancellationToken
@@ -103,10 +103,11 @@ public static class IEtherClientExtensions
             InterpreterDataProviderFactory.Create(
                 client,
                 TargetHeight.Height(stateHeight),
+                dataProviderOptions,
                 requestOptions
             ),
             context,
-            initialState
+            options
         );
     }
 
@@ -116,7 +117,7 @@ public static class IEtherClientExtensions
     /// <param name="client">The client supplying the execution context.</param>
     /// <param name="targetHeight">The target block. Pending is unsupported.</param>
     /// <param name="dataProvider">The provider that controls state pinning.</param>
-    /// <param name="initialState">Values that describe the provider's state snapshot.</param>
+    /// <param name="options">Fork configuration. Initial state must describe the provider's state snapshot.</param>
     /// <param name="requestOptions">Options applied to upstream requests.</param>
     /// <param name="cancellationToken">Cancellation for context creation only.</param>
     /// <remarks>
@@ -127,7 +128,7 @@ public static class IEtherClientExtensions
         this IEtherClient client,
         TargetHeight targetHeight,
         IInterpreterDataProvider dataProvider,
-        IReadOnlyList<InterpreterDataResult>? initialState = null,
+        InterpreterForkOptions options = default,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     )
@@ -145,6 +146,6 @@ public static class IEtherClientExtensions
             requestOptions: requestOptions,
             cancellationToken: cancellationToken
         );
-        return new InterpreterStateFork(dataProvider, context, initialState);
+        return new InterpreterStateFork(dataProvider, context, options);
     }
 }

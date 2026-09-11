@@ -29,13 +29,17 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
     /// </summary>
     /// <param name="client">A client configured for state-override query execution.</param>
     /// <param name="targetHeight">The fixed RPC height used for all reads, including nonce fallback.</param>
+    /// <param name="options">Data provider configuration.</param>
     /// <param name="requestOptions">Options applied to upstream requests.</param>
     internal StateOverrideInterpreterDataProvider(
         IEtherClient client,
         TargetHeight targetHeight,
+        InterpreterDataProviderOptions options,
         RpcRequestOptions requestOptions
     )
     {
+        // The options scaffold currently has no provider-specific settings.
+        _ = options;
         _client = client;
         _targetHeight = targetHeight;
         _requestOptions = requestOptions;
