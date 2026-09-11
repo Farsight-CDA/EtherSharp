@@ -8,7 +8,7 @@ public sealed class ModExpPrecompileTests
 {
     [Theory]
     [InlineData("", true, "")]
-    [InlineData("01", false, "")] // Right-padding this partial header makes the base length oversized.
+    [InlineData("01", false, "")] // Right-padding this partial header makes the gas cost unaffordable.
     [InlineData( // 2^5 mod 13 = 6.
         "0000000000000000000000000000000000000000000000000000000000000001"
         + "0000000000000000000000000000000000000000000000000000000000000001"
@@ -57,15 +57,15 @@ public sealed class ModExpPrecompileTests
     public async Task ExecuteAsync_ShouldMatchVector(string input, bool expectedSuccess, string expectedData)
     {
         var result = await new ModExpPrecompile(maxOperandLength: 1024).ExecuteAsync(
-            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input) }
+            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input), Gas = new GasBudget(UInt64.MaxValue) }
         );
 
         Assert.Equal(expectedSuccess, result.IsSuccess);
         Assert.Equal(Convert.FromHexString(expectedData), result.Data.ToArray());
         if(!expectedSuccess)
         {
-            Assert.True(result.IsPrecompileFailure(out var reason));
-            Assert.Equal(PrecompileFailureReason.ModExpOperandLengthExceeded, reason);
+            Assert.True(result.IsExceptionalHalt(out var reason));
+            Assert.Equal(ExceptionalHaltReason.OutOfGas, reason);
         }
     }
 }

@@ -40,7 +40,7 @@ public sealed class Blake2FPrecompileTests
     public async Task ExecuteAsync_ShouldMatchOfficialVector(string name, string input, string expected)
     {
         var result = await Blake2FPrecompile.Instance.ExecuteAsync(
-            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input) }
+            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input), Gas = new GasBudget(UInt64.MaxValue) }
         );
 
         Assert.True(result.IsSuccess, name);
@@ -62,7 +62,7 @@ public sealed class Blake2FPrecompileTests
         }
 
         var result = await Blake2FPrecompile.Instance.ExecuteAsync(
-            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = input }
+            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = input, Gas = new GasBudget(UInt64.MaxValue) }
         );
 
         Assert.False(result.IsSuccess);

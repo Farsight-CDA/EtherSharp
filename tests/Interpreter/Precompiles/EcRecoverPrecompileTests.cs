@@ -96,7 +96,7 @@ public sealed class EcRecoverPrecompileTests
     public async Task ExecuteAsync_ShouldMatchVector(string input, bool expectedSuccess, string expectedData)
     {
         var result = await EcRecoverPrecompile.Instance.ExecuteAsync(
-            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input) }
+            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input), Gas = new GasBudget(UInt64.MaxValue) }
         );
 
         Assert.Equal(expectedSuccess, result.IsSuccess);

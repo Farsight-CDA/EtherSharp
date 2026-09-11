@@ -32,7 +32,7 @@ public sealed class P256VerifyPrecompileTests
     public async Task ExecuteAsync_ShouldMatchOfficialVector(string name, string input, string expected)
     {
         var result = await P256VerifyPrecompile.Instance.ExecuteAsync(
-            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input) }
+            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input), Gas = new GasBudget(UInt64.MaxValue) }
         );
 
         Assert.True(result.IsSuccess, name);

@@ -33,7 +33,7 @@ public sealed class Ripemd160PrecompileTests
     public async Task ExecuteAsync_ShouldMatchVector(string input, string expectedData)
     {
         var result = await Ripemd160Precompile.Instance.ExecuteAsync(
-            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input) }
+            Substitute.For<IInterpreterHost>(), default(PrecompileCall) with { Input = Convert.FromHexString(input), Gas = new GasBudget(UInt64.MaxValue) }
         );
 
         Assert.True(result.IsSuccess);
