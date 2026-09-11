@@ -15,7 +15,7 @@ using System.Collections.Frozen;
 namespace EtherSharp.Interpreter.Runtime;
 
 /// <summary>
-/// Executes EVM transactions and call simulations against an interpreter state fork.
+/// Executes and simulates EVM transactions and calls against an interpreter state fork.
 /// </summary>
 /// <remarks>
 /// Overlapping execution operations on the same runtime are rejected. Await an operation before
@@ -86,6 +86,10 @@ public partial class InterpreterRuntime : IDisposable
     /// <summary>
     /// Executes a transaction from the supplied sender with optional tracing hooks and retains its state changes.
     /// </summary>
+    /// <exception cref="ArgumentNullException">Thrown when the transaction is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the nonce handling mode is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the interpreter is disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when transaction validation fails or an execution is already in progress.</exception>
     public ValueTask<TxCallResult> ExecuteTransactionAsync(
         Address sender,
         LegacyTransaction transaction,
@@ -117,6 +121,53 @@ public partial class InterpreterRuntime : IDisposable
                 TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: true, isCall: false,
                 options: new InterpreterSimulationOptions { Hooks = hooks, TopLevelNonceHandling = topLevelNonceHandling }
             );
+    }
+
+    /// <summary>
+    /// Executes a call from the supplied sender with optional tracing hooks and retains its state changes.
+    /// </summary>
+    /// <exception cref="ArgumentNullException">Thrown when the call is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the nonce handling mode is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the interpreter is disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when call validation fails or an execution is already in progress.</exception>
+    public ValueTask<TxCallResult> ExecuteCallAsync(
+        Address sender,
+        ITxInput call,
+        IInterpreterExecutionHooks? hooks = default,
+        TopLevelNonceHandling topLevelNonceHandling = TopLevelNonceHandling.Default
+    )
+    {
+        ArgumentNullException.ThrowIfNull(call);
+        return ExecuteTopLevelAsync(
+            TransactionEnvironment.CreateForCall(sender, call, 0, _context), retainState: true, isCall: true,
+            options: new InterpreterSimulationOptions { Hooks = hooks, TopLevelNonceHandling = topLevelNonceHandling }
+        );
+    }
+
+    /// <inheritdoc cref="ExecuteCallAsync(Address, ITxInput, IInterpreterExecutionHooks, TopLevelNonceHandling)"/>
+    /// <exception cref="CallRevertedException">Thrown when execution reverts.</exception>
+    /// <exception cref="CallParsingException">Thrown when the return data cannot be decoded.</exception>
+    public async ValueTask<T> ExecuteCallAsync<T>(
+        Address sender,
+        ITxInput<T> call,
+        IInterpreterExecutionHooks? hooks = default,
+        TopLevelNonceHandling topLevelNonceHandling = TopLevelNonceHandling.Default
+    )
+    {
+        var result = await SafeExecuteCallAsync(sender, call, hooks, topLevelNonceHandling);
+        return result.Unwrap();
+    }
+
+    /// <inheritdoc cref="ExecuteCallAsync(Address, ITxInput, IInterpreterExecutionHooks, TopLevelNonceHandling)"/>
+    public async ValueTask<CallResult<T>> SafeExecuteCallAsync<T>(
+        Address sender,
+        ITxInput<T> call,
+        IInterpreterExecutionHooks? hooks = default,
+        TopLevelNonceHandling topLevelNonceHandling = TopLevelNonceHandling.Default
+    )
+    {
+        var result = await ExecuteCallAsync(sender, (ITxInput) call, hooks, topLevelNonceHandling);
+        return CallResult<T>.ParseFrom(result, call.To, call.ReadResultFrom);
     }
 
     /// <summary>

@@ -3,7 +3,7 @@ namespace EtherSharp.Interpreter.Runtime;
 /// <summary>Controls top-level sender nonce handling.</summary>
 public enum TopLevelNonceHandling
 {
-    /// <summary>Skips nonce handling only for call simulations with a destination address.</summary>
+    /// <summary>Skips nonce handling only for call execution and simulation with a destination address.</summary>
     Default = 0,
 
     /// <summary>Looks up, validates, and increments the sender nonce.</summary>
