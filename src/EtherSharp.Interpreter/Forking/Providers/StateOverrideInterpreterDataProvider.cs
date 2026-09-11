@@ -1,6 +1,7 @@
 using EtherSharp.Client;
 using EtherSharp.Client.Modules.Query;
 using EtherSharp.Interpreter.Runtime;
+using EtherSharp.Numerics;
 using EtherSharp.Query;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
@@ -22,6 +23,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
     private readonly IEtherClient _client;
     private readonly TargetHeight _targetHeight;
     private readonly RpcRequestOptions _requestOptions;
+    private readonly byte _forwardPrefetchDistance;
     private readonly HashSet<Address> _nonceProbeMisses = [];
 
     /// <summary>
@@ -38,11 +40,10 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
         RpcRequestOptions requestOptions
     )
     {
-        // The options scaffold currently has no provider-specific settings.
-        _ = options;
         _client = client;
         _targetHeight = targetHeight;
         _requestOptions = requestOptions;
+        _forwardPrefetchDistance = options.ForwardPrefetchDistance;
     }
 
     /// <inheritdoc/>
@@ -84,6 +85,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                 InterpreterDataRequest.Code or InterpreterDataRequest.CodeHash or InterpreterDataRequest.PrecompileCall
             );
             var queries = new QueryBuilder<InterpreterDataResult?>();
+            HashSet<Bytes32> storageKeys = [];
             foreach(var request in group)
             {
                 switch(request)
@@ -111,10 +113,19 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                         {
                             continue;
                         }
-                        queries.AddQuery(
-                            IQuery.ReadStorage(slot.Key),
-                            value => new InterpreterDataResult.Storage(slot.Address, slot.Key, value)
-                        );
+                        var key = (UInt256) slot.Key;
+                        for(int offset = 0; offset <= _forwardPrefetchDistance; offset++)
+                        {
+                            var storageKey = (Bytes32) key;
+                            if(storageKeys.Add(storageKey))
+                            {
+                                queries.AddQuery(
+                                    IQuery.ReadStorage(storageKey),
+                                    value => new InterpreterDataResult.Storage(slot.Address, storageKey, value)
+                                );
+                            }
+                            key = unchecked(key + UInt256.One);
+                        }
                         break;
                     case InterpreterDataRequest.Nonce nonce:
                         if(_nonceProbeMisses.Contains(nonce.Address))
