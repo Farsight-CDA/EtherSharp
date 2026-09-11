@@ -8,6 +8,9 @@ namespace EtherSharp.Interpreter.Runtime.Precompiles;
 /// </summary>
 public sealed class P256VerifyPrecompile : IPrecompile
 {
+    // Osaka gas price (EIP-7951).
+    private const ulong GAS_COST = 6900;
+
     private static readonly byte[] _order = Convert.FromHexString("ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551");
     private static readonly byte[] _prime = Convert.FromHexString("ffffffff00000001000000000000000000000000ffffffffffffffffffffffff");
 
@@ -24,6 +27,11 @@ public sealed class P256VerifyPrecompile : IPrecompile
     /// <inheritdoc/>
     public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
     {
+        if(!call.Gas.TryCharge(GAS_COST))
+        {
+            return ValueTask.FromResult(ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas));
+        }
+
         // Input is exactly hash || r || s || qx || qy, with unsigned big-endian words.
         var input = call.Input.Span;
         if(input.Length != 160)

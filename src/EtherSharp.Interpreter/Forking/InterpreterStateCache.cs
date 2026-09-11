@@ -30,7 +30,7 @@ internal sealed class InterpreterStateCache
             if(!TryStore(initialState[i], copyBuffers: true))
             {
                 throw new ArgumentException(
-                    $"The initial state contains multiple values for the same logical key: {result}.",
+                    $"The initial state contains multiple values for the same logical key: {initialState[i]}.",
                     nameof(initialState)
                 );
             }

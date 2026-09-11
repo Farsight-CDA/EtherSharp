@@ -33,7 +33,57 @@ public sealed class ModExpPrecompile : IPrecompile
 
     /// <inheritdoc/>
     public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
-        => ValueTask.FromResult(Execute(call.Input.Span));
+        => ValueTask.FromResult(GetGasCost(call.Input.Span) is { } cost && call.Gas.TryCharge(cost)
+            ? Execute(call.Input.Span)
+            : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas)
+        );
+
+    // Osaka gas prices (EIP-7883). Null means the cost exceeds any ulong gas budget.
+    private static ulong? GetGasCost(ReadOnlySpan<byte> input)
+    {
+        var baseLength = ReadPaddedWord(input, 0, WORD_LENGTH);
+        var exponentLength = ReadPaddedWord(input, WORD_LENGTH, WORD_LENGTH);
+        var modulusLength = ReadPaddedWord(input, 2 * WORD_LENGTH, WORD_LENGTH);
+        if(baseLength > (UInt256) UInt64.MaxValue
+            || exponentLength > (UInt256) UInt64.MaxValue
+            || modulusLength > (UInt256) UInt64.MaxValue)
+        {
+            return null;
+        }
+
+        ulong baseSize = (ulong) baseLength;
+        ulong exponentSize = (ulong) exponentLength;
+        ulong maxSize = Math.Max(baseSize, (ulong) modulusLength);
+        var exponentHead = input.Length >= HEADER_LENGTH && baseSize <= (ulong) (input.Length - HEADER_LENGTH)
+            ? ReadPaddedWord(input, HEADER_LENGTH + (int) baseSize, (int) Math.Min(exponentSize, WORD_LENGTH))
+            : UInt256.Zero;
+
+        // The leading (up to) 32 exponent bytes include trailing zero padding.
+        var iterations = exponentSize > WORD_LENGTH ? (UInt128) (exponentSize - WORD_LENGTH) * 16 : 0;
+        if(!exponentHead.IsZero)
+        {
+            iterations += (uint) (255 - UInt256.LeadingZeroCount(in exponentHead));
+        }
+        iterations = UInt128.Max(iterations, 1);
+        var words = ((UInt128) maxSize + 7) / 8;
+        var complexity = maxSize <= WORD_LENGTH ? 16 : 2 * words * words;
+
+        // Avoid narrowing or multiplying an unaffordable cost, even for full-width declared lengths.
+        return complexity > UInt64.MaxValue / iterations
+            ? null
+            : Math.Max(500UL, (ulong) (complexity * iterations));
+    }
+
+    private static UInt256 ReadPaddedWord(ReadOnlySpan<byte> input, int offset, int length)
+    {
+        Span<byte> word = stackalloc byte[WORD_LENGTH];
+        word.Clear();
+        if(offset < input.Length)
+        {
+            input.Slice(offset, Math.Min(length, input.Length - offset)).CopyTo(word[(WORD_LENGTH - length)..]);
+        }
+        return BinaryPrimitives.ReadUInt256BigEndian(word);
+    }
 
     private ExecutionResult Execute(ReadOnlySpan<byte> input)
     {

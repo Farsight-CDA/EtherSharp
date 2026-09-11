@@ -18,5 +18,12 @@ public sealed class IdentityPrecompile : IPrecompile
 
     /// <inheritdoc/>
     public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
-        => ValueTask.FromResult(ExecutionResult.Success(call.Input.ToArray()));
+        => ValueTask.FromResult(call.Gas.TryCharge(GetGasCost(call.Input.Length))
+            ? ExecutionResult.Success(call.Input.ToArray())
+            : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas)
+        );
+
+    // Osaka gas prices: 15 base gas plus 3 per input word.
+    private static ulong GetGasCost(int inputLength)
+        => 15 + (3 * (((ulong) inputLength + 31) / 32));
 }

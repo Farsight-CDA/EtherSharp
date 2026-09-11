@@ -18,5 +18,12 @@ public sealed class Sha256Precompile : IPrecompile
 
     /// <inheritdoc/>
     public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
-        => ValueTask.FromResult(ExecutionResult.Success(SHA256.HashData(call.Input.Span)));
+        => ValueTask.FromResult(call.Gas.TryCharge(GetGasCost(call.Input.Length))
+            ? ExecutionResult.Success(SHA256.HashData(call.Input.Span))
+            : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas)
+        );
+
+    // Osaka gas prices: 60 base gas plus 12 per input word.
+    private static ulong GetGasCost(int inputLength)
+        => 60 + (12 * (((ulong) inputLength + 31) / 32));
 }

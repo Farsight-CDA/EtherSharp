@@ -7,6 +7,9 @@ namespace EtherSharp.Interpreter.Runtime.Precompiles;
 /// <summary>The EVM ECRECOVER precompile.</summary>
 public sealed class EcRecoverPrecompile : IPrecompile
 {
+    // Osaka gas price.
+    private const ulong GAS_COST = 3000;
+
     // Lock initialization and retain the read-only recovery context for the process lifetime.
     private static readonly Lazy<Secp256k1> _secp256k1 = new(() => new(), LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -23,6 +26,11 @@ public sealed class EcRecoverPrecompile : IPrecompile
     /// <inheritdoc/>
     public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
     {
+        if(!call.Gas.TryCharge(GAS_COST))
+        {
+            return ValueTask.FromResult(ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas));
+        }
+
         // Input is hash || v || r || s, right-padded with zeros and truncated to 128 bytes.
         Span<byte> input = stackalloc byte[128];
         input.Clear();

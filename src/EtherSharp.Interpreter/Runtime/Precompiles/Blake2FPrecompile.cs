@@ -1,5 +1,6 @@
 using EtherSharp.Interpreter.Crypto;
 using EtherSharp.Types;
+using System.Buffers.Binary;
 
 namespace EtherSharp.Interpreter.Runtime.Precompiles;
 
@@ -19,6 +20,11 @@ public sealed class Blake2FPrecompile : IPrecompile
     /// <inheritdoc/>
     public ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
     {
+        if(!call.Gas.TryCharge(GetGasCost(call.Input.Span)))
+        {
+            return ValueTask.FromResult(ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas));
+        }
+
         if(call.Input.Length != Blake2F.INPUT_LENGTH)
         {
             return ValueTask.FromResult(ExecutionResult.PrecompileFailure(PrecompileFailureReason.InvalidInputLength));
@@ -32,4 +38,10 @@ public sealed class Blake2FPrecompile : IPrecompile
         Blake2F.Compress(call.Input.Span, output);
         return ValueTask.FromResult(ExecutionResult.Success(output));
     }
+
+    // Osaka gas price (EIP-152): one gas per round. Invalid lengths fail during execution.
+    private static ulong GetGasCost(ReadOnlySpan<byte> input)
+        => input.Length == Blake2F.INPUT_LENGTH
+            ? BinaryPrimitives.ReadUInt32BigEndian(input)
+            : 0;
 }

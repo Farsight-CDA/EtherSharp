@@ -6,7 +6,7 @@ namespace EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 public sealed partial record InterpreterExecutionSpec
 {
     /// <summary>
-    /// Gets the Osaka code-size limits and standard precompile configuration.
+    /// Gets the Osaka code-size limits and standard precompile configuration with Osaka gas pricing.
     /// </summary>
     /// <remarks>
     /// ECRECOVER, SHA-256, RIPEMD-160, identity, ModExp, BLAKE2F, and P256VERIFY execute locally;

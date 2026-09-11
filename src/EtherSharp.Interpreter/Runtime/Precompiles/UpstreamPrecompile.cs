@@ -5,6 +5,9 @@ namespace EtherSharp.Interpreter.Runtime.Precompiles;
 /// <summary>
 /// Delegates a standard, input-only precompile to the upstream execution environment.
 /// </summary>
+/// <remarks>
+/// Upstream results do not report gas usage, so this implementation does not charge execution gas.
+/// </remarks>
 /// <param name="address">The upstream precompile address.</param>
 public sealed class UpstreamPrecompile(Address address) : IPrecompile
 {
