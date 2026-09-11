@@ -28,7 +28,7 @@ internal static class InterpreterDataProviderFactory
         var internalClient = client as IInternalEtherClient
             ?? throw new InvalidOperationException("The client does not expose its query backend.");
 
-        return internalClient.Provider.GetService<IFlashRuntimeExecutor>() switch
+        IInterpreterDataProvider provider = internalClient.Provider.GetService<IFlashRuntimeExecutor>() switch
         {
             StateOverrideFlashCallExecutor => new StateOverrideInterpreterDataProvider(
                 client, targetHeight, options, requestOptions
@@ -37,5 +37,9 @@ internal static class InterpreterDataProviderFactory
                 "No interpreter data provider is available for the configured query backend. Configure WithFlashCalls(enableStateOverrides: true)."
             ),
         };
+
+        return options.DecorateProvider is { } decorate
+            ? decorate(provider) ?? throw new InvalidOperationException("The data provider decorator returned null.")
+            : provider;
     }
 }
