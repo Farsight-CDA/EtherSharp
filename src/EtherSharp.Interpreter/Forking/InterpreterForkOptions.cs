@@ -12,6 +12,14 @@ public readonly record struct InterpreterForkOptions
     public IQuery<ulong>? BlockHeightQuery { get; init; }
 
     /// <summary>
+    /// Disables <c>BLOBBASEFEE</c> without probing it on the upstream RPC endpoint.
+    /// </summary>
+    /// <remarks>
+    /// Use this for chains whose RPC handlers crash when opcode <c>0x4A</c> is executed.
+    /// </remarks>
+    public bool DisableBlobBaseFee { get; init; }
+
+    /// <summary>
     /// Application-known upstream values matching the fork's state snapshot.
     /// For pre-block forks, these must describe the parent block's post-state.
     /// </summary>

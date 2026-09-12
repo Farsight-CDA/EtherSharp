@@ -11,11 +11,9 @@ namespace EtherSharp.Interpreter.Query;
 /// <summary>
 /// Fetches a full <see cref="InterpreterContext"/> through batched queries.
 /// </summary>
-internal sealed class InterpreterContextQuery : IQuery<InterpreterContext>
+internal sealed class InterpreterContextQuery(bool disableBlobBaseFee) : IQuery<InterpreterContext>
 {
     private const int MAX_RECENT_BLOCK_HASHES = 256;
-
-    public static InterpreterContextQuery Instance { get; } = new();
 
     private static readonly IQuery<ulong> _chainId = IQuery.GetChainId();
     private static readonly IQuery<ulong> _blockNumber = IQuery.GetBlockNumber();
@@ -47,10 +45,6 @@ internal sealed class InterpreterContextQuery : IQuery<InterpreterContext>
             return hashes;
         }));
 
-    private InterpreterContextQuery()
-    {
-    }
-
     int IQuery<InterpreterContext>.OperationCount
         => _chainId.OperationCount
             + _blockNumber.OperationCount
@@ -59,7 +53,7 @@ internal sealed class InterpreterContextQuery : IQuery<InterpreterContext>
             + _coinbase.OperationCount
             + _prevRandao.OperationCount
             + _baseFee.OperationCount
-            + _blobBaseFee.OperationCount
+            + (disableBlobBaseFee ? 0 : _blobBaseFee.OperationCount)
             + _recentBlockHashes.OperationCount;
 
     void IQuery<InterpreterContext>.AddTo(IQueryPlan plan)
@@ -71,7 +65,10 @@ internal sealed class InterpreterContextQuery : IQuery<InterpreterContext>
         plan.Add(_coinbase);
         plan.Add(_prevRandao);
         plan.Add(_baseFee);
-        plan.Add(_blobBaseFee);
+        if(!disableBlobBaseFee)
+        {
+            plan.Add(_blobBaseFee);
+        }
         plan.Add(_recentBlockHashes);
     }
 
@@ -86,7 +83,9 @@ internal sealed class InterpreterContextQuery : IQuery<InterpreterContext>
         var coinbase = _coinbase.ReadResultFrom(queryResults[offset..(offset += _coinbase.OperationCount)]);
         var prevRandao = _prevRandao.ReadResultFrom(queryResults[offset..(offset += _prevRandao.OperationCount)]);
         var baseFeeResult = _baseFee.ReadResultFrom(queryResults[offset..(offset += _baseFee.OperationCount)]);
-        var blobBaseFeeResult = _blobBaseFee.ReadResultFrom(queryResults[offset..(offset += _blobBaseFee.OperationCount)]);
+        var blobBaseFeeResult = disableBlobBaseFee
+            ? null
+            : _blobBaseFee.ReadResultFrom(queryResults[offset..(offset += _blobBaseFee.OperationCount)]);
         var allRecentBlockHashes = _recentBlockHashes.ReadResultFrom(queryResults[offset..(offset += _recentBlockHashes.OperationCount)]);
 
         int recentHashCount = (int) Math.Min(blockNumber, (ulong) allRecentBlockHashes.Length);
@@ -105,6 +104,7 @@ internal sealed class InterpreterContextQuery : IQuery<InterpreterContext>
             },
             blobBaseFeeResult switch
             {
+                null => null,
                 CallResult<UInt256>.Success success => success.Value,
                 CallResult<UInt256>.Reverted => null,
                 _ => blobBaseFeeResult.Unwrap(),

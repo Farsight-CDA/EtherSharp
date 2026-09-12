@@ -82,7 +82,7 @@ public static class IEtherClientExtensions
         }
 
         var (context, height) = await client.QueryAsync(
-            IQuery.InterpreterContext(),
+            IQuery.InterpreterContext(disableBlobBaseFee: options.DisableBlobBaseFee),
             options.BlockHeightQuery ?? IQuery.GetBlockNumber(),
             options: new CallOptions { TargetHeight = targetHeight },
             requestOptions: requestOptions,
@@ -141,7 +141,7 @@ public static class IEtherClientExtensions
         }
 
         var context = await client.QueryAsync(
-            IQuery.InterpreterContext(),
+            IQuery.InterpreterContext(disableBlobBaseFee: options.DisableBlobBaseFee),
             options: new CallOptions { TargetHeight = targetHeight },
             requestOptions: requestOptions,
             cancellationToken: cancellationToken
