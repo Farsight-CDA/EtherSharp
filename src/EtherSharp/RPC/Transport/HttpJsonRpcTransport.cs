@@ -182,7 +182,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
                 out var statistics
             ))
             {
-                statistics.RecordRequest();
+                statistics.RecordRequest(method);
             }
             response = await _client.SendAsync(httpRequestMessage, cancellationToken);
         }

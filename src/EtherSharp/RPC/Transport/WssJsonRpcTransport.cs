@@ -527,7 +527,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                         out var statistics
                     ))
                     {
-                        statistics.RecordRequest();
+                        statistics.RecordRequest(method);
                     }
                     await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
                 }
