@@ -522,7 +522,13 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 try
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    requestOptions.Statistics?.RecordRequest();
+                    if(requestOptions.TryGetValue(
+                        RpcRequestOptionsKeys.Statistics,
+                        out var statistics
+                    ))
+                    {
+                        statistics.RecordRequest();
+                    }
                     await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
                 }
                 finally

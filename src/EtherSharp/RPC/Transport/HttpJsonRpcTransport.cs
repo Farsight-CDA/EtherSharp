@@ -177,7 +177,13 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            requestOptions.Statistics?.RecordRequest();
+            if(requestOptions.TryGetValue(
+                RpcRequestOptionsKeys.Statistics,
+                out var statistics
+            ))
+            {
+                statistics.RecordRequest();
+            }
             response = await _client.SendAsync(httpRequestMessage, cancellationToken);
         }
         catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested)

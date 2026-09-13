@@ -1,23 +1,33 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace EtherSharp.RPC.Transport;
 
 /// <summary>
-/// Configures transport-specific handling for an RPC request.
+/// Stores custom values passed to an RPC transport.
 /// </summary>
-public readonly record struct RpcRequestOptions
+/// <remarks>Do not modify these options while a request using them is in progress.</remarks>
+public struct RpcRequestOptions
 {
-    /// <summary>
-    /// Gets the caller-owned collector for outgoing RPC request attempts, or <see langword="null"/> to disable collection.
-    /// Reuse a collector to aggregate requests, or supply separate collectors for independent operations.
-    /// </summary>
-    public RpcRequestStatistics? Statistics { get; init; }
+    private Dictionary<string, object?>? _values;
 
-    /// <summary>
-    /// Gets the transport-specific routing key.
-    /// </summary>
-    public int TransportKey { get; init; }
+    /// <summary>Sets the value associated with a key.</summary>
+    public void Set<TValue>(RpcRequestOptionsKey<TValue> key, TValue value)
+        => (_values ??= [])[key.Name] = value;
 
-    /// <summary>
-    /// Gets the request priority.
-    /// </summary>
-    public int Priority { get; init; }
+    /// <summary>Attempts to get the value associated with a key.</summary>
+    public readonly bool TryGetValue<TValue>(
+        RpcRequestOptionsKey<TValue> key,
+        [MaybeNullWhen(false)] out TValue value
+    )
+    {
+        if(_values?.TryGetValue(key.Name, out object? untypedValue) is true
+            && (untypedValue is TValue || (untypedValue is null && default(TValue) is null)))
+        {
+            value = (TValue) untypedValue!;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
 }
