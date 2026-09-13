@@ -84,7 +84,7 @@ public partial class InterpreterRuntime : IDisposable
     }
 
     /// <summary>
-    /// Executes a transaction from the supplied sender with optional tracing hooks and retains its state changes.
+    /// Executes a transaction from the supplied sender and retains its state changes, including supplied state overrides.
     /// </summary>
     /// <exception cref="ArgumentNullException">Thrown when the transaction is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the nonce handling mode is invalid.</exception>
@@ -93,8 +93,7 @@ public partial class InterpreterRuntime : IDisposable
     public ValueTask<TxCallResult> ExecuteTransactionAsync(
         Address sender,
         LegacyTransaction transaction,
-        IInterpreterExecutionHooks? hooks = default,
-        TopLevelNonceHandling topLevelNonceHandling = TopLevelNonceHandling.Default
+        InterpreterExecutionOptions options = default
     )
     {
         ArgumentNullException.ThrowIfNull(transaction);
@@ -102,16 +101,15 @@ public partial class InterpreterRuntime : IDisposable
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
                 TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: true, isCall: false,
-                options: new InterpreterSimulationOptions { Hooks = hooks, TopLevelNonceHandling = topLevelNonceHandling }
+                options: options
             );
     }
 
-    /// <inheritdoc cref="ExecuteTransactionAsync(Address, LegacyTransaction, IInterpreterExecutionHooks, TopLevelNonceHandling)"/>
+    /// <inheritdoc cref="ExecuteTransactionAsync(Address, LegacyTransaction, InterpreterExecutionOptions)"/>
     public ValueTask<TxCallResult> ExecuteTransactionAsync(
         Address sender,
         EIP1559Transaction transaction,
-        IInterpreterExecutionHooks? hooks = default,
-        TopLevelNonceHandling topLevelNonceHandling = TopLevelNonceHandling.Default
+        InterpreterExecutionOptions options = default
     )
     {
         ArgumentNullException.ThrowIfNull(transaction);
@@ -119,12 +117,12 @@ public partial class InterpreterRuntime : IDisposable
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
                 TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: true, isCall: false,
-                options: new InterpreterSimulationOptions { Hooks = hooks, TopLevelNonceHandling = topLevelNonceHandling }
+                options: options
             );
     }
 
     /// <summary>
-    /// Executes a call from the supplied sender with optional tracing hooks and retains its state changes.
+    /// Executes a call from the supplied sender and retains its state changes, including supplied state overrides.
     /// </summary>
     /// <exception cref="ArgumentNullException">Thrown when the call is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the nonce handling mode is invalid.</exception>
@@ -133,40 +131,37 @@ public partial class InterpreterRuntime : IDisposable
     public ValueTask<TxCallResult> ExecuteCallAsync(
         Address sender,
         ITxInput call,
-        IInterpreterExecutionHooks? hooks = default,
-        TopLevelNonceHandling topLevelNonceHandling = TopLevelNonceHandling.Default
+        InterpreterExecutionOptions options = default
     )
     {
         ArgumentNullException.ThrowIfNull(call);
         return ExecuteTopLevelAsync(
             TransactionEnvironment.CreateForCall(sender, call, 0, _context), retainState: true, isCall: true,
-            options: new InterpreterSimulationOptions { Hooks = hooks, TopLevelNonceHandling = topLevelNonceHandling }
+            options: options
         );
     }
 
-    /// <inheritdoc cref="ExecuteCallAsync(Address, ITxInput, IInterpreterExecutionHooks, TopLevelNonceHandling)"/>
+    /// <inheritdoc cref="ExecuteCallAsync(Address, ITxInput, InterpreterExecutionOptions)"/>
     /// <exception cref="CallRevertedException">Thrown when execution reverts.</exception>
     /// <exception cref="CallParsingException">Thrown when the return data cannot be decoded.</exception>
     public async ValueTask<T> ExecuteCallAsync<T>(
         Address sender,
         ITxInput<T> call,
-        IInterpreterExecutionHooks? hooks = default,
-        TopLevelNonceHandling topLevelNonceHandling = TopLevelNonceHandling.Default
+        InterpreterExecutionOptions options = default
     )
     {
-        var result = await SafeExecuteCallAsync(sender, call, hooks, topLevelNonceHandling);
+        var result = await SafeExecuteCallAsync(sender, call, options);
         return result.Unwrap();
     }
 
-    /// <inheritdoc cref="ExecuteCallAsync(Address, ITxInput, IInterpreterExecutionHooks, TopLevelNonceHandling)"/>
+    /// <inheritdoc cref="ExecuteCallAsync(Address, ITxInput, InterpreterExecutionOptions)"/>
     public async ValueTask<CallResult<T>> SafeExecuteCallAsync<T>(
         Address sender,
         ITxInput<T> call,
-        IInterpreterExecutionHooks? hooks = default,
-        TopLevelNonceHandling topLevelNonceHandling = TopLevelNonceHandling.Default
+        InterpreterExecutionOptions options = default
     )
     {
-        var result = await ExecuteCallAsync(sender, (ITxInput) call, hooks, topLevelNonceHandling);
+        var result = await ExecuteCallAsync(sender, (ITxInput) call, options);
         return CallResult<T>.ParseFrom(result, call.To, call.ReadResultFrom);
     }
 
@@ -176,7 +171,7 @@ public partial class InterpreterRuntime : IDisposable
     public ValueTask<TxCallResult> SimulateTransactionAsync(
         Address sender,
         LegacyTransaction transaction,
-        InterpreterSimulationOptions options = default
+        InterpreterExecutionOptions options = default
     )
     {
         ArgumentNullException.ThrowIfNull(transaction);
@@ -187,11 +182,11 @@ public partial class InterpreterRuntime : IDisposable
             );
     }
 
-    /// <inheritdoc cref="SimulateTransactionAsync(Address, LegacyTransaction, InterpreterSimulationOptions)"/>
+    /// <inheritdoc cref="SimulateTransactionAsync(Address, LegacyTransaction, InterpreterExecutionOptions)"/>
     public ValueTask<TxCallResult> SimulateTransactionAsync(
         Address sender,
         EIP1559Transaction transaction,
-        InterpreterSimulationOptions options = default
+        InterpreterExecutionOptions options = default
     )
     {
         ArgumentNullException.ThrowIfNull(transaction);
@@ -211,7 +206,7 @@ public partial class InterpreterRuntime : IDisposable
     public ValueTask<TxCallResult> SimulateCallAsync(
         Address sender,
         ITxInput call,
-        InterpreterSimulationOptions options = default
+        InterpreterExecutionOptions options = default
     )
     {
         ArgumentNullException.ThrowIfNull(call);
@@ -232,7 +227,7 @@ public partial class InterpreterRuntime : IDisposable
     public async ValueTask<T> SimulateCallAsync<T>(
         Address sender,
         ITxInput<T> call,
-        InterpreterSimulationOptions options = default
+        InterpreterExecutionOptions options = default
     )
     {
         var result = await SafeSimulateCallAsync(sender, call, options);
@@ -248,7 +243,7 @@ public partial class InterpreterRuntime : IDisposable
     public async ValueTask<CallResult<T>> SafeSimulateCallAsync<T>(
         Address sender,
         ITxInput<T> call,
-        InterpreterSimulationOptions options = default
+        InterpreterExecutionOptions options = default
     )
     {
         var result = await SimulateCallAsync(sender, (ITxInput) call, options);
@@ -259,7 +254,7 @@ public partial class InterpreterRuntime : IDisposable
         TransactionEnvironment environment,
         bool retainState,
         bool isCall,
-        InterpreterSimulationOptions options = default
+        InterpreterExecutionOptions options = default
     )
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
