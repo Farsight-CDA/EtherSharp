@@ -10,9 +10,16 @@ public struct RpcRequestOptions
 {
     private Dictionary<string, object?>? _values;
 
-    /// <summary>Sets the value associated with a key.</summary>
-    public void Set<TValue>(RpcRequestOptionsKey<TValue> key, TValue value)
-        => (_values ??= [])[key.Name] = value;
+    /// <summary>Sets the value associated with a key and returns the updated options.</summary>
+    public RpcRequestOptions With<TValue>(RpcRequestOptionsKey<TValue> key, TValue value)
+    {
+        (_values ??= [])[key.Name] = value;
+        return this;
+    }
+
+    /// <summary>Adds a statistics collector for built-in and participating custom transports.</summary>
+    public RpcRequestOptions WithStatistics(RpcRequestStatistics statistics)
+        => With(RpcRequestOptionsKeys.Statistics, statistics);
 
     /// <summary>Attempts to get the value associated with a key.</summary>
     public readonly bool TryGetValue<TValue>(
