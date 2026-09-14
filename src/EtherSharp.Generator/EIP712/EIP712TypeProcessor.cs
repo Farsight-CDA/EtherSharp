@@ -238,7 +238,7 @@ public sealed class EIP712TypeProcessor(
         foreach(var member in current.Members)
         {
             var dependency = member.Dependency;
-            if(dependency is null || ReferenceEquals(dependency, root))
+            if(dependency is null || dependency == root)
             {
                 continue;
             }

@@ -1,5 +1,6 @@
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
+using EtherSharp.Interpreter.Forking;
 using EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 using EtherSharp.Interpreter.Runtime.Memory;
 using EtherSharp.Interpreter.Runtime.Precompiles;
@@ -15,13 +16,13 @@ using System.Collections.Frozen;
 namespace EtherSharp.Interpreter.Runtime;
 
 /// <summary>
-/// Executes and simulates EVM transactions and calls against an interpreter state fork.
+/// Holds retained EVM state for structured execution against an interpreter state fork.
 /// </summary>
 /// <remarks>
-/// Overlapping execution operations on the same runtime are rejected. Await an operation before
-/// starting another. Disposal must not run concurrently with an execution operation.
+/// Use the owning state fork's structured run APIs to execute this interpreter. Cloning must not run
+/// concurrently with a structured lane using this interpreter.
 /// </remarks>
-public partial class InterpreterRuntime : IDisposable
+internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLane
 {
     private sealed class ExecutionState(IInterpreterExecutionHooks? hooks)
     {
@@ -34,18 +35,15 @@ public partial class InterpreterRuntime : IDisposable
     private readonly FrozenDictionary<Address, IPrecompile> _precompiles;
     private readonly InterpreterContext _context;
     private ExecutionState? _executionState;
-    private bool _isDisposed;
 
     /// <summary>The interpreter resource limits.</summary>
     public InterpreterResourceLimits ResourceLimits { get; }
     /// <summary>The consensus rules used for execution.</summary>
     public InterpreterExecutionSpec ExecutionSpec { get; }
 
-    internal IInterpreterHost Host { get; }
-
     internal InterpreterRuntime(
+        InterpreterStateFork fork,
         InterpreterContext context,
-        IInterpreterHost host,
         InterpreterExecutionSpec executionSpec,
         InterpreterResourceLimits resourceLimits,
         FrozenDictionary<Address, IPrecompile> precompiles
@@ -53,34 +51,17 @@ public partial class InterpreterRuntime : IDisposable
     {
         ExecutionSpec = executionSpec;
         ResourceLimits = resourceLimits;
+        Fork = fork;
         _context = context;
-        Host = host;
-        _storage = new InterpreterStorage(host);
+        _storage = new InterpreterStorage(this);
         _precompiles = precompiles;
     }
 
-    internal InterpreterRuntime Clone(IInterpreterHost host)
+    internal InterpreterRuntime Clone()
     {
-        ObjectDisposedException.ThrowIf(_isDisposed, this);
-        var clone = new InterpreterRuntime(_context, host, ExecutionSpec, ResourceLimits, _precompiles);
+        var clone = new InterpreterRuntime(Fork, _context, ExecutionSpec, ResourceLimits, _precompiles);
         _storage.CopyTo(clone._storage);
         return clone;
-    }
-
-    /// <summary>
-    /// Removes this interpreter from its state fork's batching participants.
-    /// </summary>
-    /// <remarks>This method must not be called while an interpreter operation is in progress.</remarks>
-    public void Dispose()
-    {
-        if(_isDisposed)
-        {
-            return;
-        }
-
-        _isDisposed = true;
-        Host.Unregister();
-        GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -88,7 +69,6 @@ public partial class InterpreterRuntime : IDisposable
     /// </summary>
     /// <exception cref="ArgumentNullException">Thrown when the transaction is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the nonce handling mode is invalid.</exception>
-    /// <exception cref="ObjectDisposedException">Thrown when the interpreter is disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when transaction validation fails or an execution is already in progress.</exception>
     public ValueTask<TxCallResult> ExecuteTransactionAsync(
         Address sender,
@@ -126,7 +106,6 @@ public partial class InterpreterRuntime : IDisposable
     /// </summary>
     /// <exception cref="ArgumentNullException">Thrown when the call is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the nonce handling mode is invalid.</exception>
-    /// <exception cref="ObjectDisposedException">Thrown when the interpreter is disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when call validation fails or an execution is already in progress.</exception>
     public ValueTask<TxCallResult> ExecuteCallAsync(
         Address sender,
@@ -257,7 +236,6 @@ public partial class InterpreterRuntime : IDisposable
         InterpreterExecutionOptions options = default
     )
     {
-        ObjectDisposedException.ThrowIf(_isDisposed, this);
         bool skipTopLevelNonceChecks = options.TopLevelNonceHandling switch
         {
             TopLevelNonceHandling.Default => isCall && environment.Input.To is not null,
@@ -426,7 +404,7 @@ public partial class InterpreterRuntime : IDisposable
         {
             if(precompile is not null)
             {
-                result = await precompile.ExecuteAsync(Host, new PrecompileCall(
+                result = await precompile.ExecuteAsync(this, new PrecompileCall(
                     _context,
                     call.Origin,
                     call.Caller,

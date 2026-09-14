@@ -14,7 +14,7 @@ public sealed partial class InterpreterStateFork
     {
         lock(_lock)
         {
-            return _cache.Balances.TryGetValue(address, out value);
+            return Cache.Balances.TryGetValue(address, out value);
         }
     }
 
@@ -26,7 +26,7 @@ public sealed partial class InterpreterStateFork
     {
         lock(_lock)
         {
-            return _cache.Nonces.TryGetValue(address, out value);
+            return Cache.Nonces.TryGetValue(address, out value);
         }
     }
 
@@ -39,7 +39,7 @@ public sealed partial class InterpreterStateFork
     {
         lock(_lock)
         {
-            return _cache.Code.TryGetValue(address, out value);
+            return Cache.Code.TryGetValue(address, out value);
         }
     }
 
@@ -51,7 +51,7 @@ public sealed partial class InterpreterStateFork
     {
         lock(_lock)
         {
-            if(_cache.CodeHashes.TryGetValue(address, out var codeHash))
+            if(Cache.CodeHashes.TryGetValue(address, out var codeHash))
             {
                 value = codeHash ?? Bytes32.Zero;
                 return true;
@@ -71,7 +71,7 @@ public sealed partial class InterpreterStateFork
     {
         lock(_lock)
         {
-            return _cache.Storage.TryGetValue((address, slot), out value);
+            return Cache.Storage.TryGetValue((address, slot), out value);
         }
     }
 }

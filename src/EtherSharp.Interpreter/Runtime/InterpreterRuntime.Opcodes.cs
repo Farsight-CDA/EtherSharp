@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace EtherSharp.Interpreter.Runtime;
 
-public partial class InterpreterRuntime
+internal sealed partial class InterpreterRuntime
 {
     private async ValueTask<ExecutionResult> ExecuteOpcodesAsync(BytecodeFrame callFrame, ZeroPaddedData code)
     {

@@ -57,13 +57,12 @@ public sealed record AccountOverride
 
     /// <inheritdoc />
     public bool Equals(AccountOverride? other)
-        => ReferenceEquals(this, other)
-            || (other is not null
-                && Balance == other.Balance
-                && Nonce == other.Nonce
-                && CodeEquals(Code, other.Code)
-                && StateEquals(State, other.State)
-                && StateEquals(StateDiff, other.StateDiff));
+        => other is not null
+            && Balance == other.Balance
+            && Nonce == other.Nonce
+            && CodeEquals(Code, other.Code)
+            && StateEquals(State, other.State)
+            && StateEquals(StateDiff, other.StateDiff);
 
     /// <inheritdoc />
     public override int GetHashCode()

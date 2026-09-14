@@ -1,6 +1,5 @@
 using EtherSharp.Interpreter.Runtime;
 using EtherSharp.Interpreter.Runtime.ExecutionSpecs;
-using System.Diagnostics;
 
 namespace EtherSharp.Interpreter.Forking;
 
@@ -16,228 +15,52 @@ public sealed partial class InterpreterStateFork(
     InterpreterForkOptions options = default
 )
 {
-    private sealed class PendingRequest(InterpreterDataRequest request)
-    {
-        public InterpreterDataRequest Request { get; } = request;
-        public TaskCompletionSource Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public int WaiterCount { get; set; }
-    }
-
     private readonly IInterpreterDataProvider _dataProvider = dataProvider ?? throw new ArgumentNullException(nameof(dataProvider));
     private readonly Lock _lock = new();
-    private readonly Dictionary<InterpreterDataRequest, PendingRequest> _pending = [];
-    private readonly InterpreterStateCache _cache = new(options.InitialState);
-    private int _participantCount;
-    private int _waitingCount;
-    private bool _isFetching;
+
+    internal InterpreterStateCache Cache { get; } = new(options.InitialState);
 
     /// <summary>The block context shared by this fork's interpreters.</summary>
     public InterpreterContext Context { get; } = context ?? throw new ArgumentNullException(nameof(context));
 
     /// <summary>
-    /// Creates and registers an independent interpreter over this state fork.
+    /// Creates an independent interpreter over this state fork.
     /// </summary>
     /// <param name="executionSpec">The execution preset, or <see langword="null"/> to use <see cref="InterpreterExecutionSpec.Latest"/>.</param>
     /// <param name="resourceLimits">The interpreter resource limits.</param>
-    /// <returns>An interpreter that must be disposed when it no longer participates in batching.</returns>
-    /// <remarks>
-    /// Interpreters may run concurrently; each follows <see cref="InterpreterRuntime"/>'s concurrency rules.
-    /// A live interpreter neither executing nor waiting for state blocks batch flushing.
-    /// </remarks>
-    public InterpreterRuntime CreateInterpreter(
+    /// <returns>An interpreter whose retained state can be used in structured runs and cloned.</returns>
+    public IInterpreter CreateInterpreter(
         InterpreterExecutionSpec? executionSpec = null,
         InterpreterResourceLimits? resourceLimits = null
     )
     {
         executionSpec ??= InterpreterExecutionSpec.Latest;
-        var session = new InterpreterSession(this);
-        var runtime = new InterpreterRuntime(
+        return new InterpreterRuntime(
+            this,
             Context,
-            session,
             executionSpec,
             resourceLimits?.Validate() ?? InterpreterResourceLimits.Default,
             executionSpec.ValidateAndCreatePrecompileLookup()
         );
-
-        lock(_lock)
-        {
-            _participantCount++;
-        }
-
-        return runtime;
     }
 
-    /// <summary>Creates and registers an independent interpreter from another interpreter's retained state.</summary>
-    /// <param name="source">An idle, undisposed interpreter belonging to this fork.</param>
+    /// <summary>Creates an independent interpreter from another interpreter's retained state.</summary>
+    /// <param name="source">An idle interpreter belonging to this fork.</param>
     /// <returns>An interpreter with independent local state and the source's execution configuration.</returns>
-    public InterpreterRuntime CloneInterpreter(InterpreterRuntime source)
+    public IInterpreter CloneInterpreter(IInterpreter source)
     {
         ArgumentNullException.ThrowIfNull(source);
-        if(source.Host is not InterpreterSession session || !ReferenceEquals(session.Fork, this))
+        if(source is not InterpreterRuntime runtime
+            || runtime.Fork != this)
         {
             throw new ArgumentException("The source interpreter must belong to this fork.", nameof(source));
         }
 
-        var clone = source.Clone(new InterpreterSession(this));
         lock(_lock)
         {
-            _participantCount++;
-        }
-
-        return clone;
-    }
-
-    private ValueTask<TValue> GetAsync<TKey, TValue>(
-        InterpreterSession session,
-        Dictionary<TKey, TValue> cache,
-        TKey key,
-        Func<TKey, InterpreterDataRequest> createRequest
-    ) where TKey : notnull
-    {
-        PendingRequest pending;
-        PendingRequest[]? batch;
-        lock(_lock)
-        {
-            Debug.Assert(!session.IsUnregistered, "An unregistered session cannot read upstream state.");
-            Debug.Assert(!session.IsReadInProgress, "An interpreter cannot have multiple concurrent upstream requests.");
-
-            if(cache.TryGetValue(key, out var value))
-            {
-                return new ValueTask<TValue>(value);
-            }
-
-            var request = createRequest(key);
-            if(!_pending.TryGetValue(request, out pending!))
-            {
-                pending = new PendingRequest(request);
-                _pending.Add(request, pending);
-            }
-
-            session.IsReadInProgress = true;
-            _waitingCount++;
-            pending.WaiterCount++;
-            batch = TakeBatchIfReady();
-        }
-
-        if(batch is not null)
-        {
-            _ = ResolveAsync(batch);
-        }
-
-        return AwaitValueAsync(session, pending.Completion.Task, cache, key);
-    }
-
-    private async ValueTask<TValue> AwaitValueAsync<TKey, TValue>(
-        InterpreterSession session,
-        Task completion,
-        Dictionary<TKey, TValue> cache,
-        TKey key
-    ) where TKey : notnull
-    {
-        try
-        {
-            await completion;
-            lock(_lock)
-            {
-                return cache[key];
-            }
-        }
-        finally
-        {
-            lock(_lock)
-            {
-                session.IsReadInProgress = false;
-            }
-        }
-    }
-
-    private void RemoveInterpreter(InterpreterSession session)
-    {
-        PendingRequest[]? batch;
-        lock(_lock)
-        {
-            if(session.IsUnregistered)
-            {
-                return;
-            }
-
-            Debug.Assert(!session.IsReadInProgress, "An interpreter cannot be unregistered during an operation.");
-            session.IsUnregistered = true;
-            _participantCount--;
-            batch = TakeBatchIfReady();
-        }
-
-        if(batch is not null)
-        {
-            _ = ResolveAsync(batch);
-        }
-    }
-
-    private PendingRequest[]? TakeBatchIfReady()
-    {
-        if(_isFetching || _participantCount == 0 || _waitingCount != _participantCount || _pending.Count == 0)
-        {
-            return null;
-        }
-
-        PendingRequest[] requests = [.. _pending.Values];
-        _isFetching = true;
-        return requests;
-    }
-
-    private async Task ResolveAsync(PendingRequest[] batch)
-    {
-        try
-        {
-            var requests = new InterpreterDataRequest[batch.Length];
-            for(int i = 0; i < batch.Length; i++)
-            {
-                requests[i] = batch[i].Request;
-            }
-            var results = await _dataProvider.FetchAsync(Context, requests);
-
-            lock(_lock)
-            {
-                foreach(var result in results)
-                {
-                    _cache.Store(result);
-                }
-
-                bool madeProgress = false;
-                foreach(var pending in _pending.Values)
-                {
-                    if(_cache.Contains(pending.Request))
-                    {
-                        _pending.Remove(pending.Request);
-                        _waitingCount -= pending.WaiterCount;
-                        pending.Completion.TrySetResult();
-                        madeProgress = true;
-                    }
-                }
-                if(!madeProgress)
-                {
-                    throw new InvalidOperationException("The data provider did not resolve any pending value.");
-                }
-
-                // Unanswered requests remain pending for the next batch. Released interpreters must run again
-                _isFetching = false;
-            }
-        }
-        catch(Exception exception)
-        {
-            lock(_lock)
-            {
-                foreach(var pending in batch)
-                {
-                    if(!pending.Completion.Task.IsCompleted)
-                    {
-                        _pending.Remove(pending.Request);
-                        _waitingCount -= pending.WaiterCount;
-                        pending.Completion.TrySetException(exception);
-                    }
-                }
-                _isFetching = false;
-            }
+            return runtime.Participant is not null
+                ? throw new InvalidOperationException("An interpreter cannot be cloned while its structured lane is active.")
+                : runtime.Clone();
         }
     }
 }

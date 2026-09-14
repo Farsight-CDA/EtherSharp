@@ -102,7 +102,7 @@ internal readonly struct ContractInfo(
     private static bool LocationsEqual(Location? left, Location? right)
         => left is null || right is null
             ? left is null && right is null
-            : ReferenceEquals(left.SourceTree, right.SourceTree)
+            : left.SourceTree == right.SourceTree
             && left.SourceSpan.Equals(right.SourceSpan);
 
     private static string? GetFileName(AttributeData[] attributes)

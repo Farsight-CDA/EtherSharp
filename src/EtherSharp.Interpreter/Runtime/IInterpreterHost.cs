@@ -7,15 +7,9 @@ namespace EtherSharp.Interpreter.Runtime;
 /// <summary>
 /// Provides upstream EVM state and call execution for an interpreter state fork.
 /// </summary>
-/// <remarks>Each host instance represents one interpreter's registration.</remarks>
+/// <remarks>Each host instance belongs to one retained interpreter state.</remarks>
 public interface IInterpreterHost
 {
-    /// <summary>
-    /// Unregisters this interpreter from its host. Repeated calls have no effect.
-    /// </summary>
-    /// <remarks>Must not be called while an interpreter operation is in progress.</remarks>
-    public void Unregister();
-
     /// <summary>Gets an account's native balance.</summary>
     public ValueTask<UInt256> GetBalanceAsync(Address address);
 
