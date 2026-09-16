@@ -17,16 +17,14 @@ namespace EtherSharp.Generator.ABI;
 [Generator]
 public sealed class Generator : IIncrementalGenerator
 {
-    private const string ABI_FILE_ATTRIBUTE_METADATA_NAME = "EtherSharp.Contract.AbiFileAttribute";
     private const int RUNTIME_OFFSET = 12;
 
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var contractTypesProvider = context.SyntaxProvider
-            .ForAttributeWithMetadataName(
-                ABI_FILE_ATTRIBUTE_METADATA_NAME,
-                static (node, _) => node is InterfaceDeclarationSyntax,
+            .CreateSyntaxProvider(
+                static (node, _) => node is InterfaceDeclarationSyntax { AttributeLists.Count: > 0 },
                 static (ctx, cancellationToken) => ContractInfo.Create(ctx, cancellationToken)
             )
             .Where(static contract => contract.HasValue)
@@ -116,54 +114,8 @@ public sealed class Generator : IIncrementalGenerator
             return false;
         }
 
-        if(contract.AbiFileAttributeCount == 0)
+        if(!TryGetAbiMembers(context, input, out abiMembers))
         {
-            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileAttributeNotFound, contract.Location, contract.Name);
-            return false;
-        }
-        if(contract.AbiFileAttributeCount > 1)
-        {
-            ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFileAttributeFound, contract.Location, contract.Name);
-            return false;
-        }
-
-        string? abiFileName = contract.AbiFileName;
-
-        if(abiFileName is null || String.IsNullOrEmpty(abiFileName))
-        {
-            string fileDisplayName = abiFileName is null
-                ? "null"
-                : $"\"{abiFileName}\"";
-            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contract.Location, fileDisplayName);
-            return false;
-        }
-
-        if(input.AbiFile.Count == 0)
-        {
-            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contract.Location, abiFileName);
-            return false;
-        }
-        if(input.AbiFile.Count > 1)
-        {
-            ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFilesWithNameFound, contract.Location, abiFileName);
-            return false;
-        }
-
-        string? schemaText = input.AbiFile.Content;
-        if(String.IsNullOrEmpty(schemaText) || schemaText is null)
-        {
-            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileMalformed, contract.Location);
-            return false;
-        }
-
-        try
-        {
-            abiMembers = JsonSerializer.Deserialize<List<AbiMember>>(schemaText, ParsingUtils.AbiJsonOptions)
-                ?? throw new NotSupportedException("Parsing schema file to ContractAPISchema failed");
-        }
-        catch(Exception ex)
-        {
-            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileMalformed, contract.Location, ex);
             return false;
         }
 
@@ -219,6 +171,70 @@ public sealed class Generator : IIncrementalGenerator
         }
 
         return true;
+    }
+
+    private static bool TryGetAbiMembers(
+        SourceProductionContext context,
+        ContractGenerationInput input,
+        out List<AbiMember> abiMembers)
+    {
+        var contract = input.Contract;
+        if(contract.AbiFileAttributeCount == 0)
+        {
+            abiMembers = [];
+            return true;
+        }
+        if(contract.AbiFileAttributeCount > 1)
+        {
+            abiMembers = null!;
+            ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFileAttributeFound, contract.Location, contract.Name);
+            return false;
+        }
+
+        string? abiFileName = contract.AbiFileName;
+        if(abiFileName is null || String.IsNullOrEmpty(abiFileName))
+        {
+            abiMembers = null!;
+            string fileDisplayName = abiFileName is null
+                ? "null"
+                : $"\"{abiFileName}\"";
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contract.Location, fileDisplayName);
+            return false;
+        }
+
+        if(input.AbiFile.Count == 0)
+        {
+            abiMembers = null!;
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contract.Location, abiFileName);
+            return false;
+        }
+        if(input.AbiFile.Count > 1)
+        {
+            abiMembers = null!;
+            ReportDiagnostic(context, GeneratorDiagnostics.MultipleAbiFilesWithNameFound, contract.Location, abiFileName);
+            return false;
+        }
+
+        string? schemaText = input.AbiFile.Content;
+        if(String.IsNullOrEmpty(schemaText) || schemaText is null)
+        {
+            abiMembers = null!;
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileMalformed, contract.Location);
+            return false;
+        }
+
+        try
+        {
+            abiMembers = JsonSerializer.Deserialize<List<AbiMember>>(schemaText, ParsingUtils.AbiJsonOptions)
+                ?? throw new NotSupportedException("Parsing schema file to ContractAPISchema failed");
+            return true;
+        }
+        catch(Exception ex)
+        {
+            abiMembers = null!;
+            ReportDiagnostic(context, GeneratorDiagnostics.AbiFileMalformed, contract.Location, ex);
+            return false;
+        }
     }
 
     private static byte[] CreateInitCode(byte[] runtimeCode)

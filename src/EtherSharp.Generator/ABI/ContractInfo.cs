@@ -29,9 +29,9 @@ internal readonly struct ContractInfo(
     public string? RuntimeCode { get; } = runtimeCode;
     public Location? Location { get; } = location;
 
-    public static ContractInfo? Create(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
+    public static ContractInfo? Create(GeneratorSyntaxContext context, CancellationToken cancellationToken)
     {
-        if(context.TargetSymbol is not INamedTypeSymbol symbol
+        if(context.SemanticModel.GetDeclaredSymbol(context.Node, cancellationToken) is not INamedTypeSymbol symbol
             || !symbol.AllInterfaces.Any(TypeIdentificationUtils.IsIEVMContract))
         {
             return null;
@@ -49,6 +49,10 @@ internal readonly struct ContractInfo(
         var bytecodeAttributes = rawAttributes
             .Where(attribute => TypeIdentificationUtils.IsBytecodeAttribute(attribute.AttributeClass!))
             .ToArray();
+        if(abiFileAttributes.Length == 0 && bytecodeAttributes.Length == 0)
+        {
+            return null;
+        }
         var (initCode, runtimeCode) = GetBytecode(bytecodeAttributes);
 
         return new ContractInfo(
