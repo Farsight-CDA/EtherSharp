@@ -10,6 +10,12 @@ public readonly record struct InterpreterDataProviderOptions
     public byte ForwardPrefetchDistance { get; init; }
 
     /// <summary>
+    /// Gets the strategy for prefetching code referenced by storage values.
+    /// Defaults to <see cref="StorageCodePrefetchMode.Proxy"/>.
+    /// </summary>
+    public StorageCodePrefetchMode PrefetchCodeFromStorage { get; init; }
+
+    /// <summary>
     /// Gets a factory that optionally wraps the built-in data provider.
     /// </summary>
     /// <remarks>

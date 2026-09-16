@@ -24,6 +24,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
     private readonly TargetHeight _targetHeight;
     private readonly RpcRequestOptions _requestOptions;
     private readonly byte _forwardPrefetchDistance;
+    private readonly StorageCodePrefetchMode _storageCodePrefetchMode;
     private readonly HashSet<Address> _nonceProbeMisses = [];
 
     /// <summary>
@@ -44,6 +45,9 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
         _targetHeight = targetHeight;
         _requestOptions = requestOptions;
         _forwardPrefetchDistance = options.ForwardPrefetchDistance;
+        _storageCodePrefetchMode = Enum.IsDefined(options.PrefetchCodeFromStorage)
+            ? options.PrefetchCodeFromStorage
+            : throw new ArgumentOutOfRangeException(nameof(options), "Unsupported storage code prefetch mode.");
     }
 
     /// <inheritdoc/>
@@ -75,7 +79,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
             group.Add(request);
         }
 
-        List<IQuery<List<InterpreterDataResult?>>> batch = [];
+        List<IQuery<List<InterpreterDataResult>>> batch = [];
         List<Address> nonceFallbacks = [];
 
         foreach(var (address, group) in requestsByAddress)
@@ -84,8 +88,9 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
             bool requiresOriginalCode = group.Any(static request => request is
                 InterpreterDataRequest.Code or InterpreterDataRequest.CodeHash or InterpreterDataRequest.PrecompileCall
             );
-            var queries = new QueryBuilder<InterpreterDataResult?>();
+            var queries = new QueryBuilder<InterpreterDataResult[]>();
             HashSet<Bytes32> storageKeys = [];
+            bool usesDataProviderUtilities = false;
             foreach(var request in group)
             {
                 switch(request)
@@ -93,19 +98,19 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                     case InterpreterDataRequest.Balance balance:
                         queries.AddQuery(
                             IQuery.GetBalance(balance.Address),
-                            value => new InterpreterDataResult.Balance(balance.Address, value)
+                            value => [new InterpreterDataResult.Balance(balance.Address, value)]
                         );
                         break;
                     case InterpreterDataRequest.Code code:
                         queries.AddQuery(
                             IQuery.GetCode(code.Address),
-                            value => new InterpreterDataResult.Code(code.Address, value)
+                            value => [new InterpreterDataResult.Code(code.Address, value)]
                         );
                         break;
                     case InterpreterDataRequest.CodeHash codeHash:
                         queries.AddQuery(
                             IQuery.GetCodeHash(codeHash.Address),
-                            value => new InterpreterDataResult.CodeHash(codeHash.Address, Bytes32.FromBytes(value))
+                            value => [new InterpreterDataResult.CodeHash(codeHash.Address, Bytes32.FromBytes(value))]
                         );
                         break;
                     case InterpreterDataRequest.Storage slot:
@@ -117,14 +122,27 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                         for(int offset = 0; offset <= _forwardPrefetchDistance; offset++)
                         {
                             var storageKey = (Bytes32) key;
-                            if(storageKeys.Add(storageKey))
+                            key = unchecked(key + UInt256.One);
+                            if(!storageKeys.Add(storageKey))
+                            {
+                                continue;
+                            }
+
+                            bool shouldPrefetchCode = offset == 0
+                                && (_storageCodePrefetchMode == StorageCodePrefetchMode.Full
+                                    || (_storageCodePrefetchMode == StorageCodePrefetchMode.Proxy
+                                        && ProxyUtils.CodeStorageSlots.Contains(storageKey)));
+
+                            if(!shouldPrefetchCode)
                             {
                                 queries.AddQuery(
                                     IQuery.ReadStorage(storageKey),
-                                    value => new InterpreterDataResult.Storage(slot.Address, storageKey, value)
+                                    value => [new InterpreterDataResult.Storage(slot.Address, storageKey, value)]
                                 );
+                                continue;
                             }
-                            key = unchecked(key + UInt256.One);
+                            usesDataProviderUtilities = true;
+                            queries.AddQuery(IQuery.ReadStorageAndReferencedCode(slot.Address, storageKey));
                         }
                         break;
                     case InterpreterDataRequest.Nonce nonce:
@@ -144,11 +162,11 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                                 switch(result)
                                 {
                                     case NonceSearchResult.Found found:
-                                        return new InterpreterDataResult.Nonce(nonce.Address, found.Nonce);
+                                        return [new InterpreterDataResult.Nonce(nonce.Address, found.Nonce)];
                                     case NonceSearchResult.NotFound:
                                         _nonceProbeMisses.Add(nonce.Address);
                                         nonceFallbacks.Add(nonce.Address);
-                                        return null;
+                                        return [];
                                     default:
                                         throw new NotSupportedException();
                                 }
@@ -160,7 +178,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                             IQuery.Isolate(
                                 IQuery.SafeCall(IContractCall.ForRawContractCall(call.Target, call.Value, call.Input))
                             ),
-                            result => new InterpreterDataResult.PrecompileCall(
+                            result => [new InterpreterDataResult.PrecompileCall(
                                 call.Caller, call.Target, call.Value, call.Input,
                                 result switch
                                 {
@@ -169,7 +187,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                                     CallResult<ReadOnlyMemory<byte>>.Malformed malformed => throw malformed.Exception,
                                     _ => throw new NotSupportedException(),
                                 }
-                            )
+                            )]
                         );
                         break;
                     default:
@@ -179,9 +197,16 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
             if(queries.Queries.Count != 0)
             {
                 batch.Add(
-                    requiresOriginalCode
+                    (requiresOriginalCode
                         ? queries
-                        : IQuery.WithCaller(address, queries)
+                        : usesDataProviderUtilities
+                            ? IQuery.WithCaller(
+                                address,
+                                queries,
+                                IInterpreterDataProviderContract.Code.Runtime
+                            )
+                            : IQuery.WithCaller(address, queries))
+                        .Map(static results => results.SelectMany(static result => result).ToList())
                 );
             }
         }
@@ -194,14 +219,9 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                 options: new CallOptions { TargetHeight = _targetHeight },
                 requestOptions: _requestOptions
             );
-            foreach(var result in queryResults.SelectMany(static results => results))
-            {
-                if(result is null)
-                {
-                    continue;
-                }
-                resolved.Add(result);
-            }
+            resolved.AddRange(
+                queryResults.SelectMany(static results => results)
+            );
         }
 
         if(nonceFallbacks.Count != 0)
