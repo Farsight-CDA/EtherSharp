@@ -25,7 +25,7 @@ public sealed partial class InterpreterStateFork
             private TaskCompletionSource? _completion;
 
             public InterpreterRuntime Interpreter { get; } = interpreter;
-            public InterpreterDataRequest[]? Requests { get; private set; }
+            public List<InterpreterDataRequest>? Requests { get; private set; }
 
             public override void Attach()
                 => Interpreter.Participant = this;
@@ -33,10 +33,10 @@ public sealed partial class InterpreterStateFork
             public override void Detach()
                 => Interpreter.Participant = null;
 
-            public TaskCompletionSource SetRequests(InterpreterDataRequest[] requests)
+            public TaskCompletionSource SetRequests(List<InterpreterDataRequest> requests)
             {
                 ArgumentNullException.ThrowIfNull(requests);
-                if(requests.Length == 0)
+                if(requests.Count == 0)
                 {
                     throw new ArgumentException("At least one upstream request is required.", nameof(requests));
                 }
@@ -77,12 +77,10 @@ public sealed partial class InterpreterStateFork
 
     private RunState? _runState;
 
-    internal async ValueTask<TValue> GetAsync<TKey, TValue>(
+    internal ValueTask EnsureCachedAsync(
         InterpreterRuntime interpreter,
-        Dictionary<TKey, TValue> cache,
-        TKey key,
-        Func<TKey, InterpreterDataRequest[]> createRequests
-    ) where TKey : notnull
+        List<InterpreterDataRequest> requests
+    )
     {
         TaskCompletionSource completion;
         InterpreterDataRequest[]? batch = null;
@@ -93,12 +91,22 @@ public sealed partial class InterpreterStateFork
                 ?? throw new InvalidOperationException("Interpreter operations must execute through a structured fork run.");
             run = participant.Run;
 
-            if(cache.TryGetValue(key, out var value))
+            ArgumentNullException.ThrowIfNull(requests);
+            for(int i = requests.Count - 1; i >= 0; i--)
             {
-                return value;
+                var request = requests[i];
+                ArgumentNullException.ThrowIfNull(request);
+                if(Cache.Contains(request))
+                {
+                    requests.RemoveAt(i);
+                }
+            }
+            if(requests.Count == 0)
+            {
+                return ValueTask.CompletedTask;
             }
 
-            completion = participant.SetRequests(createRequests(key));
+            completion = participant.SetRequests(requests);
             if(TakeBatchIfReady(out var readyBatch))
             {
                 batch = readyBatch;
@@ -109,11 +117,7 @@ public sealed partial class InterpreterStateFork
         {
             _ = ResolveAsync(run, batch);
         }
-        await completion.Task;
-        lock(_lock)
-        {
-            return cache[key];
-        }
+        return new ValueTask(completion.Task);
     }
 
     private bool TakeBatchIfReady(
@@ -134,13 +138,7 @@ public sealed partial class InterpreterStateFork
                 case RunParticipant.Program { RemainingChildren: > 0 }:
                     continue;
                 case RunParticipant.Lane { Requests: { } pending }:
-                    foreach(var request in pending)
-                    {
-                        if(!Cache.Contains(request))
-                        {
-                            requests.Add(request);
-                        }
-                    }
+                    requests.UnionWith(pending);
                     break;
                 default:
                     batch = null;
@@ -173,15 +171,21 @@ public sealed partial class InterpreterStateFork
                     Cache.Store(result);
                 }
 
+                bool madeProgress = false;
                 foreach(var participant in run.Participants)
                 {
-                    if(participant is RunParticipant.Lane { Requests: { } requests } lane
-                        && requests.All(Cache.Contains))
+                    if(participant is not RunParticipant.Lane { Requests: { } requests } lane)
+                    {
+                        continue;
+                    }
+
+                    madeProgress |= requests.RemoveAll(Cache.Contains) != 0;
+                    if(requests.Count == 0)
                     {
                         lane.CompleteRequests();
                     }
                 }
-                if(!batch.Any(Cache.Contains))
+                if(!madeProgress)
                 {
                     throw new InvalidOperationException("The data provider did not resolve any pending value.");
                 }

@@ -6,6 +6,29 @@ namespace EtherSharp.Interpreter.Forking;
 
 public sealed partial class InterpreterStateFork
 {
+    internal bool TryGetCached<TKey, TValue>(
+        Dictionary<TKey, TValue> cache,
+        TKey key,
+        [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue value
+    ) where TKey : notnull
+    {
+        lock(_lock)
+        {
+            return cache.TryGetValue(key, out value);
+        }
+    }
+
+    internal TValue GetCached<TKey, TValue>(
+        Dictionary<TKey, TValue> cache,
+        TKey key
+    ) where TKey : notnull
+    {
+        lock(_lock)
+        {
+            return cache[key];
+        }
+    }
+
     /// <summary>Tries to read a cached upstream account balance without fetching it.</summary>
     /// <param name="address">The account address.</param>
     /// <param name="value">The cached balance when known.</param>
