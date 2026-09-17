@@ -25,7 +25,7 @@ public sealed partial class InterpreterStateFork
             private TaskCompletionSource? _completion;
 
             public InterpreterRuntime Interpreter { get; } = interpreter;
-            public InterpreterDataRequest? Request { get; private set; }
+            public InterpreterDataRequest[]? Requests { get; private set; }
 
             public override void Attach()
                 => Interpreter.Participant = this;
@@ -33,33 +33,37 @@ public sealed partial class InterpreterStateFork
             public override void Detach()
                 => Interpreter.Participant = null;
 
-            public TaskCompletionSource SetRequest(InterpreterDataRequest request)
+            public TaskCompletionSource SetRequests(InterpreterDataRequest[] requests)
             {
-                ArgumentNullException.ThrowIfNull(request);
-                if(Request is not null || _completion is not null)
+                ArgumentNullException.ThrowIfNull(requests);
+                if(requests.Length == 0)
+                {
+                    throw new ArgumentException("At least one upstream request is required.", nameof(requests));
+                }
+                if(Requests is not null || _completion is not null)
                 {
                     throw new InvalidOperationException("An interpreter cannot have multiple concurrent upstream requests.");
                 }
 
-                Request = request;
+                Requests = requests;
                 _completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
                 return _completion;
             }
 
-            public void CompleteRequest()
+            public void CompleteRequests()
             {
                 var completion = _completion
                     ?? throw new InvalidOperationException("A pending request must have a completion source.");
-                Request = null;
+                Requests = null;
                 _completion = null;
                 completion.TrySetResult();
             }
 
-            public void FailRequest(Exception exception)
+            public void FailRequests(Exception exception)
             {
                 var completion = _completion
                     ?? throw new InvalidOperationException("A pending request must have a completion source.");
-                Request = null;
+                Requests = null;
                 _completion = null;
                 completion.TrySetException(exception);
             }
@@ -77,7 +81,7 @@ public sealed partial class InterpreterStateFork
         InterpreterRuntime interpreter,
         Dictionary<TKey, TValue> cache,
         TKey key,
-        Func<TKey, InterpreterDataRequest> createRequest
+        Func<TKey, InterpreterDataRequest[]> createRequests
     ) where TKey : notnull
     {
         TaskCompletionSource completion;
@@ -94,7 +98,7 @@ public sealed partial class InterpreterStateFork
                 return value;
             }
 
-            completion = participant.SetRequest(createRequest(key));
+            completion = participant.SetRequests(createRequests(key));
             if(TakeBatchIfReady(out var readyBatch))
             {
                 batch = readyBatch;
@@ -129,8 +133,14 @@ public sealed partial class InterpreterStateFork
             {
                 case RunParticipant.Program { RemainingChildren: > 0 }:
                     continue;
-                case RunParticipant.Lane { Request: { } request }:
-                    requests.Add(request);
+                case RunParticipant.Lane { Requests: { } pending }:
+                    foreach(var request in pending)
+                    {
+                        if(!Cache.Contains(request))
+                        {
+                            requests.Add(request);
+                        }
+                    }
                     break;
                 default:
                     batch = null;
@@ -151,6 +161,7 @@ public sealed partial class InterpreterStateFork
 
     private async Task ResolveAsync(RunState run, InterpreterDataRequest[] batch)
     {
+        InterpreterDataRequest[]? nextBatch = null;
         try
         {
             var results = await _dataProvider.FetchAsync(Context, batch);
@@ -162,23 +173,26 @@ public sealed partial class InterpreterStateFork
                     Cache.Store(result);
                 }
 
-                bool madeProgress = false;
                 foreach(var participant in run.Participants)
                 {
-                    if(participant is RunParticipant.Lane { Request: { } request } lane
-                        && Cache.Contains(request))
+                    if(participant is RunParticipant.Lane { Requests: { } requests } lane
+                        && requests.All(Cache.Contains))
                     {
-                        lane.CompleteRequest();
-                        madeProgress = true;
+                        lane.CompleteRequests();
                     }
                 }
-                if(!madeProgress)
+                if(!batch.Any(Cache.Contains))
                 {
                     throw new InvalidOperationException("The data provider did not resolve any pending value.");
                 }
 
-                // Unanswered requests remain pending for the next batch. Released interpreters must run again.
+                // Unanswered requests remain pending. Retry immediately if every lane is still blocked;
+                // otherwise a released interpreter will trigger the next batch when it blocks or completes.
                 run.IsFetching = false;
+                if(TakeBatchIfReady(out var readyBatch))
+                {
+                    nextBatch = readyBatch;
+                }
             }
         }
         catch(Exception exception)
@@ -187,13 +201,17 @@ public sealed partial class InterpreterStateFork
             {
                 foreach(var participant in run.Participants)
                 {
-                    if(participant is RunParticipant.Lane { Request: not null } lane)
+                    if(participant is RunParticipant.Lane { Requests: not null } lane)
                     {
-                        lane.FailRequest(exception);
+                        lane.FailRequests(exception);
                     }
                 }
                 run.IsFetching = false;
             }
+        }
+        if(nextBatch is not null)
+        {
+            _ = ResolveAsync(run, nextBatch);
         }
     }
 
@@ -400,7 +418,7 @@ public sealed partial class InterpreterStateFork
             {
                 throw new InvalidOperationException("A structured run participant completed while it had active children.");
             }
-            if(participant is RunParticipant.Lane { Request: not null }
+            if(participant is RunParticipant.Lane { Requests: not null }
                 || participant is RunParticipant.Program { RemainingChildren: not 0 })
             {
                 throw new InvalidOperationException("A waiting structured run participant cannot complete.");

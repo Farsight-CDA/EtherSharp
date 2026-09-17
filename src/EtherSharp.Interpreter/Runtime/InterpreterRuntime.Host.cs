@@ -12,27 +12,27 @@ internal sealed partial class InterpreterRuntime : IInterpreterHost
 
     ValueTask<UInt256> IInterpreterHost.GetBalanceAsync(Address address)
         => Fork.GetAsync(this, Fork.Cache.Balances, address,
-            static key => new InterpreterDataRequest.Balance(key)
+            static key => [new InterpreterDataRequest.Balance(key)]
         );
 
     ValueTask<ulong> IInterpreterHost.GetNonceAsync(Address address)
         => Fork.GetAsync(this, Fork.Cache.Nonces, address,
-            static key => new InterpreterDataRequest.Nonce(key)
+            static key => [new InterpreterDataRequest.Nonce(key)]
         );
 
     ValueTask<EVMByteCode> IInterpreterHost.GetCodeAsync(Address address)
         => Fork.GetAsync(this, Fork.Cache.Code, address,
-            static key => new InterpreterDataRequest.Code(key)
+            static key => [new InterpreterDataRequest.Code(key)]
         );
 
     ValueTask<Bytes32?> IInterpreterHost.GetCodeHashAsync(Address address)
         => Fork.GetAsync(this, Fork.Cache.CodeHashes, address,
-            static key => new InterpreterDataRequest.CodeHash(key)
+            static key => [new InterpreterDataRequest.CodeHash(key)]
         );
 
     ValueTask<Bytes32> IInterpreterHost.GetStorageAtAsync(Address address, Bytes32 key)
         => Fork.GetAsync(this, Fork.Cache.Storage, (Address: address, Slot: key),
-            static key => new InterpreterDataRequest.Storage(key.Address, key.Slot)
+            static key => [new InterpreterDataRequest.Storage(key.Address, key.Slot)]
         );
 
     Task<TxCallResult> IInterpreterHost.CallPrecompileAsync(
@@ -42,6 +42,6 @@ internal sealed partial class InterpreterRuntime : IInterpreterHost
         ReadOnlyMemory<byte> input
     ) => Fork.GetAsync(this, Fork.Cache.PrecompileCalls,
         InterpreterDataRequest.PrecompileCall.ComputeId(caller, target, value, input.Span),
-        id => new InterpreterDataRequest.PrecompileCall(caller, target, value, input, id)
+        id => [new InterpreterDataRequest.PrecompileCall(caller, target, value, input, id)]
     ).AsTask();
 }
