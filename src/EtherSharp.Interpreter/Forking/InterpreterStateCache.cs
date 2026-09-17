@@ -37,15 +37,15 @@ internal sealed class InterpreterStateCache
         }
     }
 
-    public bool Contains(InterpreterDataRequest request)
+    public bool Contains(HostRequest request)
         => request switch
         {
-            InterpreterDataRequest.Balance balance => Balances.ContainsKey(balance.Address),
-            InterpreterDataRequest.Nonce nonce => Nonces.ContainsKey(nonce.Address),
-            InterpreterDataRequest.Code code => Code.ContainsKey(code.Address),
-            InterpreterDataRequest.CodeHash codeHash => CodeHashes.ContainsKey(codeHash.Address),
-            InterpreterDataRequest.Storage storage => Storage.ContainsKey((storage.Address, storage.Key)),
-            InterpreterDataRequest.PrecompileCall call => PrecompileCalls.ContainsKey(call.Id),
+            HostRequest.Balance balance => Balances.ContainsKey(balance.Address),
+            HostRequest.Nonce nonce => Nonces.ContainsKey(nonce.Address),
+            HostRequest.Code code => Code.ContainsKey(code.Address),
+            HostRequest.CodeHash codeHash => CodeHashes.ContainsKey(codeHash.Address),
+            HostRequest.Storage storage => Storage.ContainsKey((storage.Address, storage.Key)),
+            HostRequest.PrecompileCall call => PrecompileCalls.ContainsKey(call.Id),
             _ => throw new NotSupportedException(),
         };
 
@@ -71,7 +71,7 @@ internal sealed class InterpreterStateCache
             ),
             InterpreterDataResult.Storage storage => Storage.TryAdd((storage.Address, storage.Key), storage.Value),
             InterpreterDataResult.PrecompileCall call => PrecompileCalls.TryAdd(
-                InterpreterDataRequest.PrecompileCall.ComputeId(call.Caller, call.Target, call.Value, call.Input.Span),
+                HostRequest.PrecompileCall.ComputeId(call.Caller, call.Target, call.Value, call.Input.Span),
                 copyBuffers
                     ? new TxCallResult(call.Result.Success, call.Result.Data.ToArray())
                     : call.Result

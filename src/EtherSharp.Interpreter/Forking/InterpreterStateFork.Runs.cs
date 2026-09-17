@@ -25,7 +25,7 @@ public sealed partial class InterpreterStateFork
             private TaskCompletionSource? _completion;
 
             public InterpreterRuntime Interpreter { get; } = interpreter;
-            public List<InterpreterDataRequest>? Requests { get; private set; }
+            public List<HostRequest>? Requests { get; private set; }
 
             public override void Attach()
                 => Interpreter.Participant = this;
@@ -33,7 +33,7 @@ public sealed partial class InterpreterStateFork
             public override void Detach()
                 => Interpreter.Participant = null;
 
-            public TaskCompletionSource SetRequests(List<InterpreterDataRequest> requests)
+            public TaskCompletionSource SetRequests(List<HostRequest> requests)
             {
                 ArgumentNullException.ThrowIfNull(requests);
                 if(requests.Count == 0)
@@ -79,11 +79,11 @@ public sealed partial class InterpreterStateFork
 
     internal ValueTask EnsureCachedAsync(
         InterpreterRuntime interpreter,
-        List<InterpreterDataRequest> requests
+        List<HostRequest> requests
     )
     {
         TaskCompletionSource completion;
-        InterpreterDataRequest[]? batch = null;
+        HostRequest[]? batch = null;
         RunState run;
         lock(_lock)
         {
@@ -121,7 +121,7 @@ public sealed partial class InterpreterStateFork
     }
 
     private bool TakeBatchIfReady(
-        [MaybeNullWhen(false)] out InterpreterDataRequest[] batch
+        [MaybeNullWhen(false)] out HostRequest[] batch
     )
     {
         if(_runState is not { IsFetching: false } run)
@@ -130,7 +130,7 @@ public sealed partial class InterpreterStateFork
             return false;
         }
 
-        HashSet<InterpreterDataRequest> requests = [];
+        HashSet<HostRequest> requests = [];
         foreach(var participant in run.Participants)
         {
             switch(participant)
@@ -157,9 +157,9 @@ public sealed partial class InterpreterStateFork
         return true;
     }
 
-    private async Task ResolveAsync(RunState run, InterpreterDataRequest[] batch)
+    private async Task ResolveAsync(RunState run, HostRequest[] batch)
     {
-        InterpreterDataRequest[]? nextBatch = null;
+        HostRequest[]? nextBatch = null;
         try
         {
             var results = await _dataProvider.FetchAsync(Context, batch);
@@ -415,7 +415,7 @@ public sealed partial class InterpreterStateFork
 
     internal void CompleteParticipant(RunParticipant participant)
     {
-        InterpreterDataRequest[]? batch = null;
+        HostRequest[]? batch = null;
         lock(_lock)
         {
             if(!participant.Run.Participants.Contains(participant))

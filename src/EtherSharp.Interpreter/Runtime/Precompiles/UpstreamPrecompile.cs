@@ -1,3 +1,4 @@
+using EtherSharp.Interpreter.Forking;
 using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Precompiles;
@@ -17,7 +18,12 @@ public sealed class UpstreamPrecompile(Address address) : IPrecompile
     /// <inheritdoc/>
     public async ValueTask<ExecutionResult> ExecuteAsync(IInterpreterHost host, PrecompileCall call)
     {
-        var result = await host.CallPrecompileAsync(call.Caller, Address, call.Value, call.Input);
+        var result = await host.GetAsync(new HostRequest.PrecompileCall(
+            call.Caller,
+            Address,
+            call.Value,
+            call.Input
+        ));
         return result.Success
             ? ExecutionResult.Success(result.Data)
             : ExecutionResult.PrecompileFailure(PrecompileFailureReason.Unspecified);

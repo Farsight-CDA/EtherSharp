@@ -53,14 +53,14 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
     /// <inheritdoc/>
     public async Task<IReadOnlyList<InterpreterDataResult>> FetchAsync(
         InterpreterContext context,
-        ReadOnlyMemory<InterpreterDataRequest> requests
+        ReadOnlyMemory<HostRequest> requests
     )
     {
         if(requests.IsEmpty)
         {
             return [];
         }
-        if(requests.Length == 1 && requests.Span[0] is InterpreterDataRequest.Nonce onlyNonce)
+        if(requests.Length == 1 && requests.Span[0] is HostRequest.Nonce onlyNonce)
         {
             return [new InterpreterDataResult.Nonce(
                 onlyNonce.Address,
@@ -68,7 +68,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
             )];
         }
 
-        Dictionary<Address, List<InterpreterDataRequest>> requestsByAddress = [];
+        Dictionary<Address, List<HostRequest>> requestsByAddress = [];
         foreach(var request in requests.Span)
         {
             if(!requestsByAddress.TryGetValue(request.GetAddress(), out var group))
@@ -86,7 +86,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
         {
             // Native precompiles cannot execute the helper code installed by WithCaller either.
             bool requiresOriginalCode = group.Any(static request => request is
-                InterpreterDataRequest.Code or InterpreterDataRequest.CodeHash or InterpreterDataRequest.PrecompileCall
+                HostRequest.Code or HostRequest.CodeHash or HostRequest.PrecompileCall
             );
             var queries = new QueryBuilder<InterpreterDataResult[]>();
             HashSet<Bytes32> storageKeys = [];
@@ -95,25 +95,25 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
             {
                 switch(request)
                 {
-                    case InterpreterDataRequest.Balance balance:
+                    case HostRequest.Balance balance:
                         queries.AddQuery(
                             IQuery.GetBalance(balance.Address),
                             value => [new InterpreterDataResult.Balance(balance.Address, value)]
                         );
                         break;
-                    case InterpreterDataRequest.Code code:
+                    case HostRequest.Code code:
                         queries.AddQuery(
                             IQuery.GetCode(code.Address),
                             value => [new InterpreterDataResult.Code(code.Address, value)]
                         );
                         break;
-                    case InterpreterDataRequest.CodeHash codeHash:
+                    case HostRequest.CodeHash codeHash:
                         queries.AddQuery(
                             IQuery.GetCodeHash(codeHash.Address),
                             value => [new InterpreterDataResult.CodeHash(codeHash.Address, Bytes32.FromBytes(value))]
                         );
                         break;
-                    case InterpreterDataRequest.Storage slot:
+                    case HostRequest.Storage slot:
                         if(requiresOriginalCode)
                         {
                             continue;
@@ -145,7 +145,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                             queries.AddQuery(IQuery.ReadStorageAndReferencedCode(slot.Address, storageKey));
                         }
                         break;
-                    case InterpreterDataRequest.Nonce nonce:
+                    case HostRequest.Nonce nonce:
                         if(_nonceProbeMisses.Contains(nonce.Address))
                         {
                             nonceFallbacks.Add(nonce.Address);
@@ -173,7 +173,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                             }
                         );
                         break;
-                    case InterpreterDataRequest.PrecompileCall call:
+                    case HostRequest.PrecompileCall call:
                         queries.AddQuery(
                             IQuery.Isolate(
                                 IQuery.SafeCall(IContractCall.ForRawContractCall(call.Target, call.Value, call.Input))

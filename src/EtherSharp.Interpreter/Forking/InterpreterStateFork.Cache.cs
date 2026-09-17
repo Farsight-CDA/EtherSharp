@@ -1,31 +1,52 @@
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
+using System.Runtime.CompilerServices;
 
 namespace EtherSharp.Interpreter.Forking;
 
 public sealed partial class InterpreterStateFork
 {
-    internal bool TryGetCached<TKey, TValue>(
-        Dictionary<TKey, TValue> cache,
-        TKey key,
-        [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue value
-    ) where TKey : notnull
+    internal TValue GetCached<TValue>(HostRequest<TValue> request)
     {
         lock(_lock)
         {
-            return cache.TryGetValue(key, out value);
-        }
-    }
-
-    internal TValue GetCached<TKey, TValue>(
-        Dictionary<TKey, TValue> cache,
-        TKey key
-    ) where TKey : notnull
-    {
-        lock(_lock)
-        {
-            return cache[key];
+            // Each sealed request type fixes TValue. Reinterpreting that exact value avoids boxing it.
+            switch(request)
+            {
+                case HostRequest.Balance balance:
+                {
+                    var value = Cache.Balances[balance.Address];
+                    return Unsafe.As<UInt256, TValue>(ref value);
+                }
+                case HostRequest.Nonce nonce:
+                {
+                    ulong value = Cache.Nonces[nonce.Address];
+                    return Unsafe.As<ulong, TValue>(ref value);
+                }
+                case HostRequest.Code code:
+                {
+                    var value = Cache.Code[code.Address];
+                    return Unsafe.As<EVMByteCode, TValue>(ref value);
+                }
+                case HostRequest.CodeHash codeHash:
+                {
+                    var value = Cache.CodeHashes[codeHash.Address];
+                    return Unsafe.As<Bytes32?, TValue>(ref value);
+                }
+                case HostRequest.Storage storage:
+                {
+                    var value = Cache.Storage[(storage.Address, storage.Key)];
+                    return Unsafe.As<Bytes32, TValue>(ref value);
+                }
+                case HostRequest.PrecompileCall call:
+                {
+                    var value = Cache.PrecompileCalls[call.Id];
+                    return Unsafe.As<TxCallResult, TValue>(ref value);
+                }
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(request));
+            }
         }
     }
 

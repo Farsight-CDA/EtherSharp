@@ -19,6 +19,6 @@ public interface IInterpreterDataProvider
     /// </remarks>
     public Task<IReadOnlyList<InterpreterDataResult>> FetchAsync(
         InterpreterContext context,
-        ReadOnlyMemory<InterpreterDataRequest> requests
+        ReadOnlyMemory<HostRequest> requests
     );
 }
