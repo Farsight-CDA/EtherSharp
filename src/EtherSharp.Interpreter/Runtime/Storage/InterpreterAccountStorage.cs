@@ -177,6 +177,8 @@ internal sealed class InterpreterAccountStorage(
     {
         switch(request.RequestKind)
         {
+            case StateRequest<TValue>.Kind.Default:
+                break;
             case StateRequest<TValue>.Kind.Balance:
                 if(_balance.TryGetValue(out var balance))
                 {

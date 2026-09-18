@@ -984,9 +984,11 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    var balance = await _storage.GetAsync(
-                        StateRequest.Balance(callFrame.Call.Address)
+                    var (balance, beneficiaryBalance) = await _storage.GetAsync(
+                        StateRequest.Balance(callFrame.Call.Address),
+                        StateRequest.Balance(beneficiary)
                     );
+
                     bool isSelfBeneficiary = beneficiary == callFrame.Call.Address;
                     bool shouldDelete = callFrame.AccountStorage.IsCreatedInTransaction;
 
@@ -995,9 +997,6 @@ internal sealed partial class InterpreterRuntime
                         if(!isSelfBeneficiary)
                         {
                             var beneficiaryStorage = _storage.GetAccountStorage(beneficiary);
-                            var beneficiaryBalance = await _storage.GetAsync(
-                                StateRequest.Balance(beneficiary)
-                            );
                             beneficiaryStorage.SetBalance(beneficiaryBalance + balance);
                         }
 

@@ -13,6 +13,7 @@ internal readonly struct StateRequest<TValue>(
 {
     public enum Kind : byte
     {
+        Default,
         Balance,
         Nonce,
         Code,
@@ -24,10 +25,17 @@ internal readonly struct StateRequest<TValue>(
     public Address Address { get; } = address;
     public Bytes32 Key { get; } = key;
 
+    public bool TryResolve(out TValue value)
+    {
+        value = default!;
+        return RequestKind == Kind.Default;
+    }
+
     public HostRequest<TValue> CreateHostRequest()
     {
         HostRequest request = RequestKind switch
         {
+            Kind.Default => throw new InvalidOperationException("A default state request has no host request."),
             Kind.Balance => new HostRequest.Balance(Address),
             Kind.Nonce => new HostRequest.Nonce(Address),
             Kind.Code => new HostRequest.Code(Address),
@@ -41,6 +49,9 @@ internal readonly struct StateRequest<TValue>(
 
 internal static class StateRequest
 {
+    public static StateRequest<TValue> Default<TValue>()
+        => new(StateRequest<TValue>.Kind.Default, default);
+
     public static StateRequest<UInt256> Balance(Address address)
         => new(StateRequest<UInt256>.Kind.Balance, address);
 

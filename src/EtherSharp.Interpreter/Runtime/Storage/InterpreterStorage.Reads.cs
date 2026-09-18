@@ -5,7 +5,7 @@ namespace EtherSharp.Interpreter.Runtime.Storage;
 internal sealed partial class InterpreterStorage
 {
     public ValueTask<TValue> GetAsync<TValue>(StateRequest<TValue> request)
-        => GetAccountStorage(request.Address).TryGetLocal(request, out var value)
+        => TryResolve(request, out var value)
             ? ValueTask.FromResult(value)
             : host.GetAsync(request.CreateHostRequest());
 
@@ -14,8 +14,8 @@ internal sealed partial class InterpreterStorage
         StateRequest<T2> second
     )
     {
-        bool hasFirst = GetAccountStorage(first.Address).TryGetLocal(first, out var firstValue);
-        bool hasSecond = GetAccountStorage(second.Address).TryGetLocal(second, out var secondValue);
+        bool hasFirst = TryResolve(first, out var firstValue);
+        bool hasSecond = TryResolve(second, out var secondValue);
         return (hasFirst, hasSecond) switch
         {
             (true, true) => (firstValue, secondValue),
@@ -34,9 +34,9 @@ internal sealed partial class InterpreterStorage
         StateRequest<T3> third
     )
     {
-        bool hasFirst = GetAccountStorage(first.Address).TryGetLocal(first, out var firstValue);
-        bool hasSecond = GetAccountStorage(second.Address).TryGetLocal(second, out var secondValue);
-        bool hasThird = GetAccountStorage(third.Address).TryGetLocal(third, out var thirdValue);
+        bool hasFirst = TryResolve(first, out var firstValue);
+        bool hasSecond = TryResolve(second, out var secondValue);
+        bool hasThird = TryResolve(third, out var thirdValue);
         switch((hasFirst, hasSecond, hasThird))
         {
             case (true, true, true):
@@ -83,6 +83,10 @@ internal sealed partial class InterpreterStorage
         }
     }
 
+    private bool TryResolve<TValue>(StateRequest<TValue> request, out TValue value)
+        => request.TryResolve(out value)
+            || GetAccountStorage(request.Address).TryGetLocal(request, out value);
+
     public async ValueTask<Bytes32> GetExtCodeHashAsync(Address address)
     {
         bool hasLocalPresence = GetAccountStorage(address).TryGetLocalPresence(out bool isPresent);
@@ -98,10 +102,17 @@ internal sealed partial class InterpreterStorage
         }
 
         var effectiveCodeHash = codeHash ?? Bytes32.EmptyCodeHash;
-        return effectiveCodeHash == Bytes32.EmptyCodeHash
-            && await GetAsync(StateRequest.Nonce(address)) == 0
-            && (await GetAsync(StateRequest.Balance(address))).IsZero
-                ? Bytes32.Zero
-                : effectiveCodeHash;
+        if(effectiveCodeHash != Bytes32.EmptyCodeHash)
+        {
+            return effectiveCodeHash;
+        }
+
+        var (nonce, balance) = await GetAsync(
+            StateRequest.Nonce(address),
+            StateRequest.Balance(address)
+        );
+        return nonce == 0 && balance.IsZero
+            ? Bytes32.Zero
+            : effectiveCodeHash;
     }
 }

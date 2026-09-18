@@ -390,14 +390,16 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             var sourceStorage = call.From == call.Address
                 ? accountStorage
                 : _storage.GetAccountStorage(call.From);
-            var sourceBalance = await _storage.GetAsync(StateRequest.Balance(call.From));
+            var (sourceBalance, targetBalance) = await _storage.GetAsync(
+                StateRequest.Balance(call.From),
+                StateRequest.Balance(call.Address)
+            );
             if(sourceBalance < call.Value)
             {
                 result = ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
             }
             else if(call.From != call.Address)
             {
-                var targetBalance = await _storage.GetAsync(StateRequest.Balance(call.Address));
                 sourceStorage.SetBalance(sourceBalance - call.Value);
                 accountStorage.SetBalance(targetBalance + call.Value);
             }
@@ -487,17 +489,17 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         }
 
         var creatorStorage = _storage.GetAccountStorage(call.From);
-        var creatorBalance = UInt256.Zero;
-        if(!call.Value.IsZero)
-        {
-            creatorBalance = await _storage.GetAsync(StateRequest.Balance(call.From));
-            if(creatorBalance < call.Value)
-            {
-                return ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
-            }
-        }
+        var (creatorBalance, creatorNonce) = call.Value.IsZero
+            ? (UInt256.Zero, await _storage.GetAsync(StateRequest.Nonce(call.From)))
+            : await _storage.GetAsync(
+                StateRequest.Balance(call.From),
+                StateRequest.Nonce(call.From)
+            );
 
-        ulong creatorNonce = await _storage.GetAsync(StateRequest.Nonce(call.From));
+        if(creatorBalance < call.Value)
+        {
+            return ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
+        }
         if(creatorNonce == UInt64.MaxValue)
         {
             return ExecutionResult.CallEntryFailure(CallEntryFailureReason.CreatorNonceOverflow);
@@ -505,9 +507,12 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
 
         creatorStorage.SetNonce(creatorNonce + 1);
         var createdStorage = _storage.GetAccountStorage(call.Address);
-        var (createdNonce, createdCodeHash) = await _storage.GetAsync(
+        var (createdNonce, createdCodeHash, createdBalance) = await _storage.GetAsync(
             StateRequest.Nonce(call.Address),
-            StateRequest.CodeHash(call.Address)
+            StateRequest.CodeHash(call.Address),
+            call.Value.IsZero
+                ? StateRequest.Default<UInt256>()
+                : StateRequest.Balance(call.Address)
         );
         if(createdNonce != 0
             || (createdCodeHash is not null && createdCodeHash.Value != Bytes32.EmptyCodeHash))
@@ -519,7 +524,6 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         createdStorage.InitializeCreatedContract();
         if(!call.Value.IsZero)
         {
-            var createdBalance = await _storage.GetAsync(StateRequest.Balance(call.Address));
             creatorStorage.SetBalance(creatorBalance - call.Value);
             createdStorage.SetBalance(createdBalance + call.Value);
         }
