@@ -276,15 +276,15 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                 _storage.ApplyStateOverrides(stateOverrides);
             }
 
-            var senderStorage = _storage.GetAccountStorage(environment.Sender);
-            var (senderBalance, senderNonce) = !skipTopLevelNonceChecks
-                ? await _storage.GetAsync(
-                    environment.Input.To is null && !environment.Input.Value.IsZero
-                        ? StateRequest.Balance(environment.Sender)
-                        : StateRequest.Default<UInt256>(),
-                    StateRequest.Nonce(environment.Sender)
-                )
-                : default;
+            //Sender balance validation for calls happens in ExecuteMessageCallAsync
+            var (creatorBalance, senderNonce) = await _storage.GetAsync(
+                environment.Input.To is null && !environment.Input.Value.IsZero
+                    ? StateRequest.Balance(environment.Sender)
+                    : StateRequest.Default<UInt256>(),
+                !skipTopLevelNonceChecks
+                    ? StateRequest.Nonce(environment.Sender)
+                    : StateRequest.Default<ulong>()
+            );
 
             if(!hasExplicitNonce && !skipTopLevelNonceChecks)
             {
@@ -319,7 +319,9 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             {
                 if(!skipTopLevelNonceChecks)
                 {
-                    senderStorage.SetNonce(senderNonce + 1);
+                    _storage
+                        .GetAccountStorage(environment.Sender)
+                        .SetNonce(senderNonce + 1);
                 }
                 result = await ExecuteMessageCallAsync(
                     CallFrame.CreateTopLevelMessageCall(
@@ -343,7 +345,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                         environment,
                         createdAddress
                     ),
-                    senderBalance,
+                    creatorBalance,
                     senderNonce
                 );
             }
