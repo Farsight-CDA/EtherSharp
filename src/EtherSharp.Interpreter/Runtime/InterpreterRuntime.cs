@@ -384,16 +384,20 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
 
         var accountStorage = _storage.GetAccountStorage(call.Address);
         var callSnapshot = _storage.TakeSnapshot();
+        bool transfersValue = !call.Value.IsZero && call.Type is EvmOpcode.Call or EvmOpcode.CallCode;
+        var (sourceBalance, targetBalance, byteCode) = result.IsSuccess
+            ? await _storage.GetAsync(
+                transfersValue ? StateRequest.Balance(call.From) : StateRequest.Default<UInt256>(),
+                transfersValue ? StateRequest.Balance(call.Address) : StateRequest.Default<UInt256>(),
+                precompile is null ? StateRequest.Code(call.To) : StateRequest.Default<EVMByteCode>()
+            )
+            : default;
 
-        if(result.IsSuccess && !call.Value.IsZero && call.Type is EvmOpcode.Call or EvmOpcode.CallCode)
+        if(result.IsSuccess && transfersValue)
         {
             var sourceStorage = call.From == call.Address
                 ? accountStorage
                 : _storage.GetAccountStorage(call.From);
-            var (sourceBalance, targetBalance) = await _storage.GetAsync(
-                StateRequest.Balance(call.From),
-                StateRequest.Balance(call.Address)
-            );
             if(sourceBalance < call.Value)
             {
                 result = ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
@@ -423,7 +427,6 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             }
             else
             {
-                var byteCode = await _storage.GetAsync(StateRequest.Code(call.To));
                 // EIP-7702 delegation: load the target's code without following further delegations.
                 if(byteCode.Length == 3 + Address.BYTES_LENGTH
                     && byteCode.ByteCode.Span[0] == 0xEF
