@@ -56,6 +56,12 @@ internal sealed record CallFrame(
         ForwardGas(parent, requestedGas)
     );
 
+    public static CallFrame CreateTopLevelMessageCall(
+        int id,
+        TransactionEnvironment environment,
+        Address target
+    ) => CreateTopLevel(id, EvmOpcode.Call, environment, target);
+
     public static CallFrame CreateContractCreation(
         int id,
         EvmOpcode type,
@@ -72,9 +78,16 @@ internal sealed record CallFrame(
         int id,
         TransactionEnvironment environment,
         Address address
+    ) => CreateTopLevel(id, EvmOpcode.Create, environment, address);
+
+    private static CallFrame CreateTopLevel(
+        int id,
+        EvmOpcode type,
+        TransactionEnvironment environment,
+        Address address
     ) => new(
         id,
-        EvmOpcode.Create,
+        type,
         environment.Sender,
         null,
         environment.Sender,

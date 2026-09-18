@@ -306,17 +306,10 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                     senderStorage.SetNonce(senderNonce + 1);
                 }
                 result = await ExecuteMessageCallAsync(
-                    new CallFrame(
+                    CallFrame.CreateTopLevelMessageCall(
                         checked(execution.NextFrameId++),
-                        EvmOpcode.Call,
-                        environment.Sender,
-                        null,
-                        environment.Sender,
-                        target,
-                        target,
-                        environment.Input.Value,
-                        environment.Input.Data,
-                        new GasBudget(environment.GasLimit)
+                        environment,
+                        target
                     )
                 );
             }
