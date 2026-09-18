@@ -1,0 +1,107 @@
+using EtherSharp.Types;
+
+namespace EtherSharp.Interpreter.Runtime.Storage;
+
+internal sealed partial class InterpreterStorage
+{
+    public ValueTask<TValue> GetAsync<TValue>(StateRequest<TValue> request)
+        => GetAccountStorage(request.Address).TryGetLocal(request, out var value)
+            ? ValueTask.FromResult(value)
+            : host.GetAsync(request.CreateHostRequest());
+
+    public async ValueTask<(T1 First, T2 Second)> GetAsync<T1, T2>(
+        StateRequest<T1> first,
+        StateRequest<T2> second
+    )
+    {
+        bool hasFirst = GetAccountStorage(first.Address).TryGetLocal(first, out var firstValue);
+        bool hasSecond = GetAccountStorage(second.Address).TryGetLocal(second, out var secondValue);
+        return (hasFirst, hasSecond) switch
+        {
+            (true, true) => (firstValue, secondValue),
+            (false, false) => await host.GetAsync(
+                first.CreateHostRequest(),
+                second.CreateHostRequest()
+            ),
+            (true, false) => (firstValue, await host.GetAsync(second.CreateHostRequest())),
+            (false, true) => (await host.GetAsync(first.CreateHostRequest()), secondValue)
+        };
+    }
+
+    public async ValueTask<(T1 First, T2 Second, T3 Third)> GetAsync<T1, T2, T3>(
+        StateRequest<T1> first,
+        StateRequest<T2> second,
+        StateRequest<T3> third
+    )
+    {
+        bool hasFirst = GetAccountStorage(first.Address).TryGetLocal(first, out var firstValue);
+        bool hasSecond = GetAccountStorage(second.Address).TryGetLocal(second, out var secondValue);
+        bool hasThird = GetAccountStorage(third.Address).TryGetLocal(third, out var thirdValue);
+        switch((hasFirst, hasSecond, hasThird))
+        {
+            case (true, true, true):
+                return (firstValue, secondValue, thirdValue);
+            case (false, false, false):
+                return await host.GetAsync(
+                    first.CreateHostRequest(),
+                    second.CreateHostRequest(),
+                    third.CreateHostRequest()
+                );
+            case (false, false, true):
+            {
+                var (firstResult, secondResult) = await host.GetAsync(
+                    first.CreateHostRequest(),
+                    second.CreateHostRequest()
+                );
+                return (firstResult, secondResult, thirdValue);
+            }
+            case (false, true, false):
+            {
+                var (firstResult, thirdResult) = await host.GetAsync(
+                    first.CreateHostRequest(),
+                    third.CreateHostRequest()
+                );
+                return (firstResult, secondValue, thirdResult);
+            }
+            case (true, false, false):
+            {
+                var (secondResult, thirdResult) = await host.GetAsync(
+                    second.CreateHostRequest(),
+                    third.CreateHostRequest()
+                );
+                return (firstValue, secondResult, thirdResult);
+            }
+            case (false, true, true):
+                firstValue = await host.GetAsync(first.CreateHostRequest());
+                return (firstValue, secondValue, thirdValue);
+            case (true, false, true):
+                secondValue = await host.GetAsync(second.CreateHostRequest());
+                return (firstValue, secondValue, thirdValue);
+            default:
+                thirdValue = await host.GetAsync(third.CreateHostRequest());
+                return (firstValue, secondValue, thirdValue);
+        }
+    }
+
+    public async ValueTask<Bytes32> GetExtCodeHashAsync(Address address)
+    {
+        bool hasLocalPresence = GetAccountStorage(address).TryGetLocalPresence(out bool isPresent);
+        if(hasLocalPresence && !isPresent)
+        {
+            return Bytes32.Zero;
+        }
+
+        var codeHash = await GetAsync(StateRequest.CodeHash(address));
+        if(codeHash is null && !hasLocalPresence)
+        {
+            return Bytes32.Zero;
+        }
+
+        var effectiveCodeHash = codeHash ?? Bytes32.EmptyCodeHash;
+        return effectiveCodeHash == Bytes32.EmptyCodeHash
+            && await GetAsync(StateRequest.Nonce(address)) == 0
+            && (await GetAsync(StateRequest.Balance(address))).IsZero
+                ? Bytes32.Zero
+                : effectiveCodeHash;
+    }
+}

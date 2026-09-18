@@ -1,22 +1,15 @@
 using EtherSharp.Contract;
 using EtherSharp.Crypto;
-using EtherSharp.Interpreter.Forking;
-using EtherSharp.Interpreter.Runtime;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
+using System.Runtime.CompilerServices;
 
 namespace EtherSharp.Interpreter.Runtime.Storage;
 
 internal sealed class InterpreterAccountStorage(
-    Address address,
-    IInterpreterHost host,
     Func<long> nextRevision
 )
 {
-    private static Bytes32 EmptyCodeHash { get; } = Keccak256.HashData([]);
-
-    private readonly Address _address = address;
-    private readonly IInterpreterHost _host = host;
     private readonly Func<long> _nextRevision = nextRevision;
 
     private readonly JournaledMap<Bytes32, Bytes32> _persistentStorage = new();
@@ -51,13 +44,6 @@ internal sealed class InterpreterAccountStorage(
         }
     }
 
-    public async ValueTask<Bytes32> SLoadAsync(Bytes32 key)
-        => _persistentStorage.TryGetValue(in key, out var value)
-            ? value
-            : _persistentStorageReplaced.IsSet
-                ? Bytes32.Zero
-                : await _host.GetAsync(new HostRequest.Storage(_address, key));
-
     public void SStore(in Bytes32 key, in Bytes32 value)
     {
         long revision = _nextRevision();
@@ -73,11 +59,6 @@ internal sealed class InterpreterAccountStorage(
     public void TStore(in Bytes32 key, in Bytes32 value)
         => _transientStorage.Set(_nextRevision(), in key, in value);
 
-    public async ValueTask<UInt256> GetBalanceAsync()
-        => _balance.TryGetValue(out var value)
-            ? value
-            : await _host.GetAsync(new HostRequest.Balance(_address));
-
     public void SetBalance(in UInt256 value)
     {
         long revision = _nextRevision();
@@ -85,22 +66,12 @@ internal sealed class InterpreterAccountStorage(
         _balance.Set(revision, in value);
     }
 
-    public async ValueTask<ulong> GetNonceAsync()
-        => _nonce.TryGetValue(out ulong value)
-            ? value
-            : await _host.GetAsync(new HostRequest.Nonce(_address));
-
     public void SetNonce(ulong value)
     {
         long revision = _nextRevision();
         _present.Set(revision, true);
         _nonce.Set(revision, in value);
     }
-
-    public async ValueTask<EVMByteCode> GetCodeAsync()
-        => _code.TryGetValue(out var value)
-            ? value
-            : await _host.GetAsync(new HostRequest.Code(_address));
 
     public void SetCode(in EVMByteCode value)
     {
@@ -117,7 +88,7 @@ internal sealed class InterpreterAccountStorage(
         _present.Set(revision, true);
         _nonce.Set(revision, 1);
         _code.Set(revision, EVMByteCode.Empty);
-        _codeHash.Set(revision, EmptyCodeHash);
+        _codeHash.Set(revision, Bytes32.EmptyCodeHash);
         _persistentStorage.Clear(revision);
         _persistentStorageReplaced.Set(revision);
         _createdInTransaction.Set(revision);
@@ -159,34 +130,6 @@ internal sealed class InterpreterAccountStorage(
         }
     }
 
-    public async ValueTask<Bytes32> GetExtCodeHashAsync()
-    {
-        bool hasLocalPresence = _present.TryGetValue(out bool isPresent);
-        if(hasLocalPresence && !isPresent)
-        {
-            return Bytes32.Zero;
-        }
-
-        var codeHash = _codeHash.TryGetValue(out var localCodeHash)
-            ? localCodeHash
-            : await _host.GetAsync(new HostRequest.CodeHash(_address));
-        if(codeHash is null && !hasLocalPresence)
-        {
-            return Bytes32.Zero;
-        }
-
-        var effectiveCodeHash = codeHash ?? EmptyCodeHash;
-        return effectiveCodeHash == EmptyCodeHash
-            && await GetNonceAsync() == 0
-            && (await GetBalanceAsync()).IsZero
-                ? Bytes32.Zero
-                : effectiveCodeHash;
-    }
-
-    public async ValueTask<bool> HasCreateCollisionAsync()
-        => await GetNonceAsync() != 0
-            || await GetStateCodeHashAsync() != EmptyCodeHash;
-
     public void Commit()
     {
         if(_scheduledForDeletion.IsSet)
@@ -197,7 +140,7 @@ internal sealed class InterpreterAccountStorage(
             _balance.Set(revision, UInt256.Zero);
             _nonce.Set(revision, 0);
             _code.Set(revision, EVMByteCode.Empty);
-            _codeHash.Set(revision, EmptyCodeHash);
+            _codeHash.Set(revision, Bytes32.EmptyCodeHash);
             _present.Set(revision, false);
         }
 
@@ -227,12 +170,60 @@ internal sealed class InterpreterAccountStorage(
         _scheduledForDeletion.Reset(revision);
     }
 
-    private async ValueTask<Bytes32> GetStateCodeHashAsync()
-    {
-        var codeHash = _codeHash.TryGetValue(out var value)
-            ? value
-            : await _host.GetAsync(new HostRequest.CodeHash(_address));
+    public bool TryGetLocalPresence(out bool value)
+        => _present.TryGetValue(out value);
 
-        return codeHash ?? EmptyCodeHash;
+    public bool TryGetLocal<TValue>(StateRequest<TValue> request, out TValue value)
+    {
+        switch(request.RequestKind)
+        {
+            case StateRequest<TValue>.Kind.Balance:
+                if(_balance.TryGetValue(out var balance))
+                {
+                    value = Unsafe.As<UInt256, TValue>(ref balance);
+                    return true;
+                }
+                break;
+            case StateRequest<TValue>.Kind.Nonce:
+                if(_nonce.TryGetValue(out ulong nonce))
+                {
+                    value = Unsafe.As<ulong, TValue>(ref nonce);
+                    return true;
+                }
+                break;
+            case StateRequest<TValue>.Kind.Code:
+                if(_code.TryGetValue(out var code))
+                {
+                    value = Unsafe.As<EVMByteCode, TValue>(ref code);
+                    return true;
+                }
+                break;
+            case StateRequest<TValue>.Kind.CodeHash:
+                if(_codeHash.TryGetValue(out var codeHash))
+                {
+                    Bytes32? nullableCodeHash = codeHash;
+                    value = Unsafe.As<Bytes32?, TValue>(ref nullableCodeHash);
+                    return true;
+                }
+                break;
+            case StateRequest<TValue>.Kind.Storage:
+                if(_persistentStorage.TryGetValue(request.Key, out var storage))
+                {
+                    value = Unsafe.As<Bytes32, TValue>(ref storage);
+                    return true;
+                }
+                if(_persistentStorageReplaced.IsSet)
+                {
+                    storage = Bytes32.Zero;
+                    value = Unsafe.As<Bytes32, TValue>(ref storage);
+                    return true;
+                }
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(request));
+        }
+
+        value = default!;
+        return false;
     }
 }

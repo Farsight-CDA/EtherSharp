@@ -1,6 +1,7 @@
 using EtherSharp.Contract;
 using EtherSharp.Crypto;
 using EtherSharp.Interpreter.Runtime.Memory;
+using EtherSharp.Interpreter.Runtime.Storage;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 using System.Diagnostics;
@@ -228,7 +229,7 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    callFrame.Stack.Push(await _storage.GetAccountStorage(address).GetBalanceAsync());
+                    callFrame.Stack.Push(await _storage.GetAsync(StateRequest.Balance(address)));
                     break;
                 }
                 case EvmOpcode.Origin:
@@ -327,7 +328,8 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    callFrame.Stack.Push((UInt256) (await _storage.GetAccountStorage(address).GetCodeAsync()).Length);
+                    var byteCode = await _storage.GetAsync(StateRequest.Code(address));
+                    callFrame.Stack.Push((UInt256) byteCode.Length);
                     break;
                 }
                 case EvmOpcode.ExtCodeCopy:
@@ -342,7 +344,8 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    var externalCode = new ZeroPaddedData((await _storage.GetAccountStorage(address).GetCodeAsync()).ByteCode);
+                    var byteCode = await _storage.GetAsync(StateRequest.Code(address));
+                    var externalCode = new ZeroPaddedData(byteCode.ByteCode);
                     externalCode.CopyTo(sourceOffset, callFrame.Memory.Access(destinationOffset, length));
                     break;
                 }
@@ -381,7 +384,7 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    callFrame.Stack.Push(await _storage.GetAccountStorage(address).GetExtCodeHashAsync());
+                    callFrame.Stack.Push(await _storage.GetExtCodeHashAsync(address));
                     break;
                 }
                 case EvmOpcode.BlockHash:
@@ -448,7 +451,9 @@ internal sealed partial class InterpreterRuntime
 
                     break;
                 case EvmOpcode.SelfBalance:
-                    if(!callFrame.Stack.TryPush(await callFrame.AccountStorage.GetBalanceAsync()))
+                    if(!callFrame.Stack.TryPush(await _storage.GetAsync(
+                        StateRequest.Balance(callFrame.Call.Address)
+                    )))
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
                     }
@@ -540,7 +545,9 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    callFrame.Stack.Push(await callFrame.AccountStorage.SLoadAsync(key));
+                    callFrame.Stack.Push(await _storage.GetAsync(
+                        StateRequest.Storage(callFrame.Call.Address, key)
+                    ));
                     break;
                 }
                 case EvmOpcode.SStore:
@@ -744,7 +751,7 @@ internal sealed partial class InterpreterRuntime
 
                     var createdAddress = Address.DeriveCreate(
                         callFrame.Call.Address,
-                        await callFrame.AccountStorage.GetNonceAsync()
+                        await _storage.GetAsync(StateRequest.Nonce(callFrame.Call.Address))
                     );
                     var child = CallFrame.CreateContractCreation(
                         checked(_executionState!.NextFrameId++),
@@ -977,7 +984,9 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    var balance = await callFrame.AccountStorage.GetBalanceAsync();
+                    var balance = await _storage.GetAsync(
+                        StateRequest.Balance(callFrame.Call.Address)
+                    );
                     bool isSelfBeneficiary = beneficiary == callFrame.Call.Address;
                     bool shouldDelete = callFrame.AccountStorage.IsCreatedInTransaction;
 
@@ -986,7 +995,9 @@ internal sealed partial class InterpreterRuntime
                         if(!isSelfBeneficiary)
                         {
                             var beneficiaryStorage = _storage.GetAccountStorage(beneficiary);
-                            var beneficiaryBalance = await beneficiaryStorage.GetBalanceAsync();
+                            var beneficiaryBalance = await _storage.GetAsync(
+                                StateRequest.Balance(beneficiary)
+                            );
                             beneficiaryStorage.SetBalance(beneficiaryBalance + balance);
                         }
 

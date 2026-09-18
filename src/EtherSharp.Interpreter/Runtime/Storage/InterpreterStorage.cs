@@ -5,7 +5,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Interpreter.Runtime.Storage;
 
-internal sealed class InterpreterStorage(
+internal sealed partial class InterpreterStorage(
     IInterpreterHost host
 ) : IInterpreterStorage
 {
@@ -27,12 +27,15 @@ internal sealed class InterpreterStorage(
     {
         if(!_accountStorages.TryGetValue(address, out var accountStorage))
         {
-            accountStorage = new InterpreterAccountStorage(address, host, NextRevision);
+            accountStorage = new InterpreterAccountStorage(NextRevision);
             _accountStorages.Add(address, accountStorage);
         }
 
         return accountStorage;
     }
+
+    private long NextRevision()
+        => _revision = checked(_revision + 1);
 
     public void ApplyStateOverrides(IReadOnlyDictionary<Address, AccountOverride> stateOverrides)
     {
@@ -88,23 +91,20 @@ internal sealed class InterpreterStorage(
     }
 
     ValueTask<UInt256> IInterpreterStorage.GetBalanceAsync(Address address)
-        => GetAccountStorage(address).GetBalanceAsync();
+        => GetAsync(StateRequest.Balance(address));
 
     ValueTask<ulong> IInterpreterStorage.GetNonceAsync(Address address)
-        => GetAccountStorage(address).GetNonceAsync();
+        => GetAsync(StateRequest.Nonce(address));
 
     async ValueTask<ReadOnlyMemory<byte>> IInterpreterStorage.GetCodeAsync(Address address)
-        => (await GetAccountStorage(address).GetCodeAsync()).ByteCode;
+        => (await GetAsync(StateRequest.Code(address))).ByteCode;
 
     ValueTask<Bytes32> IInterpreterStorage.GetCodeHashAsync(Address address)
-        => GetAccountStorage(address).GetExtCodeHashAsync();
+        => GetExtCodeHashAsync(address);
 
     ValueTask<Bytes32> IInterpreterStorage.GetStorageAsync(Address address, Bytes32 key)
-        => GetAccountStorage(address).SLoadAsync(key);
+        => GetAsync(StateRequest.Storage(address, key));
 
     Bytes32 IInterpreterStorage.GetTransientStorage(Address address, Bytes32 key)
         => GetAccountStorage(address).TLoad(in key);
-
-    private long NextRevision()
-        => _revision = checked(_revision + 1);
 }
