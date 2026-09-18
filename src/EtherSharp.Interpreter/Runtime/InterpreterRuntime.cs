@@ -277,11 +277,20 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             }
 
             var senderStorage = _storage.GetAccountStorage(environment.Sender);
+            var (senderBalance, senderNonce) = !skipTopLevelNonceChecks
+                ? await _storage.GetAsync(
+                    environment.Input.To is null && !environment.Input.Value.IsZero
+                        ? StateRequest.Balance(environment.Sender)
+                        : StateRequest.Default<UInt256>(),
+                    StateRequest.Nonce(environment.Sender)
+                )
+                : default;
+
             if(!hasExplicitNonce && !skipTopLevelNonceChecks)
             {
                 environment = environment with
                 {
-                    Nonce = await _storage.GetAsync(StateRequest.Nonce(environment.Sender))
+                    Nonce = senderNonce
                 };
             }
 
@@ -291,16 +300,8 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                 await execution.Hooks.OnExecutionStartAsync(_context, environment, _storage);
             }
 
-            var senderBalance = UInt256.Zero;
-            ulong senderNonce = 0;
             if(!skipTopLevelNonceChecks)
             {
-                (senderBalance, senderNonce) = await _storage.GetAsync(
-                    environment.Input.To is null && !environment.Input.Value.IsZero
-                        ? StateRequest.Balance(environment.Sender)
-                        : StateRequest.Default<UInt256>(),
-                    StateRequest.Nonce(environment.Sender)
-                );
                 if(senderNonce != environment.Nonce)
                 {
                     throw new InvalidOperationException(
