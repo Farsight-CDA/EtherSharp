@@ -749,10 +749,13 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InitCodeTooLarge);
                     }
 
-                    var createdAddress = Address.DeriveCreate(
-                        callFrame.Call.Address,
-                        await _storage.GetAsync(StateRequest.Nonce(callFrame.Call.Address))
+                    var (creatorBalance, creatorNonce) = await _storage.GetAsync(
+                        endowment.IsZero
+                            ? StateRequest.Default<UInt256>()
+                            : StateRequest.Balance(callFrame.Call.Address),
+                        StateRequest.Nonce(callFrame.Call.Address)
                     );
+                    var createdAddress = Address.DeriveCreate(callFrame.Call.Address, creatorNonce);
                     var child = CallFrame.CreateContractCreation(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.Create,
@@ -761,7 +764,11 @@ internal sealed partial class InterpreterRuntime
                         endowment,
                         callFrame.Memory.Access(offset, length).ReadOnlyMemory
                     );
-                    var creationResult = await ExecuteContractCreationAsync(child);
+                    var creationResult = await ExecuteContractCreationAsync(
+                        child,
+                        creatorBalance,
+                        creatorNonce
+                    );
                     callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(creationResult.IsRevert(out var revertData)
                         ? revertData
@@ -801,6 +808,12 @@ internal sealed partial class InterpreterRuntime
                         salt,
                         Keccak256.HashData(initCode.Span)
                     );
+                    var (creatorBalance, creatorNonce) = await _storage.GetAsync(
+                        endowment.IsZero
+                            ? StateRequest.Default<UInt256>()
+                            : StateRequest.Balance(callFrame.Call.Address),
+                        StateRequest.Nonce(callFrame.Call.Address)
+                    );
                     var child = CallFrame.CreateContractCreation(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.Create2,
@@ -809,7 +822,11 @@ internal sealed partial class InterpreterRuntime
                         endowment,
                         initCode
                     );
-                    var creationResult = await ExecuteContractCreationAsync(child);
+                    var creationResult = await ExecuteContractCreationAsync(
+                        child,
+                        creatorBalance,
+                        creatorNonce
+                    );
                     callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(creationResult.IsRevert(out var revertData)
                         ? revertData

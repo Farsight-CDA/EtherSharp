@@ -276,10 +276,16 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                 await execution.Hooks.OnExecutionStartAsync(_context, environment, _storage);
             }
 
+            var senderBalance = UInt256.Zero;
             ulong senderNonce = 0;
             if(!skipTopLevelNonceChecks)
             {
-                senderNonce = await _storage.GetAsync(StateRequest.Nonce(environment.Sender));
+                (senderBalance, senderNonce) = await _storage.GetAsync(
+                    environment.Input.To is null && !environment.Input.Value.IsZero
+                        ? StateRequest.Balance(environment.Sender)
+                        : StateRequest.Default<UInt256>(),
+                    StateRequest.Nonce(environment.Sender)
+                );
                 if(senderNonce != environment.Nonce)
                 {
                     throw new InvalidOperationException(
@@ -322,18 +328,15 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                 }
 
                 var createdAddress = Address.DeriveCreate(environment.Sender, senderNonce);
-                result = await ExecuteContractCreationAsync(new CallFrame(
-                    checked(execution.NextFrameId++),
-                    EvmOpcode.Create,
-                    environment.Sender,
-                    null,
-                    environment.Sender,
-                    createdAddress,
-                    createdAddress,
-                    environment.Input.Value,
-                    environment.Input.Data,
-                    new GasBudget(environment.GasLimit)
-                ));
+                result = await ExecuteContractCreationAsync(
+                    CallFrame.CreateTopLevelContractCreation(
+                        checked(execution.NextFrameId++),
+                        environment,
+                        createdAddress
+                    ),
+                    senderBalance,
+                    senderNonce
+                );
             }
 
             if(execution.Hooks is not null)
@@ -464,14 +467,18 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         return result;
     }
 
-    private async ValueTask<ExecutionResult> ExecuteContractCreationAsync(CallFrame call)
+    private async ValueTask<ExecutionResult> ExecuteContractCreationAsync(
+        CallFrame call,
+        UInt256 creatorBalance,
+        ulong creatorNonce
+    )
     {
         if(_executionState!.Hooks is not null)
         {
             await _executionState.Hooks.OnContractEnterAsync(call, _storage);
         }
 
-        var result = await ExecuteContractCreationCoreAsync(call);
+        var result = await ExecuteContractCreationCoreAsync(call, creatorBalance, creatorNonce);
         if(result.IsExceptionalHalt(out _))
         {
             call.Gas.ConsumeAll();
@@ -484,7 +491,11 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         return result;
     }
 
-    private async ValueTask<ExecutionResult> ExecuteContractCreationCoreAsync(CallFrame call)
+    private async ValueTask<ExecutionResult> ExecuteContractCreationCoreAsync(
+        CallFrame call,
+        UInt256 creatorBalance,
+        ulong creatorNonce
+    )
     {
         if(call.Depth > CallFrame.MAX_DEPTH)
         {
@@ -492,13 +503,6 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         }
 
         var creatorStorage = _storage.GetAccountStorage(call.From);
-        var (creatorBalance, creatorNonce) = call.Value.IsZero
-            ? (UInt256.Zero, await _storage.GetAsync(StateRequest.Nonce(call.From)))
-            : await _storage.GetAsync(
-                StateRequest.Balance(call.From),
-                StateRequest.Nonce(call.From)
-            );
-
         if(creatorBalance < call.Value)
         {
             return ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);

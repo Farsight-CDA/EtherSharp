@@ -68,6 +68,23 @@ internal sealed record CallFrame(
         endowment, initCode, ForwardGas(parent, UInt256.MaxValue)
     );
 
+    public static CallFrame CreateTopLevelContractCreation(
+        int id,
+        TransactionEnvironment environment,
+        Address address
+    ) => new(
+        id,
+        EvmOpcode.Create,
+        environment.Sender,
+        null,
+        environment.Sender,
+        address,
+        address,
+        environment.Input.Value,
+        environment.Input.Data,
+        new GasBudget(environment.GasLimit)
+    );
+
     private static GasBudget ForwardGas(CallFrame parent, UInt256 requestedGas)
     {
         // EIP-150: reserve one sixty-fourth of the caller's available execution gas.
