@@ -80,7 +80,9 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         return transaction.ChainId != _context.ChainId
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
-                TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: true, isCall: false,
+                TransactionEnvironment.CreateForTransaction(sender, transaction, _context),
+                hasExplicitNonce: true,
+                retainState: true,
                 options: options
             );
     }
@@ -96,7 +98,9 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         return transaction.ChainId != _context.ChainId
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
-                TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: true, isCall: false,
+                TransactionEnvironment.CreateForTransaction(sender, transaction, _context),
+                hasExplicitNonce: true,
+                retainState: true,
                 options: options
             );
     }
@@ -115,7 +119,9 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
     {
         ArgumentNullException.ThrowIfNull(call);
         return ExecuteTopLevelAsync(
-            TransactionEnvironment.CreateForCall(sender, call, 0, _context), retainState: true, isCall: true,
+            TransactionEnvironment.CreateForCall(sender, call, 0, _context),
+            hasExplicitNonce: false,
+            retainState: true,
             options: options
         );
     }
@@ -157,7 +163,10 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         return transaction.ChainId != _context.ChainId
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
-                TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: false, isCall: false, options: options
+                TransactionEnvironment.CreateForTransaction(sender, transaction, _context),
+                hasExplicitNonce: true,
+                retainState: false,
+                options: options
             );
     }
 
@@ -172,7 +181,10 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         return transaction.ChainId != _context.ChainId
             ? throw new InvalidOperationException("Transaction chain ID does not match the execution context.")
             : ExecuteTopLevelAsync(
-                TransactionEnvironment.CreateForTransaction(sender, transaction, _context), retainState: false, isCall: false, options: options
+                TransactionEnvironment.CreateForTransaction(sender, transaction, _context),
+                hasExplicitNonce: true,
+                retainState: false,
+                options: options
             );
     }
 
@@ -190,7 +202,10 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
     {
         ArgumentNullException.ThrowIfNull(call);
         return ExecuteTopLevelAsync(
-            TransactionEnvironment.CreateForCall(sender, call, 0, _context), retainState: false, isCall: true, options: options
+            TransactionEnvironment.CreateForCall(sender, call, 0, _context),
+            hasExplicitNonce: false,
+            retainState: false,
+            options: options
         );
     }
 
@@ -231,14 +246,14 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
 
     private async ValueTask<TxCallResult> ExecuteTopLevelAsync(
         TransactionEnvironment environment,
+        bool hasExplicitNonce,
         bool retainState,
-        bool isCall,
         InterpreterExecutionOptions options = default
     )
     {
         bool skipTopLevelNonceChecks = options.TopLevelNonceHandling switch
         {
-            TopLevelNonceHandling.Default => isCall && environment.Input.To is not null,
+            TopLevelNonceHandling.Default => !hasExplicitNonce && environment.Input.To is not null,
             TopLevelNonceHandling.Validate => false,
             TopLevelNonceHandling.Skip when environment.Input.To is null
                 => throw new InvalidOperationException("Top-level contract creation requires sender nonce checks."),
@@ -262,7 +277,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             }
 
             var senderStorage = _storage.GetAccountStorage(environment.Sender);
-            if(isCall && !skipTopLevelNonceChecks)
+            if(!hasExplicitNonce && !skipTopLevelNonceChecks)
             {
                 environment = environment with
                 {
