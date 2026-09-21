@@ -23,6 +23,11 @@ internal sealed partial class InterpreterRuntime
                 await _executionState.Hooks.OnInstructionAsync(callFrame, programCounter, opcode, _storage);
             }
 
+            if(!callFrame.Call.Gas.TryCharge(ExecutionSpec.FixedOpcodeGasCosts[(byte) opcode]))
+            {
+                return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+            }
+
             switch(opcode)
             {
                 case EvmOpcode.Stop:

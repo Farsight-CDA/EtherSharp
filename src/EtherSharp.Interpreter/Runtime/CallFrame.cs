@@ -101,7 +101,7 @@ internal sealed record CallFrame(
     private static GasBudget ForwardGas(CallFrame parent, UInt256 requestedGas)
     {
         // EIP-150: reserve one sixty-fourth of the caller's available execution gas.
-        // CALL overhead and the value stipend will be applied with dynamic opcode pricing.
+        // Dynamic CALL overhead and the value stipend will be applied with dynamic opcode pricing.
         ulong maximum = parent.Gas.Remaining - (parent.Gas.Remaining / 64);
         ulong amount = requestedGas < (UInt256) maximum ? (ulong) requestedGas : maximum;
         return parent.Gas.Forward(amount);

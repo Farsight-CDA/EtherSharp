@@ -14,6 +14,10 @@ public sealed partial record InterpreterExecutionSpec
     /// <summary>The dynamic gas pricing parameters.</summary>
     public required GasParameters GasParameters { get; init; }
 
+    /// <summary>The fixed gas charge indexed by opcode byte, with exactly 256 entries.</summary>
+    /// <remarks>Dynamic charges are additional to these costs. Entries do not control opcode availability.</remarks>
+    public required ImmutableArray<ulong> FixedOpcodeGasCosts { get; init; }
+
     /// <summary>The initcode size limit in bytes.</summary>
     public int MaxInitCodeLength { get; init; } = EVMByteCode.MAX_INIT_LENGTH;
 
@@ -34,6 +38,11 @@ public sealed partial record InterpreterExecutionSpec
         ArgumentOutOfRangeException.ThrowIfNegative(MaxRuntimeCodeLength);
         ArgumentNullException.ThrowIfNull(GasParameters);
         GasParameters.Validate();
+
+        if(FixedOpcodeGasCosts.IsDefault || FixedOpcodeGasCosts.Length != 256)
+        {
+            throw new ArgumentException("The fixed opcode gas table must contain exactly 256 entries.", nameof(FixedOpcodeGasCosts));
+        }
 
         if(Precompiles.IsDefault)
         {

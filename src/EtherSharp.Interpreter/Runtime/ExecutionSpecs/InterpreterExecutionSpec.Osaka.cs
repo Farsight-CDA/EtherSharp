@@ -1,5 +1,7 @@
+using EtherSharp.Contract;
 using EtherSharp.Interpreter.Runtime.Precompiles;
 using EtherSharp.Types;
+using System.Collections.Immutable;
 
 namespace EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 
@@ -15,6 +17,52 @@ public sealed partial record InterpreterExecutionSpec
     /// </remarks>
     public static InterpreterExecutionSpec Osaka { get; } = new()
     {
+        FixedOpcodeGasCosts = [.. Enumerable.Range(0, 256)
+            .Select<int, ulong>(opcode => (EvmOpcode) opcode switch
+            {
+                EvmOpcode.Add or EvmOpcode.Sub => 3,
+                EvmOpcode.Mul or EvmOpcode.Div or EvmOpcode.SDiv
+                    or EvmOpcode.Mod or EvmOpcode.SMod or EvmOpcode.SignExtend => 5,
+                EvmOpcode.AddMod or EvmOpcode.MulMod => 8,
+                EvmOpcode.Exp => 10,
+                >= EvmOpcode.Lt and <= EvmOpcode.Sar => 3,
+                EvmOpcode.Clz => 5,
+                EvmOpcode.Keccak256 => 30,
+
+                EvmOpcode.Address or EvmOpcode.Origin or EvmOpcode.Caller or EvmOpcode.CallValue
+                    or EvmOpcode.CallDataSize or EvmOpcode.CodeSize or EvmOpcode.GasPrice
+                    or EvmOpcode.ReturnDataSize or EvmOpcode.Coinbase or EvmOpcode.Timestamp
+                    or EvmOpcode.Number or EvmOpcode.PrevRandao or EvmOpcode.GasLimit
+                    or EvmOpcode.ChainId or EvmOpcode.BaseFee or EvmOpcode.BlobBaseFee => 2,
+                EvmOpcode.CallDataLoad or EvmOpcode.CallDataCopy or EvmOpcode.CodeCopy
+                    or EvmOpcode.ReturnDataCopy or EvmOpcode.BlobHash => 3,
+                EvmOpcode.BlockHash => 20,
+                EvmOpcode.SelfBalance => 5,
+
+                // Warm access is the fixed baseline. Cold-access premiums are dynamic.
+                EvmOpcode.Balance or EvmOpcode.ExtCodeSize or EvmOpcode.ExtCodeCopy
+                    or EvmOpcode.ExtCodeHash or EvmOpcode.SLoad
+                    or EvmOpcode.Call or EvmOpcode.CallCode or EvmOpcode.DelegateCall
+                    or EvmOpcode.StaticCall => 100,
+
+                EvmOpcode.Pop or EvmOpcode.Pc or EvmOpcode.MSize or EvmOpcode.Gas
+                    or EvmOpcode.Push0 => 2,
+                EvmOpcode.MLoad or EvmOpcode.MStore or EvmOpcode.MStore8 or EvmOpcode.MCopy => 3,
+                EvmOpcode.Jump => 8,
+                EvmOpcode.JumpI => 10,
+                EvmOpcode.JumpDest => 1,
+                EvmOpcode.TLoad or EvmOpcode.TStore => 100,
+                >= EvmOpcode.Push1 and <= EvmOpcode.Swap16 => 3,
+                >= EvmOpcode.Log0 and <= EvmOpcode.Log4 => 375,
+                EvmOpcode.Create or EvmOpcode.Create2 => 32000,
+                EvmOpcode.SelfDestruct => 5000,
+
+                // SSTORE is priced entirely by its dynamic rules, including the stipend check.
+                EvmOpcode.SStore or EvmOpcode.Stop or EvmOpcode.Return or EvmOpcode.Revert => 0,
+                // Invalid/undefined bytes still halt exceptionally in the opcode handler.
+                _ => 0
+            })
+        ],
         GasParameters = new()
         {
             Memory = new()
