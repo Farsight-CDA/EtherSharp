@@ -217,9 +217,9 @@ internal sealed partial class InterpreterStorage
         }
 
         var codeHash = await GetAsync(StateRequest.CodeHash(address));
-        if(codeHash is null && !hasLocalPresence)
+        if(!hasLocalPresence)
         {
-            return Bytes32.Zero;
+            return codeHash ?? Bytes32.Zero;
         }
 
         var effectiveCodeHash = codeHash ?? Bytes32.EmptyCodeHash;
