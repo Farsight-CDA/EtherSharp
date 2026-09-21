@@ -22,7 +22,10 @@ internal sealed class BytecodeFrame(
 
     public OperandStack Stack { get; } = new();
     public LinearMemory Memory { get; } = new(
-        resourceLimits.MaxMemorySize, call.Gas, executionSpec.MemoryGasPerWord, executionSpec.MemoryQuadraticDivisor
+        resourceLimits.MaxMemorySize,
+        call.Gas,
+        executionSpec.GasParameters.Memory.LinearCostPerWord,
+        executionSpec.GasParameters.Memory.QuadraticDivisor
     );
     public ReturnDataBuffer ReturnData { get; } = new();
     public InterpreterAccountStorage AccountStorage { get; } = accountStorage;

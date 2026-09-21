@@ -11,11 +11,8 @@ namespace EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 /// </summary>
 public sealed partial record InterpreterExecutionSpec
 {
-    /// <summary>The linear memory expansion gas cost per 32-byte word.</summary>
-    public ulong MemoryGasPerWord { get; init; } = 3;
-
-    /// <summary>The nonzero divisor for the quadratic memory expansion gas cost.</summary>
-    public ulong MemoryQuadraticDivisor { get; init; } = 512;
+    /// <summary>The dynamic gas pricing parameters.</summary>
+    public required GasParameters GasParameters { get; init; }
 
     /// <summary>The initcode size limit in bytes.</summary>
     public int MaxInitCodeLength { get; init; } = EVMByteCode.MAX_INIT_LENGTH;
@@ -26,9 +23,6 @@ public sealed partial record InterpreterExecutionSpec
     /// <summary>The enabled precompiles.</summary>
     public ImmutableArray<IPrecompile> Precompiles { get; init; } = [];
 
-    /// <summary>An execution specification with no precompiles.</summary>
-    public static InterpreterExecutionSpec Empty { get; } = new();
-
     /// <summary>The latest supplied preset, currently <see cref="Osaka"/>.</summary>
     /// <remarks>This does not select rules based on the fork's block height or chain.</remarks>
     public static InterpreterExecutionSpec Latest
@@ -38,7 +32,8 @@ public sealed partial record InterpreterExecutionSpec
     {
         ArgumentOutOfRangeException.ThrowIfNegative(MaxInitCodeLength);
         ArgumentOutOfRangeException.ThrowIfNegative(MaxRuntimeCodeLength);
-        ArgumentOutOfRangeException.ThrowIfZero(MemoryQuadraticDivisor);
+        ArgumentNullException.ThrowIfNull(GasParameters);
+        GasParameters.Validate();
 
         if(Precompiles.IsDefault)
         {

@@ -15,6 +15,14 @@ public sealed partial record InterpreterExecutionSpec
     /// </remarks>
     public static InterpreterExecutionSpec Osaka { get; } = new()
     {
+        GasParameters = new()
+        {
+            Memory = new()
+            {
+                LinearCostPerWord = 3,
+                QuadraticDivisor = 512
+            }
+        },
         Precompiles = [
             EcRecoverPrecompile.Instance, // 0x01: ECRECOVER
             Sha256Precompile.Instance, // 0x02: SHA-256
