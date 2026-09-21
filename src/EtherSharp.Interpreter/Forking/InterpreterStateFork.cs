@@ -46,7 +46,7 @@ public sealed partial class InterpreterStateFork(
 
     /// <summary>Creates an independent interpreter from another interpreter's retained state.</summary>
     /// <param name="source">An idle interpreter belonging to this fork.</param>
-    /// <returns>An interpreter with independent local state and the source's execution configuration.</returns>
+    /// <returns>An interpreter with independent local state and the source's execution configuration and interruption count.</returns>
     public IInterpreter CloneInterpreter(IInterpreter source)
     {
         ArgumentNullException.ThrowIfNull(source);

@@ -53,13 +53,17 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         ResourceLimits = resourceLimits;
         Fork = fork;
         _context = context;
+        _host = new ForkInterpreterHost(this);
         _storage = new InterpreterStorage(this);
         _precompiles = precompiles;
     }
 
     internal InterpreterRuntime Clone()
     {
-        var clone = new InterpreterRuntime(Fork, _context, ExecutionSpec, ResourceLimits, _precompiles);
+        var clone = new InterpreterRuntime(Fork, _context, ExecutionSpec, ResourceLimits, _precompiles)
+        {
+            _interruptionCount = InterruptionCount
+        };
         _storage.CopyTo(clone._storage);
         return clone;
     }
