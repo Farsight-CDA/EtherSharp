@@ -31,4 +31,20 @@ internal sealed partial class InterpreterRuntime : IInterpreterHost
         await Fork.EnsureCachedAsync(this, [first, second, third]);
         return (Fork.GetCached(first), Fork.GetCached(second), Fork.GetCached(third));
     }
+
+    async ValueTask<(T1 First, T2 Second, T3 Third, T4 Fourth)> IInterpreterHost.GetAsync<T1, T2, T3, T4>(
+        HostRequest<T1> first,
+        HostRequest<T2> second,
+        HostRequest<T3> third,
+        HostRequest<T4> fourth
+    )
+    {
+        await Fork.EnsureCachedAsync(this, [first, second, third, fourth]);
+        return (
+            Fork.GetCached(first),
+            Fork.GetCached(second),
+            Fork.GetCached(third),
+            Fork.GetCached(fourth)
+        );
+    }
 }

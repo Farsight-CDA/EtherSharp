@@ -276,14 +276,19 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                 _storage.ApplyStateOverrides(stateOverrides);
             }
 
-            //Sender balance validation for calls happens in ExecuteMessageCallAsync
-            var (creatorBalance, senderNonce) = await _storage.GetAsync(
-                environment.Input.To is null && !environment.Input.Value.IsZero
+            var (senderBalance, senderNonce, targetBalance, byteCode) = await _storage.GetAsync(
+                !environment.Input.Value.IsZero
                     ? StateRequest.Balance(environment.Sender)
                     : StateRequest.Default<UInt256>(),
                 !skipTopLevelNonceChecks
                     ? StateRequest.Nonce(environment.Sender)
-                    : StateRequest.Default<ulong>()
+                    : StateRequest.Default<ulong>(),
+                environment.Input.To is { } balanceTarget && !environment.Input.Value.IsZero
+                    ? StateRequest.Balance(balanceTarget)
+                    : StateRequest.Default<UInt256>(),
+                environment.Input.To is { } codeTarget && !_precompiles.ContainsKey(codeTarget)
+                    ? StateRequest.Code(codeTarget)
+                    : StateRequest.Default<EVMByteCode>()
             );
 
             if(!hasExplicitNonce && !skipTopLevelNonceChecks)
@@ -315,7 +320,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             }
 
             ExecutionResult result;
-            if(environment.Input.To is Address target)
+            if(environment.Input.To is { } messageTarget)
             {
                 if(!skipTopLevelNonceChecks)
                 {
@@ -327,8 +332,11 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                     CallFrame.CreateTopLevelMessageCall(
                         checked(execution.NextFrameId++),
                         environment,
-                        target
-                    )
+                        messageTarget
+                    ),
+                    senderBalance,
+                    targetBalance,
+                    byteCode
                 );
             }
             else
@@ -345,7 +353,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                         environment,
                         createdAddress
                     ),
-                    creatorBalance,
+                    senderBalance,
                     senderNonce
                 );
             }
@@ -379,80 +387,45 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
 
     private async ValueTask<ExecutionResult> ExecuteMessageCallAsync(CallFrame call)
     {
+        bool transfersValue = !call.Value.IsZero && call.Type is EvmOpcode.Call or EvmOpcode.CallCode;
+        var (sourceBalance, targetBalance, byteCode) = await _storage.GetAsync(
+            transfersValue ? StateRequest.Balance(call.From) : StateRequest.Default<UInt256>(),
+            transfersValue ? StateRequest.Balance(call.Address) : StateRequest.Default<UInt256>(),
+            !_precompiles.ContainsKey(call.To)
+                ? StateRequest.Code(call.To)
+                : StateRequest.Default<EVMByteCode>()
+        );
+        return await ExecuteMessageCallAsync(
+            call,
+            sourceBalance,
+            targetBalance,
+            byteCode
+        );
+    }
+
+    private async ValueTask<ExecutionResult> ExecuteMessageCallAsync(
+        CallFrame call,
+        UInt256 sourceBalance,
+        UInt256 targetBalance,
+        EVMByteCode byteCode
+    )
+    {
         _precompiles.TryGetValue(call.To, out var precompile);
         if(_executionState!.Hooks is not null)
         {
-            if(precompile is not null)
-            {
-                await _executionState.Hooks.OnPrecompileEnterAsync(call, _storage);
-            }
-            else
-            {
-                await _executionState.Hooks.OnContractEnterAsync(call, _storage);
-            }
+            await _executionState.Hooks.OnContractEnterAsync(call, _storage);
         }
-
-        var result = call.Depth > CallFrame.MAX_DEPTH
-            ? ExecutionResult.CallEntryFailure(CallEntryFailureReason.DepthExceeded)
-            : ExecutionResult.Success();
 
         var accountStorage = _storage.GetAccountStorage(call.Address);
         var callSnapshot = _storage.TakeSnapshot();
-        bool transfersValue = !call.Value.IsZero && call.Type is EvmOpcode.Call or EvmOpcode.CallCode;
-        var (sourceBalance, targetBalance, byteCode) = result.IsSuccess
-            ? await _storage.GetAsync(
-                transfersValue ? StateRequest.Balance(call.From) : StateRequest.Default<UInt256>(),
-                transfersValue ? StateRequest.Balance(call.Address) : StateRequest.Default<UInt256>(),
-                precompile is null ? StateRequest.Code(call.To) : StateRequest.Default<EVMByteCode>()
-            )
-            : default;
-
-        if(result.IsSuccess && transfersValue)
-        {
-            var sourceStorage = call.From == call.Address
-                ? accountStorage
-                : _storage.GetAccountStorage(call.From);
-            if(sourceBalance < call.Value)
-            {
-                result = ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
-            }
-            else if(call.From != call.Address)
-            {
-                sourceStorage.SetBalance(sourceBalance - call.Value);
-                accountStorage.SetBalance(targetBalance + call.Value);
-            }
-        }
-
-        if(result.IsSuccess)
-        {
-            if(precompile is not null)
-            {
-                result = await precompile.ExecuteAsync(this, new PrecompileCall(
-                    _context,
-                    call.Origin,
-                    call.Caller,
-                    call.Address,
-                    call.Value,
-                    call.Input,
-                    call.Depth,
-                    call.IsStatic,
-                    call.Gas
-                ));
-            }
-            else
-            {
-                // EIP-7702 delegation: load the target's code without following further delegations.
-                if(byteCode.Length == 3 + Address.BYTES_LENGTH
-                    && byteCode.ByteCode.Span[0] == 0xEF
-                    && byteCode.ByteCode.Span[1] == 0x01
-                    && byteCode.ByteCode.Span[2] == 0x00)
-                {
-                    var delegationTarget = Address.FromBytes(byteCode.ByteCode.Span[3..]);
-                    byteCode = await _storage.GetAsync(StateRequest.Code(delegationTarget));
-                }
-                result = await ExecuteOpcodesAsync(new BytecodeFrame(call, accountStorage, ResourceLimits), new ZeroPaddedData(byteCode.ByteCode));
-            }
-        }
+        var result = await ExecuteMessageCallCoreAsync(
+            call,
+            accountStorage,
+            precompile,
+            sourceBalance,
+            targetBalance,
+            byteCode
+        );
 
         if(!result.IsSuccess)
         {
@@ -465,17 +438,69 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
 
         if(_executionState.Hooks is not null)
         {
-            if(precompile is not null)
-            {
-                await _executionState.Hooks.OnPrecompileExitAsync(call, result, _storage);
-            }
-            else
-            {
-                await _executionState.Hooks.OnContractExitAsync(call, result, _storage);
-            }
+            await _executionState.Hooks.OnContractExitAsync(call, result, _storage);
         }
 
         return result;
+    }
+
+    private async ValueTask<ExecutionResult> ExecuteMessageCallCoreAsync(
+        CallFrame call,
+        InterpreterAccountStorage accountStorage,
+        IPrecompile? precompile,
+        UInt256 sourceBalance,
+        UInt256 targetBalance,
+        EVMByteCode byteCode
+    )
+    {
+        if(call.Depth > CallFrame.MAX_DEPTH)
+        {
+            return ExecutionResult.CallEntryFailure(CallEntryFailureReason.DepthExceeded);
+        }
+
+        bool transfersValue = !call.Value.IsZero && call.Type is EvmOpcode.Call or EvmOpcode.CallCode;
+        if(transfersValue)
+        {
+            if(sourceBalance < call.Value)
+            {
+                return ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
+            }
+            if(call.From != call.Address)
+            {
+                var sourceStorage = _storage.GetAccountStorage(call.From);
+                sourceStorage.SetBalance(sourceBalance - call.Value);
+                accountStorage.SetBalance(targetBalance + call.Value);
+            }
+        }
+
+        if(precompile is not null)
+        {
+            return await precompile.ExecuteAsync(this, new PrecompileCall(
+                _context,
+                call.Origin,
+                call.Caller,
+                call.Address,
+                call.Value,
+                call.Input,
+                call.Depth,
+                call.IsStatic,
+                call.Gas
+            ));
+        }
+
+        // EIP-7702 delegation: load the target's code without following further delegations.
+        if(byteCode.Length == 3 + Address.BYTES_LENGTH
+            && byteCode.ByteCode.Span[0] == 0xEF
+            && byteCode.ByteCode.Span[1] == 0x01
+            && byteCode.ByteCode.Span[2] == 0x00)
+        {
+            var delegationTarget = Address.FromBytes(byteCode.ByteCode.Span[3..]);
+            byteCode = await _storage.GetAsync(StateRequest.Code(delegationTarget));
+        }
+        return await ExecuteOpcodesAsync(
+            new BytecodeFrame(call, accountStorage, ResourceLimits),
+            new ZeroPaddedData(byteCode.ByteCode)
+        );
     }
 
     private async ValueTask<ExecutionResult> ExecuteContractCreationAsync(

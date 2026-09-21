@@ -25,4 +25,12 @@ public interface IInterpreterHost
         HostRequest<T2> second,
         HostRequest<T3> third
     );
+
+    /// <summary>Resolves four typed host requests together.</summary>
+    public ValueTask<(T1 First, T2 Second, T3 Third, T4 Fourth)> GetAsync<T1, T2, T3, T4>(
+        HostRequest<T1> first,
+        HostRequest<T2> second,
+        HostRequest<T3> third,
+        HostRequest<T4> fourth
+    );
 }
