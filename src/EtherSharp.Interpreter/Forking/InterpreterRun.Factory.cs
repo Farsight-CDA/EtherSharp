@@ -13,15 +13,23 @@ public abstract class InterpreterRun
     );
 
     /// <summary>Creates a lane bound to an interpreter.</summary>
+    /// <param name="interpreter">The interpreter to execute.</param>
+    /// <param name="execute">The sequential work performed by the lane.</param>
+    /// <param name="cancellationToken">Cancels before the lane starts or queues an uncached host request.</param>
+    /// <remarks>
+    /// Cancellation is cooperative at host-request boundaries. It does not interrupt opcode execution
+    /// or requests already in flight, and a lane can complete if it needs no further uncached data.
+    /// </remarks>
     public static InterpreterRun<TResult> For<TResult>(
         IInterpreter interpreter,
-        Func<IInterpreterLane, ValueTask<TResult>> execute
+        Func<IInterpreterLane, ValueTask<TResult>> execute,
+        CancellationToken cancellationToken = default
     )
     {
         ArgumentNullException.ThrowIfNull(interpreter);
         ArgumentNullException.ThrowIfNull(execute);
         return interpreter is InterpreterRuntime runtime
-            ? new InterpreterRun<TResult>.Lane(runtime, execute)
+            ? new InterpreterRun<TResult>.Lane(runtime, execute, cancellationToken)
             : throw new ArgumentException("The interpreter was not created by an interpreter state fork.", nameof(interpreter));
     }
 

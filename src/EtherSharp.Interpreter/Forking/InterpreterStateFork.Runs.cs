@@ -25,6 +25,7 @@ public sealed partial class InterpreterStateFork
             private TaskCompletionSource? _completion;
 
             public InterpreterRuntime Interpreter { get; } = interpreter;
+            public CancellationToken CancellationToken { get; init; }
             public List<HostRequest>? Requests { get; private set; }
 
             public override void Attach()
@@ -106,6 +107,7 @@ public sealed partial class InterpreterStateFork
                 return ValueTask.CompletedTask;
             }
 
+            participant.CancellationToken.ThrowIfCancellationRequested();
             completion = participant.SetRequests(requests);
             if(TakeBatchIfReady(out var readyBatch))
             {

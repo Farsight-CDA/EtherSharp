@@ -30,7 +30,8 @@ public abstract class InterpreterRun<TResult> : InterpreterRun
 
     internal sealed class Lane(
         InterpreterRuntime interpreter,
-        Func<IInterpreterLane, ValueTask<TResult>> execute
+        Func<IInterpreterLane, ValueTask<TResult>> execute,
+        CancellationToken cancellationToken
     ) : InterpreterRun<TResult>
     {
         internal InterpreterRuntime Interpreter { get; } = interpreter;
@@ -44,6 +45,7 @@ public abstract class InterpreterRun<TResult> : InterpreterRun
             {
                 Run = run,
                 Parent = parent,
+                CancellationToken = cancellationToken,
             };
             return participant;
         }
@@ -51,7 +53,11 @@ public abstract class InterpreterRun<TResult> : InterpreterRun
         private protected override ValueTask<TResult> ExecuteCoreAsync(
             InterpreterStateFork fork,
             InterpreterStateFork.RunParticipant participant
-        ) => execute(Interpreter);
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return execute(Interpreter);
+        }
     }
 
     internal sealed class Program(
