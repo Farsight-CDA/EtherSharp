@@ -11,6 +11,12 @@ namespace EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 /// </summary>
 public sealed partial record InterpreterExecutionSpec
 {
+    /// <summary>The linear memory expansion gas cost per 32-byte word.</summary>
+    public ulong MemoryGasPerWord { get; init; } = 3;
+
+    /// <summary>The nonzero divisor for the quadratic memory expansion gas cost.</summary>
+    public ulong MemoryQuadraticDivisor { get; init; } = 512;
+
     /// <summary>The initcode size limit in bytes.</summary>
     public int MaxInitCodeLength { get; init; } = EVMByteCode.MAX_INIT_LENGTH;
 
@@ -32,6 +38,7 @@ public sealed partial record InterpreterExecutionSpec
     {
         ArgumentOutOfRangeException.ThrowIfNegative(MaxInitCodeLength);
         ArgumentOutOfRangeException.ThrowIfNegative(MaxRuntimeCodeLength);
+        ArgumentOutOfRangeException.ThrowIfZero(MemoryQuadraticDivisor);
 
         if(Precompiles.IsDefault)
         {

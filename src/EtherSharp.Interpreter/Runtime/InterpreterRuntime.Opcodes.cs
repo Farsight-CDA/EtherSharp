@@ -211,7 +211,10 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    var data = callFrame.Memory.Access(offset, length);
+                    if(!callFrame.Memory.TryAccess(offset, length, out var data))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
                     callFrame.Stack.Push(Keccak256.HashData(data.Span));
                     break;
                 }
@@ -287,10 +290,11 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    callFrame.CallData.CopyTo(
-                        sourceOffset,
-                        callFrame.Memory.Access(destinationOffset, length)
-                    );
+                    if(!callFrame.Memory.TryAccess(destinationOffset, length, out var destination))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
+                    callFrame.CallData.CopyTo(sourceOffset, destination);
                     break;
                 }
                 case EvmOpcode.CodeSize:
@@ -311,7 +315,11 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    code.CopyTo(sourceOffset, callFrame.Memory.Access(destinationOffset, length));
+                    if(!callFrame.Memory.TryAccess(destinationOffset, length, out var destination))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
+                    code.CopyTo(sourceOffset, destination);
                     break;
                 }
                 case EvmOpcode.GasPrice:
@@ -346,7 +354,11 @@ internal sealed partial class InterpreterRuntime
 
                     var byteCode = await _storage.GetAsync(StateRequest.Code(address));
                     var externalCode = new ZeroPaddedData(byteCode.ByteCode);
-                    externalCode.CopyTo(sourceOffset, callFrame.Memory.Access(destinationOffset, length));
+                    if(!callFrame.Memory.TryAccess(destinationOffset, length, out var destination))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
+                    externalCode.CopyTo(sourceOffset, destination);
                     break;
                 }
                 case EvmOpcode.ReturnDataSize:
@@ -367,10 +379,11 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    if(!callFrame.ReturnData.TryCopyTo(
-                        sourceOffset,
-                        callFrame.Memory.Access(destinationOffset, length)
-                    ))
+                    if(!callFrame.Memory.TryAccess(destinationOffset, length, out var destination))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
+                    if(!callFrame.ReturnData.TryCopyTo(sourceOffset, destination))
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.ReturnDataOutOfBounds);
                     }
@@ -513,9 +526,11 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    callFrame.Stack.Push(Bytes32.FromBytes(
-                        callFrame.Memory.Access(offset, Bytes32.BYTE_LENGTH).Span
-                    ));
+                    if(!callFrame.Memory.TryAccess(offset, Bytes32.BYTE_LENGTH, out var data))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
+                    callFrame.Stack.Push(Bytes32.FromBytes(data.Span));
                     break;
                 }
                 case EvmOpcode.MStore:
@@ -525,7 +540,11 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    value.CopyTo(callFrame.Memory.Access(offset, Bytes32.BYTE_LENGTH).Span);
+                    if(!callFrame.Memory.TryAccess(offset, Bytes32.BYTE_LENGTH, out var data))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
+                    value.CopyTo(data.Span);
                     break;
                 }
                 case EvmOpcode.MStore8:
@@ -535,7 +554,11 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    callFrame.Memory.Access(offset, 1).Span[0] = value[^1];
+                    if(!callFrame.Memory.TryAccess(offset, 1, out var data))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
+                    data.Span[0] = value[^1];
                     break;
                 }
                 case EvmOpcode.SLoad:
@@ -656,7 +679,10 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    callFrame.Memory.Copy(destinationOffset, sourceOffset, length);
+                    if(!callFrame.Memory.TryCopy(destinationOffset, sourceOffset, length))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
                     break;
                 }
                 case >= EvmOpcode.Push0 and <= EvmOpcode.Push32:
@@ -721,7 +747,11 @@ internal sealed partial class InterpreterRuntime
                         }
                     }
 
-                    byte[] data = callFrame.Memory.Access(offset, length).Span.ToArray();
+                    if(!callFrame.Memory.TryAccess(offset, length, out var memory))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
+                    byte[] data = memory.Span.ToArray();
                     _storage.AddLog(callFrame.Call.Address, topics, data);
                     if(_executionState!.Hooks is not null)
                     {
@@ -756,13 +786,17 @@ internal sealed partial class InterpreterRuntime
                         StateRequest.Nonce(callFrame.Call.Address)
                     );
                     var createdAddress = Address.DeriveCreate(callFrame.Call.Address, creatorNonce);
+                    if(!callFrame.Memory.TryAccess(offset, length, out var initCode))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
                     var child = CallFrame.CreateContractCreation(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.Create,
                         callFrame.Call,
                         createdAddress,
                         endowment,
-                        callFrame.Memory.Access(offset, length).ReadOnlyMemory
+                        initCode.ReadOnlyMemory
                     );
                     var creationResult = await ExecuteContractCreationAsync(
                         child,
@@ -802,17 +836,20 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InitCodeTooLarge);
                     }
 
-                    var initCode = callFrame.Memory.Access(offset, length).ReadOnlyMemory;
-                    var createdAddress = Address.DeriveCreate2(
-                        callFrame.Call.Address,
-                        salt,
-                        Keccak256.HashData(initCode.Span)
-                    );
                     var (creatorBalance, creatorNonce) = await _storage.GetAsync(
                         endowment.IsZero
                             ? StateRequest.Default<UInt256>()
                             : StateRequest.Balance(callFrame.Call.Address),
                         StateRequest.Nonce(callFrame.Call.Address)
+                    );
+                    if(!callFrame.Memory.TryAccess(offset, length, out var initCode))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
+                    var createdAddress = Address.DeriveCreate2(
+                        callFrame.Call.Address,
+                        salt,
+                        Keccak256.HashData(initCode.Span)
                     );
                     var child = CallFrame.CreateContractCreation(
                         checked(_executionState!.NextFrameId++),
@@ -820,7 +857,7 @@ internal sealed partial class InterpreterRuntime
                         callFrame.Call,
                         createdAddress,
                         endowment,
-                        initCode
+                        initCode.ReadOnlyMemory
                     );
                     var creationResult = await ExecuteContractCreationAsync(
                         child,
@@ -859,20 +896,27 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.WriteProtection);
                     }
 
-                    int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
+                    if(!callFrame.Memory.TryAccess(outputOffset, outputLength, out _)
+                        || !callFrame.Memory.TryAccess(inputOffset, inputLength, out var input))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
                     var child = CallFrame.CreateMessageCall(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.Call,
                         callFrame.Call,
                         requestedGas,
                         address,
-                        callFrame.Memory.Access(inputOffset, inputLength).ReadOnlyMemory,
+                        input.ReadOnlyMemory,
                         value
                     );
                     var callResult = await ExecuteMessageCallAsync(child);
                     callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(callResult.Data);
-                    var output = callFrame.Memory.Access(outputOffset, outputSize);
+                    if(!callFrame.Memory.TryAccess(outputOffset, outputLength, out var output))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
                     callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
@@ -892,31 +936,38 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
+                    if(!callFrame.Memory.TryAccess(outputOffset, outputLength, out _)
+                        || !callFrame.Memory.TryAccess(inputOffset, inputLength, out var input))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
                     var child = CallFrame.CreateMessageCall(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.CallCode,
                         callFrame.Call,
                         requestedGas,
                         codeAddress,
-                        callFrame.Memory.Access(inputOffset, inputLength).ReadOnlyMemory,
+                        input.ReadOnlyMemory,
                         value
                     );
                     var callResult = await ExecuteMessageCallAsync(child);
                     callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(callResult.Data);
-                    var output = callFrame.Memory.Access(outputOffset, outputSize);
+                    if(!callFrame.Memory.TryAccess(outputOffset, outputLength, out var output))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
                     callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
                 }
                 case EvmOpcode.Return:
                 {
-                    return callFrame.Stack.TryPop(out UInt256 offset, out UInt256 length)
-                        ? ExecutionResult.Success(
-                            callFrame.Memory.Access(offset, length).ReadOnlyMemory
-                        )
-                        : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
+                    return !callFrame.Stack.TryPop(out UInt256 offset, out UInt256 length)
+                        ? ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow)
+                        : callFrame.Memory.TryAccess(offset, length, out var data)
+                            ? ExecutionResult.Success(data.ReadOnlyMemory)
+                            : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                 }
                 case EvmOpcode.DelegateCall:
                 {
@@ -932,19 +983,26 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
+                    if(!callFrame.Memory.TryAccess(outputOffset, outputLength, out _)
+                        || !callFrame.Memory.TryAccess(inputOffset, inputLength, out var input))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
                     var child = CallFrame.CreateMessageCall(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.DelegateCall,
                         callFrame.Call,
                         requestedGas,
                         codeAddress,
-                        callFrame.Memory.Access(inputOffset, inputLength).ReadOnlyMemory
+                        input.ReadOnlyMemory
                     );
                     var callResult = await ExecuteMessageCallAsync(child);
                     callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(callResult.Data);
-                    var output = callFrame.Memory.Access(outputOffset, outputSize);
+                    if(!callFrame.Memory.TryAccess(outputOffset, outputLength, out var output))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
                     callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
@@ -963,30 +1021,37 @@ internal sealed partial class InterpreterRuntime
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
 
-                    int outputSize = callFrame.Memory.Access(outputOffset, outputLength).Length;
+                    if(!callFrame.Memory.TryAccess(outputOffset, outputLength, out _)
+                        || !callFrame.Memory.TryAccess(inputOffset, inputLength, out var input))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
                     var child = CallFrame.CreateMessageCall(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.StaticCall,
                         callFrame.Call,
                         requestedGas,
                         address,
-                        callFrame.Memory.Access(inputOffset, inputLength).ReadOnlyMemory
+                        input.ReadOnlyMemory
                     );
                     var callResult = await ExecuteMessageCallAsync(child);
                     callFrame.Call.Gas.Return(child.Gas.Remaining);
                     callFrame.ReturnData.Set(callResult.Data);
-                    var output = callFrame.Memory.Access(outputOffset, outputSize);
+                    if(!callFrame.Memory.TryAccess(outputOffset, outputLength, out var output))
+                    {
+                        return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
+                    }
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
                     callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
                 }
                 case EvmOpcode.Revert:
                 {
-                    return callFrame.Stack.TryPop(out UInt256 offset, out UInt256 length)
-                        ? ExecutionResult.Revert(
-                            callFrame.Memory.Access(offset, length).ReadOnlyMemory
-                        )
-                        : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
+                    return !callFrame.Stack.TryPop(out UInt256 offset, out UInt256 length)
+                        ? ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow)
+                        : callFrame.Memory.TryAccess(offset, length, out var data)
+                            ? ExecutionResult.Revert(data.ReadOnlyMemory)
+                            : ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                 }
                 case EvmOpcode.Invalid:
                     return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidOpcode);

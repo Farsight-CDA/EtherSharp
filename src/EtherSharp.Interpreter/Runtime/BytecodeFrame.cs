@@ -1,4 +1,5 @@
 using EtherSharp.Contract;
+using EtherSharp.Interpreter.Runtime.ExecutionSpecs;
 using EtherSharp.Interpreter.Runtime.Memory;
 using EtherSharp.Interpreter.Runtime.Stack;
 using EtherSharp.Interpreter.Runtime.Storage;
@@ -9,7 +10,8 @@ namespace EtherSharp.Interpreter.Runtime;
 internal sealed class BytecodeFrame(
     CallFrame call,
     InterpreterAccountStorage accountStorage,
-    InterpreterResourceLimits resourceLimits
+    InterpreterResourceLimits resourceLimits,
+    InterpreterExecutionSpec executionSpec
 ) : IInterpreterExecution
 {
     public CallFrame Call { get; } = call;
@@ -19,7 +21,9 @@ internal sealed class BytecodeFrame(
     );
 
     public OperandStack Stack { get; } = new();
-    public LinearMemory Memory { get; } = new(resourceLimits.MaxMemorySize);
+    public LinearMemory Memory { get; } = new(
+        resourceLimits.MaxMemorySize, call.Gas, executionSpec.MemoryGasPerWord, executionSpec.MemoryQuadraticDivisor
+    );
     public ReturnDataBuffer ReturnData { get; } = new();
     public InterpreterAccountStorage AccountStorage { get; } = accountStorage;
 
