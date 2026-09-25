@@ -1,5 +1,7 @@
 ﻿using EtherSharp.Crypto;
 using EtherSharp.Types;
+using System.ComponentModel.DataAnnotations;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EtherSharp.Wallet;
 
@@ -36,6 +38,56 @@ public interface IEtherSigner
     );
 
     /// <summary>
+    /// Signs an EIP-191 personal message (version 0x45) with a recoverable signature.
+    /// </summary>
+    /// <param name="message">Raw message bytes; the byte count is included in the signed digest.</param>
+    /// <param name="cancellationToken">Token used to cancel the signing operation.</param>
+    /// <returns>The signature, with its recovery identifier normalized to 27 or 28.</returns>
+    public ValueTask<RecoverableEtherSignature> SignPersonalMessageAsync(
+        ReadOnlySpan<byte> message,
+        CancellationToken cancellationToken = default
+    ) => NormalizeRecoveryIdAsync(
+        SignRecoverableAsync(
+            EIP191.HashPersonalMessage(message),
+            cancellationToken
+        )
+    );
+
+    /// <summary>
+    /// Signs a UTF-8 EIP-191 personal message (version 0x45) with a recoverable signature.
+    /// </summary>
+    /// <param name="message">Text to sign as UTF-8.</param>
+    /// <param name="cancellationToken">Token used to cancel the signing operation.</param>
+    /// <returns>The signature, with its recovery identifier normalized to 27 or 28.</returns>
+    public ValueTask<RecoverableEtherSignature> SignPersonalMessageAsync(
+        string message,
+        CancellationToken cancellationToken = default
+    ) => NormalizeRecoveryIdAsync(
+        SignRecoverableAsync(
+            EIP191.HashPersonalMessage(message),
+            cancellationToken
+        )
+    );
+
+    /// <summary>
+    /// Signs EIP-191 data bound to an intended validator (version 0x00).
+    /// </summary>
+    /// <param name="validator">The intended validator address.</param>
+    /// <param name="data">Raw data to sign.</param>
+    /// <param name="cancellationToken">Token used to cancel the signing operation.</param>
+    /// <returns>The signature, with its recovery identifier normalized to 27 or 28.</returns>
+    public ValueTask<RecoverableEtherSignature> SignIntendedValidatorAsync(
+        Address validator,
+        ReadOnlySpan<byte> data,
+        CancellationToken cancellationToken = default
+    ) => NormalizeRecoveryIdAsync(
+        SignRecoverableAsync(
+            EIP191.HashIntendedValidator(validator, data),
+            cancellationToken
+        )
+    );
+
+    /// <summary>
     /// Signs an EIP-712 message with a recoverable signature.
     /// </summary>
     /// <typeparam name="TMessage">Source-generated EIP-712 message type.</typeparam>
@@ -48,12 +100,14 @@ public interface IEtherSigner
         in TMessage message,
         CancellationToken cancellationToken = default
     ) where TMessage : IEIP712Type
-    {
-        var hash = message.GetSigningHash(domain);
-        return NormalizeEIP712SignatureAsync(SignRecoverableAsync(hash, cancellationToken));
-    }
+        => NormalizeRecoveryIdAsync(
+            SignRecoverableAsync(
+                message.GetSigningHash(domain),
+                cancellationToken
+            )
+        );
 
-    private static async ValueTask<RecoverableEtherSignature> NormalizeEIP712SignatureAsync(
+    private static async ValueTask<RecoverableEtherSignature> NormalizeRecoveryIdAsync(
         ValueTask<RecoverableEtherSignature> signatureTask)
     {
         var signature = await signatureTask.ConfigureAwait(false);
