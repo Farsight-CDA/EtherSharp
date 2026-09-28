@@ -19,6 +19,7 @@ public sealed partial class InterpreterStateFork(
     private readonly Lock _lock = new();
 
     internal InterpreterStateCache Cache { get; } = new(options.InitialState);
+    internal ulong? CallGasLimit { get; } = options.CallGasLimit;
 
     /// <summary>The block context shared by this fork's interpreters.</summary>
     public InterpreterContext Context { get; } = context ?? throw new ArgumentNullException(nameof(context));

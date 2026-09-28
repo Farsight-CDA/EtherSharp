@@ -28,11 +28,11 @@ public readonly record struct TransactionEnvironment(
         Address sender,
         ITxInput input,
         ulong nonce,
-        InterpreterContext context
+        ulong gasLimit
     ) => new(
         sender,
         nonce,
-        (ulong) context.GasLimit,
+        gasLimit,
         UInt256.Zero,
         input,
         ReadOnlyMemory<StateAccess>.Empty,

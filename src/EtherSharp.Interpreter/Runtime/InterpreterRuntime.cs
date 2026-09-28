@@ -123,7 +123,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
     {
         ArgumentNullException.ThrowIfNull(call);
         return ExecuteTopLevelAsync(
-            TransactionEnvironment.CreateForCall(sender, call, 0, _context),
+            TransactionEnvironment.CreateForCall(sender, call, 0, Fork.CallGasLimit ?? (ulong) _context.GasLimit),
             hasExplicitNonce: false,
             retainState: true,
             options: options
@@ -206,7 +206,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
     {
         ArgumentNullException.ThrowIfNull(call);
         return ExecuteTopLevelAsync(
-            TransactionEnvironment.CreateForCall(sender, call, 0, _context),
+            TransactionEnvironment.CreateForCall(sender, call, 0, Fork.CallGasLimit ?? (ulong) _context.GasLimit),
             hasExplicitNonce: false,
             retainState: false,
             options: options

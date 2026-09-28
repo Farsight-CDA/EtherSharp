@@ -6,6 +6,15 @@ namespace EtherSharp.Interpreter.Forking;
 public readonly record struct InterpreterForkOptions
 {
     /// <summary>
+    /// The execution gas budget for calls executed or simulated by this fork's interpreters.
+    /// Defaults to the block context's gas limit when unspecified.
+    /// </summary>
+    /// <remarks>
+    /// Does not change the block gas limit exposed by <c>GASLIMIT</c> or the gas limit of explicit transactions.
+    /// </remarks>
+    public ulong? CallGasLimit { get; init; }
+
+    /// <summary>
     /// The query used by the pre/post-block client helpers to resolve named block targets.
     /// Defaults to EVM NUMBER. Numeric targets take precedence.
     /// </summary>
