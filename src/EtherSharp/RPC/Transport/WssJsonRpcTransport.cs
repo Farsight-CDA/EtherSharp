@@ -56,7 +56,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     /// Creates a websocket JSON-RPC transport bound to the provided endpoint URI.
     /// </summary>
     /// <param name="uri">Websocket RPC endpoint URI.</param>
-    /// <param name="requestTimeout">Request timeout used for pending RPC calls.</param>
+    /// <param name="requestTimeout">Timeout used for each connection attempt and pending RPC calls.</param>
     /// <param name="provider">Service provider used for logging, instrumentation, and serializer configuration.</param>
     /// <param name="additionalTags">Additional OpenTelemetry tags.</param>
     public WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, IServiceProvider provider, TagList additionalTags = default)
@@ -194,10 +194,13 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
             try
             {
+                using var connectionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                connectionCts.CancelAfter(_requestTimeout);
+
                 _socket = new ClientWebSocket();
-                await _socket.ConnectAsync(_uri, cancellationToken);
+                await _socket.ConnectAsync(_uri, connectionCts.Token);
             }
-            catch(Exception ex)
+            catch(Exception ex) when(!cancellationToken.IsCancellationRequested)
             {
                 _logger?.LogDebug(ex, "Connection attempt failed, retrying in 3s...");
                 await Task.Delay(3000, cancellationToken);
