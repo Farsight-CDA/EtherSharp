@@ -166,12 +166,27 @@ Built-in operations include:
 
 | Query Type | Description |
 | :--- | :--- |
+| `IQuery.SafeCall(call)` | Returns a `CallResult<T>` that gracefully handles reverts |
+| `IQuery.CallAndMeasureGas(call)` | Executes a call and returns both result and gas used |
+| `IQuery.SafeFlashCall(code, call)` | Executes a flash call and returns `CallResult<T>` |
 | `IQuery.GetBalance(address)` | Gets the ETH balance of an account |
+| `IQuery.GetCode(address)` | Gets the contract code at an address |
+| `IQuery.GetCodeHash(address)` | Gets the code hash at an address |
+| `IQuery.GetNonce(account, startNonce, searchCount)` | Searches a bounded range for an account's nonce |
 | `IQuery.GetBlockNumber()` | Gets the current block number |
 | `IQuery.GetBlockTimestamp()` | Gets the current block timestamp |
-| `IQuery.GetCode(address)` | Gets the contract code at an address |
-| `IQuery.CallAndMeasureGas(call)` | Executes a call and returns both result and gas used |
-| `IQuery.SafeCall(call)` | Returns a `QueryResult<T>` that gracefully handles reverts |
+| `IQuery.GetBlockGasLimit()` | Gets the current block gas limit |
+| `IQuery.GetBlockGasPrice()` | Gets the block gas price |
+| `IQuery.GetBlockBaseFee()` | Gets the block base fee |
+| `IQuery.GetChainId()` | Gets the current chain ID |
+| `IQuery.GetRemainingGas()` | Gets the remaining gas inside the query execution context |
+| `IQuery.GetCompatibilityReport()` | Probes EVM feature support and returns a compatibility report |
+| `IQuery.ReadStorage(slot)` | Reads a raw storage slot from the query execution context |
+| `IQuery.WithCaller(caller, query[, originalByteCode])` | Executes a query as another caller, optionally preserving its original code |
+| `IQuery.Isolate(query)` | Executes a query atomically and rolls back its state changes |
+| `IQuery.Range(queries)` | Combines same-typed queries into an ordered result array |
+| `IQuery.Combine(q1, q2, ...)` | Combines up to 12 queries into a typed tuple (also used by `QueryAsync` overloads) |
+| `IQuery.Noop(value)` | Returns a constant value with no underlying EVM operation |
 
 #### Using QueryBuilder
 For custom shaping across many results, use `QueryBuilder`.
