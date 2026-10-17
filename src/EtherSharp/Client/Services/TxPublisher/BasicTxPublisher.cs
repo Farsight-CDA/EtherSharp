@@ -39,7 +39,7 @@ public sealed class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
     );
 
     private static readonly SearchValues<string> _nonceTooLowMessages = SearchValues.Create(
-        ["nonce too low", "nonce is too low", "nonce has already been used", "next nonce"],
+        ["nonce too low", "nonce is too low", "nonce has already been used", "next nonce", "invalid nonce"],
         StringComparison.OrdinalIgnoreCase
     );
 
