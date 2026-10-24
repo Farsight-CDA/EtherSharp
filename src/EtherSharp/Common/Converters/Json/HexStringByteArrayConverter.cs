@@ -29,6 +29,11 @@ public sealed class HexStringByteArrayConverter : JsonConverter<byte[]>
             return null;
         }
 
+        if(reader.TokenType != JsonTokenType.String)
+        {
+            throw new JsonException("Expected a hex-encoded string.");
+        }
+
         if(!reader.ValueIsEscaped && !reader.HasValueSequence)
         {
             var hex = reader.ValueSpan.StartsWith("0x"u8) || reader.ValueSpan.StartsWith("0X"u8)
@@ -36,7 +41,12 @@ public sealed class HexStringByteArrayConverter : JsonConverter<byte[]>
                 : reader.ValueSpan;
             if(hex.Length % 2 == 0)
             {
-                return Convert.FromHexString(hex);
+                byte[] bytes = hex.IsEmpty
+                    ? []
+                    : GC.AllocateUninitializedArray<byte>(hex.Length / 2);
+                return HexUtils.TryDecodeHex(hex, bytes)
+                    ? bytes
+                    : throw new JsonException("Expected a valid hex-encoded string.");
             }
         }
 
@@ -61,7 +71,13 @@ public sealed class HexStringByteArrayConverter : JsonConverter<byte[]>
                 buffer[--start] = '0';
             }
 
-            return Convert.FromHexString(buffer[start..]);
+            var hex = buffer[start..];
+            byte[] bytes = hex.IsEmpty
+                ? []
+                : GC.AllocateUninitializedArray<byte>(hex.Length / 2);
+            return HexUtils.TryDecodeHex(hex, bytes)
+                ? bytes
+                : throw new JsonException("Expected a valid hex-encoded string.");
         }
         finally
         {

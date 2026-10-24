@@ -1,4 +1,4 @@
-using System.Buffers;
+using EtherSharp.Common;
 using System.Buffers.Binary;
 
 namespace EtherSharp.Numerics;
@@ -35,7 +35,7 @@ internal static class HexParser
             value = value[1..];
         }
 
-        if(Convert.FromHexString(value, buffer[offset..], out _, out _) != OperationStatus.Done)
+        if(!HexUtils.TryDecodeHex(value, buffer[offset..]))
         {
             return false;
         }

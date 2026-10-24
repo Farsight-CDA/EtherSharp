@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Text.Json;
 
 namespace EtherSharp.Common.Converters.Json;
@@ -37,10 +36,7 @@ internal static class HexJsonConverter
             hex = hex[2..];
         }
 
-        var status = Convert.FromHexString(hex, buffer, out int charsConsumed, out int bytesWritten);
-        if(status != OperationStatus.Done
-            || charsConsumed != unprefixedCharCount
-            || bytesWritten != buffer.Length)
+        if(!HexUtils.TryDecodeHex(hex, buffer))
         {
             throw new JsonException($"Expected a valid {buffer.Length}-byte hex string for {typeName}");
         }
