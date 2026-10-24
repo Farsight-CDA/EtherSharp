@@ -1,7 +1,5 @@
-﻿using EtherSharp.Common.Exceptions;
-using EtherSharp.RPC.Modules.Eth;
+﻿using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
-using System.Buffers;
 
 namespace EtherSharp.Client.Services.TxPublisher;
 
@@ -11,38 +9,6 @@ namespace EtherSharp.Client.Services.TxPublisher;
 /// <param name="ethRpcModule">RPC module used to submit raw transactions.</param>
 public sealed class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
 {
-    private static readonly SearchValues<string> _alreadyExistsMessages = SearchValues.Create(
-        [
-            "ALREADY_EXISTS",
-            "AlreadyKnown",
-            "already known",
-            "already imported",
-            "tx already exists in cache",
-            " known transaction",
-            "existing txn with same hash",
-            "duplicate tx"
-        ],
-        StringComparison.OrdinalIgnoreCase
-    );
-
-    private static readonly SearchValues<string> _transactionUnderpricedMessages = SearchValues.Create(
-        [
-            "underpriced",
-            "fee too low",
-            "gas price is too low",
-            "gas price below configured minimum gas price",
-            "gas price below current base fee",
-            "max fee per gas less than block base fee",
-            "could not replace existing tx"
-        ],
-        StringComparison.OrdinalIgnoreCase
-    );
-
-    private static readonly SearchValues<string> _nonceTooLowMessages = SearchValues.Create(
-        ["nonce too low", "nonce is too low", "nonce has already been used", "next nonce", "invalid nonce"],
-        StringComparison.OrdinalIgnoreCase
-    );
-
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
     /// <inheritdoc/>
@@ -54,26 +20,9 @@ public sealed class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
         {
             return await _ethRpcModule.SendRawTransactionAsync(transactionHex, requestOptions, cancellationToken);
         }
-        catch(RPCException ex)
-        {
-            if(ex.Message.AsSpan().ContainsAny(_alreadyExistsMessages))
-            {
-                return new TxSubmissionResult.AlreadyExists();
-            }
-            else if(ex.Message.AsSpan().ContainsAny(_transactionUnderpricedMessages))
-            {
-                return new TxSubmissionResult.TransactionUnderpriced();
-            }
-            else if(ex.Message.AsSpan().ContainsAny(_nonceTooLowMessages))
-            {
-                return new TxSubmissionResult.NonceTooLow();
-            }
-
-            return new TxSubmissionResult.UnhandledException(ex);
-        }
         catch(Exception ex)
         {
-            return new TxSubmissionResult.UnhandledException(ex);
+            return TxSubmissionResult.FromException(ex);
         }
     }
 }

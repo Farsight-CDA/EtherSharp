@@ -1,4 +1,6 @@
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Types;
+using System.Buffers;
 
 namespace EtherSharp.Client.Services.TxPublisher;
 
@@ -11,6 +13,38 @@ namespace EtherSharp.Client.Services.TxPublisher;
 /// </remarks>
 public abstract record TxSubmissionResult
 {
+    private static readonly SearchValues<string> _alreadyExistsMessages = SearchValues.Create(
+        [
+            "ALREADY_EXISTS",
+            "AlreadyKnown",
+            "already known",
+            "already imported",
+            "tx already exists in cache",
+            " known transaction",
+            "existing txn with same hash",
+            "duplicate tx"
+        ],
+        StringComparison.OrdinalIgnoreCase
+    );
+
+    private static readonly SearchValues<string> _transactionUnderpricedMessages = SearchValues.Create(
+        [
+            "underpriced",
+            "fee too low",
+            "gas price is too low",
+            "gas price below configured minimum gas price",
+            "gas price below current base fee",
+            "max fee per gas less than block base fee",
+            "could not replace existing tx"
+        ],
+        StringComparison.OrdinalIgnoreCase
+    );
+
+    private static readonly SearchValues<string> _nonceTooLowMessages = SearchValues.Create(
+        ["nonce too low", "nonce is too low", "nonce has already been used", "next nonce", "invalid nonce"],
+        StringComparison.OrdinalIgnoreCase
+    );
+
     /// <summary>
     /// The transaction payload was accepted by the node and returned a transaction hash.
     /// </summary>
@@ -46,4 +80,40 @@ public abstract record TxSubmissionResult
     /// </summary>
     /// <param name="Exception">The original exception raised while publishing.</param>
     public sealed record UnhandledException(Exception Exception) : TxSubmissionResult;
+
+    /// <summary>
+    /// Converts an exception raised while submitting a transaction into a submission result.
+    /// </summary>
+    /// <param name="exception">The exception raised while submitting a transaction.</param>
+    /// <returns>
+    /// A recognized submission result for known <see cref="RPCException"/> messages, or
+    /// <see cref="UnhandledException"/> containing the original exception otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Matching is case-insensitive and checks for already-known transactions first, then underpriced
+    /// transactions, and finally nonce-too-low errors. Non-RPC exceptions are not classified by message.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="exception"/> is <see langword="null"/>.</exception>
+    public static TxSubmissionResult FromException(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        if(exception is RPCException)
+        {
+            if(exception.Message.AsSpan().ContainsAny(_alreadyExistsMessages))
+            {
+                return new AlreadyExists();
+            }
+            else if(exception.Message.AsSpan().ContainsAny(_transactionUnderpricedMessages))
+            {
+                return new TransactionUnderpriced();
+            }
+            else if(exception.Message.AsSpan().ContainsAny(_nonceTooLowMessages))
+            {
+                return new NonceTooLow();
+            }
+        }
+
+        return new UnhandledException(exception);
+    }
 }
