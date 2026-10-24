@@ -5,6 +5,7 @@ using EtherSharp.RPC.Transport.Json;
 using EtherSharp.Types;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
@@ -52,9 +53,17 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     /// <param name="rpcUri">HTTP RPC endpoint URI.</param>
     /// <param name="provider">Service provider used for instrumentation and serializer configuration.</param>
     /// <param name="additionalTags">Additional OpenTelemetry tags.</param>
-    public HttpJsonRpcTransport(Uri rpcUri, IServiceProvider provider, TagList additionalTags = default)
+    /// <param name="httpMessageHandler">Optional caller-owned handler. When omitted, the transport creates a handler with gzip, deflate, and Brotli response decompression enabled.</param>
+    public HttpJsonRpcTransport(
+        Uri rpcUri, IServiceProvider provider, TagList additionalTags = default, HttpMessageHandler? httpMessageHandler = null
+    )
     {
-        _client = new HttpClient()
+        var handler = httpMessageHandler ?? new SocketsHttpHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli
+        };
+
+        _client = new HttpClient(handler, disposeHandler: httpMessageHandler is null)
         {
             BaseAddress = rpcUri
         };
@@ -71,8 +80,11 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     /// <param name="rpcUrl">HTTP RPC endpoint URL.</param>
     /// <param name="provider">Service provider used for instrumentation and serializer configuration.</param>
     /// <param name="additionalTags">Additional OpenTelemetry tags.</param>
-    public HttpJsonRpcTransport(string rpcUrl, IServiceProvider provider, TagList additionalTags = default)
-        : this(new Uri(rpcUrl, UriKind.Absolute), provider, additionalTags)
+    /// <param name="httpMessageHandler">Optional caller-owned handler. When omitted, the transport creates a handler with gzip, deflate, and Brotli response decompression enabled.</param>
+    public HttpJsonRpcTransport(
+        string rpcUrl, IServiceProvider provider, TagList additionalTags = default, HttpMessageHandler? httpMessageHandler = null
+    )
+        : this(new Uri(rpcUrl, UriKind.Absolute), provider, additionalTags, httpMessageHandler)
     {
     }
 

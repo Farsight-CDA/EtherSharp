@@ -38,6 +38,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
     private readonly Uri _uri;
     private readonly TimeSpan _requestTimeout;
+    private readonly Action<ClientWebSocketOptions>? _configureWebSocketOptions;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private ClientWebSocket? _socket = null!;
 
@@ -59,10 +60,15 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     /// <param name="requestTimeout">Timeout used for each connection attempt and pending RPC calls.</param>
     /// <param name="provider">Service provider used for logging, instrumentation, and serializer configuration.</param>
     /// <param name="additionalTags">Additional OpenTelemetry tags.</param>
-    public WssJsonRpcTransport(Uri uri, TimeSpan requestTimeout, IServiceProvider provider, TagList additionalTags = default)
+    /// <param name="configureWebSocketOptions">Optional callback invoked before every connection attempt, including reconnects. Compression is disabled unless configured through the socket options.</param>
+    public WssJsonRpcTransport(
+        Uri uri, TimeSpan requestTimeout, IServiceProvider provider, TagList additionalTags = default,
+        Action<ClientWebSocketOptions>? configureWebSocketOptions = null
+    )
     {
         _uri = uri;
         _requestTimeout = requestTimeout;
+        _configureWebSocketOptions = configureWebSocketOptions;
         _jsonSerializerOptions = provider.GetService<JsonSerializerOptions>()
             ?? ParsingUtils.EvmSerializerOptions;
         _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<WssJsonRpcTransport>();
@@ -192,12 +198,14 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 _socket.Dispose();
             }
 
+            _socket = new ClientWebSocket();
+            _configureWebSocketOptions?.Invoke(_socket.Options);
+
             try
             {
                 using var connectionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 connectionCts.CancelAfter(_requestTimeout);
 
-                _socket = new ClientWebSocket();
                 await _socket.ConnectAsync(_uri, connectionCts.Token);
             }
             catch(Exception ex) when(!cancellationToken.IsCancellationRequested)

@@ -29,6 +29,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
+using System.Net.WebSockets;
 using System.Text.Json;
 
 namespace EtherSharp.Client;
@@ -76,19 +77,21 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
+    /// <param name="configureWebSocketOptions">Optional callback invoked before every connection attempt, including reconnects. Compression is disabled unless configured through the socket options.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForWebsocket(
         string websocketUrl, TimeSpan? requestTimeout = null, NonceMode nonceMode = NonceMode.ExclusiveLocal,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
-        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null
-    )
-        => CreateForWebsocket(
+        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null,
+        Action<ClientWebSocketOptions>? configureWebSocketOptions = null
+    ) => CreateForWebsocket(
             new Uri(websocketUrl, UriKind.Absolute),
             requestTimeout,
             nonceMode,
             signer,
             loggerFactory,
-            configureGasProvider
+            configureGasProvider,
+            configureWebSocketOptions
         );
 
     /// <summary>
@@ -100,11 +103,13 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
+    /// <param name="configureWebSocketOptions">Optional callback invoked before every connection attempt, including reconnects. Compression is disabled unless configured through the socket options.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForWebsocket(
         Uri websocketUri, TimeSpan? requestTimeout = null, NonceMode nonceMode = NonceMode.ExclusiveLocal,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
-        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null
+        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null,
+        Action<ClientWebSocketOptions>? configureWebSocketOptions = null
     )
     {
         requestTimeout ??= TimeSpan.FromSeconds(30);
@@ -112,7 +117,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         var builder = new EtherClientBuilder
         {
             _transportRegistration = provider =>
-                new WssJsonRpcTransport(websocketUri, requestTimeout.Value, provider)
+                new WssJsonRpcTransport(websocketUri, requestTimeout.Value, provider, configureWebSocketOptions: configureWebSocketOptions)
         };
 
         if(loggerFactory is not null)
@@ -142,17 +147,19 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
+    /// <param name="httpMessageHandler">Optional caller-owned handler. When omitted, a handler with gzip, deflate, and Brotli response decompression enabled is created.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForHttpRpc(
         string rpcUrl, NonceMode nonceMode = NonceMode.ExclusiveLocal,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
-        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null)
-        => CreateForHttpRpc(
+        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null, HttpMessageHandler? httpMessageHandler = null
+    ) => CreateForHttpRpc(
             new Uri(rpcUrl, UriKind.Absolute),
             nonceMode,
             signer,
             loggerFactory,
-            configureGasProvider
+            configureGasProvider,
+            httpMessageHandler
         );
 
     /// <summary>
@@ -163,16 +170,18 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
+    /// <param name="httpMessageHandler">Optional caller-owned handler. When omitted, a handler with gzip, deflate, and Brotli response decompression enabled is created.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForHttpRpc(
         Uri rpcUri, NonceMode nonceMode = NonceMode.ExclusiveLocal,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
-        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null)
+        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null, HttpMessageHandler? httpMessageHandler = null
+    )
     {
         var builder = new EtherClientBuilder()
         {
             _transportRegistration = provider =>
-                new HttpJsonRpcTransport(rpcUri, provider)
+                new HttpJsonRpcTransport(rpcUri, provider, httpMessageHandler: httpMessageHandler)
         };
 
         if(loggerFactory is not null)
