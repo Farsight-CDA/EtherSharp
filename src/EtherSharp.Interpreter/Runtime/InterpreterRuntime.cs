@@ -502,8 +502,13 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             byteCode = await _storage.GetAsync(StateRequest.Code(delegationTarget));
         }
         return await ExecuteOpcodesAsync(
-            new BytecodeFrame(call, accountStorage, ResourceLimits, ExecutionSpec),
-            new ZeroPaddedData(byteCode.ByteCode)
+            new BytecodeFrame(
+                call,
+                byteCode,
+                accountStorage,
+                ResourceLimits,
+                ExecutionSpec
+            )
         );
     }
 
@@ -576,8 +581,13 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         }
 
         var result = await ExecuteOpcodesAsync(
-            new BytecodeFrame(call, createdStorage, ResourceLimits, ExecutionSpec),
-            new ZeroPaddedData(call.Input)
+            new BytecodeFrame(
+                call,
+                new EVMByteCode(call.Input.ToArray()),
+                createdStorage,
+                ResourceLimits,
+                ExecutionSpec
+            )
         );
 
         result = result switch

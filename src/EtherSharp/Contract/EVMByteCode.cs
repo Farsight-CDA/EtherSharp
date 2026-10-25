@@ -8,9 +8,13 @@ namespace EtherSharp.Contract;
 /// <summary>
 /// Represents the source code of an EVM contract.
 /// </summary>
-/// <param name="byteCode">The bytecode bytes.</param>
-public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
+/// <remarks>Instances can be shared across calls and interpreters, including their lazily initialized analysis.</remarks>
+/// <param name="byteCode">The bytecode bytes. The backing memory must not be modified while the bytecode is in use.</param>
+public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMByteCode>
 {
+    private readonly Lazy<PushDataMap> _pushDataMap = new(() => new(byteCode.Span));
+    internal PushDataMap PushDataMap => _pushDataMap.Value;
+
     /// <summary>
     /// The maximum runtime contract length.
     /// </summary>
@@ -33,14 +37,34 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// <summary>
     /// The length of the bytecode.
     /// </summary>
-    public readonly int Length => ByteCode.Length;
+    public int Length => ByteCode.Length;
+
+    /// <inheritdoc/>
+    public bool Equals(EVMByteCode? other)
+        => other is not null && ByteCode.Equals(other.ByteCode);
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj)
+        => obj is EVMByteCode other && Equals(other);
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+        => ByteCode.GetHashCode();
+
+    /// <summary>Checks whether two values refer to the same bytecode memory and slice.</summary>
+    public static bool operator ==(EVMByteCode? left, EVMByteCode? right)
+        => ReferenceEquals(left, right) || (left is not null && left.Equals(right));
+
+    /// <summary>Checks whether two values refer to different bytecode memory or slices.</summary>
+    public static bool operator !=(EVMByteCode? left, EVMByteCode? right)
+        => !(left == right);
 
     /// <summary>
     /// Checks if the given opcode exists in the contract code, ignoring bytes used as PUSH data and compiler metadata.
     /// </summary>
     /// <param name="opcode">The opcode to find.</param>
     /// <returns>True if the opcode appears outside PUSH data; otherwise false.</returns>
-    public readonly bool ContainsOpcode(EvmOpcode opcode)
+    public bool ContainsOpcode(EvmOpcode opcode)
     {
         var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
 
@@ -67,7 +91,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <typeparam name="TFunctionsSection"></typeparam>
     /// <returns></returns>
-    public readonly bool HasFunctions<TFunctionsSection>()
+    public bool HasFunctions<TFunctionsSection>()
         where TFunctionsSection : IFunctionsSection
         => HasFunctions(TFunctionsSection.GetSelectors());
 
@@ -76,7 +100,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <typeparam name="TFunction"></typeparam>
     /// <returns></returns>
-    public readonly bool HasFunction<TFunction>()
+    public bool HasFunction<TFunction>()
         where TFunction : IGeneratedFunction
         => HasFunction(TFunction.SelectorBytes);
 
@@ -85,7 +109,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <param name="selectors"></param>
     /// <returns></returns>
-    public readonly bool HasFunctions(IEnumerable<ReadOnlyMemory<byte>> selectors)
+    public bool HasFunctions(IEnumerable<ReadOnlyMemory<byte>> selectors)
     {
         foreach(var requiredSelector in selectors)
         {
@@ -103,7 +127,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <param name="selector"></param>
     /// <returns></returns>
-    public readonly bool HasFunction(ReadOnlyMemory<byte> selector)
+    public bool HasFunction(ReadOnlyMemory<byte> selector)
     {
         var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
         var normalizedSelector = selector.Span.TrimStart((byte) 0);
@@ -143,7 +167,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <typeparam name="TLogsSection"></typeparam>
     /// <returns></returns>
-    public readonly bool HasEvents<TLogsSection>()
+    public bool HasEvents<TLogsSection>()
         where TLogsSection : ILogsSection
         => HasEvents(TLogsSection.GetTopics());
 
@@ -152,7 +176,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <typeparam name="TLog"></typeparam>
     /// <returns></returns>
-    public readonly bool HasEvent<TLog>()
+    public bool HasEvent<TLog>()
         where TLog : IGeneratedLog
         => HasEvent(TLog.TopicBytes);
 
@@ -161,7 +185,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <param name="topics"></param>
     /// <returns></returns>
-    public readonly bool HasEvents(IEnumerable<ReadOnlyMemory<byte>> topics)
+    public bool HasEvents(IEnumerable<ReadOnlyMemory<byte>> topics)
     {
         foreach(var requiredTopic in topics)
         {
@@ -179,7 +203,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <param name="topic"></param>
     /// <returns></returns>
-    public readonly bool HasEvent(ReadOnlyMemory<byte> topic)
+    public bool HasEvent(ReadOnlyMemory<byte> topic)
     {
         var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
 
@@ -200,7 +224,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <typeparam name="TErrorsSection"></typeparam>
     /// <returns></returns>
-    public readonly bool HasErrors<TErrorsSection>()
+    public bool HasErrors<TErrorsSection>()
         where TErrorsSection : IErrorsSection
         => HasErrors(TErrorsSection.GetSelectors());
 
@@ -209,7 +233,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <typeparam name="TError"></typeparam>
     /// <returns></returns>
-    public readonly bool HasError<TError>()
+    public bool HasError<TError>()
         where TError : ISolidityError<TError>
         => HasError(TError.Selector);
 
@@ -218,7 +242,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <param name="signatures"></param>
     /// <returns></returns>
-    public readonly bool HasErrors(IEnumerable<Bytes4> signatures)
+    public bool HasErrors(IEnumerable<Bytes4> signatures)
     {
         foreach(var requiredSignature in signatures)
         {
@@ -236,7 +260,7 @@ public struct EVMByteCode(ReadOnlyMemory<byte> byteCode)
     /// </summary>
     /// <param name="signature"></param>
     /// <returns></returns>
-    public readonly bool HasError(Bytes4 signature)
+    public bool HasError(Bytes4 signature)
     {
         Span<byte> signatureBytes = stackalloc byte[4];
         signature.CopyTo(signatureBytes);

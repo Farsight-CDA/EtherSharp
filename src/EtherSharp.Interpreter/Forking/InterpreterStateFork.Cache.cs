@@ -1,6 +1,7 @@
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace EtherSharp.Interpreter.Forking;
@@ -79,7 +80,7 @@ public sealed partial class InterpreterStateFork
     /// <param name="value">The cached bytecode when known.</param>
     /// <returns><see langword="true"/> when the bytecode is cached; otherwise, <see langword="false"/>.</returns>
     /// <remarks>The returned value references the cache-owned bytecode buffer.</remarks>
-    public bool TryGetCachedCode(Address address, out EVMByteCode value)
+    public bool TryGetCachedCode(Address address, [MaybeNullWhen(false)] out EVMByteCode value)
     {
         lock(_lock)
         {

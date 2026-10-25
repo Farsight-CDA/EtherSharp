@@ -10,13 +10,13 @@ namespace EtherSharp.Interpreter.Runtime;
 
 internal sealed partial class InterpreterRuntime
 {
-    private async ValueTask<ExecutionResult> ExecuteOpcodesAsync(BytecodeFrame callFrame, ZeroPaddedData code)
+    private async ValueTask<ExecutionResult> ExecuteOpcodesAsync(BytecodeFrame callFrame)
     {
         int programCounter = 0;
 
         while(true)
         {
-            var opcode = (EvmOpcode) code[programCounter];
+            var opcode = (EvmOpcode) callFrame.CodeData[programCounter];
 
             if(_executionState!.Hooks is not null)
             {
@@ -303,7 +303,7 @@ internal sealed partial class InterpreterRuntime
                     break;
                 }
                 case EvmOpcode.CodeSize:
-                    if(!callFrame.Stack.TryPush((UInt256) code.Length))
+                    if(!callFrame.Stack.TryPush((UInt256) callFrame.Code.Length))
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackOverflow);
                     }
@@ -324,7 +324,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
-                    code.CopyTo(sourceOffset, destination);
+                    callFrame.CodeData.CopyTo(sourceOffset, destination);
                     break;
                 }
                 case EvmOpcode.GasPrice:
@@ -599,7 +599,9 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
-                    if(!IsValidJumpDestination(code.Data.Span, destination))
+                    if(destination >= (UInt256) callFrame.Code.Length
+                        || callFrame.Code.ByteCode.Span[(int) destination] != (byte) EvmOpcode.JumpDest
+                        || callFrame.Code.PushDataMap.IsPushData((int) destination))
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidJumpDestination);
                     }
@@ -617,7 +619,9 @@ internal sealed partial class InterpreterRuntime
                     {
                         break;
                     }
-                    if(!IsValidJumpDestination(code.Data.Span, destination))
+                    if(destination >= (UInt256) callFrame.Code.Length
+                        || callFrame.Code.ByteCode.Span[(int) destination] != (byte) EvmOpcode.JumpDest
+                        || callFrame.Code.PushDataMap.IsPushData((int) destination))
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidJumpDestination);
                     }
@@ -696,7 +700,7 @@ internal sealed partial class InterpreterRuntime
                     var value = pushLength == 0
                         ? Bytes32.Zero
                         : (Bytes32) (
-                            (UInt256) code.ReadAtOffset(programCounter + 1)
+                            (UInt256) callFrame.CodeData.ReadAtOffset(programCounter + 1)
                             >> ((Bytes32.BYTE_LENGTH - pushLength) * 8)
                         );
                     if(!callFrame.Stack.TryPush(in value))
@@ -1112,28 +1116,5 @@ internal sealed partial class InterpreterRuntime
 
             programCounter++;
         }
-    }
-
-    private static bool IsValidJumpDestination(ReadOnlySpan<byte> code, UInt256 destination)
-    {
-        if(destination >= (UInt256) code.Length)
-        {
-            return false;
-        }
-
-        for(int programCounter = 0; programCounter <= (int) destination; programCounter++)
-        {
-            if(programCounter == (int) destination)
-            {
-                return code[programCounter] == (byte) EvmOpcode.JumpDest;
-            }
-
-            if(EvmOpcodeUtils.TryGetPushLength(code[programCounter], out int pushLength))
-            {
-                programCounter += pushLength;
-            }
-        }
-
-        return false;
     }
 }

@@ -2,6 +2,7 @@ using EtherSharp.Contract;
 using EtherSharp.Interpreter.Forking;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
+using System.Runtime.CompilerServices;
 
 namespace EtherSharp.Interpreter.Runtime.Storage;
 
@@ -27,6 +28,12 @@ internal readonly struct StateRequest<TValue>(
 
     public bool TryResolve(out TValue value)
     {
+        if(RequestKind == Kind.Default && typeof(TValue) == typeof(EVMByteCode))
+        {
+            var empty = EVMByteCode.Empty;
+            value = Unsafe.As<EVMByteCode, TValue>(ref empty);
+            return true;
+        }
         value = default!;
         return RequestKind == Kind.Default;
     }

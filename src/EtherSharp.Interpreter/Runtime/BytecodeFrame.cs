@@ -9,12 +9,15 @@ namespace EtherSharp.Interpreter.Runtime;
 
 internal sealed class BytecodeFrame(
     CallFrame call,
+    EVMByteCode code,
     InterpreterAccountStorage accountStorage,
     InterpreterResourceLimits resourceLimits,
     InterpreterExecutionSpec executionSpec
 ) : IInterpreterExecution
 {
     public CallFrame Call { get; } = call;
+    public EVMByteCode Code { get; } = code;
+    public ZeroPaddedData CodeData { get; } = new(code.ByteCode);
     public ZeroPaddedData CallData { get; } = new(call.Type is EvmOpcode.Create or EvmOpcode.Create2
         ? ReadOnlyMemory<byte>.Empty
         : call.Input

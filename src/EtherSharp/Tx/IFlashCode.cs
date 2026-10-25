@@ -1,5 +1,6 @@
 using EtherSharp.Contract;
 using System.Buffers.Binary;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EtherSharp.Tx;
 
@@ -15,7 +16,7 @@ public interface IFlashCode
     /// </summary>
     /// <param name="runtimeCode">The runtime code, when available.</param>
     /// <returns>Whether runtime code is available.</returns>
-    public bool TryGetRuntimeCode(out EVMByteCode runtimeCode);
+    public bool TryGetRuntimeCode([MaybeNullWhen(false)] out EVMByteCode runtimeCode);
 
     /// <summary>
     /// Gets the initcode length without generating wrapping initcode.

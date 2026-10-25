@@ -1,5 +1,6 @@
 ﻿using EtherSharp.Contract;
 using EtherSharp.Numerics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EtherSharp.Tx;
 /// <summary>
@@ -12,7 +13,7 @@ public interface IContractDeployment : ITxInput<byte[]>, IFlashCode
     /// </summary>
     public EVMByteCode ByteCode { get; }
 
-    bool IFlashCode.TryGetRuntimeCode(out EVMByteCode runtimeCode)
+    bool IFlashCode.TryGetRuntimeCode([MaybeNullWhen(false)] out EVMByteCode runtimeCode)
     {
         runtimeCode = default;
         return false;
