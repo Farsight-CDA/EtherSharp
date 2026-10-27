@@ -6,6 +6,7 @@ using EtherSharp.Query;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
+using System.Runtime.InteropServices;
 
 namespace EtherSharp.Interpreter.Forking.Providers;
 
@@ -71,12 +72,8 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
         Dictionary<Address, List<HostRequest>> requestsByAddress = [];
         foreach(var request in requests.Span)
         {
-            if(!requestsByAddress.TryGetValue(request.GetAddress(), out var group))
-            {
-                group = [];
-                requestsByAddress.Add(request.GetAddress(), group);
-            }
-            group.Add(request);
+            ref var group = ref CollectionsMarshal.GetValueRefOrAddDefault(requestsByAddress, request.GetAddress(), out _);
+            (group ??= []).Add(request);
         }
 
         List<IQuery<List<InterpreterDataResult>>> batch = [];

@@ -5,6 +5,7 @@ using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
+using System.Runtime.InteropServices;
 
 namespace EtherSharp.Client.Services.FlashCall;
 
@@ -26,7 +27,11 @@ internal sealed class StateOverrideFlashCallExecutor(
             : new Dictionary<Address, AccountOverride>(options.StateOverrides);
 
         var flashCodeOverride = new AccountOverride(balance: UInt256.Zero, nonce: 1, code: runtimeCode.ByteCode);
-        if(stateOverrides.TryGetValue(IQuerier.StateOverride.Address, out var existingOverride))
+        ref var existingOverride = ref CollectionsMarshal.GetValueRefOrAddDefault(
+            stateOverrides, IQuerier.StateOverride.Address, out bool exists
+        );
+
+        if(exists)
         {
             if(existingOverride != flashCodeOverride)
             {
@@ -35,7 +40,7 @@ internal sealed class StateOverrideFlashCallExecutor(
         }
         else
         {
-            stateOverrides.Add(IQuerier.StateOverride.Address, flashCodeOverride);
+            existingOverride = flashCodeOverride;
         }
 
         return _ethRpcModule.CallAsync(

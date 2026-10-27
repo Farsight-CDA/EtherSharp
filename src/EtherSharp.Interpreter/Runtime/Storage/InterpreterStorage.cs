@@ -2,6 +2,7 @@ using EtherSharp.Interpreter.Runtime;
 using EtherSharp.Interpreter.Runtime.Tracing;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
+using System.Runtime.InteropServices;
 
 namespace EtherSharp.Interpreter.Runtime.Storage;
 
@@ -25,13 +26,8 @@ internal sealed partial class InterpreterStorage(
 
     public InterpreterAccountStorage GetAccountStorage(Address address)
     {
-        if(!_accountStorages.TryGetValue(address, out var accountStorage))
-        {
-            accountStorage = new InterpreterAccountStorage(NextRevision);
-            _accountStorages.Add(address, accountStorage);
-        }
-
-        return accountStorage;
+        ref var accountStorage = ref CollectionsMarshal.GetValueRefOrAddDefault(_accountStorages, address, out _);
+        return accountStorage ??= new InterpreterAccountStorage(NextRevision);
     }
 
     private long NextRevision()

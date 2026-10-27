@@ -1,4 +1,5 @@
 using EtherSharp.Types;
+using System.Runtime.InteropServices;
 
 namespace EtherSharp.Query;
 
@@ -31,7 +32,8 @@ internal sealed class QueryPlan(
     {
         var stateOverrides = EnsureStateOverrides();
 
-        if(stateOverrides.TryGetValue(address, out var existingOverride))
+        ref var existingOverride = ref CollectionsMarshal.GetValueRefOrAddDefault(stateOverrides, address, out bool exists);
+        if(exists)
         {
             if(existingOverride != accountOverride)
             {
@@ -41,7 +43,7 @@ internal sealed class QueryPlan(
             return;
         }
 
-        stateOverrides.Add(address, accountOverride);
+        existingOverride = accountOverride;
     }
 
     private Dictionary<Address, AccountOverride> EnsureStateOverrides()

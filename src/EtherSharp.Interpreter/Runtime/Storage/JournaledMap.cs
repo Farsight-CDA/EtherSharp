@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace EtherSharp.Interpreter.Runtime.Storage;
 
 internal sealed class JournaledMap<TKey, TValue>
@@ -15,9 +17,9 @@ internal sealed class JournaledMap<TKey, TValue>
 
     public void Set(long revision, in TKey key, in TValue value)
     {
-        bool hadValue = _values.TryGetValue(key, out var previousValue);
-        _changes.Add(new Change(revision, key, hadValue, previousValue!));
-        _values[key] = value;
+        ref var currentValue = ref CollectionsMarshal.GetValueRefOrAddDefault(_values, key, out bool hadValue);
+        _changes.Add(new Change(revision, key, hadValue, currentValue!));
+        currentValue = value;
     }
 
     public bool TryGetValue(in TKey key, out TValue value)

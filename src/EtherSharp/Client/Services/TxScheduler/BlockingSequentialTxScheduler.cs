@@ -12,6 +12,7 @@ using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Runtime.InteropServices;
 
 namespace EtherSharp.Client.Services.TxScheduler;
 
@@ -127,14 +128,8 @@ public sealed class BlockingSequentialTxScheduler(
                 return Task.CompletedTask;
             }
 
-            if(_nonceGates.TryGetValue(nonceToWaitFor, out var gateTcs))
-            {
-                return gateTcs.Task;
-            }
-
-            gateTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            _nonceGates[nonceToWaitFor] = gateTcs;
-            return gateTcs.Task;
+            ref var gateTcs = ref CollectionsMarshal.GetValueRefOrAddDefault(_nonceGates, nonceToWaitFor, out _);
+            return (gateTcs ??= new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)).Task;
         }
     }
 
