@@ -6,9 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace EtherSharp.Interpreter.Runtime.Storage;
 
-internal sealed partial class InterpreterStorage(
-    IInterpreterHost host
-) : IInterpreterStorage
+internal sealed partial class InterpreterStorage : IInterpreterStorage
 {
     public readonly record struct Snapshot(
         long Revision,
@@ -20,14 +18,22 @@ internal sealed partial class InterpreterStorage(
         ReadOnlyMemory<byte> Data
     );
 
+    private readonly IInterpreterHost _host;
     private readonly Dictionary<Address, InterpreterAccountStorage> _accountStorages = [];
     private readonly List<JournalLog> _logs = [];
+    private readonly Func<long> _nextRevision;
     private long _revision;
+
+    public InterpreterStorage(IInterpreterHost host)
+    {
+        _host = host;
+        _nextRevision = NextRevision;
+    }
 
     public InterpreterAccountStorage GetAccountStorage(Address address)
     {
         ref var accountStorage = ref CollectionsMarshal.GetValueRefOrAddDefault(_accountStorages, address, out _);
-        return accountStorage ??= new InterpreterAccountStorage(NextRevision);
+        return accountStorage ??= new InterpreterAccountStorage(_nextRevision);
     }
 
     private long NextRevision()
