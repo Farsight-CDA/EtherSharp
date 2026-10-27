@@ -1,6 +1,7 @@
 ﻿using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Types.Base;
 using EtherSharp.Types;
+using System.Collections.Immutable;
 
 namespace EtherSharp.ABI.Packed;
 
@@ -53,10 +54,11 @@ public partial class PackedAbiEncoder
     /// <summary>
     /// Encodes a dynamic byte sequence in packed format.
     /// </summary>
+    /// <remarks>The input bytes are copied when added to the encoder.</remarks>
     /// <param name="arr">Bytes to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public PackedAbiEncoder Bytes(ReadOnlyMemory<byte> arr)
-        => AddElement(new AbiTypes.Bytes(arr));
+        => AddElement(new AbiTypes.Bytes(ImmutableArray.Create(arr.Span)));
 
     /// <summary>
     /// Writes the packed payload into a caller-provided buffer.

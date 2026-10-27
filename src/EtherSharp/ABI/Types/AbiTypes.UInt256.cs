@@ -23,7 +23,7 @@ public static partial class AbiTypes
             }
 
             int bitLength = byteLength * 8;
-            if(value.GetShortestBitLength() > bitLength)
+            if(byteLength < 32 && value.GetShortestBitLength() > bitLength)
             {
                 throw new ArgumentException($"Value is too large to fit in a {bitLength}-bit unsigned integer", nameof(value));
             }

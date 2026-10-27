@@ -1,5 +1,6 @@
 ﻿using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
+using System.Collections.Immutable;
 
 namespace EtherSharp.ABI.Types;
 
@@ -9,12 +10,12 @@ public static partial class AbiTypes
     /// Represents a dynamic array of signed 256-bit values.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public sealed class Int256Array : DynamicType<Numerics.Int256[]>
+    public sealed class Int256Array : DynamicType<ImmutableArray<Numerics.Int256>>
     {
         /// <inheritdoc />
         public override int PayloadSize => (32 * Value.Length) + 32;
 
-        internal Int256Array(Numerics.Int256[] value, int bitSize)
+        internal Int256Array(ImmutableArray<Numerics.Int256> value, int bitSize)
             : base(value)
         {
             if(bitSize < 64 || bitSize > 256 || bitSize % 8 != 0)
@@ -22,12 +23,15 @@ public static partial class AbiTypes
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(bitSize));
             }
 
-            for(int i = 0; i < Value.Length; i++)
+            if(bitSize < 256)
             {
-                var entry = Value[i];
-                if(bitSize < 256 && ((entry > 0 && !(entry >> (bitSize - 1)).IsZero) || (entry < 0 && entry >> (bitSize - 1) != -1)))
+                for(int i = 0; i < Value.Length; i++)
                 {
-                    throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit signed integer", nameof(value));
+                    var entry = Value[i];
+                    if((entry > 0 && !(entry >> (bitSize - 1)).IsZero) || (entry < 0 && entry >> (bitSize - 1) != -1))
+                    {
+                        throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit signed integer", nameof(value));
+                    }
                 }
             }
         }

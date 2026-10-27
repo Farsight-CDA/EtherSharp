@@ -1,5 +1,6 @@
 ﻿using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
+using System.Collections.Immutable;
 
 namespace EtherSharp.ABI.Types;
 
@@ -9,7 +10,7 @@ public static partial class AbiTypes
     /// Represents a dynamic ABI <c>bytes</c> value.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public sealed class Bytes : DynamicType<ReadOnlyMemory<byte>>, IPackedEncodeType
+    public sealed class Bytes : DynamicType<ImmutableArray<byte>>, IPackedEncodeType
     {
         /// <inheritdoc />
         public override int PayloadSize => ((Value.Length + 31) / 32 * 32) + 32;
@@ -17,7 +18,7 @@ public static partial class AbiTypes
         /// <inheritdoc />
         public int PackedSize => Value.Length;
 
-        internal Bytes(ReadOnlyMemory<byte> value) : base(value) { }
+        internal Bytes(ImmutableArray<byte> value) : base(value) { }
 
         /// <inheritdoc />
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)
@@ -25,10 +26,10 @@ public static partial class AbiTypes
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
             BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
 
-            Value.Span.CopyTo(payload[32..]);
+            Value.AsSpan().CopyTo(payload[32..]);
         }
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)
-            => Value.Span.CopyTo(buffer);
+            => Value.AsSpan().CopyTo(buffer);
 
         /// <summary>
         /// Decodes a dynamic bytes value.

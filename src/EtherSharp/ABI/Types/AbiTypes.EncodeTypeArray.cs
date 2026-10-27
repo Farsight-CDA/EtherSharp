@@ -1,5 +1,6 @@
 ﻿using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
+using System.Collections.Immutable;
 
 namespace EtherSharp.ABI.Types;
 
@@ -9,7 +10,7 @@ public static partial class AbiTypes
     /// Represents an array of encode types.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public sealed class EncodeTypeArray<TInner> : DynamicType<TInner[]>
+    public sealed class EncodeTypeArray<TInner> : DynamicType<ImmutableArray<TInner>>
         where TInner : IEncodeType
     {
         private readonly int _payloadSize;
@@ -17,7 +18,7 @@ public static partial class AbiTypes
         /// <inheritdoc />
         public override int PayloadSize => _payloadSize;
 
-        internal EncodeTypeArray(TInner[] value) : base(value)
+        internal EncodeTypeArray(ImmutableArray<TInner> value) : base(value)
         {
             int total = 32 + (value.Length * 32);
             foreach(var item in value)

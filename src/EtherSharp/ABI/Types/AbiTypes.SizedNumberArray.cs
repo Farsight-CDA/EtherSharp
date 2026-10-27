@@ -1,7 +1,9 @@
 ﻿using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
+using System.Collections.Immutable;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace EtherSharp.ABI.Types;
 
@@ -11,27 +13,31 @@ public static partial class AbiTypes
     /// Represents a dynamic array of primitive numeric values.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public sealed class SizedNumberArray<TInner> : DynamicType<TInner[]>
+    public sealed class SizedNumberArray<TInner> : DynamicType<ImmutableArray<TInner>>
         where TInner : INumber<TInner>
     {
         /// <inheritdoc />
         public override int PayloadSize => (32 * Value.Length) + 32;
 
-        internal SizedNumberArray(TInner[] value, int length)
+        internal SizedNumberArray(ImmutableArray<TInner> value, int length)
             : base(value)
         {
+            switch(default(TInner))
+            {
+                case byte or sbyte or ushort or short:
+                case uint or int when length == 32:
+                case ulong or long when length == 64:
+                    return;
+            }
+
             for(int i = 0; i < Value.Length; i++)
             {
                 if(Value[i] switch
                 {
-                    byte => false,
-                    sbyte => false,
-                    ushort => false,
-                    short => false,
-                    uint us32 => length != 32 && us32 >> length != 0,
-                    int s32 => length != 32 && ((s32 > 0 && s32 >> (length - 1) != 0) || (s32 < 0 && s32 >> (length - 1) != -1)),
-                    ulong us64 => length != 64 && us64 >> length != 0,
-                    long s64 => length != 64 && ((s64 > 0 && s64 >> (length - 1) != 0) || (s64 < 0 && s64 >> (length - 1) != -1)),
+                    uint us32 => us32 >> length != 0,
+                    int s32 => (s32 > 0 && s32 >> (length - 1) != 0) || (s32 < 0 && s32 >> (length - 1) != -1),
+                    ulong us64 => us64 >> length != 0,
+                    long s64 => (s64 > 0 && s64 >> (length - 1) != 0) || (s64 < 0 && s64 >> (length - 1) != -1),
                     _ => throw new ArgumentException($"Expected primitive number type, got {Value[i].GetType()}")
                 })
                 {
@@ -46,7 +52,7 @@ public static partial class AbiTypes
             BinaryPrimitives.WriteUInt32BigEndian(metadata[28..32], (uint) payloadOffset);
             BinaryPrimitives.WriteUInt32BigEndian(payload[28..32], (uint) Value.Length);
 
-            var value = Value;
+            var value = ImmutableCollectionsMarshal.AsArray(Value)!;
             switch(typeof(TInner))
             {
                 case Type us8 when us8 == typeof(byte):

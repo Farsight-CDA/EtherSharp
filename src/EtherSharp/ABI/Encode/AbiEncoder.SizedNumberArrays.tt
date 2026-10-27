@@ -3,6 +3,7 @@
 #>using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.Numerics;
+using System.Collections.Immutable;
 
 namespace EtherSharp.ABI;
 
@@ -14,7 +15,7 @@ public partial class AbiEncoder
     /// <param name="value">The signed byte array to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Int8Array(params sbyte[] value)
-        => AddElement(new AbiTypes.SizedNumberArray<sbyte>(value, 8));
+        => AddElement(new AbiTypes.SizedNumberArray<sbyte>(ImmutableArray.CreateRange(value), 8));
     void IArrayAbiEncoder.Int8Array(params sbyte[] value)
         => Int8Array(value); 
     IDynamicTupleEncoder IDynamicTupleEncoder.Int8Array(params sbyte[] value)
@@ -26,7 +27,7 @@ public partial class AbiEncoder
     /// <param name="value">The byte array to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder UInt8Array(params byte[] value)
-        => AddElement(new AbiTypes.SizedNumberArray<byte>(value, 8));
+        => AddElement(new AbiTypes.SizedNumberArray<byte>(ImmutableArray.CreateRange(value), 8));
     void IArrayAbiEncoder.UInt8Array(params byte[] value)
         => UInt8Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt8Array(params byte[] value)
@@ -38,7 +39,7 @@ public partial class AbiEncoder
     /// <param name="value">The short array to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Int16Array(params short[] value)
-        => AddElement(new AbiTypes.SizedNumberArray<short>(value, 16));
+        => AddElement(new AbiTypes.SizedNumberArray<short>(ImmutableArray.CreateRange(value), 16));
     void IArrayAbiEncoder.Int16Array(params short[] value)
         => Int16Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int16Array(params short[] value)
@@ -50,7 +51,7 @@ public partial class AbiEncoder
     /// <param name="value">The unsigned short array to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder UInt16Array(params ushort[] value)
-        => AddElement(new AbiTypes.SizedNumberArray<ushort>(value, 16));
+        => AddElement(new AbiTypes.SizedNumberArray<ushort>(ImmutableArray.CreateRange(value), 16));
     void IArrayAbiEncoder.UInt16Array(params ushort[] value)
         => UInt16Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt16Array(params ushort[] value)
@@ -66,7 +67,7 @@ public partial class AbiEncoder
     /// <param name="value">The int array to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Int<#=i#>Array(params int[] value)
-        => AddElement(new AbiTypes.SizedNumberArray<int>(value, <#=i#>));
+        => AddElement(new AbiTypes.SizedNumberArray<int>(ImmutableArray.CreateRange(value), <#=i#>));
     void IArrayAbiEncoder.Int<#=i#>Array(params int[] value)
         => Int<#=i#>Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int<#=i#>Array(params int[] value)
@@ -78,7 +79,7 @@ public partial class AbiEncoder
     /// <param name="value">The uint array to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder UInt<#=i#>Array(params uint[] value)
-        => AddElement(new AbiTypes.SizedNumberArray<uint>(value, <#=i#>));
+        => AddElement(new AbiTypes.SizedNumberArray<uint>(ImmutableArray.CreateRange(value), <#=i#>));
     void IArrayAbiEncoder.UInt<#=i#>Array(params uint[] value)
         => UInt<#=i#>Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt<#=i#>Array(params uint[] value)
@@ -96,7 +97,7 @@ public partial class AbiEncoder
     /// <param name="value">The long array to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Int<#=i#>Array(params long[] value)
-        => AddElement(new AbiTypes.SizedNumberArray<long>(value, <#=i#>));
+        => AddElement(new AbiTypes.SizedNumberArray<long>(ImmutableArray.CreateRange(value), <#=i#>));
     void IArrayAbiEncoder.Int<#=i#>Array(params long[] value)
         => Int<#=i#>Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int<#=i#>Array(params long[] value)
@@ -108,7 +109,7 @@ public partial class AbiEncoder
     /// <param name="value">The ulong array to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder UInt<#=i#>Array(params ulong[] value)
-        => AddElement(new AbiTypes.SizedNumberArray<ulong>(value, <#=i#>));
+        => AddElement(new AbiTypes.SizedNumberArray<ulong>(ImmutableArray.CreateRange(value), <#=i#>));
     void IArrayAbiEncoder.UInt<#=i#>Array(params ulong[] value)
         => UInt<#=i#>Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt<#=i#>Array(params ulong[] value)
@@ -126,7 +127,7 @@ public partial class AbiEncoder
     /// <param name="value">The Int256 array to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Int<#=i#>Array(params Int256[] value)
-        => AddElement(new AbiTypes.Int256Array(value, <#=i#>));
+        => AddElement(new AbiTypes.Int256Array(ImmutableArray.CreateRange(value), <#=i#>));
     void IArrayAbiEncoder.Int<#=i#>Array(params Int256[] value)
         => Int<#=i#>Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Int<#=i#>Array(params Int256[] value)
@@ -138,7 +139,7 @@ public partial class AbiEncoder
     /// <param name="value">The UInt256 array to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder UInt<#=i#>Array(params UInt256[] value)
-        => AddElement(new AbiTypes.UInt256Array(value, <#=i#>));
+        => AddElement(new AbiTypes.UInt256Array(ImmutableArray.CreateRange(value), <#=i#>));
     void IArrayAbiEncoder.UInt<#=i#>Array(params UInt256[] value)
         => UInt<#=i#>Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.UInt<#=i#>Array(params UInt256[] value)

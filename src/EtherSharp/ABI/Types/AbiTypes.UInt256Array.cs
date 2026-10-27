@@ -1,5 +1,6 @@
 ﻿using EtherSharp.ABI.Types.Base;
 using System.Buffers.Binary;
+using System.Collections.Immutable;
 
 namespace EtherSharp.ABI.Types;
 
@@ -9,12 +10,12 @@ public static partial class AbiTypes
     /// Represents a dynamic array of unsigned 256-bit values.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public sealed class UInt256Array : DynamicType<Numerics.UInt256[]>
+    public sealed class UInt256Array : DynamicType<ImmutableArray<Numerics.UInt256>>
     {
         /// <inheritdoc />
         public override int PayloadSize => (32 * Value.Length) + 32;
 
-        internal UInt256Array(Numerics.UInt256[] value, int bitSize)
+        internal UInt256Array(ImmutableArray<Numerics.UInt256> value, int bitSize)
             : base(value)
         {
             if(bitSize < 64 || bitSize > 256 || bitSize % 8 != 0)
@@ -22,13 +23,16 @@ public static partial class AbiTypes
                 throw new ArgumentException("Invalid bit size for fixed type", nameof(bitSize));
             }
 
-            for(int i = 0; i < Value.Length; i++)
+            if(bitSize < 256)
             {
-                var entry = Value[i];
-
-                if(entry.GetShortestBitLength() > bitSize)
+                for(int i = 0; i < Value.Length; i++)
                 {
-                    throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit unsigned integer", nameof(value));
+                    var entry = Value[i];
+
+                    if(entry.GetShortestBitLength() > bitSize)
+                    {
+                        throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit unsigned integer", nameof(value));
+                    }
                 }
             }
         }
@@ -64,7 +68,7 @@ public static partial class AbiTypes
             {
                 var slot = data[(i * 32)..((i * 32) + 32)];
                 var value = UInt256.Decode(slot.Span);
-                if(value.GetShortestBitLength() > bitSize)
+                if(bitSize < 256 && value.GetShortestBitLength() > bitSize)
                 {
                     throw new ArgumentException($"Value is too large to fit in a {bitSize}-bit unsigned integer", nameof(bytes));
                 }

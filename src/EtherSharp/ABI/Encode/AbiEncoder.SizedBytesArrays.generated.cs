@@ -2,6 +2,7 @@
 using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.Types;
+using System.Collections.Immutable;
 
 namespace EtherSharp.ABI;
 
@@ -13,7 +14,7 @@ public partial class AbiEncoder
     /// <param name="value">The array of 1-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes1Array(params Bytes1[] value)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes1>(value));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes1>(ImmutableArray.CreateRange(value)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes1Array(params Bytes1[] value)
         => Bytes1Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes1Array(params Bytes1[] value)
@@ -24,7 +25,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 2-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes2Array(params Bytes2[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes2>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes2>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes2Array(params Bytes2[] values)
         => Bytes2Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes2Array(params Bytes2[] values)
@@ -35,7 +36,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 3-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes3Array(params Bytes3[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes3>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes3>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes3Array(params Bytes3[] values)
         => Bytes3Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes3Array(params Bytes3[] values)
@@ -46,7 +47,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 4-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes4Array(params Bytes4[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes4>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes4>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes4Array(params Bytes4[] values)
         => Bytes4Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes4Array(params Bytes4[] values)
@@ -57,7 +58,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 5-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes5Array(params Bytes5[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes5>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes5>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes5Array(params Bytes5[] values)
         => Bytes5Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes5Array(params Bytes5[] values)
@@ -68,7 +69,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 6-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes6Array(params Bytes6[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes6>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes6>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes6Array(params Bytes6[] values)
         => Bytes6Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes6Array(params Bytes6[] values)
@@ -79,7 +80,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 7-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes7Array(params Bytes7[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes7>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes7>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes7Array(params Bytes7[] values)
         => Bytes7Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes7Array(params Bytes7[] values)
@@ -90,7 +91,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 8-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes8Array(params Bytes8[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes8>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes8>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes8Array(params Bytes8[] values)
         => Bytes8Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes8Array(params Bytes8[] values)
@@ -101,7 +102,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 9-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes9Array(params Bytes9[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes9>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes9>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes9Array(params Bytes9[] values)
         => Bytes9Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes9Array(params Bytes9[] values)
@@ -112,7 +113,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 10-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes10Array(params Bytes10[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes10>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes10>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes10Array(params Bytes10[] values)
         => Bytes10Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes10Array(params Bytes10[] values)
@@ -123,7 +124,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 11-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes11Array(params Bytes11[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes11>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes11>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes11Array(params Bytes11[] values)
         => Bytes11Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes11Array(params Bytes11[] values)
@@ -134,7 +135,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 12-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes12Array(params Bytes12[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes12>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes12>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes12Array(params Bytes12[] values)
         => Bytes12Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes12Array(params Bytes12[] values)
@@ -145,7 +146,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 13-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes13Array(params Bytes13[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes13>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes13>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes13Array(params Bytes13[] values)
         => Bytes13Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes13Array(params Bytes13[] values)
@@ -156,7 +157,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 14-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes14Array(params Bytes14[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes14>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes14>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes14Array(params Bytes14[] values)
         => Bytes14Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes14Array(params Bytes14[] values)
@@ -167,7 +168,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 15-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes15Array(params Bytes15[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes15>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes15>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes15Array(params Bytes15[] values)
         => Bytes15Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes15Array(params Bytes15[] values)
@@ -178,7 +179,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 16-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes16Array(params Bytes16[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes16>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes16>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes16Array(params Bytes16[] values)
         => Bytes16Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes16Array(params Bytes16[] values)
@@ -189,7 +190,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 17-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes17Array(params Bytes17[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes17>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes17>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes17Array(params Bytes17[] values)
         => Bytes17Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes17Array(params Bytes17[] values)
@@ -200,7 +201,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 18-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes18Array(params Bytes18[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes18>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes18>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes18Array(params Bytes18[] values)
         => Bytes18Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes18Array(params Bytes18[] values)
@@ -211,7 +212,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 19-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes19Array(params Bytes19[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes19>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes19>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes19Array(params Bytes19[] values)
         => Bytes19Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes19Array(params Bytes19[] values)
@@ -222,7 +223,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 20-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes20Array(params Bytes20[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes20>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes20>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes20Array(params Bytes20[] values)
         => Bytes20Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes20Array(params Bytes20[] values)
@@ -233,7 +234,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 21-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes21Array(params Bytes21[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes21>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes21>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes21Array(params Bytes21[] values)
         => Bytes21Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes21Array(params Bytes21[] values)
@@ -244,7 +245,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 22-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes22Array(params Bytes22[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes22>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes22>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes22Array(params Bytes22[] values)
         => Bytes22Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes22Array(params Bytes22[] values)
@@ -255,7 +256,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 23-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes23Array(params Bytes23[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes23>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes23>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes23Array(params Bytes23[] values)
         => Bytes23Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes23Array(params Bytes23[] values)
@@ -266,7 +267,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 24-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes24Array(params Bytes24[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes24>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes24>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes24Array(params Bytes24[] values)
         => Bytes24Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes24Array(params Bytes24[] values)
@@ -277,7 +278,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 25-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes25Array(params Bytes25[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes25>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes25>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes25Array(params Bytes25[] values)
         => Bytes25Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes25Array(params Bytes25[] values)
@@ -288,7 +289,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 26-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes26Array(params Bytes26[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes26>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes26>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes26Array(params Bytes26[] values)
         => Bytes26Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes26Array(params Bytes26[] values)
@@ -299,7 +300,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 27-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes27Array(params Bytes27[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes27>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes27>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes27Array(params Bytes27[] values)
         => Bytes27Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes27Array(params Bytes27[] values)
@@ -310,7 +311,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 28-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes28Array(params Bytes28[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes28>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes28>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes28Array(params Bytes28[] values)
         => Bytes28Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes28Array(params Bytes28[] values)
@@ -321,7 +322,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 29-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes29Array(params Bytes29[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes29>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes29>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes29Array(params Bytes29[] values)
         => Bytes29Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes29Array(params Bytes29[] values)
@@ -332,7 +333,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 30-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes30Array(params Bytes30[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes30>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes30>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes30Array(params Bytes30[] values)
         => Bytes30Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes30Array(params Bytes30[] values)
@@ -343,7 +344,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 31-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes31Array(params Bytes31[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes31>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes31>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes31Array(params Bytes31[] values)
         => Bytes31Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes31Array(params Bytes31[] values)
@@ -354,7 +355,7 @@ public partial class AbiEncoder
     /// <param name="values">The array of 32-byte values to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public AbiEncoder Bytes32Array(params Bytes32[] values)
-        => AddElement(new AbiTypes.SizedBytesArray<Bytes32>(values));
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes32>(ImmutableArray.CreateRange(values)));
     IArrayAbiEncoder IArrayAbiEncoder.Bytes32Array(params Bytes32[] values)
         => Bytes32Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes32Array(params Bytes32[] values)

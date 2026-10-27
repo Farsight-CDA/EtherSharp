@@ -1,6 +1,7 @@
 using EtherSharp.ABI.Types.Base;
 using EtherSharp.Types;
 using System.Buffers.Binary;
+using System.Collections.Immutable;
 
 namespace EtherSharp.ABI.Types;
 
@@ -10,13 +11,13 @@ public static partial class AbiTypes
     /// Represents a dynamic array of fixed-size byte arrays.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public sealed class SizedBytesArray<TBytes> : DynamicType<TBytes[]>
+    public sealed class SizedBytesArray<TBytes> : DynamicType<ImmutableArray<TBytes>>
         where TBytes : struct, IFixedBytes<TBytes>
     {
         /// <inheritdoc />
         public override int PayloadSize => (32 * Value.Length) + 32;
 
-        internal SizedBytesArray(TBytes[] values)
+        internal SizedBytesArray(ImmutableArray<TBytes> values)
             : base(values)
         { }
 

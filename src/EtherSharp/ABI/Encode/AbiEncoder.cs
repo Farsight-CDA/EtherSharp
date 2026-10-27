@@ -3,12 +3,18 @@ using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Types.Base;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 
 namespace EtherSharp.ABI;
 
 /// <summary>
 /// Builds standard (non-packed) Ethereum ABI-encoded payloads.
 /// </summary>
+/// <remarks>
+/// Array and byte-sequence inputs are copied when added to the encoder.
+/// Subsequent changes to the input buffers do not affect the encoded payload.
+/// </remarks>
 public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamicTupleEncoder
 {
     private readonly List<IEncodeType> _entries = [];
@@ -80,7 +86,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// <param name="arr">Bytes to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder Bytes(ReadOnlyMemory<byte> arr)
-        => AddElement(new AbiTypes.Bytes(arr));
+        => AddElement(new AbiTypes.Bytes(ImmutableArray.Create(arr.Span)));
 
     /// <summary>
     /// Encodes a dynamic array of booleans.
@@ -88,17 +94,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// <param name="values">Values to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder BoolArray(params ReadOnlySpan<bool> values)
-    {
-        var encoded = new AbiTypes.Bool[values.Length];
-        for(int i = 0; i < values.Length; i++)
-        {
-            encoded[i] = values[i]
-                ? AbiTypes.Bool.True
-                : AbiTypes.Bool.False;
-        }
-
-        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bool>(encoded));
-    }
+        => AddElement(new AbiTypes.BoolArray(ImmutableArray.Create(values)));
 
     /// <summary>
     /// Encodes a dynamic array of addresses.
@@ -106,15 +102,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// <param name="addresses">Addresses to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder AddressArray(params ReadOnlySpan<Address> addresses)
-    {
-        var encoded = new AbiTypes.Address[addresses.Length];
-        for(int i = 0; i < addresses.Length; i++)
-        {
-            encoded[i] = new AbiTypes.Address(addresses[i]);
-        }
-
-        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Address>(encoded));
-    }
+        => AddElement(new AbiTypes.AddressArray(ImmutableArray.Create(addresses)));
 
     /// <summary>
     /// Encodes a dynamic array of strings.
@@ -129,7 +117,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
             encoded[i] = new AbiTypes.String(value[i]);
         }
 
-        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.String>(encoded));
+        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.String>(ImmutableCollectionsMarshal.AsImmutableArray(encoded)));
     }
 
     /// <summary>
@@ -142,10 +130,10 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         var encoded = new AbiTypes.Bytes[value.Length];
         for(int i = 0; i < value.Length; i++)
         {
-            encoded[i] = new AbiTypes.Bytes(value[i]);
+            encoded[i] = new AbiTypes.Bytes(ImmutableArray.Create(value[i].Span));
         }
 
-        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bytes>(encoded));
+        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bytes>(ImmutableCollectionsMarshal.AsImmutableArray(encoded)));
     }
 
     /// <summary>
@@ -250,39 +238,49 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         {
             8 => isUnsigned
                 ? new AbiTypes.SizedNumberArray<byte>(
-                    numbers is byte[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}"),
-                    bitLength)
+                    numbers is byte[] us ? ImmutableArray.CreateRange(us) : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(byte)}"),
+                    bitLength
+                )
                 : new AbiTypes.SizedNumberArray<sbyte>(
-                    numbers is sbyte[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}"),
-                    bitLength),
+                    numbers is sbyte[] s ? ImmutableArray.CreateRange(s) : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(sbyte)}"),
+                    bitLength
+                ),
             16 => isUnsigned
                 ? new AbiTypes.SizedNumberArray<ushort>(
-                    numbers is ushort[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}"),
-                    bitLength)
+                    numbers is ushort[] us ? ImmutableArray.CreateRange(us) : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ushort)}"),
+                    bitLength
+                )
                 : new AbiTypes.SizedNumberArray<short>(
-                    numbers is short[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}"),
-                    bitLength),
+                    numbers is short[] s ? ImmutableArray.CreateRange(s) : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(short)}"),
+                    bitLength
+                ),
             > 16 and <= 32 => isUnsigned
                 ? new AbiTypes.SizedNumberArray<uint>(
-                    numbers is uint[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"),
-                    bitLength)
+                    numbers is uint[] us ? ImmutableArray.CreateRange(us) : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(uint)}"),
+                    bitLength
+                )
                 : new AbiTypes.SizedNumberArray<int>(
-                    numbers is int[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"),
-                    bitLength),
+                    numbers is int[] s ? ImmutableArray.CreateRange(s) : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(int)}"),
+                    bitLength
+                ),
             > 32 and <= 64 => isUnsigned
                 ? new AbiTypes.SizedNumberArray<ulong>(
-                    numbers is ulong[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"),
-                    bitLength)
+                    numbers is ulong[] us ? ImmutableArray.CreateRange(us) : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(ulong)}"),
+                    bitLength
+                )
                 : new AbiTypes.SizedNumberArray<long>(
-                    numbers is long[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"),
-                    bitLength),
+                    numbers is long[] s ? ImmutableArray.CreateRange(s) : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(long)}"),
+                    bitLength
+                ),
             > 64 and <= 256 => isUnsigned
                 ? new AbiTypes.UInt256Array(
-                    numbers is UInt256[] us ? us : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(UInt256)}"),
-                    bitLength)
+                    numbers is UInt256[] us ? ImmutableArray.CreateRange(us) : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(UInt256)}"),
+                    bitLength
+                )
                 : new AbiTypes.Int256Array(
-                    numbers is Int256[] s ? s : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(Int256)}"),
-                    bitLength),
+                    numbers is Int256[] s ? ImmutableArray.CreateRange(s) : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(Int256)}"),
+                    bitLength
+                ),
             _ => throw new NotSupportedException()
         });
     }
