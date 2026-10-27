@@ -56,7 +56,7 @@ public interface IContractCall : ITxInput
     /// <param name="decodeFunc"></param>
     /// <returns></returns>
     public static IContractCall<T> ForRawContractCall<T>(in Address contractAddress, UInt256 value, ReadOnlyMemory<byte> data, Func<ReadOnlyMemory<byte>, T> decodeFunc)
-        => new TxInput<T>(contractAddress, value, data, x => decodeFunc(x));
+        => new TxInput<T>(contractAddress, value, data, decodeFunc);
 
     /// <summary>
     /// Creates an IContractCall for calling the Create2 deployer factory.
