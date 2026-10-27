@@ -303,11 +303,11 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             return;
         }
 
-        foreach(var handler in handlers.GetInvocationList())
+        foreach(var handler in Delegate.EnumerateInvocationList(handlers))
         {
             try
             {
-                ((Action<string, ReadOnlySpan<byte>>) handler)(subscriptionId, payload);
+                handler(subscriptionId, payload);
             }
             catch(Exception ex)
             {
