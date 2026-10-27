@@ -19,8 +19,6 @@ internal sealed class ContractEventSectionWriter(EventTypeWriter eventTypeWriter
             .AddBaseType("EtherSharp.Contract.Sections.ILogsSection", true)
             .AddRawContent("private Logs() {}");
 
-        var distinctEvents = GetDistinctEvents(eventMembers).ToArray();
-
         var eventsModuleBuilder = new StringBuilder();
         eventsModuleBuilder.AppendLine(
             $$"""    
@@ -137,24 +135,5 @@ internal sealed class ContractEventSectionWriter(EventTypeWriter eventTypeWriter
         sectionBuilder.AddRawContent(eventsModuleBuilder.ToString());
         sectionBuilder.AddFunction(getAllTopicsFunction);
         interfaceBuilder.AddInnerType(sectionBuilder);
-    }
-
-    private static IEnumerable<EventAbiMember> GetDistinctEvents(IEnumerable<EventAbiMember> eventMembers)
-    {
-        var mappedMembers = eventMembers
-            .Select(x =>
-            {
-                _ = x.GetEventTopic(out string? eventSignature);
-                return new
-                {
-                    Member = x,
-                    Signature = eventSignature
-                };
-            })
-            .ToArray();
-
-        return mappedMembers
-            .Where(x => x == mappedMembers.First(y => y.Signature == x.Signature))
-            .Select(x => x.Member);
     }
 }
