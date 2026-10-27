@@ -31,13 +31,9 @@ internal sealed class InterpreterAccountStorage(
         _persistentStorage.CopyTo(target._persistentStorage);
         _balance.CopyTo(target._balance);
         _nonce.CopyTo(target._nonce);
+        _code.CopyTo(target._code);
         _codeHash.CopyTo(target._codeHash);
         _present.CopyTo(target._present);
-        if(_code.TryGetValue(out var code))
-        {
-            target._code.Set(0, new EVMByteCode(code.ByteCode.ToArray()));
-            target._code.Commit();
-        }
         if(_persistentStorageReplaced.IsSet)
         {
             target._persistentStorageReplaced.Set(0);
