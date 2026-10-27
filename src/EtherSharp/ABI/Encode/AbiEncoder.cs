@@ -53,7 +53,10 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// <param name="value">Boolean to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder Bool(bool value)
-        => AddElement(new AbiTypes.Bool(value));
+        => AddElement(value
+            ? AbiTypes.Bool.True
+            : AbiTypes.Bool.False
+        );
 
     /// <summary>
     /// Encodes an Ethereum address.
@@ -89,7 +92,9 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         var encoded = new AbiTypes.Bool[values.Length];
         for(int i = 0; i < values.Length; i++)
         {
-            encoded[i] = new AbiTypes.Bool(values[i]);
+            encoded[i] = values[i]
+                ? AbiTypes.Bool.True
+                : AbiTypes.Bool.False;
         }
 
         return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bool>(encoded));

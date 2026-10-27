@@ -29,7 +29,10 @@ public partial class PackedAbiEncoder
     /// <param name="value">Boolean to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public PackedAbiEncoder Bool(bool value)
-        => AddElement(new AbiTypes.Bool(value));
+        => AddElement(value
+            ? AbiTypes.Bool.True
+            : AbiTypes.Bool.False
+        );
 
     /// <summary>
     /// Encodes an Ethereum address in packed format.

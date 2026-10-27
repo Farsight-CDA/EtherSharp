@@ -10,10 +10,20 @@ public static partial class AbiTypes
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class Bool : FixedType<bool>, IPackedEncodeType
     {
+        /// <summary>
+        /// Gets the shared ABI boolean wrapper for <see langword="true"/>.
+        /// </summary>
+        public static Bool True { get; } = new Bool(true);
+
+        /// <summary>
+        /// Gets the shared ABI boolean wrapper for <see langword="false"/>.
+        /// </summary>
+        public static Bool False { get; } = new Bool(false);
+
         /// <inheritdoc />
         public int PackedSize => 1;
 
-        internal Bool(bool value) : base(value) { }
+        private Bool(bool value) : base(value) { }
 
         /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
