@@ -16,7 +16,7 @@ public static partial class AbiTypes
         public override int PayloadSize => (32 * Value.Length) + 32;
 
         internal BoolArray(ImmutableArray<bool> values)
-            : base(values)
+            : base(values.IsDefault ? [] : values)
         { }
 
         /// <inheritdoc />

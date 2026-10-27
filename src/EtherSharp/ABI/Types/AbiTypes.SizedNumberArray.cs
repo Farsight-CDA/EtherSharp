@@ -20,7 +20,7 @@ public static partial class AbiTypes
         public override int PayloadSize => (32 * Value.Length) + 32;
 
         internal SizedNumberArray(ImmutableArray<TInner> value, int length)
-            : base(value)
+            : base(value.IsDefault ? [] : value)
         {
             switch(default(TInner))
             {

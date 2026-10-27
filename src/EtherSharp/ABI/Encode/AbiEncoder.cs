@@ -4,6 +4,7 @@ using EtherSharp.ABI.Types.Base;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace EtherSharp.ABI;
@@ -12,8 +13,9 @@ namespace EtherSharp.ABI;
 /// Builds standard (non-packed) Ethereum ABI-encoded payloads.
 /// </summary>
 /// <remarks>
-/// Array and byte-sequence inputs are copied when added to the encoder.
+/// Mutable array and byte-sequence inputs are copied when added to the encoder.
 /// Subsequent changes to the input buffers do not affect the encoded payload.
+/// Immutable-array overloads reuse their input storage without copying.
 /// </remarks>
 public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamicTupleEncoder
 {
@@ -89,6 +91,15 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         => AddElement(new AbiTypes.Bytes(ImmutableArray.Create(arr.Span)));
 
     /// <summary>
+    /// Encodes immutable bytes without copying their content. A default array is treated as empty.
+    /// </summary>
+    /// <param name="arr">Bytes to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes(ImmutableArray<byte> arr)
+        => AddElement(new AbiTypes.Bytes(arr));
+
+    /// <summary>
     /// Encodes a dynamic array of booleans.
     /// </summary>
     /// <param name="values">Values to encode.</param>
@@ -97,12 +108,30 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         => AddElement(new AbiTypes.BoolArray(ImmutableArray.Create(values)));
 
     /// <summary>
+    /// Encodes immutable booleans without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder BoolArray(ImmutableArray<bool> values)
+        => AddElement(new AbiTypes.BoolArray(values));
+
+    /// <summary>
     /// Encodes a dynamic array of addresses.
     /// </summary>
     /// <param name="addresses">Addresses to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder AddressArray(params ReadOnlySpan<Address> addresses)
         => AddElement(new AbiTypes.AddressArray(ImmutableArray.Create(addresses)));
+
+    /// <summary>
+    /// Encodes immutable addresses without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="addresses">Addresses to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder AddressArray(ImmutableArray<Address> addresses)
+        => AddElement(new AbiTypes.AddressArray(addresses));
 
     /// <summary>
     /// Encodes a dynamic array of strings.
@@ -207,10 +236,16 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     IDynamicTupleEncoder IDynamicTupleEncoder.String(string value)
         => String(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(ReadOnlyMemory<byte> arr)
-            => Bytes(arr);
+        => Bytes(arr);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(ImmutableArray<byte> value)
+        => Bytes(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.BoolArray(params ReadOnlySpan<bool> values)
         => BoolArray(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.BoolArray(ImmutableArray<bool> values)
+        => BoolArray(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.AddressArray(params ReadOnlySpan<Address> addresses)
+        => AddressArray(addresses);
+    IDynamicTupleEncoder IDynamicTupleEncoder.AddressArray(ImmutableArray<Address> addresses)
         => AddressArray(addresses);
     IDynamicTupleEncoder IDynamicTupleEncoder.StringArray(params ReadOnlySpan<string> values)
         => StringArray(values);
@@ -284,6 +319,45 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
             _ => throw new NotSupportedException()
         });
     }
+
+    /// <summary>
+    /// Encodes immutable numeric values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <typeparam name="TNumber">CLR number type matching the requested ABI width.</typeparam>
+    /// <param name="isUnsigned">Whether to encode uintN[] rather than intN[].</param>
+    /// <param name="bitLength">ABI bit width (8..256 in steps of 8).</param>
+    /// <param name="numbers">Values to encode.</param>
+    /// <returns>This encoder instance for fluent chaining.</returns>
+    // Prefer this overload over treating an immutable array as one expanded params element.
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder NumberArray<TNumber>(bool isUnsigned, int bitLength, ImmutableArray<TNumber> numbers)
+        => bitLength % 8 != 0 || bitLength < 8 || bitLength > 256
+        ? throw new ArgumentException("Invalid bitLength", nameof(bitLength))
+        : AddElement(bitLength switch
+        {
+            8 => isUnsigned
+                ? new AbiTypes.SizedNumberArray<byte>(CastImmutableNumbers<TNumber, byte>(numbers, bitLength), bitLength)
+                : new AbiTypes.SizedNumberArray<sbyte>(CastImmutableNumbers<TNumber, sbyte>(numbers, bitLength), bitLength),
+            16 => isUnsigned
+                ? new AbiTypes.SizedNumberArray<ushort>(CastImmutableNumbers<TNumber, ushort>(numbers, bitLength), bitLength)
+                : new AbiTypes.SizedNumberArray<short>(CastImmutableNumbers<TNumber, short>(numbers, bitLength), bitLength),
+            > 16 and <= 32 => isUnsigned
+                ? new AbiTypes.SizedNumberArray<uint>(CastImmutableNumbers<TNumber, uint>(numbers, bitLength), bitLength)
+                : new AbiTypes.SizedNumberArray<int>(CastImmutableNumbers<TNumber, int>(numbers, bitLength), bitLength),
+            > 32 and <= 64 => isUnsigned
+                ? new AbiTypes.SizedNumberArray<ulong>(CastImmutableNumbers<TNumber, ulong>(numbers, bitLength), bitLength)
+                : new AbiTypes.SizedNumberArray<long>(CastImmutableNumbers<TNumber, long>(numbers, bitLength), bitLength),
+            > 64 and <= 256 => isUnsigned
+                ? new AbiTypes.UInt256Array(CastImmutableNumbers<TNumber, UInt256>(numbers, bitLength), bitLength)
+                : new AbiTypes.Int256Array(CastImmutableNumbers<TNumber, Int256>(numbers, bitLength), bitLength),
+            _ => throw new NotSupportedException()
+        });
+
+    private static ImmutableArray<TExpected> CastImmutableNumbers<TNumber, TExpected>(
+        ImmutableArray<TNumber> numbers, int bitLength
+    ) => typeof(TNumber) == typeof(TExpected)
+        ? Unsafe.As<ImmutableArray<TNumber>, ImmutableArray<TExpected>>(ref numbers)
+        : throw new ArgumentException($"Unexpected number type for length {bitLength}, expected {typeof(TExpected)}");
 
     /// <summary>
     /// Writes the encoded payload into a caller-provided buffer.

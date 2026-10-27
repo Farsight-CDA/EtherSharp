@@ -3,6 +3,7 @@ using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Encode.Interfaces;
 using EtherSharp.Types;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 
 namespace EtherSharp.ABI;
 
@@ -19,6 +20,19 @@ public partial class AbiEncoder
         => Bytes1Array(value);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes1Array(params Bytes1[] value)
         => Bytes1Array(value);
+
+    /// <summary>
+    /// Encodes immutable bytes1 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="value">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes1Array(ImmutableArray<Bytes1> value)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes1>(value));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes1Array(ImmutableArray<Bytes1> value)
+        => Bytes1Array(value);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes1Array(ImmutableArray<Bytes1> value)
+        => Bytes1Array(value);
     /// <summary>
     /// Encodes a bytes2 array value.
     /// </summary>
@@ -29,6 +43,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes2Array(params Bytes2[] values)
         => Bytes2Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes2Array(params Bytes2[] values)
+        => Bytes2Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes2 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes2Array(ImmutableArray<Bytes2> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes2>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes2Array(ImmutableArray<Bytes2> values)
+        => Bytes2Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes2Array(ImmutableArray<Bytes2> values)
         => Bytes2Array(values);
     /// <summary>
     /// Encodes a bytes3 array value.
@@ -41,6 +68,19 @@ public partial class AbiEncoder
         => Bytes3Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes3Array(params Bytes3[] values)
         => Bytes3Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes3 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes3Array(ImmutableArray<Bytes3> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes3>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes3Array(ImmutableArray<Bytes3> values)
+        => Bytes3Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes3Array(ImmutableArray<Bytes3> values)
+        => Bytes3Array(values);
     /// <summary>
     /// Encodes a bytes4 array value.
     /// </summary>
@@ -51,6 +91,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes4Array(params Bytes4[] values)
         => Bytes4Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes4Array(params Bytes4[] values)
+        => Bytes4Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes4 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes4Array(ImmutableArray<Bytes4> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes4>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes4Array(ImmutableArray<Bytes4> values)
+        => Bytes4Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes4Array(ImmutableArray<Bytes4> values)
         => Bytes4Array(values);
     /// <summary>
     /// Encodes a bytes5 array value.
@@ -63,6 +116,19 @@ public partial class AbiEncoder
         => Bytes5Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes5Array(params Bytes5[] values)
         => Bytes5Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes5 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes5Array(ImmutableArray<Bytes5> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes5>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes5Array(ImmutableArray<Bytes5> values)
+        => Bytes5Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes5Array(ImmutableArray<Bytes5> values)
+        => Bytes5Array(values);
     /// <summary>
     /// Encodes a bytes6 array value.
     /// </summary>
@@ -73,6 +139,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes6Array(params Bytes6[] values)
         => Bytes6Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes6Array(params Bytes6[] values)
+        => Bytes6Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes6 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes6Array(ImmutableArray<Bytes6> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes6>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes6Array(ImmutableArray<Bytes6> values)
+        => Bytes6Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes6Array(ImmutableArray<Bytes6> values)
         => Bytes6Array(values);
     /// <summary>
     /// Encodes a bytes7 array value.
@@ -85,6 +164,19 @@ public partial class AbiEncoder
         => Bytes7Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes7Array(params Bytes7[] values)
         => Bytes7Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes7 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes7Array(ImmutableArray<Bytes7> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes7>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes7Array(ImmutableArray<Bytes7> values)
+        => Bytes7Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes7Array(ImmutableArray<Bytes7> values)
+        => Bytes7Array(values);
     /// <summary>
     /// Encodes a bytes8 array value.
     /// </summary>
@@ -95,6 +187,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes8Array(params Bytes8[] values)
         => Bytes8Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes8Array(params Bytes8[] values)
+        => Bytes8Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes8 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes8Array(ImmutableArray<Bytes8> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes8>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes8Array(ImmutableArray<Bytes8> values)
+        => Bytes8Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes8Array(ImmutableArray<Bytes8> values)
         => Bytes8Array(values);
     /// <summary>
     /// Encodes a bytes9 array value.
@@ -107,6 +212,19 @@ public partial class AbiEncoder
         => Bytes9Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes9Array(params Bytes9[] values)
         => Bytes9Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes9 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes9Array(ImmutableArray<Bytes9> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes9>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes9Array(ImmutableArray<Bytes9> values)
+        => Bytes9Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes9Array(ImmutableArray<Bytes9> values)
+        => Bytes9Array(values);
     /// <summary>
     /// Encodes a bytes10 array value.
     /// </summary>
@@ -117,6 +235,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes10Array(params Bytes10[] values)
         => Bytes10Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes10Array(params Bytes10[] values)
+        => Bytes10Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes10 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes10Array(ImmutableArray<Bytes10> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes10>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes10Array(ImmutableArray<Bytes10> values)
+        => Bytes10Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes10Array(ImmutableArray<Bytes10> values)
         => Bytes10Array(values);
     /// <summary>
     /// Encodes a bytes11 array value.
@@ -129,6 +260,19 @@ public partial class AbiEncoder
         => Bytes11Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes11Array(params Bytes11[] values)
         => Bytes11Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes11 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes11Array(ImmutableArray<Bytes11> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes11>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes11Array(ImmutableArray<Bytes11> values)
+        => Bytes11Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes11Array(ImmutableArray<Bytes11> values)
+        => Bytes11Array(values);
     /// <summary>
     /// Encodes a bytes12 array value.
     /// </summary>
@@ -139,6 +283,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes12Array(params Bytes12[] values)
         => Bytes12Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes12Array(params Bytes12[] values)
+        => Bytes12Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes12 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes12Array(ImmutableArray<Bytes12> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes12>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes12Array(ImmutableArray<Bytes12> values)
+        => Bytes12Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes12Array(ImmutableArray<Bytes12> values)
         => Bytes12Array(values);
     /// <summary>
     /// Encodes a bytes13 array value.
@@ -151,6 +308,19 @@ public partial class AbiEncoder
         => Bytes13Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes13Array(params Bytes13[] values)
         => Bytes13Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes13 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes13Array(ImmutableArray<Bytes13> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes13>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes13Array(ImmutableArray<Bytes13> values)
+        => Bytes13Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes13Array(ImmutableArray<Bytes13> values)
+        => Bytes13Array(values);
     /// <summary>
     /// Encodes a bytes14 array value.
     /// </summary>
@@ -161,6 +331,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes14Array(params Bytes14[] values)
         => Bytes14Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes14Array(params Bytes14[] values)
+        => Bytes14Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes14 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes14Array(ImmutableArray<Bytes14> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes14>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes14Array(ImmutableArray<Bytes14> values)
+        => Bytes14Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes14Array(ImmutableArray<Bytes14> values)
         => Bytes14Array(values);
     /// <summary>
     /// Encodes a bytes15 array value.
@@ -173,6 +356,19 @@ public partial class AbiEncoder
         => Bytes15Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes15Array(params Bytes15[] values)
         => Bytes15Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes15 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes15Array(ImmutableArray<Bytes15> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes15>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes15Array(ImmutableArray<Bytes15> values)
+        => Bytes15Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes15Array(ImmutableArray<Bytes15> values)
+        => Bytes15Array(values);
     /// <summary>
     /// Encodes a bytes16 array value.
     /// </summary>
@@ -183,6 +379,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes16Array(params Bytes16[] values)
         => Bytes16Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes16Array(params Bytes16[] values)
+        => Bytes16Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes16 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes16Array(ImmutableArray<Bytes16> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes16>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes16Array(ImmutableArray<Bytes16> values)
+        => Bytes16Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes16Array(ImmutableArray<Bytes16> values)
         => Bytes16Array(values);
     /// <summary>
     /// Encodes a bytes17 array value.
@@ -195,6 +404,19 @@ public partial class AbiEncoder
         => Bytes17Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes17Array(params Bytes17[] values)
         => Bytes17Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes17 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes17Array(ImmutableArray<Bytes17> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes17>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes17Array(ImmutableArray<Bytes17> values)
+        => Bytes17Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes17Array(ImmutableArray<Bytes17> values)
+        => Bytes17Array(values);
     /// <summary>
     /// Encodes a bytes18 array value.
     /// </summary>
@@ -205,6 +427,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes18Array(params Bytes18[] values)
         => Bytes18Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes18Array(params Bytes18[] values)
+        => Bytes18Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes18 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes18Array(ImmutableArray<Bytes18> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes18>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes18Array(ImmutableArray<Bytes18> values)
+        => Bytes18Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes18Array(ImmutableArray<Bytes18> values)
         => Bytes18Array(values);
     /// <summary>
     /// Encodes a bytes19 array value.
@@ -217,6 +452,19 @@ public partial class AbiEncoder
         => Bytes19Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes19Array(params Bytes19[] values)
         => Bytes19Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes19 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes19Array(ImmutableArray<Bytes19> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes19>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes19Array(ImmutableArray<Bytes19> values)
+        => Bytes19Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes19Array(ImmutableArray<Bytes19> values)
+        => Bytes19Array(values);
     /// <summary>
     /// Encodes a bytes20 array value.
     /// </summary>
@@ -227,6 +475,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes20Array(params Bytes20[] values)
         => Bytes20Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes20Array(params Bytes20[] values)
+        => Bytes20Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes20 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes20Array(ImmutableArray<Bytes20> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes20>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes20Array(ImmutableArray<Bytes20> values)
+        => Bytes20Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes20Array(ImmutableArray<Bytes20> values)
         => Bytes20Array(values);
     /// <summary>
     /// Encodes a bytes21 array value.
@@ -239,6 +500,19 @@ public partial class AbiEncoder
         => Bytes21Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes21Array(params Bytes21[] values)
         => Bytes21Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes21 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes21Array(ImmutableArray<Bytes21> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes21>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes21Array(ImmutableArray<Bytes21> values)
+        => Bytes21Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes21Array(ImmutableArray<Bytes21> values)
+        => Bytes21Array(values);
     /// <summary>
     /// Encodes a bytes22 array value.
     /// </summary>
@@ -249,6 +523,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes22Array(params Bytes22[] values)
         => Bytes22Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes22Array(params Bytes22[] values)
+        => Bytes22Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes22 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes22Array(ImmutableArray<Bytes22> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes22>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes22Array(ImmutableArray<Bytes22> values)
+        => Bytes22Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes22Array(ImmutableArray<Bytes22> values)
         => Bytes22Array(values);
     /// <summary>
     /// Encodes a bytes23 array value.
@@ -261,6 +548,19 @@ public partial class AbiEncoder
         => Bytes23Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes23Array(params Bytes23[] values)
         => Bytes23Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes23 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes23Array(ImmutableArray<Bytes23> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes23>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes23Array(ImmutableArray<Bytes23> values)
+        => Bytes23Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes23Array(ImmutableArray<Bytes23> values)
+        => Bytes23Array(values);
     /// <summary>
     /// Encodes a bytes24 array value.
     /// </summary>
@@ -271,6 +571,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes24Array(params Bytes24[] values)
         => Bytes24Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes24Array(params Bytes24[] values)
+        => Bytes24Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes24 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes24Array(ImmutableArray<Bytes24> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes24>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes24Array(ImmutableArray<Bytes24> values)
+        => Bytes24Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes24Array(ImmutableArray<Bytes24> values)
         => Bytes24Array(values);
     /// <summary>
     /// Encodes a bytes25 array value.
@@ -283,6 +596,19 @@ public partial class AbiEncoder
         => Bytes25Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes25Array(params Bytes25[] values)
         => Bytes25Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes25 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes25Array(ImmutableArray<Bytes25> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes25>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes25Array(ImmutableArray<Bytes25> values)
+        => Bytes25Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes25Array(ImmutableArray<Bytes25> values)
+        => Bytes25Array(values);
     /// <summary>
     /// Encodes a bytes26 array value.
     /// </summary>
@@ -293,6 +619,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes26Array(params Bytes26[] values)
         => Bytes26Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes26Array(params Bytes26[] values)
+        => Bytes26Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes26 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes26Array(ImmutableArray<Bytes26> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes26>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes26Array(ImmutableArray<Bytes26> values)
+        => Bytes26Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes26Array(ImmutableArray<Bytes26> values)
         => Bytes26Array(values);
     /// <summary>
     /// Encodes a bytes27 array value.
@@ -305,6 +644,19 @@ public partial class AbiEncoder
         => Bytes27Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes27Array(params Bytes27[] values)
         => Bytes27Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes27 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes27Array(ImmutableArray<Bytes27> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes27>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes27Array(ImmutableArray<Bytes27> values)
+        => Bytes27Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes27Array(ImmutableArray<Bytes27> values)
+        => Bytes27Array(values);
     /// <summary>
     /// Encodes a bytes28 array value.
     /// </summary>
@@ -315,6 +667,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes28Array(params Bytes28[] values)
         => Bytes28Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes28Array(params Bytes28[] values)
+        => Bytes28Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes28 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes28Array(ImmutableArray<Bytes28> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes28>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes28Array(ImmutableArray<Bytes28> values)
+        => Bytes28Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes28Array(ImmutableArray<Bytes28> values)
         => Bytes28Array(values);
     /// <summary>
     /// Encodes a bytes29 array value.
@@ -327,6 +692,19 @@ public partial class AbiEncoder
         => Bytes29Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes29Array(params Bytes29[] values)
         => Bytes29Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes29 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes29Array(ImmutableArray<Bytes29> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes29>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes29Array(ImmutableArray<Bytes29> values)
+        => Bytes29Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes29Array(ImmutableArray<Bytes29> values)
+        => Bytes29Array(values);
     /// <summary>
     /// Encodes a bytes30 array value.
     /// </summary>
@@ -338,6 +716,19 @@ public partial class AbiEncoder
         => Bytes30Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes30Array(params Bytes30[] values)
         => Bytes30Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes30 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes30Array(ImmutableArray<Bytes30> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes30>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes30Array(ImmutableArray<Bytes30> values)
+        => Bytes30Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes30Array(ImmutableArray<Bytes30> values)
+        => Bytes30Array(values);
     /// <summary>
     /// Encodes a bytes31 array value.
     /// </summary>
@@ -348,6 +739,19 @@ public partial class AbiEncoder
     IArrayAbiEncoder IArrayAbiEncoder.Bytes31Array(params Bytes31[] values)
         => Bytes31Array(values);
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes31Array(params Bytes31[] values)
+        => Bytes31Array(values);
+
+    /// <summary>
+    /// Encodes immutable bytes31 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes31Array(ImmutableArray<Bytes31> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes31>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes31Array(ImmutableArray<Bytes31> values)
+        => Bytes31Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes31Array(ImmutableArray<Bytes31> values)
         => Bytes31Array(values);
     /// <summary>
     /// Encodes a bytes32 array value.
@@ -361,4 +765,16 @@ public partial class AbiEncoder
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes32Array(params Bytes32[] values)
         => Bytes32Array(values);
 
+    /// <summary>
+    /// Encodes immutable bytes32 values without copying. A default array is treated as empty.
+    /// </summary>
+    /// <param name="values">Values to encode.</param>
+    /// <returns>This encoder instance for method chaining.</returns>
+    [OverloadResolutionPriority(1)]
+    public AbiEncoder Bytes32Array(ImmutableArray<Bytes32> values)
+        => AddElement(new AbiTypes.SizedBytesArray<Bytes32>(values));
+    IArrayAbiEncoder IArrayAbiEncoder.Bytes32Array(ImmutableArray<Bytes32> values)
+        => Bytes32Array(values);
+    IDynamicTupleEncoder IDynamicTupleEncoder.Bytes32Array(ImmutableArray<Bytes32> values)
+        => Bytes32Array(values);
 }

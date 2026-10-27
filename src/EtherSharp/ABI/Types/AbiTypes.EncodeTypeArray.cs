@@ -18,10 +18,10 @@ public static partial class AbiTypes
         /// <inheritdoc />
         public override int PayloadSize => _payloadSize;
 
-        internal EncodeTypeArray(ImmutableArray<TInner> value) : base(value)
+        internal EncodeTypeArray(ImmutableArray<TInner> value) : base(value.IsDefault ? [] : value)
         {
-            int total = 32 + (value.Length * 32);
-            foreach(var item in value)
+            int total = 32 + (Value.Length * 32);
+            foreach(var item in Value)
             {
                 if(item is IDynamicType dynType)
                 {

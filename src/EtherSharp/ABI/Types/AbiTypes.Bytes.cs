@@ -18,7 +18,7 @@ public static partial class AbiTypes
         /// <inheritdoc />
         public int PackedSize => Value.Length;
 
-        internal Bytes(ImmutableArray<byte> value) : base(value) { }
+        internal Bytes(ImmutableArray<byte> value) : base(value.IsDefault ? [] : value) { }
 
         /// <inheritdoc />
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)

@@ -16,7 +16,7 @@ public static partial class AbiTypes
         public override int PayloadSize => (32 * Value.Length) + 32;
 
         internal UInt256Array(ImmutableArray<Numerics.UInt256> value, int bitSize)
-            : base(value)
+            : base(value.IsDefault ? [] : value)
         {
             if(bitSize < 64 || bitSize > 256 || bitSize % 8 != 0)
             {

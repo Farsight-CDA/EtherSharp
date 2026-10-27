@@ -1,4 +1,6 @@
 using EtherSharp.Types;
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 
 namespace EtherSharp.ABI.Encode.Interfaces;
 
@@ -52,6 +54,10 @@ public partial interface IDynamicTupleEncoder
     /// <returns>This encoder instance for method chaining.</returns>
     public IDynamicTupleEncoder Bytes(ReadOnlyMemory<byte> value);
 
+    /// <inheritdoc cref="AbiEncoder.Bytes(ImmutableArray{Byte})" />
+    [OverloadResolutionPriority(1)]
+    public IDynamicTupleEncoder Bytes(ImmutableArray<byte> value);
+
     /// <summary>
     /// Encodes a boolean array.
     /// </summary>
@@ -59,12 +65,20 @@ public partial interface IDynamicTupleEncoder
     /// <returns>This encoder instance for method chaining.</returns>
     public IDynamicTupleEncoder BoolArray(params ReadOnlySpan<bool> values);
 
+    /// <inheritdoc cref="AbiEncoder.BoolArray(ImmutableArray{Boolean})" />
+    [OverloadResolutionPriority(1)]
+    public IDynamicTupleEncoder BoolArray(ImmutableArray<bool> values);
+
     /// <summary>
     /// Encodes an address array.
     /// </summary>
     /// <param name="addresses">The addresses to encode.</param>
     /// <returns>This encoder instance for method chaining.</returns>
     public IDynamicTupleEncoder AddressArray(params ReadOnlySpan<Address> addresses);
+
+    /// <inheritdoc cref="AbiEncoder.AddressArray(ImmutableArray{Address})" />
+    [OverloadResolutionPriority(1)]
+    public IDynamicTupleEncoder AddressArray(ImmutableArray<Address> addresses);
 
     /// <summary>
     /// Encodes a string array.
