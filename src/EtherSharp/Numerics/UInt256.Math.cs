@@ -112,30 +112,8 @@ public readonly partial struct UInt256
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool MultiplyOverflow(in UInt256 a, in UInt256 b, out UInt256 result)
     {
-        // Two factors of at most 128 bits always fit; avoid counting their bits.
-        if((a._u2 | a._u3 | b._u2 | b._u3) == 0)
-        {
-            Multiply(in a, in b, out result);
-            return false;
-        }
-
-        int bitLengthSum = a.GetShortestBitLength() + b.GetShortestBitLength();
-        if(bitLengthSum <= 256)
-        {
-            Multiply(in a, in b, out result);
-            return false;
-        }
-
-        // Nonzero factors have a product bit length of either sum - 1 or sum.
-        if(bitLengthSum > 257)
-        {
-            result = default;
-            return true;
-        }
-
-        Multiply(in a, in b, out result, out var high);
-        // Match the scalar limb stores from the full-width multiplication.
-        return (high._u0 | high._u1 | high._u2 | high._u3) != 0;
+        Unsafe.SkipInit(out result);
+        return CoreUInt256.MultiplyOverflow(AsUpstream(in a), AsUpstream(in b), out Unsafe.As<UInt256, CoreUInt256>(ref result));
     }
 
     /// <summary>

@@ -61,7 +61,8 @@ public sealed class UInt256HexConverter : JsonConverter<UInt256>
             : result;
     }
 
-    private static void WriteCore(Utf8JsonWriter writer, UInt256 value, bool isPropertyName)
+    // Signed values use this same writer after reinterpreting their two's-complement bits.
+    internal static void WriteCore(Utf8JsonWriter writer, UInt256 value, bool isPropertyName)
     {
         Span<char> hexBuffer = stackalloc char[66];
         int charsWritten = FormatHex(value, hexBuffer);

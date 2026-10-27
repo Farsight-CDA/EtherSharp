@@ -433,54 +433,7 @@ public readonly partial struct UInt256 : IStackValue<UInt256>
     /// Converts to a <see cref="Double"/>, rounding to the nearest value with ties rounded to even.
     /// </summary>
     public static explicit operator double(in UInt256 value)
-    {
-        ulong upper;
-        ulong lower;
-        ulong discarded;
-        int offset;
-        if(value._u3 != 0)
-        {
-            upper = value._u3;
-            lower = value._u2;
-            discarded = value._u0 | value._u1;
-            offset = 192;
-        }
-        else if(value._u2 != 0)
-        {
-            upper = value._u2;
-            lower = value._u1;
-            discarded = value._u0;
-            offset = 128;
-        }
-        else if(value._u1 != 0)
-        {
-            upper = value._u1;
-            lower = value._u0;
-            discarded = 0;
-            offset = 64;
-        }
-        else
-        {
-            return value._u0;
-        }
-
-        int left = BitOperations.LeadingZeroCount(upper);
-        ulong leading;
-        if(left == 0)
-        {
-            leading = upper;
-            discarded |= lower;
-        }
-        else
-        {
-            leading = (upper << left) | (lower >> (64 - left));
-            discarded |= lower << left;
-        }
-
-        leading |= discarded != 0 ? 1UL : 0;
-        int shift = offset - left;
-        return leading * BitConverter.UInt64BitsToDouble((ulong) (shift + 1023) << 52);
-    }
+        => CoreUInt256.ToDouble(AsUpstream(in value));
 
     /// <summary>
     /// Converts to a <see cref="Single"/> through <see cref="Double"/>.
@@ -491,12 +444,12 @@ public readonly partial struct UInt256 : IStackValue<UInt256>
         => (float) (double) value;
 
     /// <summary>
-    /// Converts to a <see cref="Half"/> through <see cref="Double"/>.
+    /// Converts to a <see cref="Half"/>, rounding to the nearest value with ties rounded to even.
     /// Values that round beyond the finite range become positive infinity in either context.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator Half(in UInt256 value)
-        => (Half) (double) value;
+        => CoreUInt256.ToHalf(AsUpstream(in value));
 
     /// <summary>
     /// Converts to a <see cref="Decimal"/>.

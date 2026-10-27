@@ -90,9 +90,7 @@ public readonly partial struct UInt256
     /// <exception cref="OverflowException">The sum exceeds <see cref="MaxValue"/>.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator checked +(in UInt256 a, in UInt256 b)
-        => Add(in a, in b, out var result)
-            ? throw new OverflowException()
-            : result;
+        => FromUpstream(checked(AsUpstream(in a) + AsUpstream(in b)));
 
     /// <summary>
     /// Subtracts two values, wrapping modulo 2^256 on underflow.

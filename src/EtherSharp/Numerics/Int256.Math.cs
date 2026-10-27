@@ -184,19 +184,25 @@ public readonly partial struct Int256
         }
 
         // A negative product may have magnitude exactly 2^255, unlike a positive product.
-        int maxBitLengthSum = a.IsNegative != b.IsNegative ? 257 : 256;
+        bool negative = a.IsNegative != b.IsNegative;
+        int maxBitLengthSum = negative ? 257 : 256;
         if(bitLengthSum > maxBitLengthSum)
         {
             result = default;
             return true;
         }
 
-        Multiply(in a, in b, out var low, out var high);
-        result = new Int256(low);
-        var signExtension = result.IsNegative
-            ? UInt256.MaxValue
-            : UInt256.Zero;
-        return high._value != signExtension;
+        if(CoreUInt256.MultiplyOverflow(in aMagnitude._value, in bMagnitude._value, out var magnitude)
+            || (magnitude.u3 >= 0x8000_0000_0000_0000
+                && !(negative && magnitude.u3 == 0x8000_0000_0000_0000 && (magnitude.u0 | magnitude.u1 | magnitude.u2) == 0)))
+        {
+            result = default;
+            return true;
+        }
+
+        var product = new Int256(UInt256.FromUpstream(magnitude));
+        result = negative ? -product : product;
+        return false;
     }
 
     /// <summary>

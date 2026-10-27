@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using CoreUInt256 = Nethermind.Int256.UInt256;
 
 namespace EtherSharp.Numerics;
 
@@ -26,6 +27,14 @@ internal static class IntegerFormatter
         ReadOnlySpan<char> format, IFormatProvider? provider
     ) => TryGetRadixFormat(format, out int shift, out int precision, out bool lowerCase)
         ? TryFormatRadix(in bits, destination, out charsWritten, shift, precision, lowerCase)
+        : TryFormatNonRadix(in bits, isSigned, destination, out charsWritten, format, provider);
+
+    // Keep the radix entry point small enough to inline independently of decimal/custom dispatch.
+    private static bool TryFormatNonRadix(
+        in UInt256 bits, bool isSigned, Span<char> destination, out int charsWritten,
+        ReadOnlySpan<char> format, IFormatProvider? provider
+    ) => IsDecimalFormat(format)
+        ? CoreUInt256.TryFormatCore(UInt256.AsUpstream(in bits), isSigned, destination, out charsWritten, format.IsEmpty ? "D" : format, provider)
         : ToBigInteger(in bits, isSigned).TryFormat(destination, out charsWritten, format, provider);
 
     public static bool TryFormat(
@@ -36,6 +45,12 @@ internal static class IntegerFormatter
         if(TryGetRadixFormat(format, out int shift, out int precision, out bool lowerCase))
         {
             return TryFormatRadix(in bits, destination, out bytesWritten, shift, precision, lowerCase);
+        }
+
+        if(IsDecimalFormat(format))
+        {
+            // D preserves the culture's negative sign; upstream's empty format uses a literal '-'.
+            return CoreUInt256.TryFormatCore(UInt256.AsUpstream(in bits), isSigned, destination, out bytesWritten, format.IsEmpty ? "D" : format, provider);
         }
 
         // BigInteger only formats UTF-16. Most output fits on the stack; longer custom formats
@@ -67,6 +82,12 @@ internal static class IntegerFormatter
 
     private static BigInteger ToBigInteger(in UInt256 bits, bool isSigned)
         => isSigned ? (BigInteger) new Int256(bits) : (BigInteger) bits;
+
+    private static bool IsDecimalFormat(ReadOnlySpan<char> format)
+        => format.IsEmpty
+            || (format[0] is 'D' or 'd'
+                ? !format[1..].ContainsAnyExceptInRange('0', '9')
+                : format.Length == 1 && format[0] is 'G' or 'g');
 
     private static bool TryGetRadixFormat(ReadOnlySpan<char> format, out int shift, out int precision, out bool lowerCase)
     {

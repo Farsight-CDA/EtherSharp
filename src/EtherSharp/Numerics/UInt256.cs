@@ -1,5 +1,4 @@
 using EtherSharp.Common.Converters.Json;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
@@ -90,13 +89,7 @@ public readonly partial struct UInt256
     /// <returns>The number of trailing zero bits, or 256 if the value is zero.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int TrailingZeroCount(in UInt256 value)
-        => value._u0 != 0
-            ? BitOperations.TrailingZeroCount(value._u0)
-            : value._u1 != 0
-                ? 64 + BitOperations.TrailingZeroCount(value._u1)
-                : value._u2 != 0
-                    ? 128 + BitOperations.TrailingZeroCount(value._u2)
-                    : 192 + BitOperations.TrailingZeroCount(value._u3);
+        => CoreUInt256.TrailingZeroCount(AsUpstream(in value));
 
     /// <summary>
     /// Gets the number of significant bits in the current value.

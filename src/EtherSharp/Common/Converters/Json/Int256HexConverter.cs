@@ -1,5 +1,4 @@
 ﻿using EtherSharp.Numerics;
-using System.Buffers.Binary;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -25,11 +24,11 @@ public sealed class Int256HexConverter : JsonConverter<Int256>
 
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, Int256 value, JsonSerializerOptions options)
-        => WriteCore(writer, value, isPropertyName: false);
+        => UInt256HexConverter.WriteCore(writer, unchecked((UInt256) value), isPropertyName: false);
 
     /// <inheritdoc/>
     public override void WriteAsPropertyName(Utf8JsonWriter writer, Int256 value, JsonSerializerOptions options)
-        => WriteCore(writer, value, isPropertyName: true);
+        => UInt256HexConverter.WriteCore(writer, unchecked((UInt256) value), isPropertyName: true);
 
     private static Int256 ReadCore(scoped ref Utf8JsonReader reader, JsonTokenType tokenType)
     {
@@ -59,48 +58,5 @@ public sealed class Int256HexConverter : JsonConverter<Int256>
         return !Int256.TryParseFromHex(sourceBuffer[..charsWritten], out var result)
             ? throw new JsonException($"'{reader.GetString()}' is not a valid hexadecimal {nameof(Int256)} value.")
             : result;
-    }
-
-    private static void WriteCore(Utf8JsonWriter writer, Int256 value, bool isPropertyName)
-    {
-        Span<char> hexBuffer = stackalloc char[66];
-        int charsWritten = FormatHex(value, hexBuffer);
-
-        if(isPropertyName)
-        {
-            writer.WritePropertyName(hexBuffer[..charsWritten]);
-            return;
-        }
-
-        writer.WriteStringValue(hexBuffer[..charsWritten]);
-    }
-
-    private static int FormatHex(Int256 value, scoped Span<char> hexBuffer)
-    {
-        if(value.IsZero)
-        {
-            "0x0".AsSpan().CopyTo(hexBuffer);
-            return 3;
-        }
-
-        Span<byte> byteBuffer = stackalloc byte[32];
-
-        BinaryPrimitives.WriteInt256BigEndian(byteBuffer, value);
-
-        byteBuffer = byteBuffer.TrimStart((byte) 0);
-
-        int dataIndex = byteBuffer[0] < 16 ? 1 : 2;
-        int charCount = (byteBuffer.Length * 2) + dataIndex;
-        var destination = hexBuffer[..charCount];
-
-        if(!Convert.TryToHexString(byteBuffer, destination[dataIndex..], out _))
-        {
-            throw new InvalidOperationException("Failed to convert to hex");
-        }
-
-        destination[0] = '0';
-        destination[1] = 'x';
-
-        return charCount;
     }
 }
