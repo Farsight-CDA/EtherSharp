@@ -5,6 +5,7 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
 
 namespace Nethermind.Int256;
 
@@ -12,19 +13,27 @@ internal readonly partial struct UInt256
 {
     public static bool operator ==(in UInt256 a, int b) => a.Equals(b);
     public static bool operator ==(int a, in UInt256 b) => b.Equals(a);
+    [OverloadResolutionPriority(1)]
     public static bool operator ==(in UInt256 a, uint b) => a.Equals(b);
+    [OverloadResolutionPriority(1)]
     public static bool operator ==(uint a, in UInt256 b) => b.Equals(a);
     public static bool operator ==(in UInt256 a, long b) => a.Equals(b);
     public static bool operator ==(long a, in UInt256 b) => b.Equals(a);
+    [OverloadResolutionPriority(1)]
     public static bool operator ==(in UInt256 a, ulong b) => a.Equals(b);
+    [OverloadResolutionPriority(1)]
     public static bool operator ==(ulong a, in UInt256 b) => b.Equals(a);
     public static bool operator !=(in UInt256 a, int b) => !a.Equals(b);
     public static bool operator !=(int a, in UInt256 b) => !b.Equals(a);
+    [OverloadResolutionPriority(1)]
     public static bool operator !=(in UInt256 a, uint b) => !a.Equals(b);
+    [OverloadResolutionPriority(1)]
     public static bool operator !=(uint a, in UInt256 b) => !b.Equals(a);
     public static bool operator !=(in UInt256 a, long b) => !a.Equals(b);
     public static bool operator !=(long a, in UInt256 b) => !b.Equals(a);
+    [OverloadResolutionPriority(1)]
     public static bool operator !=(in UInt256 a, ulong b) => !a.Equals(b);
+    [OverloadResolutionPriority(1)]
     public static bool operator !=(ulong a, in UInt256 b) => !b.Equals(a);
     public static explicit operator UInt256(sbyte a) =>
         a < 0 ? throw new ArgumentException($"Expected a positive number and got {a}", nameof(a)) : new UInt256((ulong)a);
@@ -58,13 +67,24 @@ internal readonly partial struct UInt256
 
     public static UInt256 operator +(in UInt256 a, in UInt256 b)
     {
-        AddOverflow(in a, in b, out UInt256 res);
+        UInt256 res;
+        // Keep the baseline AVX2 wrapper route; the overflow flag is discarded.
+        if (Avx2.IsSupported && !Avx512F.VL.IsSupported)
+            AddOverflow(in a, in b, out res);
+        else
+            Add(in a, in b, out res);
         return res;
     }
 
     public static UInt256 operator ++(in UInt256 a)
     {
-        AddOverflow(in a, 1, out UInt256 res);
+        UInt256 res;
+        // AVX2 can load One directly; constructing 1 needs scalar stores followed by a vector reload.
+        // Keep the literal on other paths so the JIT can fold their narrow-operand dispatch.
+        if (Avx2.IsSupported)
+            Add(in a, in One, out res);
+        else
+            Add(in a, 1, out res);
         return res;
     }
 
@@ -185,7 +205,7 @@ internal readonly partial struct UInt256
         return c;
     }
 
-    public static bool operator <(in UInt256 a, in UInt256 b) => LessThan(in a, in b);
+    public static bool operator <(in UInt256 a, in UInt256 b) => GreaterThan(in b, in a);
     public static bool operator <(in UInt256 a, int b) => LessThan(in a, b);
     public static bool operator <(int a, in UInt256 b) => LessThan(a, in b);
     public static bool operator <(in UInt256 a, uint b) => LessThan(in a, b);
@@ -194,7 +214,7 @@ internal readonly partial struct UInt256
     public static bool operator <(long a, in UInt256 b) => LessThan(a, in b);
     public static bool operator <(in UInt256 a, ulong b) => LessThan(in a, b);
     public static bool operator <(ulong a, in UInt256 b) => LessThan(a, in b);
-    public static bool operator <=(in UInt256 a, in UInt256 b) => !LessThan(in b, in a);
+    public static bool operator <=(in UInt256 a, in UInt256 b) => GreaterThanOrEqual(in b, in a);
     public static bool operator <=(in UInt256 a, int b) => !LessThan(b, in a);
     public static bool operator <=(int a, in UInt256 b) => !LessThan(in b, a);
     public static bool operator <=(in UInt256 a, uint b) => !LessThan(b, in a);
@@ -203,7 +223,7 @@ internal readonly partial struct UInt256
     public static bool operator <=(long a, in UInt256 b) => !LessThan(in b, a);
     public static bool operator <=(in UInt256 a, ulong b) => !LessThan(b, in a);
     public static bool operator <=(ulong a, UInt256 b) => !LessThan(in b, a);
-    public static bool operator >(in UInt256 a, in UInt256 b) => LessThan(in b, in a);
+    public static bool operator >(in UInt256 a, in UInt256 b) => LessThanOperator(in b, in a);
     public static bool operator >(in UInt256 a, int b) => LessThan(b, in a);
     public static bool operator >(int a, in UInt256 b) => LessThan(in b, a);
     public static bool operator >(in UInt256 a, uint b) => LessThan(b, in a);
@@ -212,7 +232,7 @@ internal readonly partial struct UInt256
     public static bool operator >(long a, in UInt256 b) => LessThan(in b, a);
     public static bool operator >(in UInt256 a, ulong b) => LessThan(b, in a);
     public static bool operator >(ulong a, in UInt256 b) => LessThan(in b, a);
-    public static bool operator >=(in UInt256 a, in UInt256 b) => !LessThan(in a, in b);
+    public static bool operator >=(in UInt256 a, in UInt256 b) => LessThanOrEqual(in b, in a);
     public static bool operator >=(in UInt256 a, int b) => !LessThan(in a, b);
     public static bool operator >=(int a, in UInt256 b) => !LessThan(a, in b);
     public static bool operator >=(in UInt256 a, uint b) => !LessThan(in a, b);
@@ -222,12 +242,14 @@ internal readonly partial struct UInt256
     public static bool operator >=(in UInt256 a, ulong b) => !LessThan(in a, b);
     public static bool operator >=(ulong a, in UInt256 b) => !LessThan(a, in b);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator <<(in UInt256 a, int n)
     {
         a.LeftShift(n, out UInt256 res);
         return res;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator >>(in UInt256 a, int n)
     {
         a.RightShift(n, out UInt256 res);

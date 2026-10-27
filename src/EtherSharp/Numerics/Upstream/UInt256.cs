@@ -18,7 +18,7 @@ using x64 = System.Runtime.Intrinsics.X86;
 
 namespace Nethermind.Int256;
 
-[StructLayout(LayoutKind.Explicit)]
+[StructLayout(LayoutKind.Sequential)]
 internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, IComparable<UInt256>, IInteger<UInt256>, IConvertible
 {
     public const int Len = 4;
@@ -26,17 +26,14 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
     public static readonly UInt256 Zero = 0ul;
     public static readonly UInt256 One = 1ul;
     public static readonly UInt256 MinValue = Zero;
-    public static readonly UInt256 MaxValue = ~Zero;
+    // Spelled out rather than ~Zero: an operator applied to another static keeps ILC from preinitializing the class.
+    public static readonly UInt256 MaxValue = new(ulong.MaxValue, ulong.MaxValue, ulong.MaxValue, ulong.MaxValue);
     public static readonly UInt256 UInt128MaxValue = new(ulong.MaxValue, ulong.MaxValue);
 
     /* in little endian order so u3 is the most significant ulong */
-    [FieldOffset(0)]
     public readonly ulong u0;
-    [FieldOffset(8)]
     public readonly ulong u1;
-    [FieldOffset(16)]
     public readonly ulong u2;
-    [FieldOffset(24)]
     public readonly ulong u3;
 
     public static UInt256 Negate(in UInt256 a)
@@ -72,8 +69,21 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
     /// <param name="a">The first 256-bit addend.</param>
     /// <param name="b">The second 256-bit addend.</param>
     /// <param name="res">On return, contains <c>(a + b) mod 2^256</c>.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Add(in UInt256 a, in UInt256 b, out UInt256 res)
-        => AddOverflow(in a, in b, out res);
+    {
+        if (Avx2.IsSupported)
+        {
+            PrepareAdd(in a, in b, out res, out Vector256<ulong> result, out Vector256<ulong> carryMask,
+                out Vector256<ulong> carryIn, out Vector256<ulong> fullLanes);
+            // Lane 3 has already wrapped in the speculative store; its carry out is discarded.
+            // Only cascades from lanes 1-2 can still change the wrapped result (unlike AddOverflow).
+            if ((Avx.MoveMask((fullLanes & carryIn).AsDouble()) & 0b0110) != 0)
+                FinishAdd(result, carryMask, fullLanes, out res);
+            return;
+        }
+        AddScalar(in a, in b, out res, false);
+    }
 
     /// <summary>
     /// Adds two <see cref="UInt256"/> values and reports whether the addition overflowed.
@@ -96,56 +106,79 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
     {
         if (Avx2.IsSupported)
         {
-            Vector256<ulong> av = Unsafe.BitCast<UInt256, Vector256<ulong>>(a);
-            Vector256<ulong> bv = Unsafe.BitCast<UInt256, Vector256<ulong>>(b);
-
-            Vector256<ulong> result = av + bv;
-            // All bits set in lanes that carried out (carry out of each 64-bit limb).
-            Vector256<ulong> carryMask;
-            Vector256<ulong> carryIn;
-            if (Avx512F.VL.IsSupported)
-            {
-                // Sign bit of (a & b) | (~result & (a | b)) is the carry; one ternary-logic op
-                carryMask = Vector256.ShiftRightArithmetic(Avx512F.VL.TernaryLogic(av, bv, result, 0xD4).AsInt64(), 63).AsUInt64();
-                carryIn = Avx512F.VL.AlignRight64(carryMask, Vector256<ulong>.Zero, 3);
-            }
-            else
-            {
-                carryMask = Vector256.LessThan(result, av);
-                carryIn = Avx2.Blend(Avx2.Permute4x64(carryMask, 0b10_01_00_00).AsUInt32(), Vector256<uint>.Zero, 0b0000_0011).AsUInt64();
-            }
-
-            // res may alias a or b, so the cascade path below must only use registers already loaded.
-            // Storing ahead of the branch measured 25% faster on AVX2-only parts for SubtractImpl.
-            Unsafe.SkipInit(out res);
-            Unsafe.As<UInt256, Vector256<ulong>>(ref res) = result - carryIn;
-
-            // A full limb that receives a carry must pass it on; rare, so it resolves through the lookup
-            Vector256<ulong> fullLanes = Vector256.Equals(result, Vector256<ulong>.AllBitsSet);
+            PrepareAdd(in a, in b, out res, out Vector256<ulong> result, out Vector256<ulong> carryMask,
+                out Vector256<ulong> carryIn, out Vector256<ulong> fullLanes);
             if (!Avx.TestZ(fullLanes, carryIn))
-            {
-                uint carry = (uint)Avx.MoveMask(carryMask.AsDouble());
-                uint cascade = (uint)Avx.MoveMask(fullLanes.AsDouble());
-                // Move carry to next bit and add cascade; carries ripple through consecutive full limbs
-                carry = cascade + 2 * carry;
-                // Keep only the cascades a carry reached
-                cascade ^= carry;
-                cascade &= 0x0f;
-
-                Vector256<ulong> cascadedCarries = Unsafe.Add(ref Unsafe.As<byte, Vector256<ulong>>(ref MemoryMarshal.GetReference(BroadcastLookup)), (nuint)cascade);
-                Unsafe.As<UInt256, Vector256<ulong>>(ref res) = result + cascadedCarries;
-                return (carry & 0b1_0000) != 0;
-            }
-
+                return FinishAdd(result, carryMask, fullLanes, out res);
             return (Avx.MoveMask(carryMask.AsDouble()) & 0b1000) != 0;
         }
-
-        return AddScalar(in a, in b, out res);
+        return AddScalar(in a, in b, out res, true);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool AddScalar(in UInt256 a, in UInt256 b, out UInt256 res)
+    private static void PrepareAdd(in UInt256 a, in UInt256 b, out UInt256 res,
+        out Vector256<ulong> result, out Vector256<ulong> carryMask,
+        out Vector256<ulong> carryIn, out Vector256<ulong> fullLanes)
     {
+        Vector256<ulong> av = Unsafe.BitCast<UInt256, Vector256<ulong>>(a);
+        Vector256<ulong> bv = Unsafe.BitCast<UInt256, Vector256<ulong>>(b);
+
+        result = av + bv;
+        // All bits set in lanes that carried out (carry out of each 64-bit limb).
+        if (Avx512F.VL.IsSupported)
+        {
+            // Sign bit of (a & b) | (~result & (a | b)) is the carry; one ternary-logic op
+            carryMask = Vector256.ShiftRightArithmetic(Avx512F.VL.TernaryLogic(av, bv, result, 0xD4).AsInt64(), 63).AsUInt64();
+            carryIn = Avx512F.VL.AlignRight64(carryMask, Vector256<ulong>.Zero, 3);
+        }
+        else
+        {
+            carryMask = Vector256.LessThan(result, av);
+            carryIn = Avx2.Blend(Avx2.Permute4x64(carryMask, 0b10_01_00_00).AsUInt32(), Vector256<uint>.Zero, 0b0000_0011).AsUInt64();
+        }
+
+        // res may alias a or b, so the cascade path below must only use registers already loaded.
+        // Storing ahead of the branch measured 25% faster on AVX2-only parts for SubtractImpl.
+        Unsafe.SkipInit(out res);
+        Unsafe.As<UInt256, Vector256<ulong>>(ref res) = result - carryIn;
+
+        // A full limb that receives a carry must pass it on; rare, so it resolves through the lookup
+        fullLanes = Vector256.Equals(result, Vector256<ulong>.AllBitsSet);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool FinishAdd(Vector256<ulong> result, Vector256<ulong> carryMask,
+        Vector256<ulong> fullLanes, out UInt256 res)
+    {
+        Unsafe.SkipInit(out res);
+        uint carry = (uint)Avx.MoveMask(carryMask.AsDouble());
+        uint cascade = (uint)Avx.MoveMask(fullLanes.AsDouble());
+        // Move carry to next bit and add cascade; carries ripple through consecutive full limbs
+        carry = cascade + 2 * carry;
+        // Keep only the cascades a carry reached
+        cascade ^= carry;
+        cascade &= 0x0f;
+
+        Vector256<ulong> cascadedCarries = Unsafe.Add(ref Unsafe.As<byte, Vector256<ulong>>(ref MemoryMarshal.GetReference(BroadcastLookup)), (nuint)cascade);
+        Unsafe.As<UInt256, Vector256<ulong>>(ref res) = result + cascadedCarries;
+        return (carry & 0b1_0000) != 0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool AddScalar(in UInt256 a, in UInt256 b, out UInt256 res, bool detectOverflow)
+    {
+        if (AdvSimd.IsSupported)
+        {
+            ref readonly UInt256 large = ref a;
+            ulong small = b.u0;
+            if ((b.u1 | b.u2 | b.u3) != 0)
+            {
+                if ((a.u1 | a.u2 | a.u3) != 0) return AddVector128(in a, in b, out res, detectOverflow);
+                large = ref b;
+                small = a.u0;
+            }
+            return AddScalarUInt64(in large, small, out res);
+        }
         ulong b0 = b.u0;
         if ((b.u1 | b.u2 | b.u3) == 0)
         {
@@ -159,9 +192,9 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
             return AddScalarUInt64(in b, a0, out res);
         }
 
-        if (AdvSimd.IsSupported || Sse42.IsSupported)
+        if (Sse42.IsSupported)
         {
-            return AddVector128(in a, in b, out res);
+            return AddVector128(in a, in b, out res, detectOverflow);
         }
 
         // Loads stay next to their use: the one-limb paths above share this method's prolog
@@ -176,7 +209,7 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
 
     // Same speculation as the 256-bit path on two 128-bit halves; 16-byte stores forward to the NEON readers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool AddVector128(in UInt256 a, in UInt256 b, out UInt256 res)
+    private static bool AddVector128(in UInt256 a, in UInt256 b, out UInt256 res, bool detectOverflow)
     {
         ref Vector128<ulong> aRef = ref Unsafe.As<UInt256, Vector128<ulong>>(ref Unsafe.AsRef(in a));
         ref Vector128<ulong> bRef = ref Unsafe.As<UInt256, Vector128<ulong>>(ref Unsafe.AsRef(in b));
@@ -210,11 +243,42 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         // the JIT parks the vector values in callee-saved registers and the shared prolog pays for it
         Vector128<ulong> sumLo = resultLo - carryInLo;
         Vector128<ulong> sumHi = resultHi - carryInHi;
-        Vector128<ulong> propagate = (Vector128.Equals(sumLo, Vector128<ulong>.Zero) & carryInLo)
-                                   | (Vector128.Equals(sumHi, Vector128<ulong>.Zero) & carryInHi);
+        Unsafe.SkipInit(out res);
+        // ARM repairs carries using the loaded vectors, so early stores are safe even with aliased inputs.
+        if (AdvSimd.IsSupported)
+        {
+            ref Vector128<ulong> earlyResult = ref Unsafe.As<UInt256, Vector128<ulong>>(ref res);
+            earlyResult = sumLo;
+            Unsafe.Add(ref earlyResult, 1) = sumHi;
+        }
+
+        Vector128<ulong> propagatedLo = Vector128.Equals(sumLo, Vector128<ulong>.Zero) & carryInLo;
+        Vector128<ulong> propagatedHi = Vector128.Equals(sumHi, Vector128<ulong>.Zero) & carryInHi;
+        // Void ARM Add drops propagatedHi[1]: the early store already wrapped limb 3,
+        // and its carry out is discarded. This is the same restriction as the AVX 0b0110 mask.
+        Vector128<ulong> propagate = AdvSimd.IsSupported && !detectOverflow
+            ? AdvSimd.ExtractVector128(propagatedLo, propagatedHi, 1)
+            : propagatedLo | propagatedHi;
         if (!Vector128.EqualsAll(propagate, Vector128<ulong>.Zero))
         {
-            // Nothing has been stored yet, so a and b are intact even when res aliases one of them
+            if (AdvSimd.IsSupported)
+            {
+                // The low half is complete. Repair the remaining two carry hops in the high half.
+                Vector128<ulong> secondHi = detectOverflow
+                    ? AdvSimd.ExtractVector128(propagatedLo, propagatedHi, 1)
+                    : propagate;
+                Vector128<ulong> fullHi = Vector128.Equals(sumHi, Vector128<ulong>.AllBitsSet);
+                Vector128<ulong> thirdHi = AdvSimd.ExtractVector128(Vector128<ulong>.Zero, fullHi & secondHi, 1);
+                Vector128<ulong> extra = secondHi | thirdHi;
+                carryHi |= propagatedHi | (fullHi & extra);
+                sumHi -= extra;
+                ref Vector128<ulong> resultRef = ref Unsafe.As<UInt256, Vector128<ulong>>(ref res);
+                Unsafe.Add(ref resultRef, 1) = sumHi;
+                return carryHi.GetElement(1) != 0;
+            }
+
+            // Only the non-ARM path reaches this fallback: the early store is guarded by AdvSimd.
+            // No non-ARM store has occurred, so a and b remain intact when res aliases either input.
             ulong carry = 0;
             AddWithCarry(a.u0, b.u0, ref carry, out ulong r0);
             AddWithCarry(a.u1, b.u1, ref carry, out ulong r1);
@@ -224,10 +288,12 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
             return carry != 0;
         }
 
-        Unsafe.SkipInit(out res);
-        ref Vector128<ulong> resRef = ref Unsafe.As<UInt256, Vector128<ulong>>(ref res);
-        resRef = sumLo;
-        Unsafe.Add(ref resRef, 1) = sumHi;
+        if (!AdvSimd.IsSupported)
+        {
+            ref Vector128<ulong> resRef = ref Unsafe.As<UInt256, Vector128<ulong>>(ref res);
+            resRef = sumLo;
+            Unsafe.Add(ref resRef, 1) = sumHi;
+        }
         return carryHi.GetElement(1) != 0;
     }
 
@@ -236,6 +302,15 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
     private static bool AddScalarUInt64(in UInt256 a, ulong b0, out UInt256 res)
     {
         ulong a0 = a.u0, a1 = a.u1, a2 = a.u2, a3 = a.u3;
+        if (AdvSimd.IsSupported)
+        {
+            ulong low = a0 + b0;
+            bool overflow = false;
+            // Short-circuit each increment: higher limbs change only while the carry keeps rippling.
+            if (low < a0 && ++a1 == 0 && ++a2 == 0) overflow = ++a3 == 0;
+            StoreLimbs(out res, low, a1, a2, a3);
+            return overflow;
+        }
         ulong r0 = a0 + b0;
         if (r0 >= a0)
         {
@@ -272,7 +347,14 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
     /// </remarks>
     /// <param name="a">The other 256-bit addend.</param>
     /// <param name="res">On return, contains <c>(this + a) mod 2^256</c>.</param>
-    public void Add(in UInt256 a, out UInt256 res) => AddOverflow(this, a, out res);
+    public void Add(in UInt256 a, out UInt256 res)
+    {
+        // Keep the measured AVX2 wrapper route; the overflow flag is discarded.
+        if (Avx2.IsSupported && !Avx512F.VL.IsSupported)
+            AddOverflow(this, a, out res);
+        else
+            Add(this, a, out res);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddWithCarry(ulong x, ulong y, ref ulong carry, out ulong sum)
@@ -301,12 +383,17 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
     }
 
     // Subtract sets res to the difference a-b
+    // Inlines with no call left on any path, like Add. Left to its size heuristics the JIT keeps SubtractImpl
+    // out of line unless PGO finds the call hot, and RyuJIT does not shrink-wrap: one call left in a hot caller
+    // (an EVM opcode handler) makes it save and restore callee-saved registers on every execution.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Subtract(in UInt256 a, in UInt256 b, out UInt256 res)
     {
         SubtractImpl(in a, in b, out res);
     }
 
     // Subtract sets res to the difference a-b and returns true if the operation underflowed
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool SubtractImpl(in UInt256 a, in UInt256 b, out UInt256 res)
     {
         if (Avx2.IsSupported)
@@ -326,8 +413,9 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
             }
             else
             {
-                borrowMask = Vector256.GreaterThan(result, av);
-                borrowIn = Avx2.Blend(Avx2.Permute4x64(borrowMask, 0b10_01_00_00).AsUInt32(), Vector256<uint>.Zero, 0b0000_0011).AsUInt64();
+                // Form borrows independently of result to shorten the dependency chain.
+                borrowMask = Vector256.LessThan(av, bv);
+                borrowIn = Avx2.Permute4x64(borrowMask, 0b10_01_00_00) & Vector256.Create(0UL, ulong.MaxValue, ulong.MaxValue, ulong.MaxValue);
             }
 
             // res may alias a or b, so the cascade path below must only use registers already loaded.
@@ -336,7 +424,7 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
             Unsafe.As<UInt256, Vector256<ulong>>(ref res) = result + borrowIn;
 
             // A zero limb that receives a borrow must pass it on; rare, so it resolves through the lookup
-            Vector256<ulong> zeroLanes = Vector256.Equals(result, Vector256<ulong>.Zero);
+            Vector256<ulong> zeroLanes = Vector256.Equals(av, bv);
             if (!Avx.TestZ(zeroLanes, borrowIn))
             {
                 uint borrow = (uint)Avx.MoveMask(borrowMask.AsDouble());
@@ -349,7 +437,9 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
 
                 Vector256<ulong> cascadedBorrows = Unsafe.Add(ref Unsafe.As<byte, Vector256<ulong>>(ref MemoryMarshal.GetReference(BroadcastLookup)), (nuint)cascade);
                 Unsafe.As<UInt256, Vector256<ulong>>(ref res) = result - cascadedBorrows;
-                return (borrow & 0b1_0000) != 0;
+                return Bmi1.IsSupported
+                    ? Unsafe.BitCast<byte, bool>((byte)Bmi1.BitFieldExtract(borrow, 4, 1))
+                    : (borrow & 0b1_0000) != 0;
             }
 
             return (Avx.MoveMask(borrowMask.AsDouble()) & 0b1000) != 0;
@@ -478,14 +568,11 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         Unsafe.AsRef(in res.u3) = r3;
     }
 
-    // Borrow out is (a < b) | ((a == b) & borrowIn); both compares are off the carry chain
+    // Borrow out is (a < b) | ((a == b) & borrowIn).
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SubtractWithBorrow(ulong a, ulong b, ref ulong borrow, out ulong res)
-    {
-        res = a - b - borrow;
-        borrow = (a < b ? 1UL : 0UL) | (borrow & (a == b ? 1UL : 0UL));
-    }
+    private static partial void SubtractWithBorrow(ulong a, ulong b, ref ulong borrow, out ulong res);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Subtract(in UInt256 b, out UInt256 res) => Subtract(this, b, out res);
 
     public static void SubtractMod(in UInt256 a, in UInt256 b, in UInt256 m, out UInt256 res)
@@ -510,10 +597,8 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
     public void SubtractMod(in UInt256 a, in UInt256 m, out UInt256 res) => SubtractMod(this, a, m, out res);
 
     // SubtractUnderflow sets res to the difference a-b and returns true if the operation underflowed
-    public static bool SubtractUnderflow(in UInt256 a, in UInt256 b, out UInt256 res)
-    {
-        return SubtractImpl(a, b, out res);
-    }
+    [MethodImpl(SubtractUnderflowInlining)]
+    public static partial bool SubtractUnderflow(in UInt256 a, in UInt256 b, out UInt256 res);
 
     /// <summary>
     /// Multiplies two 256‑bit unsigned integers (<paramref name="x"/> and <paramref name="y"/>) and
@@ -564,7 +649,7 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
             MultiplyLimbs2x4(in y, in x, out res);
             return;
         }
-        MultiplyLimbs4x4(in x, in y, out res);
+        MultiplyLimbs4x4<DirectOperands>(in x, in y, out res);
     }
 
     // A Vector256 reader cannot store-forward from limb stores, so write the result as one 32-byte store where possible.
@@ -676,9 +761,17 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         StoreProduct(out res, r0, r1, r2, r3);
     }
 
+    /// <summary>Selects the public operators' variant of <see cref="MultiplyLimbs4x4{TOperands}"/>.</summary>
+    private struct DirectOperands;
+
+    /// <summary>Selects generic math's variant of <see cref="MultiplyLimbs4x4{TOperands}"/>; see <c>UInt256.numerics.cs</c>.</summary>
+    private struct ValueOperands;
+
+    // ValueOperands takes the scalar top limb, so by-value operands are read as limbs only. A type argument rather than
+    // a bool: without AVX2 the JIT keeps this kernel out of line, where a bool would cost the direct path an argument.
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void MultiplyLimbs4x4(in UInt256 x, in UInt256 y, out UInt256 res)
+    private static void MultiplyLimbs4x4<TOperands>(in UInt256 x, in UInt256 y, out UInt256 res) where TOperands : struct
     {
         ulong x0 = x.u0;
         ulong y0 = y.u0;
@@ -688,7 +781,23 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         ulong y2 = y.u2;
 
         // The top limb only needs low halves; taking them first retires x3 and y3 before the carry columns start.
-        ulong r3 = x0 * y.u3 + x1 * y2 + x2 * y1 + x.u3 * y0;
+        ulong r3;
+        if (Avx512DQ.VL.IsSupported && typeof(TOperands) == typeof(DirectOperands))
+        {
+            Vector256<ulong> xv = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in x));
+            Vector256<ulong> yv = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in y));
+            r3 = Vector256.Sum(Avx512DQ.VL.MultiplyLow(xv, Avx2.Permute4x64(yv, 0x1B)));
+        }
+        else if (Avx2.IsSupported && typeof(TOperands) == typeof(DirectOperands))
+        {
+            Vector256<ulong> xv = Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in x));
+            Vector256<ulong> yv = Avx2.Permute4x64(Unsafe.As<UInt256, Vector256<ulong>>(ref Unsafe.AsRef(in y)), 0x1B);
+            Vector256<ulong> cross = Avx2.Add(
+                Avx2.Multiply(xv.AsUInt32(), Avx2.ShiftRightLogical(yv, 32).AsUInt32()),
+                Avx2.Multiply(Avx2.ShiftRightLogical(xv, 32).AsUInt32(), yv.AsUInt32()));
+            r3 = Vector256.Sum(Avx2.Add(Avx2.Multiply(xv.AsUInt32(), yv.AsUInt32()), Avx2.ShiftLeftLogical(cross, 32)));
+        }
+        else r3 = x0 * y.u3 + x1 * y2 + x2 * y1 + x.u3 * y0;
 
         ulong h00 = Multiply64(x0, y0, out ulong r0);
         ulong h01 = Multiply64(x0, y1, out ulong l01);
@@ -747,12 +856,113 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
     public void Multiply(in UInt256 a, out UInt256 res) => Multiply(this, a, out res);
 
     [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool MultiplyOverflow(in UInt256 x, in UInt256 y, out UInt256 res)
     {
-        Multiply256To512Bit(x, y, out res, out UInt256 high);
-        // Scalar test: a vector IsZero load here would span the four scalar limb stores
-        // the multiply just made and defeat store forwarding.
-        return (high.u0 | high.u1 | high.u2 | high.u3) != 0;
+        ulong xTop = x.u2 | x.u3;
+        ulong yTop = y.u2 | y.u3;
+        if ((xTop | yTop) == 0)
+        {
+            if ((x.u1 | y.u1) == 0)
+            {
+                ulong high = Multiply64(x.u0, y.u0, out ulong low);
+                StoreProduct(out res, low, high, 0, 0);
+            }
+            else if (x.u1 == 0) MultiplyLimbs2x1(in y, x.u0, out res);
+            else if (y.u1 == 0) MultiplyLimbs2x1(in x, y.u0, out res);
+            else MultiplyLimbs2x2(in x, in y, out res);
+            return false;
+        }
+        if ((y.u1 | yTop) == 0) return MultiplyOverflowByUInt64(in x, y.u0, out res);
+        if ((x.u1 | xTop) == 0) return MultiplyOverflowByUInt64(in y, x.u0, out res);
+        if (xTop == 0)
+        {
+            if (y.u3 == 0)
+            {
+                return MultiplyOverflow2x3(in x, in y, out res);
+            }
+            MultiplyLimbs2x4(in x, in y, out res);
+        }
+        else if (yTop == 0)
+        {
+            if (x.u3 == 0)
+            {
+                return MultiplyOverflow2x3(in y, in x, out res);
+            }
+            MultiplyLimbs2x4(in y, in x, out res);
+        }
+        else MultiplyLimbs4x4<DirectOperands>(in x, in y, out res);
+        return true;
+    }
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void MultiplyLimbs2x1(in UInt256 x, ulong y, out UInt256 res)
+    {
+        ulong carry = Multiply64(y, x.u0, out ulong r0);
+        ulong high = Multiply64(y, x.u1, out ulong low);
+        ulong r1 = low + carry;
+        StoreProduct(out res, r0, r1, high + (r1 < low ? 1UL : 0UL), 0);
+    }
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool MultiplyOverflowByUInt64(in UInt256 x, ulong y, out UInt256 res)
+    {
+        if (!Bmi2.X64.IsSupported && !ArmBase.Arm64.IsSupported && x.u3 == 0)
+        {
+            MultiplyByUInt64(in x, y, out res);
+            return false;
+        }
+        ulong carry = Multiply64(y, x.u0, out ulong r0);
+        ulong high = Multiply64(y, x.u1, out ulong low);
+        ulong r1 = low + carry;
+        carry = high + (r1 < low ? 1UL : 0UL);
+        high = Multiply64(y, x.u2, out low);
+        ulong r2 = low + carry;
+        carry = high + (r2 < low ? 1UL : 0UL);
+        high = Multiply64(y, x.u3, out low);
+        ulong r3 = low + carry;
+        bool overflow = high != 0 || r3 < low;
+        StoreProduct(out res, r0, r1, r2, r3);
+        return overflow;
+    }
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool MultiplyOverflow2x3(in UInt256 x, in UInt256 y, out UInt256 res)
+    {
+        ulong x0 = x.u0, x1 = x.u1;
+        ulong y0 = y.u0, y1 = y.u1, y2 = y.u2;
+        ulong h00 = Multiply64(x0, y0, out ulong r0);
+        ulong h01 = Multiply64(x0, y1, out ulong l01);
+        ulong h10 = Multiply64(x1, y0, out ulong l10);
+        ulong carry = 0;
+        ulong r1 = AddAndCountCarry(h00, l01, ref carry);
+        r1 = AddAndCountCarry(r1, l10, ref carry);
+        ulong r2 = carry;
+        carry = 0;
+        r2 = AddAndCountCarry(r2, h01, ref carry);
+        r2 = AddAndCountCarry(r2, h10, ref carry);
+        ulong h02 = Multiply64(x0, y2, out ulong l02);
+        r2 = AddAndCountCarry(r2, l02, ref carry);
+        ulong h11 = Multiply64(x1, y1, out ulong l11);
+        r2 = AddAndCountCarry(r2, l11, ref carry);
+        // A shared bit i >= 32 gives x >= 2^(i+64) and y >= 2^(i+128),
+        // hence x*y >= 2^(2*i+192) >= 2^256; no exact high product is needed.
+        if (((x1 & y2) >> 32) != 0)
+        {
+            StoreProduct(out res, r0, r1, r2, carry + h02 + h11 + x1 * y2);
+            return true;
+        }
+        ulong r3 = carry;
+        carry = 0;
+        r3 = AddAndCountCarry(r3, h02, ref carry);
+        r3 = AddAndCountCarry(r3, h11, ref carry);
+        ulong h12 = Multiply64(x1, y2, out ulong l12);
+        r3 = AddAndCountCarry(r3, l12, ref carry);
+        StoreProduct(out res, r0, r1, r2, r3);
+        return (h12 | carry) != 0;
     }
 
     public int BitLen =>
@@ -776,7 +986,7 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         ref ulong pr = ref Unsafe.As<UInt256, ulong>(ref result);
 
         // Column 0
-        ulong a0 = Multiply64(x0, x0, out pr);
+        ulong a0 = Square64(x0, out pr);
 
         // Column 1: 2*x0*x1
         ulong a1 = 0;
@@ -791,7 +1001,10 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         a1 = a2;
         a2 = 0;
         MultiplyAddCarryDouble(ref a0, ref a1, ref a2, x0, x2);
-        MultiplyAddCarry(ref a0, ref a1, ref a2, x1, x1);
+        ulong high = Square64(x1, out ulong low);
+        ulong carry = 0;
+        a0 = AddAndCountCarry(a0, low, ref carry);
+        a1 += high + carry;
         Unsafe.Add(ref pr, 2) = a0;
 
         // For r3 we only need the low 64 of the incoming carry, which is a1 here.
@@ -831,39 +1044,124 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         a2 += c1 + extra;
     }
 
+    [SkipLocalsInit]
     public static void Exp(in UInt256 b, in UInt256 e, out UInt256 result)
     {
-        int bitLen = e.BitLen;
-        if (bitLen == 0)
+        // Keep this scan local: FullOpts otherwise leaves a BitLen call on every short path.
+        int bitLen = e.u3 != 0 ? 256 - BitOperations.LeadingZeroCount(e.u3)
+            : e.u2 != 0 ? 192 - BitOperations.LeadingZeroCount(e.u2)
+            : e.u1 != 0 ? 128 - BitOperations.LeadingZeroCount(e.u1)
+            : 64 - BitOperations.LeadingZeroCount(e.u0);
+        if (bitLen <= 1)
         {
-            result = One;
+            result = bitLen == 0 ? One : b;
             return;
         }
         if (b.IsUint64)
         {
-            if (b.IsZero)
+            // The build-time choice leaves exactly one lookup in either binary.
+            if (ExpPreferDecimalLookup && b.u0 == 10 && bitLen <= 7 && e.u0 < 78)
+            {
+                result = MemoryMarshal.Cast<ulong, UInt256>(PowersOfTen)[(int)e.u0];
+                return;
+            }
+            if (b.u0 == 0)
             {
                 result = default;
                 return;
             }
-            if (b.IsOne)
+            if (b.u0 == 1)
             {
                 result = One;
+                return;
+            }
+            if (!ExpPreferDecimalLookup && b.u0 == 10 && bitLen <= 7 && e.u0 < 78)
+            {
+                result = MemoryMarshal.Cast<ulong, UInt256>(PowersOfTen)[(int)e.u0];
+                return;
+            }
+        }
+
+        // An even base has at least e trailing zero bits in b^e. Once
+        // that reaches 256 the entire result is discarded, regardless of ISA.
+        if ((b.u0 & 1) == 0)
+        {
+            if (b.u0 == 0)
+            {
+                ExpLimbAligned(b, e, bitLen, out result);
+                return;
+            }
+            int shift = BitOperations.TrailingZeroCount(b.u0);
+            if (bitLen > 8 || (uint)shift * (uint)e.u0 >= 256)
+            {
+                result = default;
+                return;
+            }
+            if (b.IsUint64 && BitOperations.IsPow2(b.u0))
+            {
+                Lsh(One, shift * (int)e.u0, out result);
+                return;
+            }
+        }
+        else if ((b.u0 == 1 && b.u1 == 0) || (b.u0 & b.u1) == ulong.MaxValue)
+        {
+            ExpNearOne(b, e, out result);
+            return;
+        }
+
+        if (bitLen == 2)
+        {
+            // Squares and cubes do not need exponent-limb loop setup.
+            b.Squared(out UInt256 small);
+            if ((e.u0 & 1) != 0) Multiply(small, b, out small);
+            result = small;
+            return;
+        }
+        else if (bitLen > 3 && (b.u0 == 1 || b.u0 == ulong.MaxValue))
+        {
+            ExpNearOne64(b, e, out result);
+            return;
+        }
+
+        // Precomputation pays for itself for sufficiently dense exponents.
+        // Keep binary exponentiation for short or sparse inputs.
+        if (bitLen > 32)
+        {
+            // The shorter 32-bit prefix and truncated polynomial amortize earlier.
+            // Structured bases retain their lower precision-dependent cutoffs.
+            // Earlier exits leave an odd low limb other than +/-1 here.
+            int precision = BitOperations.TrailingZeroCount(b.u0 - 1 + (b.u0 & 2));
+            const int ExpMinStructuredPrecision = 16;
+            if (bitLen >= ExpBinomialMinBits
+                || (precision >= ExpMinStructuredPrecision && bitLen >= 128 - 2 * precision))
+            {
+                ExpOddLong(b, e, precision, out result);
+                return;
+            }
+            // Remaining exponents have at most 79 bits, so the density cutoff is 32.
+            if (BitOperations.PopCount(e.u0) + BitOperations.PopCount(e.u1) > 32)
+            {
+                ExpWindow(b, e, bitLen, out result);
                 return;
             }
         }
 
         // Seed with b so we do not need to "include" the always-set top bit via a multiply.
         UInt256 val = b;
-        for (int i = bitLen - 2; i >= 0; --i)
+        int top = bitLen - 2;
+        for (int limb = top >> 6; limb >= 0; --limb)
         {
-            // val = val * val
-            val.Squared(out val);
-
-            if (e.Bit(i))
+            // Cache each limb and advance its next exponent bit into the sign
+            // bit, avoiding an indexed load and variable bit mask per square.
+            int count = (top & 63) + 1;
+            ulong bits = Unsafe.Add(ref Unsafe.AsRef(in e.u0), limb) << (64 - count);
+            do
             {
-                Multiply(in val, in b, out val);
-            }
+                val.Squared(out val);
+                if ((long)bits < 0) Multiply(val, b, out val);
+                bits <<= 1;
+            } while (--count > 0);
+            top = 63;
         }
 
         result = val;
@@ -877,8 +1175,10 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
     /// <remarks>
     /// Counts of 256 or more produce zero. Negative counts keep the historic behaviour: a negative
     /// multiple of 64 produces zero, any other negative count shifts by <c>n &amp; 63</c> with no word shift.
-    /// <paramref name="res"/> may alias <paramref name="x"/>.
+    /// <paramref name="res"/> may alias <paramref name="x"/>. Inlines with no call on any path, so a hot
+    /// caller such as an EVM opcode handler stays free of the callee-saved register saves a call brings.
     /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Lsh(in UInt256 x, int n, out UInt256 res)
     {
         int wordShift = n >> 6;
@@ -930,6 +1230,7 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void LeftShift(int n, out UInt256 res)
     {
         Lsh(this, n, out res);
@@ -948,8 +1249,9 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
     /// <remarks>
     /// Counts of 256 or more produce zero. Negative counts keep the historic behaviour: a negative
     /// multiple of 64 produces zero, any other negative count shifts by <c>n &amp; 63</c> with no word shift.
-    /// <paramref name="res"/> may alias <paramref name="x"/>.
+    /// <paramref name="res"/> may alias <paramref name="x"/>. Inlines with no call on any path, like Lsh.
     /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Rsh(in UInt256 x, int n, out UInt256 res)
     {
         int wordShift = n >> 6;
@@ -1001,6 +1303,7 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RightShift(int n, out UInt256 res) => Rsh(this, n, out res);
 
     /// <summary>
@@ -1069,10 +1372,13 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         uint ltMask;
         if (Avx512F.VL.IsSupported && Avx512DQ.IsSupported)
         {
-            // Best case: AVX-512 compare produces k-mask; MoveMask uses KMOVB.
-            // Avx512DQ.MoveMask is documented as KMOVB r32,k1.
-            eqMask = (uint)Avx512DQ.MoveMask(Avx512F.VL.CompareEqual(vecL, vecR));     // VPCMPUQ + KMOVB
-            ltMask = (uint)Avx512DQ.MoveMask(Avx512F.VL.CompareLessThan(vecL, vecR));  // VPCMPUQ + KMOVB
+            // ge = 15 - lt. The highest differing limb determines the sign of gt - lt.
+            // Adding complementary masks lets the JIT fold the bias into one LEA.
+            // Retained separately from the paired lt > gt reduction: their callers generate
+            // different code, and the shared Min/Max path regressed in unification trials.
+            uint gt = (uint)Avx512DQ.MoveMask(Avx512F.VL.CompareGreaterThan(vecL, vecR));
+            uint ge = (uint)Avx512DQ.MoveMask(Avx512F.VL.CompareGreaterThanOrEqual(vecL, vecR));
+            return unchecked((int)(gt + ge - 15u)) < 0;
         }
         else
         {
@@ -1085,13 +1391,7 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
             ltMask = (uint)Avx.MoveMask(Avx2.CompareGreaterThan(sR, sL).AsDouble());
         }
 
-        uint diff = eqMask ^ 0xFu;
-        if (diff == 0) return false;
-
-        // Slightly nicer than BitOperations.Log2 here:
-        // diff != 0 and diff <= 0xF => LZCNT in [28..31] => (31 - lzcnt) == (31 ^ lzcnt)
-        int idx = BitOperations.LeadingZeroCount(diff) ^ 31;
-        return ((ltMask >> idx) & 1u) != 0;
+        return LessThanFromMasks(eqMask, ltMask);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1104,13 +1404,7 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         uint eqMask = Vector256.ExtractMostSignificantBits(Vector256.Equals(vecL, vecR));
         uint ltMask = Vector256.ExtractMostSignificantBits(Vector256.LessThan(vecL, vecR));
 
-        uint diff = eqMask ^ 0xFu;
-        if (diff == 0) return false;
-
-        // Slightly nicer than BitOperations.Log2 here:
-        // diff != 0 and diff <= 0xF => LZCNT in [28..31] => (31 - lzcnt) == (31 ^ lzcnt)
-        int idx = BitOperations.LeadingZeroCount(diff) ^ 31;
-        return ((ltMask >> idx) & 1u) != 0;
+        return LessThanFromMasks(eqMask, ltMask);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1123,24 +1417,9 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         Vector512<ulong> vxy = Vector512.Create(vx, vy);
         Vector512<ulong> vmm = Vector512.Create(vm, vm); // can be improved to vbroadcasti64x4 - see below
 
-        uint eq8 = (uint)Avx512DQ.MoveMask(Avx512F.CompareEqual(vxy, vmm)) & 0xFFu;
-        uint lt8 = (uint)Avx512DQ.MoveMask(Avx512F.CompareLessThan(vxy, vmm)) & 0xFFu;
-
-        // d has 1s where lanes differ, in both nibbles
-        uint d = (eq8 ^ 0xFFu);
-
-        // saturate within each nibble (no cross-nibble bleed)
-        d |= (d >> 1) & 0x77u;
-        d |= (d >> 2) & 0x33u;
-
-        // isolate the top mismatch bit in each nibble
-        uint msb = d & ~((d >> 1) & 0x77u);
-
-        // pick lt at that mismatch bit (still per nibble)
-        uint chosen = lt8 & msb;
-
-        // low nibble -> x, high nibble -> y
-        return ((chosen & 0x0Fu) != 0) & ((chosen & 0xF0u) != 0);
+        uint lt8 = (uint)Avx512DQ.MoveMask(Avx512F.CompareLessThan(vxy, vmm));
+        uint gt8 = (uint)Avx512DQ.MoveMask(Avx512F.CompareGreaterThan(vxy, vmm));
+        return ((lt8 & 0xFu) > (gt8 & 0xFu)) & ((lt8 >> 4) > (gt8 >> 4));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1177,34 +1456,20 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool LessThanBothFromEqLt8(uint eq8, uint lt8)
+    private static bool LessThanFromMasks(uint equalMask, uint lessMask)
     {
-        // eq8/lt8 are 0..255 (low 8 bits used)
-        uint d = (eq8 ^ 0xFFu);           // mismatch bits (1 where not equal), per nibble
-
-        // saturate within each nibble (prevent bit4 spilling into bit3 etc)
-        d |= (d >> 1) & 0x77u;
-        d |= (d >> 2) & 0x33u;
-
-        // isolate most-significant mismatch bit in each nibble
-        uint msb = d & ~((d >> 1) & 0x77u);
-
-        // pick lt bit at that msb position for each nibble
-        uint chosen = lt8 & msb;
-
-        // low nibble -> x decision, high nibble -> y decision
-        return ((chosen & 0x0Fu) != 0) & ((chosen & 0xF0u) != 0);
+        // Preconditions: both masks use only bits 0-3, one bit per ulong lane,
+        // with the most significant limb in bit 3; equal and less bits are disjoint.
+        // Carry a less-than bit through equal higher lanes.
+        return (equalMask + (lessMask << 1)) > 0xFu;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool LessThanFromPackedMask8(uint mask8)
     {
-        // even bits are eq, odd bits are lt
-        uint mismatchEven = (~mask8) & 0x55u;
-        if (mismatchEven == 0) return false; // all words equal => not less
-
-        int pos = BitOperations.LeadingZeroCount(mismatchEven) ^ 31; // highest mismatching even bit
-        return ((mask8 >> (pos + 1)) & 1u) != 0; // corresponding lt bit
+        // Each base-4 digit is greater=0, equal=1, less=2.
+        // Limb 3 occupies the highest digit (bits 6-7); limb 0 occupies bits 0-1.
+        return mask8 > 0x55u;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1216,17 +1481,113 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         Vector256<ulong> vecX = Unsafe.BitCast<UInt256, Vector256<ulong>>(x);
         uint eqMaskX = Vector256.ExtractMostSignificantBits(Vector256.Equals(vecX, vecM));
         uint ltMaskX = Vector256.ExtractMostSignificantBits(Vector256.LessThan(vecX, vecM));
-        if (!LessThanBothFromEqLt8(eqMaskX, ltMaskX))
+        if (!LessThanFromMasks(eqMaskX, ltMaskX))
             return false;
 
         // y < m
         Vector256<ulong> vecY = Unsafe.BitCast<UInt256, Vector256<ulong>>(y);
         uint eqMaskY = Vector256.ExtractMostSignificantBits(Vector256.Equals(vecY, vecM));
         uint ltMaskY = Vector256.ExtractMostSignificantBits(Vector256.LessThan(vecY, vecM));
-        return LessThanBothFromEqLt8(eqMaskY, ltMaskY);
+        return LessThanFromMasks(eqMaskY, ltMaskY);
     }
 
-    public override string ToString() => ((BigInteger)this).ToString();
+    /// <summary>The decimal digits of <see cref="MaxValue"/>, and so the widest this can format.</summary>
+    private const int MaxDecimalDigits = 78;
+
+    /// <summary>The largest power of ten a <see cref="ulong"/> holds, so one division yields 19 digits.</summary>
+    private const ulong DecimalChunk = 10_000_000_000_000_000_000;
+
+    private const int DecimalChunkDigits = 19;
+
+    /// <summary>Returns the value in base ten, without a sign or group separators.</summary>
+    /// <remarks>
+    /// Formats from the limbs rather than through <see cref="BigInteger"/>, which allocated and made
+    /// every consumer link System.Runtime.Numerics. Digits come out 19 at a time, so the widest value
+    /// costs four divisions of the 256-bit value plus one of a <see cref="ulong"/>.
+    /// </remarks>
+    public override string ToString()
+    {
+        Span<char> buffer = stackalloc char[MaxDecimalDigits];
+        int position = WriteDecimalDigits(in this, buffer);
+        return new string(buffer[position..]);
+    }
+
+    /// <summary>
+    /// Writes the digits right-aligned into <paramref name="buffer"/>, which holds at least
+    /// <see cref="MaxDecimalDigits"/> characters, and returns where they start.
+    /// </summary>
+    /// <remarks>Two digits per division by a constant, read from a pair table.</remarks>
+    private static int WriteDecimalDigits(in UInt256 value, Span<char> buffer)
+    {
+        Debug.Assert(buffer.Length >= MaxDecimalDigits);
+        ref char start = ref MemoryMarshal.GetReference(buffer);
+        int position = buffer.Length;
+        ulong l0 = value.u0, l1 = value.u1, l2 = value.u2, l3 = value.u3;
+
+        // Interior chunks keep their leading zeros: nine pairs and a single digit make the 19.
+        while ((l1 | l2 | l3) != 0)
+        {
+            ulong chunk = DivideByChunk(ref l0, ref l1, ref l2, ref l3);
+            for (int i = 0; i < DecimalChunkDigits / 2; i++)
+            {
+                ulong quotient = chunk / 100;
+                position -= 2;
+                WriteDigitPair(ref Unsafe.Add(ref start, position), (uint)(chunk - quotient * 100));
+                chunk = quotient;
+            }
+
+            Unsafe.Add(ref start, --position) = (char)('0' + chunk);
+        }
+
+        // The most significant chunk is trimmed.
+        while (l0 >= 100)
+        {
+            ulong quotient = l0 / 100;
+            position -= 2;
+            WriteDigitPair(ref Unsafe.Add(ref start, position), (uint)(l0 - quotient * 100));
+            l0 = quotient;
+        }
+
+        if (l0 >= 10)
+        {
+            position -= 2;
+            WriteDigitPair(ref Unsafe.Add(ref start, position), (uint)l0);
+        }
+        else
+        {
+            Unsafe.Add(ref start, --position) = (char)('0' + l0);
+        }
+
+        return position;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void WriteDigitPair(ref char destination, uint pair)
+    {
+        ref byte digits = ref Unsafe.Add(ref MemoryMarshal.GetReference(DigitPairs), pair * 2);
+        destination = (char)digits;
+        Unsafe.Add(ref destination, 1) = (char)Unsafe.Add(ref digits, 1);
+    }
+
+    private static ReadOnlySpan<byte> DigitPairs =>
+        "00010203040506070809101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899"u8;
+
+    /// <summary>floor((2^128 - 1) / <see cref="DecimalChunk"/>) - 2^64, for <c>UDivRem2By1</c>.</summary>
+    private const ulong DecimalChunkReciprocal = 0xD83C_94FB_6D2A_C34A;
+
+    /// <summary>Divides the limbs by <see cref="DecimalChunk"/> in place and returns the remainder.</summary>
+    /// <remarks>
+    /// 10^19 already has its top bit set, so it divides by reciprocal without normalising. <see cref="UInt128"/>
+    /// division by a <see cref="ulong"/> is a software loop.
+    /// </remarks>
+    private static ulong DivideByChunk(ref ulong l0, ref ulong l1, ref ulong l2, ref ulong l3)
+    {
+        l3 = UDivRem2By1(0, DecimalChunkReciprocal, DecimalChunk, l3, out ulong rem);
+        l2 = UDivRem2By1(rem, DecimalChunkReciprocal, DecimalChunk, l2, out rem);
+        l1 = UDivRem2By1(rem, DecimalChunkReciprocal, DecimalChunk, l1, out rem);
+        l0 = UDivRem2By1(rem, DecimalChunkReciprocal, DecimalChunk, l0, out rem);
+        return rem;
+    }
 
     public int CompareTo(object? obj) => obj is not UInt256 int256 ? throw new InvalidOperationException() : CompareTo(int256);
 
@@ -1327,18 +1688,12 @@ internal readonly partial struct UInt256 : IEquatable<UInt256>, IComparable, ICo
         }
         else
         {
-            // No widening multiply instruction on this target (e.g. riscv64). Spelled out rather than
-            // deferred to Math.BigMul, which repeats the same ISA checks and then calls an
-            // out-of-line software fallback that cannot inline into the 256-bit limb loops.
-            uint al = (uint)a, ah = (uint)(a >> 32);
-            uint bl = (uint)b, bh = (uint)(b >> 32);
-
-            ulong mull = (ulong)al * bl;
-            ulong t = (ulong)ah * bl + (mull >> 32);
-            ulong tl = (ulong)al * bh + (uint)t;
-
-            low = (tl << 32) | (uint)mull;
-            return (ulong)ah * bh + (t >> 32) + (tl >> 32);
+            // Math.BigMul(ulong, ulong, out ulong) is a JIT intrinsic on riscv64 (.NET 11 with the
+            // dotnet-riscv perf profile): the M extension's `mul` + `mulhu` pair, with no call. The
+            // 32-bit limb expansion that used to live here cost four `mul` and ~20 shifts and adds
+            // per product, i.e. ~24 instructions where the hardware has two. On a target where
+            // BigMul is not intrinsified it is the same software fallback, out of line.
+            return Math.BigMul(a, b, out low);
         }
     }
 

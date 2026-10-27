@@ -3,6 +3,7 @@
 
 using System;
 using System.Buffers.Binary;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -14,6 +15,52 @@ namespace Nethermind.Int256;
 
 internal readonly partial struct UInt256
 {
+    private const MethodImplOptions SubtractUnderflowInlining = (MethodImplOptions)0;
+
+    // Keep the binomial helpers and their spills out of the short-exponent frame.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ExpOddLong(in UInt256 b, in UInt256 e, int precision, out UInt256 result)
+    {
+        if (precision >= ExpFourTermPrecision)
+            ExpOddLongPhased(b, e, 64 - precision, out result);
+        else if (precision >= 32)
+            ExpNearOne32Signed(b, e, precision >= 43, out result);
+        else
+            ExpOddLong32(b, e, 32 - precision, out result);
+    }
+
+    private const int ExpBinomialMinBits = 80;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SquareExpLong(in UInt256 value, out UInt256 result)
+        => value.Squared(out result);
+
+    // Keep established host dispatch; short-path timings depend on ordering.
+    private const bool ExpPreferDecimalLookup = false;
+
+    // Native ARM amortizes sixteen entries; software products and x64 favor eight.
+    private static int ExpWindowMaxWidth
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => Arm.ArmBase.Arm64.IsSupported ? 5 : 4;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void MultiplyExpPower(in UInt256 value, in UInt256 power, out UInt256 result)
+    {
+        // Avoid repeated general width dispatch in the long-exponent loop.
+        if ((power.u1 | power.u2 | power.u3) == 0)
+            MultiplyByUInt64(value, power.u0, out result);
+        else
+            MultiplyLimbs4x4<DirectOperands>(value, power, out result);
+    }
+
+    // Keep wide multiplication spills off trivial host paths.
+    private const MethodImplOptions MulModWideInlining = MethodImplOptions.NoInlining;
+
+    // Expose the 128-bit reduction loop to its caller in the host JIT.
+    private const MethodImplOptions MulMod128Inlining = MethodImplOptions.AggressiveInlining;
+
     // Vary the seed between processes to keep hash distribution independent across nodes and restarts.
     private static readonly ulong _aesHashSeed0 = CreateHashSeed();
     private static readonly ulong _aesHashSeed1 = CreateHashSeed();
@@ -53,6 +100,7 @@ internal readonly partial struct UInt256
     }
 
     // Vector256 paths live in separate helpers to keep the public bodies small enough to inline.
+    // ARM64 stays scalar: NEON regressed dependent chains (ArmBitwiseAB).
     public bool IsZero
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -140,12 +188,14 @@ internal readonly partial struct UInt256
     private static bool LessThan(in UInt256 a, in UInt256 b)
     {
         // Without AVX-512's native unsigned k-mask compare, the short-circuiting scalar limb compare
-        // generally beats the AVX2 sign-flip emulation - see the LessThanPathAB benchmark.
+        // generally beats the AVX2 sign-flip emulation - see the LessThanPathAB benchmark - and NEON (ArmCompareAB).
         if (Avx512F.VL.IsSupported && Avx512DQ.IsSupported)
         {
             return LessThanAvx2(in a, in b);
         }
 
+        // Retain the portable fallback for future runtimes: current x64 Vector256 support
+        // requires AVX2, and current ARM64 runtimes do not accelerate Vector256.
         if (!Avx2.IsSupported && Vector256.IsHardwareAccelerated)
         {
             return LessThanVector256(in a, in b);
@@ -157,6 +207,7 @@ internal readonly partial struct UInt256
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool LessThanBoth(in UInt256 x, in UInt256 y, in UInt256 m)
     {
+        // ARM64 stays scalar: NEON was slower (ArmLessThanBothAB).
         if (!Avx2.IsSupported && !Vector256.IsHardwareAccelerated)
         {
             return LessThanScalar(in x, in m) && LessThanScalar(in y, in m);
@@ -166,33 +217,160 @@ internal readonly partial struct UInt256
             LessThanBothAvx512(in x, in y, in m) :
             Avx2.IsSupported ?
                 LessThanBothAvx2(in x, in y, in m) :
+                // Currently reachable only through direct tests; see the portable fallback above.
                 LessThanBothVector256(in x, in y, in m);
     }
 
+    [OverloadResolutionPriority(1)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(uint other)
-        => Vector256.IsHardwareAccelerated ? EqualsVector(in this, other) : u0 == other && IsUint64;
+        => Vector256.IsHardwareAccelerated
+            ? EqualsVector(in this, other)
+            : EqualsScalar(new UInt256(other));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool EqualsVector(in UInt256 a, uint other)
-        => Unsafe.BitCast<UInt256, Vector256<uint>>(a) == Vector256.CreateScalar(other);
+        => (Vector256.CreateScalar(other) ^ Unsafe.BitCast<UInt256, Vector256<uint>>(a)) == Vector256<uint>.Zero;
 
+    [OverloadResolutionPriority(1)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(ulong other)
-        => Vector256.IsHardwareAccelerated ? EqualsVector(in this, other) : u0 == other && IsUint64;
+        => Vector256.IsHardwareAccelerated
+            ? EqualsVector(in this, other)
+            : EqualsScalar(new UInt256(other));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool EqualsVector(in UInt256 a, ulong other)
-        => Unsafe.BitCast<UInt256, Vector256<ulong>>(a) == Vector256.CreateScalar(other);
+        => (Vector256.CreateScalar(other) ^ Unsafe.BitCast<UInt256, Vector256<ulong>>(a)) == Vector256<ulong>.Zero;
 
+    // SSE4.1 zero tests won here; the NEON candidate regressed dependent callers.
     [OverloadResolutionPriority(1)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(in UInt256 other)
         => Vector256.IsHardwareAccelerated
             ? EqualsVector(in this, in other)
-            : ((u0 ^ other.u0) | (u1 ^ other.u1) | (u2 ^ other.u2) | (u3 ^ other.u3)) == 0;
+            : Sse41.IsSupported
+                ? EqualsVector128(in this, in other)
+                : EqualsScalar(in other);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool EqualsVector(in UInt256 a, in UInt256 b)
         => Unsafe.BitCast<UInt256, Vector256<ulong>>(a) == Unsafe.BitCast<UInt256, Vector256<ulong>>(b);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool EqualsVector128(in UInt256 a, in UInt256 b)
+    {
+        ref Vector128<ulong> av = ref Unsafe.As<UInt256, Vector128<ulong>>(ref Unsafe.AsRef(in a));
+        ref Vector128<ulong> bv = ref Unsafe.As<UInt256, Vector128<ulong>>(ref Unsafe.AsRef(in b));
+        return ((av ^ bv) | (Unsafe.Add(ref av, 1) ^ Unsafe.Add(ref bv, 1))) == Vector128<ulong>.Zero;
+    }
+
+    // This shared limb path lets the scalar JIT eliminate primitive-value temporaries.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool EqualsScalar(in UInt256 other)
+        => ((u0 ^ other.u0) | (u1 ^ other.u1) | (u2 ^ other.u2) | (u3 ^ other.u3)) == 0;
+
+    // Keep direction-specific bodies: swapping operands changes which load the JIT can fold.
+    // The operator wiring keeps its left operand in the second, memory-foldable source.
+    // Integer blends for inclusive predicates and float blends for strict predicates were
+    // selected together in Windows/Linux caller measurements; preserve these codegen shapes.
+    // Pack equality into each low dword and the opposite ordering into each high dword.
+    // One MoveMask then yields four base-4 digits: favorable=0, equal=1, opposite=2.
+    // All-equal is 0x55; biasing by 0x56 includes equality. The mask is at most 0xAA,
+    // so the sign of the biased result determines ordering without overflow ambiguity.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThanOrEqual(in UInt256 a, in UInt256 b)
+    {
+        if (Avx512F.VL.IsSupported)
+        {
+            Vector256<ulong> left = Unsafe.BitCast<UInt256, Vector256<ulong>>(a);
+            Vector256<ulong> right = Unsafe.BitCast<UInt256, Vector256<ulong>>(b);
+            Vector256<ulong> eq = Avx2.CompareEqual(left, right);
+            Vector256<ulong> cmp = Avx512F.VL.CompareGreaterThan(left, right);
+            uint mask = (uint)Avx.MoveMask(Avx2.Blend(eq.AsInt32(), cmp.AsInt32(), 0xAA).AsSingle());
+            return unchecked((int)(mask - 0x56u)) < 0;
+        }
+        return !LessThan(in b, in a);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool GreaterThanOrEqual(in UInt256 a, in UInt256 b)
+    {
+        if (Avx512F.VL.IsSupported)
+        {
+            Vector256<ulong> left = Unsafe.BitCast<UInt256, Vector256<ulong>>(a);
+            Vector256<ulong> right = Unsafe.BitCast<UInt256, Vector256<ulong>>(b);
+            Vector256<ulong> eq = Avx2.CompareEqual(left, right);
+            Vector256<ulong> cmp = Avx512F.VL.CompareLessThan(left, right);
+            uint mask = (uint)Avx.MoveMask(Avx2.Blend(eq.AsInt32(), cmp.AsInt32(), 0xAA).AsSingle());
+            return unchecked((int)(mask - 0x56u)) < 0;
+        }
+        return !LessThan(in a, in b);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool GreaterThan(in UInt256 a, in UInt256 b)
+    {
+        if (Avx512F.VL.IsSupported)
+        {
+            Vector256<ulong> left = Unsafe.BitCast<UInt256, Vector256<ulong>>(a);
+            Vector256<ulong> right = Unsafe.BitCast<UInt256, Vector256<ulong>>(b);
+            Vector256<ulong> eq = Avx2.CompareEqual(left, right);
+            Vector256<ulong> cmp = Avx512F.VL.CompareLessThan(left, right);
+            uint mask = (uint)Avx.MoveMask(Avx.Blend(eq.AsSingle(), cmp.AsSingle(), 0xAA));
+            return unchecked((int)(mask - 0x55u)) < 0;
+        }
+        return LessThan(in b, in a);
+    }
+
+    // Keep the operator reduction separate from the shared Min/Max comparison path.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool LessThanOperator(in UInt256 a, in UInt256 b)
+    {
+        if (Avx512F.VL.IsSupported)
+        {
+            Vector256<ulong> left = Unsafe.BitCast<UInt256, Vector256<ulong>>(a);
+            Vector256<ulong> right = Unsafe.BitCast<UInt256, Vector256<ulong>>(b);
+            Vector256<ulong> eq = Avx2.CompareEqual(left, right);
+            Vector256<ulong> cmp = Avx512F.VL.CompareGreaterThan(left, right);
+            uint mask = (uint)Avx.MoveMask(Avx.Blend(eq.AsSingle(), cmp.AsSingle(), 0xAA));
+            return unchecked((int)(mask - 0x55u)) < 0;
+        }
+        return LessThan(in a, in b);
+    }
+
+    private static partial void SubtractWithBorrow(ulong a, ulong b, ref ulong borrow, out ulong res)
+    {
+        // Keep both comparisons off the carry chain on native CPUs.
+        res = a - b - borrow;
+        borrow = (a < b ? 1UL : 0UL) | (borrow & (a == b ? 1UL : 0UL));
+    }
+
+    public static partial bool SubtractUnderflow(in UInt256 a, in UInt256 b, out UInt256 res)
+    {
+        return SubtractImpl(a, b, out res);
+    }
+
+    private static partial ulong ReadUInt64BigEndian(ref byte source)
+    {
+        ulong value = Unsafe.ReadUnaligned<ulong>(ref source);
+        return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value;
+    }
+
+    private static partial void WriteUInt64BigEndian(ref byte destination, ulong value) =>
+        Unsafe.WriteUnaligned(ref destination, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value);
+
+    private static partial void WriteUInt32BigEndian(ref byte destination, uint value) =>
+        Unsafe.WriteUnaligned(ref destination, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value);
+
+    // The culture formats (N, C, E, F, P, G with a precision, custom) for UInt256.numerics.cs, through BigInteger. The
+    // zkEVM build has no such fallback, which keeps BigInteger out of its image.
+    private static bool TryFormatOther(in UInt256 bits, bool signed, Span<char> destination, out int written,
+        ReadOnlySpan<char> format, IFormatProvider? provider) =>
+        ToBigInteger(in bits, signed).TryFormat(destination, out written, format, provider);
+
+    private static string FormatOther(in UInt256 bits, bool signed, string? format, IFormatProvider? provider) =>
+        ToBigInteger(in bits, signed).ToString(format, provider);
+
+    private static BigInteger ToBigInteger(in UInt256 bits, bool signed) => signed ? (BigInteger)new Int256(bits) : (BigInteger)bits;
 }

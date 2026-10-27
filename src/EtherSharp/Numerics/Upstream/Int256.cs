@@ -13,15 +13,23 @@ using System.Runtime.Intrinsics.X86;
 
 namespace Nethermind.Int256;
 
-internal readonly struct Int256 : IEquatable<Int256>, IComparable, IComparable<Int256>, IInteger<Int256>, IConvertible
+internal readonly partial struct Int256 : IEquatable<Int256>, IComparable, IComparable<Int256>, IInteger<Int256>, IConvertible
 {
     public static readonly Int256 Zero = (Int256)0UL;
     public static readonly Int256 One = (Int256)1UL;
     public static readonly Int256 MinusOne = -1L;
-    public static readonly Int256 Max = new Int256(((BigInteger.One << 255) - 1));
+    // 2^255 - 1, as limbs. Building it from BigInteger would make every consumer of this assembly
+    // carry System.Runtime.Numerics, because a static field initializer is always reachable.
+    public static readonly Int256 Max = new(new UInt256(ulong.MaxValue, ulong.MaxValue, ulong.MaxValue, (ulong)long.MaxValue));
 
     internal readonly UInt256 _value;
 
+    /// <summary>Reads a value from its two's complement bytes.</summary>
+    /// <param name="bytes">
+    /// The bytes, read as <see cref="UInt256(in ReadOnlySpan{byte}, bool)"/> reads them: any length other than 32 is
+    /// read big-endian and zero-extended, whatever <paramref name="isBigEndian"/> says.
+    /// </param>
+    /// <param name="isBigEndian">Whether a 32-byte span is big-endian.</param>
     public Int256(ReadOnlySpan<byte> bytes, bool isBigEndian)
     {
         _value = new UInt256(bytes, isBigEndian);
@@ -59,6 +67,16 @@ internal readonly struct Int256 : IEquatable<Int256>, IComparable, IComparable<I
         }
     }
 
+    // Without this, the implicit long conversion binds to Int256(BigInteger), so every long turns
+    // into a heap-allocated BigInteger and the static initializer for MinusOne drags
+    // System.Runtime.Numerics into every consumer. A negative value sign-extends as all-ones limbs.
+    public Int256(long n)
+    {
+        _value = n < 0
+            ? new UInt256(unchecked((ulong)n), ulong.MaxValue, ulong.MaxValue, ulong.MaxValue)
+            : new UInt256((ulong)n);
+    }
+
     public static explicit operator Int256(int n) => new Int256(n);
 
     public Int256 OneValue => One;
@@ -91,7 +109,12 @@ internal readonly struct Int256 : IEquatable<Int256>, IComparable, IComparable<I
 
     public static void Add(in Int256 a, in Int256 b, out Int256 res)
     {
-        UInt256.AddOverflow(a._value, b._value, out UInt256 ures);
+        UInt256 ures;
+        // Keep the measured AVX2 wrapper route; signed addition still wraps.
+        if (Avx2.IsSupported && !Avx512F.VL.IsSupported)
+            UInt256.AddOverflow(a._value, b._value, out ures);
+        else
+            UInt256.Add(a._value, b._value, out ures);
         res = new Int256(ures);
     }
 
@@ -602,10 +625,7 @@ internal readonly struct Int256 : IEquatable<Int256>, IComparable, IComparable<I
         }
     }
 
-    public override string ToString()
-    {
-        return ToString(null);
-    }
+    public override string ToString() => ToString(null, null);
 
     [OverloadResolutionPriority(1)]
     private bool Equals(in Int256 other) => _value.Equals(other._value);
