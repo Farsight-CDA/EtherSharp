@@ -1,4 +1,5 @@
-﻿using EtherSharp.RPC.Modules.Eth;
+﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 
@@ -28,6 +29,12 @@ internal sealed class PollingEventFilter<TLog>(IRPCTransport rpcTransport, IEthR
         if(rawResults.Length == 0)
         {
             return [];
+        }
+
+        if(typeof(TLog) == typeof(Log))
+        {
+            return rawResults as TLog[]
+                ?? throw new ImpossibleException();
         }
 
         var results = new TLog[rawResults.Length];
