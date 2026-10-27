@@ -74,7 +74,10 @@ public static class EIP712
             encoder.Bytes32(salt);
         }
 
-        return Keccak256.HashData(encoder.Build());
+        Span<byte> encoding = stackalloc byte[encoder.Size];
+        encoding.Clear();
+        _ = encoder.TryWriteTo(encoding);
+        return Keccak256.HashData(encoding);
     }
 
     private static byte GetDomainFields(in EIP712Domain domain)

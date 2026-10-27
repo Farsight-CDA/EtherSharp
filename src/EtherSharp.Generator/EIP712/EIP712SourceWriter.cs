@@ -63,7 +63,27 @@ public static class EIP712SourceWriter
         return "/// <inheritdoc/>\n" + new FunctionBuilder("HashStruct")
             .WithReturnTypeRaw("global::EtherSharp.Types.Bytes32")
             .AddStatement(Indent(encoderStatement))
-            .AddStatement("    return global::EtherSharp.Crypto.Keccak256.HashData(encoder.Build())")
+            .AddStatement(Indent("""
+                byte[]? rented = null;
+                global::System.Span<byte> buffer = encoder.Size <= 1024
+                    ? stackalloc byte[encoder.Size]
+                    : (rented = global::System.Buffers.ArrayPool<byte>.Shared.Rent(encoder.Size));
+
+                try
+                {
+                    var encoding = buffer[..encoder.Size];
+                    encoding.Clear();
+                    _ = encoder.TryWriteTo(encoding);
+                    return global::EtherSharp.Crypto.Keccak256.HashData(encoding);
+                }
+                finally
+                {
+                    if(rented is not null)
+                    {
+                        global::System.Buffers.ArrayPool<byte>.Shared.Return(rented);
+                    }
+                }
+                """), requireSemicolon: false)
             .BuildMethodCode();
     }
 
