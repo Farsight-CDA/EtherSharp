@@ -47,7 +47,7 @@ internal sealed class InterpreterAccountStorage(
     public void SStore(in Bytes32 key, in Bytes32 value)
     {
         long revision = _nextRevision();
-        _present.Set(revision, true);
+        EnsurePresent(revision);
         _persistentStorage.Set(revision, in key, in value);
     }
 
@@ -62,14 +62,14 @@ internal sealed class InterpreterAccountStorage(
     public void SetBalance(in UInt256 value)
     {
         long revision = _nextRevision();
-        _present.Set(revision, true);
+        EnsurePresent(revision);
         _balance.Set(revision, in value);
     }
 
     public void SetNonce(ulong value)
     {
         long revision = _nextRevision();
-        _present.Set(revision, true);
+        EnsurePresent(revision);
         _nonce.Set(revision, in value);
     }
 
@@ -77,7 +77,7 @@ internal sealed class InterpreterAccountStorage(
     {
         long revision = _nextRevision();
         var codeHash = Keccak256.HashData(value.ByteCode.Span);
-        _present.Set(revision, true);
+        EnsurePresent(revision);
         _code.Set(revision, in value);
         _codeHash.Set(revision, in codeHash);
     }
@@ -85,13 +85,21 @@ internal sealed class InterpreterAccountStorage(
     public void InitializeCreatedContract()
     {
         long revision = _nextRevision();
-        _present.Set(revision, true);
+        EnsurePresent(revision);
         _nonce.Set(revision, 1);
         _code.Set(revision, EVMByteCode.Empty);
         _codeHash.Set(revision, Bytes32.EmptyCodeHash);
         _persistentStorage.Clear(revision);
         _persistentStorageReplaced.Set(revision);
         _createdInTransaction.Set(revision);
+    }
+
+    private void EnsurePresent(long revision)
+    {
+        if(!_present.TryGetValue(out bool present) || !present)
+        {
+            _present.Set(revision, true);
+        }
     }
 
     public void ScheduleDeletion()
