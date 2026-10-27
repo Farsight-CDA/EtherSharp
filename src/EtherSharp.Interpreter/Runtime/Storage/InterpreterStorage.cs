@@ -46,6 +46,7 @@ internal sealed partial class InterpreterStorage(
 
     public void CopyTo(InterpreterStorage target)
     {
+        target._accountStorages.EnsureCapacity(_accountStorages.Count);
         foreach(var (address, accountStorage) in _accountStorages)
         {
             accountStorage.CopyTo(target.GetAccountStorage(address));

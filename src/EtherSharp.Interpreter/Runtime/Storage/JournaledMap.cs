@@ -48,6 +48,7 @@ internal sealed class JournaledMap<TKey, TValue>
 
     public void CopyTo(JournaledMap<TKey, TValue> target)
     {
+        target._values.EnsureCapacity(_values.Count);
         foreach(var (key, value) in _values)
         {
             target._values.Add(key, value);
