@@ -99,7 +99,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
         }
         else
         {
-            var summedBaseFees = feeHistory.BaseFeePerGas.Aggregate(UInt256.Zero, (prev, curr) => prev + curr);
+            var summedBaseFees = feeHistory.BaseFeePerGas.Sum();
             baseFee = summedBaseFees / (uint) feeHistory.BaseFeePerGas.Length;
         }
 
@@ -110,7 +110,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
         }
         else
         {
-            var summedPriorityFees = nonZeroRewards.Aggregate(UInt256.Zero, (prev, curr) => prev + curr[0]);
+            var summedPriorityFees = nonZeroRewards.Sum(x => x[0]);
             priorityFee = summedPriorityFees / (uint) nonZeroRewards.Length;
         }
 
