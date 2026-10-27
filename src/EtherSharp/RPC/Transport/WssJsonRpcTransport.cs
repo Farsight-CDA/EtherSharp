@@ -226,12 +226,12 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         while(_socket is not null && _socket.State == WebSocketState.Open)
         {
             ms.Seek(0, SeekOrigin.Begin);
-            WebSocketReceiveResult receiveResult;
+            ValueWebSocketReceiveResult receiveResult;
             int totalLength = 0;
 
             do
             {
-                receiveResult = await _socket.ReceiveAsync(buffer, _connectionHandlerCts.Token);
+                receiveResult = await _socket.ReceiveAsync(buffer.AsMemory(), _connectionHandlerCts.Token);
 
                 if(receiveResult.Count != 0)
                 {
