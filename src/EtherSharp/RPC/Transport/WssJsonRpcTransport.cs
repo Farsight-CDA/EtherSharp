@@ -343,7 +343,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 switch(reader.TokenType)
                 {
                     case JsonTokenType.PropertyName:
-                        if(reader.ValueTextEquals("id"))
+                        if(reader.ValueTextEquals("id"u8))
                         {
                             reader.Read();
 
@@ -369,11 +369,11 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                             payloadType = PayloadType.Response;
                             return;
                         }
-                        else if(reader.ValueTextEquals("method"))
+                        else if(reader.ValueTextEquals("method"u8))
                         {
                             reader.Read();
 
-                            if(!reader.ValueTextEquals("eth_subscription"))
+                            if(!reader.ValueTextEquals("eth_subscription"u8))
                             {
                                 _logger?.LogWarning("Failed to identify payload with method {Method}", reader.GetString());
                                 return;
@@ -387,7 +387,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                                 return;
                             }
                         }
-                        else if(reader.ValueTextEquals("params"))
+                        else if(reader.ValueTextEquals("params"u8))
                         {
                             reader.Read();
 
@@ -401,12 +401,12 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
                             while(reader.TokenType == JsonTokenType.PropertyName)
                             {
-                                if(reader.ValueTextEquals("result"))
+                                if(reader.ValueTextEquals("result"u8))
                                 {
                                     reader.Skip();
                                     reader.Read();
                                 }
-                                else if(reader.ValueTextEquals("subscription"))
+                                else if(reader.ValueTextEquals("subscription"u8))
                                 {
                                     reader.Read();
                                     parsedSubscriptionId = reader.GetString()!;
