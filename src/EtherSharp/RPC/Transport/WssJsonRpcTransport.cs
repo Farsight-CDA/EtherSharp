@@ -225,9 +225,18 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
         while(_socket is not null && _socket.State == WebSocketState.Open)
         {
+            var receiveResult = await _socket.ReceiveAsync(buffer.AsMemory(), _connectionHandlerCts.Token);
+            if(receiveResult.EndOfMessage)
+            {
+                ProcessMessage(buffer.AsSpan(0, receiveResult.Count));
+                continue;
+            }
+
             ms.Seek(0, SeekOrigin.Begin);
-            ValueWebSocketReceiveResult receiveResult;
-            int totalLength = 0;
+            if(receiveResult.Count != 0)
+            {
+                ms.Write(buffer.AsSpan(0, receiveResult.Count));
+            }
 
             do
             {
@@ -237,47 +246,48 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 {
                     ms.Write(buffer.AsSpan(0, receiveResult.Count));
                 }
-
-                totalLength += receiveResult.Count;
             }
             while(!receiveResult.EndOfMessage);
 
-            var msBuffer = ms.GetBuffer().AsSpan(0, (int) ms.Position);
+            ProcessMessage(ms.GetBuffer().AsSpan(0, (int) ms.Position));
+        }
+    }
 
-            if(msBuffer.Length == 0)
-            {
-                continue;
-            }
+    private void ProcessMessage(ReadOnlySpan<byte> message)
+    {
+        if(message.IsEmpty)
+        {
+            return;
+        }
 
-            IdentifyPayload(msBuffer, out var payloadType, out int requestId, out string subscriptionId);
+        IdentifyPayload(message, out var payloadType, out int requestId, out string subscriptionId);
 
-            switch(payloadType)
-            {
-                case PayloadType.Response:
-                    if(!_pendingRequests.TryRemove(requestId, out var value))
-                    {
-                        _logger?.LogDebug("Received response to request id that is not pending");
-                        break;
-                    }
-
-                    try
-                    {
-                        value.SetResponse(msBuffer, _jsonSerializerOptions);
-                    }
-                    catch(Exception ex)
-                    {
-                        value.SetException(ex);
-                    }
+        switch(payloadType)
+        {
+            case PayloadType.Response:
+                if(!_pendingRequests.TryRemove(requestId, out var value))
+                {
+                    _logger?.LogDebug("Received response to request id that is not pending");
                     break;
-                case PayloadType.Subscription:
-                    _subscriptionMessageCounter?.Add(1);
-                    DispatchSubscriptionMessage(subscriptionId, msBuffer);
-                    break;
-                default:
-                    string payload = System.Text.Encoding.UTF8.GetString(msBuffer);
-                    _logger?.LogWarning("Received unidentified websocket payload: {payload}", payload);
-                    break;
-            }
+                }
+
+                try
+                {
+                    value.SetResponse(message, _jsonSerializerOptions);
+                }
+                catch(Exception ex)
+                {
+                    value.SetException(ex);
+                }
+                break;
+            case PayloadType.Subscription:
+                _subscriptionMessageCounter?.Add(1);
+                DispatchSubscriptionMessage(subscriptionId, message);
+                break;
+            default:
+                string payload = System.Text.Encoding.UTF8.GetString(message);
+                _logger?.LogWarning("Received unidentified websocket payload: {payload}", payload);
+                break;
         }
     }
 
