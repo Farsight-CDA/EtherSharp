@@ -96,15 +96,15 @@ public sealed class HexStringByteArrayConverter : JsonConverter<byte[]>
     {
         if(value.Length < STACK_BUFFER_SIZE)
         {
-            int charCount = (value.Length * 2) + 2;
-            Span<char> charBuffer = stackalloc char[charCount];
+            int byteCount = (value.Length * 2) + 2;
+            Span<byte> byteBuffer = stackalloc byte[byteCount];
 
-            charBuffer[0] = '0';
-            charBuffer[1] = 'x';
+            byteBuffer[0] = (byte) '0';
+            byteBuffer[1] = (byte) 'x';
 
-            if(Convert.TryToHexString(value, charBuffer[2..], out int written))
+            if(Convert.TryToHexString(value, byteBuffer[2..], out int written))
             {
-                writer.WriteStringValue(charBuffer[..(2 + written)]);
+                writer.WriteStringValue(byteBuffer[..(2 + written)]);
             }
             else
             {

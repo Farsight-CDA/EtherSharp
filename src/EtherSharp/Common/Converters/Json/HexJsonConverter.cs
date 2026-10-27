@@ -27,6 +27,21 @@ internal static class HexJsonConverter
             throw new JsonException($"Expected a {buffer.Length}-byte hex string for {typeName}");
         }
 
+        if(!reader.ValueIsEscaped && !reader.HasValueSequence)
+        {
+            var utf8Hex = reader.ValueSpan;
+            if(utf8Hex.StartsWith("0x"u8) || utf8Hex.StartsWith("0X"u8))
+            {
+                utf8Hex = utf8Hex[2..];
+            }
+
+            if(!HexUtils.TryDecodeHex(utf8Hex, buffer))
+            {
+                throw new JsonException($"Expected a valid {buffer.Length}-byte hex string for {typeName}");
+            }
+            return;
+        }
+
         Span<char> chars = stackalloc char[prefixedCharCount];
         int written = reader.CopyString(chars);
         ReadOnlySpan<char> hex = chars[..written];
@@ -44,22 +59,22 @@ internal static class HexJsonConverter
 
     public static void WriteBytes(Utf8JsonWriter writer, ReadOnlySpan<byte> bytes)
     {
-        Span<char> buffer = stackalloc char[(bytes.Length * 2) + 2];
+        Span<byte> buffer = stackalloc byte[(bytes.Length * 2) + 2];
         WriteHexBytes(buffer, bytes);
         writer.WriteStringValue(buffer);
     }
 
     public static void WritePropertyNameBytes(Utf8JsonWriter writer, ReadOnlySpan<byte> bytes)
     {
-        Span<char> buffer = stackalloc char[(bytes.Length * 2) + 2];
+        Span<byte> buffer = stackalloc byte[(bytes.Length * 2) + 2];
         WriteHexBytes(buffer, bytes);
         writer.WritePropertyName(buffer);
     }
 
-    private static void WriteHexBytes(scoped Span<char> buffer, ReadOnlySpan<byte> bytes)
+    private static void WriteHexBytes(scoped Span<byte> buffer, ReadOnlySpan<byte> bytes)
     {
-        buffer[0] = '0';
-        buffer[1] = 'x';
+        buffer[0] = (byte) '0';
+        buffer[1] = (byte) 'x';
 
         if(!Convert.TryToHexString(bytes, buffer[2..], out _))
         {
