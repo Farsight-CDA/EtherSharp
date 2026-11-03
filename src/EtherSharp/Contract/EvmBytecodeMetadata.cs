@@ -30,6 +30,7 @@ internal static class EvmBytecodeMetadata
         => metadata.Length > 0
             && (metadata[0] >> 5) == 5
             && (metadata.IndexOf("solc"u8) != -1
+            || metadata.IndexOf("solar"u8) != -1
             || metadata.IndexOf("vyper"u8) != -1
             || metadata.IndexOf("ipfs"u8) != -1
             || metadata.IndexOf("bzzr0"u8) != -1
