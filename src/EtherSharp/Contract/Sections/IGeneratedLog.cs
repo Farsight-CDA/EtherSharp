@@ -1,3 +1,5 @@
+using EtherSharp.Types;
+
 namespace EtherSharp.Contract.Sections;
 
 /// <summary>
@@ -10,4 +12,10 @@ public interface IGeneratedLog
     /// </summary>
     /// <returns></returns>
     public abstract static ReadOnlyMemory<byte> TopicBytes { get; }
+
+    /// <summary>
+    /// Gets the log topic.
+    /// </summary>
+    /// <returns></returns>
+    public abstract static Bytes32 Topic { get; }
 }

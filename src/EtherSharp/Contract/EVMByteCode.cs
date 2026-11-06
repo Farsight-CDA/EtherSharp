@@ -102,7 +102,7 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     /// <returns></returns>
     public bool HasFunction<TFunction>()
         where TFunction : IGeneratedFunction
-        => HasFunction(Bytes4.FromBytes(TFunction.SelectorBytes.Span));
+        => HasFunction(TFunction.Selector);
 
     /// <summary>
     /// Heuristically checks for the generated function's selector in PUSH constants.
@@ -111,7 +111,7 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     /// <returns></returns>
     public bool ContainsCallSelector<TFunction>()
         where TFunction : IGeneratedFunction
-        => ContainsCallSelector(Bytes4.FromBytes(TFunction.SelectorBytes.Span));
+        => ContainsCallSelector(TFunction.Selector);
 
     /// <summary>
     /// Heuristically checks for a function selector in PUSH constants.
@@ -203,7 +203,7 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     /// <returns></returns>
     public bool HasEvent<TLog>()
         where TLog : IGeneratedLog
-        => HasEvent(Bytes32.FromBytes(TLog.TopicBytes.Span));
+        => HasEvent(TLog.Topic);
 
     /// <summary>
     /// Checks if the given contract code implements a set of event topics
