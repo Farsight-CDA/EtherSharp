@@ -102,7 +102,42 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     /// <returns></returns>
     public bool HasFunction<TFunction>()
         where TFunction : IGeneratedFunction
-        => HasFunction(TFunction.SelectorBytes);
+        => HasFunction(Bytes4.FromBytes(TFunction.SelectorBytes.Span));
+
+    /// <summary>
+    /// Heuristically checks for the generated function's selector in PUSH constants.
+    /// </summary>
+    /// <typeparam name="TFunction"></typeparam>
+    /// <returns></returns>
+    public bool ContainsCallSelector<TFunction>()
+        where TFunction : IGeneratedFunction
+        => ContainsCallSelector(Bytes4.FromBytes(TFunction.SelectorBytes.Span));
+
+    /// <summary>
+    /// Heuristically checks for a function selector in PUSH constants.
+    /// </summary>
+    /// <param name="selector"></param>
+    /// <returns></returns>
+    public bool ContainsCallSelector(Bytes4 selector)
+        => HasPushedSelector(selector);
+
+    /// <summary>
+    /// Heuristically checks for all given function selectors in PUSH constants.
+    /// </summary>
+    /// <param name="selectors"></param>
+    /// <returns></returns>
+    public bool ContainsCallSelector(params ReadOnlySpan<Bytes4> selectors)
+    {
+        foreach(var selector in selectors)
+        {
+            if(!ContainsCallSelector(selector))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /// <summary>
     /// Checks if the given contract code implements a set of function selectors
@@ -113,7 +148,25 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     {
         foreach(var requiredSelector in selectors)
         {
-            if(!HasFunction(requiredSelector))
+            if(!HasFunctionSelector(requiredSelector.Span))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if the given contract code implements all given function selectors.
+    /// </summary>
+    /// <param name="selectors"></param>
+    /// <returns></returns>
+    public bool HasFunctions(params ReadOnlySpan<Bytes4> selectors)
+    {
+        foreach(var selector in selectors)
+        {
+            if(!HasFunction(selector))
             {
                 return false;
             }
@@ -127,39 +180,11 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     /// </summary>
     /// <param name="selector"></param>
     /// <returns></returns>
-    public bool HasFunction(ReadOnlyMemory<byte> selector)
+    public bool HasFunction(Bytes4 selector)
     {
-        var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
-        var normalizedSelector = selector.Span.TrimStart((byte) 0);
-        normalizedSelector = normalizedSelector.IsEmpty ? selector.Span : normalizedSelector;
-
-        for(int i = 0; i < byteCode.Length; i++)
-        {
-            if(!EvmOpcodeUtils.TryGetPushLength(byteCode[i], out int pushLength))
-            {
-                continue;
-            }
-
-            int pushValueIndex = i + 1;
-            int pushEndIndex = pushValueIndex + pushLength;
-
-            if(pushEndIndex > byteCode.Length)
-            {
-                break;
-            }
-
-            if(pushLength == normalizedSelector.Length
-                && byteCode[pushValueIndex..pushEndIndex].SequenceEqual(normalizedSelector)
-                && pushEndIndex < byteCode.Length
-                && EvmOpcodeUtils.ComparisonOpcodes.Contains(byteCode[pushEndIndex]))
-            {
-                return true;
-            }
-
-            i += pushLength;
-        }
-
-        return false;
+        Span<byte> selectorBytes = stackalloc byte[Bytes4.BYTE_LENGTH];
+        selector.CopyTo(selectorBytes);
+        return HasFunctionSelector(selectorBytes);
     }
 
     /// <summary>
@@ -178,7 +203,7 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     /// <returns></returns>
     public bool HasEvent<TLog>()
         where TLog : IGeneratedLog
-        => HasEvent(TLog.TopicBytes);
+        => HasEvent(Bytes32.FromBytes(TLog.TopicBytes.Span));
 
     /// <summary>
     /// Checks if the given contract code implements a set of event topics
@@ -189,7 +214,25 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     {
         foreach(var requiredTopic in topics)
         {
-            if(!HasEvent(requiredTopic))
+            if(!HasEventTopic(requiredTopic.Span))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if the given contract code implements all given event topics.
+    /// </summary>
+    /// <param name="topics"></param>
+    /// <returns></returns>
+    public bool HasEvents(params ReadOnlySpan<Bytes32> topics)
+    {
+        foreach(var topic in topics)
+        {
+            if(!HasEvent(topic))
             {
                 return false;
             }
@@ -203,20 +246,11 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     /// </summary>
     /// <param name="topic"></param>
     /// <returns></returns>
-    public bool HasEvent(ReadOnlyMemory<byte> topic)
+    public bool HasEvent(Bytes32 topic)
     {
-        var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
-
-        if(byteCode.IndexOf(topic.Span) != -1)
-        {
-            return true;
-        }
-
-        var normalizedTopic = topic.Span.TrimStart((byte) 0);
-        normalizedTopic = normalizedTopic.IsEmpty ? topic.Span : normalizedTopic;
-
-        return normalizedTopic.Length != topic.Length
-            && byteCode.IndexOf(normalizedTopic) != -1;
+        Span<byte> topicBytes = stackalloc byte[Bytes32.BYTE_LENGTH];
+        topic.CopyTo(topicBytes);
+        return HasEventTopic(topicBytes);
     }
 
     /// <summary>
@@ -256,25 +290,36 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     }
 
     /// <summary>
+    /// Checks if the given contract code implements all given error signatures.
+    /// </summary>
+    /// <param name="signatures"></param>
+    /// <returns></returns>
+    public bool HasErrors(params ReadOnlySpan<Bytes4> signatures)
+    {
+        foreach(var signature in signatures)
+        {
+            if(!HasError(signature))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Checks if the given contract code implements an error signature.
     /// </summary>
     /// <param name="signature"></param>
     /// <returns></returns>
     public bool HasError(Bytes4 signature)
+        => HasPushedSelector(signature);
+
+    private bool HasFunctionSelector(ReadOnlySpan<byte> selector)
     {
-        Span<byte> signatureBytes = stackalloc byte[4];
-        signature.CopyTo(signatureBytes);
         var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
-
-        return HasPushedErrorSignature(byteCode, signatureBytes);
-    }
-
-    private static bool HasPushedErrorSignature(ReadOnlySpan<byte> byteCode, ReadOnlySpan<byte> signature)
-    {
-        var compactSignature = signature.Trim((byte) 0);
-        compactSignature = compactSignature.IsEmpty ? signature : compactSignature;
-        Span<byte> shiftedSignature = stackalloc byte[4];
-        int shiftedSignatureLength = CopyRightShiftedSignatureBytes(signature, shiftedSignature);
+        var normalizedSelector = selector.TrimStart((byte) 0);
+        normalizedSelector = normalizedSelector.IsEmpty ? selector : normalizedSelector;
 
         for(int i = 0; i < byteCode.Length; i++)
         {
@@ -291,11 +336,10 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
                 break;
             }
 
-            var pushData = byteCode[pushValueIndex..pushEndIndex];
-
-            if(pushData.IndexOf(signature) != -1
-                || (compactSignature.Length != signature.Length && pushData.IndexOf(compactSignature) != -1)
-                || (shiftedSignatureLength != 0 && pushData.IndexOf(shiftedSignature[..shiftedSignatureLength]) != -1))
+            if(pushLength == normalizedSelector.Length
+                && byteCode[pushValueIndex..pushEndIndex].SequenceEqual(normalizedSelector)
+                && pushEndIndex < byteCode.Length
+                && EvmOpcodeUtils.ComparisonOpcodes.Contains(byteCode[pushEndIndex]))
             {
                 return true;
             }
@@ -306,21 +350,73 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
         return false;
     }
 
-    private static int CopyRightShiftedSignatureBytes(ReadOnlySpan<byte> signature, Span<byte> destination)
+    private bool HasEventTopic(ReadOnlySpan<byte> topic)
     {
-        uint value = BinaryPrimitives.ReadUInt32BigEndian(signature);
-        int shift = BitOperations.TrailingZeroCount(value);
+        var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
 
-        if(shift is 0 or 32)
+        if(byteCode.IndexOf(topic) != -1)
         {
-            return 0;
+            return true;
         }
 
-        BinaryPrimitives.WriteUInt32BigEndian(destination, value >> shift);
+        var normalizedTopic = topic.TrimStart((byte) 0);
+        normalizedTopic = normalizedTopic.IsEmpty ? topic : normalizedTopic;
 
-        var shiftedSignature = destination[..4].TrimStart((byte) 0);
-        shiftedSignature.CopyTo(destination);
+        return normalizedTopic.Length != topic.Length
+            && byteCode.IndexOf(normalizedTopic) != -1;
+    }
 
-        return shiftedSignature.Length;
+    private bool HasPushedSelector(Bytes4 signature)
+    {
+        Span<byte> signatureBytes = stackalloc byte[Bytes4.BYTE_LENGTH];
+        signature.CopyTo(signatureBytes);
+        var byteCode = EvmBytecodeMetadata.GetExecutableByteCode(ByteCode).Span;
+        uint selector = BinaryPrimitives.ReadUInt32BigEndian(signatureBytes);
+        selector >>= BitOperations.TrailingZeroCount(selector);
+        int selectorBits = Math.Max(1, 32 - BitOperations.LeadingZeroCount(selector));
+        ulong mask = (1UL << selectorBits) - 1;
+
+        for(int i = 0; i < byteCode.Length; i++)
+        {
+            if(byteCode[i] == (byte) EvmOpcode.Push0 && selector == 0)
+            {
+                return true;
+            }
+
+            if(!EvmOpcodeUtils.TryGetPushLength(byteCode[i], out int pushLength))
+            {
+                continue;
+            }
+
+            int pushValueIndex = i + 1;
+            int pushEndIndex = pushValueIndex + pushLength;
+
+            if(pushEndIndex > byteCode.Length)
+            {
+                break;
+            }
+
+            var pushData = byteCode[pushValueIndex..pushEndIndex];
+
+            // Search significant bits so byte padding, partial shifts, and optimized factoring all match.
+            ulong value = 0;
+            int bitCount = 0;
+            foreach(byte currentByte in pushData)
+            {
+                value = (value << 8) | currentByte;
+                bitCount += 8;
+                for(int shift = 0; shift < 8 && shift <= bitCount - selectorBits; shift++)
+                {
+                    if(((value >> shift) & mask) == selector)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            i += pushLength;
+        }
+
+        return false;
     }
 }
