@@ -134,7 +134,7 @@ public sealed class EVMByteCodeTests
     {
         var byteCode = CreateByteCode(0x62, 0x4A, 0xA3, 0x20, 0x14);
 
-        Assert.True(byteCode.HasFunction(Convert.FromHexString("004aa320")));
+        Assert.True(byteCode.HasFunction(Bytes4.Parse("004aa320")));
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public sealed class EVMByteCodeTests
         byte[] bytes = [0xFE, .. topic];
         var byteCode = new EVMByteCode(bytes);
 
-        Assert.True(byteCode.HasEvent(topic));
+        Assert.True(byteCode.HasEvent(Bytes32.FromBytes(topic)));
     }
 
     [Fact]
@@ -154,7 +154,7 @@ public sealed class EVMByteCodeTests
         byte[] bytes = [0x7E, .. topic[1..]];
         var byteCode = new EVMByteCode(bytes);
 
-        Assert.True(byteCode.HasEvent(topic));
+        Assert.True(byteCode.HasEvent(Bytes32.FromBytes(topic)));
     }
 
     [Fact]
@@ -162,7 +162,7 @@ public sealed class EVMByteCodeTests
     {
         var byteCode = CreateByteCodeWithSolcMetadata(0x63, 0x12, 0x34, 0x56, 0x78, 0x14);
 
-        Assert.False(byteCode.HasFunction(Convert.FromHexString("12345678")));
+        Assert.False(byteCode.HasFunction(Bytes4.Parse("12345678")));
     }
 
     [Fact]
@@ -180,6 +180,6 @@ public sealed class EVMByteCodeTests
         byte[] metadataBytes = [0x7F, .. topic];
         var byteCode = CreateByteCodeWithSolcMetadata(metadataBytes);
 
-        Assert.False(byteCode.HasEvent(topic));
+        Assert.False(byteCode.HasEvent(Bytes32.FromBytes(topic)));
     }
 }
