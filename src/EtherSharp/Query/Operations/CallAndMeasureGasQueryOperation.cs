@@ -5,7 +5,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<(CallResult<T>, ulong)>
+internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInput) : IQueryOperation, IQuery<(CallResult<T>, ulong)>
 {
     private readonly IContractCall<T> _txInput = txInput;
     private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom = txInput.ReadResultFrom;

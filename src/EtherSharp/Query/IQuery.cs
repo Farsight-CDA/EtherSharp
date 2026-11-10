@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 namespace EtherSharp.Query;
 
 /// <summary>
-/// Represents a low-level query operation that can be encoded into the aggregated query payload.
+/// Represents a query independently of its result type.
 /// </summary>
 public partial interface IQuery
 {
@@ -24,27 +24,28 @@ public partial interface IQuery
     ).Map(x => (ulong) x);
 
     /// <summary>
-    /// Gets the number of bytes this operation contributes to the encoded query calldata.
+    /// Gets the number of low-level operations contributed to an execution plan by this query.
     /// </summary>
-    public int CallDataLength { get; }
+    public int OperationCount
+        => this is IQueryOperation
+            ? 1
+            : throw new InvalidOperationException("Composite queries must declare their operation count.");
 
     /// <summary>
-    /// Gets the ETH value that should be sent when executing this operation.
+    /// Adds this query's low-level operations and state overrides to <paramref name="plan"/>.
     /// </summary>
-    public UInt256 EthValue { get; }
+    /// <remarks>
+    /// Implementations must add exactly <see cref="OperationCount"/> operations, in the order expected by their result decoder.
+    /// </remarks>
+    public void AddTo(IQueryPlan plan)
+    {
+        if(this is not IQueryOperation operation)
+        {
+            throw new InvalidOperationException("Composite queries must implement query collection.");
+        }
 
-    /// <summary>
-    /// Encodes this operation into <paramref name="buffer"/>.
-    /// </summary>
-    /// <param name="buffer">Destination buffer sized to <see cref="CallDataLength"/>.</param>
-    public void Encode(Span<byte> buffer);
-
-    /// <summary>
-    /// Reads the expected byte length for this operation's raw result from the beginning of <paramref name="resultData"/>.
-    /// </summary>
-    /// <param name="resultData">The result payload beginning at this operation's output offset.</param>
-    /// <returns>The total number of bytes consumed by this operation's result.</returns>
-    public int ParseResultLength(ReadOnlySpan<byte> resultData);
+        plan.AddOperation(operation);
+    }
 
     /// <summary>
     /// Creates a contract-call query that returns either the decoded value or revert data.
@@ -285,33 +286,8 @@ public partial interface IQuery
 /// Represents a call payload that returns a result of type <typeparamref name="TQuery"/> when eth_call'ed.
 /// </summary>
 /// <typeparam name="TQuery">The parsed result type returned by this query.</typeparam>
-public partial interface IQuery<TQuery>
+public partial interface IQuery<TQuery> : IQuery
 {
-    /// <summary>
-    /// Gets the number of low-level operations contributed to an execution plan by this query.
-    /// </summary>
-    public int OperationCount
-        => this is IQuery
-            ? 1
-            : throw new InvalidOperationException("Composite queries must declare their operation count.");
-
-    /// <summary>
-    /// Adds this query's low-level operations and state overrides to <paramref name="plan"/>.
-    /// </summary>
-    /// <remarks>
-    /// Implementations must add exactly <see cref="OperationCount"/> operations, in the order expected by
-    /// <see cref="ReadResultFrom"/>.
-    /// </remarks>
-    public void AddTo(IQueryPlan plan)
-    {
-        if(this is not IQuery query)
-        {
-            throw new InvalidOperationException("Composite queries must implement query collection.");
-        }
-
-        plan.AddOperation(query);
-    }
-
     /// <summary>
     /// Decodes this query's result from its low-level operation results.
     /// </summary>

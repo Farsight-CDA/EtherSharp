@@ -45,7 +45,7 @@ internal sealed class InterpreterContextQuery(bool disableBlobBaseFee) : IQuery<
             return hashes;
         }));
 
-    int IQuery<InterpreterContext>.OperationCount
+    int IQuery.OperationCount
         => _chainId.OperationCount
             + _blockNumber.OperationCount
             + _blockTimestamp.OperationCount
@@ -56,7 +56,7 @@ internal sealed class InterpreterContextQuery(bool disableBlobBaseFee) : IQuery<
             + (disableBlobBaseFee ? 0 : _blobBaseFee.OperationCount)
             + _recentBlockHashes.OperationCount;
 
-    void IQuery<InterpreterContext>.AddTo(IQueryPlan plan)
+    void IQuery.AddTo(IQueryPlan plan)
     {
         plan.Add(_chainId);
         plan.Add(_blockNumber);

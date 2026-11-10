@@ -4,7 +4,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class CallQueryOperation<T>(IContractCall<T> txInput) : IQuery, IQuery<CallResult<T>>
+internal sealed class CallQueryOperation<T>(IContractCall<T> txInput) : IQueryOperation, IQuery<CallResult<T>>
 {
     private readonly IContractCall<T> _txInput = txInput;
     private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom = txInput.ReadResultFrom;

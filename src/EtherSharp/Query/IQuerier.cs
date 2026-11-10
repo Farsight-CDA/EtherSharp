@@ -59,7 +59,7 @@ public partial interface IQuerier
             /// Encodes all supplied operations into one query payload.
             /// </summary>
             public static byte[] Encode(
-                IReadOnlyList<IQuery> queries,
+                IReadOnlyList<IQueryOperation> queries,
                 out int payloadSize,
                 out UInt256 ethValue)
             {

@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class GetBlockNumberQueryOperation : IQuery, IQuery<ulong>
+internal sealed class GetBlockNumberQueryOperation : IQueryOperation, IQuery<ulong>
 {
     public static GetBlockNumberQueryOperation Instance { get; } = new();
 

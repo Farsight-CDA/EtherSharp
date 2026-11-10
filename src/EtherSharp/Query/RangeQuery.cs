@@ -17,7 +17,7 @@ internal sealed record RangeQuery<T>(
         }
     }
 
-    void IQuery<T[]>.AddTo(IQueryPlan plan)
+    void IQuery.AddTo(IQueryPlan plan)
     {
         foreach(var query in Queries.Span)
         {

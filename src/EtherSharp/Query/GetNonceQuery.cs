@@ -31,10 +31,10 @@ internal sealed class GetNonceQuery : IQuery<NonceSearchResult>
         _probe = IQuery.WithCaller(account, Probe);
     }
 
-    int IQuery<NonceSearchResult>.OperationCount
+    int IQuery.OperationCount
         => _probe.OperationCount;
 
-    void IQuery<NonceSearchResult>.AddTo(IQueryPlan plan)
+    void IQuery.AddTo(IQueryPlan plan)
         => plan.Add(_probe);
 
     NonceSearchResult IQuery<NonceSearchResult>.ReadResultFrom(

@@ -10,12 +10,12 @@ public interface IQueryPlan
     /// <summary>
     /// Adds a low-level operation to the plan.
     /// </summary>
-    public void AddOperation(IQuery operation);
+    public void AddOperation(IQueryOperation operation);
 
     /// <summary>
     /// Adds the operations and state overrides required by <paramref name="query"/>.
     /// </summary>
-    public void Add<T>(IQuery<T> query);
+    public void Add(IQuery query);
 
     /// <summary>
     /// Adds a state override required by the query.

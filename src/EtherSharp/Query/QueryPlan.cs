@@ -8,12 +8,12 @@ internal sealed class QueryPlan(
     IReadOnlyDictionary<Address, AccountOverride>? callerStateOverrides = null
 ) : IQueryPlan
 {
-    private readonly List<IQuery> _queries = new List<IQuery>(capacity);
+    private readonly List<IQueryOperation> _queries = new List<IQueryOperation>(capacity);
     private readonly IReadOnlyDictionary<Address, AccountOverride>? _callerStateOverrides = callerStateOverrides;
 
     private Dictionary<Address, AccountOverride>? _stateOverrides;
 
-    public IReadOnlyList<IQuery> Queries
+    public IReadOnlyList<IQueryOperation> Queries
         => _queries;
 
     public int Count
@@ -22,10 +22,10 @@ internal sealed class QueryPlan(
     public IReadOnlyDictionary<Address, AccountOverride>? StateOverrides
         => _stateOverrides ?? _callerStateOverrides;
 
-    public void AddOperation(IQuery query)
+    public void AddOperation(IQueryOperation query)
         => _queries.Add(query);
 
-    public void Add<T>(IQuery<T> query)
+    public void Add(IQuery query)
         => query.AddTo(this);
 
     public void AddStateOverride(in Address address, AccountOverride accountOverride)

@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class GetBlockGasLimitQueryOperation : IQuery, IQuery<ulong>
+internal sealed class GetBlockGasLimitQueryOperation : IQueryOperation, IQuery<ulong>
 {
     public static GetBlockGasLimitQueryOperation Instance { get; } = new();
 

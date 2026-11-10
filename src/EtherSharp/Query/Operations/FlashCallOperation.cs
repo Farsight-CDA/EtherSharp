@@ -7,7 +7,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class SafeFlashCallQueryOperation<T> : IQuery, IQuery<CallResult<T>>
+internal sealed class SafeFlashCallQueryOperation<T> : IQueryOperation, IQuery<CallResult<T>>
 {
     private readonly IFlashCall<T> _txInput;
     private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom;

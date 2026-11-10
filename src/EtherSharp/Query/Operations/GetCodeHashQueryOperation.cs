@@ -3,7 +3,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class GetCodeHashQueryOperation(in Address address) : IQuery, IQuery<byte[]>
+internal sealed class GetCodeHashQueryOperation(in Address address) : IQueryOperation, IQuery<byte[]>
 {
     private readonly Address _address = address;
 

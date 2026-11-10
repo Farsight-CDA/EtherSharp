@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class RemainingGasOperation : IQuery, IQuery<UInt256>
+internal sealed class RemainingGasOperation : IQueryOperation, IQuery<UInt256>
 {
     public static RemainingGasOperation Instance { get; } = new();
 

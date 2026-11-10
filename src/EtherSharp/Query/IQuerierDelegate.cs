@@ -60,7 +60,7 @@ public partial interface IQuerierDelegate
             /// <summary>
             /// Encodes a delegated query call.
             /// </summary>
-            public static void Encode(Span<byte> buffer, IReadOnlyList<IQuery> operations)
+            public static void Encode(Span<byte> buffer, IReadOnlyList<IQueryOperation> operations)
             {
                 Selector.CopyTo(buffer);
 

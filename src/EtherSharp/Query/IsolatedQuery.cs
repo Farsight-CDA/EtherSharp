@@ -6,7 +6,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query;
 
-internal sealed class IsolatedQuery<T> : IQuery, IQuery<T>
+internal sealed class IsolatedQuery<T> : IQueryOperation, IQuery<T>
 {
     private const int HEADER_LENGTH = 4 + Bytes32.BYTE_LENGTH;
     private const byte TERMINATOR = Byte.MaxValue;
@@ -33,9 +33,9 @@ internal sealed class IsolatedQuery<T> : IQuery, IQuery<T>
 
     public UInt256 EthValue { get; private set; }
 
-    int IQuery<T>.OperationCount => 1;
+    int IQuery.OperationCount => 1;
 
-    void IQuery<T>.AddTo(IQueryPlan plan)
+    void IQuery.AddTo(IQueryPlan plan)
     {
         if(_innerPlan.StateOverrides is { } innerOverrides)
         {

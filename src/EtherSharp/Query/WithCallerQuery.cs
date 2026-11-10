@@ -7,7 +7,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Query;
 
-internal sealed class WithCallerQuery<T> : IQuery, IQuery<T>
+internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
 {
     private readonly Address _caller;
     private readonly IQuery<T> _query;
@@ -35,9 +35,9 @@ internal sealed class WithCallerQuery<T> : IQuery, IQuery<T>
 
     public UInt256 EthValue { get; private set; }
 
-    int IQuery<T>.OperationCount => 1;
+    int IQuery.OperationCount => 1;
 
-    void IQuery<T>.AddTo(IQueryPlan plan)
+    void IQuery.AddTo(IQueryPlan plan)
     {
         if(_innerPlan.StateOverrides is { } innerOverrides)
         {

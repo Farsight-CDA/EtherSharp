@@ -14,10 +14,10 @@ public partial class QueryBuilder<TQuery> : IQuery<List<TQuery>>
     /// <summary>
     /// Gets the flattened low-level operations that will be executed by the query executor.
     /// </summary>
-    public IReadOnlyList<IQuery> Queries => _plan.Queries;
-    int IQuery<List<TQuery>>.OperationCount => _plan.Count;
+    public IReadOnlyList<IQueryOperation> Queries => _plan.Queries;
+    int IQuery.OperationCount => _plan.Count;
 
-    void IQuery<List<TQuery>>.AddTo(IQueryPlan plan)
+    void IQuery.AddTo(IQueryPlan plan)
     {
         foreach(var query in _plan.Queries)
         {

@@ -4,7 +4,7 @@ using EtherSharp.Types;
 namespace EtherSharp.Query.Operations;
 
 internal sealed class ReadStorageQueryOperation(in Bytes32 slot)
-    : IQuery, IQuery<Bytes32>
+    : IQueryOperation, IQuery<Bytes32>
 {
     private readonly Bytes32 _slot = slot;
 

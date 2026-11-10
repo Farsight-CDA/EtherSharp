@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class GetChainIdQueryOperation : IQuery, IQuery<ulong>
+internal sealed class GetChainIdQueryOperation : IQueryOperation, IQuery<ulong>
 {
     public static GetChainIdQueryOperation Instance { get; } = new();
 

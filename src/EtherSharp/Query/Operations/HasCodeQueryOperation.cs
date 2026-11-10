@@ -3,7 +3,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class HasCodeQueryOperation(in Address address) : IQuery, IQuery<bool>
+internal sealed class HasCodeQueryOperation(in Address address) : IQueryOperation, IQuery<bool>
 {
     private readonly Address _address = address;
 
