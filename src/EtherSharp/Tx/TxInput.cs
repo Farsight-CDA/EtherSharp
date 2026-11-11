@@ -24,6 +24,13 @@ internal class TxInput<T>(Address to, UInt256 value, ReadOnlyMemory<byte> data, 
         => TxInputDecoder.ReadResultFrom(data, _decoder);
 }
 
+internal sealed class RawTxInput(Address to, UInt256 value, ReadOnlyMemory<byte> data)
+    : TxInput(to, value, data), IContractCall<ReadOnlyMemory<byte>>
+{
+    public ReadOnlyMemory<byte> ReadResultFrom(ReadOnlyMemory<byte> data)
+        => data;
+}
+
 internal class FlashCallInput(UInt256 value, ReadOnlyMemory<byte> data) : IFlashCall
 {
     public UInt256 Value { get; } = value;
@@ -37,6 +44,13 @@ internal class FlashCallInput<T>(UInt256 value, ReadOnlyMemory<byte> data, Func<
 
     public T ReadResultFrom(ReadOnlyMemory<byte> data)
         => TxInputDecoder.ReadResultFrom(data, _decoder);
+}
+
+internal sealed class RawFlashCallInput(UInt256 value, ReadOnlyMemory<byte> data)
+    : FlashCallInput(value, data), IFlashCall<ReadOnlyMemory<byte>>
+{
+    public ReadOnlyMemory<byte> ReadResultFrom(ReadOnlyMemory<byte> data)
+        => data;
 }
 
 internal static class TxInputDecoder

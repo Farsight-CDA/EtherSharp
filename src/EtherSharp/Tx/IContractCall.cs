@@ -45,7 +45,7 @@ public interface IContractCall : ITxInput
     /// <param name="data"></param>
     /// <returns></returns>
     public static IContractCall<ReadOnlyMemory<byte>> ForRawContractCall(in Address contractAddress, UInt256 value, ReadOnlyMemory<byte> data)
-        => new TxInput<ReadOnlyMemory<byte>>(contractAddress, value, data, x => x);
+        => new RawTxInput(contractAddress, value, data);
 
     /// <summary>
     /// Creates an IContractCall for a raw undecoded contract call.

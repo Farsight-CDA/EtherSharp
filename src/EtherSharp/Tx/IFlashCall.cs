@@ -49,7 +49,7 @@ public interface IFlashCall
     /// <param name="data"></param>
     /// <returns></returns>
     public static IFlashCall<ReadOnlyMemory<byte>> ForRawFlashCall(UInt256 value, ReadOnlyMemory<byte> data)
-        => new FlashCallInput<ReadOnlyMemory<byte>>(value, data, x => x);
+        => new RawFlashCallInput(value, data);
 
     /// <summary>
     /// Creates an <see cref="IFlashCall{T}"/> for a raw flash call with a custom decoder.
