@@ -7,7 +7,7 @@ namespace EtherSharp.Types;
 /// </summary>
 /// <param name="CallTarget">The call target address, or <see langword="null"/> for contract deployment.</param>
 /// <typeparam name="T">The decoded success payload type.</typeparam>
-public abstract record CallResult<T>(Address? CallTarget)
+public closed record CallResult<T>(Address? CallTarget)
 {
     /// <summary>
     /// Indicates execution succeeded and the returned bytes decoded successfully.
@@ -43,7 +43,6 @@ public abstract record CallResult<T>(Address? CallTarget)
             Success s => s.Value,
             Reverted r => throw CallRevertedException.Parse(CallTarget, r.Data.Span),
             Malformed m => throw m.Exception,
-            _ => throw new NotImplementedException()
         };
 
     internal static CallResult<T> ParseFrom(TxCallResult txCallResult, Address? callTarget, Func<ReadOnlyMemory<byte>, T> decoder)

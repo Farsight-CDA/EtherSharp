@@ -409,8 +409,12 @@ public sealed class BlockingSequentialTxScheduler(
 
                         return new TxConfirmationResult.Cancelled();
                     case TxConfirmationAction<TTxParams, TTxGasParams>.MinimalGasFeeIncrement:
-                    case TxConfirmationAction<TTxParams, TTxGasParams>.RepriceTransaction:
-                        await ApplyRepricingAsync(action, handlerContext, typeHandler);
+                        await ApplyRepricingAsync(
+                            currentSubmission.GasParams.IncrementByFactor(1105, 1000, 1), handlerContext, typeHandler
+                        );
+                        continue;
+                    case TxConfirmationAction<TTxParams, TTxGasParams>.RepriceTransaction reprice:
+                        await ApplyRepricingAsync(reprice.GasParams, handlerContext, typeHandler);
                         continue;
                 }
             }
@@ -453,23 +457,20 @@ public sealed class BlockingSequentialTxScheduler(
     }
 
     private async Task ApplyRepricingAsync<TTransaction, TTxParams, TTxGasParams>(
-        TxConfirmationAction<TTxParams, TTxGasParams> action,
+        TTxGasParams gasParams,
         PendingTxHandler<TTxParams, TTxGasParams> context,
-        ITxTypeHandler<TTransaction, TTxParams, TTxGasParams> typeHandler)
+        ITxTypeHandler<TTransaction, TTxParams, TTxGasParams> typeHandler
+    )
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
         var oldSub = context.TxSubmissions[0];
 
-        var newGas = action is TxConfirmationAction<TTxParams, TTxGasParams>.MinimalGasFeeIncrement
-            ? oldSub.GasParams.IncrementByFactor(1105, 1000, 1)
-            : ((TxConfirmationAction<TTxParams, TTxGasParams>.RepriceTransaction) action).GasParams;
-
         var signedTransaction = await typeHandler.EncodeTxAsync(
             oldSub.Call,
             oldSub.Params,
-            newGas,
+            gasParams,
             context.Nonce,
             _cts.Token
         );
@@ -480,7 +481,7 @@ public sealed class BlockingSequentialTxScheduler(
             signedTransaction.EncodedTx,
             oldSub.Call,
             oldSub.Params,
-            newGas
+            gasParams
         );
 
         context.TxSubmissions.Insert(0, newSub);

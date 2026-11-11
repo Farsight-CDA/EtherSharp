@@ -76,6 +76,5 @@ internal sealed class InterpreterStateCache
                     ? new TxCallResult(call.Result.Success, call.Result.Data.ToArray())
                     : call.Result
             ),
-            _ => throw new NotSupportedException(),
         };
 }

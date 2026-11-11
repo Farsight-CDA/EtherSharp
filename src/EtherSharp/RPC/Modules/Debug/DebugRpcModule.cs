@@ -19,7 +19,6 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
         RpcResult<CallTrace>.Success result => result.Result,
         RpcResult<CallTrace>.Null => null,
         RpcResult<CallTrace>.Error error => throw RPCException.FromRPCError(error),
-        _ => throw new NotImplementedException(),
     };
 
     public Task<CallTrace?> TraceTransactionCallsAsync(
@@ -38,7 +37,6 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
         RpcResult<CallTrace>.Success result => result.Result,
         RpcResult<CallTrace>.Null => null,
         RpcResult<CallTrace>.Error error => throw RPCException.FromRPCError(error),
-        _ => throw new NotImplementedException(),
     };
 
     private sealed record TraceCallRequest(
@@ -85,7 +83,6 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
                 RpcResult<CallTrace>.Success result => result.Result,
                 RpcResult<CallTrace>.Null => throw new RPCException(-1, "debug_traceCall returned null", null),
                 RpcResult<CallTrace>.Error error => throw RPCException.FromRPCError(error),
-                _ => throw new NotImplementedException(),
             };
     }
 
@@ -115,7 +112,6 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
                 RpcResult<PrestateTrace>.Success result => result.Result,
                 RpcResult<PrestateTrace>.Null => throw new RPCException(-1, "debug_traceCall returned null", null),
                 RpcResult<PrestateTrace>.Error error => throw RPCException.FromRPCError(error),
-                _ => throw new NotImplementedException(),
             };
     }
 
@@ -145,7 +141,6 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
                 RpcResult<PrestateDiffTrace>.Success result => result.Result,
                 RpcResult<PrestateDiffTrace>.Null => throw new RPCException(-1, "debug_traceCall returned null", null),
                 RpcResult<PrestateDiffTrace>.Error error => throw RPCException.FromRPCError(error),
-                _ => throw new NotImplementedException(),
             };
     }
 
@@ -175,7 +170,6 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
                 RpcResult<TResult>.Success result => result.Result,
                 RpcResult<TResult>.Null => throw new RPCException(-1, "debug_traceCall returned null", null),
                 RpcResult<TResult>.Error error => throw RPCException.FromRPCError(error),
-                _ => throw new NotImplementedException(),
             };
     }
 

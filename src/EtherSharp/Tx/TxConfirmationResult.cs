@@ -9,7 +9,7 @@ namespace EtherSharp.Tx;
 /// A successful confirmation returns a receipt; otherwise the result explains why the nonce advanced
 /// without a matching receipt, was cancelled before publish, or failed with an unexpected exception.
 /// </remarks>
-public record TxConfirmationResult
+public closed record TxConfirmationResult
 {
     /// <summary>
     /// The transaction was confirmed and a receipt was found.
@@ -39,7 +39,10 @@ public record TxConfirmationResult
     /// <returns>The confirmed transaction receipt.</returns>
     /// <exception cref="InvalidOperationException">Thrown when this result is not <see cref="Success"/>.</exception>
     public TxReceipt GetReceipt()
-        => this is Success successResult
-            ? successResult.Receipt
-            : throw new InvalidOperationException($"{nameof(TxConfirmationResult)} is of type {GetType().Name}");
+        => this switch
+        {
+            Success success => success.Receipt,
+            NonceAlreadyUsed or Cancelled or UnhandledException
+                => throw new InvalidOperationException($"{nameof(TxConfirmationResult)} is of type {GetType().Name}"),
+        };
 }

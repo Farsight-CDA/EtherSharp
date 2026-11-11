@@ -5,7 +5,7 @@ namespace EtherSharp.Tx;
 /// <summary>
 /// Represents actions that can be taken to handle a <see cref="TxConfirmationError"/>.
 /// </summary>
-public abstract record TxConfirmationAction<TTxParams, TTxGasParams>
+public closed record TxConfirmationAction<TTxParams, TTxGasParams>
     where TTxParams : class, ITxParams<TTxParams>
     where TTxGasParams : class, ITxGasParams<TTxGasParams>
 {

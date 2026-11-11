@@ -100,14 +100,14 @@ internal sealed class InterpreterContextQuery(bool disableBlobBaseFee) : IQuery<
             {
                 CallResult<UInt256>.Success success => success.Value,
                 CallResult<UInt256>.Reverted => null,
-                _ => baseFeeResult.Unwrap(),
+                CallResult<UInt256>.Malformed malformed => throw malformed.Exception,
             },
             blobBaseFeeResult switch
             {
                 null => null,
                 CallResult<UInt256>.Success success => success.Value,
                 CallResult<UInt256>.Reverted => null,
-                _ => blobBaseFeeResult.Unwrap(),
+                CallResult<UInt256>.Malformed malformed => throw malformed.Exception,
             },
             coinbase,
             prevRandao,

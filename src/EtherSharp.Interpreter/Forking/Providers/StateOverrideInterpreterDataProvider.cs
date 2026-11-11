@@ -182,7 +182,6 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                                     CallResult<ReadOnlyMemory<byte>>.Success success => new TxCallResult(true, success.Value),
                                     CallResult<ReadOnlyMemory<byte>>.Reverted reverted => new TxCallResult(false, reverted.Data),
                                     CallResult<ReadOnlyMemory<byte>>.Malformed malformed => throw malformed.Exception,
-                                    _ => throw new NotSupportedException(),
                                 }
                             )]
                         );

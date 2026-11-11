@@ -11,7 +11,7 @@ namespace EtherSharp.Client.Services.TxPublisher;
 /// The scheduler uses this result to choose its next action: continue waiting for confirmation,
 /// reprice and retry, or resolve completion through receipt polling.
 /// </remarks>
-public abstract record TxSubmissionResult
+public closed record TxSubmissionResult
 {
     private static readonly SearchValues<string> _alreadyExistsMessages = SearchValues.Create(
         [

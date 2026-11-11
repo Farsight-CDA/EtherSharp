@@ -9,7 +9,7 @@ namespace EtherSharp.RPC;
 /// and <see cref="Null"/> explicitly. A <see cref="Null"/> instance means the node returned a successful
 /// response with a <c>null</c> result payload.
 /// </remarks>
-public abstract record RpcResult<T>
+public closed record RpcResult<T>
 {
     /// <summary>
     /// Indicates the RPC call completed without a protocol error, but returned a <c>null</c> result payload.

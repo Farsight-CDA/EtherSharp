@@ -5,7 +5,7 @@ using EtherSharp.Types;
 namespace EtherSharp.Interpreter.Forking;
 
 /// <summary>A resolved interpreter data request.</summary>
-public abstract record InterpreterDataResult
+public closed record InterpreterDataResult
 {
     private InterpreterDataResult()
     {

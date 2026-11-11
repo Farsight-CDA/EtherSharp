@@ -3,7 +3,7 @@ namespace EtherSharp.RPC.Modules.Trace.Types;
 /// <summary>
 /// Represents one unchanged, added, removed, or modified state value.
 /// </summary>
-public abstract record StateChange<T>
+public closed record StateChange<T>
 {
     /// <summary>
     /// The value did not change.
