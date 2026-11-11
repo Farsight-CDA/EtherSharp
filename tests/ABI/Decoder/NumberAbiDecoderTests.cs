@@ -23,7 +23,7 @@ public sealed class AbiSizedNumberDecoderTests
             16 => Int16.MinValue,
             > 16 and <= 32 => Int32.MinValue >> (32 - bitSize),
             > 32 and <= 64 => Int64.MinValue >> (64 - bitSize),
-            > 64 and <= 256 => -Int256.Pow(2, bitSize - 1),
+            > 64 and <= 256 => (object) -Int256.Pow(2, bitSize - 1),
             _ => throw new NotSupportedException()
         };
 
@@ -44,7 +44,7 @@ public sealed class AbiSizedNumberDecoderTests
             16 => Int16.MaxValue,
             > 16 and <= 32 => Int32.MaxValue >> (32 - bitSize),
             > 32 and <= 64 => Int64.MaxValue >> (64 - bitSize),
-            > 64 and <= 256 => Int256.Pow(2, bitSize - 1) - 1,
+            > 64 and <= 256 => (object) (Int256.Pow(2, bitSize - 1) - 1),
             _ => throw new NotSupportedException()
         };
 
@@ -104,7 +104,7 @@ public sealed class AbiSizedNumberDecoderTests
             48 => decoder.Int48(),
             56 => decoder.Int56(),
             64 => decoder.Int64(),
-            72 => decoder.Int72(),
+            72 => (object) decoder.Int72(),
             80 => decoder.Int80(),
             88 => decoder.Int88(),
             96 => decoder.Int96(),
