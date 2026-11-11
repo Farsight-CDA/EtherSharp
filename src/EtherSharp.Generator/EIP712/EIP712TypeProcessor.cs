@@ -11,8 +11,8 @@ public sealed class EIP712TypeProcessor(
 {
     private readonly SourceProductionContext _context = context;
     private readonly HashSet<INamedTypeSymbol> _validatedTypes = new(validatedTypes, SymbolEqualityComparer.Default);
-    private readonly Dictionary<INamedTypeSymbol, EIP712TypeModel> _models = new(SymbolEqualityComparer.Default);
-    private readonly HashSet<INamedTypeSymbol> _visiting = new(SymbolEqualityComparer.Default);
+    private readonly Dictionary<INamedTypeSymbol, EIP712TypeModel> _models = [with(SymbolEqualityComparer.Default)];
+    private readonly HashSet<INamedTypeSymbol> _visiting = [with(SymbolEqualityComparer.Default)];
 
     public EIP712GenerationModel? Process(
         INamedTypeSymbol symbol,

@@ -51,7 +51,7 @@ public sealed partial record InterpreterExecutionSpec
 
         if(Precompiles.IsEmpty)
         {
-            return FrozenDictionary<Address, IPrecompile>.Empty;
+            return [];
         }
 
         var precompiles = new Dictionary<Address, IPrecompile>(Precompiles.Length);

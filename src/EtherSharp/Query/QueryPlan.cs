@@ -8,7 +8,7 @@ internal sealed class QueryPlan(
     IReadOnlyDictionary<Address, AccountOverride>? callerStateOverrides = null
 ) : IQueryPlan
 {
-    private readonly List<IQueryOperation> _queries = new List<IQueryOperation>(capacity);
+    private readonly List<IQueryOperation> _queries = [with(capacity)];
     private readonly IReadOnlyDictionary<Address, AccountOverride>? _callerStateOverrides = callerStateOverrides;
 
     private Dictionary<Address, AccountOverride>? _stateOverrides;
@@ -49,5 +49,5 @@ internal sealed class QueryPlan(
     private Dictionary<Address, AccountOverride> EnsureStateOverrides()
         => _stateOverrides ??= _callerStateOverrides is null
             ? []
-            : new Dictionary<Address, AccountOverride>(_callerStateOverrides);
+            : [with(_callerStateOverrides)];
 }
