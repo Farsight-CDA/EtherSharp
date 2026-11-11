@@ -5,13 +5,13 @@ internal sealed class HexUtils
     private const string HEX_ALPHABET_UPPER = "0123456789ABCDEF";
     private const string HEX_ALPHABET_LOWER = "0123456789abcdef";
 
-    public static string ToHexStringUpper(Span<byte> bytes)
+    public static string ToHexStringUpper(ReadOnlySpan<byte> bytes)
         => ToHexString(bytes, HEX_ALPHABET_UPPER);
 
-    public static string ToHexStringLower(Span<byte> bytes)
+    public static string ToHexStringLower(ReadOnlySpan<byte> bytes)
         => ToHexString(bytes, HEX_ALPHABET_LOWER);
 
-    private static string ToHexString(Span<byte> bytes, string alphabet)
+    private static string ToHexString(ReadOnlySpan<byte> bytes, string alphabet)
     {
         if(bytes.Length == 0)
         {
