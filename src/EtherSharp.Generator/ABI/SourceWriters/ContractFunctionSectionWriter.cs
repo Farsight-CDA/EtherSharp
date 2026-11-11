@@ -391,7 +391,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
 
                 if(isQuery)
                 {
-                    var usedArgumentNames = new HashSet<string>(inputNameList, StringComparer.Ordinal);
+                    HashSet<string> usedArgumentNames = [with(inputNameList, StringComparer.Ordinal)];
                     string callOptionsArgumentName = NameUtils.MakeUniquePropertyName("callOptions", usedArgumentNames);
                     string requestOptionsArgumentName = NameUtils.MakeUniquePropertyName("requestOptions", usedArgumentNames);
 

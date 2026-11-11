@@ -31,7 +31,7 @@ public sealed class EIP712Generator : IIncrementalGenerator
         SourceProductionContext context,
         ImmutableArray<INamedTypeSymbol> symbols)
     {
-        var validatedTypes = new Dictionary<INamedTypeSymbol, string>(SymbolEqualityComparer.Default);
+        Dictionary<INamedTypeSymbol, string> validatedTypes = [with(SymbolEqualityComparer.Default)];
         foreach(var symbol in symbols)
         {
             if(TryValidateType(context, symbol, out string? declarationKind))

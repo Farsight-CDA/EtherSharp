@@ -12,7 +12,7 @@ internal sealed class MemberTypeWriter(ParamEncodingWriter paramEncodingWriter)
 
     public void AddInputProperties(ClassBuilder classBuilder, AbiParameter[] inputs, IReadOnlyCollection<string>? reservedPropertyNames = null)
     {
-        var usedNames = new HashSet<string>(StringComparer.Ordinal);
+        HashSet<string> usedNames = [with(StringComparer.Ordinal)];
 
         if(reservedPropertyNames is not null)
         {

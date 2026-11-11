@@ -10,7 +10,7 @@ public sealed class EIP712TypeProcessor(
     IEnumerable<INamedTypeSymbol> validatedTypes)
 {
     private readonly SourceProductionContext _context = context;
-    private readonly HashSet<INamedTypeSymbol> _validatedTypes = new(validatedTypes, SymbolEqualityComparer.Default);
+    private readonly HashSet<INamedTypeSymbol> _validatedTypes = [with(validatedTypes, SymbolEqualityComparer.Default)];
     private readonly Dictionary<INamedTypeSymbol, EIP712TypeModel> _models = [with(SymbolEqualityComparer.Default)];
     private readonly HashSet<INamedTypeSymbol> _visiting = [with(SymbolEqualityComparer.Default)];
 
@@ -75,8 +75,8 @@ public sealed class EIP712TypeProcessor(
                 return false;
             }
 
-            var members = new List<EIP712MemberModel>(properties.Length);
-            var eipMemberNames = new HashSet<string>(StringComparer.Ordinal);
+            List<EIP712MemberModel> members = [with(properties.Length)];
+            HashSet<string> eipMemberNames = [with(StringComparer.Ordinal)];
             foreach(var property in properties)
             {
                 _context.CancellationToken.ThrowIfCancellationRequested();
@@ -213,7 +213,7 @@ public sealed class EIP712TypeProcessor(
         EIP712TypeModel root,
         out string? canonicalType)
     {
-        var dependencies = new Dictionary<string, EIP712TypeModel>(StringComparer.Ordinal);
+        Dictionary<string, EIP712TypeModel> dependencies = [with(StringComparer.Ordinal)];
         if(!TryCollectDependencies(root, root, dependencies))
         {
             canonicalType = null;

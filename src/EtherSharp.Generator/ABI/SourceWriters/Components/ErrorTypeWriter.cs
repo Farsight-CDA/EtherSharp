@@ -18,8 +18,9 @@ internal sealed class ErrorTypeWriter
         var errorTypeBuilder = new ClassBuilder(errorTypeName)
             .AddBaseType($"EtherSharp.Contract.Sections.ISolidityError<{errorTypeName}>", true)
             .WithAutoConstructor();
-        var usedNames = new HashSet<string>(StringComparer.Ordinal)
-        {
+        HashSet<string> usedNames =
+        [
+            with(StringComparer.Ordinal),
             "Decode",
             "Encode",
             "EncodeData",
@@ -28,7 +29,7 @@ internal sealed class ErrorTypeWriter
             "ErrorSignature",
             "SelectorHex",
             "Selector"
-        };
+        ];
 
         var decodeMethod = new FunctionBuilder("Decode")
             .WithReturnTypeRaw(errorTypeName)
