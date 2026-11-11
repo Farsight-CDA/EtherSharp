@@ -19,7 +19,9 @@ namespace EtherSharp.ABI;
 /// </remarks>
 public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamicTupleEncoder
 {
-    private readonly List<IEncodeType> _entries = [];
+    private readonly union AbiEncodingEntry(IFixedType, IDynamicType);
+
+    private readonly List<AbiEncodingEntry> _entries = [];
 
     private int _payloadSize;
     private int _metadataSize;
@@ -35,7 +37,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     int IDynamicTupleEncoder.MetadataSize => _metadataSize;
     int IDynamicTupleEncoder.PayloadSize => _payloadSize;
 
-    private AbiEncoder AddElement(IEncodeType item)
+    private AbiEncoder AddElement(AbiEncodingEntry item)
     {
         if(item is IDynamicType dyn)
         {
@@ -45,10 +47,6 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         else if(item is IFixedType fix)
         {
             _metadataSize += fix.Size;
-        }
-        else
-        {
-            throw new NotSupportedException();
         }
 
         _entries.Add(item);
@@ -146,7 +144,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
             encoded[i] = new AbiTypes.String(value[i]);
         }
 
-        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.String>(ImmutableCollectionsMarshal.AsImmutableArray(encoded)));
+        return AddElement(new AbiTypes.DynamicTypeArray<AbiTypes.String>(ImmutableCollectionsMarshal.AsImmutableArray(encoded)));
     }
 
     /// <summary>
@@ -162,7 +160,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
             encoded[i] = new AbiTypes.Bytes(ImmutableArray.Create(value[i].Span));
         }
 
-        return AddElement(new AbiTypes.EncodeTypeArray<AbiTypes.Bytes>(ImmutableCollectionsMarshal.AsImmutableArray(encoded)));
+        return AddElement(new AbiTypes.DynamicTypeArray<AbiTypes.Bytes>(ImmutableCollectionsMarshal.AsImmutableArray(encoded)));
     }
 
     /// <summary>
@@ -400,8 +398,6 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
                     ));
                     metaDataOffset += fixEncType.Size;
                     break;
-                default:
-                    throw new NotImplementedException(entry.GetType().FullName);
             }
         }
 

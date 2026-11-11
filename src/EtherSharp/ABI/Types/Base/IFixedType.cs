@@ -1,6 +1,6 @@
 ﻿namespace EtherSharp.ABI.Types.Base;
 
-internal interface IFixedType : IEncodeType
+internal interface IFixedType
 {
     public int Size { get; }
 

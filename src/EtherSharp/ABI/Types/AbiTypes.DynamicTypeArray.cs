@@ -7,26 +7,23 @@ namespace EtherSharp.ABI.Types;
 public static partial class AbiTypes
 {
     /// <summary>
-    /// Represents an array of encode types.
+    /// Represents an array of dynamic encode types.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public sealed class EncodeTypeArray<TInner> : DynamicType<ImmutableArray<TInner>>
-        where TInner : IEncodeType
+    public sealed class DynamicTypeArray<TInner> : DynamicType<ImmutableArray<TInner>>
+        where TInner : IDynamicType
     {
         private readonly int _payloadSize;
 
         /// <inheritdoc />
         public override int PayloadSize => _payloadSize;
 
-        internal EncodeTypeArray(ImmutableArray<TInner> value) : base(value.IsDefault ? [] : value)
+        internal DynamicTypeArray(ImmutableArray<TInner> value) : base(value.IsDefault ? [] : value)
         {
             int total = 32 + (Value.Length * 32);
             foreach(var item in Value)
             {
-                if(item is IDynamicType dynType)
-                {
-                    total += dynType.PayloadSize;
-                }
+                total += item.PayloadSize;
             }
 
             _payloadSize = total;
@@ -43,20 +40,13 @@ public static partial class AbiTypes
             {
                 int localMetadataOffset = 32 + (32 * i);
 
-                switch(Value[i])
-                {
-                    case IDynamicType dynType:
-                        dynType.Encode(
-                            payload.Slice(localMetadataOffset, 32),
-                            payload.Slice(32 + localPayloadOffset, dynType.PayloadSize),
-                            localPayloadOffset
-                        );
-                        localPayloadOffset += dynType.PayloadSize;
-                        break;
-                    case IFixedType fixType:
-                        fixType.Encode(payload.Slice(localMetadataOffset, fixType.Size));
-                        break;
-                }
+                var item = Value[i];
+                item.Encode(
+                    payload.Slice(localMetadataOffset, 32),
+                    payload.Slice(32 + localPayloadOffset, item.PayloadSize),
+                    localPayloadOffset
+                );
+                localPayloadOffset += item.PayloadSize;
             }
         }
     }
