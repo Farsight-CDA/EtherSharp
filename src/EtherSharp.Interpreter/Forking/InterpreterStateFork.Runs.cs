@@ -12,7 +12,7 @@ public sealed partial class InterpreterStateFork
         public bool IsFetching { get; set; }
     }
 
-    internal abstract class RunParticipant
+    internal closed class RunParticipant
     {
         public required RunState Run { get; init; }
         public Program? Parent { get; init; }
@@ -231,7 +231,6 @@ public sealed partial class InterpreterStateFork
             InterpreterRun<TResult>.Lane => new InterpreterRun<TResult>.Program(
                 context => context.RunAsync(run)
             ),
-            _ => throw new ArgumentException("Unsupported interpreter run type.", nameof(run)),
         };
 
         RunState runState;

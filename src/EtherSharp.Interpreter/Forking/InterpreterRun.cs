@@ -4,7 +4,7 @@ namespace EtherSharp.Interpreter.Forking;
 
 /// <summary>Describes composable work in a structured fork run.</summary>
 /// <typeparam name="TResult">The run result type.</typeparam>
-public abstract class InterpreterRun<TResult> : InterpreterRun
+public closed class InterpreterRun<TResult> : InterpreterRun
 {
     private InterpreterRun() { }
 

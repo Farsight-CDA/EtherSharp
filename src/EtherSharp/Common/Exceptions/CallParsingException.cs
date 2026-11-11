@@ -5,7 +5,7 @@ namespace EtherSharp.Common.Exceptions;
 /// </summary>
 /// <param name="message">Error message that describes the parsing failure.</param>
 /// <param name="innerException">Underlying exception thrown during decoding, if any.</param>
-public abstract class CallParsingException(string message, Exception? innerException) : Exception(message, innerException)
+public closed class CallParsingException(string message, Exception? innerException) : Exception(message, innerException)
 {
     /// <summary>
     /// Thrown when a call returns no bytes but return data was expected.

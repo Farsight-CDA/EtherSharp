@@ -9,7 +9,7 @@ namespace EtherSharp.Common.Exceptions;
 /// </summary>
 /// <param name="callAddress">Contract address the call was sent to, or <see langword="null"/> for contract deployment.</param>
 /// <param name="message">Human-readable revert description used to build the exception message.</param>
-public abstract class CallRevertedException(Address? callAddress, string message)
+public closed class CallRevertedException(Address? callAddress, string message)
     : Exception(message)
 {
     /// <summary>
