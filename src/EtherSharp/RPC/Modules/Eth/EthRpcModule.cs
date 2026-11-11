@@ -6,6 +6,7 @@ using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace EtherSharp.RPC.Modules.Eth;
 
@@ -375,30 +376,42 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         };
 
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
-    private sealed record GetLogsRequest(
-        TargetHeight FromBlock,
-        TargetHeight ToBlock,
-        ReadOnlyMemory<Address>? Address,
-        EventTopics? Topics,
-        Bytes32? BlockHash
-    );
+    [JsonDerivedType(typeof(GetLogsRequest.ByRange))]
+    [JsonDerivedType(typeof(GetLogsRequest.ByBlockHash))]
+    private closed record GetLogsRequest(ReadOnlyMemory<Address>? Address, EventTopics? Topics)
+    {
+        public sealed record ByRange(
+            TargetHeight FromBlock,
+            TargetHeight ToBlock,
+            ReadOnlyMemory<Address>? Address,
+            EventTopics? Topics
+        ) : GetLogsRequest(Address, Topics);
+
+        public sealed record ByBlockHash(
+            Bytes32 BlockHash,
+            ReadOnlyMemory<Address>? Address,
+            EventTopics? Topics
+        ) : GetLogsRequest(Address, Topics);
+    }
     public async Task<Log[]> GetLogsAsync(
         TargetHeight fromBlock, TargetHeight toBlock,
         EventFilter eventFilter, Bytes32? blockHash,
-        RpcRequestOptions requestOptions, CancellationToken cancellationToken)
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    )
     {
-        var filterOptions = new GetLogsRequest(
-            fromBlock,
-            toBlock,
-            eventFilter.Addresses.IsEmpty
-                ? null
-                : eventFilter.Addresses,
-            eventFilter.Topics.IsMatchAll
-                ? null
-                : eventFilter.Topics,
-            blockHash);
+        var addresses = eventFilter.Addresses.IsEmpty
+            ? null
+            : (ReadOnlyMemory<Address>?) eventFilter.Addresses;
+        EventTopics? topics = eventFilter.Topics.IsMatchAll
+            ? null
+            : eventFilter.Topics;
+        GetLogsRequest filterOptions = blockHash is Bytes32 hash
+            ? new GetLogsRequest.ByBlockHash(hash, addresses, topics)
+            : new GetLogsRequest.ByRange(fromBlock, toBlock, addresses, topics
+        );
         return await _rpcClient.SendRpcRequestAsync<GetLogsRequest, Log[]>(
-            "eth_getLogs", filterOptions, fromBlock, requestOptions, cancellationToken) switch
+            "eth_getLogs", filterOptions, fromBlock, requestOptions, cancellationToken
+        ) switch
         {
             RpcResult<Log[]>.Success result => result.Result,
             RpcResult<Log[]>.Error error => throw RPCException.FromRPCError(error),
