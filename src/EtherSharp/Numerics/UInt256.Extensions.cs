@@ -57,28 +57,9 @@ public static class UInt256Extensions
             if(Avx2.IsSupported)
             {
                 var data = Unsafe.ReadUnaligned<Vector256<byte>>(ref MemoryMarshal.GetReference(source));
-                var shuffle = Vector256.Create(
-                    0x18191a1b1c1d1e1ful,
-                    0x1011121314151617ul,
-                    0x08090a0b0c0d0e0ful,
-                    0x0001020304050607ul
-                ).AsByte();
-
-                if(Avx512Vbmi.VL.IsSupported)
-                {
-                    var convert = Avx512Vbmi.VL.PermuteVar32x8(data, shuffle);
-                    Unsafe.SkipInit(out UInt256 result);
-                    Unsafe.As<UInt256, Vector256<byte>>(ref result) = convert;
-                    return result;
-                }
-                else
-                {
-                    var convert = Avx2.Shuffle(data, shuffle);
-                    var permute = Avx2.Permute4x64(convert.AsUInt64(), 0b_01_00_11_10);
-                    Unsafe.SkipInit(out UInt256 result);
-                    Unsafe.As<UInt256, Vector256<ulong>>(ref result) = permute;
-                    return result;
-                }
+                Unsafe.SkipInit(out UInt256 result);
+                Unsafe.As<UInt256, Vector256<byte>>(ref result) = Vector256.Reverse(data);
+                return result;
             }
             else if(AdvSimd.Arm64.IsSupported)
             {
@@ -139,6 +120,7 @@ public static class UInt256Extensions
         /// <param name="destination">Destination span that must be at least 32 bytes long.</param>
         /// <param name="value">Value to write.</param>
         /// <exception cref="ArgumentOutOfRangeException">The destination is shorter than 32 bytes.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteUInt256BigEndian(Span<byte> destination, in UInt256 value)
         {
             if(destination.Length < 32)
@@ -149,24 +131,7 @@ public static class UInt256Extensions
             if(Avx2.IsSupported)
             {
                 var data = Unsafe.As<UInt256, Vector256<byte>>(ref Unsafe.AsRef(in value));
-                var shuffle = Vector256.Create(
-                    0x18191a1b1c1d1e1ful,
-                    0x1011121314151617ul,
-                    0x08090a0b0c0d0e0ful,
-                    0x0001020304050607ul
-                ).AsByte();
-
-                if(Avx512Vbmi.VL.IsSupported)
-                {
-                    var convert = Avx512Vbmi.VL.PermuteVar32x8(data, shuffle);
-                    Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(destination), convert);
-                }
-                else
-                {
-                    var convert = Avx2.Shuffle(data, shuffle);
-                    var permute = Avx2.Permute4x64(convert.AsUInt64(), 0b_01_00_11_10);
-                    Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(destination), permute);
-                }
+                Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(destination), Vector256.Reverse(data));
             }
             else if(AdvSimd.Arm64.IsSupported)
             {
