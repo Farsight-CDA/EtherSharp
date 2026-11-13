@@ -13,6 +13,17 @@ namespace EtherSharp.RPC.Modules.Eth;
 public interface IEthRpcModule
 {
     /// <summary>
+    /// Creates an RPC module using a caller-owned transport.
+    /// </summary>
+    /// <param name="transport">The transport used to send RPC requests.</param>
+    /// <returns>An RPC module with no middleware or fallback call-gas limit.</returns>
+    public static IEthRpcModule Create(IRPCTransport transport)
+    {
+        ArgumentNullException.ThrowIfNull(transport);
+        return new EthRpcModule(new RpcClient(transport, []), transport, new CallGasLimitSettings(null, null));
+    }
+
+    /// <summary>
     /// Gets the chain id.
     /// </summary>
     public Task<ulong> ChainIdAsync(RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);

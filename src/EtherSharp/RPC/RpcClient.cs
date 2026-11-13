@@ -1,14 +1,13 @@
 using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace EtherSharp.RPC;
 
-internal sealed class RpcClient(IRPCTransport transport, IServiceProvider serviceProvider)
+internal sealed class RpcClient(IRPCTransport transport, IEnumerable<IRpcMiddleware> middlewares)
 {
     private readonly IRPCTransport _transport = transport;
-    private readonly IRpcMiddleware[] _middlewares = [.. serviceProvider.GetServices<IRpcMiddleware>().Reverse()];
+    private readonly IRpcMiddleware[] _middlewares = [.. middlewares.Reverse()];
 
     private Task<RpcResult<TResult>> ExecuteWithMiddlewareAsync<TResult>(
         Func<CancellationToken, Task<RpcResult<TResult>>> onNext,
