@@ -13,14 +13,15 @@ namespace EtherSharp.RPC.Modules.Eth;
 public interface IEthRpcModule
 {
     /// <summary>
-    /// Creates an RPC module using a caller-owned transport.
+    /// Creates an RPC module using a caller-owned transport and middleware instances.
     /// </summary>
     /// <param name="transport">The transport used to send RPC requests.</param>
-    /// <returns>An RPC module with no middleware or fallback call-gas limit.</returns>
-    public static IEthRpcModule Create(IRPCTransport transport)
+    /// <param name="middlewares">The middleware instances, executed in the order supplied.</param>
+    public static IEthRpcModule Create(IRPCTransport transport, params IRpcMiddleware[] middlewares)
     {
         ArgumentNullException.ThrowIfNull(transport);
-        return new EthRpcModule(new RpcClient(transport, []), transport, new CallGasLimitSettings(null, null));
+        ArgumentNullException.ThrowIfNull(middlewares);
+        return new EthRpcModule(new RpcClient(transport, middlewares), transport, new CallGasLimitSettings(null, null));
     }
 
     /// <summary>
