@@ -280,6 +280,23 @@ public partial interface IQuery
     [OverloadResolutionPriority(1)]
     public static IQuery<T[]> Range<T>(ReadOnlyMemory<IQuery<T>> queries)
         => new RangeQuery<T>(queries);
+
+    /// <summary>
+    /// Creates a query that attempts queries in order and returns the fully completed prefix within the available gas budget.
+    /// </summary>
+    public static IQuery<PartialRangeResult<T>> PartialRange<T>(
+        IEnumerable<IQuery<T>> queries,
+        ulong additionalGasReserve = 0
+    ) => PartialRange<T>(queries.ToArray().AsMemory(), additionalGasReserve);
+
+    /// <summary>
+    /// Creates a query that attempts queries in order and returns the fully completed prefix within the available gas budget.
+    /// </summary>
+    [OverloadResolutionPriority(1)]
+    public static IQuery<PartialRangeResult<T>> PartialRange<T>(
+        ReadOnlyMemory<IQuery<T>> queries,
+        ulong additionalGasReserve = 0
+    ) => new PartialRangeQuery<T>(queries, additionalGasReserve);
 }
 
 /// <summary>

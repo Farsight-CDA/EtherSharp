@@ -15,6 +15,11 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
     private readonly EVMByteCode? _originalByteCode;
     private readonly int _innerCallDataLength;
 
+    public int CallDataLength
+        => CallQueryEncoding.GetCallDataLength(IQuerierDelegate.Functions.Query.GetCallDataLength(_innerCallDataLength));
+    public UInt256 EthValue { get; private set; }
+    int IQuery.OperationCount => 1;
+
     public WithCallerQuery(in Address caller, IQuery<T> query, EVMByteCode? originalByteCode)
     {
         _caller = caller;
@@ -29,13 +34,6 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
             EthValue += operation.EthValue;
         }
     }
-
-    public int CallDataLength
-        => CallQueryEncoding.GetCallDataLength(IQuerierDelegate.Functions.Query.GetCallDataLength(_innerCallDataLength));
-
-    public UInt256 EthValue { get; private set; }
-
-    int IQuery.OperationCount => 1;
 
     void IQuery.AddTo(IQueryPlan plan)
     {

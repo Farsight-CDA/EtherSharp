@@ -46,12 +46,7 @@ internal sealed class SafeFlashCallQueryOperation<T> : IQueryOperation, IQuery<C
         _txInput.Data.Span.CopyTo(buffer[(37 + _initCode.Length)..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
-    {
-        Span<byte> lengthBuffer = stackalloc byte[4];
-        resultData[1..4].CopyTo(lengthBuffer[1..4]);
-        int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
-        return dataLength + 4;
-    }
+        => 4 + ((resultData[1] << 16) | (resultData[2] << 8) | resultData[3]);
     CallResult<T> IQuery<CallResult<T>>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
         var queryResult = queryResults[0];

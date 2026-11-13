@@ -1,7 +1,6 @@
 ﻿using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
-using System.Buffers.Binary;
 
 namespace EtherSharp.Query.Operations;
 
@@ -18,12 +17,7 @@ internal sealed class GetCodeQueryOperation(in Address address) : IQueryOperatio
         _address.CopyTo(buffer[1..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
-    {
-        Span<byte> lengthBuffer = stackalloc byte[4];
-        resultData[0..3].CopyTo(lengthBuffer[1..4]);
-        int dataLength = (int) BinaryPrimitives.ReadUInt32BigEndian(lengthBuffer);
-        return dataLength + 3;
-    }
+        => 3 + ((resultData[0] << 16) | (resultData[1] << 8) | resultData[2]);
     EVMByteCode IQuery<EVMByteCode>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
         => new EVMByteCode(queryResults[0][3..]);
 }

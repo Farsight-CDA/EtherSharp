@@ -15,6 +15,11 @@ internal sealed class IsolatedQuery<T> : IQueryOperation, IQuery<T>
     private readonly QueryPlan _innerPlan;
     private readonly int _innerCallDataLength;
 
+    public int CallDataLength
+        => HEADER_LENGTH + _innerCallDataLength + 1;
+    public UInt256 EthValue { get; private set; }
+    int IQuery.OperationCount => 1;
+
     public IsolatedQuery(IQuery<T> query)
     {
         _query = query;
@@ -27,13 +32,6 @@ internal sealed class IsolatedQuery<T> : IQueryOperation, IQuery<T>
             EthValue += operation.EthValue;
         }
     }
-
-    public int CallDataLength
-        => HEADER_LENGTH + _innerCallDataLength + 1;
-
-    public UInt256 EthValue { get; private set; }
-
-    int IQuery.OperationCount => 1;
 
     void IQuery.AddTo(IQueryPlan plan)
     {
