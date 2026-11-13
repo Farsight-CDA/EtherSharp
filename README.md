@@ -185,6 +185,7 @@ Built-in operations include:
 | `IQuery.WithCaller(caller, query[, originalByteCode])` | Executes a query as another caller, optionally preserving its original code |
 | `IQuery.Isolate(query)` | Executes a query atomically and rolls back its state changes |
 | `IQuery.Range(queries)` | Combines same-typed queries into an ordered result array |
+| `IQuery.PartialRange(queries, additionalGasReserve: 0)` | Processes as many queries as fit within the available gas budget |
 | `IQuery.Combine(q1, q2, ...)` | Combines up to 12 queries into a typed tuple (also used by `QueryAsync` overloads) |
 | `IQuery.Noop(value)` | Returns a constant value with no underlying EVM operation |
 
