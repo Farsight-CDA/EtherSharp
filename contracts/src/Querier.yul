@@ -70,11 +70,11 @@ object "Querier" {
                             outputOffset,
                             or(
                                 shl(248, success),
-                                or(shl(216, returndatasize()), shl(152, gasUsed))
+                                or(shl(224, returndatasize()), shl(160, gasUsed))
                             )
                         )
-                        returndatacopy(add(outputOffset, 13), 0, returndatasize())
-                        outputLength := add(13, returndatasize())
+                        returndatacopy(add(outputOffset, 12), 0, returndatasize())
+                        outputLength := add(12, returndatasize())
                     }
                 }
                 default {

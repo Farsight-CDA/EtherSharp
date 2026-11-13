@@ -29,21 +29,18 @@ internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInpu
         _txInput.Data.Span.CopyTo(buffer[56..]);
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
-        => (int) BinaryPrimitives.ReadUInt32BigEndian(resultData[1..5])
-            + 1
-            + 4
-            + 8;
+        => CallQueryEncoding.ParseResultLength(resultData) + sizeof(ulong);
 
     (CallResult<T>, ulong) IQuery<(CallResult<T>, ulong)>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
         var queryResult = queryResults[0];
         bool success = queryResult.Span[0] == 0x01;
-        ulong gasUsed = BinaryPrimitives.ReadUInt64BigEndian(queryResult.Span[5..13]);
+        ulong gasUsed = BinaryPrimitives.ReadUInt64BigEndian(queryResult.Span[4..12]);
 
         var result = success switch
         {
-            true => CallResult<T>.ParseSuccessFrom(queryResult[13..], _txInput.To, _readResultFrom),
-            false => new CallResult<T>.Reverted(_txInput.To, queryResult[13..])
+            true => CallResult<T>.ParseSuccessFrom(queryResult[12..], _txInput.To, _readResultFrom),
+            false => new CallResult<T>.Reverted(_txInput.To, queryResult[12..])
         };
 
         return (result, gasUsed);
