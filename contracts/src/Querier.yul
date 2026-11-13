@@ -42,7 +42,7 @@ object "Querier" {
                 case 0 {
                     let header := calldataload(inputOffset)
                     let length := shr(232, header)
-                    let to := shr(72, header)
+                    let to := shr(96, calldataload(add(inputOffset, 3)))
                     let value := calldataload(add(inputOffset, 23))
 
                     inputOffset := add(inputOffset, 55)
