@@ -10,6 +10,9 @@ using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Runtime.InteropServices;
 
 namespace EtherSharp.Client.Services.TxScheduler;
 

@@ -24,6 +24,13 @@ using EtherSharp.Tx.Legacy;
 using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Metrics;
+using System.Net.WebSockets;
+using System.Text.Json;
 
 namespace EtherSharp.Client;
 
