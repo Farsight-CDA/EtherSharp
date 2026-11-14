@@ -24,13 +24,6 @@ using EtherSharp.Tx.Legacy;
 using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Metrics;
-using System.Net.WebSockets;
-using System.Text.Json;
 
 namespace EtherSharp.Client;
 
@@ -74,6 +67,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="websocketUrl"></param>
     /// <param name="requestTimeout"></param>
     /// <param name="nonceMode"></param>
+    /// <param name="confirmationTimeout">Transaction confirmation timeout. Defaults to 30 seconds.</param>
     /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
@@ -81,6 +75,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <returns></returns>
     public static EtherClientBuilder CreateForWebsocket(
         string websocketUrl, TimeSpan? requestTimeout = null, NonceMode nonceMode = NonceMode.ExclusiveLocal,
+        TimeSpan? confirmationTimeout = null,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null,
         Action<ClientWebSocketOptions>? configureWebSocketOptions = null
@@ -88,6 +83,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
             new Uri(websocketUrl, UriKind.Absolute),
             requestTimeout,
             nonceMode,
+            confirmationTimeout,
             signer,
             loggerFactory,
             configureGasProvider,
@@ -100,6 +96,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="websocketUri"></param>
     /// <param name="requestTimeout"></param>
     /// <param name="nonceMode"></param>
+    /// <param name="confirmationTimeout">Transaction confirmation timeout. Defaults to 30 seconds.</param>
     /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
@@ -107,6 +104,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <returns></returns>
     public static EtherClientBuilder CreateForWebsocket(
         Uri websocketUri, TimeSpan? requestTimeout = null, NonceMode nonceMode = NonceMode.ExclusiveLocal,
+        TimeSpan? confirmationTimeout = null,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null,
         Action<ClientWebSocketOptions>? configureWebSocketOptions = null
@@ -132,7 +130,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithBlockingSequentialTxScheduler(nonceMode)
+            .WithBlockingSequentialTxScheduler(nonceMode, confirmationTimeout ?? TimeSpan.FromSeconds(30))
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
                 gasFeeProviderConfigurationAction: configureGasProvider
             )
@@ -144,18 +142,20 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// </summary>
     /// <param name="rpcUrl"></param>
     /// <param name="nonceMode"></param>
+    /// <param name="confirmationTimeout">Transaction confirmation timeout. Defaults to 30 seconds.</param>
     /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
     /// <param name="httpMessageHandler">Optional caller-owned handler. When omitted, a handler with gzip, deflate, and Brotli response decompression enabled is created.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForHttpRpc(
-        string rpcUrl, NonceMode nonceMode = NonceMode.ExclusiveLocal,
+        string rpcUrl, NonceMode nonceMode = NonceMode.ExclusiveLocal, TimeSpan? confirmationTimeout = null,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null, HttpMessageHandler? httpMessageHandler = null
     ) => CreateForHttpRpc(
             new Uri(rpcUrl, UriKind.Absolute),
             nonceMode,
+            confirmationTimeout,
             signer,
             loggerFactory,
             configureGasProvider,
@@ -167,13 +167,14 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// </summary>
     /// <param name="rpcUri"></param>
     /// <param name="nonceMode"></param>
+    /// <param name="confirmationTimeout">Transaction confirmation timeout. Defaults to 30 seconds.</param>
     /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
     /// <param name="httpMessageHandler">Optional caller-owned handler. When omitted, a handler with gzip, deflate, and Brotli response decompression enabled is created.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForHttpRpc(
-        Uri rpcUri, NonceMode nonceMode = NonceMode.ExclusiveLocal,
+        Uri rpcUri, NonceMode nonceMode = NonceMode.ExclusiveLocal, TimeSpan? confirmationTimeout = null,
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null, HttpMessageHandler? httpMessageHandler = null
     )
@@ -196,7 +197,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         return builder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
-            .WithBlockingSequentialTxScheduler(nonceMode)
+            .WithBlockingSequentialTxScheduler(nonceMode, confirmationTimeout ?? TimeSpan.FromSeconds(30))
             .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
                 gasFeeProviderConfigurationAction: configureGasProvider
             )
@@ -341,10 +342,16 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// Configures the default blocking sequential tx scheduler.
     /// </summary>
     /// <param name="nonceMode"></param>
+    /// <param name="confirmationTimeout"></param>
     /// <returns></returns>
-    public EtherClientBuilder WithBlockingSequentialTxScheduler(NonceMode nonceMode)
-        => WithTxScheduler<BlockingSequentialTxScheduler, BlockingSequentialTxScheduler.Options>(
-            options => options.NonceMode = nonceMode
+    public EtherClientBuilder WithBlockingSequentialTxScheduler(
+        NonceMode nonceMode, TimeSpan confirmationTimeout
+    ) => WithTxScheduler<BlockingSequentialTxScheduler, BlockingSequentialTxScheduler.Options>(
+            options =>
+            {
+                options.NonceMode = nonceMode;
+                options.ConfirmationTimeout = confirmationTimeout;
+            }
         );
 
     /// <summary>

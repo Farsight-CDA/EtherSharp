@@ -10,9 +10,6 @@ using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System.Runtime.InteropServices;
 
 namespace EtherSharp.Client.Services.TxScheduler;
 
@@ -23,7 +20,7 @@ namespace EtherSharp.Client.Services.TxScheduler;
 /// <param name="ethRpcModule">RPC module used for nonce, receipt, and chain state queries.</param>
 /// <param name="signer">Signer representing the sender account for scheduled transactions.</param>
 /// <param name="txPublisher">Publisher used to submit signed transactions to the network.</param>
-/// <param name="options">Configuration for nonce synchronization behavior.</param>
+/// <param name="options">Configuration for nonce synchronization and transaction confirmation behavior.</param>
 public sealed class BlockingSequentialTxScheduler(
     IServiceProvider provider,
     IEthRpcModule ethRpcModule,
@@ -41,11 +38,17 @@ public sealed class BlockingSequentialTxScheduler(
         /// Controls how nonce allocation is synchronized with the node.
         /// </summary>
         public NonceMode NonceMode { get; set; } = NonceMode.ExclusiveLocal;
+
+        /// <summary>
+        /// Time to wait for confirmation after publishing before invoking the error callback with a timeout.
+        /// </summary>
+        public TimeSpan ConfirmationTimeout { get; set; } = TimeSpan.FromSeconds(30);
     }
 
     private readonly IResiliencyLayer? _resiliencyLayer = provider.GetService<IResiliencyLayer>();
     private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<BlockingSequentialTxScheduler>();
     private readonly NonceMode _nonceMode = options.NonceMode;
+    private readonly TimeSpan _confirmationTimeout = options.ConfirmationTimeout;
 
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
@@ -428,7 +431,7 @@ public sealed class BlockingSequentialTxScheduler(
                 case TxSubmissionResult.Success or TxSubmissionResult.AlreadyExists:
                 {
                     hasPublished = true;
-                    var timeoutTask = Task.Delay(TimeSpan.FromSeconds(30));
+                    var timeoutTask = Task.Delay(_confirmationTimeout);
                     var completedTask = await Task.WhenAny(confirmationGateTask, timeoutTask);
 
                     if(completedTask == confirmationGateTask)
