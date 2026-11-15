@@ -45,7 +45,15 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
             }
         }
 
-        plan.AddStateOverride(IQuerier.StateOverride.Address, IQuerier.StateOverride.Account);
+        var runtime = QuerierCodeBuilder.CreateRuntime(
+            Enum.GetValues<QueryOperationId>()
+                .Where(operationId => operationId != QueryOperationId.PartialRange)
+                .ToArray()
+        );
+        plan.AddStateOverride(
+            IQuerier.StateOverride.Address,
+            new AccountOverride(balance: UInt256.Zero, nonce: 1, code: runtime.ByteCode)
+        );
 
         if(_originalByteCode is not { } originalByteCode)
         {

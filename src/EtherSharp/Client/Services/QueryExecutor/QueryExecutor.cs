@@ -35,8 +35,13 @@ internal sealed class QueryExecutor(FlashCallExecutor flashCallExecutor)
 
         try
         {
+            var runtime = QuerierCodeBuilder.CreateRuntime(
+                Enum.GetValues<QueryOperationId>()
+                    .Where(operationId => operationId != QueryOperationId.PartialRange)
+                    .ToArray()
+            );
             var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
-                IQuerier.Code.Flash,
+                IFlashCode.FromRuntimeCode(runtime),
                 IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
                 gasLimit,
                 options with { StateOverrides = plan.StateOverrides },
