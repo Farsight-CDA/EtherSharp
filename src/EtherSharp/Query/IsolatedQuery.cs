@@ -35,14 +35,7 @@ internal sealed class IsolatedQuery<T> : IQueryOperation, IQuery<T>
 
     void IQuery.AddTo(IQueryPlan plan)
     {
-        if(_innerPlan.StateOverrides is { } innerOverrides)
-        {
-            foreach(var (address, accountOverride) in innerOverrides)
-            {
-                plan.AddStateOverride(address, accountOverride);
-            }
-        }
-
+        plan.AddRequirements(_innerPlan.StateOverrides, _innerPlan.RequiresQuerierStateOverride);
         plan.AddOperation(this);
     }
 

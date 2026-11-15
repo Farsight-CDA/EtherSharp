@@ -22,11 +22,16 @@ internal sealed class QueryPlan(
     public IReadOnlyDictionary<Address, AccountOverride>? StateOverrides
         => _stateOverrides ?? _callerStateOverrides;
 
+    public bool RequiresQuerierStateOverride { get; private set; }
+
     public void AddOperation(IQueryOperation query)
         => _queries.Add(query);
 
     public void Add(IQuery query)
         => query.AddTo(this);
+
+    public void RequireQuerierStateOverride()
+        => RequiresQuerierStateOverride = true;
 
     public void AddStateOverride(in Address address, AccountOverride accountOverride)
     {
@@ -44,6 +49,25 @@ internal sealed class QueryPlan(
         }
 
         existingOverride = accountOverride;
+    }
+
+    public void AddRequirements(
+        IReadOnlyDictionary<Address, AccountOverride>? stateOverrides,
+        bool requiresQuerierStateOverride
+    )
+    {
+        if(stateOverrides is not null)
+        {
+            foreach(var (address, accountOverride) in stateOverrides)
+            {
+                AddStateOverride(address, accountOverride);
+            }
+        }
+
+        if(requiresQuerierStateOverride)
+        {
+            RequireQuerierStateOverride();
+        }
     }
 
     private Dictionary<Address, AccountOverride> EnsureStateOverrides()

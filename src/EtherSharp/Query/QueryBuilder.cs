@@ -19,19 +19,11 @@ public partial class QueryBuilder<TQuery> : IQuery<List<TQuery>>
 
     void IQuery.AddTo(IQueryPlan plan)
     {
-        foreach(var query in _plan.Queries)
-        {
-            plan.AddOperation(query);
-        }
+        plan.AddRequirements(_plan.StateOverrides, _plan.RequiresQuerierStateOverride);
 
-        if(_plan.StateOverrides is not { } stateOverrides)
+        foreach(var operation in _plan.Queries)
         {
-            return;
-        }
-
-        foreach(var (address, accountOverride) in stateOverrides)
-        {
-            plan.AddStateOverride(address, accountOverride);
+            plan.AddOperation(operation);
         }
     }
 

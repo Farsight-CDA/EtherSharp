@@ -37,23 +37,8 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
 
     void IQuery.AddTo(IQueryPlan plan)
     {
-        if(_innerPlan.StateOverrides is { } innerOverrides)
-        {
-            foreach(var (address, accountOverride) in innerOverrides)
-            {
-                plan.AddStateOverride(address, accountOverride);
-            }
-        }
-
-        var runtime = QuerierCodeBuilder.CreateRuntime(
-            Enum.GetValues<QueryOperationId>()
-                .Where(operationId => operationId != QueryOperationId.PartialRange)
-                .ToArray()
-        );
-        plan.AddStateOverride(
-            IQuerier.StateOverride.Address,
-            new AccountOverride(balance: UInt256.Zero, nonce: 1, code: runtime.ByteCode)
-        );
+        plan.AddRequirements(_innerPlan.StateOverrides, _innerPlan.RequiresQuerierStateOverride);
+        plan.RequireQuerierStateOverride();
 
         if(_originalByteCode is not { } originalByteCode)
         {

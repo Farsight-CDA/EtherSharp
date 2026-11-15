@@ -1,8 +1,10 @@
 using EtherSharp.Client.Services.FlashCall;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Numerics;
 using EtherSharp.Query;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
+using EtherSharp.Types;
 using System.Buffers;
 
 namespace EtherSharp.Client.Services.QueryExecutor;
@@ -40,6 +42,15 @@ internal sealed class QueryExecutor(FlashCallExecutor flashCallExecutor)
                     .Where(operationId => operationId != QueryOperationId.PartialRange)
                     .ToArray()
             );
+
+            if(plan.RequiresQuerierStateOverride)
+            {
+                plan.AddStateOverride(
+                    IQuerier.StateOverride.Address,
+                    new AccountOverride(balance: UInt256.Zero, nonce: 1, code: runtime.ByteCode)
+                );
+            }
+
             var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
                 IFlashCode.FromRuntimeCode(runtime),
                 IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
