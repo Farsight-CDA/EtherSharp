@@ -8,6 +8,11 @@ namespace EtherSharp.Query;
 public interface IQueryOperation : IQuery
 {
     /// <summary>
+    /// Gets the Querier operation handler required to execute this operation.
+    /// </summary>
+    public QueryOperationId OperationId { get; }
+
+    /// <summary>
     /// Gets the number of bytes this operation contributes to the encoded query calldata.
     /// </summary>
     public int CallDataLength { get; }

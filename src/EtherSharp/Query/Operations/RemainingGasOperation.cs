@@ -7,6 +7,8 @@ internal sealed class RemainingGasOperation : IQueryOperation, IQuery<UInt256>
 {
     public static RemainingGasOperation Instance { get; } = new();
 
+    public QueryOperationId OperationId => QueryOperationId.GetRemainingGas;
+
     private RemainingGasOperation()
     {
     }

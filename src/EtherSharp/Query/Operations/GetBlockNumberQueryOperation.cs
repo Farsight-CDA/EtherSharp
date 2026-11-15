@@ -7,6 +7,8 @@ internal sealed class GetBlockNumberQueryOperation : IQueryOperation, IQuery<ulo
 {
     public static GetBlockNumberQueryOperation Instance { get; } = new();
 
+    public QueryOperationId OperationId => QueryOperationId.GetBlockNumber;
+
     private GetBlockNumberQueryOperation()
     {
     }

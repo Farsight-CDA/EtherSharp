@@ -8,6 +8,7 @@ internal sealed class ReadStorageQueryOperation(in Bytes32 slot)
 {
     private readonly Bytes32 _slot = slot;
 
+    public QueryOperationId OperationId => QueryOperationId.ReadStorage;
     public int CallDataLength => 1 + Bytes32.BYTE_LENGTH;
     public UInt256 EthValue => 0;
 

@@ -19,7 +19,11 @@ public partial class QueryBuilder<TQuery> : IQuery<List<TQuery>>
 
     void IQuery.AddTo(IQueryPlan plan)
     {
-        plan.AddRequirements(_plan.StateOverrides, _plan.RequiresQuerierStateOverride);
+        plan.AddRequirements(
+            _plan.StateOverrides,
+            _plan.RequiresQuerierStateOverride,
+            _plan.RequiredOperationIds
+        );
 
         foreach(var operation in _plan.Queries)
         {

@@ -15,6 +15,7 @@ internal sealed class IsolatedQuery<T> : IQueryOperation, IQuery<T>
     private readonly QueryPlan _innerPlan;
     private readonly int _innerCallDataLength;
 
+    public QueryOperationId OperationId => QueryOperationId.Isolate;
     public int CallDataLength
         => HEADER_LENGTH + _innerCallDataLength + 1;
     public UInt256 EthValue { get; private set; }
@@ -35,7 +36,11 @@ internal sealed class IsolatedQuery<T> : IQueryOperation, IQuery<T>
 
     void IQuery.AddTo(IQueryPlan plan)
     {
-        plan.AddRequirements(_innerPlan.StateOverrides, _innerPlan.RequiresQuerierStateOverride);
+        plan.AddRequirements(
+            _innerPlan.StateOverrides,
+            _innerPlan.RequiresQuerierStateOverride,
+            _innerPlan.RequiredOperationIds
+        );
         plan.AddOperation(this);
     }
 

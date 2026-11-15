@@ -37,11 +37,7 @@ internal sealed class QueryExecutor(FlashCallExecutor flashCallExecutor)
 
         try
         {
-            var runtime = QuerierCodeBuilder.CreateRuntime(
-                Enum.GetValues<QueryOperationId>()
-                    .Where(operationId => operationId != QueryOperationId.PartialRange)
-                    .ToArray()
-            );
+            var runtime = QuerierCodeBuilder.CreateRuntime(plan.RequiredOperationIds);
 
             if(plan.RequiresQuerierStateOverride)
             {

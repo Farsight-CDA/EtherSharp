@@ -15,6 +15,7 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
     private readonly EVMByteCode? _originalByteCode;
     private readonly int _innerCallDataLength;
 
+    public QueryOperationId OperationId => QueryOperationId.Call;
     public int CallDataLength
         => CallQueryEncoding.GetCallDataLength(IQuerierDelegate.Functions.Query.GetCallDataLength(_innerCallDataLength));
     public UInt256 EthValue { get; private set; }
@@ -37,7 +38,11 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
 
     void IQuery.AddTo(IQueryPlan plan)
     {
-        plan.AddRequirements(_innerPlan.StateOverrides, _innerPlan.RequiresQuerierStateOverride);
+        plan.AddRequirements(
+            _innerPlan.StateOverrides,
+            _innerPlan.RequiresQuerierStateOverride,
+            _innerPlan.RequiredOperationIds
+        );
         plan.RequireQuerierStateOverride();
 
         if(_originalByteCode is not { } originalByteCode)

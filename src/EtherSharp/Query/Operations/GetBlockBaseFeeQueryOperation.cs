@@ -7,6 +7,8 @@ internal sealed class GetBlockBaseFeeQueryOperation : IQueryOperation, IQuery<UI
 {
     public static GetBlockBaseFeeQueryOperation Instance { get; } = new();
 
+    public QueryOperationId OperationId => QueryOperationId.GetBlockBaseFee;
+
     private GetBlockBaseFeeQueryOperation()
     {
     }

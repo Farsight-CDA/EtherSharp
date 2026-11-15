@@ -7,6 +7,8 @@ internal sealed class GetBlockGasPriceQueryOperation : IQueryOperation, IQuery<U
 {
     public static GetBlockGasPriceQueryOperation Instance { get; } = new();
 
+    public QueryOperationId OperationId => QueryOperationId.GetBlockGasPrice;
+
     private GetBlockGasPriceQueryOperation()
     {
     }

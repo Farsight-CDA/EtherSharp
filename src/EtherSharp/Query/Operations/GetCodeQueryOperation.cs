@@ -8,6 +8,7 @@ internal sealed class GetCodeQueryOperation(in Address address) : IQueryOperatio
 {
     private readonly Address _address = address;
 
+    public QueryOperationId OperationId => QueryOperationId.GetCode;
     public int CallDataLength => 21;
     public UInt256 EthValue => 0;
 

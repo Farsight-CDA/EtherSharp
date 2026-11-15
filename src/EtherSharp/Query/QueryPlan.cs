@@ -9,6 +9,7 @@ internal sealed class QueryPlan(
 ) : IQueryPlan
 {
     private readonly List<IQueryOperation> _queries = [with(capacity)];
+    private readonly List<QueryOperationId> _requiredOperationIds = [];
     private readonly IReadOnlyDictionary<Address, AccountOverride>? _callerStateOverrides = callerStateOverrides;
 
     private Dictionary<Address, AccountOverride>? _stateOverrides;
@@ -24,8 +25,14 @@ internal sealed class QueryPlan(
 
     public bool RequiresQuerierStateOverride { get; private set; }
 
+    public ReadOnlySpan<QueryOperationId> RequiredOperationIds
+        => CollectionsMarshal.AsSpan(_requiredOperationIds);
+
     public void AddOperation(IQueryOperation query)
-        => _queries.Add(query);
+    {
+        AddRequiredOperation(query.OperationId);
+        _queries.Add(query);
+    }
 
     public void Add(IQuery query)
         => query.AddTo(this);
@@ -53,7 +60,8 @@ internal sealed class QueryPlan(
 
     public void AddRequirements(
         IReadOnlyDictionary<Address, AccountOverride>? stateOverrides,
-        bool requiresQuerierStateOverride
+        bool requiresQuerierStateOverride,
+        ReadOnlySpan<QueryOperationId> requiredOperationIds
     )
     {
         if(stateOverrides is not null)
@@ -67,6 +75,19 @@ internal sealed class QueryPlan(
         if(requiresQuerierStateOverride)
         {
             RequireQuerierStateOverride();
+        }
+
+        foreach(var operationId in requiredOperationIds)
+        {
+            AddRequiredOperation(operationId);
+        }
+    }
+
+    private void AddRequiredOperation(QueryOperationId operationId)
+    {
+        if(!_requiredOperationIds.Contains(operationId))
+        {
+            _requiredOperationIds.Add(operationId);
         }
     }
 

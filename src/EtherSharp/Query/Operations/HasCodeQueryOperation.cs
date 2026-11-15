@@ -7,6 +7,7 @@ internal sealed class HasCodeQueryOperation(in Address address) : IQueryOperatio
 {
     private readonly Address _address = address;
 
+    public QueryOperationId OperationId => QueryOperationId.HasCode;
     public int CallDataLength => 21;
     public UInt256 EthValue => 0;
 

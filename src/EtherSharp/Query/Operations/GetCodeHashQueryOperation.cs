@@ -7,6 +7,7 @@ internal sealed class GetCodeHashQueryOperation(in Address address) : IQueryOper
 {
     private readonly Address _address = address;
 
+    public QueryOperationId OperationId => QueryOperationId.GetCodeHash;
     public int CallDataLength => 21;
     public UInt256 EthValue => 0;
 

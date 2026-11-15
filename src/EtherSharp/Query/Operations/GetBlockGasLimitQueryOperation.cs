@@ -7,6 +7,8 @@ internal sealed class GetBlockGasLimitQueryOperation : IQueryOperation, IQuery<u
 {
     public static GetBlockGasLimitQueryOperation Instance { get; } = new();
 
+    public QueryOperationId OperationId => QueryOperationId.GetBlockGasLimit;
+
     private GetBlockGasLimitQueryOperation()
     {
     }

@@ -7,6 +7,8 @@ internal sealed class GetBlockTimestampQueryOperation : IQueryOperation, IQuery<
 {
     public static GetBlockTimestampQueryOperation Instance { get; } = new();
 
+    public QueryOperationId OperationId => QueryOperationId.GetBlockTimestamp;
+
     private GetBlockTimestampQueryOperation()
     {
     }

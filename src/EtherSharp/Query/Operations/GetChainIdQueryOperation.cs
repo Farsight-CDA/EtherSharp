@@ -7,6 +7,8 @@ internal sealed class GetChainIdQueryOperation : IQueryOperation, IQuery<ulong>
 {
     public static GetChainIdQueryOperation Instance { get; } = new();
 
+    public QueryOperationId OperationId => QueryOperationId.GetChainId;
+
     private GetChainIdQueryOperation()
     {
     }

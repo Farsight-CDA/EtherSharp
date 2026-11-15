@@ -8,6 +8,7 @@ internal sealed class GetBalanceQueryOperation(in Address user) : IQueryOperatio
 {
     private readonly Address _user = user;
 
+    public QueryOperationId OperationId => QueryOperationId.GetBalance;
     public int CallDataLength => 21;
     public UInt256 EthValue => 0;
 

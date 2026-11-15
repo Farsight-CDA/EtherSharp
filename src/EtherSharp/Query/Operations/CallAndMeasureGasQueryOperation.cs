@@ -10,6 +10,7 @@ internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInpu
     private readonly IContractCall<T> _txInput = txInput;
     private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom = txInput.ReadResultFrom;
 
+    public QueryOperationId OperationId => QueryOperationId.CallAndMeasureGas;
     public int CallDataLength => 4 + 20 + 32 + _txInput.Data.Length;
     public UInt256 EthValue => _txInput.Value;
 

@@ -9,6 +9,7 @@ internal sealed class CallQueryOperation<T>(IContractCall<T> txInput) : IQueryOp
     private readonly IContractCall<T> _txInput = txInput;
     private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom = txInput.ReadResultFrom;
 
+    public QueryOperationId OperationId => QueryOperationId.Call;
     public int CallDataLength => CallQueryEncoding.GetCallDataLength(_txInput.Data.Length);
     public UInt256 EthValue => _txInput.Value;
 

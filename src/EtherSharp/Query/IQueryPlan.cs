@@ -13,11 +13,12 @@ public interface IQueryPlan
     public void AddOperation(IQueryOperation operation);
 
     /// <summary>
-    /// Adds state overrides and a Querier runtime requirement to this plan.
+    /// Adds state overrides and Querier runtime requirements to this plan.
     /// </summary>
     public void AddRequirements(
         IReadOnlyDictionary<Address, AccountOverride>? stateOverrides,
-        bool requiresQuerierStateOverride
+        bool requiresQuerierStateOverride,
+        ReadOnlySpan<QueryOperationId> requiredOperationIds
     );
 
     /// <summary>
