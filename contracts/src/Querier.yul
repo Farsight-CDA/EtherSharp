@@ -100,8 +100,17 @@ object "Querier" {
                     calldatacopy(outputOffset, inputOffset, totalLength)
                     inputOffset := add(inputOffset, totalLength)
 
+                    let contractAddress := create(0, outputOffset, codeLength)
+                    if iszero(contractAddress) {
+                        mstore(outputOffset, shl(224, returndatasize()))
+                        mstore8(outputOffset, 0)
+                        returndatacopy(add(outputOffset, 4), 0, returndatasize())
+                        outputOffset := add(outputOffset, add(4, returndatasize()))
+                        continue
+                    }
+
                     outputOffset := add(outputOffset, executeCall(
-                        create(0, outputOffset, codeLength),
+                        contractAddress,
                         value,
                         add(outputOffset, codeLength),
                         calldataLength,

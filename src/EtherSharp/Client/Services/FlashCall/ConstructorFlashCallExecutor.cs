@@ -11,7 +11,7 @@ namespace EtherSharp.Client.Services.FlashCall;
 
 internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlashInitCodeExecutor
 {
-    private const int FIXED_HELPER_LENGTH = 27;
+    private const int FIXED_HELPER_LENGTH = 38;
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
@@ -103,6 +103,21 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
         destination[offset++] = (byte) helperLength;
         destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
         destination[offset++] = (byte) EvmOpcode.Create;
+
+        // A failed CREATE leaves its revert data in the return-data buffer.
+        // Skip CALL and encode that failure using the common result writer.
+        destination[offset++] = (byte) EvmOpcode.Dup1;
+        destination[offset++] = (byte) EvmOpcode.Push1;
+        int callTargetOffset = offset++;
+        destination[offset++] = (byte) EvmOpcode.JumpI;
+        destination[offset++] = (byte) EvmOpcode.Dup1;
+        destination[offset++] = (byte) EvmOpcode.Dup1;
+        destination[offset++] = (byte) EvmOpcode.Push1;
+        int resultTargetOffset = offset++;
+        destination[offset++] = (byte) EvmOpcode.Jump;
+        destination[callTargetOffset] = (byte) offset;
+        destination[offset++] = (byte) EvmOpcode.JumpDest;
+
         destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
         destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
         destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
@@ -121,6 +136,8 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
         }
 
         destination[offset++] = (byte) EvmOpcode.Call;
+        destination[resultTargetOffset] = (byte) offset;
+        destination[offset++] = (byte) EvmOpcode.JumpDest;
         destination[offset++] = (byte) EvmOpcode.Dup2;
         destination[offset++] = (byte) EvmOpcode.MStore8;
         destination[offset++] = (byte) EvmOpcode.ReturnDataSize;
