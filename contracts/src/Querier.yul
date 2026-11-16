@@ -37,13 +37,15 @@ object "Querier" {
                 verbatim_0i_0o(hex"012345678900")
                 if eq(opCode, 0) {
                     let length := shr(232, calldataload(inputOffset))
-                    let to := shr(96, calldataload(add(inputOffset, 3)))
-                    let value := calldataload(add(inputOffset, 23))
-
-                    inputOffset := add(inputOffset, 55)
-                    calldatacopy(outputOffset, inputOffset, length)
-                    inputOffset := add(inputOffset, length)
-                    outputOffset := add(outputOffset, executeCall(to, value, outputOffset, length, outputOffset))
+                    calldatacopy(outputOffset, add(inputOffset, 55), length)
+                    outputOffset := add(outputOffset, executeCall(
+                        shr(96, calldataload(add(inputOffset, 3))),
+                        calldataload(add(inputOffset, 23)),
+                        outputOffset,
+                        length,
+                        outputOffset
+                    ))
+                    inputOffset := add(inputOffset, add(55, length))
                     continue
                 }
                 verbatim_0i_0o(hex"012345678900")
@@ -59,25 +61,27 @@ object "Querier" {
                     calldatacopy(outputOffset, inputOffset, length)
                     inputOffset := add(inputOffset, length)
 
-                    let gasBefore := gas()
-                    let success := call(
-                        sub(gas(), 50000),
-                        to,
-                        value,
-                        outputOffset,
-                        length,
-                        0,
-                        0
-                    )
-                    let gasUsed := sub(gasBefore, gas())
-
-                    mstore(
-                        outputOffset,
-                        or(
-                            shl(248, success),
-                            or(shl(224, returndatasize()), shl(160, gasUsed))
+                    {
+                        let gasBefore := gas()
+                        let success := call(
+                            sub(gas(), 50000),
+                            to,
+                            value,
+                            outputOffset,
+                            length,
+                            0,
+                            0
                         )
-                    )
+                        let gasUsed := sub(gasBefore, gas())
+
+                        mstore(
+                            outputOffset,
+                            or(
+                                shl(248, success),
+                                or(shl(224, returndatasize()), shl(160, gasUsed))
+                            )
+                        )
+                    }
                     returndatacopy(add(outputOffset, 12), 0, returndatasize())
                     outputOffset := add(outputOffset, add(12, returndatasize()))
                     continue
