@@ -14,7 +14,7 @@ const ORIGINS = [4096, 8192];
 const OPTIMIZER = {
     enabled: true,
     runs: 1,
-    details: { yul: false, inliner: false, deduplicate: false },
+    details: { yul: false, inliner: true, deduplicate: false },
 };
 
 function compileRuntime(solc, source, origin) {
