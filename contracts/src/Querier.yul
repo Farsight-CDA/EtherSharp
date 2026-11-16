@@ -243,6 +243,16 @@ object "Querier" {
                 }
                 verbatim_0i_0o(hex"01234567891f")
 
+                // GetNonce.
+                verbatim_0i_0o(hex"012345678920")
+                if eq(opCode, 32) {
+                    mstore(outputOffset, shl(96, address()))
+                    mstore(add(outputOffset, 20), shl(96, create(0, 0, 0)))
+                    outputOffset := add(outputOffset, 40)
+                    continue
+                }
+                verbatim_0i_0o(hex"012345678920")
+
                 // GetRemainingGas.
                 verbatim_0i_0o(hex"012345678928")
                 if eq(opCode, 40) {

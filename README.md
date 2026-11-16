@@ -172,7 +172,7 @@ Built-in operations include:
 | `IQuery.GetBalance(address)` | Gets the ETH balance of an account |
 | `IQuery.GetCode(address)` | Gets the contract code at an address |
 | `IQuery.GetCodeHash(address)` | Gets the code hash at an address |
-| `IQuery.GetNonce(account, startNonce, searchCount)` | Searches a bounded range for an account's nonce |
+| `IQuery.GetNonce(startNonce, searchCount)` | Searches a bounded range for the current execution context's nonce |
 | `IQuery.GetBlockNumber()` | Gets the current block number |
 | `IQuery.GetBlockTimestamp()` | Gets the current block timestamp |
 | `IQuery.GetBlockGasLimit()` | Gets the current block gas limit |
@@ -188,6 +188,11 @@ Built-in operations include:
 | `IQuery.PartialRange(queries, additionalGasReserve: 0)` | Processes as many queries as fit within the available gas budget |
 | `IQuery.Combine(q1, q2, ...)` | Combines up to 12 queries into a typed tuple (also used by `QueryAsync` overloads) |
 | `IQuery.Noop(value)` | Returns a constant value with no underlying EVM operation |
+
+Like `ReadStorage`, `GetNonce` operates on the current execution context. Select an account with
+`IQuery.WithCaller(account, IQuery.Isolate(IQuery.GetNonce()))`. Isolation rolls back the probe's
+temporary contract creation and nonce increment. The result is `NonceSearchResult.Found` or
+`NonceSearchResult.NotFound` when creation fails or the nonce is outside the search range.
 
 #### Using QueryBuilder
 For custom shaping across many results, use `QueryBuilder`.

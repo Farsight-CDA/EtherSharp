@@ -40,6 +40,8 @@ public enum QueryOperationId : byte
     GetBalance = 30,
     /// <summary>Reads storage in the current execution context.</summary>
     ReadStorage = 31,
+    /// <summary>Probes the nonce in the current execution context through contract creation.</summary>
+    GetNonce = 32,
 
     /// <summary>Reads the remaining execution gas.</summary>
     GetRemainingGas = 40

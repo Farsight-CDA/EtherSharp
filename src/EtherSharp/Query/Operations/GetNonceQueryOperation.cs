@@ -1,0 +1,51 @@
+using EtherSharp.Numerics;
+using EtherSharp.Types;
+
+namespace EtherSharp.Query.Operations;
+
+internal sealed class GetNonceQueryOperation : IQueryOperation, IQuery<NonceSearchResult>
+{
+    private readonly ulong _startNonce;
+    private readonly int _searchCount;
+
+    public QueryOperationId OperationId => QueryOperationId.GetNonce;
+    public int CallDataLength => 1;
+    public UInt256 EthValue => 0;
+
+    public GetNonceQueryOperation(ulong startNonce, int searchCount)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(searchCount);
+        _startNonce = startNonce;
+        _searchCount = searchCount;
+    }
+
+    public void Encode(Span<byte> buffer)
+        => buffer[0] = (byte) QueryOperationId.GetNonce;
+
+    public int ParseResultLength(ReadOnlySpan<byte> resultData)
+        => 2 * Address.BYTES_LENGTH;
+
+    NonceSearchResult IQuery<NonceSearchResult>.ReadResultFrom(
+        params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults
+    )
+    {
+        var result = queryResults[0].Span;
+        var account = Address.FromBytes(result[..Address.BYTES_LENGTH]);
+        var createdAddress = Address.FromBytes(result.Slice(Address.BYTES_LENGTH, Address.BYTES_LENGTH));
+        if(createdAddress == default)
+        {
+            return new NonceSearchResult.NotFound();
+        }
+
+        for(int i = 0; i < _searchCount; i++)
+        {
+            ulong nonce = _startNonce + (ulong) i;
+            if(Address.DeriveCreate(in account, nonce) == createdAddress)
+            {
+                return new NonceSearchResult.Found(nonce);
+            }
+        }
+
+        return new NonceSearchResult.NotFound();
+    }
+}

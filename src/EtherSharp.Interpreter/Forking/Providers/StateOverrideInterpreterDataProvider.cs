@@ -153,7 +153,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                             continue;
                         }
                         queries.AddQuery(
-                            IQuery.Isolate(IQuery.GetNonce(nonce.Address)),
+                            IQuery.Isolate(IQuery.GetNonce()),
                             result =>
                             {
                                 switch(result)
