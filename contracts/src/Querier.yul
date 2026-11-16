@@ -9,23 +9,6 @@ object "Querier" {
             // Querier bytecode origin.
             // Raw markers are build-time metadata. Never execute this template directly.
 
-            function executeCall(to, value, inputOffset, inputLength, outputOffset) -> outputLength {
-                let success := call(
-                    sub(gas(), 50000),
-                    to,
-                    value,
-                    inputOffset,
-                    inputLength,
-                    0,
-                    0
-                )
-
-                mstore(outputOffset, shl(224, returndatasize()))
-                mstore8(outputOffset, success)
-                returndatacopy(add(outputOffset, 4), 0, returndatasize())
-                outputLength := add(4, returndatasize())
-            }
-
             let inputOffset := 0
             let outputOffset := 0
 
@@ -38,13 +21,19 @@ object "Querier" {
                 if eq(opCode, 0) {
                     let length := shr(232, calldataload(inputOffset))
                     calldatacopy(outputOffset, add(inputOffset, 55), length)
-                    outputOffset := add(outputOffset, executeCall(
+                    let success := call(
+                        sub(gas(), 50000),
                         shr(96, calldataload(add(inputOffset, 3))),
                         calldataload(add(inputOffset, 23)),
                         outputOffset,
                         length,
-                        outputOffset
-                    ))
+                        0,
+                        0
+                    )
+                    mstore(outputOffset, shl(224, returndatasize()))
+                    mstore8(outputOffset, success)
+                    returndatacopy(add(outputOffset, 4), 0, returndatasize())
+                    outputOffset := add(outputOffset, add(4, returndatasize()))
                     inputOffset := add(inputOffset, add(55, length))
                     continue
                 }
@@ -109,13 +98,19 @@ object "Querier" {
                         continue
                     }
 
-                    outputOffset := add(outputOffset, executeCall(
+                    let success := call(
+                        sub(gas(), 50000),
                         contractAddress,
                         value,
                         add(outputOffset, codeLength),
                         calldataLength,
-                        outputOffset
-                    ))
+                        0,
+                        0
+                    )
+                    mstore(outputOffset, shl(224, returndatasize()))
+                    mstore8(outputOffset, success)
+                    returndatacopy(add(outputOffset, 4), 0, returndatasize())
+                    outputOffset := add(outputOffset, add(4, returndatasize()))
                     continue
                 }
                 verbatim_0i_0o(hex"012345678902")
@@ -132,13 +127,19 @@ object "Querier" {
                     inputOffset := add(inputOffset, length)
 
                     let selectorLength := shl(2, iszero(eq(extcodesize(address()), codesize())))
-                    outputOffset := add(outputOffset, executeCall(
+                    let success := call(
+                        sub(gas(), 50000),
                         address(),
                         value,
                         add(outputOffset, sub(4, selectorLength)),
                         add(length, selectorLength),
-                        outputOffset
-                    ))
+                        0,
+                        0
+                    )
+                    mstore(outputOffset, shl(224, returndatasize()))
+                    mstore8(outputOffset, success)
+                    returndatacopy(add(outputOffset, 4), 0, returndatasize())
+                    outputOffset := add(outputOffset, add(4, returndatasize()))
                     continue
                 }
                 verbatim_0i_0o(hex"012345678903")
