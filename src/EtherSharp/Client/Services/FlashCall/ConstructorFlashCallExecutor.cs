@@ -53,12 +53,16 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
 
             var data = result.Data;
 
-            return data.Span[0] switch
-            {
-                0 => new TxCallResult(false, data[1..]),
-                1 => new TxCallResult(true, data[1..]),
-                _ => throw new ImpossibleException()
-            };
+            return data.IsEmpty
+                ? throw new CallParsingException.EmptyReturnDataException()
+                : data.Span[0] switch
+                {
+                    0 => new TxCallResult(false, data[1..]),
+                    1 => new TxCallResult(true, data[1..]),
+                    _ => throw new CallParsingException.MalformedReturnDataException(
+                        data, $"The constructor flash caller returned an invalid status byte: {data.Span[0]}."
+                    )
+                };
         }
         finally
         {
