@@ -1,8 +1,8 @@
 namespace EtherSharp.Types;
 
 /// <summary>
-/// Represents the fully completed prefix of a gas-bounded range of queries.
+/// Represents the accepted successful prefix of a gas-bounded range of contract calls.
 /// </summary>
-/// <typeparam name="T">The result type of each query item.</typeparam>
-/// <param name="Items">The results of fully completed query items, in input order.</param>
+/// <typeparam name="T">The decoded result type of each call.</typeparam>
+/// <param name="Items">The accepted successful call results, in input order.</param>
 public sealed record PartialRangeResult<T>(IReadOnlyList<T> Items);

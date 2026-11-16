@@ -13,7 +13,7 @@ public enum QueryOperationId : byte
     FlashCall = 2,
     /// <summary>Executes nested operations and rolls back their state changes.</summary>
     Isolate = 3,
-    /// <summary>Executes a prefix of nested operations within the available gas budget.</summary>
+    /// <summary>Executes a successful prefix of contract calls within the available gas budget.</summary>
     PartialRange = 4,
 
     /// <summary>Reads an account's bytecode.</summary>

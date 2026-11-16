@@ -6,27 +6,33 @@ namespace EtherSharp.Query.Operations;
 
 internal static class CallQueryEncoding
 {
-    private const int HEADER_LENGTH = 4 + Address.BYTES_LENGTH + Bytes32.BYTE_LENGTH;
+    private const int HEADER_LENGTH = 3 + Address.BYTES_LENGTH + Bytes32.BYTE_LENGTH;
 
-    public static int GetCallDataLength(int inputLength)
-        => HEADER_LENGTH + inputLength;
+    public static int GetCallDataLength(int inputLength, bool includeOpcode = true)
+        => HEADER_LENGTH + inputLength + (includeOpcode ? 1 : 0);
 
     public static Span<byte> EncodeHeader(
         in Address target,
         UInt256 ethValue,
         int inputLength,
-        Span<byte> buffer)
+        Span<byte> buffer,
+        bool includeOpcode = true
+    )
     {
-        BinaryPrimitives.WriteUInt32BigEndian(buffer[0..4], (uint) inputLength);
-
-        if(buffer[0] != 0)
+        if((uint) inputLength > 0xFFFFFF)
         {
             throw new InvalidOperationException("Calldata too large");
         }
 
-        buffer[0] = (byte) QueryOperationId.Call;
-        target.CopyTo(buffer[4..24]);
-        BinaryPrimitives.WriteUInt256BigEndian(buffer[24..56], ethValue);
+        if(includeOpcode)
+        {
+            buffer[0] = (byte) QueryOperationId.Call;
+            buffer = buffer[1..];
+        }
+
+        BinaryPrimitives.WriteUInt32BigEndian(buffer[..4], (uint) inputLength << 8);
+        target.CopyTo(buffer[3..23]);
+        BinaryPrimitives.WriteUInt256BigEndian(buffer[23..HEADER_LENGTH], ethValue);
         return buffer[HEADER_LENGTH..];
     }
 

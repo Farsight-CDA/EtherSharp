@@ -277,21 +277,23 @@ public partial interface IQuery
         => new RangeQuery<T>(queries);
 
     /// <summary>
-    /// Creates a query that attempts queries in order and returns the fully completed prefix within the available gas budget.
+    /// Creates a query that calls contracts in order and returns the successful prefix within the available gas budget.
     /// </summary>
     public static IQuery<PartialRangeResult<T>> PartialRange<T>(
-        IEnumerable<IQuery<T>> queries,
-        ulong additionalGasReserve = 0
-    ) => PartialRange<T>(queries.ToArray().AsMemory(), additionalGasReserve);
+        IEnumerable<IContractCall<T>> calls,
+        ulong additionalGasReserve = 0,
+        uint memoryLimit = 6 * 1024 * 1024
+    ) => PartialRange<T>(calls.ToArray().AsMemory(), additionalGasReserve, memoryLimit);
 
     /// <summary>
-    /// Creates a query that attempts queries in order and returns the fully completed prefix within the available gas budget.
+    /// Creates a query that calls contracts in order and returns the successful prefix within the available gas budget.
     /// </summary>
     [OverloadResolutionPriority(1)]
     public static IQuery<PartialRangeResult<T>> PartialRange<T>(
-        ReadOnlyMemory<IQuery<T>> queries,
-        ulong additionalGasReserve = 0
-    ) => new PartialRangeQuery<T>(queries, additionalGasReserve);
+        ReadOnlyMemory<IContractCall<T>> calls,
+        ulong additionalGasReserve = 0,
+        uint memoryLimit = 6 * 1024 * 1024
+    ) => new PartialRangeQuery<T>(calls, additionalGasReserve, memoryLimit);
 }
 
 /// <summary>
