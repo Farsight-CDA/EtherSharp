@@ -19,11 +19,13 @@ object "Querier" {
                 // Call.
                 verbatim_0i_0o(hex"012345678900")
                 if eq(opCode, 0) {
-                    let length := shr(232, calldataload(inputOffset))
+                    let header := calldataload(inputOffset)
+                    let length := shr(232, header)
                     calldatacopy(outputOffset, add(inputOffset, 55), length)
+                    // CALL uses only the destination's low 160 bits, ignoring the length above them.
                     let success := call(
                         sub(gas(), 50000),
-                        shr(96, calldataload(add(inputOffset, 3))),
+                        shr(72, header),
                         calldataload(add(inputOffset, 23)),
                         outputOffset,
                         length,
@@ -89,24 +91,18 @@ object "Querier" {
                     calldatacopy(outputOffset, inputOffset, totalLength)
                     inputOffset := add(inputOffset, totalLength)
 
-                    let contractAddress := create(0, outputOffset, codeLength)
-                    if iszero(contractAddress) {
-                        mstore(outputOffset, shl(224, returndatasize()))
-                        mstore8(outputOffset, 0)
-                        returndatacopy(add(outputOffset, 4), 0, returndatasize())
-                        outputOffset := add(outputOffset, add(4, returndatasize()))
-                        continue
+                    let success := create(0, outputOffset, codeLength)
+                    if success {
+                        success := call(
+                            sub(gas(), 50000),
+                            success,
+                            value,
+                            add(outputOffset, codeLength),
+                            calldataLength,
+                            0,
+                            0
+                        )
                     }
-
-                    let success := call(
-                        sub(gas(), 50000),
-                        contractAddress,
-                        value,
-                        add(outputOffset, codeLength),
-                        calldataLength,
-                        0,
-                        0
-                    )
                     mstore(outputOffset, shl(224, returndatasize()))
                     mstore8(outputOffset, success)
                     returndatacopy(add(outputOffset, 4), 0, returndatasize())
@@ -122,16 +118,16 @@ object "Querier" {
                     let value := calldataload(add(inputOffset, 3))
 
                     inputOffset := add(inputOffset, 35)
+                    let selectorLength := shl(2, iszero(eq(extcodesize(address()), codesize())))
                     mstore(outputOffset, shl(224, 0xea41597b))
-                    calldatacopy(add(outputOffset, 4), inputOffset, length)
+                    calldatacopy(add(outputOffset, selectorLength), inputOffset, length)
                     inputOffset := add(inputOffset, length)
 
-                    let selectorLength := shl(2, iszero(eq(extcodesize(address()), codesize())))
                     let success := call(
                         sub(gas(), 50000),
                         address(),
                         value,
-                        add(outputOffset, sub(4, selectorLength)),
+                        outputOffset,
                         add(length, selectorLength),
                         0,
                         0
