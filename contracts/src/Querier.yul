@@ -36,8 +36,7 @@ object "Querier" {
                 // Call.
                 verbatim_0i_0o(hex"012345678900")
                 if eq(opCode, 0) {
-                    let header := calldataload(inputOffset)
-                    let length := shr(232, header)
+                    let length := shr(232, calldataload(inputOffset))
                     let to := shr(96, calldataload(add(inputOffset, 3)))
                     let value := calldataload(add(inputOffset, 23))
 
@@ -52,8 +51,7 @@ object "Querier" {
                 // CallAndMeasureGas.
                 verbatim_0i_0o(hex"012345678901")
                 if eq(opCode, 1) {
-                    let header := calldataload(inputOffset)
-                    let length := shr(232, header)
+                    let length := shr(232, calldataload(inputOffset))
                     let to := shr(96, calldataload(add(inputOffset, 3)))
                     let value := calldataload(add(inputOffset, 23))
 
@@ -98,9 +96,8 @@ object "Querier" {
                     calldatacopy(outputOffset, inputOffset, totalLength)
                     inputOffset := add(inputOffset, totalLength)
 
-                    let to := create(0, outputOffset, codeLength)
                     outputOffset := add(outputOffset, executeCall(
-                        to,
+                        create(0, outputOffset, codeLength),
                         value,
                         add(outputOffset, codeLength),
                         calldataLength,
@@ -121,10 +118,9 @@ object "Querier" {
                     calldatacopy(add(outputOffset, 4), inputOffset, length)
                     inputOffset := add(inputOffset, length)
 
-                    let to := address()
-                    let selectorLength := mul(iszero(eq(extcodesize(to), codesize())), 4)
+                    let selectorLength := shl(2, iszero(eq(extcodesize(address()), codesize())))
                     outputOffset := add(outputOffset, executeCall(
-                        to,
+                        address(),
                         value,
                         add(outputOffset, sub(4, selectorLength)),
                         add(length, selectorLength),
@@ -161,9 +157,11 @@ object "Querier" {
                 // HasCode.
                 verbatim_0i_0o(hex"01234567890c")
                 if eq(opCode, 12) {
-                    let to := shr(96, calldataload(inputOffset))
                     inputOffset := add(inputOffset, 20)
-                    mstore8(outputOffset, gt(extcodesize(to), 0))
+                    mstore8(
+                        outputOffset,
+                        gt(extcodesize(shr(96, calldataload(sub(inputOffset, 20)))), 0)
+                    )
                     outputOffset := add(outputOffset, 1)
                     continue
                 }
