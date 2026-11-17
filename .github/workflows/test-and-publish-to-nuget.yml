@@ -9,6 +9,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -37,7 +40,13 @@ jobs:
       - name: Pack EtherSharp.Interpreter
         run: dotnet pack src/EtherSharp.Interpreter/EtherSharp.Interpreter.csproj --configuration Release --no-build --output ./nupkgs
 
+      - name: NuGet login
+        uses: NuGet/login@v1
+        id: nuget_login
+        with:
+          user: Playwo
+
       - name: Publish to NuGet
         env:
-          API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: dotnet nuget push ./nupkgs/*.nupkg --source https://api.nuget.org/v3/index.json --api-key $API_KEY --skip-duplicate
+          API_KEY: ${{ steps.nuget_login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push ./nupkgs/*.nupkg --source https://api.nuget.org/v3/index.json --api-key "$API_KEY" --skip-duplicate
