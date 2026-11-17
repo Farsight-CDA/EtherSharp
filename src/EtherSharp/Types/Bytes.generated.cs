@@ -316,6 +316,7 @@ public readonly struct Bytes1 : IEquatable<Bytes1>, IComparable<Bytes1>, IFixedB
     public readonly override bool Equals(object? obj)
         => obj is Bytes1 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -694,6 +695,7 @@ public readonly struct Bytes2 : IEquatable<Bytes2>, IComparable<Bytes2>, IFixedB
     public readonly override bool Equals(object? obj)
         => obj is Bytes2 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -1084,6 +1086,7 @@ public readonly struct Bytes3 : IEquatable<Bytes3>, IComparable<Bytes3>, IFixedB
     public readonly override bool Equals(object? obj)
         => obj is Bytes3 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -1482,6 +1485,7 @@ public readonly struct Bytes4 : IEquatable<Bytes4>, IComparable<Bytes4>, IFixedB
     public readonly override bool Equals(object? obj)
         => obj is Bytes4 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -1886,6 +1890,7 @@ public readonly struct Bytes5 : IEquatable<Bytes5>, IComparable<Bytes5>, IFixedB
     public readonly override bool Equals(object? obj)
         => obj is Bytes5 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -2299,6 +2304,7 @@ public readonly struct Bytes6 : IEquatable<Bytes6>, IComparable<Bytes6>, IFixedB
     public readonly override bool Equals(object? obj)
         => obj is Bytes6 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -2719,6 +2725,7 @@ public readonly struct Bytes7 : IEquatable<Bytes7>, IComparable<Bytes7>, IFixedB
     public readonly override bool Equals(object? obj)
         => obj is Bytes7 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -3145,6 +3152,7 @@ public readonly struct Bytes8 : IEquatable<Bytes8>, IComparable<Bytes8>, IFixedB
     public readonly override bool Equals(object? obj)
         => obj is Bytes8 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -3526,6 +3534,7 @@ public readonly struct Bytes9 : IEquatable<Bytes9>, IComparable<Bytes9>, IFixedB
     public readonly override bool Equals(object? obj)
         => obj is Bytes9 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -3916,6 +3925,7 @@ public readonly struct Bytes10 : IEquatable<Bytes10>, IComparable<Bytes10>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes10 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -4313,6 +4323,7 @@ public readonly struct Bytes11 : IEquatable<Bytes11>, IComparable<Bytes11>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes11 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -4719,6 +4730,7 @@ public readonly struct Bytes12 : IEquatable<Bytes12>, IComparable<Bytes12>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes12 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -5130,6 +5142,7 @@ public readonly struct Bytes13 : IEquatable<Bytes13>, IComparable<Bytes13>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes13 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -5548,6 +5561,7 @@ public readonly struct Bytes14 : IEquatable<Bytes14>, IComparable<Bytes14>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes14 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -5973,6 +5987,7 @@ public readonly struct Bytes15 : IEquatable<Bytes15>, IComparable<Bytes15>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes15 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -6413,6 +6428,7 @@ public readonly struct Bytes16 : IEquatable<Bytes16>, IComparable<Bytes16>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes16 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -6817,6 +6833,7 @@ public readonly struct Bytes17 : IEquatable<Bytes17>, IComparable<Bytes17>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes17 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -7230,6 +7247,7 @@ public readonly struct Bytes18 : IEquatable<Bytes18>, IComparable<Bytes18>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes18 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -7650,6 +7668,7 @@ public readonly struct Bytes19 : IEquatable<Bytes19>, IComparable<Bytes19>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes19 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -8079,6 +8098,7 @@ public readonly struct Bytes20 : IEquatable<Bytes20>, IComparable<Bytes20>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes20 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -8513,6 +8533,7 @@ public readonly struct Bytes21 : IEquatable<Bytes21>, IComparable<Bytes21>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes21 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -8956,6 +8977,7 @@ public readonly struct Bytes22 : IEquatable<Bytes22>, IComparable<Bytes22>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes22 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -9406,6 +9428,7 @@ public readonly struct Bytes23 : IEquatable<Bytes23>, IComparable<Bytes23>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes23 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -9865,6 +9888,7 @@ public readonly struct Bytes24 : IEquatable<Bytes24>, IComparable<Bytes24>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes24 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -10281,6 +10305,7 @@ public readonly struct Bytes25 : IEquatable<Bytes25>, IComparable<Bytes25>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes25 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -10704,6 +10729,7 @@ public readonly struct Bytes26 : IEquatable<Bytes26>, IComparable<Bytes26>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes26 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -11134,6 +11160,7 @@ public readonly struct Bytes27 : IEquatable<Bytes27>, IComparable<Bytes27>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes27 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -11571,6 +11598,7 @@ public readonly struct Bytes28 : IEquatable<Bytes28>, IComparable<Bytes28>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes28 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -12015,6 +12043,7 @@ public readonly struct Bytes29 : IEquatable<Bytes29>, IComparable<Bytes29>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes29 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -12466,6 +12495,7 @@ public readonly struct Bytes30 : IEquatable<Bytes30>, IComparable<Bytes30>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes30 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -12924,6 +12954,7 @@ public readonly struct Bytes31 : IEquatable<Bytes31>, IComparable<Bytes31>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes31 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
@@ -13400,6 +13431,7 @@ public readonly struct Bytes32 : IEquatable<Bytes32>, IComparable<Bytes32>, IFix
     public readonly override bool Equals(object? obj)
         => obj is Bytes32 other && Equals(other);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override int GetHashCode()
     {
         unchecked
