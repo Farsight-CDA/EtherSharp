@@ -17,17 +17,12 @@ public closed class CallRevertedException(Address? callAddress, string message)
     /// </summary>
     /// <param name="callAddress">Contract address the call targeted, or <see langword="null"/> for contract deployment.</param>
     /// <param name="data">Raw revert payload returned by the node.</param>
-    /// <returns>A typed revert exception that captures the decoded payload.</returns>
+    /// <returns>A typed revert exception for empty data, a decoded Solidity error or panic, or raw revert data.</returns>
     public static CallRevertedException Parse(Address? callAddress, ReadOnlySpan<byte> data)
     {
         if(data.Length == 0)
         {
             return new CallRevertedWithNoDataException(callAddress);
-        }
-
-        if(data.Length < 4)
-        {
-            return new CallRevertedWithCustomErrorException(callAddress, data.ToArray());
         }
 
         byte[] errorData = data.ToArray();
@@ -36,7 +31,7 @@ public closed class CallRevertedException(Address? callAddress, string message)
             ? new CallRevertedWithMessageException(callAddress, error.Message)
             : SolidityPanic.TryDecode(errorData, out var panic)
                 ? new CallRevertedWithPanicException(callAddress, panic)
-                : new CallRevertedWithCustomErrorException(callAddress, errorData);
+                : new CallRevertedWithRawDataException(callAddress, errorData);
     }
 
     /// <summary>
@@ -73,18 +68,18 @@ public closed class CallRevertedException(Address? callAddress, string message)
     }
 
     /// <summary>
-    /// Thrown when a call reverts with a custom error payload.
+    /// Thrown when a call reverts with data that was not decoded as a Solidity error or panic.
     /// </summary>
     /// <param name="callAddress">Contract address the call targeted, or <see langword="null"/> for contract deployment.</param>
-    /// <param name="data">Raw revert bytes including selector and encoded arguments.</param>
-    public sealed class CallRevertedWithCustomErrorException(Address? callAddress, byte[] data)
+    /// <param name="data">Raw revert bytes returned by the node.</param>
+    public sealed class CallRevertedWithRawDataException(Address? callAddress, byte[] data)
         : CallRevertedException(callAddress,
-            $"{FormatCallSite(callAddress)} reverted with custom error {HexUtils.ToPrefixedHexString(data.AsSpan(0, 4))}. Revert data: {HexUtils.ToPrefixedHexString(data)}.")
+            $"{FormatCallSite(callAddress)} reverted. Revert data: {HexUtils.ToPrefixedHexString(data)}.")
     {
         /// <summary>
-        /// The custom error data returned by the contract.
+        /// The raw revert data returned by the contract.
         /// </summary>
-        public byte[] ContractErrorData { get; } = data;
+        public byte[] RevertData { get; } = data;
     }
 
     /// <summary>
