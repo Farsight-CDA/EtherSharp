@@ -16,7 +16,7 @@ internal sealed class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, M
             .WithIsStatic()
             .AddStatement(
                 $$"""
-                if (log.Topics[0] != Topic) 
+                if (log.Topics.Length == 0 || log.Topics[0] != Topic)
                 {
                     return false;
                 }
