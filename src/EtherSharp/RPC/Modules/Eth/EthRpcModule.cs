@@ -5,7 +5,6 @@ using EtherSharp.Numerics;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
-using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.RPC.Modules.Eth;
@@ -25,11 +24,11 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         };
 
     public async Task<ulong> BlockNumberAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<string>("eth_blockNumber", TargetHeight.Latest, requestOptions, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<ulong>("eth_blockNumber", TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
-            RpcResult<string>.Success result => UInt64.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
-            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<string>.Null => throw new NotImplementedException(),
+            RpcResult<ulong>.Success result => result.Result,
+            RpcResult<ulong>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<ulong>.Null => throw new NotImplementedException(),
         };
 
     public Task<UInt256> GetBalanceAsync(in Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
@@ -63,12 +62,13 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         };
 
     public async Task<long> BlockTransactionCountByNumberAsync(TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<TargetHeight, string>(
-            "eth_getBlockTransactionCountByNumber", targetHeight, targetHeight, requestOptions, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<TargetHeight, long>(
+            "eth_getBlockTransactionCountByNumber", targetHeight, targetHeight, requestOptions, cancellationToken
+        ) switch
         {
-            RpcResult<string>.Success result => Int64.Parse(result.Result.AsSpan()[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture),
-            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<string>.Null => throw new NotImplementedException(),
+            RpcResult<long>.Success result => result.Result,
+            RpcResult<long>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<long>.Null => throw new NotImplementedException(),
         };
 
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
