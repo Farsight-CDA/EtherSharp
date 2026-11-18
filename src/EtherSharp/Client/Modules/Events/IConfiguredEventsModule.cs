@@ -22,15 +22,16 @@ public interface IConfiguredEventsModule<TLog>
     /// <summary>
     /// Fetches historical logs matching the configured filters.
     /// </summary>
-    /// <param name="fromBlock">Start block (inclusive). Defaults to earliest when omitted.</param>
+    /// <param name="fromBlock">Start block (inclusive). Defaults to earliest when omitted or <see langword="null"/>.</param>
     /// <param name="toBlock">End block (inclusive). Defaults to latest when omitted.</param>
     /// <param name="blockHash">Optional block hash filter. When set, block range is ignored by the node.</param>
     /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Token used to cancel the RPC request.</param>
     /// <returns>Decoded logs ordered by block/transaction/log index.</returns>
     public Task<TLog[]> GetAllAsync(
-        TargetHeight fromBlock = default, TargetHeight toBlock = default, Bytes32? blockHash = null,
-        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
+        TargetHeight? fromBlock = null, TargetHeight toBlock = default, Bytes32? blockHash = null,
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Creates a poll-based event filter that can be queried incrementally.

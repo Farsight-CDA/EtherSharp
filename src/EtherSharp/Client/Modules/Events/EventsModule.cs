@@ -90,16 +90,13 @@ internal sealed class EventsModule<TLog>(IRPCTransport rpcTransport, IEthRpcModu
     public EventFilter BuildEventFilter()
         => _eventFilter ?? _eventFilterBuilder.Build();
 
-    public async Task<TLog[]> GetAllAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default, Bytes32? blockHash = null,
-        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+    public async Task<TLog[]> GetAllAsync(
+        TargetHeight? fromBlock = null, TargetHeight toBlock = default, Bytes32? blockHash = null,
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
+    )
     {
-        if(fromBlock == default)
-        {
-            fromBlock = TargetHeight.Earliest;
-        }
-
         var rawResults = await _ethRpcModule.GetLogsAsync(
-            fromBlock,
+            fromBlock ?? TargetHeight.Earliest,
             toBlock,
             BuildEventFilter(),
             blockHash,
