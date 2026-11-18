@@ -11,7 +11,7 @@ namespace EtherSharp.Types;
 /// <param name="ExtraData">Validator/miner extra data field.</param>
 /// <param name="GasLimit">Gas limit for the block.</param>
 /// <param name="GasUsed">Total gas consumed by transactions in the block.</param>
-/// <param name="Hash">The block hash.</param>
+/// <param name="Hash">The block hash, or <see langword="null"/> when unavailable for a pending block.</param>
 /// <param name="L1BlockNumber">Rollup-reported L1 origin block number, when available.</param>
 /// <param name="LogsBloom">Bloom filter aggregating all logs in the block.</param>
 /// <param name="Miner">Block producer address when available.</param>
@@ -40,7 +40,7 @@ public sealed record Block(
     string ExtraData,
     ulong GasLimit,
     ulong GasUsed,
-    Bytes32 Hash,
+    Bytes32? Hash,
     ulong? L1BlockNumber,
     string LogsBloom,
     Address? Miner,
