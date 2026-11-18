@@ -51,6 +51,8 @@ internal sealed partial class InterpreterRuntime
                         EvmOpcode.Mul => first * second,
                         EvmOpcode.Sub => first - second,
                         EvmOpcode.Div => first / second,
+                        // EVM sdiv wraps MinValue / -1 back to MinValue.
+                        EvmOpcode.SDiv when second == UInt256.MaxValue && first == (UInt256) Int256.MinValue => first,
                         EvmOpcode.SDiv => (UInt256) ((Int256) first / (Int256) second),
                         EvmOpcode.Mod => first % second,
                         // Yul smod returns zero for a divisor of -1, including MinValue % -1.
