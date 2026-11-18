@@ -211,7 +211,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         {
             string? mediaType = response.Content.Headers.ContentType?.MediaType;
 
-            if(mediaType is not null && !mediaType.EndsWith("json"))
+            if(mediaType is not null && !mediaType.EndsWith("json", StringComparison.OrdinalIgnoreCase))
             {
                 _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
                 string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
