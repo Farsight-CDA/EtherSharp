@@ -46,12 +46,15 @@ public sealed class BlockingSequentialTxScheduler(
         /// Time to wait for confirmation after publishing before invoking the error callback with a timeout.
         /// </summary>
         public TimeSpan ConfirmationTimeout { get; set; } = TimeSpan.FromSeconds(30);
+
+        internal TimeSpan BackgroundSyncInterval { get; init; } = TimeSpan.FromSeconds(300);
     }
 
     private readonly IResiliencyLayer? _resiliencyLayer = provider.GetService<IResiliencyLayer>();
     private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<BlockingSequentialTxScheduler>();
     private readonly NonceMode _nonceMode = options.NonceMode;
     private readonly TimeSpan _confirmationTimeout = options.ConfirmationTimeout;
+    private readonly TimeSpan _backgroundSyncInterval = options.BackgroundSyncInterval;
 
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
@@ -154,27 +157,31 @@ public sealed class BlockingSequentialTxScheduler(
 
                 if(!isActive)
                 {
-                    if(_nonceMode == NonceMode.BackgroundSync)
-                    {
-                        await _workerSignal.WaitAsync(TimeSpan.FromSeconds(300), cancellationToken);
-                    }
-                    else
+                    if(_nonceMode != NonceMode.BackgroundSync)
                     {
                         await _workerSignal.WaitAsync(cancellationToken);
+                        continue;
                     }
 
-                    continue;
+                    if(await _workerSignal.WaitAsync(_backgroundSyncInterval, cancellationToken))
+                    {
+                        continue;
+                    }
                 }
 
                 ulong actualNonce = await ethRpcModule.GetTransactionCountAsync(
-                    signer.Address, TargetHeight.Latest, _requestOptions, cancellationToken);
+                    signer.Address, TargetHeight.Latest, _requestOptions, cancellationToken
+                );
 
                 lock(_stateLock)
                 {
                     AdvanceConfirmedNonceLocked(actualNonce);
                 }
 
-                await Task.Delay(TimeSpan.FromMilliseconds(1500), cancellationToken);
+                if(isActive)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(1500), cancellationToken);
+                }
             }
             catch(OperationCanceledException ex) when(ex.CancellationToken == cancellationToken)
             {

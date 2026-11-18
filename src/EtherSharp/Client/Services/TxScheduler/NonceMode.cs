@@ -11,7 +11,7 @@ public enum NonceMode
     ExclusiveLocal,
 
     /// <summary>
-    /// Passively synchronizes allocatable nonce state from the node's pending nonce in the background.
+    /// Periodically refreshes the confirmed nonce from the node even when the scheduler is idle.
     /// </summary>
     BackgroundSync,
 
