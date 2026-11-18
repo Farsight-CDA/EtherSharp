@@ -12,8 +12,12 @@ namespace EtherSharp.Contract;
 /// <param name="byteCode">The bytecode bytes. The backing memory must not be modified while the bytecode is in use.</param>
 public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMByteCode>
 {
-    private readonly Lazy<PushDataMap> _pushDataMap = new(() => new(byteCode.Span));
-    internal PushDataMap PushDataMap => _pushDataMap.Value;
+    private byte[]? _pushDataBits;
+    internal PushDataMap PushDataMap => new(
+        Volatile.Read(ref _pushDataBits)
+        ?? Interlocked.CompareExchange(ref _pushDataBits, PushDataMap.BuildBits(ByteCode.Span), null)
+        ?? _pushDataBits!
+    );
 
     /// <summary>
     /// The maximum runtime contract length.
