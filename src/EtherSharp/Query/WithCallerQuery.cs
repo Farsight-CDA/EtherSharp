@@ -12,7 +12,8 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
     private readonly Address _caller;
     private readonly IQuery<T> _query;
     private readonly QueryPlan _innerPlan;
-    private readonly EVMByteCode? _originalByteCode;
+    private readonly AccountOverride _callerOverride;
+    private readonly (Address Address, AccountOverride Override)? _originalCodeOverride;
     private readonly int _innerCallDataLength;
 
     public QueryOperationId OperationId => QueryOperationId.Call;
@@ -25,7 +26,6 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
     {
         _caller = caller;
         _query = query;
-        _originalByteCode = originalByteCode;
         _innerPlan = new QueryPlan(query.OperationCount);
         _innerPlan.Add(query);
 
@@ -33,6 +33,18 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
         {
             _innerCallDataLength += operation.CallDataLength;
             EthValue += operation.EthValue;
+        }
+
+        if(originalByteCode is not null)
+        {
+            var originalCodeAddress = GetTransientAddress(originalByteCode.ByteCode.Span);
+            var delegateCode = IQuerierDelegate.Code.CreatePreserving(in originalCodeAddress);
+            _callerOverride = new AccountOverride(code: delegateCode.ByteCode);
+            _originalCodeOverride = (originalCodeAddress, new AccountOverride(code: originalByteCode.ByteCode));
+        }
+        else
+        {
+            _callerOverride = new AccountOverride(code: IQuerierDelegate.Code.Runtime.ByteCode);
         }
     }
 
@@ -45,18 +57,10 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
         );
         plan.RequireQuerierStateOverride();
 
-        if(_originalByteCode is not { } originalByteCode)
+        plan.AddStateOverride(_caller, _callerOverride);
+        if(_originalCodeOverride is { } originalCodeOverride)
         {
-            plan.AddStateOverride(_caller, new AccountOverride(code: IQuerierDelegate.Code.Runtime.ByteCode));
-        }
-        else
-        {
-            var originalCodeAddress = GetTransientAddress(originalByteCode.ByteCode.Span);
-            var delegateCode = IQuerierDelegate.Code.CreatePreserving(in originalCodeAddress);
-            plan.AddStateOverride(
-                _caller,
-                new AccountOverride(code: delegateCode.ByteCode));
-            plan.AddStateOverride(originalCodeAddress, new AccountOverride(code: originalByteCode.ByteCode));
+            plan.AddStateOverride(originalCodeOverride.Address, originalCodeOverride.Override);
         }
 
         plan.AddOperation(this);
