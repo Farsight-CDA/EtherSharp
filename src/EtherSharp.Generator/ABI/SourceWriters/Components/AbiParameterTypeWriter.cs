@@ -266,15 +266,28 @@ internal partial class AbiParameterTypeWriter(ContractTypesSectionWriter typesSe
 
         isDynamic = innerIsDynamic;
         csTypeName = csTypeBuilder.ToString();
-        decodeFunc = decodeFuncBuilder.ToString();
+        decodeFunc = innerIsDynamic
+            ? $"decoder.DynamicTuple(decoder => {decodeFuncBuilder})"
+            : decodeFuncBuilder.ToString();
 
         encodeFunc = inputName =>
         {
             var encodeFuncBuilder = new StringBuilder();
 
+            if(innerIsDynamic)
+            {
+                encodeFuncBuilder.AppendLine("encoder.DynamicTuple(encoder =>");
+                encodeFuncBuilder.AppendLine("{");
+            }
+
             for(int i = 0; i < arrayLength; i++)
             {
                 encodeFuncBuilder.AppendLine(innerEncodeFunction($"{inputName}.Item{i + 1}"));
+            }
+
+            if(innerIsDynamic)
+            {
+                encodeFuncBuilder.AppendLine("});");
             }
 
             return encodeFuncBuilder.ToString();
