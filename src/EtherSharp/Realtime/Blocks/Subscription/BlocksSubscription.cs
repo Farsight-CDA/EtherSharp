@@ -85,6 +85,9 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
         return true;
     }
 
+    public override string ToString()
+        => nameof(BlocksSubscription);
+
     private void ThrowIfClosed()
         => ObjectDisposedException.ThrowIf(_isClosed, this);
 }

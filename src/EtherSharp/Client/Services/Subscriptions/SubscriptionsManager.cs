@@ -129,8 +129,9 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                     {
                         if(_logger?.IsEnabled(LogLevel.Debug) == true)
                         {
-                            string subscriptionType = subscription.GetType().Name;
-                            _logger.LogDebug("Reinstalling subscription of type {type}, oldId={oldId}", subscriptionType, subscription.Id);
+                            _logger.LogDebug(
+                                "Reinstalling subscription of type {type}, oldId={oldId}", subscription, subscription.Id
+                            );
                         }
 
                         await subscription.InstallAsync(subscription.RequestOptions);
@@ -139,8 +140,9 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                     {
                         if(_logger?.IsEnabled(LogLevel.Critical) == true)
                         {
-                            string subscriptionType = subscription.GetType().Name;
-                            _logger.LogCritical(ex, "Failed to reinstall subscription id {id} of type {type}", subscription.Id, subscriptionType);
+                            _logger.LogCritical(
+                                ex, "Failed to reinstall subscription id {id} of type {type}", subscription.Id, subscription
+                            );
                         }
                     }
                 });
@@ -182,11 +184,10 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
             {
                 if(_logger?.IsEnabled(LogLevel.Warning) == true)
                 {
-                    string subscriptionType = subscription.GetType().Name;
                     _logger.LogWarning(ex,
                         "Failed to process payload for subscription id {id} of type {type}",
                         subscription.Id,
-                        subscriptionType
+                        subscription
                     );
                 }
             }

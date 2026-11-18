@@ -16,6 +16,8 @@ internal sealed class EventSubscription<TLog>(
     : IEventSubscription<TLog>, ISubscription
     where TLog : ITxLog<TLog>
 {
+    private static readonly string _displayName = $"{nameof(EventSubscription<>)}<{typeof(TLog)}>".Replace('+', '.');
+
     public string Id { get; private set; } = null!;
     public RpcRequestOptions RequestOptions { get; private set; }
 
@@ -92,6 +94,9 @@ internal sealed class EventSubscription<TLog>(
 
         _channel.Writer.TryComplete();
     }
+
+    public override string ToString()
+        => _displayName;
 
     private void ThrowIfClosed()
         => ObjectDisposedException.ThrowIf(_isClosed, this);
