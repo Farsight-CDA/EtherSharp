@@ -52,7 +52,10 @@ public sealed class TransactionTypeHexConverter : JsonConverter<TxType>
         }, skipInputValidation: true);
 
     private static TxType Parse(ReadOnlySpan<char> value)
-        => value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-            ? (TxType) UInt32.Parse(value[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture)
-            : (TxType) UInt32.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);
+    {
+        var hex = HexUtils.StripHexPrefix(value);
+        return hex.Length == value.Length
+            ? (TxType) UInt32.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture)
+            : (TxType) UInt32.Parse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+    }
 }

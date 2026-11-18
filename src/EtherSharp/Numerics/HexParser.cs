@@ -8,11 +8,7 @@ internal static class HexParser
     internal static bool TryParse(ReadOnlySpan<char> value, out UInt256 result)
     {
         result = default;
-
-        if(value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-        {
-            value = value[2..];
-        }
+        value = HexUtils.StripHexPrefix(value);
 
         if(value.Length is < 1 or > 64)
         {

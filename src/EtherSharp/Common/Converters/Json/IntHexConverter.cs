@@ -1,5 +1,4 @@
 ﻿using System.Buffers.Binary;
-using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -17,31 +16,12 @@ public sealed class IntHexConverter : JsonConverter<int>
 
     /// <inheritdoc/>
     public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        switch(reader.TokenType)
+        => reader.TokenType switch
         {
-            case JsonTokenType.Number:
-                return reader.GetInt32();
-            case JsonTokenType.String:
-                int valueLength = reader.HasValueSequence
-                    ? (int) reader.ValueSequence.Length
-                    : reader.ValueSpan.Length;
-
-                if(valueLength > 12)
-                {
-                    throw new InvalidOperationException("Unexpected number length");
-                }
-
-                Span<char> sourceBuffer = stackalloc char[valueLength];
-                int charsWritten = reader.CopyString(sourceBuffer);
-
-                return charsWritten > 10
-                    ? throw new InvalidOperationException("Unexpected number length")
-                    : Int32.Parse(sourceBuffer[2..charsWritten], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-            default:
-                throw new JsonException($"Cannot parse {nameof(Int32)} from token of type {reader.TokenType}");
-        }
-    }
+            JsonTokenType.Number => reader.GetInt32(),
+            JsonTokenType.String => JsonHexNumberReader.Read<int>(ref reader, maxDigits: 8),
+            _ => throw new JsonException($"Cannot parse {nameof(Int32)} from token of type {reader.TokenType}")
+        };
 
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options)

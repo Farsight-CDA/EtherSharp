@@ -4,6 +4,16 @@ namespace EtherSharp.Common;
 
 internal static class HexUtils
 {
+    public static ReadOnlySpan<char> StripHexPrefix(ReadOnlySpan<char> hex)
+        => hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+            ? hex[2..]
+            : hex;
+
+    public static ReadOnlySpan<byte> StripHexPrefix(ReadOnlySpan<byte> utf8Hex)
+        => utf8Hex.StartsWith("0x"u8) || utf8Hex.StartsWith("0X"u8)
+            ? utf8Hex[2..]
+            : utf8Hex;
+
     public static bool TryDecodeHex(ReadOnlySpan<char> hex, Span<byte> destination)
     {
         var status = Convert.FromHexString(hex, destination, out int charsConsumed, out int bytesWritten);

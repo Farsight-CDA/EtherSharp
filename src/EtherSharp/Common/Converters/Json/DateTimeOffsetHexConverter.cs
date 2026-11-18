@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Common.Converters.Json;
@@ -21,22 +20,8 @@ public sealed class DateTimeOffsetHexConverter : JsonConverter<DateTimeOffset>
         {
             throw new JsonException("Expected string token.");
         }
-        int valueLength = reader.HasValueSequence
-            ? (int) reader.ValueSequence.Length
-            : reader.ValueSpan.Length;
 
-        if(valueLength > 20)
-        {
-            throw new InvalidOperationException("Unexpected number length");
-        }
-
-        Span<char> sourceBuffer = stackalloc char[valueLength];
-        int charsWritten = reader.CopyString(sourceBuffer);
-
-        long utcTimestamp = charsWritten > 18
-            ? throw new InvalidOperationException("Unexpected number length")
-            : Int64.Parse(sourceBuffer[2..charsWritten], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-
+        long utcTimestamp = JsonHexNumberReader.Read<long>(ref reader, maxDigits: 16);
         return DateTimeOffset.FromUnixTimeSeconds(utcTimestamp);
     }
 

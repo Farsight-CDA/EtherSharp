@@ -36,9 +36,7 @@ public sealed class HexStringByteArrayConverter : JsonConverter<byte[]>
 
         if(!reader.ValueIsEscaped && !reader.HasValueSequence)
         {
-            var hex = reader.ValueSpan.StartsWith("0x"u8) || reader.ValueSpan.StartsWith("0X"u8)
-                ? reader.ValueSpan[2..]
-                : reader.ValueSpan;
+            var hex = HexUtils.StripHexPrefix(reader.ValueSpan);
             if(hex.Length % 2 == 0)
             {
                 byte[] bytes = hex.IsEmpty
@@ -64,14 +62,15 @@ public sealed class HexStringByteArrayConverter : JsonConverter<byte[]>
         {
             int written = reader.CopyString(buffer[1..]);
             buffer = buffer[..(written + 1)];
-            int start = buffer[1..].StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? 3 : 1;
+            var hex = HexUtils.StripHexPrefix(buffer[1..]);
 
-            if((buffer.Length - start) % 2 != 0)
+            if(hex.Length % 2 != 0)
             {
-                buffer[--start] = '0';
+                int start = buffer.Length - hex.Length - 1;
+                buffer[start] = '0';
+                hex = buffer[start..];
             }
 
-            var hex = buffer[start..];
             byte[] bytes = hex.IsEmpty
                 ? []
                 : GC.AllocateUninitializedArray<byte>(hex.Length / 2);

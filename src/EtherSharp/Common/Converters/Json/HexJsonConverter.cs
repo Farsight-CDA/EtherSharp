@@ -29,12 +29,7 @@ internal static class HexJsonConverter
 
         if(!reader.ValueIsEscaped && !reader.HasValueSequence)
         {
-            var utf8Hex = reader.ValueSpan;
-            if(utf8Hex.StartsWith("0x"u8) || utf8Hex.StartsWith("0X"u8))
-            {
-                utf8Hex = utf8Hex[2..];
-            }
-
+            var utf8Hex = HexUtils.StripHexPrefix(reader.ValueSpan);
             if(!HexUtils.TryDecodeHex(utf8Hex, buffer))
             {
                 throw new JsonException($"Expected a valid {buffer.Length}-byte hex string for {typeName}");
@@ -44,12 +39,7 @@ internal static class HexJsonConverter
 
         Span<char> chars = stackalloc char[prefixedCharCount];
         int written = reader.CopyString(chars);
-        ReadOnlySpan<char> hex = chars[..written];
-
-        if(hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-        {
-            hex = hex[2..];
-        }
+        var hex = HexUtils.StripHexPrefix(chars[..written]);
 
         if(!HexUtils.TryDecodeHex(hex, buffer))
         {
