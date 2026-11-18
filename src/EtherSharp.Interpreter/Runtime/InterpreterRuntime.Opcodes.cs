@@ -419,9 +419,10 @@ internal sealed partial class InterpreterRuntime
                     }
 
                     var distance = (UInt256) _context.BlockNumber - blockNumber;
+                    var recentBlockHashes = _context.RecentBlockHashes.Span;
                     callFrame.Stack.Push(
-                        distance <= 256 && distance <= (UInt256) _context.RecentBlockHashes.Length
-                            ? _context.RecentBlockHashes[(int) distance - 1]
+                        distance <= 256 && distance <= (UInt256) recentBlockHashes.Length
+                            ? recentBlockHashes[(int) distance - 1]
                             : Bytes32.Zero
                     );
                     break;

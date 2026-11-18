@@ -89,13 +89,12 @@ internal sealed class InterpreterContextQuery(bool disableBlobBaseFee) : IQuery<
         var allRecentBlockHashes = _recentBlockHashes.ReadResultFrom(queryResults[offset..(offset += _recentBlockHashes.OperationCount)]);
 
         int recentHashCount = (int) Math.Min(blockNumber, (ulong) allRecentBlockHashes.Length);
-        var recentBlockHashes = allRecentBlockHashes.AsSpan(0, recentHashCount).ToArray();
 
         return new InterpreterContext(
             chainId,
             blockNumber,
             blockTimestamp,
-            recentBlockHashes,
+            allRecentBlockHashes.AsMemory(0, recentHashCount),
             baseFeeResult switch
             {
                 CallResult<UInt256>.Success success => success.Value,

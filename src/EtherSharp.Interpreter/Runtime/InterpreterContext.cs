@@ -21,7 +21,7 @@ public record InterpreterContext(
     ulong ChainId,
     ulong BlockNumber,
     DateTimeOffset BlockTimestamp,
-    Bytes32[] RecentBlockHashes,
+    ReadOnlyMemory<Bytes32> RecentBlockHashes,
     UInt256? BaseFee,
     UInt256? BlobBaseFee,
     Address Coinbase,
