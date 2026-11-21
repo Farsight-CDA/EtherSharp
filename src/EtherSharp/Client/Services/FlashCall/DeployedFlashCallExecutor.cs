@@ -40,6 +40,7 @@ internal sealed class DeployedFlashCallExecutor(
 
         if(_deploymentHeight is null)
         {
+            // Initialization uses the constructor to discover the helper's deployment height.
             return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(
                 initCode, call, flashCallGasLimit, options, requestOptions, cancellationToken);
         }

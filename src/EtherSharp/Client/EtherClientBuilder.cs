@@ -473,7 +473,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// Configures flash-call execution.
     /// </summary>
     /// <param name="gasLimit">Optional fallback gas limit applied when no per-call limit is provided.</param>
-    /// <param name="enableStateOverrides">Whether runtime code should execute directly through account code overrides.</param>
+    /// <param name="enableStateOverrides">Whether the node supports state overrides. Queries and flash calls that use state overrides are rejected without it.</param>
     /// <param name="contractAddress">Optional deployed FlashCall contract used for initcode execution.</param>
     /// <param name="allowConstructorFallback">Whether initcode may fall back to constructor-based execution when the deployed contract is unavailable.</param>
     /// <returns></returns>

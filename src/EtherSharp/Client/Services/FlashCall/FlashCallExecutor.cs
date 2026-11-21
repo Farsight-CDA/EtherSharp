@@ -22,6 +22,13 @@ internal sealed class FlashCallExecutor(
         RpcRequestOptions requestOptions,
         CancellationToken cancellationToken)
     {
+        if(_runtimeExecutor is null && options.StateOverrides is { Count: > 0 })
+        {
+            throw new NotSupportedException(
+                "State overrides in queries and flash calls require WithFlashCalls(enableStateOverrides: true)."
+            );
+        }
+
         ulong? resolvedGasLimit = flashCallGasLimit ?? _callGasLimitSettings.GetFlashCallGasLimit();
 
         if(_runtimeExecutor is not null && code.TryGetRuntimeCode(out var runtimeCode))
