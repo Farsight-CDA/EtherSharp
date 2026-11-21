@@ -9,12 +9,14 @@ public enum QueryOperationId : byte
     Call = 0,
     /// <summary>Calls an existing account and measures gas usage.</summary>
     CallAndMeasureGas = 1,
-    /// <summary>Creates ephemeral code and calls it.</summary>
-    FlashCall = 2,
+    /// <summary>Creates a contract from initcode and calls it.</summary>
+    CreateAndCall = 2,
     /// <summary>Executes nested operations and rolls back their state changes.</summary>
     Isolate = 3,
     /// <summary>Executes a successful prefix of contract calls within the available gas budget.</summary>
     PartialRange = 4,
+    /// <summary>Calls runtime code at a temporary account shared by all flash calls with the same code in a query.</summary>
+    FlashCall = 5,
 
     /// <summary>Reads an account's bytecode.</summary>
     GetCode = 10,

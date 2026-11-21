@@ -9,19 +9,22 @@ namespace EtherSharp.Query;
 /// </summary>
 internal static partial class QuerierCodeBuilder
 {
-    private readonly record struct CodeRegion(QueryOperationId OperationId, int Offset, int Length);
+    private readonly record struct CodeRegion(QueryOperationId OperationId, QuerierCodeVariant Variant, int Offset, int Length);
     private readonly record struct JumpReference(int Offset, int Target);
 
     /// <summary>
     /// Creates a runtime for the supplied unique, implemented operation IDs, in any order.
     /// </summary>
-    public static EVMRuntimeCode CreateRuntime(ReadOnlySpan<QueryOperationId> operationIds)
+    /// <param name="operationIds">The operations the runtime must handle.</param>
+    /// <param name="variant">The backend variant whose handlers are included alongside shared handlers.</param>
+    public static EVMRuntimeCode CreateRuntime(ReadOnlySpan<QueryOperationId> operationIds, QuerierCodeVariant variant)
     {
         Span<bool> includedRegions = stackalloc bool[_regions.Length];
         int removedLength = 0;
         for(int i = 0; i < _regions.Length; i++)
         {
-            includedRegions[i] = operationIds.Contains(_regions[i].OperationId);
+            includedRegions[i] = operationIds.Contains(_regions[i].OperationId)
+                && (_regions[i].Variant == QuerierCodeVariant.Shared || _regions[i].Variant == variant);
             if(!includedRegions[i])
             {
                 removedLength += _regions[i].Length;

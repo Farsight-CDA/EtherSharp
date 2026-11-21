@@ -13,7 +13,7 @@ internal sealed class SafeFlashCallQueryOperation<T> : IQueryOperation, IQuery<C
     private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom;
     private readonly EVMInitCode _initCode;
 
-    public QueryOperationId OperationId => QueryOperationId.FlashCall;
+    public QueryOperationId OperationId => QueryOperationId.CreateAndCall;
 
     public SafeFlashCallQueryOperation(IFlashCode code, IFlashCall<T> txInput)
     {
@@ -37,7 +37,7 @@ internal sealed class SafeFlashCallQueryOperation<T> : IQueryOperation, IQuery<C
 
     public void Encode(Span<byte> buffer)
     {
-        buffer[0] = (byte) QueryOperationId.FlashCall;
+        buffer[0] = (byte) QueryOperationId.CreateAndCall;
         buffer = buffer[1..];
 
         AbiTypes.UShort.EncodeInto((ushort) _initCode.Length, buffer[0..2]);

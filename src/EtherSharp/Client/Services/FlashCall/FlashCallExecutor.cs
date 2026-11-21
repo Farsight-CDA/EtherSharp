@@ -1,4 +1,5 @@
 using EtherSharp.Contract;
+using EtherSharp.Query;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
@@ -13,6 +14,11 @@ internal sealed class FlashCallExecutor(
     private readonly IFlashInitCodeExecutor _initCodeExecutor = initCodeExecutor;
     private readonly IFlashRuntimeExecutor? _runtimeExecutor = runtimeExecutor;
     private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
+
+    public QuerierCodeVariant QuerierCodeVariant
+        => _runtimeExecutor is not null
+            ? QuerierCodeVariant.StateOverride
+            : QuerierCodeVariant.Deploying;
 
     public Task<TxCallResult> ExecuteFlashCallAsync(
         EVMRuntimeCode runtimeCode,

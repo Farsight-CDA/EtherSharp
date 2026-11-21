@@ -37,7 +37,7 @@ internal sealed class QueryExecutor(FlashCallExecutor flashCallExecutor)
 
         try
         {
-            var runtime = QuerierCodeBuilder.CreateRuntime(plan.RequiredOperationIds);
+            var runtime = QuerierCodeBuilder.CreateRuntime(plan.RequiredOperationIds, _flashCallExecutor.QuerierCodeVariant);
 
             if(plan.RequiresQuerierStateOverride)
             {
