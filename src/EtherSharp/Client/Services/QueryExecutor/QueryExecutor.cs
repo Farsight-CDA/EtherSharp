@@ -48,7 +48,7 @@ internal sealed class QueryExecutor(FlashCallExecutor flashCallExecutor)
             }
 
             var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
-                IFlashCode.FromRuntimeCode(runtime),
+                runtime,
                 IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
                 gasLimit,
                 options with { StateOverrides = plan.StateOverrides },

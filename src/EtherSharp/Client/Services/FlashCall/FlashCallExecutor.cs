@@ -15,7 +15,7 @@ internal sealed class FlashCallExecutor(
     private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
 
     public Task<TxCallResult> ExecuteFlashCallAsync(
-        IFlashCode code,
+        EVMRuntimeCode runtimeCode,
         IFlashCall call,
         ulong? flashCallGasLimit,
         in CallOptions options,
@@ -31,20 +31,10 @@ internal sealed class FlashCallExecutor(
 
         ulong? resolvedGasLimit = flashCallGasLimit ?? _callGasLimitSettings.GetFlashCallGasLimit();
 
-        if(_runtimeExecutor is not null && code.TryGetRuntimeCode(out var runtimeCode))
-        {
-            return _runtimeExecutor.ExecuteFlashCallAsync(
-                runtimeCode, call, resolvedGasLimit, options, requestOptions, cancellationToken);
-        }
-
-        var initCode = code.GetInitCode();
-
-        if(code is IContractDeployment deployment && !deployment.Value.IsZero)
-        {
-            throw new NotSupportedException("Contract deployment cannot contain any value");
-        }
-        //
-        return _initCodeExecutor.ExecuteFlashCallAsync(
-            initCode, call, resolvedGasLimit, options, requestOptions, cancellationToken);
+        return _runtimeExecutor is not null
+            ? _runtimeExecutor.ExecuteFlashCallAsync(
+                runtimeCode, call, resolvedGasLimit, options, requestOptions, cancellationToken)
+            : _initCodeExecutor.ExecuteFlashCallAsync(
+                IFlashCode.CreateInitCode(runtimeCode), call, resolvedGasLimit, options, requestOptions, cancellationToken);
     }
 }

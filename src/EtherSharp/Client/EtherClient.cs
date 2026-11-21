@@ -485,7 +485,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     }
 
     public Task<CallResult<T>> SafeFlashCallAsync<T>(
-        IFlashCode code,
+        EVMRuntimeCode runtimeCode,
         IFlashCall<T> call,
         ulong? flashCallGasLimit = null,
         in CallOptions options = default,
@@ -495,7 +495,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         return ParseAsync(
             call,
-            _flashCallExecutor.ExecuteFlashCallAsync(code, call, flashCallGasLimit, options, requestOptions, cancellationToken)
+            _flashCallExecutor.ExecuteFlashCallAsync(runtimeCode, call, flashCallGasLimit, options, requestOptions, cancellationToken)
         );
 
         // Avoid CallOptions in the async state machine.
@@ -508,13 +508,13 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     }
 
     public Task<T> FlashCallAsync<T>(
-        IFlashCode code,
+        EVMRuntimeCode runtimeCode,
         IFlashCall<T> call,
         ulong? flashCallGasLimit,
         in CallOptions options,
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
-        return UnwrapAsync(SafeFlashCallAsync(code, call, flashCallGasLimit, options, requestOptions, cancellationToken));
+        return UnwrapAsync(SafeFlashCallAsync(runtimeCode, call, flashCallGasLimit, options, requestOptions, cancellationToken));
 
         // Avoid CallOptions in the async state machine.
         static async Task<T> UnwrapAsync(Task<CallResult<T>> resultTask)

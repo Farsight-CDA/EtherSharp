@@ -272,10 +272,10 @@ public interface IEtherClient : IAsyncDisposable
         ITxInput<T> call, in CallOptions options, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes a safe flash-call against temporary code and captures success/failure details.
+    /// Executes a safe flash-call against temporary runtime code and captures success/failure details.
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
-    /// <param name="code">Initcode or runtime code used for the temporary execution context.</param>
+    /// <param name="runtimeCode">Runtime code installed at a temporary account. Its address is unspecified and differs between flash call backends.</param>
     /// <param name="call">Flash-call payload to execute against the temporary code.</param>
     /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithFlashCalls</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
     /// <param name="options">Call execution options.</param>
@@ -283,15 +283,15 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A structured call result including revert and malformed return-data information when applicable.</returns>
     public Task<CallResult<T>> SafeFlashCallAsync<T>(
-        IFlashCode code, IFlashCall<T> call, ulong? flashCallGasLimit = null,
+        EVMRuntimeCode runtimeCode, IFlashCall<T> call, ulong? flashCallGasLimit = null,
         in CallOptions options = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Executes a flash-call against temporary code and returns the decoded result.
+    /// Executes a flash-call against temporary runtime code and returns the decoded result.
     /// </summary>
     /// <typeparam name="T">Expected decoded return type.</typeparam>
-    /// <param name="code">Initcode or runtime code used for the temporary execution context.</param>
+    /// <param name="runtimeCode">Runtime code installed at a temporary account. Its address is unspecified and differs between flash call backends.</param>
     /// <param name="call">Flash-call payload to execute against the temporary code.</param>
     /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithFlashCalls</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
     /// <param name="options">Call execution options.</param>
@@ -299,7 +299,7 @@ public interface IEtherClient : IAsyncDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The decoded call result.</returns>
     public Task<T> FlashCallAsync<T>(
-        IFlashCode code, IFlashCall<T> call, ulong? flashCallGasLimit = null,
+        EVMRuntimeCode runtimeCode, IFlashCall<T> call, ulong? flashCallGasLimit = null,
         in CallOptions options = default, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
