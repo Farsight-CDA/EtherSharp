@@ -10,7 +10,8 @@ namespace EtherSharp.Client.Services.FlashCall;
 
 internal sealed class DeployedFlashCallExecutor(
     IEthRpcModule ethRpcModule,
-    DeployedFlashCallExecutor.Configuration configuration) : IFlashInitCodeExecutor
+    CallGasLimitSettings callGasLimitSettings,
+    DeployedFlashCallExecutor.Configuration configuration) : FlashCallExecutor
 {
     internal sealed record Configuration(
         Address ContractAddress,
@@ -19,7 +20,8 @@ internal sealed class DeployedFlashCallExecutor(
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly Configuration _configuration = configuration;
-    private readonly ConstructorFlashCallExecutor _constructorFlashCallExecutor = new ConstructorFlashCallExecutor(ethRpcModule);
+    private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
+    private readonly ConstructorFlashCallExecutor _constructorFlashCallExecutor = new ConstructorFlashCallExecutor(ethRpcModule, callGasLimitSettings);
 
     private ulong? _deploymentHeight;
 
@@ -28,31 +30,41 @@ internal sealed class DeployedFlashCallExecutor(
     public void SetDeploymentHeight(ulong deploymentHeight)
         => _deploymentHeight = deploymentHeight;
 
-    public async Task<TxCallResult> ExecuteFlashCallAsync(
-        EVMInitCode initCode,
+    public override async Task<TxCallResult> ExecuteAsync(
+        EVMRuntimeCode runtimeCode,
         IFlashCall call,
         ulong? flashCallGasLimit,
         CallOptions options,
         RpcRequestOptions requestOptions,
         CancellationToken cancellationToken)
     {
+        if(options.StateOverrides is { Count: > 0 })
+        {
+            throw new NotSupportedException(
+                "State overrides in queries and flash calls require WithFlashCalls(enableStateOverrides: true)."
+            );
+        }
+
+        flashCallGasLimit ??= _callGasLimitSettings.GetFlashCallGasLimit();
+
         var targetHeight = options.TargetHeight;
 
         if(_deploymentHeight is null)
         {
             // Initialization uses the constructor to discover the helper's deployment height.
-            return await _constructorFlashCallExecutor.ExecuteFlashCallAsync(
-                initCode, call, flashCallGasLimit, options, requestOptions, cancellationToken);
+            return await _constructorFlashCallExecutor.ExecuteAsync(
+                runtimeCode, call, flashCallGasLimit, options, requestOptions, cancellationToken);
         }
 
         if(targetHeight.IsNumeric && targetHeight.Value < _deploymentHeight.Value)
         {
             return !_configuration.AllowFallback
                 ? throw new InvalidOperationException($"Missing FlashCall contract deployment at height {targetHeight.Value}")
-                : await _constructorFlashCallExecutor.ExecuteFlashCallAsync(
-                    initCode, call, flashCallGasLimit, options, requestOptions, cancellationToken);
+                : await _constructorFlashCallExecutor.ExecuteAsync(
+                    runtimeCode, call, flashCallGasLimit, options, requestOptions, cancellationToken);
         }
 
+        var initCode = EVMInitCode.FromRuntimeCode(runtimeCode);
         int argsLength = DeployedFlashCallEncoding.GetPayloadLength(initCode, call.Data.Length);
 
         byte[] rented = ArrayPool<byte>.Shared.Rent(argsLength);

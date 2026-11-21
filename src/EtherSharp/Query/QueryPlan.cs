@@ -1,3 +1,4 @@
+using EtherSharp.Contract;
 using EtherSharp.Types;
 using System.Runtime.InteropServices;
 
@@ -13,6 +14,7 @@ internal sealed class QueryPlan(
     private readonly IReadOnlyDictionary<Address, AccountOverride>? _callerStateOverrides = callerStateOverrides;
 
     private Dictionary<Address, AccountOverride>? _stateOverrides;
+    private Dictionary<Address, EVMRuntimeCode>? _flashCodes;
 
     public IReadOnlyList<IQueryOperation> Queries
         => _queries;
@@ -22,6 +24,9 @@ internal sealed class QueryPlan(
 
     public IReadOnlyDictionary<Address, AccountOverride>? StateOverrides
         => _stateOverrides ?? _callerStateOverrides;
+
+    public IReadOnlyDictionary<Address, EVMRuntimeCode>? FlashCodes
+        => _flashCodes;
 
     public bool RequiresQuerierStateOverride { get; private set; }
 
@@ -39,6 +44,17 @@ internal sealed class QueryPlan(
 
     public void RequireQuerierStateOverride()
         => RequiresQuerierStateOverride = true;
+
+    public int GetCallDataLength(QueryEncodingContext context)
+    {
+        int length = 0;
+        foreach(var query in _queries)
+        {
+            length = checked(length + query.GetCallDataLength(context));
+        }
+
+        return length;
+    }
 
     public void AddStateOverride(in Address address, AccountOverride accountOverride)
     {
@@ -58,8 +74,12 @@ internal sealed class QueryPlan(
         existingOverride = accountOverride;
     }
 
+    public void AddFlashCode(in Address stateOverrideAddress, EVMRuntimeCode runtimeCode)
+        => (_flashCodes ??= []).TryAdd(stateOverrideAddress, runtimeCode);
+
     public void AddRequirements(
         IReadOnlyDictionary<Address, AccountOverride>? stateOverrides,
+        IReadOnlyDictionary<Address, EVMRuntimeCode>? flashCodes,
         bool requiresQuerierStateOverride,
         ReadOnlySpan<QueryOperationId> requiredOperationIds
     )
@@ -69,6 +89,14 @@ internal sealed class QueryPlan(
             foreach(var (address, accountOverride) in stateOverrides)
             {
                 AddStateOverride(address, accountOverride);
+            }
+        }
+
+        if(flashCodes is not null)
+        {
+            foreach(var (stateOverrideAddress, runtimeCode) in flashCodes)
+            {
+                AddFlashCode(stateOverrideAddress, runtimeCode);
             }
         }
 

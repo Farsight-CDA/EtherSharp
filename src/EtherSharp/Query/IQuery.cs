@@ -90,25 +90,25 @@ public partial interface IQuery
         });
 
     /// <summary>
-    /// Creates a flash-call query that executes against ephemeral code and returns success/revert information.
+    /// Creates a flash-call query that calls runtime code at a temporary account and returns success/revert information.
     /// </summary>
     /// <typeparam name="T">The decoded return type of the contract call.</typeparam>
-    /// <param name="code">The initcode or runtime code to execute for the flash call.</param>
+    /// <param name="runtimeCode">The runtime code to call. No constructor runs.</param>
     /// <param name="input">The flash-call input to execute against the code.</param>
     /// <returns>A query that never throws for EVM reverts or malformed return bytes and returns a <see cref="CallResult{T}"/>.</returns>
-    public static IQuery<CallResult<T>> SafeFlashCall<T>(IFlashCode code, IFlashCall<T> input)
-        => new SafeFlashCallQueryOperation<T>(code, input);
+    public static IQuery<CallResult<T>> SafeFlashCall<T>(EVMRuntimeCode runtimeCode, IFlashCall<T> input)
+        => new SafeFlashCallQueryOperation<T>(runtimeCode, input);
 
     /// <summary>
-    /// Creates a flash-call query that unwraps successful results and throws on EVM revert.
+    /// Creates a flash-call query that calls runtime code at a temporary account, unwraps successful results and throws on EVM revert.
     /// </summary>
     /// <typeparam name="T">The decoded return type of the contract call.</typeparam>
-    /// <param name="code">The initcode or runtime code to execute for the flash call.</param>
+    /// <param name="runtimeCode">The runtime code to call. No constructor runs.</param>
     /// <param name="input">The flash-call input to execute against the code.</param>
     /// <returns>A query that yields the decoded return value.</returns>
     /// <exception cref="EtherSharp.Common.Exceptions.CallRevertedException">Thrown when the call reverts.</exception>
-    public static IQuery<T> FlashCall<T>(IFlashCode code, IFlashCall<T> input)
-        => SafeFlashCall(code, input).Map(x => x.Unwrap());
+    public static IQuery<T> FlashCall<T>(EVMRuntimeCode runtimeCode, IFlashCall<T> input)
+        => SafeFlashCall(runtimeCode, input).Map(x => x.Unwrap());
 
     /// <summary>
     /// Creates a query that returns deployed bytecode for <paramref name="contract"/>.

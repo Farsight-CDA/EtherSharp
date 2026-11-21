@@ -9,22 +9,35 @@ using System.Numerics;
 
 namespace EtherSharp.Client.Services.FlashCall;
 
-internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) : IFlashInitCodeExecutor
+internal sealed class ConstructorFlashCallExecutor(
+    IEthRpcModule ethRpcModule,
+    CallGasLimitSettings callGasLimitSettings) : FlashCallExecutor
 {
     private const int FIXED_HELPER_LENGTH = 38;
 
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
+    private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
 
-    public async Task<TxCallResult> ExecuteFlashCallAsync(
-        EVMInitCode initCode,
+    public override async Task<TxCallResult> ExecuteAsync(
+        EVMRuntimeCode runtimeCode,
         IFlashCall call,
         ulong? flashCallGasLimit,
         CallOptions options,
         RpcRequestOptions requestOptions,
         CancellationToken cancellationToken)
     {
-        int helperLength = GetHelperLength(initCode.Length, call.Data.Length, flashCallGasLimit);
-        int argsLength = initCode.Length + call.Data.Length;
+        if(options.StateOverrides is { Count: > 0 })
+        {
+            throw new NotSupportedException(
+                "State overrides in queries and flash calls require WithFlashCalls(enableStateOverrides: true)."
+            );
+        }
+
+        flashCallGasLimit ??= _callGasLimitSettings.GetFlashCallGasLimit();
+
+        int initCodeLength = EVMInitCode.GetLengthFromRuntimeCode(runtimeCode);
+        int helperLength = GetHelperLength(initCodeLength, call.Data.Length, flashCallGasLimit);
+        int argsLength = initCodeLength + call.Data.Length;
 
         int payloadLength = helperLength + argsLength;
         byte[] rented = ArrayPool<byte>.Shared.Rent(payloadLength);
@@ -32,9 +45,9 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
 
         try
         {
-            WriteHelper(payload.Span, helperLength, initCode.Length, call.Data.Length, flashCallGasLimit);
-            initCode.ByteCode.Span.CopyTo(payload.Span[helperLength..]);
-            call.Data.Span.CopyTo(payload.Span[(helperLength + initCode.Length)..]);
+            WriteHelper(payload.Span, helperLength, initCodeLength, call.Data.Length, flashCallGasLimit);
+            EVMInitCode.WriteFromRuntimeCode(runtimeCode, payload.Span[helperLength..]);
+            call.Data.Span.CopyTo(payload.Span[(helperLength + initCodeLength)..]);
 
             var result = await _ethRpcModule.CallAsync(
                 null,

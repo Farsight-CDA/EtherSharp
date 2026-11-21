@@ -13,11 +13,8 @@ internal sealed class IsolatedQuery<T> : IQueryOperation, IQuery<T>
 
     private readonly IQuery<T> _query;
     private readonly QueryPlan _innerPlan;
-    private readonly int _innerCallDataLength;
 
     public QueryOperationId OperationId => QueryOperationId.Isolate;
-    public int CallDataLength
-        => HEADER_LENGTH + _innerCallDataLength + 1;
     public UInt256 EthValue { get; private set; }
     int IQuery.OperationCount => 1;
 
@@ -29,7 +26,6 @@ internal sealed class IsolatedQuery<T> : IQueryOperation, IQuery<T>
 
         foreach(var operation in _innerPlan.Queries)
         {
-            _innerCallDataLength = checked(_innerCallDataLength + operation.CallDataLength);
             EthValue += operation.EthValue;
         }
     }
@@ -38,15 +34,19 @@ internal sealed class IsolatedQuery<T> : IQueryOperation, IQuery<T>
     {
         plan.AddRequirements(
             _innerPlan.StateOverrides,
+            _innerPlan.FlashCodes,
             _innerPlan.RequiresQuerierStateOverride,
             _innerPlan.RequiredOperationIds
         );
         plan.AddOperation(this);
     }
 
-    public void Encode(Span<byte> buffer)
+    public int GetCallDataLength(QueryEncodingContext context)
+        => HEADER_LENGTH + _innerPlan.GetCallDataLength(context) + 1;
+
+    public void Encode(Span<byte> buffer, QueryEncodingContext context)
     {
-        int innerLength = _innerCallDataLength + 1;
+        int innerLength = buffer.Length - HEADER_LENGTH;
         BinaryPrimitives.WriteUInt32BigEndian(buffer[0..4], (uint) innerLength);
         if(buffer[0] != 0)
         {
@@ -60,8 +60,9 @@ internal sealed class IsolatedQuery<T> : IQueryOperation, IQuery<T>
         var operationBuffer = callData;
         foreach(var operation in _innerPlan.Queries)
         {
-            operation.Encode(operationBuffer);
-            operationBuffer = operationBuffer[operation.CallDataLength..];
+            int length = operation.GetCallDataLength(context);
+            operation.Encode(operationBuffer[..length], context);
+            operationBuffer = operationBuffer[length..];
         }
 
         callData[^1] = TERMINATOR;

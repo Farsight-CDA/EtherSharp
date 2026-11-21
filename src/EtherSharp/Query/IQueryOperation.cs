@@ -13,20 +13,22 @@ public interface IQueryOperation : IQuery
     public QueryOperationId OperationId { get; }
 
     /// <summary>
-    /// Gets the number of bytes this operation contributes to the encoded query calldata.
-    /// </summary>
-    public int CallDataLength { get; }
-
-    /// <summary>
     /// Gets the ETH value that should be sent when executing this operation.
     /// </summary>
     public UInt256 EthValue { get; }
 
     /// <summary>
+    /// Gets the number of bytes this operation contributes to the encoded query calldata.
+    /// </summary>
+    /// <param name="context">The backend the query is encoded for.</param>
+    public int GetCallDataLength(QueryEncodingContext context);
+
+    /// <summary>
     /// Encodes this operation into <paramref name="buffer"/>.
     /// </summary>
-    /// <param name="buffer">Destination buffer sized to <see cref="CallDataLength"/>.</param>
-    public void Encode(Span<byte> buffer);
+    /// <param name="buffer">Destination buffer sized exactly to <see cref="GetCallDataLength"/>.</param>
+    /// <param name="context">The backend the query is encoded for.</param>
+    public void Encode(Span<byte> buffer, QueryEncodingContext context);
 
     /// <summary>
     /// Reads the expected byte length for this operation's raw result from the beginning of <paramref name="resultData"/>.

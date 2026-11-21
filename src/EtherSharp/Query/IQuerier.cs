@@ -1,6 +1,8 @@
+using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Types;
 using System.Buffers;
+using System.Buffers.Binary;
 
 namespace EtherSharp.Query;
 
@@ -10,7 +12,7 @@ namespace EtherSharp.Query;
 public partial interface IQuerier
 {
     /// <summary>
-    /// Describes the ephemeral account used to execute the querier through state overrides.
+    /// Describes the fixed account <see cref="IQuerierDelegate"/> code delegates query calls to.
     /// </summary>
     public static class StateOverride
     {
@@ -30,20 +32,38 @@ public partial interface IQuerier
         /// </summary>
         public static class Query
         {
+            // Deployment: opcode (1), initcode length (2), initcode.
+            private const int DEPLOYMENT_HEADER_LENGTH = 3;
+
             /// <summary>
             /// Encodes all supplied operations into one query payload.
             /// </summary>
+            /// <remarks>
+            /// Without state overrides the payload starts by deploying <paramref name="flashCodes"/>, which state overrides
+            /// install instead.
+            /// </remarks>
             public static byte[] Encode(
                 IReadOnlyList<IQueryOperation> queries,
+                IReadOnlyDictionary<Address, EVMRuntimeCode>? flashCodes,
+                QueryEncodingContext context,
                 out int payloadSize,
                 out UInt256 ethValue)
             {
                 ethValue = 0;
                 payloadSize = 0;
 
+                var deployments = context.UsesStateOverrides || flashCodes is null
+                    ? []
+                    : flashCodes.Values;
+
+                foreach(var runtimeCode in deployments)
+                {
+                    payloadSize += DEPLOYMENT_HEADER_LENGTH + EVMInitCode.GetLengthFromRuntimeCode(runtimeCode);
+                }
+
                 foreach(var query in queries)
                 {
-                    payloadSize = checked(payloadSize + query.CallDataLength);
+                    payloadSize += query.GetCallDataLength(context);
                     ethValue += query.EthValue;
                 }
 
@@ -51,10 +71,20 @@ public partial interface IQuerier
                 result.AsSpan(0, payloadSize).Clear();
 
                 var buffer = result.AsSpan(0, payloadSize);
+                foreach(var runtimeCode in deployments)
+                {
+                    int initCodeLength = EVMInitCode.GetLengthFromRuntimeCode(runtimeCode);
+                    buffer[0] = (byte) QueryOperationId.DeployFlashCode;
+                    BinaryPrimitives.WriteUInt16BigEndian(buffer[1..DEPLOYMENT_HEADER_LENGTH], checked((ushort) initCodeLength));
+                    EVMInitCode.WriteFromRuntimeCode(runtimeCode, buffer[DEPLOYMENT_HEADER_LENGTH..]);
+                    buffer = buffer[(DEPLOYMENT_HEADER_LENGTH + initCodeLength)..];
+                }
+
                 foreach(var query in queries)
                 {
-                    query.Encode(buffer);
-                    buffer = buffer[query.CallDataLength..];
+                    int length = query.GetCallDataLength(context);
+                    query.Encode(buffer[..length], context);
+                    buffer = buffer[length..];
                 }
 
                 return result;

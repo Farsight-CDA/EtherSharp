@@ -11,10 +11,12 @@ internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInpu
     private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom = txInput.ReadResultFrom;
 
     public QueryOperationId OperationId => QueryOperationId.CallAndMeasureGas;
-    public int CallDataLength => 4 + 20 + 32 + _txInput.Data.Length;
     public UInt256 EthValue => _txInput.Value;
 
-    public void Encode(Span<byte> buffer)
+    public int GetCallDataLength(QueryEncodingContext context)
+        => 4 + 20 + 32 + _txInput.Data.Length;
+
+    public void Encode(Span<byte> buffer, QueryEncodingContext context)
     {
         BinaryPrimitives.WriteUInt32BigEndian(buffer[0..4], (uint) _txInput.Data.Length);
 

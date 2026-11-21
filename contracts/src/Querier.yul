@@ -17,7 +17,7 @@ object "Querier" {
                 inputOffset := add(inputOffset, 1)
 
                 // Call
-                verbatim_0i_0o(hex"01234567890000")
+                verbatim_0i_0o(hex"012345678900")
                 if eq(opCode, 0) {
                     let header := calldataload(inputOffset)
                     let length := shr(232, header)
@@ -39,10 +39,10 @@ object "Querier" {
                     inputOffset := add(inputOffset, add(55, length))
                     continue
                 }
-                verbatim_0i_0o(hex"01234567890000")
+                verbatim_0i_0o(hex"012345678900")
 
                 // CallAndMeasureGas
-                verbatim_0i_0o(hex"01234567890100")
+                verbatim_0i_0o(hex"012345678901")
                 if eq(opCode, 1) {
                     let length := shr(232, calldataload(inputOffset))
                     let to := shr(96, calldataload(add(inputOffset, 3)))
@@ -77,42 +77,10 @@ object "Querier" {
                     outputOffset := add(outputOffset, add(12, returndatasize()))
                     continue
                 }
-                verbatim_0i_0o(hex"01234567890100")
-
-                // CreateAndCall
-                verbatim_0i_0o(hex"01234567890200")
-                if eq(opCode, 2) {
-                    let codeLength := shr(240, calldataload(inputOffset))
-                    let calldataLength := shr(232, calldataload(add(inputOffset, 2)))
-                    let value := calldataload(add(inputOffset, 5))
-
-                    inputOffset := add(inputOffset, 37)
-                    let totalLength := add(codeLength, calldataLength)
-                    calldatacopy(outputOffset, inputOffset, totalLength)
-                    inputOffset := add(inputOffset, totalLength)
-
-                    let success := create(0, outputOffset, codeLength)
-                    if success {
-                        success := call(
-                            sub(gas(), 50000),
-                            success,
-                            value,
-                            add(outputOffset, codeLength),
-                            calldataLength,
-                            0,
-                            0
-                        )
-                    }
-                    mstore(outputOffset, shl(224, returndatasize()))
-                    mstore8(outputOffset, success)
-                    returndatacopy(add(outputOffset, 4), 0, returndatasize())
-                    outputOffset := add(outputOffset, add(4, returndatasize()))
-                    continue
-                }
-                verbatim_0i_0o(hex"01234567890200")
+                verbatim_0i_0o(hex"012345678901")
 
                 // Isolate
-                verbatim_0i_0o(hex"01234567890300")
+                verbatim_0i_0o(hex"012345678903")
                 if eq(opCode, 3) {
                     let length := shr(232, calldataload(inputOffset))
                     let value := calldataload(add(inputOffset, 3))
@@ -138,10 +106,10 @@ object "Querier" {
                     outputOffset := add(outputOffset, add(4, returndatasize()))
                     continue
                 }
-                verbatim_0i_0o(hex"01234567890300")
+                verbatim_0i_0o(hex"012345678903")
 
                 // PartialRange
-                verbatim_0i_0o(hex"01234567890400")
+                verbatim_0i_0o(hex"012345678904")
                 if eq(opCode, 4) {
                     let header := calldataload(inputOffset)
                     // Includes CALL overhead, coordination, and finalization.
@@ -221,28 +189,25 @@ object "Querier" {
                     inputOffset := inputEnd
                     continue
                 }
-                verbatim_0i_0o(hex"01234567890400")
+                verbatim_0i_0o(hex"012345678904")
 
-                // FlashCall, state override variant.
-                // The client installs the runtime at the low 20 bytes of initCodeHash.
-                verbatim_0i_0o(hex"01234567890501")
+                // FlashCall
+                // Calls flash code that DeployFlashCode deployed at create2(address(), 0, initCodeHash).
+                verbatim_0i_0o(hex"012345678905")
                 if eq(opCode, 5) {
-                    let runtimeLength := shr(240, calldataload(inputOffset))
-                    let calldataLength := shr(232, calldataload(add(inputOffset, 2)))
-                    let value := calldataload(add(inputOffset, 5))
-                    let target := calldataload(add(inputOffset, 37))
-
-                    inputOffset := add(inputOffset, add(69, runtimeLength))
-                    calldatacopy(outputOffset, inputOffset, calldataLength)
-                    inputOffset := add(inputOffset, calldataLength)
-
+                    let length := shr(232, calldataload(inputOffset))
+                    mstore(outputOffset, or(shl(160, 0xff), address()))
+                    mstore(add(outputOffset, 32), 0)
+                    mstore(add(outputOffset, 64), calldataload(add(inputOffset, 35)))
+                    let target := keccak256(add(outputOffset, 11), 85)
+                    calldatacopy(outputOffset, add(inputOffset, 67), length)
                     // CALL uses only the destination's low 160 bits.
                     let success := call(
                         sub(gas(), 50000),
                         target,
-                        value,
+                        calldataload(add(inputOffset, 3)),
                         outputOffset,
-                        calldataLength,
+                        length,
                         0,
                         0
                     )
@@ -250,61 +215,27 @@ object "Querier" {
                     mstore8(outputOffset, success)
                     returndatacopy(add(outputOffset, 4), 0, returndatasize())
                     outputOffset := add(outputOffset, add(4, returndatasize()))
+                    inputOffset := add(inputOffset, add(67, length))
                     continue
                 }
-                verbatim_0i_0o(hex"01234567890501")
+                verbatim_0i_0o(hex"012345678905")
 
-                // FlashCall, deploying variant.
-                // Deploys the runtime at create2(address(), 0, initCodeHash) on first use. An Isolate
-                // rollback removes the deployment, so the next use deploys it again.
-                verbatim_0i_0o(hex"01234567890502")
-                if eq(opCode, 5) {
-                    let runtimeLength := shr(240, calldataload(inputOffset))
-                    let calldataLength := shr(232, calldataload(add(inputOffset, 2)))
-                    let value := calldataload(add(inputOffset, 5))
-
-                    mstore(outputOffset, or(shl(160, 0xff), address()))
-                    mstore(add(outputOffset, 32), 0)
-                    mstore(add(outputOffset, 64), calldataload(add(inputOffset, 37)))
-                    let target := keccak256(add(outputOffset, 11), 85)
-                    inputOffset := add(inputOffset, 69)
-
-                    let success := 1
-                    if iszero(extcodesize(target)) {
-                        // PUSH2 length PUSH1 12 RETURNDATASIZE CODECOPY PUSH2 length RETURNDATASIZE RETURN
-                        mstore(
-                            outputOffset,
-                            shl(160, or(0x610000600c3d396100003df3, or(shl(72, runtimeLength), shl(16, runtimeLength))))
-                        )
-                        calldatacopy(add(outputOffset, 12), inputOffset, runtimeLength)
-                        success := create2(0, outputOffset, add(12, runtimeLength), 0)
+                // DeployFlashCode
+                // Precedes all other operations, so no rollback can remove the deployment.
+                verbatim_0i_0o(hex"012345678906")
+                if eq(opCode, 6) {
+                    let length := shr(240, calldataload(inputOffset))
+                    calldatacopy(outputOffset, add(inputOffset, 2), length)
+                    if iszero(create2(0, outputOffset, length, 0)) {
+                        revert(0, 0)
                     }
-                    inputOffset := add(inputOffset, runtimeLength)
-
-                    if success {
-                        calldatacopy(outputOffset, inputOffset, calldataLength)
-                        success := call(
-                            sub(gas(), 50000),
-                            target,
-                            value,
-                            outputOffset,
-                            calldataLength,
-                            0,
-                            0
-                        )
-                    }
-                    inputOffset := add(inputOffset, calldataLength)
-
-                    mstore(outputOffset, shl(224, returndatasize()))
-                    mstore8(outputOffset, success)
-                    returndatacopy(add(outputOffset, 4), 0, returndatasize())
-                    outputOffset := add(outputOffset, add(4, returndatasize()))
+                    inputOffset := add(inputOffset, add(2, length))
                     continue
                 }
-                verbatim_0i_0o(hex"01234567890502")
+                verbatim_0i_0o(hex"012345678906")
 
                 // GetCode
-                verbatim_0i_0o(hex"01234567890a00")
+                verbatim_0i_0o(hex"01234567890a")
                 if eq(opCode, 10) {
                     let to := shr(96, calldataload(inputOffset))
                     inputOffset := add(inputOffset, 20)
@@ -314,10 +245,10 @@ object "Querier" {
                     outputOffset := add(outputOffset, add(3, codeSize))
                     continue
                 }
-                verbatim_0i_0o(hex"01234567890a00")
+                verbatim_0i_0o(hex"01234567890a")
 
                 // GetCodeHash
-                verbatim_0i_0o(hex"01234567890b00")
+                verbatim_0i_0o(hex"01234567890b")
                 if eq(opCode, 11) {
                     let to := shr(96, calldataload(inputOffset))
                     inputOffset := add(inputOffset, 20)
@@ -325,10 +256,10 @@ object "Querier" {
                     outputOffset := add(outputOffset, 32)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567890b00")
+                verbatim_0i_0o(hex"01234567890b")
 
                 // HasCode
-                verbatim_0i_0o(hex"01234567890c00")
+                verbatim_0i_0o(hex"01234567890c")
                 if eq(opCode, 12) {
                     inputOffset := add(inputOffset, 20)
                     mstore8(
@@ -338,64 +269,64 @@ object "Querier" {
                     outputOffset := add(outputOffset, 1)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567890c00")
+                verbatim_0i_0o(hex"01234567890c")
 
                 // GetChainId
-                verbatim_0i_0o(hex"01234567891400")
+                verbatim_0i_0o(hex"012345678914")
                 if eq(opCode, 20) {
                     mstore(outputOffset, shl(192, chainid()))
                     outputOffset := add(outputOffset, 8)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567891400")
+                verbatim_0i_0o(hex"012345678914")
 
                 // GetBlockNumber
-                verbatim_0i_0o(hex"01234567891500")
+                verbatim_0i_0o(hex"012345678915")
                 if eq(opCode, 21) {
                     mstore(outputOffset, shl(192, number()))
                     outputOffset := add(outputOffset, 8)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567891500")
+                verbatim_0i_0o(hex"012345678915")
 
                 // GetBlockTimestamp
-                verbatim_0i_0o(hex"01234567891600")
+                verbatim_0i_0o(hex"012345678916")
                 if eq(opCode, 22) {
                     mstore(outputOffset, shl(192, timestamp()))
                     outputOffset := add(outputOffset, 8)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567891600")
+                verbatim_0i_0o(hex"012345678916")
 
                 // GetBlockGasLimit
-                verbatim_0i_0o(hex"01234567891700")
+                verbatim_0i_0o(hex"012345678917")
                 if eq(opCode, 23) {
                     mstore(outputOffset, shl(192, gaslimit()))
                     outputOffset := add(outputOffset, 8)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567891700")
+                verbatim_0i_0o(hex"012345678917")
 
                 // GetBlockGasPrice
-                verbatim_0i_0o(hex"01234567891800")
+                verbatim_0i_0o(hex"012345678918")
                 if eq(opCode, 24) {
                     mstore(outputOffset, gasprice())
                     outputOffset := add(outputOffset, 32)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567891800")
+                verbatim_0i_0o(hex"012345678918")
 
                 // GetBlockBaseFee
-                verbatim_0i_0o(hex"01234567891900")
+                verbatim_0i_0o(hex"012345678919")
                 if eq(opCode, 25) {
                     mstore(outputOffset, basefee())
                     outputOffset := add(outputOffset, 32)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567891900")
+                verbatim_0i_0o(hex"012345678919")
 
                 // GetBalance
-                verbatim_0i_0o(hex"01234567891e00")
+                verbatim_0i_0o(hex"01234567891e")
                 if eq(opCode, 30) {
                     let to := shr(96, calldataload(inputOffset))
                     inputOffset := add(inputOffset, 20)
@@ -403,10 +334,10 @@ object "Querier" {
                     outputOffset := add(outputOffset, 32)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567891e00")
+                verbatim_0i_0o(hex"01234567891e")
 
                 // ReadStorage
-                verbatim_0i_0o(hex"01234567891f00")
+                verbatim_0i_0o(hex"01234567891f")
                 if eq(opCode, 31) {
                     let slot := calldataload(inputOffset)
                     inputOffset := add(inputOffset, 32)
@@ -414,26 +345,26 @@ object "Querier" {
                     outputOffset := add(outputOffset, 32)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567891f00")
+                verbatim_0i_0o(hex"01234567891f")
 
                 // GetNonce
-                verbatim_0i_0o(hex"01234567892000")
+                verbatim_0i_0o(hex"012345678920")
                 if eq(opCode, 32) {
                     mstore(outputOffset, shl(96, address()))
                     mstore(add(outputOffset, 20), shl(96, create(0, 0, 0)))
                     outputOffset := add(outputOffset, 40)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567892000")
+                verbatim_0i_0o(hex"012345678920")
 
                 // GetRemainingGas
-                verbatim_0i_0o(hex"01234567892800")
+                verbatim_0i_0o(hex"012345678928")
                 if eq(opCode, 40) {
                     mstore(outputOffset, gas())
                     outputOffset := add(outputOffset, 32)
                     continue
                 }
-                verbatim_0i_0o(hex"01234567892800")
+                verbatim_0i_0o(hex"012345678928")
 
                 revert(0, outputOffset)
             }

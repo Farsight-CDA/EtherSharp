@@ -10,10 +10,12 @@ internal sealed class CallQueryOperation<T>(IContractCall<T> txInput) : IQueryOp
     private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom = txInput.ReadResultFrom;
 
     public QueryOperationId OperationId => QueryOperationId.Call;
-    public int CallDataLength => CallQueryEncoding.GetCallDataLength(_txInput.Data.Length);
     public UInt256 EthValue => _txInput.Value;
 
-    public void Encode(Span<byte> buffer)
+    public int GetCallDataLength(QueryEncodingContext context)
+        => CallQueryEncoding.GetCallDataLength(_txInput.Data.Length);
+
+    public void Encode(Span<byte> buffer, QueryEncodingContext context)
         => _txInput.Data.Span.CopyTo(CallQueryEncoding.EncodeHeader(
             _txInput.To,
             EthValue,

@@ -1,46 +1,25 @@
 using EtherSharp.Contract;
-using EtherSharp.Query;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Services.FlashCall;
 
-internal sealed class FlashCallExecutor(
-    IFlashInitCodeExecutor initCodeExecutor,
-    CallGasLimitSettings callGasLimitSettings,
-    IFlashRuntimeExecutor? runtimeExecutor = null)
+/// <summary>
+/// Executes runtime code at a temporary account through one of the flash call backends.
+/// </summary>
+internal closed class FlashCallExecutor
 {
-    private readonly IFlashInitCodeExecutor _initCodeExecutor = initCodeExecutor;
-    private readonly IFlashRuntimeExecutor? _runtimeExecutor = runtimeExecutor;
-    private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
-
-    public QuerierCodeVariant QuerierCodeVariant
-        => _runtimeExecutor is not null
-            ? QuerierCodeVariant.StateOverride
-            : QuerierCodeVariant.Deploying;
-
-    public Task<TxCallResult> ExecuteFlashCallAsync(
+    /// <summary>
+    /// Executes runtime code at a temporary account. <see cref="StateOverrideFlashCallExecutor"/> installs it at the
+    /// code's flash call address; the other backends deploy it at an unspecified address.
+    /// </summary>
+    public abstract Task<TxCallResult> ExecuteAsync(
         EVMRuntimeCode runtimeCode,
         IFlashCall call,
         ulong? flashCallGasLimit,
-        in CallOptions options,
+        CallOptions options,
         RpcRequestOptions requestOptions,
-        CancellationToken cancellationToken)
-    {
-        if(_runtimeExecutor is null && options.StateOverrides is { Count: > 0 })
-        {
-            throw new NotSupportedException(
-                "State overrides in queries and flash calls require WithFlashCalls(enableStateOverrides: true)."
-            );
-        }
-
-        ulong? resolvedGasLimit = flashCallGasLimit ?? _callGasLimitSettings.GetFlashCallGasLimit();
-
-        return _runtimeExecutor is not null
-            ? _runtimeExecutor.ExecuteFlashCallAsync(
-                runtimeCode, call, resolvedGasLimit, options, requestOptions, cancellationToken)
-            : _initCodeExecutor.ExecuteFlashCallAsync(
-                IFlashCode.CreateInitCode(runtimeCode), call, resolvedGasLimit, options, requestOptions, cancellationToken);
-    }
+        CancellationToken cancellationToken
+    );
 }

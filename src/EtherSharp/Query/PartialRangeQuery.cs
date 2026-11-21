@@ -22,8 +22,6 @@ internal sealed class PartialRangeQuery<T> : IQueryOperation, IQuery<PartialRang
     private readonly int _innerCallDataLength;
 
     public QueryOperationId OperationId => QueryOperationId.PartialRange;
-    public int CallDataLength
-        => HEADER_LENGTH + _innerCallDataLength;
     public UInt256 EthValue { get; private set; }
     int IQuery.OperationCount => 1;
 
@@ -41,7 +39,10 @@ internal sealed class PartialRangeQuery<T> : IQueryOperation, IQuery<PartialRang
         }
     }
 
-    public void Encode(Span<byte> buffer)
+    public int GetCallDataLength(QueryEncodingContext context)
+        => HEADER_LENGTH + _innerCallDataLength;
+
+    public void Encode(Span<byte> buffer, QueryEncodingContext context)
     {
         BinaryPrimitives.WriteUInt32BigEndian(buffer[..sizeof(uint)], (uint) _innerCallDataLength);
         buffer[0] = (byte) QueryOperationId.PartialRange;

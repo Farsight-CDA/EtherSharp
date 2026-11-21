@@ -9,10 +9,12 @@ internal sealed class GetCodeQueryOperation(in Address address) : IQueryOperatio
     private readonly Address _address = address;
 
     public QueryOperationId OperationId => QueryOperationId.GetCode;
-    public int CallDataLength => 21;
     public UInt256 EthValue => 0;
 
-    public void Encode(Span<byte> buffer)
+    public int GetCallDataLength(QueryEncodingContext context)
+        => 21;
+
+    public void Encode(Span<byte> buffer, QueryEncodingContext context)
     {
         buffer[0] = (byte) QueryOperationId.GetCode;
         _address.CopyTo(buffer[1..]);

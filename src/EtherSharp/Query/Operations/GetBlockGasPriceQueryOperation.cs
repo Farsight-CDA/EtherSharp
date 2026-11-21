@@ -13,10 +13,12 @@ internal sealed class GetBlockGasPriceQueryOperation : IQueryOperation, IQuery<U
     {
     }
 
-    public int CallDataLength => 1;
     public UInt256 EthValue => 0;
 
-    public void Encode(Span<byte> buffer)
+    public int GetCallDataLength(QueryEncodingContext context)
+        => 1;
+
+    public void Encode(Span<byte> buffer, QueryEncodingContext context)
         => buffer[0] = (byte) QueryOperationId.GetBlockGasPrice;
 
     public int ParseResultLength(ReadOnlySpan<byte> resultData)

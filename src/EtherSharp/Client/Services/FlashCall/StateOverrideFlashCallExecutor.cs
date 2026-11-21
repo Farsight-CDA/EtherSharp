@@ -1,6 +1,6 @@
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
-using EtherSharp.Query;
+using EtherSharp.Query.Operations;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
@@ -10,11 +10,11 @@ using System.Runtime.InteropServices;
 namespace EtherSharp.Client.Services.FlashCall;
 
 internal sealed class StateOverrideFlashCallExecutor(
-    IEthRpcModule ethRpcModule) : IFlashRuntimeExecutor
+    IEthRpcModule ethRpcModule) : FlashCallExecutor
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
-    public Task<TxCallResult> ExecuteFlashCallAsync(
+    public override Task<TxCallResult> ExecuteAsync(
         EVMRuntimeCode runtimeCode,
         IFlashCall call,
         ulong? flashCallGasLimit,
@@ -22,20 +22,21 @@ internal sealed class StateOverrideFlashCallExecutor(
         RpcRequestOptions requestOptions,
         CancellationToken cancellationToken)
     {
+        var address = FlashCallEncoding.GetStateOverrideAddress(FlashCallEncoding.GetInitCodeHash(runtimeCode));
         var stateOverrides = options.StateOverrides is null
             ? []
             : new Dictionary<Address, AccountOverride>(options.StateOverrides);
 
         var flashCodeOverride = new AccountOverride(balance: UInt256.Zero, nonce: 1, code: runtimeCode.ByteCode);
         ref var existingOverride = ref CollectionsMarshal.GetValueRefOrAddDefault(
-            stateOverrides, IQuerier.StateOverride.Address, out bool exists
+            stateOverrides, address, out bool exists
         );
 
         if(exists)
         {
             if(existingOverride != flashCodeOverride)
             {
-                throw new InvalidOperationException($"Flash call state overrides conflict at {IQuerier.StateOverride.Address}.");
+                throw new InvalidOperationException($"Flash call state overrides conflict at {address}.");
             }
         }
         else
@@ -44,7 +45,7 @@ internal sealed class StateOverrideFlashCallExecutor(
         }
 
         return _ethRpcModule.CallAsync(
-            IQuerier.StateOverride.Address,
+            address,
             null,
             call.Value,
             call.Data,

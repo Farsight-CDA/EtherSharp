@@ -8,10 +8,10 @@ internal sealed class GetCompatibilityQueryOperation : IQuery<CompatibilityRepor
 {
     public static GetCompatibilityQueryOperation Instance { get; } = new();
 
-    private static readonly IContractDeployment _push0 = IContractDeployment.Create(new EVMInitCode(Convert.FromHexString("600b380380600b3d393df35f")), 0);
-    private static readonly IContractDeployment _mCopy = IContractDeployment.Create(new EVMInitCode(Convert.FromHexString("600b380380600b3d393df36001600060015e")), 0);
-    private static readonly IContractDeployment _tStore = IContractDeployment.Create(new EVMInitCode(Convert.FromHexString("600b380380600b3d393df3600060005d")), 0);
-    private static readonly IContractDeployment _baseFee = IContractDeployment.Create(new EVMInitCode(Convert.FromHexString("600b380380600b3d393df348")), 0);
+    private static readonly EVMRuntimeCode _push0 = new EVMRuntimeCode(Convert.FromHexString("5f"));
+    private static readonly EVMRuntimeCode _mCopy = new EVMRuntimeCode(Convert.FromHexString("6001600060015e"));
+    private static readonly EVMRuntimeCode _tStore = new EVMRuntimeCode(Convert.FromHexString("600060005d"));
+    private static readonly EVMRuntimeCode _baseFee = new EVMRuntimeCode(Convert.FromHexString("48"));
 
     private static readonly IFlashCall<bool> _call = IFlashCall.ForRawFlashCall(0, Array.Empty<byte>(), x => true);
 
@@ -32,7 +32,7 @@ internal sealed class GetCompatibilityQueryOperation : IQuery<CompatibilityRepor
     {
         foreach(var query in _queries)
         {
-            plan.AddOperation(query);
+            plan.Add(query);
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using EtherSharp.Numerics;
+﻿using EtherSharp.Contract;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
 
 namespace EtherSharp.Tx;
@@ -30,6 +31,15 @@ public interface ITxInput
     /// <returns></returns>
     public static ITxInput ForEthTransfer(in Address receiver, UInt256 amount)
         => new TxInput(receiver, amount, Array.Empty<byte>());
+
+    /// <summary>
+    /// Creates a ITxInput that deploys a contract from <paramref name="initCode"/>.
+    /// </summary>
+    /// <param name="initCode">The initcode run by contract creation.</param>
+    /// <param name="value">The ETH value sent to the new contract.</param>
+    /// <returns>A payload whose eth_call result is the runtime code the deployment would store.</returns>
+    public static ITxInput<EVMRuntimeCode> ForContractDeployment(EVMInitCode initCode, UInt256 value)
+        => new ContractDeployment(initCode, value);
 }
 
 /// <summary>

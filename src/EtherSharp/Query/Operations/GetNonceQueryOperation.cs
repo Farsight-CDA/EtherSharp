@@ -9,7 +9,6 @@ internal sealed class GetNonceQueryOperation : IQueryOperation, IQuery<NonceSear
     private readonly int _searchCount;
 
     public QueryOperationId OperationId => QueryOperationId.GetNonce;
-    public int CallDataLength => 1;
     public UInt256 EthValue => 0;
 
     public GetNonceQueryOperation(ulong startNonce, int searchCount)
@@ -19,7 +18,10 @@ internal sealed class GetNonceQueryOperation : IQueryOperation, IQuery<NonceSear
         _searchCount = searchCount;
     }
 
-    public void Encode(Span<byte> buffer)
+    public int GetCallDataLength(QueryEncodingContext context)
+        => 1;
+
+    public void Encode(Span<byte> buffer, QueryEncodingContext context)
         => buffer[0] = (byte) QueryOperationId.GetNonce;
 
     public int ParseResultLength(ReadOnlySpan<byte> resultData)

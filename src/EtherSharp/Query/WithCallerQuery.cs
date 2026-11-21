@@ -14,11 +14,8 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
     private readonly QueryPlan _innerPlan;
     private readonly AccountOverride _callerOverride;
     private readonly (Address Address, AccountOverride Override)? _originalCodeOverride;
-    private readonly int _innerCallDataLength;
 
     public QueryOperationId OperationId => QueryOperationId.Call;
-    public int CallDataLength
-        => CallQueryEncoding.GetCallDataLength(IQuerierDelegate.Functions.Query.GetCallDataLength(_innerCallDataLength));
     public UInt256 EthValue { get; private set; }
     int IQuery.OperationCount => 1;
 
@@ -31,7 +28,6 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
 
         foreach(var operation in _innerPlan.Queries)
         {
-            _innerCallDataLength += operation.CallDataLength;
             EthValue += operation.EthValue;
         }
 
@@ -52,11 +48,11 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
     {
         plan.AddRequirements(
             _innerPlan.StateOverrides,
+            _innerPlan.FlashCodes,
             _innerPlan.RequiresQuerierStateOverride,
             _innerPlan.RequiredOperationIds
         );
         plan.RequireQuerierStateOverride();
-
         plan.AddStateOverride(_caller, _callerOverride);
         if(_originalCodeOverride is { } originalCodeOverride)
         {
@@ -66,14 +62,19 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
         plan.AddOperation(this);
     }
 
-    public void Encode(Span<byte> buffer)
+    public int GetCallDataLength(QueryEncodingContext context)
+        => CallQueryEncoding.GetCallDataLength(
+            IQuerierDelegate.Functions.Query.GetCallDataLength(_innerPlan.GetCallDataLength(context))
+        );
+
+    public void Encode(Span<byte> buffer, QueryEncodingContext context)
     {
         var callData = CallQueryEncoding.EncodeHeader(
             _caller,
             EthValue,
-            IQuerierDelegate.Functions.Query.GetCallDataLength(_innerCallDataLength),
+            buffer.Length - CallQueryEncoding.GetCallDataLength(0),
             buffer);
-        IQuerierDelegate.Functions.Query.Encode(callData, _innerPlan.Queries);
+        IQuerierDelegate.Functions.Query.Encode(callData, _innerPlan.Queries, context);
     }
 
     public int ParseResultLength(ReadOnlySpan<byte> resultData)

@@ -60,15 +60,16 @@ public partial interface IQuerierDelegate
             /// <summary>
             /// Encodes a delegated query call.
             /// </summary>
-            public static void Encode(Span<byte> buffer, IReadOnlyList<IQueryOperation> operations)
+            public static void Encode(Span<byte> buffer, IReadOnlyList<IQueryOperation> operations, QueryEncodingContext context)
             {
                 Selector.CopyTo(buffer);
 
                 var operationBuffer = buffer[Bytes4.BYTE_LENGTH..];
                 foreach(var operation in operations)
                 {
-                    operation.Encode(operationBuffer);
-                    operationBuffer = operationBuffer[operation.CallDataLength..];
+                    int length = operation.GetCallDataLength(context);
+                    operation.Encode(operationBuffer[..length], context);
+                    operationBuffer = operationBuffer[length..];
                 }
             }
         }

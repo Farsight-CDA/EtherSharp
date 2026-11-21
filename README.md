@@ -80,7 +80,7 @@ Generated message members currently support `bool`, `Address`, `string`, `byte[]
 
 The source generator is bundled with the `EtherSharp` package, so no separate generator package is required.
 
-Define a partial interface and decorate it with `[AbiFile]`. Add `[Bytecode]` if you also want generated deployment helpers and flash-call code. Supply runtime code when the contract can execute without constructor logic; the generator creates its initcode wrapper at compile time. Supply initcode for contracts that require constructor execution.
+Define a partial interface and decorate it with `[AbiFile]`. Add `[Bytecode]` if you also want generated deployment helpers. Supply runtime code when the contract can execute without constructor logic; the generator creates its initcode wrapper at compile time and exposes the runtime code as `Code.Runtime` for flash calls. Supply initcode for contracts that require constructor execution.
 
 ```csharp
 using EtherSharp.Contract;
@@ -168,7 +168,7 @@ Built-in operations include:
 | :--- | :--- |
 | `IQuery.SafeCall(call)` | Returns a `CallResult<T>` that gracefully handles reverts |
 | `IQuery.CallAndMeasureGas(call)` | Executes a call and returns both result and gas used |
-| `IQuery.SafeFlashCall(code, call)` | Executes a flash call and returns `CallResult<T>` |
+| `IQuery.SafeFlashCall(runtimeCode, call)` | Calls runtime code at a temporary account and returns `CallResult<T>` |
 | `IQuery.GetBalance(address)` | Gets the ETH balance of an account |
 | `IQuery.GetCode(address)` | Gets the contract code at an address |
 | `IQuery.GetCodeHash(address)` | Gets the code hash at an address |
@@ -212,6 +212,7 @@ var results = await readClient.QueryAsync(query);
 ### Flash Calling
 
 Flash calling installs runtime code at a temporary account and calls it in a single simulation, without running a constructor. With state overrides enabled the code is installed directly; otherwise it is deployed by wrapping it in minimal initcode. The temporary account's address is unspecified.
+Within a query, flash calls with the same runtime code share one temporary account, including its storage.
 
 ```csharp
 var simulationResult = await readClient.FlashCallAsync(

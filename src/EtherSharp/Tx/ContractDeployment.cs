@@ -4,13 +4,12 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Tx;
 
-internal sealed class ContractDeployment(EVMInitCode byteCode, UInt256 value) : IContractDeployment
+internal sealed class ContractDeployment(EVMInitCode initCode, UInt256 value) : ITxInput<EVMRuntimeCode>
 {
-    public EVMInitCode ByteCode { get; } = byteCode;
     public Address? To => null;
     public UInt256 Value { get; } = value;
-    public ReadOnlyMemory<byte> Data => ByteCode.ByteCode;
+    public ReadOnlyMemory<byte> Data { get; } = initCode.ByteCode;
 
-    public byte[] ReadResultFrom(ReadOnlyMemory<byte> data)
-        => data.ToArray();
+    public EVMRuntimeCode ReadResultFrom(ReadOnlyMemory<byte> data)
+        => new EVMRuntimeCode(data);
 }

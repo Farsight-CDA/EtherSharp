@@ -9,9 +9,7 @@ const SOLC_VERSION = "0.8.30";
 const SOURCE = new URL("src/Querier.yul", import.meta.url);
 const ORIGIN_ANCHOR = "// Querier bytecode origin.";
 const MARKER_PREFIX = Buffer.from("0123456789", "hex");
-// Each marker carries the operation ID and the backend variant:
-// 0 for every backend, 1 for state overrides, 2 for backends without them.
-const MARKER_LENGTH = MARKER_PREFIX.length + 2;
+const MARKER_LENGTH = MARKER_PREFIX.length + 1;
 const ORIGINS = [4096, 8192];
 const OPTIMIZER = {
     enabled: true,
@@ -55,16 +53,12 @@ function readTemplate(code) {
         // Markers are opaque metadata; PUSH operands are skipped below.
         if (code.subarray(rawOffset, rawOffset + MARKER_PREFIX.length).equals(MARKER_PREFIX)) {
             assert(rawOffset + MARKER_LENGTH <= code.length, "Truncated opcode marker.");
-            const operation = code[rawOffset + MARKER_PREFIX.length];
-            const variant = code[rawOffset + MARKER_PREFIX.length + 1];
+            const opcode = code[rawOffset + MARKER_PREFIX.length];
             if (openRegion === undefined) {
-                assert(
-                    !regions.some(region => region.operation === operation && region.variant === variant),
-                    `Duplicate markers for operation ${operation}, variant ${variant}.`,
-                );
-                openRegion = { operation, variant, offset };
+                assert(!regions.some(region => region.opcode === opcode), `Duplicate markers for opcode ${opcode}.`);
+                openRegion = { opcode, offset };
             } else {
-                assert(openRegion.operation === operation && openRegion.variant === variant, "Nested or mismatched opcode markers.");
+                assert(openRegion.opcode === opcode, "Nested or mismatched opcode markers.");
                 regions.push({ ...openRegion, length: offset - openRegion.offset });
                 openRegion = undefined;
             }
@@ -93,7 +87,7 @@ function inspect(solc) {
     assert.deepEqual(left.regions, right.regions, "Changing the origin changed the opcode regions.");
     assert(left.instructions.length === right.instructions.length, "Changing the origin changed the instruction count.");
     const destinations = new Map(left.instructions.filter(item => item.bytes[0] === 0x5b).map(item => [item.rawOffset, item.offset]));
-    const owner = offset => left.regions.find(region => region.offset <= offset && offset < region.offset + region.length);
+    const owner = offset => left.regions.find(region => region.offset <= offset && offset < region.offset + region.length)?.opcode;
     const references = [];
     for (let i = 0; i < left.instructions.length; i++) {
         const a = left.instructions[i];

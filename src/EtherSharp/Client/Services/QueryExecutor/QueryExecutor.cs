@@ -28,17 +28,35 @@ internal sealed class QueryExecutor(FlashCallExecutor flashCallExecutor)
         var plan = new QueryPlan(query.OperationCount, options.StateOverrides);
         plan.Add(query);
 
+        bool usesStateOverrides = _flashCallExecutor is StateOverrideFlashCallExecutor;
+        var encodingContext = new QueryEncodingContext(usesStateOverrides);
+
         var outputs = new ReadOnlyMemory<byte>[plan.Queries.Count];
         byte[] payloadBytes = IQuerier.Functions.Query.Encode(
             plan.Queries,
+            plan.FlashCodes,
+            encodingContext,
             out int payloadSize,
             out var ethValue
         );
 
         try
         {
-            var runtime = QuerierCodeBuilder.CreateRuntime(plan.RequiredOperationIds, _flashCallExecutor.QuerierCodeVariant);
+            var runtime = QuerierCodeBuilder.CreateRuntime(plan.RequiredOperationIds, usesStateOverrides);
 
+            // Without state overrides the Querier deploys flash code before running any operation instead.
+            if(usesStateOverrides && plan.FlashCodes is { } flashCodes)
+            {
+                foreach(var (address, flashCode) in flashCodes)
+                {
+                    plan.AddStateOverride(
+                        address,
+                        new AccountOverride(balance: UInt256.Zero, nonce: 1, code: flashCode.ByteCode)
+                    );
+                }
+            }
+
+            // WithCaller delegates calls to the Querier at its fixed address.
             if(plan.RequiresQuerierStateOverride)
             {
                 plan.AddStateOverride(
@@ -47,7 +65,7 @@ internal sealed class QueryExecutor(FlashCallExecutor flashCallExecutor)
                 );
             }
 
-            var callResult = await _flashCallExecutor.ExecuteFlashCallAsync(
+            var callResult = await _flashCallExecutor.ExecuteAsync(
                 runtime,
                 IFlashCall.ForRawFlashCall(ethValue, payloadBytes.AsMemory(0, payloadSize)),
                 gasLimit,

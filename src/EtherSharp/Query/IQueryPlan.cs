@@ -1,3 +1,4 @@
+using EtherSharp.Contract;
 using EtherSharp.Types;
 
 namespace EtherSharp.Query;
@@ -13,10 +14,11 @@ public interface IQueryPlan
     public void AddOperation(IQueryOperation operation);
 
     /// <summary>
-    /// Adds state overrides and Querier runtime requirements to this plan.
+    /// Adds state overrides, flash code, and Querier runtime requirements to this plan.
     /// </summary>
     public void AddRequirements(
         IReadOnlyDictionary<Address, AccountOverride>? stateOverrides,
+        IReadOnlyDictionary<Address, EVMRuntimeCode>? flashCodes,
         bool requiresQuerierStateOverride,
         ReadOnlySpan<QueryOperationId> requiredOperationIds
     );
@@ -27,7 +29,7 @@ public interface IQueryPlan
     public void Add(IQuery query);
 
     /// <summary>
-    /// Requires the selected Querier runtime to be installed at its fixed state override address.
+    /// Requires the Querier runtime to also be installed at <see cref="IQuerier.StateOverride.Address"/>.
     /// </summary>
     public void RequireQuerierStateOverride();
 
@@ -38,4 +40,13 @@ public interface IQueryPlan
     /// Thrown when a different override has already been added for <paramref name="address"/>.
     /// </exception>
     public void AddStateOverride(in Address address, AccountOverride accountOverride);
+
+    /// <summary>
+    /// Requires runtime code called by flash call operations, identified by the account it is installed at with state overrides.
+    /// </summary>
+    /// <remarks>
+    /// With state overrides the code is installed at <paramref name="stateOverrideAddress"/> before execution; otherwise the
+    /// Querier deploys it before running any operation.
+    /// </remarks>
+    public void AddFlashCode(in Address stateOverrideAddress, EVMRuntimeCode runtimeCode);
 }

@@ -474,7 +474,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// </summary>
     /// <param name="gasLimit">Optional fallback gas limit applied when no per-call limit is provided.</param>
     /// <param name="enableStateOverrides">Whether the node supports state overrides. Queries and flash calls that use state overrides are rejected without it.</param>
-    /// <param name="contractAddress">Optional deployed FlashCall contract used for initcode execution.</param>
+    /// <param name="contractAddress">Optional deployed FlashCall contract used for initcode execution. Ignored when <paramref name="enableStateOverrides"/> is set.</param>
     /// <param name="allowConstructorFallback">Whether initcode may fall back to constructor-based execution when the deployed contract is unavailable.</param>
     /// <returns></returns>
     public EtherClientBuilder WithFlashCalls(
@@ -487,21 +487,19 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
 
         _flashCallGasLimit = gasLimit;
 
-        _services.RemoveAll<IFlashRuntimeExecutor>();
+        _services.RemoveAll<FlashCallExecutor>();
+        _services.RemoveAll<DeployedFlashCallExecutor.Configuration>();
         if(enableStateOverrides)
         {
-            _services.AddSingleton<IFlashRuntimeExecutor, StateOverrideFlashCallExecutor>();
+            _services.AddSingleton<FlashCallExecutor, StateOverrideFlashCallExecutor>();
         }
-
-        _services.RemoveAll<DeployedFlashCallExecutor.Configuration>();
-        _services.RemoveAll<IFlashInitCodeExecutor>();
-        if(contractAddress is { } deployedContractAddress)
+        else if(contractAddress is { } deployedContractAddress)
         {
             _services.AddSingleton(new DeployedFlashCallExecutor.Configuration(
                 deployedContractAddress,
                 allowConstructorFallback
             ));
-            _services.AddSingleton<IFlashInitCodeExecutor, DeployedFlashCallExecutor>();
+            _services.AddSingleton<FlashCallExecutor, DeployedFlashCallExecutor>();
         }
 
         return this;
@@ -546,11 +544,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
             _services.AddSingleton<ISubscriptionsManager, SubscriptionsManager>();
         }
         _services.AddSingleton<QueryExecutor>();
-        _services.AddSingleton<FlashCallExecutor>();
 
-        if(!_services.Any(x => x.ServiceType == typeof(IFlashInitCodeExecutor)))
+        if(!_services.Any(x => x.ServiceType == typeof(FlashCallExecutor)))
         {
-            _services.AddSingleton<IFlashInitCodeExecutor, ConstructorFlashCallExecutor>();
+            _services.AddSingleton<FlashCallExecutor, ConstructorFlashCallExecutor>();
         }
 
         if(!_services.Any(x => x.ServiceType == typeof(JsonSerializerOptions)))

@@ -242,8 +242,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         _chainId = await _ethRpcModule.ChainIdAsync(requestOptions, cancellationToken);
         _compatibilityReport = null;
 
-        var flashInitCodeExecutor = _provider.GetRequiredService<IFlashInitCodeExecutor>();
-        if(flashInitCodeExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor)
+        if(_flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor)
         {
             var deploymentHeightResult = await _ethRpcModule.CallAsync(
                 deployedFlashCallExecutor.ContractAddress,
@@ -277,8 +276,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         await BaseInitializeAsync(cancellationToken);
 
         initQuery ??= IQuery.Noop<T>(default!);
-        var flashInitCodeExecutor = _provider.GetRequiredService<IFlashInitCodeExecutor>();
-        var flashCallSetupQuery = flashInitCodeExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor
+        var flashCallSetupQuery = _flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor
             ? IQuery.Call(IContractCall<UInt256>.ForContractCall(
                 deployedFlashCallExecutor.ContractAddress, 0, Convert.FromHexString("217CD3E1"), new ABI.AbiEncoder(), x => x.UInt256())
             )
@@ -294,7 +292,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             cancellationToken
         );
 
-        if(flashInitCodeExecutor is DeployedFlashCallExecutor executor)
+        if(_flashCallExecutor is DeployedFlashCallExecutor executor)
         {
             executor.SetDeploymentHeight((ulong) deploymentHeight);
         }
@@ -495,7 +493,14 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         return ParseAsync(
             call,
-            _flashCallExecutor.ExecuteFlashCallAsync(runtimeCode, call, flashCallGasLimit, options, requestOptions, cancellationToken)
+            _flashCallExecutor.ExecuteAsync(
+                runtimeCode,
+                call,
+                flashCallGasLimit,
+                options,
+                requestOptions,
+                cancellationToken
+            )
         );
 
         // Avoid CallOptions in the async state machine.

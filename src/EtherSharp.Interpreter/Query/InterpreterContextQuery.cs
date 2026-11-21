@@ -20,20 +20,20 @@ internal sealed class InterpreterContextQuery(bool disableBlobBaseFee) : IQuery<
     private static readonly IQuery<DateTimeOffset> _blockTimestamp = IQuery.GetBlockTimestamp();
     private static readonly IQuery<ulong> _blockGasLimit = IQuery.GetBlockGasLimit();
     private static readonly IQuery<Address> _coinbase = IQuery.FlashCall(
-        IFlashCode.FromRuntimeCode(new EVMRuntimeCode(Convert.FromHexString("416000526014600cf3"))),
+        new EVMRuntimeCode(Convert.FromHexString("416000526014600cf3")),
         IFlashCall.ForRawFlashCall(0, ReadOnlyMemory<byte>.Empty, static data => Address.FromBytes(data.Span)));
     private static readonly IQuery<UInt256> _prevRandao = IQuery.FlashCall(
-        IFlashCode.FromRuntimeCode(new EVMRuntimeCode(Convert.FromHexString("4460005260206000f3"))),
+        new EVMRuntimeCode(Convert.FromHexString("4460005260206000f3")),
         IFlashCall.ForRawFlashCall(0, ReadOnlyMemory<byte>.Empty, static data => BinaryPrimitives.ReadUInt256BigEndian(data.Span)));
     private static readonly IQuery<CallResult<UInt256>> _baseFee = IQuery.SafeFlashCall(
-        IFlashCode.FromRuntimeCode(new EVMRuntimeCode(Convert.FromHexString("4860005260206000f3"))),
+        new EVMRuntimeCode(Convert.FromHexString("4860005260206000f3")),
         IFlashCall.ForRawFlashCall(0, ReadOnlyMemory<byte>.Empty, static data => BinaryPrimitives.ReadUInt256BigEndian(data.Span)));
     private static readonly IQuery<CallResult<UInt256>> _blobBaseFee = IQuery.SafeFlashCall(
-        IFlashCode.FromRuntimeCode(new EVMRuntimeCode(Convert.FromHexString("4a60005260206000f3"))),
+        new EVMRuntimeCode(Convert.FromHexString("4a60005260206000f3")),
         IFlashCall.ForRawFlashCall(0, ReadOnlyMemory<byte>.Empty, static data => BinaryPrimitives.ReadUInt256BigEndian(data.Span)));
     private static readonly IQuery<Bytes32[]> _recentBlockHashes = IQuery.FlashCall(
-        IFlashCode.FromRuntimeCode(new EVMRuntimeCode(Convert.FromHexString(
-            "6001804301905b61010181106015576120006000f35b6001906000838210602f575b600019820160051b52016006565b5080430340602156"))),
+        new EVMRuntimeCode(Convert.FromHexString(
+            "6001804301905b61010181106015576120006000f35b6001906000838210602f575b600019820160051b52016006565b5080430340602156")),
         IFlashCall.ForRawFlashCall(0, ReadOnlyMemory<byte>.Empty, static data =>
         {
             var span = data.Span;

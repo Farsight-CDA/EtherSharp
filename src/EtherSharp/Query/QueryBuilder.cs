@@ -21,6 +21,7 @@ public partial class QueryBuilder<TQuery> : IQuery<List<TQuery>>
     {
         plan.AddRequirements(
             _plan.StateOverrides,
+            _plan.FlashCodes,
             _plan.RequiresQuerierStateOverride,
             _plan.RequiredOperationIds
         );

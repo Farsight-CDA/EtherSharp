@@ -95,18 +95,11 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                     """
                 );
 
-            if(constructorMember.Inputs.Length == 0 && runtimeCode is null)
-            {
-                codeBuilder.AddRawContent(
-                    "public static EtherSharp.Tx.IFlashCode Flash { get; } = EtherSharp.Tx.IFlashCode.FromInitCode(Init);"
-                );
-            }
-            else if(constructorMember.Inputs.Length == 0)
+            if(constructorMember.Inputs.Length == 0 && runtimeCode is not null)
             {
                 codeBuilder.AddRawContent(
                     $$"""
                     public static EtherSharp.Contract.EVMRuntimeCode Runtime { get; } = new EtherSharp.Contract.EVMRuntimeCode(Convert.FromHexString("{{HexUtils.ToHexStringUpper(runtimeCode)}}"));
-                    public static EtherSharp.Tx.IFlashCode Flash { get; } = EtherSharp.Tx.IFlashCode.FromCode(Init, Runtime);
                     """
                 );
             }
@@ -122,7 +115,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                 .WithReturnTypeRaw("EtherSharp.Contract.EVMInitCode");
             var createFunction = new FunctionBuilder("Create")
                 .WithIsStatic()
-                .WithReturnTypeRaw("EtherSharp.Tx.IContractDeployment");
+                .WithReturnTypeRaw("EtherSharp.Tx.ITxInput<EtherSharp.Contract.EVMRuntimeCode>");
             var create2Function = new FunctionBuilder("Create2")
                 .WithIsStatic()
                 .WithReturnTypeRaw("EtherSharp.Tx.IContractCall<EtherSharp.Types.Address>");
@@ -164,7 +157,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                 createFunction.AddStatement(
                     $"""
                     var contractByteCode = CreateCode({createCallBuilder.Build()});
-                    return EtherSharp.Tx.IContractDeployment.Create(contractByteCode, {(isPayable ? "ethValue" : "0")})
+                    return EtherSharp.Tx.ITxInput.ForContractDeployment(contractByteCode, {(isPayable ? "ethValue" : "0")})
                     """
                 );
                 create2Function.AddArgument("in EtherSharp.Types.Bytes32", "salt");
@@ -190,7 +183,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                 );
                 createFunction.AddStatement(
                     $"""
-                    return EtherSharp.Tx.IContractDeployment.Create(Code.Init, {(isPayable ? "ethValue" : "0")})
+                    return EtherSharp.Tx.ITxInput.ForContractDeployment(Code.Init, {(isPayable ? "ethValue" : "0")})
                     """
                 );
                 create2Function.AddArgument("in EtherSharp.Types.Bytes32", "salt");

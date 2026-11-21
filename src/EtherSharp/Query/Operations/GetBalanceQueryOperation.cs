@@ -9,10 +9,12 @@ internal sealed class GetBalanceQueryOperation(in Address user) : IQueryOperatio
     private readonly Address _user = user;
 
     public QueryOperationId OperationId => QueryOperationId.GetBalance;
-    public int CallDataLength => 21;
     public UInt256 EthValue => 0;
 
-    public void Encode(Span<byte> buffer)
+    public int GetCallDataLength(QueryEncodingContext context)
+        => 21;
+
+    public void Encode(Span<byte> buffer, QueryEncodingContext context)
     {
         buffer[0] = (byte) QueryOperationId.GetBalance;
         _user.CopyTo(buffer[1..]);
