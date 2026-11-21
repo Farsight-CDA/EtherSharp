@@ -6,11 +6,14 @@ using System.Numerics;
 namespace EtherSharp.Contract;
 
 /// <summary>
-/// Represents the source code of an EVM contract.
+/// Represents EVM bytecode without a specific role.
 /// </summary>
-/// <remarks>Instances can be shared across calls and interpreters, including their lazily initialized analysis.</remarks>
+/// <remarks>
+/// Use <see cref="EVMRuntimeCode"/> for code stored at an account and <see cref="EVMInitCode"/> for contract creation code.
+/// Instances can be shared across calls and interpreters, including their lazily initialized analysis.
+/// </remarks>
 /// <param name="byteCode">The bytecode bytes. The backing memory must not be modified while the bytecode is in use.</param>
-public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMByteCode>
+public closed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMByteCode>
 {
     private byte[]? _pushDataBits;
     internal PushDataMap PushDataMap => new(
@@ -18,20 +21,6 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
         ?? Interlocked.CompareExchange(ref _pushDataBits, PushDataMap.BuildBits(ByteCode.Span), null)
         ?? _pushDataBits!
     );
-
-    /// <summary>
-    /// The maximum runtime contract length.
-    /// </summary>
-    public const int MAX_RUNTIME_LENGTH = 24_576;
-    /// <summary>
-    /// The maximum init contract length.
-    /// </summary>
-    public const int MAX_INIT_LENGTH = 49_152;
-
-    /// <summary>
-    /// Gets empty EVM bytecode.
-    /// </summary>
-    public static EVMByteCode Empty { get; } = new(ReadOnlyMemory<byte>.Empty);
 
     /// <summary>
     /// Raw bytecode bytes.
@@ -45,7 +34,7 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
 
     /// <inheritdoc/>
     public bool Equals(EVMByteCode? other)
-        => other is not null && ByteCode.Equals(other.ByteCode);
+        => other is not null && GetType() == other.GetType() && ByteCode.Equals(other.ByteCode);
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)
@@ -55,11 +44,11 @@ public sealed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     public override int GetHashCode()
         => ByteCode.GetHashCode();
 
-    /// <summary>Checks whether two values refer to the same bytecode memory and slice.</summary>
+    /// <summary>Checks whether two values have the same role and refer to the same bytecode memory and slice.</summary>
     public static bool operator ==(EVMByteCode? left, EVMByteCode? right)
         => ReferenceEquals(left, right) || (left is not null && left.Equals(right));
 
-    /// <summary>Checks whether two values refer to different bytecode memory or slices.</summary>
+    /// <summary>Checks whether two values differ in role, bytecode memory, or slice.</summary>
     public static bool operator !=(EVMByteCode? left, EVMByteCode? right)
         => !(left == right);
 

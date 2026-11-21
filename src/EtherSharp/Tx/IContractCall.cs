@@ -65,7 +65,7 @@ public interface IContractCall : ITxInput
     /// <param name="salt"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static IContractCall<Address> ForCreate2Call(EVMByteCode byteCode, in Bytes32 salt, UInt256 value)
+    public static IContractCall<Address> ForCreate2Call(EVMInitCode byteCode, in Bytes32 salt, UInt256 value)
     {
         byte[] buffer = new byte[32 + byteCode.Length];
         salt.CopyTo(buffer);

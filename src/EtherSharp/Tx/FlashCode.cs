@@ -3,12 +3,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EtherSharp.Tx;
 
-internal sealed class FlashCode(EVMByteCode? initCode, EVMByteCode? runtimeCode) : IFlashCode
+internal sealed class FlashCode(EVMInitCode? initCode, EVMRuntimeCode? runtimeCode) : IFlashCode
 {
-    private readonly EVMByteCode? _initCode = initCode;
-    private readonly EVMByteCode? _runtimeCode = runtimeCode;
+    private readonly EVMInitCode? _initCode = initCode;
+    private readonly EVMRuntimeCode? _runtimeCode = runtimeCode;
 
-    public bool TryGetRuntimeCode([MaybeNullWhen(false)] out EVMByteCode runtimeCode)
+    public bool TryGetRuntimeCode([MaybeNullWhen(false)] out EVMRuntimeCode runtimeCode)
     {
         if(_runtimeCode is not { } code)
         {
@@ -23,6 +23,6 @@ internal sealed class FlashCode(EVMByteCode? initCode, EVMByteCode? runtimeCode)
     public int GetInitCodeLength()
         => _initCode?.Length ?? IFlashCode.GetInitCodeLength(_runtimeCode!);
 
-    public EVMByteCode GetInitCode()
+    public EVMInitCode GetInitCode()
         => _initCode ?? IFlashCode.CreateInitCode(_runtimeCode!);
 }

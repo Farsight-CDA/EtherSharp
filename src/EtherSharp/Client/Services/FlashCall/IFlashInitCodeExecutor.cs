@@ -8,7 +8,7 @@ namespace EtherSharp.Client.Services.FlashCall;
 internal interface IFlashInitCodeExecutor
 {
     public Task<TxCallResult> ExecuteFlashCallAsync(
-        EVMByteCode initCode,
+        EVMInitCode initCode,
         IFlashCall call,
         ulong? flashCallGasLimit,
         CallOptions options,

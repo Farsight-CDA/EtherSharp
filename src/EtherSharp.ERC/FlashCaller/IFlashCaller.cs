@@ -31,7 +31,7 @@ public partial interface IFlashCaller : IEVMContract
             /// <returns>A contract call that decodes the temporary call's success status and return or revert data.</returns>
             public static IContractCall<TxCallResult> Create(
                 Address contractAddress,
-                EVMByteCode initCode,
+                EVMInitCode initCode,
                 ReadOnlyMemory<byte> callData,
                 ulong? flashCallGasLimit = null,
                 UInt256 ethValue = default

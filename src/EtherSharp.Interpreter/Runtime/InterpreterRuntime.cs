@@ -292,7 +292,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                     : StateRequest.Default<UInt256>(),
                 environment.Input.To is { } codeTarget && !_precompiles.ContainsKey(codeTarget)
                     ? StateRequest.Code(codeTarget)
-                    : StateRequest.Default<EVMByteCode>()
+                    : StateRequest.Default<EVMRuntimeCode>()
             );
 
             if(!hasExplicitNonce && !skipTopLevelNonceChecks)
@@ -397,7 +397,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             transfersValue ? StateRequest.Balance(call.Address) : StateRequest.Default<UInt256>(),
             !_precompiles.ContainsKey(call.To)
                 ? StateRequest.Code(call.To)
-                : StateRequest.Default<EVMByteCode>()
+                : StateRequest.Default<EVMRuntimeCode>()
         );
         return await ExecuteMessageCallAsync(
             call,
@@ -411,7 +411,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         CallFrame call,
         UInt256 sourceBalance,
         UInt256 targetBalance,
-        EVMByteCode byteCode
+        EVMRuntimeCode byteCode
     )
     {
         _precompiles.TryGetValue(call.To, out var precompile);
@@ -454,7 +454,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         IPrecompile? precompile,
         UInt256 sourceBalance,
         UInt256 targetBalance,
-        EVMByteCode byteCode
+        EVMRuntimeCode byteCode
     )
     {
         if(call.Depth > CallFrame.MAX_DEPTH)
@@ -583,7 +583,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         var result = await ExecuteOpcodesAsync(
             new BytecodeFrame(
                 call,
-                new EVMByteCode(call.Input.ToArray()),
+                new EVMInitCode(call.Input.ToArray()),
                 createdStorage,
                 ResourceLimits,
                 ExecutionSpec
@@ -605,7 +605,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             return result;
         }
 
-        createdStorage.SetCode(new EVMByteCode(result.Data.ToArray()));
+        createdStorage.SetCode(new EVMRuntimeCode(result.Data.ToArray()));
         return result;
     }
 }

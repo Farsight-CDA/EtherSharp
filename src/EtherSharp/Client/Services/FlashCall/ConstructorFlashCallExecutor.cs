@@ -16,7 +16,7 @@ internal sealed class ConstructorFlashCallExecutor(IEthRpcModule ethRpcModule) :
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
     public async Task<TxCallResult> ExecuteFlashCallAsync(
-        EVMByteCode initCode,
+        EVMInitCode initCode,
         IFlashCall call,
         ulong? flashCallGasLimit,
         CallOptions options,

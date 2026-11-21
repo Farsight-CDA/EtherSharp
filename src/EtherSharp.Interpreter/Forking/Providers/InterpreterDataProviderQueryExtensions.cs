@@ -22,7 +22,7 @@ internal static class InterpreterDataProviderQueryExtensions
                 new InterpreterDataResult.Storage(storageAddress, storageKey, value.Value),
                 new InterpreterDataResult.Code(
                     Address.FromBytes(value.Value.DangerousGetReadOnlySpan()[^Address.BYTES_LENGTH..]),
-                    new EVMByteCode(value.Code)
+                    new EVMRuntimeCode(value.Code)
                 ),
             ]);
     }

@@ -16,7 +16,7 @@ internal sealed class InterpreterAccountStorage(
     private readonly JournaledMap<Bytes32, Bytes32> _transientStorage = new();
     private readonly JournaledValue<UInt256> _balance = new();
     private readonly JournaledValue<ulong> _nonce = new();
-    private readonly JournaledValue<EVMByteCode> _code = new();
+    private readonly JournaledValue<EVMRuntimeCode> _code = new();
     private readonly JournaledValue<Bytes32> _codeHash = new();
     private readonly JournaledValue<bool> _present = new();
     private readonly JournaledFlag _persistentStorageReplaced = new();
@@ -69,7 +69,7 @@ internal sealed class InterpreterAccountStorage(
         _nonce.Set(revision, in value);
     }
 
-    public void SetCode(in EVMByteCode value)
+    public void SetCode(in EVMRuntimeCode value)
     {
         long revision = _nextRevision();
         var codeHash = Keccak256.HashData(value.ByteCode.Span);
@@ -83,7 +83,7 @@ internal sealed class InterpreterAccountStorage(
         long revision = _nextRevision();
         EnsurePresent(revision);
         _nonce.Set(revision, 1);
-        _code.Set(revision, EVMByteCode.Empty);
+        _code.Set(revision, EVMRuntimeCode.Empty);
         _codeHash.Set(revision, Bytes32.EmptyCodeHash);
         _persistentStorage.Clear(revision);
         _persistentStorageReplaced.Set(revision);
@@ -113,7 +113,7 @@ internal sealed class InterpreterAccountStorage(
         }
         if(accountOverride.Code is { } code)
         {
-            SetCode(new EVMByteCode(code));
+            SetCode(new EVMRuntimeCode(code));
         }
         if(accountOverride.State is { } state)
         {
@@ -143,7 +143,7 @@ internal sealed class InterpreterAccountStorage(
             _persistentStorageReplaced.Set(revision);
             _balance.Set(revision, UInt256.Zero);
             _nonce.Set(revision, 0);
-            _code.Set(revision, EVMByteCode.Empty);
+            _code.Set(revision, EVMRuntimeCode.Empty);
             _codeHash.Set(revision, Bytes32.EmptyCodeHash);
             _present.Set(revision, false);
         }
@@ -200,7 +200,7 @@ internal sealed class InterpreterAccountStorage(
             case StateRequest<TValue>.Kind.Code:
                 if(_code.TryGetValue(out var code))
                 {
-                    value = Unsafe.As<EVMByteCode, TValue>(ref code);
+                    value = Unsafe.As<EVMRuntimeCode, TValue>(ref code);
                     return true;
                 }
                 break;

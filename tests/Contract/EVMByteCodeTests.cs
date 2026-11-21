@@ -5,15 +5,15 @@ namespace EtherSharp.Tests.Contract;
 
 public sealed class EVMByteCodeTests
 {
-    private static EVMByteCode CreateByteCode(params byte[] bytes)
+    private static EVMRuntimeCode CreateByteCode(params byte[] bytes)
         => new(bytes);
 
-    private static EVMByteCode CreateByteCodeWithSolcMetadata(params byte[] metadataBytes)
+    private static EVMRuntimeCode CreateByteCodeWithSolcMetadata(params byte[] metadataBytes)
     {
         byte[] metadata = [0xA1, 0x64, 0x73, 0x6F, 0x6C, 0x63, .. metadataBytes];
         byte[] byteCode = [0x00, .. metadata, (byte) (metadata.Length >> 8), (byte) metadata.Length];
 
-        return new EVMByteCode(byteCode);
+        return new EVMRuntimeCode(byteCode);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public sealed class EVMByteCodeTests
         bytes[0] = 0x7F;
         Array.Fill(bytes, (byte) 0x52, 1, 32);
 
-        var byteCode = new EVMByteCode(bytes);
+        var byteCode = new EVMRuntimeCode(bytes);
 
         Assert.False(byteCode.ContainsOpcode(EvmOpcode.MStore));
     }
@@ -90,7 +90,7 @@ public sealed class EVMByteCodeTests
     [Fact]
     public void HasError_Should_Match_Optimized_Shifted_Leading_Zero_Selector()
     {
-        var byteCode = new EVMByteCode(Convert.FromHexString(
+        var byteCode = new EVMRuntimeCode(Convert.FromHexString(
             "6080604052348015600e575f5ffd5b50600436106026575f3560e01c8063a9cc471814602a575b5f5ffd5b60306032565b005b60405162bfc92160e01b815260040160405180910390fdfea2646970667358221220a037d236010d3be1534daf508d321c76a9d83cf8b4a845a41a8793e03b6f026964736f6c634300081e0033"));
 
         Assert.True(byteCode.HasError(Bytes4.Parse("0x00bfc921")));
@@ -100,7 +100,7 @@ public sealed class EVMByteCodeTests
     public void HasError_Should_Match_Leading_Zero_Selector_In_Push31_Word()
     {
         byte[] bytes = [0x7E, 0xBF, 0xC9, 0x21, .. new byte[28]];
-        var byteCode = new EVMByteCode(bytes);
+        var byteCode = new EVMRuntimeCode(bytes);
 
         Assert.True(byteCode.HasError(Bytes4.Parse("0x00bfc921")));
     }
@@ -142,7 +142,7 @@ public sealed class EVMByteCodeTests
     {
         byte[] topic = Convert.FromHexString("8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0");
         byte[] bytes = [0xFE, .. topic];
-        var byteCode = new EVMByteCode(bytes);
+        var byteCode = new EVMRuntimeCode(bytes);
 
         Assert.True(byteCode.HasEvent(Bytes32.FromBytes(topic)));
     }
@@ -152,7 +152,7 @@ public sealed class EVMByteCodeTests
     {
         byte[] topic = Convert.FromHexString("004e8d79e4b41c5fad7561dc7c07786ee4e52292da7a3f5dc7ab90e32cc30423");
         byte[] bytes = [0x7E, .. topic[1..]];
-        var byteCode = new EVMByteCode(bytes);
+        var byteCode = new EVMRuntimeCode(bytes);
 
         Assert.True(byteCode.HasEvent(Bytes32.FromBytes(topic)));
     }

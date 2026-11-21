@@ -47,7 +47,7 @@ public abstract record HostRequest
 
     /// <summary>Requests an account's bytecode.</summary>
     /// <param name="Address">The account address.</param>
-    public sealed record Code(Address Address) : HostRequest<EVMByteCode>
+    public sealed record Code(Address Address) : HostRequest<EVMRuntimeCode>
     {
         /// <inheritdoc/>
         public override Address GetAddress()

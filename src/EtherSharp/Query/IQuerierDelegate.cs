@@ -18,7 +18,7 @@ public partial interface IQuerierDelegate
         /// <summary>
         /// Gets runtime code that only accepts delegated query calls.
         /// </summary>
-        public static EVMByteCode Runtime { get; } = new(Convert.FromHexString(
+        public static EVMRuntimeCode Runtime { get; } = new(Convert.FromHexString(
             "63ea41597b60003560e01c14156004361017603b576000803660031901806004833781624553515af43d6000803e156036573d6000f35b3d6000fd5b600080fd"));
 
         private static byte[] PreservingTemplate { get; } = Convert.FromHexString(
@@ -27,12 +27,12 @@ public partial interface IQuerierDelegate
         /// <summary>
         /// Creates runtime code that delegates non-query calls to the original implementation.
         /// </summary>
-        public static EVMByteCode CreatePreserving(
+        public static EVMRuntimeCode CreatePreserving(
             in Address originalCodeAddress)
         {
             byte[] code = [.. PreservingTemplate];
             originalCodeAddress.CopyTo(code.AsSpan(PRESERVING_ORIGINAL_CODE_ADDRESS_OFFSET, Address.BYTES_LENGTH));
-            return new EVMByteCode(code);
+            return new EVMRuntimeCode(code);
         }
     }
 

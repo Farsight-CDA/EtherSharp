@@ -32,7 +32,7 @@ public closed record InterpreterDataResult
     /// <param name="Value">The account bytecode.</param>
     public sealed record Code(
         Address Address,
-        EVMByteCode Value
+        EVMRuntimeCode Value
     ) : InterpreterDataResult;
 
     /// <summary>A resolved upstream external code hash.</summary>

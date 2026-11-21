@@ -22,7 +22,7 @@ internal sealed class WithCallerQuery<T> : IQueryOperation, IQuery<T>
     public UInt256 EthValue { get; private set; }
     int IQuery.OperationCount => 1;
 
-    public WithCallerQuery(in Address caller, IQuery<T> query, EVMByteCode? originalByteCode)
+    public WithCallerQuery(in Address caller, IQuery<T> query, EVMRuntimeCode? originalByteCode)
     {
         _caller = caller;
         _query = query;

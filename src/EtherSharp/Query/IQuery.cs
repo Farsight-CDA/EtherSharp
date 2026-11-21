@@ -113,7 +113,7 @@ public partial interface IQuery
     /// <summary>
     /// Creates a query that returns deployed bytecode for <paramref name="contract"/>.
     /// </summary>
-    public static IQuery<EVMByteCode> GetCode(in Address contract)
+    public static IQuery<EVMRuntimeCode> GetCode(in Address contract)
         => new GetCodeQueryOperation(in contract);
 
     /// <summary>
@@ -199,7 +199,7 @@ public partial interface IQuery
     /// <remarks>
     /// Non-query calls are delegated to a transient state-override account containing <paramref name="originalByteCode"/>.
     /// </remarks>
-    public static IQuery<T> WithCaller<T>(in Address caller, IQuery<T> query, EVMByteCode originalByteCode)
+    public static IQuery<T> WithCaller<T>(in Address caller, IQuery<T> query, EVMRuntimeCode originalByteCode)
         => new WithCallerQuery<T>(in caller, query, originalByteCode);
 
     /// <summary>

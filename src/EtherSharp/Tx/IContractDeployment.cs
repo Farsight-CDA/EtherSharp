@@ -11,9 +11,9 @@ public interface IContractDeployment : ITxInput<byte[]>, IFlashCode
     /// <summary>
     /// Gets the contract creation bytecode.
     /// </summary>
-    public EVMByteCode ByteCode { get; }
+    public EVMInitCode ByteCode { get; }
 
-    bool IFlashCode.TryGetRuntimeCode([MaybeNullWhen(false)] out EVMByteCode runtimeCode)
+    bool IFlashCode.TryGetRuntimeCode([MaybeNullWhen(false)] out EVMRuntimeCode runtimeCode)
     {
         runtimeCode = default;
         return false;
@@ -22,7 +22,7 @@ public interface IContractDeployment : ITxInput<byte[]>, IFlashCode
     int IFlashCode.GetInitCodeLength()
         => ByteCode.Length;
 
-    EVMByteCode IFlashCode.GetInitCode()
+    EVMInitCode IFlashCode.GetInitCode()
         => ByteCode;
 
     /// <summary>
@@ -31,7 +31,7 @@ public interface IContractDeployment : ITxInput<byte[]>, IFlashCode
     /// <param name="byteCode"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static IContractDeployment Create(EVMByteCode byteCode, UInt256 value)
+    public static IContractDeployment Create(EVMInitCode byteCode, UInt256 value)
         => new ContractDeployment(
             byteCode,
             value

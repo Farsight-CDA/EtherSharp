@@ -32,7 +32,7 @@ public sealed record TxSubmissionStorage(
             TxHash,
             SignedTx,
             To is null
-                ? new ContractDeployment(new EVMByteCode(CallData), Value)
+                ? new ContractDeployment(new EVMInitCode(CallData), Value)
                 : new TxInput(Address.FromString(To), Value, CallData),
             TTxParams.Decode(TxParams),
             TTxGasParams.Decode(TxGasParams)

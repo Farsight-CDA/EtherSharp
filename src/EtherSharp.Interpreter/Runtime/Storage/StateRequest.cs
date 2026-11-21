@@ -28,10 +28,10 @@ internal readonly struct StateRequest<TValue>(
 
     public bool TryResolve(out TValue value)
     {
-        if(RequestKind == Kind.Default && typeof(TValue) == typeof(EVMByteCode))
+        if(RequestKind == Kind.Default && typeof(TValue) == typeof(EVMRuntimeCode))
         {
-            var empty = EVMByteCode.Empty;
-            value = Unsafe.As<EVMByteCode, TValue>(ref empty);
+            var empty = EVMRuntimeCode.Empty;
+            value = Unsafe.As<EVMRuntimeCode, TValue>(ref empty);
             return true;
         }
         value = default!;
@@ -65,8 +65,8 @@ internal static class StateRequest
     public static StateRequest<ulong> Nonce(Address address)
         => new(StateRequest<ulong>.Kind.Nonce, address);
 
-    public static StateRequest<EVMByteCode> Code(Address address)
-        => new(StateRequest<EVMByteCode>.Kind.Code, address);
+    public static StateRequest<EVMRuntimeCode> Code(Address address)
+        => new(StateRequest<EVMRuntimeCode>.Kind.Code, address);
 
     public static StateRequest<Bytes32?> CodeHash(Address address)
         => new(StateRequest<Bytes32?>.Kind.CodeHash, address);

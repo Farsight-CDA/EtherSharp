@@ -12,7 +12,7 @@ internal sealed class InterpreterStateCache
 {
     public Dictionary<Address, UInt256> Balances { get; } = [];
     public Dictionary<Address, ulong> Nonces { get; } = [];
-    public Dictionary<Address, EVMByteCode> Code { get; } = [];
+    public Dictionary<Address, EVMRuntimeCode> Code { get; } = [];
     public Dictionary<Address, Bytes32?> CodeHashes { get; } = [];
     public Dictionary<(Address Address, Bytes32 Slot), Bytes32> Storage { get; } = [];
     public Dictionary<Bytes32, TxCallResult> PrecompileCalls { get; } = [];
@@ -60,7 +60,7 @@ internal sealed class InterpreterStateCache
             InterpreterDataResult.Code code => Code.TryAdd(
                 code.Address,
                 copyBuffers
-                    ? new EVMByteCode(code.Value.ByteCode.ToArray())
+                    ? new EVMRuntimeCode(code.Value.ByteCode.ToArray())
                     : code.Value
             ),
             InterpreterDataResult.CodeHash codeHash => CodeHashes.TryAdd(

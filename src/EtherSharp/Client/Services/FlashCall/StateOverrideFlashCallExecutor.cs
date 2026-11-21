@@ -15,7 +15,7 @@ internal sealed class StateOverrideFlashCallExecutor(
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
 
     public Task<TxCallResult> ExecuteFlashCallAsync(
-        EVMByteCode runtimeCode,
+        EVMRuntimeCode runtimeCode,
         IFlashCall call,
         ulong? flashCallGasLimit,
         CallOptions options,

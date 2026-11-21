@@ -4,7 +4,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Query.Operations;
 
-internal sealed class GetCodeQueryOperation(in Address address) : IQueryOperation, IQuery<EVMByteCode>
+internal sealed class GetCodeQueryOperation(in Address address) : IQueryOperation, IQuery<EVMRuntimeCode>
 {
     private readonly Address _address = address;
 
@@ -19,6 +19,6 @@ internal sealed class GetCodeQueryOperation(in Address address) : IQueryOperatio
     }
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 3 + ((resultData[0] << 16) | (resultData[1] << 8) | resultData[2]);
-    EVMByteCode IQuery<EVMByteCode>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
-        => new EVMByteCode(queryResults[0][3..]);
+    EVMRuntimeCode IQuery<EVMRuntimeCode>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
+        => new EVMRuntimeCode(queryResults[0][3..]);
 }

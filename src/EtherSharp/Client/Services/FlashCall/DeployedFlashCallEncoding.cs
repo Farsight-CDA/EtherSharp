@@ -8,19 +8,19 @@ internal static class DeployedFlashCallEncoding
 {
     private const int HEADER_LENGTH = sizeof(ulong) + sizeof(ushort);
 
-    public static byte[] Encode(EVMByteCode initCode, ReadOnlyMemory<byte> callData, ulong? flashCallGasLimit)
+    public static byte[] Encode(EVMInitCode initCode, ReadOnlyMemory<byte> callData, ulong? flashCallGasLimit)
     {
         byte[] payload = new byte[GetPayloadLength(initCode, callData.Length)];
         Write(payload, initCode, callData.Span, flashCallGasLimit);
         return payload;
     }
 
-    public static int GetPayloadLength(EVMByteCode initCode, int callDataLength)
+    public static int GetPayloadLength(EVMInitCode initCode, int callDataLength)
         => initCode.Length > UInt16.MaxValue
             ? throw new InvalidOperationException($"Deployed flash calls cannot encode initcode longer than {UInt16.MaxValue} bytes.")
             : checked(HEADER_LENGTH + initCode.Length + callDataLength);
 
-    public static void Write(Span<byte> destination, EVMByteCode initCode, ReadOnlySpan<byte> callData, ulong? flashCallGasLimit)
+    public static void Write(Span<byte> destination, EVMInitCode initCode, ReadOnlySpan<byte> callData, ulong? flashCallGasLimit)
     {
         int payloadLength = GetPayloadLength(initCode, callData.Length);
 

@@ -16,7 +16,7 @@ public interface IFlashCode
     /// </summary>
     /// <param name="runtimeCode">The runtime code, when available.</param>
     /// <returns>Whether runtime code is available.</returns>
-    public bool TryGetRuntimeCode([MaybeNullWhen(false)] out EVMByteCode runtimeCode);
+    public bool TryGetRuntimeCode([MaybeNullWhen(false)] out EVMRuntimeCode runtimeCode);
 
     /// <summary>
     /// Gets the initcode length without generating wrapping initcode.
@@ -26,30 +26,30 @@ public interface IFlashCode
     /// <summary>
     /// Gets initcode suitable for constructor-backed execution.
     /// </summary>
-    public EVMByteCode GetInitCode();
+    public EVMInitCode GetInitCode();
 
     /// <summary>
     /// Creates flash code from initcode.
     /// </summary>
-    public static IFlashCode FromInitCode(EVMByteCode initCode)
+    public static IFlashCode FromInitCode(EVMInitCode initCode)
         => new FlashCode(initCode, null);
 
     /// <summary>
     /// Creates flash code from runtime code.
     /// </summary>
-    public static IFlashCode FromRuntimeCode(EVMByteCode runtimeCode)
+    public static IFlashCode FromRuntimeCode(EVMRuntimeCode runtimeCode)
         => new FlashCode(null, runtimeCode);
 
     /// <summary>
     /// Creates flash code with both initcode and runtime code representations.
     /// </summary>
-    public static IFlashCode FromCode(EVMByteCode initCode, EVMByteCode runtimeCode)
+    public static IFlashCode FromCode(EVMInitCode initCode, EVMRuntimeCode runtimeCode)
         => new FlashCode(initCode, runtimeCode);
 
     /// <summary>
     /// Creates minimal initcode that deploys the supplied runtime bytecode.
     /// </summary>
-    public static EVMByteCode CreateInitCode(EVMByteCode runtimeCode)
+    public static EVMInitCode CreateInitCode(EVMRuntimeCode runtimeCode)
     {
         byte[] initCode = new byte[GetInitCodeLength(runtimeCode)];
         var header = initCode.AsSpan(0, RUNTIME_OFFSET);
@@ -66,13 +66,13 @@ public interface IFlashCode
         header[11] = (byte) EvmOpcode.Return;
         runtimeCode.ByteCode.Span.CopyTo(initCode.AsSpan(RUNTIME_OFFSET));
 
-        return new EVMByteCode(initCode);
+        return new EVMInitCode(initCode);
     }
 
     /// <summary>
     /// Gets the length of the minimal initcode that deploys the supplied runtime bytecode.
     /// </summary>
-    public static int GetInitCodeLength(EVMByteCode runtimeCode)
+    public static int GetInitCodeLength(EVMRuntimeCode runtimeCode)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(runtimeCode.Length, UInt16.MaxValue);
         return RUNTIME_OFFSET + runtimeCode.Length;

@@ -91,7 +91,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                 .WithIsStatic()
                 .AddRawContent(
                     $$"""
-                    public static EtherSharp.Contract.EVMByteCode Init { get; } = new EtherSharp.Contract.EVMByteCode(Convert.FromHexString("{{HexUtils.ToHexStringUpper(initCode)}}"));
+                    public static EtherSharp.Contract.EVMInitCode Init { get; } = new EtherSharp.Contract.EVMInitCode(Convert.FromHexString("{{HexUtils.ToHexStringUpper(initCode)}}"));
                     """
                 );
 
@@ -105,7 +105,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
             {
                 codeBuilder.AddRawContent(
                     $$"""
-                    public static EtherSharp.Contract.EVMByteCode Runtime { get; } = new EtherSharp.Contract.EVMByteCode(Convert.FromHexString("{{HexUtils.ToHexStringUpper(runtimeCode)}}"));
+                    public static EtherSharp.Contract.EVMRuntimeCode Runtime { get; } = new EtherSharp.Contract.EVMRuntimeCode(Convert.FromHexString("{{HexUtils.ToHexStringUpper(runtimeCode)}}"));
                     public static EtherSharp.Tx.IFlashCode Flash { get; } = EtherSharp.Tx.IFlashCode.FromCode(Init, Runtime);
                     """
                 );
@@ -119,7 +119,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
             var createCodeFunction = new FunctionBuilder("CreateCode")
                 .WithIsStatic()
                 .WithVisibility(FunctionVisibility.Private)
-                .WithReturnTypeRaw("EtherSharp.Contract.EVMByteCode");
+                .WithReturnTypeRaw("EtherSharp.Contract.EVMInitCode");
             var createFunction = new FunctionBuilder("Create")
                 .WithIsStatic()
                 .WithReturnTypeRaw("EtherSharp.Tx.IContractDeployment");
@@ -158,7 +158,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
                     var buffer = new byte[Code.Init.Length + encoder.Size];
                     Code.Init.ByteCode.Span.CopyTo(buffer);
                     encoder.TryWriteTo(buffer.AsSpan(Code.Init.Length));
-                    return new EtherSharp.Contract.EVMByteCode(buffer)
+                    return new EtherSharp.Contract.EVMInitCode(buffer)
                     """
                 );
                 createFunction.AddStatement(

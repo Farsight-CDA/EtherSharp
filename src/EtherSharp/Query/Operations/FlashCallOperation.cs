@@ -11,7 +11,7 @@ internal sealed class SafeFlashCallQueryOperation<T> : IQueryOperation, IQuery<C
 {
     private readonly IFlashCall<T> _txInput;
     private readonly Func<ReadOnlyMemory<byte>, T> _readResultFrom;
-    private readonly EVMByteCode _initCode;
+    private readonly EVMInitCode _initCode;
 
     public QueryOperationId OperationId => QueryOperationId.FlashCall;
 

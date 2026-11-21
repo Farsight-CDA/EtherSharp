@@ -19,10 +19,10 @@ public sealed partial record InterpreterExecutionSpec
     public required ImmutableArray<ulong> FixedOpcodeGasCosts { get; init; }
 
     /// <summary>The initcode size limit in bytes.</summary>
-    public int MaxInitCodeLength { get; init; } = EVMByteCode.MAX_INIT_LENGTH;
+    public int MaxInitCodeLength { get; init; } = EVMInitCode.MAX_LENGTH;
 
     /// <summary>The runtime-code size limit in bytes.</summary>
-    public int MaxRuntimeCodeLength { get; init; } = EVMByteCode.MAX_RUNTIME_LENGTH;
+    public int MaxRuntimeCodeLength { get; init; } = EVMRuntimeCode.MAX_LENGTH;
 
     /// <summary>The enabled precompiles.</summary>
     public ImmutableArray<IPrecompile> Precompiles { get; init; } = [];

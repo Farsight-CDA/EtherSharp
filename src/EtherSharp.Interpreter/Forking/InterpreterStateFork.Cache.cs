@@ -28,7 +28,7 @@ public sealed partial class InterpreterStateFork
                 case HostRequest.Code code:
                 {
                     var value = Cache.Code[code.Address];
-                    return Unsafe.As<EVMByteCode, TValue>(ref value);
+                    return Unsafe.As<EVMRuntimeCode, TValue>(ref value);
                 }
                 case HostRequest.CodeHash codeHash:
                 {
@@ -80,7 +80,7 @@ public sealed partial class InterpreterStateFork
     /// <param name="value">The cached bytecode when known.</param>
     /// <returns><see langword="true"/> when the bytecode is cached; otherwise, <see langword="false"/>.</returns>
     /// <remarks>The returned value references the cache-owned bytecode buffer.</remarks>
-    public bool TryGetCachedCode(Address address, [MaybeNullWhen(false)] out EVMByteCode value)
+    public bool TryGetCachedCode(Address address, [MaybeNullWhen(false)] out EVMRuntimeCode value)
     {
         lock(_lock)
         {

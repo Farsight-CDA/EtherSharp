@@ -15,7 +15,7 @@ internal static partial class QuerierCodeBuilder
     /// <summary>
     /// Creates a runtime for the supplied unique, implemented operation IDs, in any order.
     /// </summary>
-    public static EVMByteCode CreateRuntime(ReadOnlySpan<QueryOperationId> operationIds)
+    public static EVMRuntimeCode CreateRuntime(ReadOnlySpan<QueryOperationId> operationIds)
     {
         Span<bool> includedRegions = stackalloc bool[_regions.Length];
         int removedLength = 0;
@@ -30,7 +30,7 @@ internal static partial class QuerierCodeBuilder
 
         if(removedLength == 0)
         {
-            return new EVMByteCode(Template.AsMemory());
+            return new EVMRuntimeCode(Template.AsMemory());
         }
 
         var template = Template.AsSpan();
@@ -67,7 +67,7 @@ internal static partial class QuerierCodeBuilder
             BinaryPrimitives.WriteUInt16BigEndian(byteCode.AsSpan(offset + 1), checked((ushort) target));
         }
 
-        return new EVMByteCode(byteCode);
+        return new EVMRuntimeCode(byteCode);
     }
 
     private static int TranslateOffset(int offset, ReadOnlySpan<bool> includedRegions)

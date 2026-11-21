@@ -29,7 +29,7 @@ internal sealed class DeployedFlashCallExecutor(
         => _deploymentHeight = deploymentHeight;
 
     public async Task<TxCallResult> ExecuteFlashCallAsync(
-        EVMByteCode initCode,
+        EVMInitCode initCode,
         IFlashCall call,
         ulong? flashCallGasLimit,
         CallOptions options,
