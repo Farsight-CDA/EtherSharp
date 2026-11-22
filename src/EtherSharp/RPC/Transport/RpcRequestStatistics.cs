@@ -14,7 +14,8 @@ public class RpcRequestStatistics
     /// Records one attempt immediately before transport dispatch. Custom transports must call this too.
     /// </summary>
     /// <param name="method">The JSON-RPC method being dispatched.</param>
+    /// <param name="requestSize">The size of the serialized request payload in bytes.</param>
     /// <remarks>Overrides may be called concurrently by participating transports.</remarks>
-    public virtual void RecordRequest(string method)
+    public virtual void RecordRequest(string method, int requestSize)
         => Interlocked.Increment(ref _rpcRequestCount);
 }
