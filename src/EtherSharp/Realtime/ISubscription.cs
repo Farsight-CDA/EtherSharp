@@ -18,11 +18,10 @@ public interface ISubscription : IAsyncDisposable
     public RpcRequestOptions RequestOptions { get; }
 
     /// <summary>
-    /// Handles an incoming subscription payload.
+    /// Handles the result of an incoming subscription notification.
     /// </summary>
-    /// <param name="payload">The raw subscription payload bytes.</param>
-    /// <returns><see langword="true"/> when the payload was consumed by this subscription; otherwise, <see langword="false"/>.</returns>
-    public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload);
+    /// <param name="result">The raw JSON of the notification result, never <c>null</c>.</param>
+    public void HandleSubscriptionMessage(ReadOnlySpan<byte> result);
 
     /// <summary>
     /// Installs the subscription on the remote node.

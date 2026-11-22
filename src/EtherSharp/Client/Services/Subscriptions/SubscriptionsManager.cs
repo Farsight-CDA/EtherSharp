@@ -2,6 +2,7 @@
 using EtherSharp.Common.Extensions;
 using EtherSharp.Common.Instrumentation;
 using EtherSharp.Realtime;
+using EtherSharp.Realtime.Subscription;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using Microsoft.Extensions.DependencyInjection;
@@ -123,29 +124,37 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         {
             foreach(var subscription in _subscriptions)
             {
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        if(_logger?.IsEnabled(LogLevel.Debug) == true)
-                        {
-                            _logger.LogDebug(
-                                "Reinstalling subscription of type {type}, oldId={oldId}", subscription, subscription.Id
-                            );
-                        }
+                _ = Task.Run(() => ReinstallSubscriptionAsync(subscription));
+            }
+        }
+    }
 
-                        await subscription.InstallAsync(subscription.RequestOptions);
-                    }
-                    catch(Exception ex)
-                    {
-                        if(_logger?.IsEnabled(LogLevel.Critical) == true)
-                        {
-                            _logger.LogCritical(
-                                ex, "Failed to reinstall subscription id {id} of type {type}", subscription.Id, subscription
-                            );
-                        }
-                    }
-                });
+    private async Task ReinstallSubscriptionAsync(ISubscription subscription)
+    {
+        lock(_subscriptionsLock)
+        {
+            if(_subscriptionsClosed || !_subscriptions.Contains(subscription))
+            {
+                return;
+            }
+
+            _installationsInProgress++;
+        }
+
+        try
+        {
+            _logger?.LogDebug("Reinstalling subscription of type {type}, oldId={oldId}", subscription, subscription.Id);
+            await subscription.InstallAsync(subscription.RequestOptions);
+        }
+        catch(Exception ex)
+        {
+            _logger?.LogCritical(ex, "Failed to reinstall subscription id {id} of type {type}", subscription.Id, subscription);
+        }
+        finally
+        {
+            lock(_subscriptionsLock)
+            {
+                _installationsInProgress--;
             }
         }
     }
@@ -178,18 +187,32 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         {
             try
             {
-                _ = subscription.HandleSubscriptionMessage(payload);
+                var notification = SubscriptionNotification.Parse(payload);
+
+                switch(notification.Type)
+                {
+                    case SubscriptionNotification.Kind.Result:
+                        subscription.HandleSubscriptionMessage(notification.Result);
+                        break;
+                    case SubscriptionNotification.Kind.Terminated:
+                        _logger?.LogWarning(
+                            "Subscription id {id} of type {type} was terminated by the node, reinstalling. Reason: {reason}",
+                            subscriptionId,
+                            subscription,
+                            notification.Error
+                        );
+                        _ = ReinstallSubscriptionAsync(subscription);
+                        break;
+                    case SubscriptionNotification.Kind.Malformed:
+                        _logger?.LogWarning(
+                            "Received notification without result for subscription id {id} of type {type}", subscriptionId, subscription
+                        );
+                        break;
+                }
             }
             catch(Exception ex)
             {
-                if(_logger?.IsEnabled(LogLevel.Warning) == true)
-                {
-                    _logger.LogWarning(ex,
-                        "Failed to process payload for subscription id {id} of type {type}",
-                        subscription.Id,
-                        subscription
-                    );
-                }
+                _logger?.LogWarning(ex, "Failed to process payload for subscription id {id} of type {type}", subscriptionId, subscription);
             }
 
             return;
@@ -200,29 +223,24 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
             return;
         }
 
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                if(_logger?.IsEnabled(LogLevel.Debug) == true)
-                {
-                    _logger.LogDebug("Uninstalling unknown active subscription with id {id}", subscriptionId);
-                }
+        _ = UninstallUnknownSubscriptionAsync(subscriptionId);
+    }
 
-                await _ethRpcModule.UnsubscribeAsync(subscriptionId);
-            }
-            catch(RPCException ex) when(ex.Message.Contains("not found"))
-            {
-                return;
-            }
-            catch(Exception ex)
-            {
-                if(_logger?.IsEnabled(LogLevel.Critical) == true)
-                {
-                    _logger.LogCritical(ex, "Failed to uninstall unknown subscription with id {id}", subscriptionId);
-                }
-            }
-        });
+    private async Task UninstallUnknownSubscriptionAsync(string subscriptionId)
+    {
+        try
+        {
+            _logger?.LogDebug("Uninstalling unknown active subscription with id {id}", subscriptionId);
+            await _ethRpcModule.UnsubscribeAsync(subscriptionId);
+        }
+        catch(RPCException ex) when(ex.Message.Contains("not found"))
+        {
+            return;
+        }
+        catch(Exception ex)
+        {
+            _logger?.LogCritical(ex, "Failed to uninstall unknown subscription with id {id}", subscriptionId);
+        }
     }
 
     private void ThrowIfClosed()

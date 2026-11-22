@@ -78,11 +78,10 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
         _channel.Writer.TryComplete();
     }
 
-    public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload)
+    public void HandleSubscriptionMessage(ReadOnlySpan<byte> result)
     {
-        var envelope = JsonSerializer.Deserialize(payload, _jsonSerializerContext.BlockHeaderSubscriptionEnvelope);
-        _channel.Writer.TryWrite(envelope.Params.Result);
-        return true;
+        var header = JsonSerializer.Deserialize(result, _jsonSerializerContext.BlockHeader)!;
+        _channel.Writer.TryWrite(header);
     }
 
     public override string ToString()

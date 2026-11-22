@@ -1,4 +1,5 @@
 using EtherSharp.Types;
+using System.Text.Json.Serialization;
 
 namespace EtherSharp.Realtime.Blocks;
 
@@ -14,10 +15,10 @@ namespace EtherSharp.Realtime.Blocks;
 /// <param name="GasLimit">The maximum amount of gas allowed in the block.</param>
 /// <param name="GasUsed">The amount of gas consumed by transactions in the block.</param>
 public sealed record BlockHeader(
-    ulong Number,
-    DateTimeOffset Timestamp,
-    Bytes32 Hash,
-    Bytes32 ParentHash,
+    [property: JsonRequired] ulong Number,
+    [property: JsonRequired] DateTimeOffset Timestamp,
+    [property: JsonRequired] Bytes32 Hash,
+    [property: JsonRequired] Bytes32 ParentHash,
     ulong Nonce,
     Address Miner,
     ulong GasLimit,

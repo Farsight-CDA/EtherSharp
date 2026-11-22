@@ -51,11 +51,10 @@ internal sealed class EventSubscription<TLog>(
         Id = await _ethRpcModule.SubscribeLogsAsync(_eventFilter, requestOptions, cancellationToken);
     }
 
-    public bool HandleSubscriptionMessage(ReadOnlySpan<byte> payload)
+    public void HandleSubscriptionMessage(ReadOnlySpan<byte> result)
     {
-        var envelope = JsonSerializer.Deserialize(payload, _jsonSerializerContext.LogSubscriptionEnvelope);
-        _channel.Writer.TryWrite(envelope.Params.Result);
-        return true;
+        var log = JsonSerializer.Deserialize(result, _jsonSerializerContext.Log)!;
+        _channel.Writer.TryWrite(log);
     }
 
     public async ValueTask DisposeAsync()

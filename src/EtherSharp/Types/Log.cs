@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Realtime.Events;
+using System.Text.Json.Serialization;
 
 namespace EtherSharp.Types;
 
@@ -15,14 +16,14 @@ namespace EtherSharp.Types;
 /// <param name="Data">ABI-encoded non-indexed event data payload.</param>
 /// <param name="Removed"><see langword="true"/> when this log was removed due to a chain reorganization.</param>
 public sealed record Log(
-    Address Address,
-    Bytes32 BlockHash,
-    ulong BlockNumber,
-    uint LogIndex,
-    Bytes32 TransactionHash,
-    uint TransactionIndex,
-    Bytes32[] Topics,
-    byte[] Data,
+    [property: JsonRequired] Address Address,
+    [property: JsonRequired] Bytes32 BlockHash,
+    [property: JsonRequired] ulong BlockNumber,
+    [property: JsonRequired] uint LogIndex,
+    [property: JsonRequired] Bytes32 TransactionHash,
+    [property: JsonRequired] uint TransactionIndex,
+    [property: JsonRequired] Bytes32[] Topics,
+    [property: JsonRequired] byte[] Data,
     bool Removed
 ) : ITxLog<Log>
 {
