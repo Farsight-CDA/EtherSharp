@@ -148,7 +148,14 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
         catch(Exception ex)
         {
-            _logger?.LogCritical(ex, "Failed to reinstall subscription id {id} of type {type}", subscription.Id, subscription);
+            _logger?.LogError(ex, "Failed to reinstall subscription id {id} of type {type}", subscription.Id, subscription);
+
+            lock(_subscriptionsLock)
+            {
+                _subscriptions.Remove(subscription);
+            }
+
+            subscription.Close(ex);
         }
         finally
         {

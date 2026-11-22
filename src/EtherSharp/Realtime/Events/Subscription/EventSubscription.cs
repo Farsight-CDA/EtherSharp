@@ -4,6 +4,7 @@ using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading.Channels;
 
@@ -34,6 +35,7 @@ internal sealed class EventSubscription<TLog>(
     private readonly Lock _statusLock = new Lock();
     private bool _isClosed;
     private bool _isDisposing;
+    private Exception? _closeError;
 
     public async IAsyncEnumerable<TLog> ListenAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
@@ -41,6 +43,11 @@ internal sealed class EventSubscription<TLog>(
         {
             var log = await _channel.Reader.ReadAsync(cancellationToken);
             yield return TLog.Decode(log);
+        }
+
+        if(_closeError is not null)
+        {
+            ExceptionDispatchInfo.Throw(_closeError);
         }
     }
 
@@ -79,7 +86,7 @@ internal sealed class EventSubscription<TLog>(
         }
     }
 
-    public void Close()
+    public void Close(Exception? error = null)
     {
         lock(_statusLock)
         {
@@ -89,6 +96,7 @@ internal sealed class EventSubscription<TLog>(
             }
 
             _isClosed = true;
+            _closeError = error;
         }
 
         _channel.Writer.TryComplete();

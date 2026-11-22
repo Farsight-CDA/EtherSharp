@@ -33,5 +33,6 @@ public interface ISubscription : IAsyncDisposable
     /// <summary>
     /// Closes the local subscription state without sending an unsubscribe RPC.
     /// </summary>
-    public void Close();
+    /// <param name="error">The error to surface to listeners, or <c>null</c> to end the stream normally.</param>
+    public void Close(Exception? error = null);
 }

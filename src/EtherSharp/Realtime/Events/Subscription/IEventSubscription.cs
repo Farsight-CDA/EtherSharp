@@ -11,6 +11,6 @@ public interface IEventSubscription<TLog> : IAsyncDisposable
     /// Listens for decoded realtime log events.
     /// </summary>
     /// <param name="cancellationToken">Token used to stop listening.</param>
-    /// <returns>An async stream of decoded logs.</returns>
+    /// <returns>An async stream of decoded logs that throws if the subscription is lost and can't be reinstalled.</returns>
     public IAsyncEnumerable<TLog> ListenAsync(CancellationToken cancellationToken = default);
 }

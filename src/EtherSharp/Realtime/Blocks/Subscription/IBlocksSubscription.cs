@@ -9,6 +9,6 @@ public interface IBlocksSubscription : IAsyncDisposable
     /// Listens for newly received block headers.
     /// </summary>
     /// <param name="cancellationToken">Token used to stop listening.</param>
-    /// <returns>An async stream of block headers.</returns>
+    /// <returns>An async stream of block headers that throws if the subscription is lost and can't be reinstalled.</returns>
     public IAsyncEnumerable<BlockHeader> ListenAsync(CancellationToken cancellationToken = default);
 }
