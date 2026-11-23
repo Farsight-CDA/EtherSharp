@@ -19,12 +19,13 @@ public interface ITxScheduler
     /// <param name="call">The transaction input payload to prepare.</param>
     /// <param name="txParams">Optional transaction parameters; defaults are resolved when not provided.</param>
     /// <param name="txGasParams">Optional gas parameters; estimators may populate missing values.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">A token used to cancel preparation.</param>
     /// <returns>A pending transaction handler that can submit, monitor, and manage the transaction lifecycle.</returns>
     public ValueTask<IPendingTxHandler<TTxParams, TTxGasParams>> PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
-         ITxInput call, TTxParams? txParams = default, TTxGasParams? txGasParams = default,
-         CancellationToken cancellationToken = default
-     )
+        ITxInput call, TTxParams? txParams = default, TTxGasParams? txGasParams = default,
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
+    )
          where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
          where TTxParams : class, ITxParams<TTxParams>
          where TTxGasParams : class, ITxGasParams<TTxGasParams>;

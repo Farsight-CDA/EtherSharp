@@ -1,4 +1,5 @@
 ﻿using EtherSharp.Client.Modules.Ether;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.PendingHandler;
@@ -22,13 +23,15 @@ public interface IEtherTxClient : IEtherClient
     /// <param name="call">Transaction call payload.</param>
     /// <param name="txParams">Optional transaction parameters (nonce, value, etc.).</param>
     /// <param name="txGasParams">Optional precomputed gas parameters.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A pending-transaction handler for submission and lifecycle control.</returns>
     public Task<IPendingTxHandler<EIP1559TxParams, EIP1559GasParams>> PrepareTxAsync(
         ITxInput call, EIP1559TxParams? txParams = default, EIP1559GasParams? txGasParams = default,
-        CancellationToken cancellationToken = default)
-        => PrepareTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
-            call, txParams, txGasParams, cancellationToken);
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
+    ) => PrepareTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
+            call, txParams, txGasParams, requestOptions, cancellationToken
+        );
 
     /// <summary>
     /// Creates a pending-transaction handler for a custom transaction model.
@@ -39,11 +42,12 @@ public interface IEtherTxClient : IEtherClient
     /// <param name="call">Transaction call payload.</param>
     /// <param name="txParams">Optional transaction parameters (nonce, value, etc.).</param>
     /// <param name="txGasParams">Optional precomputed gas parameters.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A pending-transaction handler for submission and lifecycle control.</returns>
     public Task<IPendingTxHandler<TTxParams, TTxGasParams>> PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
         ITxInput call, TTxParams? txParams = default, TTxGasParams? txGasParams = default,
-        CancellationToken cancellationToken = default
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     )
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>

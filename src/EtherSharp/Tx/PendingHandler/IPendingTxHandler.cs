@@ -1,4 +1,5 @@
-﻿using EtherSharp.Tx.Types;
+﻿using EtherSharp.RPC.Transport;
+using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Tx.PendingHandler;
 
@@ -26,6 +27,7 @@ public interface IPendingTxHandler<TTxParams, TTxGasParams>
     /// Provides a callback to handle errors and timeouts.
     /// </summary>
     /// <param name="onError"></param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
     /// <returns></returns>
     public Task<TxConfirmationResult> PublishAndConfirmAsync(
         Func<
@@ -33,6 +35,7 @@ public interface IPendingTxHandler<TTxParams, TTxGasParams>
             TxConfirmationActionBuilder<TTxParams, TTxGasParams>,
             TxSubmission<TTxParams, TTxGasParams>,
             TxConfirmationAction<TTxParams, TTxGasParams>
-        > onError
+        > onError,
+        RpcRequestOptions requestOptions = default
     );
 }

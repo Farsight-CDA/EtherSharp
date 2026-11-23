@@ -531,12 +531,13 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
         ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams,
-        CancellationToken cancellationToken
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken
     )
         where TTxParams : class
         where TTxGasParams : class
         => await _txScheduler.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
-            call, txParams, txGasParams, cancellationToken);
+            call, txParams, txGasParams, requestOptions, cancellationToken
+        );
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
         ulong nonce, CancellationToken cancellationToken)

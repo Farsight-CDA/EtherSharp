@@ -1,4 +1,5 @@
-﻿using EtherSharp.Tx.Types;
+﻿using EtherSharp.RPC.Transport;
+using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Tx.PendingHandler;
 /// <summary>
@@ -15,13 +16,13 @@ public sealed class PendingTxHandler<TTxParams, TTxGasParams>(
             TxSubmission<TTxParams, TTxGasParams>,
             TxConfirmationAction<TTxParams, TTxGasParams>
         >,
+        RpcRequestOptions,
         Task<TxConfirmationResult>
     > processFunc
 ) : IPendingTxHandler<TTxParams, TTxGasParams>, IInternalPendingTxHandler
     where TTxParams : class, ITxParams<TTxParams>
     where TTxGasParams : class, ITxGasParams<TTxGasParams>
 {
-
     private readonly Func<
         PendingTxHandler<TTxParams, TTxGasParams>,
         Func<
@@ -30,6 +31,7 @@ public sealed class PendingTxHandler<TTxParams, TTxGasParams>(
             TxSubmission<TTxParams, TTxGasParams>,
             TxConfirmationAction<TTxParams, TTxGasParams>
         >,
+        RpcRequestOptions,
         Task<TxConfirmationResult>
     > _processFunc = processFunc;
 
@@ -54,7 +56,8 @@ public sealed class PendingTxHandler<TTxParams, TTxGasParams>(
             TxConfirmationActionBuilder<TTxParams, TTxGasParams>,
             TxSubmission<TTxParams, TTxGasParams>,
             TxConfirmationAction<TTxParams, TTxGasParams>
-        > onError
+        > onError,
+        RpcRequestOptions requestOptions
     )
     {
         lock(_isConfirmCalledLock)
@@ -71,7 +74,7 @@ public sealed class PendingTxHandler<TTxParams, TTxGasParams>(
 
         try
         {
-            confirmationResult = await _processFunc(this, onError);
+            confirmationResult = await _processFunc(this, onError, requestOptions);
         }
         catch(Exception ex)
         {

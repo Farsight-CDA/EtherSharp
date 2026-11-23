@@ -1,4 +1,5 @@
-﻿using EtherSharp.Tx.Types;
+﻿using EtherSharp.RPC.Transport;
+using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Tx.PendingHandler;
 
@@ -21,6 +22,7 @@ internal sealed class CompletedPendingHandler<TTxParams, TTxGasParams>(
             TxConfirmationActionBuilder<TTxParams, TTxGasParams>,
             TxSubmission<TTxParams, TTxGasParams>,
             TxConfirmationAction<TTxParams, TTxGasParams>
-        > onError
+        > onError,
+        RpcRequestOptions requestOptions
     ) => Task.FromResult(_result);
 }
