@@ -1,4 +1,6 @@
-﻿namespace EtherSharp.Realtime.Blocks.Subscription;
+﻿using EtherSharp.Common.Exceptions;
+
+namespace EtherSharp.Realtime.Blocks.Subscription;
 
 /// <summary>
 /// Represents a realtime stream of newly produced block headers.
@@ -9,6 +11,6 @@ public interface IBlocksSubscription : IAsyncDisposable
     /// Listens for newly received block headers.
     /// </summary>
     /// <param name="cancellationToken">Token used to stop listening.</param>
-    /// <returns>An async stream of block headers that throws if the subscription is lost and can't be reinstalled.</returns>
+    /// <returns>An async stream of block headers that throws a <see cref="SubscriptionInterruptedException"/> if the subscription is interrupted.</returns>
     public IAsyncEnumerable<BlockHeader> ListenAsync(CancellationToken cancellationToken = default);
 }

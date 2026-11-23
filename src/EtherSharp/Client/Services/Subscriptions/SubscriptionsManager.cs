@@ -21,6 +21,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     private readonly Lock _subscriptionsLock = new Lock();
     private readonly List<ISubscription> _subscriptions = [];
     private int _installationsInProgress;
+    private int _connectionLossCount;
     private bool _subscriptionsClosed;
 
     private readonly ObservableUpDownCounter<int>? _subscriptionsCounter;
@@ -33,17 +34,20 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
         _subscriptionsCounter = serviceProvider.CreateOTELObservableUpDownCounter("active_wss_subscriptions", () => _subscriptions.Count);
 
-        _rpcTransport.OnConnectionEstablished += HandleConnectionEstablished;
+        _rpcTransport.OnConnectionLost += HandleConnectionLost;
         _rpcTransport.OnSubscriptionMessage += HandleSubscriptionMessage;
     }
 
     public async Task InstallSubscriptionAsync(
         ISubscription subscription, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
+        int connectionLossCount;
+
         lock(_subscriptionsLock)
         {
             ThrowIfClosed();
             _installationsInProgress++;
+            connectionLossCount = _connectionLossCount;
         }
 
         try
@@ -53,8 +57,17 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
             lock(_subscriptionsLock)
             {
                 ThrowIfClosed();
-                _subscriptions.Add(subscription);
+
+                if(_connectionLossCount == connectionLossCount)
+                {
+                    _subscriptions.Add(subscription);
+                    return;
+                }
             }
+
+            var exception = new SubscriptionInterruptedException(SubscriptionInterruptionReason.ConnectionLost);
+            subscription.Close(exception);
+            throw exception;
         }
         finally
         {
@@ -71,8 +84,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
         lock(_subscriptionsLock)
         {
-            shouldUnsubscribe = !_subscriptionsClosed;
-            _subscriptions.Remove(subscription);
+            shouldUnsubscribe = _subscriptions.Remove(subscription);
         }
 
         try
@@ -104,7 +116,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
             _subscriptions.Clear();
         }
 
-        _rpcTransport.OnConnectionEstablished -= HandleConnectionEstablished;
+        _rpcTransport.OnConnectionLost -= HandleConnectionLost;
         _rpcTransport.OnSubscriptionMessage -= HandleSubscriptionMessage;
 
         foreach(var subscription in subscriptions)
@@ -113,56 +125,34 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
     }
 
-    private void HandleConnectionEstablished()
+    private void HandleConnectionLost(Exception connectionError)
     {
-        if(_subscriptionsClosed)
-        {
-            return;
-        }
+        ISubscription[] subscriptions;
 
         lock(_subscriptionsLock)
         {
-            foreach(var subscription in _subscriptions)
-            {
-                _ = Task.Run(() => ReinstallSubscriptionAsync(subscription));
-            }
-        }
-    }
-
-    private async Task ReinstallSubscriptionAsync(ISubscription subscription)
-    {
-        lock(_subscriptionsLock)
-        {
-            if(_subscriptionsClosed || !_subscriptions.Contains(subscription))
+            if(_subscriptionsClosed)
             {
                 return;
             }
 
-            _installationsInProgress++;
+            _connectionLossCount++;
+            subscriptions = [.. _subscriptions];
+            _subscriptions.Clear();
         }
 
-        try
+        if(subscriptions.Length == 0)
         {
-            _logger?.LogDebug("Reinstalling subscription of type {type}, oldId={oldId}", subscription, subscription.Id);
-            await subscription.InstallAsync(subscription.RequestOptions);
+            return;
         }
-        catch(Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to reinstall subscription id {id} of type {type}", subscription.Id, subscription);
 
-            lock(_subscriptionsLock)
-            {
-                _subscriptions.Remove(subscription);
-            }
+        _logger?.LogWarning("Connection lost, closing {count} subscriptions", subscriptions.Length);
 
-            subscription.Close(ex);
-        }
-        finally
+        foreach(var subscription in subscriptions)
         {
-            lock(_subscriptionsLock)
-            {
-                _installationsInProgress--;
-            }
+            subscription.Close(
+                new SubscriptionInterruptedException(SubscriptionInterruptionReason.ConnectionLost, innerException: connectionError)
+            );
         }
     }
 
@@ -203,12 +193,24 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                         break;
                     case SubscriptionNotification.Kind.Terminated:
                         _logger?.LogWarning(
-                            "Subscription id {id} of type {type} was terminated by the node, reinstalling. Reason: {reason}",
+                            "Subscription id {id} of type {type} was terminated by the node. Reason: {reason}",
                             subscriptionId,
                             subscription,
                             notification.Error
                         );
-                        _ = ReinstallSubscriptionAsync(subscription);
+
+                        bool wasActive;
+                        lock(_subscriptionsLock)
+                        {
+                            wasActive = _subscriptions.Remove(subscription);
+                        }
+
+                        if(wasActive)
+                        {
+                            subscription.Close(
+                                new SubscriptionInterruptedException(SubscriptionInterruptionReason.TerminatedByNode, notification.Error)
+                            );
+                        }
                         break;
                     case SubscriptionNotification.Kind.Malformed:
                         _logger?.LogWarning(
@@ -237,7 +239,11 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     {
         try
         {
-            _logger?.LogDebug("Uninstalling unknown active subscription with id {id}", subscriptionId);
+            if(_logger?.IsEnabled(LogLevel.Debug) == true)
+            {
+                _logger.LogDebug("Uninstalling unknown active subscription with id {id}", subscriptionId);
+            }
+
             await _ethRpcModule.UnsubscribeAsync(subscriptionId);
         }
         catch(RPCException ex) when(ex.Message.Contains("not found"))
