@@ -130,6 +130,45 @@ public sealed class EVMByteCodeTests
     }
 
     [Fact]
+    public void CountCallSelector_Should_Count_Each_Push_Containing_Selector()
+    {
+        var byteCode = CreateByteCode(
+            0x63, 0x12, 0x34, 0x56, 0x78,
+            0x60, 0x01,
+            0x63, 0x12, 0x34, 0x56, 0x78,
+            0x62, 0x00, 0x00, 0x00);
+
+        Assert.Equal(2, byteCode.CountCallSelector(Bytes4.Parse("0x12345678")));
+        Assert.True(byteCode.ContainsCallSelector(Bytes4.Parse("0x12345678")));
+    }
+
+    [Fact]
+    public void CountCallSelector_Should_Count_Push_With_Repeated_Selector_Once()
+    {
+        byte[] bytes = [0x67, 0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78];
+        var byteCode = new EVMRuntimeCode(bytes);
+
+        Assert.Equal(1, byteCode.CountCallSelector(Bytes4.Parse("0x12345678")));
+    }
+
+    [Fact]
+    public void CountCallSelector_Should_Return_Zero_When_Selector_Is_Missing()
+    {
+        var byteCode = CreateByteCode(0x63, 0x12, 0x34, 0x56, 0x78);
+
+        Assert.Equal(0, byteCode.CountCallSelector(Bytes4.Parse("0x87654321")));
+        Assert.False(byteCode.ContainsCallSelector(Bytes4.Parse("0x87654321")));
+    }
+
+    [Fact]
+    public void CountCallSelector_Should_Ignore_Selector_Inside_Compiler_Metadata()
+    {
+        var byteCode = CreateByteCodeWithSolcMetadata(0x63, 0x12, 0x34, 0x56, 0x78);
+
+        Assert.Equal(0, byteCode.CountCallSelector(Bytes4.Parse("0x12345678")));
+    }
+
+    [Fact]
     public void HasFunction_Should_Match_Leading_Zero_Selector_When_Compiler_Uses_Short_Push()
     {
         var byteCode = CreateByteCode(0x62, 0x4A, 0xA3, 0x20, 0x14);

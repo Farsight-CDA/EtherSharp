@@ -112,7 +112,24 @@ public closed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     /// <param name="selector"></param>
     /// <returns></returns>
     public bool ContainsCallSelector(Bytes4 selector)
-        => HasPushedSelector(selector);
+        => CountPushedSelector(selector, 1) > 0;
+
+    /// <summary>
+    /// Heuristically counts the PUSH constants containing the generated function's selector.
+    /// </summary>
+    /// <typeparam name="TFunction"></typeparam>
+    /// <returns>The number of PUSH instructions whose data contains the selector.</returns>
+    public int CountCallSelector<TFunction>()
+        where TFunction : IGeneratedFunction
+        => CountCallSelector(TFunction.Selector);
+
+    /// <summary>
+    /// Heuristically counts the PUSH constants containing a function selector.
+    /// </summary>
+    /// <param name="selector"></param>
+    /// <returns>The number of PUSH instructions whose data contains the selector.</returns>
+    public int CountCallSelector(Bytes4 selector)
+        => CountPushedSelector(selector, Int32.MaxValue);
 
     /// <summary>
     /// Heuristically checks for all given function selectors in PUSH constants.
@@ -306,7 +323,7 @@ public closed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
     /// <param name="signature"></param>
     /// <returns></returns>
     public bool HasError(Bytes4 signature)
-        => HasPushedSelector(signature);
+        => CountPushedSelector(signature, 1) > 0;
 
     private bool HasFunctionSelector(ReadOnlySpan<byte> selector)
     {
@@ -359,7 +376,7 @@ public closed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
             && byteCode.IndexOf(normalizedTopic) != -1;
     }
 
-    private bool HasPushedSelector(Bytes4 signature)
+    private int CountPushedSelector(Bytes4 signature, int maxCount)
     {
         Span<byte> signatureBytes = stackalloc byte[Bytes4.BYTE_LENGTH];
         signature.CopyTo(signatureBytes);
@@ -368,12 +385,14 @@ public closed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
         selector >>= BitOperations.TrailingZeroCount(selector);
         int selectorBits = Math.Max(1, 32 - BitOperations.LeadingZeroCount(selector));
         ulong mask = (1UL << selectorBits) - 1;
+        int count = 0;
 
-        for(int i = 0; i < byteCode.Length; i++)
+        for(int i = 0; i < byteCode.Length && count < maxCount; i++)
         {
             if(byteCode[i] == (byte) EvmOpcode.Push0 && selector == 0)
             {
-                return true;
+                count++;
+                continue;
             }
 
             if(!EvmOpcodeUtils.TryGetPushLength(byteCode[i], out int pushLength))
@@ -389,25 +408,33 @@ public closed class EVMByteCode(ReadOnlyMemory<byte> byteCode) : IEquatable<EVMB
                 break;
             }
 
-            var pushData = byteCode[pushValueIndex..pushEndIndex];
-
-            // Search significant bits so byte padding, partial shifts, and optimized factoring all match.
-            ulong value = 0;
-            int bitCount = 0;
-            foreach(byte currentByte in pushData)
+            if(PushDataContainsSelector(byteCode[pushValueIndex..pushEndIndex], selector, selectorBits, mask))
             {
-                value = (value << 8) | currentByte;
-                bitCount += 8;
-                for(int shift = 0; shift < 8 && shift <= bitCount - selectorBits; shift++)
-                {
-                    if(((value >> shift) & mask) == selector)
-                    {
-                        return true;
-                    }
-                }
+                count++;
             }
 
             i += pushLength;
+        }
+
+        return count;
+    }
+
+    private static bool PushDataContainsSelector(ReadOnlySpan<byte> pushData, uint selector, int selectorBits, ulong mask)
+    {
+        // Search significant bits so byte padding, partial shifts, and optimized factoring all match.
+        ulong value = 0;
+        int bitCount = 0;
+        foreach(byte currentByte in pushData)
+        {
+            value = (value << 8) | currentByte;
+            bitCount += 8;
+            for(int shift = 0; shift < 8 && shift <= bitCount - selectorBits; shift++)
+            {
+                if(((value >> shift) & mask) == selector)
+                {
+                    return true;
+                }
+            }
         }
 
         return false;
