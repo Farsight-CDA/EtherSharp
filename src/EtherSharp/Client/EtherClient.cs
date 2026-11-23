@@ -53,7 +53,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private bool _initialized;
     private bool _isDisposed;
     private ulong _chainId;
-    private CompatibilityReport? _compatibilityReport = null!;
     private readonly Lock _disposeLock = new Lock();
 
     internal EtherClient(IServiceProvider provider)
@@ -69,11 +68,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     ulong IEtherClient.ChainId
         => _initialized
             ? _chainId
-            : throw new InvalidOperationException("Client not initialized");
-
-    CompatibilityReport? IEtherClient.CompatibilityReport
-        => _initialized
-            ? _compatibilityReport
             : throw new InvalidOperationException("Client not initialized");
 
     IEtherTxModule IEtherTxClient.ETH
@@ -240,7 +234,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         await BaseInitializeAsync(cancellationToken);
 
         _chainId = await _ethRpcModule.ChainIdAsync(requestOptions, cancellationToken);
-        _compatibilityReport = null;
 
         if(_flashCallExecutor is DeployedFlashCallExecutor { HasDeploymentHeight: false } deployedFlashCallExecutor)
         {
@@ -287,8 +280,8 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         T? initResult;
 
-        (_chainId, _compatibilityReport, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
-            IQuery.Combine(IQuery.GetChainId(), IQuery.GetCompatibilityReport(), initQuery, flashCallSetupQuery),
+        (_chainId, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
+            IQuery.Combine(IQuery.GetChainId(), initQuery, flashCallSetupQuery),
             null,
             TargetHeight.Latest,
             requestOptions,

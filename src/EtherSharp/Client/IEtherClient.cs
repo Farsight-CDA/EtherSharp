@@ -28,11 +28,6 @@ public interface IEtherClient : IAsyncDisposable
     public ulong ChainId { get; }
 
     /// <summary>
-    /// Gets opcode compatibility details for the connected chain, when available.
-    /// </summary>
-    public CompatibilityReport? CompatibilityReport { get; }
-
-    /// <summary>
     /// Gets the module for native-currency and account-level RPC operations.
     /// </summary>
     public IEtherModule ETH { get; }
