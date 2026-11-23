@@ -242,7 +242,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         _chainId = await _ethRpcModule.ChainIdAsync(requestOptions, cancellationToken);
         _compatibilityReport = null;
 
-        if(_flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor)
+        if(_flashCallExecutor is DeployedFlashCallExecutor { HasDeploymentHeight: false } deployedFlashCallExecutor)
         {
             var deploymentHeightResult = await _ethRpcModule.CallAsync(
                 deployedFlashCallExecutor.ContractAddress,
@@ -276,7 +276,10 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         await BaseInitializeAsync(cancellationToken);
 
         initQuery ??= IQuery.Noop<T>(default!);
-        var flashCallSetupQuery = _flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor
+        var deployedFlashCallExecutor = _flashCallExecutor is DeployedFlashCallExecutor { HasDeploymentHeight: false } executor
+            ? executor
+            : null;
+        var flashCallSetupQuery = deployedFlashCallExecutor is not null
             ? IQuery.Call(IContractCall<UInt256>.ForContractCall(
                 deployedFlashCallExecutor.ContractAddress, 0, Convert.FromHexString("217CD3E1"), new ABI.AbiEncoder(), x => x.UInt256())
             )
@@ -292,10 +295,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             cancellationToken
         );
 
-        if(_flashCallExecutor is DeployedFlashCallExecutor executor)
-        {
-            executor.SetDeploymentHeight((ulong) deploymentHeight);
-        }
+        deployedFlashCallExecutor?.SetDeploymentHeight((ulong) deploymentHeight);
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
         {

@@ -277,7 +277,7 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="runtimeCode">Runtime code installed at a temporary account. Its address is unspecified and differs between flash call backends.</param>
     /// <param name="call">Flash-call payload to execute against the temporary code.</param>
-    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithFlashCalls</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the client's default flash-call gas limit, if configured.</param>
     /// <param name="options">Call execution options.</param>
     /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -293,7 +293,7 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="T">Expected decoded return type.</typeparam>
     /// <param name="runtimeCode">Runtime code installed at a temporary account. Its address is unspecified and differs between flash call backends.</param>
     /// <param name="call">Flash-call payload to execute against the temporary code.</param>
-    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the current client default configured by <c>WithFlashCalls</c> or <c>SetDefaultCallGasLimits</c>, if present.</param>
+    /// <param name="flashCallGasLimit">Optional gas cap forwarded from the flash helper into the deployed contract call. A value of <see langword="null"/> uses the client's default flash-call gas limit, if configured.</param>
     /// <param name="options">Call execution options.</param>
     /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>

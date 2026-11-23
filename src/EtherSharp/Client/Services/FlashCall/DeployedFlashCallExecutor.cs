@@ -15,6 +15,7 @@ internal sealed class DeployedFlashCallExecutor(
 {
     internal sealed record Configuration(
         Address ContractAddress,
+        ulong? DeploymentHeight,
         bool AllowFallback
     );
 
@@ -23,12 +24,21 @@ internal sealed class DeployedFlashCallExecutor(
     private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
     private readonly ConstructorFlashCallExecutor _constructorFlashCallExecutor = new ConstructorFlashCallExecutor(ethRpcModule, callGasLimitSettings);
 
-    private ulong? _deploymentHeight;
+    private ulong? _deploymentHeight = configuration.DeploymentHeight;
 
     public Address ContractAddress => _configuration.ContractAddress;
 
+    public bool HasDeploymentHeight => _deploymentHeight.HasValue;
+
     public void SetDeploymentHeight(ulong deploymentHeight)
-        => _deploymentHeight = deploymentHeight;
+    {
+        if(_deploymentHeight.HasValue)
+        {
+            throw new InvalidOperationException("Deployment height has already been set.");
+        }
+
+        _deploymentHeight = deploymentHeight;
+    }
 
     public override async Task<TxCallResult> ExecuteAsync(
         EVMRuntimeCode runtimeCode,
@@ -41,7 +51,7 @@ internal sealed class DeployedFlashCallExecutor(
         if(options.StateOverrides is { Count: > 0 })
         {
             throw new NotSupportedException(
-                "State overrides in queries and flash calls require WithFlashCalls(enableStateOverrides: true)."
+                $"State overrides in queries and flash calls require {nameof(EtherClientBuilder.WithStateOverrideFlashCalls)}()."
             );
         }
 

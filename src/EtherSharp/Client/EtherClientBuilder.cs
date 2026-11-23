@@ -470,39 +470,64 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
-    /// Configures flash-call execution.
+    /// Configures flash-call execution using <c>eth_call</c> state overrides.
     /// </summary>
-    /// <param name="gasLimit">Optional fallback gas limit applied when no per-call limit is provided.</param>
-    /// <param name="enableStateOverrides">Whether the node supports state overrides. Queries and flash calls that use state overrides are rejected without it.</param>
-    /// <param name="contractAddress">Optional deployed FlashCall contract used for initcode execution. Ignored when <paramref name="enableStateOverrides"/> is set.</param>
-    /// <param name="allowConstructorFallback">Whether initcode may fall back to constructor-based execution when the deployed contract is unavailable.</param>
     /// <returns></returns>
-    public EtherClientBuilder WithFlashCalls(
-        ulong? gasLimit = null,
-        bool enableStateOverrides = false,
-        Address? contractAddress = null,
-        bool allowConstructorFallback = true)
+    public EtherClientBuilder WithStateOverrideFlashCalls()
+    {
+        _flashCallGasLimit = null;
+        ClearFlashCallRegistrations();
+        _services.AddSingleton<FlashCallExecutor, StateOverrideFlashCallExecutor>();
+        return this;
+    }
+
+    /// <summary>
+    /// Configures flash-call execution using a deployed FlashCall helper contract.
+    /// </summary>
+    /// <param name="contractAddress">Address of the deployed FlashCall helper contract.</param>
+    /// <param name="deploymentHeight">Optional block height at which the helper contract was deployed. When provided, initialization does not query the contract for its deployment height.</param>
+    /// <param name="allowConstructorFallback">Whether calls targeting blocks earlier than the deployment height may fall back to constructor-based execution.</param>
+    /// <param name="gasLimit">Optional fallback gas limit forwarded from the flash helper when no per-call limit is provided.</param>
+    /// <returns></returns>
+    public EtherClientBuilder WithDeployedFlashCalls(
+        Address contractAddress,
+        ulong? deploymentHeight = null,
+        bool allowConstructorFallback = true,
+        ulong? gasLimit = null
+    )
     {
         CallGasLimitSettings.Validate(_ethCallGasLimit, gasLimit);
 
         _flashCallGasLimit = gasLimit;
+        ClearFlashCallRegistrations();
+        _services.AddSingleton(new DeployedFlashCallExecutor.Configuration(
+            contractAddress,
+            deploymentHeight,
+            allowConstructorFallback
+        ));
+        _services.AddSingleton<FlashCallExecutor, DeployedFlashCallExecutor>();
+        return this;
+    }
 
+    /// <summary>
+    /// Configures flash-call execution using constructor initcode execution.
+    /// </summary>
+    /// <param name="gasLimit">Optional fallback gas limit forwarded from the flash helper when no per-call limit is provided.</param>
+    /// <returns></returns>
+    public EtherClientBuilder WithConstructorFlashCalls(ulong? gasLimit = null)
+    {
+        CallGasLimitSettings.Validate(_ethCallGasLimit, gasLimit);
+
+        _flashCallGasLimit = gasLimit;
+        ClearFlashCallRegistrations();
+        _services.AddSingleton<FlashCallExecutor, ConstructorFlashCallExecutor>();
+        return this;
+    }
+
+    private void ClearFlashCallRegistrations()
+    {
         _services.RemoveAll<FlashCallExecutor>();
         _services.RemoveAll<DeployedFlashCallExecutor.Configuration>();
-        if(enableStateOverrides)
-        {
-            _services.AddSingleton<FlashCallExecutor, StateOverrideFlashCallExecutor>();
-        }
-        else if(contractAddress is { } deployedContractAddress)
-        {
-            _services.AddSingleton(new DeployedFlashCallExecutor.Configuration(
-                deployedContractAddress,
-                allowConstructorFallback
-            ));
-            _services.AddSingleton<FlashCallExecutor, DeployedFlashCallExecutor>();
-        }
-
-        return this;
     }
 
     private void RunConfigureActions(IServiceProvider provider)

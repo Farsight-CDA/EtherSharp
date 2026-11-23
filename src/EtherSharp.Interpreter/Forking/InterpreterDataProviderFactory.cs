@@ -34,7 +34,7 @@ internal static class InterpreterDataProviderFactory
                 client, targetHeight, options, requestOptions
             ),
             ConstructorFlashCallExecutor or DeployedFlashCallExecutor => throw new InvalidOperationException(
-                "No interpreter data provider is available for the configured query backend. Configure WithFlashCalls(enableStateOverrides: true)."
+                $"No interpreter data provider is available for the configured query backend. Configure {nameof(EtherClientBuilder.WithStateOverrideFlashCalls)}()."
             ),
         };
 

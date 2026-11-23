@@ -29,7 +29,7 @@ internal sealed class ConstructorFlashCallExecutor(
         if(options.StateOverrides is { Count: > 0 })
         {
             throw new NotSupportedException(
-                "State overrides in queries and flash calls require WithFlashCalls(enableStateOverrides: true)."
+                $"State overrides in queries and flash calls require {nameof(EtherClientBuilder.WithStateOverrideFlashCalls)}()."
             );
         }
 
