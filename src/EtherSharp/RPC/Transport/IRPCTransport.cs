@@ -16,9 +16,14 @@ public interface IRPCTransport
     public bool SupportsSubscriptions { get; }
 
     /// <summary>
-    /// Fires when the underlying connection has been established.
+    /// Fires when the underlying connection has been re-established after <see cref="OnConnectionLost"/>.
     /// </summary>
     public event Action? OnConnectionEstablished;
+
+    /// <summary>
+    /// Fires when the underlying connection has been lost, before pending requests are failed.
+    /// </summary>
+    public event Action<Exception>? OnConnectionLost;
 
     /// <summary>
     /// Fires when a subscription message has been received.

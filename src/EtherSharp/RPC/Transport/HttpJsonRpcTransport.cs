@@ -41,6 +41,12 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         remove { }
     }
     /// <inheritdoc />
+    public event Action<Exception>? OnConnectionLost
+    {
+        add { }
+        remove { }
+    }
+    /// <inheritdoc />
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage
     {
         add { }

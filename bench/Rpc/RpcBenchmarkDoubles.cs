@@ -21,6 +21,12 @@ internal sealed class BenchTransport : IRPCTransport
         remove { }
     }
 
+    public event Action<Exception>? OnConnectionLost
+    {
+        add { }
+        remove { }
+    }
+
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage
     {
         add { }

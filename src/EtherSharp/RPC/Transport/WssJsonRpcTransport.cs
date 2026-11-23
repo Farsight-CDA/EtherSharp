@@ -27,6 +27,8 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     /// <inheritdoc />
     public event Action? OnConnectionEstablished;
     /// <inheritdoc />
+    public event Action<Exception>? OnConnectionLost;
+    /// <inheritdoc />
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage;
 
     private readonly ILogger? _logger;
@@ -123,9 +125,9 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
     private async Task ConnectionHandler()
     {
-        while(!_connectionHandlerCts.IsCancellationRequested)
+        while(true)
         {
-            _ = Task.Run(() => OnConnectionEstablished?.Invoke());
+            Exception connectionError;
 
             try
             {
@@ -133,54 +135,87 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
                 if(_connectionHandlerCts.IsCancellationRequested)
                 {
-                    break;
+                    return;
                 }
 
-                _logger?.LogWarning("Websocket connection lost, killing {RequestCount} pending requests...", _pendingRequests.Count);
-
-                var wssClosedException = new RPCTransportException("The WebSocket is not connected.");
-                foreach(var r in _pendingRequests)
-                {
-                    r.Value.SetException(wssClosedException);
-                }
-                _pendingRequests.Clear();
-            }
-            catch(OperationCanceledException) when(_connectionHandlerCts.IsCancellationRequested)
-            {
-                break;
+                connectionError = new RPCTransportException("The WebSocket is not connected.");
             }
             catch(Exception ex)
             {
                 if(_connectionHandlerCts.IsCancellationRequested)
                 {
-                    break;
+                    return;
                 }
 
-                _logger?.LogWarning(ex, "Websocket connection lost, killing {RequestCount} pending requests...", _pendingRequests.Count);
-                foreach(var r in _pendingRequests)
-                {
-                    r.Value.SetException(ex);
-                }
-                _pendingRequests.Clear();
+                connectionError = ex;
             }
 
+            _logger?.LogWarning(
+                connectionError, "Websocket connection lost, killing {RequestCount} pending requests...", _pendingRequests.Count
+            );
+
+            RaiseConnectionEvent(OnConnectionLost, handler => handler(connectionError), nameof(OnConnectionLost));
+
+            foreach(var r in _pendingRequests)
+            {
+                r.Value.SetException(connectionError);
+            }
+
+            _pendingRequests.Clear();
+
+            if(!await ReconnectAsync())
+            {
+                return;
+            }
+
+            RaiseConnectionEvent(OnConnectionEstablished, static handler => handler(), nameof(OnConnectionEstablished));
+        }
+    }
+
+    //Returns true on successful reconnection, false if the transport is being disposed
+    private async Task<bool> ReconnectAsync()
+    {
+        while(true)
+        {
             try
             {
                 _socket?.Dispose();
                 await ConnectSocketAsync(_connectionHandlerCts.Token);
-            }
-            catch(OperationCanceledException) when(_connectionHandlerCts.IsCancellationRequested)
-            {
-                break;
+                return true;
             }
             catch(Exception ex)
             {
                 if(_connectionHandlerCts.IsCancellationRequested)
                 {
-                    break;
+                    return false;
                 }
 
-                _logger?.LogCritical(ex, "ConnectionHandler crashed");
+                _logger?.LogCritical(ex, "Websocket reconnection attempt crashed, retrying in 3s...");
+            }
+
+            try
+            {
+                await Task.Delay(3000, _connectionHandlerCts.Token);
+            }
+            catch(OperationCanceledException)
+            {
+                return false;
+            }
+        }
+    }
+
+    private void RaiseConnectionEvent<THandler>(THandler? handlers, Action<THandler> invoke, string eventName)
+        where THandler : Delegate
+    {
+        foreach(var handler in Delegate.EnumerateInvocationList(handlers))
+        {
+            try
+            {
+                invoke(handler);
+            }
+            catch(Exception ex)
+            {
+                _logger?.LogWarning(ex, "{EventName} handler threw", eventName);
             }
         }
     }
