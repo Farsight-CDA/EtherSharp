@@ -41,7 +41,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
 {
     private readonly IServiceCollection _services = new ServiceCollection();
     IServiceCollection IInternalEtherClientBuilder.Services => _services;
-    private readonly EtherClientOptions _clientOptions = new();
+    private (ulong ChainId, ChainIdMode Mode)? _configuredChainId;
     private ulong? _ethCallGasLimit;
     private ulong? _flashCallGasLimit;
 
@@ -458,6 +458,23 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
+    /// Configures a known chain ID for client initialization.
+    /// </summary>
+    /// <param name="chainId">Target chain ID.</param>
+    /// <param name="mode">How the configured chain ID is handled during initialization.</param>
+    /// <returns></returns>
+    public EtherClientBuilder WithChainId(ulong chainId, ChainIdMode mode)
+    {
+        if(!Enum.IsDefined(mode))
+        {
+            throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unsupported chain ID mode.");
+        }
+
+        _configuredChainId = (chainId, mode);
+        return this;
+    }
+
+    /// <summary>
     /// Configures the initial default gas limit applied to <c>eth_call</c> execution.
     /// </summary>
     /// <param name="gasLimit">Optional fallback gas limit applied to <c>eth_call</c> requests when no explicit gas is provided.</param>
@@ -538,9 +555,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         }
     }
 
-    private void RegisterClientOptions(bool isTxClient)
-        => _services.AddOrReplaceSingleton(_clientOptions with { IsTxClient = isTxClient });
-
     private void AssertReadClientConfiguration()
     {
         if(_transportRegistration is null)
@@ -606,9 +620,9 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     public IEtherClient BuildReadClient()
     {
         AssertReadClientConfiguration();
-        RegisterClientOptions(false);
 
-        _services.AddSingleton<IEtherClient>(provider => new EtherClient(provider));
+        var configuredChainId = _configuredChainId;
+        _services.AddSingleton<IEtherClient>(provider => new EtherClient(provider, false, configuredChainId));
 
         var provider = _services.BuildServiceProvider();
 
@@ -642,10 +656,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     public IEtherTxClient BuildTxClient()
     {
         AssertTxClientConfiguration();
-        RegisterClientOptions(true);
 
+        var configuredChainId = _configuredChainId;
         _services.AddSingleton<IEtherClient>(provider => provider.GetRequiredService<IEtherTxClient>());
-        _services.AddSingleton<IEtherTxClient>(provider => new EtherClient(provider));
+        _services.AddSingleton<IEtherTxClient>(provider => new EtherClient(provider, true, configuredChainId));
 
         var provider = _services.BuildServiceProvider();
 

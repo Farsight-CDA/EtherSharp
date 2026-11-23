@@ -30,7 +30,8 @@ namespace EtherSharp.Client;
 internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
 {
     private readonly IServiceProvider _provider;
-    private readonly EtherClientOptions _options;
+    private readonly bool _isTxClient;
+    private readonly (ulong ChainId, ChainIdMode Mode)? _configuredChainId;
     private readonly CallGasLimitSettings _callGasLimitSettings;
     private readonly IRPCTransport _rpcTransport;
 
@@ -55,10 +56,15 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private ulong _chainId;
     private readonly Lock _disposeLock = new Lock();
 
-    internal EtherClient(IServiceProvider provider)
+    internal EtherClient(
+        IServiceProvider provider,
+        bool isTxClient,
+        (ulong ChainId, ChainIdMode Mode)? configuredChainId
+    )
     {
         _provider = provider;
-        _options = provider.GetRequiredService<EtherClientOptions>();
+        _isTxClient = isTxClient;
+        _configuredChainId = configuredChainId;
         _callGasLimitSettings = provider.GetRequiredService<CallGasLimitSettings>();
         _rpcTransport = provider.GetRequiredService<IRPCTransport>();
     }
@@ -222,7 +228,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
         _jsonSerializerContext = _provider.GetRequiredService<EtherSharpJsonSerializerContext>();
 
-        if(_options.IsTxClient)
+        if(_isTxClient)
         {
             _signer = _provider.GetRequiredService<IEtherSigner>();
             _txScheduler = _provider.GetRequiredService<ITxScheduler>();
@@ -233,7 +239,12 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     {
         await BaseInitializeAsync(cancellationToken);
 
-        _chainId = await _ethRpcModule.ChainIdAsync(requestOptions, cancellationToken);
+        ulong chainId = _configuredChainId is (ulong assumedChainId, ChainIdMode.Assume)
+            ? assumedChainId
+            : await _ethRpcModule.ChainIdAsync(requestOptions, cancellationToken);
+
+        ValidateChainId(chainId);
+        _chainId = chainId;
 
         if(_flashCallExecutor is DeployedFlashCallExecutor { HasDeploymentHeight: false } deployedFlashCallExecutor)
         {
@@ -268,6 +279,9 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     {
         await BaseInitializeAsync(cancellationToken);
 
+        var chainIdQuery = _configuredChainId is (ulong assumedChainId, ChainIdMode.Assume)
+            ? IQuery.Noop(assumedChainId)
+            : IQuery.GetChainId();
         initQuery ??= IQuery.Noop<T>(default!);
         var deployedFlashCallExecutor = _flashCallExecutor is DeployedFlashCallExecutor { HasDeploymentHeight: false } executor
             ? executor
@@ -280,13 +294,16 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         T? initResult;
 
-        (_chainId, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
-            IQuery.Combine(IQuery.GetChainId(), initQuery, flashCallSetupQuery),
+        (ulong chainId, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
+            IQuery.Combine(chainIdQuery, initQuery, flashCallSetupQuery),
             null,
             TargetHeight.Latest,
             requestOptions,
             cancellationToken
         );
+
+        ValidateChainId(chainId);
+        _chainId = chainId;
 
         deployedFlashCallExecutor?.SetDeploymentHeight((ulong) deploymentHeight);
 
@@ -297,6 +314,16 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         _initialized = true;
         return initResult!;
+    }
+
+    private void ValidateChainId(ulong actualChainId)
+    {
+        if(_configuredChainId is (ulong expectedChainId, ChainIdMode.Verify) && actualChainId != expectedChainId)
+        {
+            throw new InvalidOperationException(
+                $"Connected RPC reported chain ID {actualChainId}, expected {expectedChainId}."
+            );
+        }
     }
 
     private void AssertReady()
@@ -399,7 +426,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     {
         AssertReady();
 
-        return options.From is null && _options.IsTxClient
+        return options.From is null && _isTxClient
             ? _ethRpcModule.EstimateGasAsync(
                 call.To, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
             : _ethRpcModule.EstimateGasAsync(
@@ -412,7 +439,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     {
         AssertReady();
 
-        return options.From is null && _options.IsTxClient
+        return options.From is null && _isTxClient
             ? _ethRpcModule.CreateAccessListAsync(
                 call.To, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
             : _ethRpcModule.CreateAccessListAsync(
@@ -442,7 +469,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     {
         AssertReady();
 
-        var resultTask = options.From is null && _options.IsTxClient
+        var resultTask = options.From is null && _isTxClient
             ? _ethRpcModule.CallAsync(
                 call.To, null, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
             : _ethRpcModule.CallAsync(
