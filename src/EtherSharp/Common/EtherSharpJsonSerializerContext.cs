@@ -7,5 +7,6 @@ namespace EtherSharp.Common;
 
 [JsonSerializable(typeof(BlockHeader))]
 [JsonSerializable(typeof(Log))]
+[JsonSerializable(typeof(Bytes32))]
 [JsonSerializable(typeof(RpcError))]
 internal sealed partial class EtherSharpJsonSerializerContext : JsonSerializerContext;

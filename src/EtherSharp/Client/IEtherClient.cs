@@ -2,6 +2,7 @@
 using EtherSharp.Client.Modules.Debug;
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
+using EtherSharp.Client.Modules.Mempool;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
@@ -36,6 +37,11 @@ public interface IEtherClient : IAsyncDisposable
     /// Gets the module for block-related RPC operations.
     /// </summary>
     public IBlocksModule Blocks { get; }
+
+    /// <summary>
+    /// Gets the module for pending transaction pool operations.
+    /// </summary>
+    public IMempoolModule Mempool { get; }
 
     /// <summary>
     /// Gets the module for debug RPC operations.

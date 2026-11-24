@@ -2,6 +2,7 @@
 using EtherSharp.Client.Modules.Debug;
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
+using EtherSharp.Client.Modules.Mempool;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
@@ -38,6 +39,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private IEtherTxModule _etherModule = null!;
     private ITraceModule _traceModule = null!;
     private IBlocksModule _blocksModule = null!;
+    private IMempoolModule _mempoolModule = null!;
     private IDebugModule _debugModule = null!;
 
     private IEthRpcModule _ethRpcModule = null!;
@@ -89,6 +91,11 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     IBlocksModule IEtherClient.Blocks
         => _initialized
             ? _blocksModule
+            : throw new InvalidOperationException("Client not initialized");
+
+    IMempoolModule IEtherClient.Mempool
+        => _initialized
+            ? _mempoolModule
             : throw new InvalidOperationException("Client not initialized");
 
     ITraceModule IEtherClient.Trace
@@ -218,6 +225,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         _etherModule = _provider.GetRequiredService<IEtherTxModule>();
         _traceModule = _provider.GetRequiredService<ITraceModule>();
         _blocksModule = _provider.GetRequiredService<IBlocksModule>();
+        _mempoolModule = _provider.GetRequiredService<IMempoolModule>();
         _debugModule = _provider.GetRequiredService<IDebugModule>();
 
         _ethRpcModule = _provider.GetRequiredService<IEthRpcModule>();

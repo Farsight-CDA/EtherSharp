@@ -1,6 +1,7 @@
 ﻿using EtherSharp.Client.Modules.Blocks;
 using EtherSharp.Client.Modules.Debug;
 using EtherSharp.Client.Modules.Ether;
+using EtherSharp.Client.Modules.Mempool;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.ContractFactory;
@@ -574,6 +575,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddSingleton<IEtherTxModule, EtherModule>();
         _services.AddSingleton<ITraceModule, TraceModule>();
         _services.AddSingleton<IBlocksModule, BlocksModule>();
+        _services.AddSingleton<IMempoolModule, MempoolModule>();
         _services.AddSingleton<IDebugModule, DebugModule>();
 
         _services.AddSingleton<ContractFactory>();

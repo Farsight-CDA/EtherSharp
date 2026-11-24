@@ -158,6 +158,12 @@ public interface IEthRpcModule
     public Task<string> SubscribeNewHeadsAsync(RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Subscribes to the hashes of new pending transactions.
+    /// </summary>
+    public Task<string> SubscribeNewPendingTransactionHashesAsync(
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Cancels an active subscription.
     /// </summary>
     public Task<bool> UnsubscribeAsync(string subscriptionId, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);

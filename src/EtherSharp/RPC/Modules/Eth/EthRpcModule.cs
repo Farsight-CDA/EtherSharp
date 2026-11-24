@@ -394,6 +394,24 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         };
     }
 
+    public async Task<string> SubscribeNewPendingTransactionHashesAsync(
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
+    {
+        if(!_rpcTransport.SupportsSubscriptions)
+        {
+            throw new InvalidOperationException("The underlying transport does not support subscriptions");
+        }
+        //
+        return await _rpcClient.SendRpcRequestAsync<string, string>(
+            "eth_subscribe", "newPendingTransactions", TargetHeight.Latest, requestOptions, cancellationToken
+        ) switch
+        {
+            RpcResult<string>.Success result => result.Result,
+            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<string>.Null => throw new NotImplementedException(),
+        };
+    }
+
     public async Task<bool> UnsubscribeAsync(string subscriptionId, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         if(!_rpcTransport.SupportsSubscriptions)
