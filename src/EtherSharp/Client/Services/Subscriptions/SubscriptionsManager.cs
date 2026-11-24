@@ -175,6 +175,11 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                 _logger?.LogWarning(connectionError, "Connection lost, closing {count} subscriptions", _activeSubscriptions.Count);
             }
 
+            foreach(var subscription in _activeSubscriptions.Values)
+            {
+                subscription.Interrupt(new SubscriptionInterrupted(SubscriptionInterruptionReason.ConnectionLost, connectionError.Message));
+            }
+
             CloseAll();
         }
     }
@@ -242,6 +247,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
                     if(_activeSubscriptions.Remove(subscription.Id))
                     {
+                        subscription.Interrupt(new SubscriptionInterrupted(SubscriptionInterruptionReason.TerminatedByNode, notification.Error));
                         subscription.Close();
                     }
                     break;
