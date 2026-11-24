@@ -213,6 +213,11 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                 await _ethRpcModule.UnsubscribeAsync(subscription.Id, subscription.RequestOptions);
             }
         }
+        catch(Exception ex)
+        {
+            //Either gone with the connection, or uninstalled once its next notification arrives as unknown
+            _logger?.LogWarning(ex, "Failed to unsubscribe subscription id {id} of type {type}", subscription.Id, subscription);
+        }
         finally
         {
             subscription.Close();
