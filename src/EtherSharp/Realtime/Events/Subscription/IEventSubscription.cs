@@ -1,5 +1,3 @@
-using EtherSharp.Common.Exceptions;
-
 namespace EtherSharp.Realtime.Events.Subscription;
 
 /// <summary>
@@ -13,6 +11,10 @@ public interface IEventSubscription<TLog> : IAsyncDisposable
     /// Listens for decoded realtime log events.
     /// </summary>
     /// <param name="cancellationToken">Token used to stop listening.</param>
-    /// <returns>An async stream of decoded logs that throws a <see cref="SubscriptionInterruptedException"/> if the subscription is interrupted.</returns>
-    public IAsyncEnumerable<TLog> ListenAsync(CancellationToken cancellationToken = default);
+    /// <returns>
+    /// An async stream of decoded logs. A <see cref="SubscriptionInterruption"/> is emitted once the subscription is live again
+    /// after an interruption, logs emitted in between may have been missed.
+    /// Use <see cref="SubscriptionEventExtensions.IgnoreInterruptions{T}"/> if missed logs are acceptable.
+    /// </returns>
+    public IAsyncEnumerable<SubscriptionEvent<TLog>> ListenAsync(CancellationToken cancellationToken = default);
 }

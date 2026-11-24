@@ -4,7 +4,6 @@ using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading.Channels;
 
@@ -27,7 +26,7 @@ internal sealed class EventSubscription<TLog>(
     private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
 
     private readonly EventFilter _eventFilter = eventFilter;
-    private readonly Channel<Log> _channel = Channel.CreateUnbounded<Log>(new UnboundedChannelOptions()
+    private readonly Channel<SubscriptionEvent<Log>> _channel = Channel.CreateUnbounded<SubscriptionEvent<Log>>(new UnboundedChannelOptions()
     {
         SingleReader = true,
         SingleWriter = true,
@@ -35,22 +34,20 @@ internal sealed class EventSubscription<TLog>(
     private readonly Lock _statusLock = new Lock();
     private bool _isClosed;
     private bool _isDisposing;
-    private Exception? _closeError;
 
-    public async IAsyncEnumerable<TLog> ListenAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<SubscriptionEvent<TLog>> ListenAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         while(await _channel.Reader.WaitToReadAsync(cancellationToken))
         {
-            while(_channel.Reader.TryRead(out var log))
+            while(_channel.Reader.TryRead(out var subscriptionEvent))
             {
-                yield return TLog.Decode(log);
+                yield return subscriptionEvent switch
+                {
+                    Log log => TLog.Decode(log),
+                    SubscriptionInterruption interruption => interruption,
+                };
                 cancellationToken.ThrowIfCancellationRequested();
             }
-        }
-
-        if(_closeError is not null)
-        {
-            ExceptionDispatchInfo.Throw(_closeError);
         }
     }
 
@@ -89,7 +86,7 @@ internal sealed class EventSubscription<TLog>(
         }
     }
 
-    public void Close(Exception? error = null)
+    public void Close()
     {
         lock(_statusLock)
         {
@@ -99,7 +96,6 @@ internal sealed class EventSubscription<TLog>(
             }
 
             _isClosed = true;
-            _closeError = error;
         }
 
         _channel.Writer.TryComplete();

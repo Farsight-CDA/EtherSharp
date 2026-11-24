@@ -293,7 +293,7 @@ await wsClient.InitializeAsync();
 var liveErc20 = wsClient.Contract<IERC20>("0x123...");
 await using var subscription = await liveErc20.Events.TransferEvent.CreateSubscriptionAsync();
 
-await foreach (var transfer in subscription.ListenAsync())
+await foreach (var transfer in subscription.ListenAsync().IgnoreInterruptions())
 {
     Console.WriteLine($"New Transfer: {transfer.From} -> {transfer.To}");
 }
@@ -314,7 +314,7 @@ You can subscribe to new block headers from the `Blocks` module (WebSocket trans
 ```csharp
 await using var blockSub = await wsClient.Blocks.SubscribeNewHeadsAsync();
 
-await foreach (var block in blockSub.ListenAsync())
+await foreach (var block in blockSub.ListenAsync().IgnoreInterruptions())
 {
     Console.WriteLine($"New block: {block.Number}");
 }

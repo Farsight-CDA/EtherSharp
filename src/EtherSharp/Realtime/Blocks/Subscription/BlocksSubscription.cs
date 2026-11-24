@@ -3,7 +3,6 @@ using EtherSharp.Common;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading.Channels;
 
@@ -18,30 +17,28 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
     private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
-    private readonly Channel<BlockHeader> _channel = Channel.CreateUnbounded<BlockHeader>(new UnboundedChannelOptions()
-    {
-        SingleReader = true,
-        SingleWriter = true,
-    });
+    private readonly Channel<SubscriptionEvent<BlockHeader>> _channel = Channel.CreateUnbounded<SubscriptionEvent<BlockHeader>>(
+        new UnboundedChannelOptions()
+        {
+            SingleReader = true,
+            SingleWriter = true,
+        }
+    );
     private readonly Lock _statusLock = new Lock();
     private bool _isClosed;
     private bool _isDisposing;
-    private Exception? _closeError;
 
-    public async IAsyncEnumerable<BlockHeader> ListenAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<SubscriptionEvent<BlockHeader>> ListenAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
     {
         while(await _channel.Reader.WaitToReadAsync(cancellationToken))
         {
-            while(_channel.Reader.TryRead(out var header))
+            while(_channel.Reader.TryRead(out var subscriptionEvent))
             {
-                yield return header;
+                yield return subscriptionEvent;
                 cancellationToken.ThrowIfCancellationRequested();
             }
-        }
-
-        if(_closeError is not null)
-        {
-            ExceptionDispatchInfo.Throw(_closeError);
         }
     }
 
@@ -74,7 +71,7 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
         }
     }
 
-    public void Close(Exception? error = null)
+    public void Close()
     {
         lock(_statusLock)
         {
@@ -84,7 +81,6 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
             }
 
             _isClosed = true;
-            _closeError = error;
         }
 
         _channel.Writer.TryComplete();

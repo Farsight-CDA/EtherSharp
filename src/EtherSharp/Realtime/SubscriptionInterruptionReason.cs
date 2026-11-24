@@ -1,4 +1,4 @@
-namespace EtherSharp.Common.Exceptions;
+namespace EtherSharp.Realtime;
 
 /// <summary>
 /// Describes why a subscription was interrupted.

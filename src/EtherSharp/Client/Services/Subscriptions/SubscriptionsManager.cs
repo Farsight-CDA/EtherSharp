@@ -70,9 +70,9 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
         Exception exception = _isClosed
             ? new ObjectDisposedException(GetType().FullName)
-            : new SubscriptionInterruptedException(SubscriptionInterruptionReason.ConnectionLost);
+            : new RPCTransportException("The connection was lost while installing the subscription.");
 
-        subscription.Close(exception);
+        subscription.Close();
         throw exception;
     }
 
@@ -152,7 +152,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
             }
 
             _isClosed = true;
-            CloseAll(null);
+            CloseAll();
         }
 
         _rpcTransport.OnConnectionLost -= HandleConnectionLost;
@@ -172,21 +172,18 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
             if(_activeSubscriptions.Count > 0)
             {
-                _logger?.LogWarning("Connection lost, closing {count} subscriptions", _activeSubscriptions.Count);
+                _logger?.LogWarning(connectionError, "Connection lost, closing {count} subscriptions", _activeSubscriptions.Count);
             }
 
-            CloseAll(connectionError);
+            CloseAll();
         }
     }
 
-    private void CloseAll(Exception? connectionError)
+    private void CloseAll()
     {
         foreach(var subscription in _activeSubscriptions.Values)
         {
-            subscription.Close(connectionError is null
-                ? null
-                : new SubscriptionInterruptedException(SubscriptionInterruptionReason.ConnectionLost, innerException: connectionError)
-            );
+            subscription.Close();
         }
 
         _activeSubscriptions.Clear();
@@ -245,9 +242,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
                     if(_activeSubscriptions.Remove(subscription.Id))
                     {
-                        subscription.Close(
-                            new SubscriptionInterruptedException(SubscriptionInterruptionReason.TerminatedByNode, notification.Error)
-                        );
+                        subscription.Close();
                     }
                     break;
                 case SubscriptionNotification.Kind.Malformed:

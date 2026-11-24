@@ -31,8 +31,7 @@ public interface ISubscription : IAsyncDisposable
     public Task InstallAsync(RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Closes the local subscription state without sending an unsubscribe RPC.
+    /// Closes the local subscription state without sending an unsubscribe RPC, ending the stream of listeners.
     /// </summary>
-    /// <param name="error">The error to surface to listeners, or <c>null</c> to end the stream normally.</param>
-    public void Close(Exception? error = null);
+    public void Close();
 }
