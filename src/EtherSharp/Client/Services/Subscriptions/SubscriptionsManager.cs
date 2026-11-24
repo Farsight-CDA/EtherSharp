@@ -19,8 +19,9 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     private readonly ILogger? _logger;
 
     private readonly Lock _lock = new Lock();
-    //Waiting for the eth_subscribe response, removing a subscription uninstalls it once the response arrives
-    private readonly List<ISubscription> _installingSubscriptions = [];
+    //Every subscription owned by the manager, removing one uninstalls it
+    private readonly Dictionary<ISubscription, SubscriptionStatus> _subscriptions = [];
+    //Routes notifications of active subscriptions by their node side id
     private readonly Dictionary<string, ISubscription> _activeSubscriptions = [];
     //Some nodes (e.g. Nethermind, Besu) can send notifications before the eth_subscribe response, those are parked until claimed
     private readonly Dictionary<string, List<byte[]>> _parkedNotifications = [];
@@ -50,7 +51,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         lock(_lock)
         {
             ObjectDisposedException.ThrowIf(_isClosed, this);
-            _installingSubscriptions.Add(subscription);
+            _subscriptions.Add(subscription, SubscriptionStatus.Installing);
             connectionGeneration = _connectionGeneration;
         }
 
@@ -85,12 +86,11 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
         lock(_lock)
         {
-            bool isWanted = _installingSubscriptions.Remove(subscription);
-
             if(isInstalled && !_isClosed && connectionGeneration == _connectionGeneration)
             {
-                if(isWanted)
+                if(_subscriptions.ContainsKey(subscription))
                 {
+                    _subscriptions[subscription] = SubscriptionStatus.Active;
                     _activeSubscriptions.Add(subscription.Id, subscription);
                     isActivated = true;
 
@@ -108,9 +108,13 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                     subscriptionIdsToUninstall.Add(subscription.Id);
                 }
             }
+            else
+            {
+                //Failed or installed on a lost connection
+                _ = _subscriptions.Remove(subscription);
+            }
 
-            //No pending installation is left that could claim the remaining parked notifications
-            if(_installingSubscriptions.Count == 0 && _parkedNotifications.Count > 0)
+            if(!_subscriptions.ContainsValue(SubscriptionStatus.Installing) && _parkedNotifications.Count > 0)
             {
                 subscriptionIdsToUninstall.AddRange(_parkedNotifications.Keys);
                 _parkedNotifications.Clear();
@@ -131,13 +135,12 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
         lock(_lock)
         {
-            //Id is null if the installation never completed. Ids can be reused across connections, so match on the instance as well
-            wasActive = subscription.Id is { } subscriptionId
-                && _activeSubscriptions.TryGetValue(subscriptionId, out var activeSubscription)
-                && ReferenceEquals(activeSubscription, subscription)
-                && _activeSubscriptions.Remove(subscriptionId);
+            wasActive = _subscriptions.Remove(subscription, out var status) && status == SubscriptionStatus.Active;
 
-            _ = _installingSubscriptions.Remove(subscription);
+            if(wasActive)
+            {
+                _ = _activeSubscriptions.Remove(subscription.Id);
+            }
         }
 
         try
@@ -163,7 +166,15 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
             }
 
             _isClosed = true;
-            CloseAll();
+
+            foreach(var subscription in _subscriptions.Keys)
+            {
+                subscription.Close();
+            }
+
+            _subscriptions.Clear();
+            _activeSubscriptions.Clear();
+            _parkedNotifications.Clear();
         }
 
         _rpcTransport.OnConnectionLost -= HandleConnectionLost;
@@ -183,27 +194,18 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
             if(_activeSubscriptions.Count > 0)
             {
-                _logger?.LogWarning(connectionError, "Connection lost, closing {count} subscriptions", _activeSubscriptions.Count);
+                _logger?.LogWarning(connectionError, "Connection lost, interrupting {count} subscriptions", _activeSubscriptions.Count);
             }
 
             foreach(var subscription in _activeSubscriptions.Values)
             {
                 subscription.Interrupt(new SubscriptionInterrupted(SubscriptionInterruptionReason.ConnectionLost, connectionError.Message));
+                _subscriptions[subscription] = SubscriptionStatus.Interrupted;
             }
 
-            CloseAll();
+            _activeSubscriptions.Clear();
+            _parkedNotifications.Clear();
         }
-    }
-
-    private void CloseAll()
-    {
-        foreach(var subscription in _activeSubscriptions.Values)
-        {
-            subscription.Close();
-        }
-
-        _activeSubscriptions.Clear();
-        _parkedNotifications.Clear();
     }
 
     private void HandleSubscriptionMessage(string subscriptionId, ReadOnlySpan<byte> payload)
@@ -221,7 +223,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                 return;
             }
 
-            if(_installingSubscriptions.Count > 0)
+            if(_subscriptions.ContainsValue(SubscriptionStatus.Installing))
             {
                 if(!_parkedNotifications.TryGetValue(subscriptionId, out var parkedNotifications))
                 {
@@ -258,6 +260,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
                     if(_activeSubscriptions.Remove(subscription.Id))
                     {
+                        _ = _subscriptions.Remove(subscription);
                         subscription.Interrupt(new SubscriptionInterrupted(SubscriptionInterruptionReason.TerminatedByNode, notification.Error));
                         subscription.Close();
                     }
@@ -294,5 +297,15 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         {
             _logger?.LogCritical(ex, "Failed to uninstall unknown subscription with id {id}", subscriptionId);
         }
+    }
+
+    private enum SubscriptionStatus
+    {
+        //Waiting for the eth_subscribe response
+        Installing,
+        //Receiving notifications, routed through _activeSubscriptions
+        Active,
+        //Lost its node side subscription
+        Interrupted,
     }
 }
