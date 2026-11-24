@@ -461,6 +461,9 @@ public sealed class BlockingSequentialTxScheduler(
                 case TxSubmissionResult.TransactionUnderpriced:
                     activeError = new TxConfirmationError.TransactionUnderpriced();
                     continue;
+                case TxSubmissionResult.InsufficientFunds:
+                    activeError = new TxConfirmationError.InsufficientFunds();
+                    continue;
                 case TxSubmissionResult.UnhandledException ex:
                     activeError = new TxConfirmationError.UnhandledException(ex.Exception);
                     continue;

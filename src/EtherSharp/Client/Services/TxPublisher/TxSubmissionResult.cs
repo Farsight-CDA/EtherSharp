@@ -45,6 +45,21 @@ public closed record TxSubmissionResult
         StringComparison.OrdinalIgnoreCase
     );
 
+    private static readonly SearchValues<string> _insufficientFundsMessages = SearchValues.Create(
+        [
+            "insufficient funds",
+            "InsufficientFunds",
+            "insufficient payer funds",
+            "insufficient sender funds",
+            "exceeds account balance",
+            "exceeds transaction sender account balance",
+            "signer had insufficient balance",
+            "not enough balance to cover the fee",
+            "the sender account doesn't exist"
+        ],
+        StringComparison.OrdinalIgnoreCase
+    );
+
     /// <summary>
     /// The transaction payload was accepted by the node and returned a transaction hash.
     /// </summary>
@@ -76,6 +91,11 @@ public closed record TxSubmissionResult
     public sealed record NonceTooLow() : TxSubmissionResult;
 
     /// <summary>
+    /// The paying account cannot cover the transaction's upfront cost.
+    /// </summary>
+    public sealed record InsufficientFunds() : TxSubmissionResult;
+
+    /// <summary>
     /// The publish attempt failed for a reason that is not mapped to a specialized submission status.
     /// </summary>
     /// <param name="Exception">The original exception raised while publishing.</param>
@@ -91,7 +111,8 @@ public closed record TxSubmissionResult
     /// </returns>
     /// <remarks>
     /// Matching is case-insensitive and checks for already-known transactions first, then underpriced
-    /// transactions, and finally nonce-too-low errors. Non-RPC exceptions are not classified by message.
+    /// transactions, then nonce-too-low errors, and insufficient funds.
+    /// Non-RPC exceptions are not classified by message.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="exception"/> is <see langword="null"/>.</exception>
     public static TxSubmissionResult FromException(Exception exception)
@@ -111,6 +132,11 @@ public closed record TxSubmissionResult
             else if(exception.Message.AsSpan().ContainsAny(_nonceTooLowMessages))
             {
                 return new NonceTooLow();
+            }
+            else if(exception.Message.AsSpan().ContainsAny(_insufficientFundsMessages)
+                && !exception.Message.Contains("execution reverted", StringComparison.OrdinalIgnoreCase))
+            {
+                return new InsufficientFunds();
             }
         }
 

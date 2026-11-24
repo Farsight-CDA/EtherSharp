@@ -16,6 +16,11 @@ public closed record TxConfirmationError
     public sealed record TransactionUnderpriced : TxConfirmationError;
 
     /// <summary>
+    /// The paying account cannot cover the transaction's upfront cost of gas and value.
+    /// </summary>
+    public sealed record InsufficientFunds : TxConfirmationError;
+
+    /// <summary>
     /// Represents any error condition not represented by the other TxConfirmationError types.
     /// </summary>
     public sealed record UnhandledException(Exception Exception) : TxConfirmationError;
