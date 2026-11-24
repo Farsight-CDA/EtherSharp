@@ -23,6 +23,7 @@ internal abstract class SubscriptionBase<T>(ISubscriptionsManager subscriptionsM
     private readonly Lock _statusLock = new Lock();
     private bool _isClosed;
     private bool _isDisposing;
+    private bool _isInterrupted;
 
     protected abstract Task<string> SubscribeAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken);
 
@@ -38,6 +39,24 @@ internal abstract class SubscriptionBase<T>(ISubscriptionsManager subscriptionsM
 
     public void HandleSubscriptionMessage(ReadOnlySpan<byte> result)
         => _channel.Writer.TryWrite(JsonSerializer.Deserialize(result, _resultTypeInfo)!);
+
+    public void Interrupt(SubscriptionInterrupted interruption)
+    {
+        if(!_isInterrupted)
+        {
+            _isInterrupted = true;
+            _ = _channel.Writer.TryWrite(interruption);
+        }
+    }
+
+    public void Resume()
+    {
+        if(_isInterrupted)
+        {
+            _isInterrupted = false;
+            _ = _channel.Writer.TryWrite(SubscriptionResumed.Instance);
+        }
+    }
 
     public async ValueTask DisposeAsync()
     {

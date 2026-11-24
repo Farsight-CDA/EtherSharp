@@ -11,7 +11,7 @@ public static class SubscriptionEventExtensions
         where T : notnull
     {
         /// <summary>
-        /// Yields only the subscription items, skipping <see cref="SubscriptionInterruption"/> markers.
+        /// Yields only the subscription items, skipping <see cref="SubscriptionInterrupted"/> and <see cref="SubscriptionResumed"/> markers.
         /// Use this when missing items during an interruption is acceptable.
         /// </summary>
         /// <param name="cancellationToken">Token used to stop listening.</param>

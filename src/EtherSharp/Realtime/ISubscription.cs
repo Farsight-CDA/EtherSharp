@@ -24,6 +24,17 @@ public interface ISubscription : IAsyncDisposable
     public void HandleSubscriptionMessage(ReadOnlySpan<byte> result);
 
     /// <summary>
+    /// Reports an interruption to listeners. Further interruptions are ignored until the next <see cref="Resume"/>.
+    /// </summary>
+    /// <param name="interruption">The interruption that stopped the subscription from receiving notifications.</param>
+    public void Interrupt(SubscriptionInterrupted interruption);
+
+    /// <summary>
+    /// Called once the subscription is live again, before any of its notifications. Reports the resumption of an interrupted subscription to listeners.
+    /// </summary>
+    public void Resume();
+
+    /// <summary>
     /// Installs the subscription on the remote node.
     /// </summary>
     /// <param name="requestOptions">Transport-specific request options.</param>

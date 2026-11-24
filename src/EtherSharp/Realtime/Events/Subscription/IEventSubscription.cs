@@ -12,8 +12,8 @@ public interface IEventSubscription<TLog> : IAsyncDisposable
     /// </summary>
     /// <param name="cancellationToken">Token used to stop listening.</param>
     /// <returns>
-    /// An async stream of decoded logs. A <see cref="SubscriptionInterruption"/> is emitted once the subscription is live again
-    /// after an interruption, logs emitted in between may have been missed.
+    /// An async stream of decoded logs. A <see cref="SubscriptionInterrupted"/> is emitted when the subscription is interrupted
+    /// and a <see cref="SubscriptionResumed"/> once it is live again, logs emitted in between may have been missed.
     /// Use <see cref="SubscriptionEventExtensions.IgnoreInterruptions{T}"/> if missed logs are acceptable.
     /// </returns>
     public IAsyncEnumerable<SubscriptionEvent<TLog>> ListenAsync(CancellationToken cancellationToken = default);

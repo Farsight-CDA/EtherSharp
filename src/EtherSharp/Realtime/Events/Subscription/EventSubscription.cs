@@ -26,7 +26,8 @@ internal sealed class EventSubscription<TLog>(
             yield return subscriptionEvent switch
             {
                 Log log => TLog.Decode(log),
-                SubscriptionInterruption interruption => interruption,
+                SubscriptionInterrupted interrupted => interrupted,
+                SubscriptionResumed resumed => resumed,
             };
         }
     }
