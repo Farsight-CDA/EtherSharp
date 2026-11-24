@@ -1,5 +1,4 @@
 ﻿using EtherSharp.Realtime.Events;
-using EtherSharp.Realtime.Events.Polling;
 using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
@@ -32,18 +31,6 @@ public interface IConfiguredEventsModule<TLog>
         TargetHeight? fromBlock = null, TargetHeight toBlock = default, Bytes32? blockHash = null,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
-
-    /// <summary>
-    /// Creates a poll-based event filter that can be queried incrementally.
-    /// </summary>
-    /// <param name="fromBlock">Start block (inclusive) for the filter.</param>
-    /// <param name="toBlock">Optional end block (inclusive) for the filter.</param>
-    /// <param name="requestOptions">Transport-specific request options.</param>
-    /// <param name="cancellationToken">Token used to cancel filter creation.</param>
-    /// <returns>An initialized event filter handle.</returns>
-    public Task<IPollingEventFilter<TLog>> CreatePollingFilterAsync(
-        TargetHeight fromBlock = default, TargetHeight toBlock = default,
-        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a push-based subscription for matching future logs.

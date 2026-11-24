@@ -20,8 +20,6 @@ namespace EtherSharp.RPC.Transport;
 public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 {
     /// <inheritdoc />
-    public bool SupportsFilters => true;
-    /// <inheritdoc />
     public bool SupportsSubscriptions => true;
 
     /// <inheritdoc />

@@ -12,7 +12,6 @@ internal sealed class BenchTransport : IRPCTransport
     private static readonly Task<RpcResult<int>> _intResult =
         Task.FromResult<RpcResult<int>>(new RpcResult<int>.Success(1));
 
-    public bool SupportsFilters => true;
     public bool SupportsSubscriptions => false;
 
     public event Action? OnConnectionEstablished

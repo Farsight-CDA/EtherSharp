@@ -146,25 +146,6 @@ public interface IEthRpcModule
     );
 
     /// <summary>
-    /// Creates a log filter.
-    /// </summary>
-    public Task<string> NewFilterAsync(
-        TargetHeight fromBlock, TargetHeight toBlock,
-        EventFilter eventFilter,
-        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    /// Gets new log entries for a filter.
-    /// </summary>
-    public Task<Log[]> GetEventFilterChangesAsync(string filterId, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Uninstalls a filter.
-    /// </summary>
-    public Task<bool> UninstallFilterAsync(string filterId, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Subscribes to log notifications.
     /// </summary>
     public Task<string> SubscribeLogsAsync(

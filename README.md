@@ -299,14 +299,6 @@ await foreach (var transfer in subscription.ListenAsync().IgnoreInterruptions())
 }
 ```
 
-#### Polling with Event Filters
-If you prefer polling over streaming subscriptions, create a filter and fetch incremental changes.
-
-```csharp
-await using var filter = await erc20.Events.TransferEvent.CreatePollingFilterAsync();
-var changes = await filter.GetChangesAsync();
-```
-
 ### Block Subscriptions
 
 You can subscribe to new block headers from the `Blocks` module (WebSocket transport required).

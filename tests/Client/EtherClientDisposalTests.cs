@@ -11,7 +11,6 @@ public sealed class EtherClientDisposalTests
     public async Task Should_Dispose_Provider_Services_And_Transport()
     {
         var transport = Substitute.For<IRPCTransport, IAsyncDisposable>();
-        transport.SupportsFilters.Returns(true);
         transport.SupportsSubscriptions.Returns(false);
 
         var builder = EtherClientBuilder.CreateEmpty()

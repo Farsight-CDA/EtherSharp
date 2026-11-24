@@ -24,8 +24,6 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
     };
 
     /// <inheritdoc />
-    public bool SupportsFilters => true;
-    /// <inheritdoc />
     public bool SupportsSubscriptions => false;
 
     private readonly HttpClient _client;

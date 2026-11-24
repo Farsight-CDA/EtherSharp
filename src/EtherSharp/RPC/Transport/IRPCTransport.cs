@@ -7,10 +7,6 @@ namespace EtherSharp.RPC.Transport;
 public interface IRPCTransport
 {
     /// <summary>
-    /// Specifies if the transport supports filters.
-    /// </summary>
-    public bool SupportsFilters { get; }
-    /// <summary>
     /// Specifies if the transport supports subscriptions.
     /// </summary>
     public bool SupportsSubscriptions { get; }

@@ -4,7 +4,6 @@ using EtherSharp.Common.Comparer;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.Realtime.Events;
-using EtherSharp.Realtime.Events.Polling;
 using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
@@ -12,11 +11,10 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Events;
 
-internal sealed class EventsModule<TLog>(IRPCTransport rpcTransport, IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+internal sealed class EventsModule<TLog>(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
     EtherSharpJsonSerializerContext jsonSerializerContext, EventFilter? eventFilter = null) : IEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {
-    private readonly IRPCTransport _rpcTransport = rpcTransport;
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
     private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
@@ -124,21 +122,6 @@ internal sealed class EventsModule<TLog>(IRPCTransport rpcTransport, IEthRpcModu
         }
 
         return results;
-    }
-
-    public async Task<IPollingEventFilter<TLog>> CreatePollingFilterAsync(TargetHeight fromBlock = default, TargetHeight toBlock = default,
-        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
-    {
-        var filter = new PollingEventFilter<TLog>(
-            _rpcTransport,
-            _ethRpcModule,
-            fromBlock,
-            toBlock,
-            BuildEventFilter(),
-            requestOptions
-        );
-        await filter.InitializeAsync(cancellationToken);
-        return filter;
     }
 
     public async Task<IEventSubscription<TLog>> CreateSubscriptionAsync(
