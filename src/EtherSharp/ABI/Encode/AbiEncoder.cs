@@ -25,6 +25,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
 
     private int _payloadSize;
     private int _metadataSize;
+    private bool _isEncodingFixedTuple;
 
     /// <summary>
     /// Gets the total encoded size in bytes.
@@ -41,6 +42,11 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     {
         if(item is IDynamicType dyn)
         {
+            if(_isEncodingFixedTuple)
+            {
+                throw new InvalidOperationException("Tried to encode a dynamic value as a fixed tuple");
+            }
+
             _payloadSize += dyn.PayloadSize;
             _metadataSize += 32;
         }
@@ -198,16 +204,39 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         func(encoder);
         return AddElement(new AbiTypes.DynamicTuple(encoder));
     }
+
     /// <summary>
-    /// Encodes a fixed tuple element.
+    /// Encodes a fixed tuple element inline.
     /// </summary>
+    /// <remarks>
+    /// The supplied encoder is shared with the enclosing value, so its sizes are cumulative.
+    /// Use it only during the callback.
+    /// </remarks>
     /// <param name="func">Callback that writes tuple fields.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
+    /// <exception cref="InvalidOperationException">The callback attempts to add a dynamic field.</exception>
     public AbiEncoder FixedTuple(Action<IFixedTupleEncoder> func)
     {
-        var encoder = new AbiEncoder();
-        func(encoder);
-        return AddElement(new AbiTypes.FixedTuple(encoder));
+        int entryCount = _entries.Count;
+        int metadataSize = _metadataSize;
+        bool wasEncodingFixedTuple = _isEncodingFixedTuple;
+        _isEncodingFixedTuple = true;
+        try
+        {
+            func(this);
+        }
+        catch
+        {
+            _entries.RemoveRange(entryCount, _entries.Count - entryCount);
+            _metadataSize = metadataSize;
+            throw;
+        }
+        finally
+        {
+            _isEncodingFixedTuple = wasEncodingFixedTuple;
+        }
+
+        return this;
     }
 
     void IArrayAbiEncoder.DynamicTuple(Action<IDynamicTupleEncoder> func)
