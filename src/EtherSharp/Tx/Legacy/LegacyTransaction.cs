@@ -1,6 +1,11 @@
-﻿using EtherSharp.Numerics;
+﻿using EtherSharp.Common;
+using EtherSharp.Crypto;
+using EtherSharp.Numerics;
 using EtherSharp.RLP;
 using EtherSharp.Tx.Types;
+using EtherSharp.Types;
+using EtherSharp.Wallet;
+using System.Buffers;
 
 namespace EtherSharp.Tx.Legacy;
 
@@ -130,5 +135,97 @@ public sealed record LegacyTransaction(
         encoder
             .EncodeInt(Input.Value)
             .EncodeString(Input.Data.Span);
+    }
+
+    /// <summary>
+    /// Encodes and signs this transaction with EIP-155 replay protection.
+    /// </summary>
+    /// <param name="signer">Signer of the transaction.</param>
+    /// <param name="cancellationToken">Token used to cancel the signing operation.</param>
+    /// <returns>The encoded signed transaction and its hash.</returns>
+    public async ValueTask<SignedTransaction> SignAsync(IEtherSigner signer, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(signer);
+
+        ulong eip155VBase = checked((ChainId * 2) + 35);
+        int maxSignatureLength = TxRLPEncoder.GetMaxEncodedSignatureLength(checked(eip155VBase + 1));
+
+        int[] lengthBuffer = ArrayPool<int>.Shared.Rent(NestedListCount);
+        byte[]? rented = null;
+
+        try
+        {
+            int signDataLength = GetSignDataEncodedSize(lengthBuffer);
+            int bufferLength = signDataLength + maxSignatureLength;
+
+            rented = ArrayPool<byte>.Shared.Rent(bufferLength);
+            var signDataBuffer = rented.AsSpan(0, signDataLength);
+
+            EncodeSignData(lengthBuffer, signDataBuffer);
+
+            int txSizeWithoutSignature = GetEncodedSize(lengthBuffer);
+            int maxTxSize = 1 + txSizeWithoutSignature + maxSignatureLength;
+
+            var signingHash = Keccak256.HashData(signDataBuffer);
+            var signature = await signer.SignRecoverableAsync(signingHash, cancellationToken).ConfigureAwait(false);
+
+            var txBuffer = rented.AsSpan(0, maxTxSize);
+            var signatureBuffer = txBuffer[^maxSignatureLength..];
+            EncodeSignature(eip155VBase, signature, signatureBuffer, out int signatureLength);
+
+            if(signatureLength < maxSignatureLength)
+            {
+                txBuffer = txBuffer[..^(maxSignatureLength - signatureLength)];
+            }
+
+            int oldLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0]);
+            int newLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0] + signatureLength);
+
+            if(newLengthBytes == oldLengthBytes)
+            {
+                //Dont need the extra byte for the length increase
+                txBuffer = txBuffer[1..];
+            }
+
+            Encode(lengthBuffer, txBuffer, signatureLength);
+
+            Span<byte> txHashBuffer = stackalloc byte[32];
+            return !Keccak256.TryHashData(txBuffer, txHashBuffer)
+                ? throw new InvalidOperationException("Failed to calculate tx hash")
+                : new SignedTransaction(
+                    HexUtils.ToPrefixedHexString(txBuffer),
+                    Bytes32.FromBytes(txHashBuffer)
+                );
+        }
+        finally
+        {
+            if(rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+            ArrayPool<int>.Shared.Return(lengthBuffer);
+        }
+    }
+
+    private static void EncodeSignature(
+        ulong eip155VBase,
+        in RecoverableEtherSignature signature,
+        Span<byte> signatureBuffer,
+        out int encodedSignatureLength)
+    {
+        Span<byte> rawSignatureBuffer = stackalloc byte[65];
+        signature.CopyTo(rawSignatureBuffer);
+
+        ulong parityByte = rawSignatureBuffer[64] switch
+        {
+            0 => 0,
+            1 => 1,
+            27 => 0,
+            28 => 1,
+            _ => throw new NotSupportedException("Bad parity byte")
+        };
+
+        _ = new RLPEncoder(signatureBuffer).EncodeSignature(
+            rawSignatureBuffer[..64], eip155VBase + parityByte, out encodedSignatureLength);
     }
 }

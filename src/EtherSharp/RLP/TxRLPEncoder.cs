@@ -57,7 +57,10 @@ internal static class TxRLPEncoder
     public static RLPEncoder EncodeAddress(this RLPEncoder encoder, Types.Address address)
         => encoder.EncodeString(address.DangerousGetReadOnlySpan());
 
-    public static int MaxEncodedSignatureLength => 33 + 33 + 1;
+    private const int MAX_ENCODED_SIGNATURE_COMPONENT_LENGTH = 1 + 32;
+
+    public static int GetMaxEncodedSignatureLength(ulong maxV)
+        => RLPEncoder.GetIntSize(maxV) + (2 * MAX_ENCODED_SIGNATURE_COMPONENT_LENGTH);
 
     public static RLPEncoder EncodeSignature(
         this RLPEncoder encoder, ReadOnlySpan<byte> signature, ulong v, out int signatureLength)

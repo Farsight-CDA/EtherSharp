@@ -1,6 +1,11 @@
-﻿using EtherSharp.Numerics;
+﻿using EtherSharp.Common;
+using EtherSharp.Crypto;
+using EtherSharp.Numerics;
 using EtherSharp.RLP;
 using EtherSharp.Tx.Types;
+using EtherSharp.Types;
+using EtherSharp.Wallet;
+using System.Buffers;
 
 namespace EtherSharp.Tx.EIP1559;
 
@@ -24,6 +29,8 @@ public sealed record EIP1559Transaction(
     StateAccess[] AccessList
 ) : ITransaction<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>
 {
+    private static readonly int _maxSignatureLength = TxRLPEncoder.GetMaxEncodedSignatureLength(1);
+
     /// <summary>
     /// Gets the number of nested RLP lists required to encode this transaction.
     /// </summary>
@@ -103,5 +110,93 @@ public sealed record EIP1559Transaction(
             .EncodeString(Input.Data.Span)
             .EncodeList(listLengths[1])
                 .EncodeAccessList(AccessList);
+    }
+
+    /// <summary>
+    /// Encodes and signs this transaction.
+    /// </summary>
+    /// <param name="signer">Signer of the transaction.</param>
+    /// <param name="cancellationToken">Token used to cancel the signing operation.</param>
+    /// <returns>The encoded signed transaction and its hash.</returns>
+    public async ValueTask<SignedTransaction> SignAsync(IEtherSigner signer, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(signer);
+
+        int[] lengthBuffer = ArrayPool<int>.Shared.Rent(NestedListCount);
+        byte[]? rented = null;
+
+        try
+        {
+            int txTemplateLength = GetEncodedSize(lengthBuffer);
+            int txBufferLength = 2 + txTemplateLength + _maxSignatureLength;
+
+            rented = ArrayPool<byte>.Shared.Rent(txBufferLength);
+            var txBuffer = rented.AsSpan(0, txBufferLength);
+            var txTemplateBuffer = txBuffer[1..(txTemplateLength + 2)];
+
+            Encode(lengthBuffer, txTemplateBuffer[1..]);
+            txTemplateBuffer[0] = PrefixByte;
+
+            var signingHash = Keccak256.HashData(txTemplateBuffer);
+            var signature = await signer.SignRecoverableAsync(signingHash, cancellationToken).ConfigureAwait(false);
+
+            txBuffer = rented.AsSpan(0, txBufferLength);
+            var signatureBuffer = txBuffer[^_maxSignatureLength..];
+            EncodeSignature(signature, signatureBuffer, out int signatureLength);
+
+            int oldLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0]);
+            int newLengthBytes = RLPEncoder.GetPrefixLength(lengthBuffer[0] + signatureLength);
+
+            if(newLengthBytes == oldLengthBytes)
+            {
+                //Dont need the extra byte for the length increase
+                txBuffer = txBuffer[1..];
+            }
+            else
+            {
+                txBuffer[0] = PrefixByte;
+            }
+
+            _ = new RLPEncoder(txBuffer[1..]).EncodeList(lengthBuffer[0] + signatureLength);
+
+            var signedTxBuffer = txBuffer[..^(_maxSignatureLength - signatureLength)];
+
+            Span<byte> txHashBuffer = stackalloc byte[32];
+            return !Keccak256.TryHashData(signedTxBuffer, txHashBuffer)
+                ? throw new InvalidOperationException("Failed to calculate tx hash")
+                : new SignedTransaction(
+                    HexUtils.ToPrefixedHexString(signedTxBuffer),
+                    Bytes32.FromBytes(txHashBuffer)
+                );
+        }
+        finally
+        {
+            if(rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+            ArrayPool<int>.Shared.Return(lengthBuffer);
+        }
+    }
+
+    private static void EncodeSignature(
+        in RecoverableEtherSignature signature,
+        Span<byte> signatureBuffer,
+        out int encodedSignatureLength)
+    {
+        Span<byte> rawSignatureBuffer = stackalloc byte[65];
+        signature.CopyTo(rawSignatureBuffer);
+
+        ulong parityByte = rawSignatureBuffer[64] switch
+        {
+            0 => 0,
+            1 => 1,
+            27 => 0,
+            28 => 1,
+            _ => throw new NotSupportedException("Bad parity byte")
+        };
+
+        _ = new RLPEncoder(signatureBuffer).EncodeSignature(
+            rawSignatureBuffer[..64], parityByte, out encodedSignatureLength);
     }
 }

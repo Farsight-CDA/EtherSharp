@@ -172,7 +172,7 @@ public sealed class RLPDecoderTests
         byte[] signature = new byte[64];
         signature[2] = 0x7f;
         signature.AsSpan(32..).Fill(0xab);
-        byte[] buffer = new byte[TxRLPEncoder.MaxEncodedSignatureLength];
+        byte[] buffer = new byte[TxRLPEncoder.GetMaxEncodedSignatureLength(1)];
         _ = new RLPEncoder(buffer).EncodeSignature(signature, 1, out int signatureLength);
 
         var decoder = new RLPDecoder(buffer.AsSpan(0, signatureLength));
