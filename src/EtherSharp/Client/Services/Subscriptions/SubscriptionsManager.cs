@@ -414,7 +414,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
             await _ethRpcModule.UnsubscribeAsync(subscriptionId);
         }
-        catch(RPCException ex) when(ex.Message.Contains("not found"))
+        catch(RpcErrorException ex) when(ex.Message.Contains("not found"))
         {
             return;
         }

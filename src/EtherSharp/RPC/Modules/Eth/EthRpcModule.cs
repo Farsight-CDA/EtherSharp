@@ -19,16 +19,16 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         => await _rpcClient.SendRpcRequestAsync<ulong>("eth_chainId", TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<ulong>.Success result => result.Result,
-            RpcResult<ulong>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<ulong>.Null => throw new NotImplementedException(),
+            RpcResult<ulong>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<ulong>.Null => throw new RpcNullResultException("eth_chainId"),
         };
 
     public async Task<ulong> BlockNumberAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken)
         => await _rpcClient.SendRpcRequestAsync<ulong>("eth_blockNumber", TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<ulong>.Success result => result.Result,
-            RpcResult<ulong>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<ulong>.Null => throw new NotImplementedException(),
+            RpcResult<ulong>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<ulong>.Null => throw new RpcNullResultException("eth_blockNumber"),
         };
 
     public Task<UInt256> GetBalanceAsync(in Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
@@ -42,8 +42,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             "eth_getBalance", address, targetHeight, targetHeight, requestOptions, cancellationToken) switch
         {
             RpcResult<UInt256>.Success result => result.Result,
-            RpcResult<UInt256>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<UInt256>.Null => throw new NotImplementedException(),
+            RpcResult<UInt256>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<UInt256>.Null => throw new RpcNullResultException("eth_getBalance"),
         };
 
     public Task<ulong> GetTransactionCountAsync(in Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
@@ -57,8 +57,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             "eth_getTransactionCount", address, targetHeight, targetHeight, requestOptions, cancellationToken) switch
         {
             RpcResult<ulong>.Success result => result.Result,
-            RpcResult<ulong>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<ulong>.Null => throw new NotImplementedException(),
+            RpcResult<ulong>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<ulong>.Null => throw new RpcNullResultException("eth_getTransactionCount"),
         };
 
     public async Task<long> BlockTransactionCountByNumberAsync(TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
@@ -67,8 +67,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         ) switch
         {
             RpcResult<long>.Success result => result.Result,
-            RpcResult<long>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<long>.Null => throw new NotImplementedException(),
+            RpcResult<long>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<long>.Null => throw new RpcNullResultException("eth_getBlockTransactionCountByNumber"),
         };
 
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
@@ -114,8 +114,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         => await _rpcClient.SendRpcRequestAsync<string, Bytes32>("eth_sendRawTransaction", transaction, TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<Bytes32>.Success result => new TxSubmissionResult.Success(result.Result),
-            RpcResult<Bytes32>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<Bytes32>.Null => throw new NotImplementedException(),
+            RpcResult<Bytes32>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<Bytes32>.Null => throw new RpcNullResultException("eth_sendRawTransaction"),
         };
 
     public async Task<UInt256> GasPriceAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken)
@@ -124,8 +124,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         return response switch
         {
             RpcResult<UInt256>.Success result => result.Result,
-            RpcResult<UInt256>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<UInt256>.Null => throw new NotImplementedException(),
+            RpcResult<UInt256>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<UInt256>.Null => throw new RpcNullResultException("eth_gasPrice"),
         };
     }
 
@@ -135,8 +135,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         return response switch
         {
             RpcResult<UInt256>.Success result => result.Result,
-            RpcResult<UInt256>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<UInt256>.Null => throw new NotImplementedException(),
+            RpcResult<UInt256>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<UInt256>.Null => throw new RpcNullResultException("eth_maxPriorityFeePerGas"),
         };
     }
 
@@ -147,8 +147,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             "eth_feeHistory", blockCount, newestBlock, rewardPercentiles, newestBlock, requestOptions, cancellationToken) switch
         {
             RpcResult<FeeHistory>.Success result => result.Result,
-            RpcResult<FeeHistory>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<FeeHistory>.Null => throw new NotImplementedException(),
+            RpcResult<FeeHistory>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<FeeHistory>.Null => throw new RpcNullResultException("eth_feeHistory"),
         };
 
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
@@ -190,8 +190,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             return response switch
             {
                 RpcResult<ulong>.Success result => result.Result,
-                RpcResult<ulong>.Error error => throw RPCException.FromRPCError(error),
-                RpcResult<ulong>.Null => throw new NotImplementedException(),
+                RpcResult<ulong>.Error error => throw RpcErrorException.FromRpcError(error),
+                RpcResult<ulong>.Null => throw new RpcNullResultException("eth_estimateGas"),
             };
         }
     }
@@ -220,8 +220,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         return response switch
         {
             RpcResult<AccessListResult>.Success result => result.Result,
-            RpcResult<AccessListResult>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<AccessListResult>.Null => throw new NotImplementedException(),
+            RpcResult<AccessListResult>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<AccessListResult>.Null => throw new RpcNullResultException("eth_createAccessList"),
         };
     }
 
@@ -232,7 +232,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         ) switch
     {
         RpcResult<DetailedBlockData>.Success result => result.Result,
-        RpcResult<DetailedBlockData>.Error error => throw RPCException.FromRPCError(error),
+        RpcResult<DetailedBlockData>.Error error => throw RpcErrorException.FromRpcError(error),
         RpcResult<DetailedBlockData>.Null => null,
     };
 
@@ -243,7 +243,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         ) switch
     {
         RpcResult<Block>.Success result => result.Result,
-        RpcResult<Block>.Error error => throw RPCException.FromRPCError(error),
+        RpcResult<Block>.Error error => throw RpcErrorException.FromRpcError(error),
         RpcResult<Block>.Null => null,
     };
 
@@ -259,7 +259,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             "eth_getTransactionByHash", hash, TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<TxData>.Success result => result.Result,
-            RpcResult<TxData>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<TxData>.Error error => throw RpcErrorException.FromRpcError(error),
             RpcResult<TxData>.Null => null,
         };
 
@@ -274,7 +274,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             "eth_getTransactionReceipt", transactionHash, TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<TxReceipt>.Success result => result.Result,
-            RpcResult<TxReceipt>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<TxReceipt>.Error error => throw RpcErrorException.FromRpcError(error),
             RpcResult<TxReceipt>.Null => null,
         };
 
@@ -285,7 +285,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         ) switch
     {
         RpcResult<TxReceipt[]>.Success result => result.Result,
-        RpcResult<TxReceipt[]>.Error error => throw RPCException.FromRPCError(error),
+        RpcResult<TxReceipt[]>.Error error => throw RpcErrorException.FromRpcError(error),
         RpcResult<TxReceipt[]>.Null => null,
     };
 
@@ -304,8 +304,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             "eth_getStorageAt", address, slot, targetHeight, targetHeight, requestOptions, cancellationToken) switch
         {
             RpcResult<byte[]>.Success result => result.Result,
-            RpcResult<byte[]>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<byte[]>.Null => throw new NotImplementedException(),
+            RpcResult<byte[]>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<byte[]>.Null => throw new RpcNullResultException("eth_getStorageAt"),
         };
 
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
@@ -347,8 +347,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         ) switch
         {
             RpcResult<Log[]>.Success result => result.Result,
-            RpcResult<Log[]>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<Log[]>.Null => throw new NotImplementedException(),
+            RpcResult<Log[]>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<Log[]>.Null => throw new RpcNullResultException("eth_getLogs"),
         };
     }
 
@@ -373,8 +373,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             "eth_subscribe", "logs", request, TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<string>.Success result => result.Result,
-            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<string>.Null => throw new NotImplementedException(),
+            RpcResult<string>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<string>.Null => throw new RpcNullResultException("eth_subscribe"),
         };
     }
 
@@ -389,8 +389,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
                     "eth_subscribe", "newHeads", TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<string>.Success result => result.Result,
-            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<string>.Null => throw new NotImplementedException(),
+            RpcResult<string>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<string>.Null => throw new RpcNullResultException("eth_subscribe"),
         };
     }
 
@@ -407,8 +407,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         ) switch
         {
             RpcResult<string>.Success result => result.Result,
-            RpcResult<string>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<string>.Null => throw new NotImplementedException(),
+            RpcResult<string>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<string>.Null => throw new RpcNullResultException("eth_subscribe"),
         };
     }
 
@@ -423,8 +423,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
                 "eth_unsubscribe", subscriptionId, TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<bool>.Success result => result.Result,
-            RpcResult<bool>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<bool>.Null => throw new NotImplementedException(),
+            RpcResult<bool>.Error error => throw RpcErrorException.FromRpcError(error),
+            RpcResult<bool>.Null => throw new RpcNullResultException("eth_unsubscribe"),
         };
     }
 }

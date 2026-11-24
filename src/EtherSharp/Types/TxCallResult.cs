@@ -25,7 +25,7 @@ public readonly struct TxCallResult(bool success, ReadOnlyMemory<byte> data)
     /// </summary>
     /// <param name="rpcResult">The low-level RPC response payload.</param>
     /// <returns>A raw result with <see cref="Success"/> set according to the execution outcome.</returns>
-    /// <exception cref="RPCException">Thrown when the RPC response is an error unrelated to execution revert.</exception>
+    /// <exception cref="RpcErrorException">Thrown when the RPC response is an error unrelated to execution revert.</exception>
     public static TxCallResult ParseFrom(RpcResult<byte[]> rpcResult)
     {
         switch(rpcResult)
@@ -38,7 +38,7 @@ public readonly struct TxCallResult(bool success, ReadOnlyMemory<byte> data)
             {
                 if(!errorResult.Message.StartsWith("execution reverted"))
                 {
-                    throw RPCException.FromRPCError(errorResult);
+                    throw RpcErrorException.FromRpcError(errorResult);
                 }
 
                 if(errorResult.Data is null || errorResult.Data.Length <= 2)

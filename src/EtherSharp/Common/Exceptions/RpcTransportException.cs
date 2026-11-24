@@ -1,15 +1,15 @@
 namespace EtherSharp.Common.Exceptions;
 
 /// <summary>
-/// Represents a transport-level RPC failure (for example timeout, disconnect, or protocol I/O failure).
+/// Thrown when no usable JSON-RPC response was received, e.g. on timeouts, disconnects or malformed responses.
 /// </summary>
-public sealed class RPCTransportException : Exception
+public sealed class RpcTransportException : RpcException
 {
     /// <summary>
     /// Initializes a new transport exception with a message.
     /// </summary>
     /// <param name="message">Transport failure description.</param>
-    public RPCTransportException(string message)
+    public RpcTransportException(string message)
         : base(message)
     {
     }
@@ -19,7 +19,7 @@ public sealed class RPCTransportException : Exception
     /// </summary>
     /// <param name="message">Transport failure description.</param>
     /// <param name="innerException">Underlying exception thrown by the transport implementation.</param>
-    public RPCTransportException(string? message, Exception? innerException)
+    public RpcTransportException(string? message, Exception? innerException)
         : base(message, innerException)
     {
     }

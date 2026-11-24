@@ -86,7 +86,7 @@ public closed record TxSubmissionResult
     /// </summary>
     /// <param name="exception">The exception raised while submitting a transaction.</param>
     /// <returns>
-    /// A recognized submission result for known <see cref="RPCException"/> messages, or
+    /// A recognized submission result for known <see cref="RpcErrorException"/> messages, or
     /// <see cref="UnhandledException"/> containing the original exception otherwise.
     /// </returns>
     /// <remarks>
@@ -98,7 +98,7 @@ public closed record TxSubmissionResult
     {
         ArgumentNullException.ThrowIfNull(exception);
 
-        if(exception is RPCException)
+        if(exception is RpcErrorException)
         {
             if(exception.Message.AsSpan().ContainsAny(_alreadyExistsMessages))
             {

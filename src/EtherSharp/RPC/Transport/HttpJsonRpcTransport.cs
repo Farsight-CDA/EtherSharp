@@ -208,7 +208,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         }
         catch(Exception ex)
         {
-            throw new RPCTransportException($"Exception while sending HTTP request", ex);
+            throw new RpcTransportException($"Exception while sending HTTP request", ex);
         }
 
         try
@@ -219,7 +219,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             {
                 _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
                 string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-                throw new RPCTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}");
+                throw new RpcTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}");
             }
 
             var jsonRpcResponse = await response.Content.ReadFromJsonAsync<JsonRpcResponse<TResult>>(
@@ -235,7 +235,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             if(jsonRpcResponse.Id != id)
             {
                 _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
-                throw new RPCTransportException($"RPC Error: Response id mismatch. Expected {id}, got {jsonRpcResponse.Id?.ToString() ?? "null"}");
+                throw new RpcTransportException($"RPC Error: Response id mismatch. Expected {id}, got {jsonRpcResponse.Id?.ToString() ?? "null"}");
             }
 
             if(jsonRpcResponse.ResultIsNull)
@@ -247,7 +247,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             _rpcRequestMetrics.Add(method, RpcRequestStatus.Success);
             return new RpcResult<TResult>.Success(jsonRpcResponse.Result!);
         }
-        catch(RPCTransportException)
+        catch(RpcTransportException)
         {
             throw;
         }
@@ -255,7 +255,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         {
             _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
             string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new RPCTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}");
+            throw new RpcTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}");
         }
         catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested)
         {
@@ -266,7 +266,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         {
             _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
             string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new RPCTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}", ex);
+            throw new RpcTransportException($"Http RPC request failed with status {(int) response.StatusCode} {response.ReasonPhrase}: {responseBody}", ex);
         }
         finally
         {

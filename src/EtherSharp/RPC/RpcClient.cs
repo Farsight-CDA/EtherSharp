@@ -179,7 +179,7 @@ internal sealed class RpcClient(IRPCTransport transport, IEnumerable<IRpcMiddlew
     }
 
     private static Exception WrapTransportException(Exception ex, CancellationToken cancellationToken)
-        => ex is RPCTransportException || (ex is OperationCanceledException && cancellationToken.IsCancellationRequested)
+        => ex is RpcTransportException || (ex is OperationCanceledException && cancellationToken.IsCancellationRequested)
             ? ex
-            : new RPCTransportException("Exception while calling RPC transport", ex);
+            : new RpcTransportException("Exception while calling RPC transport", ex);
 }

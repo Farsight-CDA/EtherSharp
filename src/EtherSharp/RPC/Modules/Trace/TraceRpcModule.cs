@@ -29,8 +29,8 @@ internal sealed class TraceRpcModule(RpcClient rpcClient) : ITraceRpcModule
             "trace_call", transaction, traceTypes, targetHeight, targetHeight, requestOptions, cancellationToken) switch
         {
             RpcResult<TransactionTraceResult>.Success result => result.Result,
-            RpcResult<TransactionTraceResult>.Null => throw new RPCException(-1, "trace_call returned null", null),
-            RpcResult<TransactionTraceResult>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<TransactionTraceResult>.Null => throw new RpcNullResultException("trace_call"),
+            RpcResult<TransactionTraceResult>.Error error => throw RpcErrorException.FromRpcError(error),
         };
     }
 
@@ -41,6 +41,6 @@ internal sealed class TraceRpcModule(RpcClient rpcClient) : ITraceRpcModule
         {
             RpcResult<TransactionTraceResult>.Success result => result.Result,
             RpcResult<TransactionTraceResult>.Null => null,
-            RpcResult<TransactionTraceResult>.Error error => throw RPCException.FromRPCError(error),
+            RpcResult<TransactionTraceResult>.Error error => throw RpcErrorException.FromRpcError(error),
         };
 }

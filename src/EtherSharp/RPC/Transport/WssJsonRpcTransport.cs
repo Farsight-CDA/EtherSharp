@@ -141,7 +141,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                     return;
                 }
 
-                connectionError = new RPCTransportException("The WebSocket is not connected.");
+                connectionError = new RpcTransportException("The WebSocket is not connected.");
             }
             catch(Exception ex)
             {
@@ -568,7 +568,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         {
             if(_socket is null || _socket.State != WebSocketState.Open)
             {
-                throw new RPCTransportException("The WebSocket is not connected.");
+                throw new RpcTransportException("The WebSocket is not connected.");
             }
 
             _pendingRequests.TryAdd(requestId, responseHandler);
@@ -601,7 +601,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         }
         catch(ObjectDisposedException)
         {
-            throw new RPCTransportException("The WebSocket is not connected.");
+            throw new RpcTransportException("The WebSocket is not connected.");
         }
 
         JsonRpcResponse<TResult> jsonRpcResponse;
@@ -625,7 +625,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
         if(jsonRpcResponse.Id != requestId)
         {
             _rpcRequestMetrics.Add(method, RpcRequestStatus.Failure);
-            throw new RPCTransportException("RPC Error: Invalid response Id");
+            throw new RpcTransportException("RPC Error: Invalid response Id");
         }
         else if(jsonRpcResponse.Error != null)
         {

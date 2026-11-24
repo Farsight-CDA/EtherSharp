@@ -18,7 +18,7 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
     {
         RpcResult<CallTrace>.Success result => result.Result,
         RpcResult<CallTrace>.Null => null,
-        RpcResult<CallTrace>.Error error => throw RPCException.FromRPCError(error),
+        RpcResult<CallTrace>.Error error => throw RpcErrorException.FromRpcError(error),
     };
 
     public Task<CallTrace?> TraceTransactionCallsAsync(
@@ -36,7 +36,7 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
     {
         RpcResult<CallTrace>.Success result => result.Result,
         RpcResult<CallTrace>.Null => null,
-        RpcResult<CallTrace>.Error error => throw RPCException.FromRPCError(error),
+        RpcResult<CallTrace>.Error error => throw RpcErrorException.FromRpcError(error),
     };
 
     private sealed record TraceCallRequest(
@@ -81,8 +81,8 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
                 "debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
             {
                 RpcResult<CallTrace>.Success result => result.Result,
-                RpcResult<CallTrace>.Null => throw new RPCException(-1, "debug_traceCall returned null", null),
-                RpcResult<CallTrace>.Error error => throw RPCException.FromRPCError(error),
+                RpcResult<CallTrace>.Null => throw new RpcNullResultException("debug_traceCall"),
+                RpcResult<CallTrace>.Error error => throw RpcErrorException.FromRpcError(error),
             };
     }
 
@@ -110,8 +110,8 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
                 "debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
             {
                 RpcResult<PrestateTrace>.Success result => result.Result,
-                RpcResult<PrestateTrace>.Null => throw new RPCException(-1, "debug_traceCall returned null", null),
-                RpcResult<PrestateTrace>.Error error => throw RPCException.FromRPCError(error),
+                RpcResult<PrestateTrace>.Null => throw new RpcNullResultException("debug_traceCall"),
+                RpcResult<PrestateTrace>.Error error => throw RpcErrorException.FromRpcError(error),
             };
     }
 
@@ -139,8 +139,8 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
                 "debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
             {
                 RpcResult<PrestateDiffTrace>.Success result => result.Result,
-                RpcResult<PrestateDiffTrace>.Null => throw new RPCException(-1, "debug_traceCall returned null", null),
-                RpcResult<PrestateDiffTrace>.Error error => throw RPCException.FromRPCError(error),
+                RpcResult<PrestateDiffTrace>.Null => throw new RpcNullResultException("debug_traceCall"),
+                RpcResult<PrestateDiffTrace>.Error error => throw RpcErrorException.FromRpcError(error),
             };
     }
 
@@ -168,8 +168,8 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
                 "debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
             {
                 RpcResult<TResult>.Success result => result.Result,
-                RpcResult<TResult>.Null => throw new RPCException(-1, "debug_traceCall returned null", null),
-                RpcResult<TResult>.Error error => throw RPCException.FromRPCError(error),
+                RpcResult<TResult>.Null => throw new RpcNullResultException("debug_traceCall"),
+                RpcResult<TResult>.Error error => throw RpcErrorException.FromRpcError(error),
             };
     }
 
