@@ -2,7 +2,7 @@ namespace EtherSharp.Realtime.Events.Subscription;
 
 /// <summary>
 /// Represents a realtime stream of decoded transaction logs.
-/// The subscription is reinstalled automatically after the connection is lost.
+/// The subscription is reinstalled automatically after the connection is lost or the node terminates it.
 /// </summary>
 /// <typeparam name="TLog">The decoded log type.</typeparam>
 public interface IEventSubscription<TLog> : IAsyncDisposable

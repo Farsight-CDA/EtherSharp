@@ -18,6 +18,11 @@ public interface ISubscription : IAsyncDisposable
     public RpcRequestOptions RequestOptions { get; }
 
     /// <summary>
+    /// Gets when the subscription last became live, set by <see cref="Resume"/>.
+    /// </summary>
+    public DateTimeOffset ActiveSince { get; }
+
+    /// <summary>
     /// Handles the result of an incoming subscription notification.
     /// </summary>
     /// <param name="result">The raw JSON of the notification result, never <c>null</c>.</param>
@@ -30,7 +35,7 @@ public interface ISubscription : IAsyncDisposable
     public void Interrupt(SubscriptionInterrupted interruption);
 
     /// <summary>
-    /// Called once the subscription is live again, before any of its notifications. Reports the resumption of an interrupted subscription to listeners.
+    /// Called whenever the subscription becomes live, before any of its notifications. Reports the resumption of an interrupted subscription to listeners.
     /// </summary>
     public void Resume();
 

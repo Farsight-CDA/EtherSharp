@@ -12,6 +12,7 @@ internal abstract class SubscriptionBase<T>(ISubscriptionsManager subscriptionsM
 {
     public string Id { get; private set; } = null!;
     public RpcRequestOptions RequestOptions { get; private set; }
+    public DateTimeOffset ActiveSince { get; private set; }
 
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
     private readonly JsonTypeInfo<T> _resultTypeInfo = resultTypeInfo;
@@ -51,6 +52,8 @@ internal abstract class SubscriptionBase<T>(ISubscriptionsManager subscriptionsM
 
     public void Resume()
     {
+        ActiveSince = DateTimeOffset.UtcNow;
+
         if(_isInterrupted)
         {
             _isInterrupted = false;

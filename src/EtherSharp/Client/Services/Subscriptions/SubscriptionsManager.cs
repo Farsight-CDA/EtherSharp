@@ -7,12 +7,17 @@ using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel;
 using System.Diagnostics.Metrics;
 
 namespace EtherSharp.Client.Services.Subscriptions;
 
 internal sealed class SubscriptionsManager : ISubscriptionsManager
 {
+    private static readonly TimeSpan _minReinstallDelay = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan _maxReinstallDelay = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan _stableDuration = TimeSpan.FromMinutes(1);
+
     private readonly IRPCTransport _rpcTransport;
     private readonly IEthRpcModule _ethRpcModule;
 
@@ -20,7 +25,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
     private readonly Lock _lock = new Lock();
     //Every subscription owned by the manager, removing one uninstalls it
-    private readonly Dictionary<ISubscription, SubscriptionStatus> _subscriptions = [];
+    private readonly Dictionary<ISubscription, SubscriptionState> _subscriptions = [];
     //Routes notifications of active subscriptions by their node side id
     private readonly Dictionary<string, ISubscription> _activeSubscriptions = [];
     //Some nodes (e.g. Nethermind, Besu) can send notifications before the eth_subscribe response, those are parked until claimed
@@ -34,7 +39,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
     //Must be called while holding _lock. Notifications can only be claimed while an eth_subscribe response is pending
     private bool IsInstalling
-        => _subscriptions.Values.Any(status => status is SubscriptionStatus.Installing or SubscriptionStatus.Reinstalling);
+        => _subscriptions.Values.Any(state => state.Status is SubscriptionStatus.Installing or SubscriptionStatus.Reinstalling);
 
     public SubscriptionsManager(IRPCTransport rpcTransport, IEthRpcModule ethRpcModule, IServiceProvider serviceProvider)
     {
@@ -57,7 +62,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         lock(_lock)
         {
             ObjectDisposedException.ThrowIf(_isClosed, this);
-            _subscriptions.Add(subscription, SubscriptionStatus.Installing);
+            _subscriptions.Add(subscription, new SubscriptionState(SubscriptionStatus.Installing));
             connectionGeneration = _connectionGeneration;
         }
 
@@ -74,8 +79,44 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         CompleteInstallation(subscription, connectionGeneration, InstallationOutcome.Installed);
     }
 
-    private async Task ReinstallAsync(ISubscription subscription, int connectionGeneration)
+    //Must be called while holding _lock, only for interrupted subscriptions
+    private void StartReinstall(ISubscription subscription)
     {
+        var state = _subscriptions[subscription];
+        var delay = state.ReinstallDelay;
+
+        state.Status = SubscriptionStatus.Reinstalling;
+        state.ReinstallDelay = TimeSpan.FromSeconds(
+            Math.Clamp(delay.TotalSeconds * 2, _minReinstallDelay.TotalSeconds, _maxReinstallDelay.TotalSeconds)
+        );
+
+        _ = Task.Run(() => ReinstallAsync(subscription, delay));
+    }
+
+    private async Task ReinstallAsync(ISubscription subscription, TimeSpan delay)
+    {
+        await Task.Delay(delay);
+
+        int connectionGeneration;
+
+        lock(_lock)
+        {
+            //Uninstalled while waiting
+            if(!_subscriptions.TryGetValue(subscription, out var state))
+            {
+                return;
+            }
+
+            //Disconnected while waiting, the reconnect starts it again
+            if(!_isConnected)
+            {
+                state.Status = SubscriptionStatus.Interrupted;
+                return;
+            }
+
+            connectionGeneration = _connectionGeneration;
+        }
+
         try
         {
             await subscription.InstallAsync(subscription.RequestOptions, CancellationToken.None);
@@ -96,14 +137,14 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
         lock(_lock)
         {
-            bool isWanted = _subscriptions.TryGetValue(subscription, out var status);
+            bool isWanted = _subscriptions.TryGetValue(subscription, out var state);
             bool isLive = outcome == InstallationOutcome.Installed && connectionGeneration == _connectionGeneration && !_isClosed;
 
             switch((IsWanted: isWanted, IsLive: isLive))
             {
                 case { IsWanted: true, IsLive: true }:
                     subscription.Resume();
-                    _subscriptions[subscription] = SubscriptionStatus.Active;
+                    state!.Status = SubscriptionStatus.Active;
                     _activeSubscriptions.Add(subscription.Id, subscription);
 
                     if(_parkedNotifications.Remove(subscription.Id, out var parkedNotifications))
@@ -114,14 +155,14 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                         }
                     }
                     break;
-                case { IsWanted: true }
-                when status == SubscriptionStatus.Reinstalling
+                case { IsWanted: true, IsLive: false }
+                when state!.Status == SubscriptionStatus.Reinstalling
                   || outcome == InstallationOutcome.Installed:
                     //Ignored if the subscription was already interrupted
                     subscription.Interrupt(new SubscriptionInterrupted(
                         SubscriptionInterruptionReason.ConnectionLost, "The connection was lost while installing the subscription."
                     ));
-                    _subscriptions[subscription] = SubscriptionStatus.Interrupted;
+                    state.Status = SubscriptionStatus.Interrupted;
 
                     //Reconnected while installing, so the reconnect did not pick it up
                     if(_isConnected && connectionGeneration != _connectionGeneration)
@@ -152,21 +193,13 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
     }
 
-    //Must be called while holding _lock
-    private void StartReinstall(ISubscription subscription)
-    {
-        _subscriptions[subscription] = SubscriptionStatus.Reinstalling;
-        int connectionGeneration = _connectionGeneration;
-        _ = Task.Run(() => ReinstallAsync(subscription, connectionGeneration));
-    }
-
     public async Task UninstallSubscription(ISubscription subscription)
     {
         bool wasActive;
 
         lock(_lock)
         {
-            wasActive = _subscriptions.Remove(subscription, out var status) && status == SubscriptionStatus.Active;
+            wasActive = _subscriptions.Remove(subscription, out var state) && state.Status == SubscriptionStatus.Active;
 
             if(wasActive)
             {
@@ -219,15 +252,12 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         {
             _isConnected = true;
 
-            //Only interrupted ones, a subscription that is still reinstalling is never installed twice
-            ISubscription[] interruptedSubscriptions = [.. _subscriptions
-                .Where(x => x.Value == SubscriptionStatus.Interrupted)
-                .Select(x => x.Key)
-            ];
-
-            foreach(var subscription in interruptedSubscriptions)
+            foreach(var (subscription, state) in _subscriptions)
             {
-                StartReinstall(subscription);
+                if(state.Status == SubscriptionStatus.Interrupted)
+                {
+                    StartReinstall(subscription);
+                }
             }
         }
     }
@@ -253,12 +283,28 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
             foreach(var subscription in _activeSubscriptions.Values)
             {
-                subscription.Interrupt(new SubscriptionInterrupted(SubscriptionInterruptionReason.ConnectionLost, connectionError.Message));
-                _subscriptions[subscription] = SubscriptionStatus.Interrupted;
+                InterruptSubscription(
+                    subscription,
+                    new SubscriptionInterrupted(SubscriptionInterruptionReason.ConnectionLost, connectionError.Message)
+                );
             }
 
             _activeSubscriptions.Clear();
             _parkedNotifications.Clear();
+        }
+    }
+
+    //Must be called while holding _lock
+    private void InterruptSubscription(ISubscription subscription, SubscriptionInterrupted interruption)
+    {
+        subscription.Interrupt(interruption);
+        var state = _subscriptions[subscription];
+        state.Status = SubscriptionStatus.Interrupted;
+
+        //Reinstalled right away, unless it keeps getting interrupted shortly after becoming live
+        if(DateTimeOffset.UtcNow - subscription.ActiveSince >= _stableDuration)
+        {
+            state.ReinstallDelay = TimeSpan.Zero;
         }
     }
 
@@ -306,7 +352,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                     break;
                 case SubscriptionNotification.Kind.Terminated:
                     _logger?.LogWarning(
-                        "Subscription id {id} of type {type} was terminated by the node. Reason: {reason}",
+                        "Subscription id {id} of type {type} was terminated by the node, reinstalling. Reason: {reason}",
                         subscription.Id,
                         subscription,
                         notification.Error
@@ -314,9 +360,11 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
                     if(_activeSubscriptions.Remove(subscription.Id))
                     {
-                        _ = _subscriptions.Remove(subscription);
-                        subscription.Interrupt(new SubscriptionInterrupted(SubscriptionInterruptionReason.TerminatedByNode, notification.Error));
-                        subscription.Close();
+                        InterruptSubscription(
+                            subscription,
+                            new SubscriptionInterrupted(SubscriptionInterruptionReason.TerminatedByNode, notification.Error)
+                        );
+                        StartReinstall(subscription);
                     }
                     break;
                 case SubscriptionNotification.Kind.Malformed:
@@ -357,6 +405,12 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     {
         Installed,
         Failed,
+    }
+
+    private sealed class SubscriptionState(SubscriptionStatus status)
+    {
+        public SubscriptionStatus Status { get; set; } = status;
+        public TimeSpan ReinstallDelay { get; set; }
     }
 
     private enum SubscriptionStatus

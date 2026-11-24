@@ -2,7 +2,7 @@
 
 /// <summary>
 /// Represents a realtime stream of newly produced block headers.
-/// The subscription is reinstalled automatically after the connection is lost.
+/// The subscription is reinstalled automatically after the connection is lost or the node terminates it.
 /// </summary>
 public interface IBlocksSubscription : IAsyncDisposable
 {
