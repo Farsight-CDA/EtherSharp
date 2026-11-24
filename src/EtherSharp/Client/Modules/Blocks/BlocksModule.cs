@@ -14,9 +14,13 @@ internal sealed class BlocksModule(IEthRpcModule ethRpcModule, ISubscriptionsMan
     private readonly ISubscriptionsManager _subscriptionsManager = subscriptionsManager;
     private readonly EtherSharpJsonSerializerContext _jsonSerializerContext = jsonSerializerContext;
 
-    public Task<Block> GetBlockAtHeightAsync(TargetHeight targetHeight,
+    public Task<Block?> GetBlockAtHeightAsync(TargetHeight targetHeight,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
         => _ethRpcModule.GetBlockByNumberAsync(targetHeight, requestOptions, cancellationToken);
+    public Task<DetailedBlockData?> GetFullBlockAtHeightAsync(
+        TargetHeight targetHeight,
+        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
+    ) => _ethRpcModule.GetFullBlockByNumberAsync(targetHeight, requestOptions, cancellationToken);
     public Task<ulong> GetPeakHeightAsync(RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default)
         => _ethRpcModule.BlockNumberAsync(requestOptions, cancellationToken);

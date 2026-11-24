@@ -51,7 +51,14 @@ public interface IEthRpcModule
     /// <summary>
     /// Gets a block by number with transaction hashes only.
     /// </summary>
-    public Task<Block> GetBlockByNumberAsync(
+    public Task<Block?> GetBlockByNumberAsync(
+        TargetHeight targetHeight, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets a block by number with full transaction objects.
+    /// </summary>
+    public Task<DetailedBlockData?> GetFullBlockByNumberAsync(
         TargetHeight targetHeight, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
@@ -113,6 +120,13 @@ public interface IEthRpcModule
     /// </summary>
     public Task<TxReceipt?> GetTransactionReceiptAsync(
         in Bytes32 transactionHash, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets all transaction receipts for a block.
+    /// </summary>
+    public Task<TxReceipt[]?> GetBlockReceiptsAsync(
+        TargetHeight targetHeight, RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     );
 
     /// <summary>

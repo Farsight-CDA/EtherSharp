@@ -1,3 +1,4 @@
+using EtherSharp.Numerics;
 using EtherSharp.Types;
 using System.Text.Json.Serialization;
 
@@ -14,6 +15,7 @@ namespace EtherSharp.Realtime.Blocks;
 /// <param name="Miner">The address of the block producer.</param>
 /// <param name="GasLimit">The maximum amount of gas allowed in the block.</param>
 /// <param name="GasUsed">The amount of gas consumed by transactions in the block.</param>
+/// <param name="BaseFeePerGas">EIP-1559 base fee for this block, when provided by the node.</param>
 public sealed record BlockHeader(
     [property: JsonRequired] ulong Number,
     [property: JsonRequired] DateTimeOffset Timestamp,
@@ -22,5 +24,6 @@ public sealed record BlockHeader(
     ulong Nonce,
     Address Miner,
     ulong GasLimit,
-    ulong GasUsed
+    ulong GasUsed,
+    UInt256? BaseFeePerGas = null
 );

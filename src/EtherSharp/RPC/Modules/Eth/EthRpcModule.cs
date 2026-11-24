@@ -226,24 +226,26 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     }
 
     public async Task<DetailedBlockData?> GetFullBlockByNumberAsync(
-        TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<TargetHeight, bool, DetailedBlockData>(
-            "eth_getBlockByNumber", targetHeight, true, targetHeight, requestOptions, cancellationToken) switch
-        {
-            RpcResult<DetailedBlockData>.Success result => result.Result,
-            RpcResult<DetailedBlockData>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<DetailedBlockData>.Null => throw new NotImplementedException(),
-        };
+        TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    ) => await _rpcClient.SendRpcRequestAsync<TargetHeight, bool, DetailedBlockData>(
+            "eth_getBlockByNumber", targetHeight, true, targetHeight, requestOptions, cancellationToken
+        ) switch
+    {
+        RpcResult<DetailedBlockData>.Success result => result.Result,
+        RpcResult<DetailedBlockData>.Error error => throw RPCException.FromRPCError(error),
+        RpcResult<DetailedBlockData>.Null => null,
+    };
 
-    public async Task<Block> GetBlockByNumberAsync(
-        TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<TargetHeight, bool, Block>(
-            "eth_getBlockByNumber", targetHeight, false, targetHeight, requestOptions, cancellationToken) switch
-        {
-            RpcResult<Block>.Success result => result.Result,
-            RpcResult<Block>.Error error => throw RPCException.FromRPCError(error),
-            RpcResult<Block>.Null => throw new RPCException(-1, "block not found, rpc returned null", null),
-        };
+    public async Task<Block?> GetBlockByNumberAsync(
+        TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    ) => await _rpcClient.SendRpcRequestAsync<TargetHeight, bool, Block>(
+            "eth_getBlockByNumber", targetHeight, false, targetHeight, requestOptions, cancellationToken
+        ) switch
+    {
+        RpcResult<Block>.Success result => result.Result,
+        RpcResult<Block>.Error error => throw RPCException.FromRPCError(error),
+        RpcResult<Block>.Null => null,
+    };
 
     public Task<TxData?> TransactionByHashAsync(in Bytes32 hash, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
@@ -275,6 +277,17 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             RpcResult<TxReceipt>.Error error => throw RPCException.FromRPCError(error),
             RpcResult<TxReceipt>.Null => null,
         };
+
+    public async Task<TxReceipt[]?> GetBlockReceiptsAsync(
+        TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    ) => await _rpcClient.SendRpcRequestAsync<TargetHeight, TxReceipt[]>(
+            "eth_getBlockReceipts", targetHeight, targetHeight, requestOptions, cancellationToken
+        ) switch
+    {
+        RpcResult<TxReceipt[]>.Success result => result.Result,
+        RpcResult<TxReceipt[]>.Error error => throw RPCException.FromRPCError(error),
+        RpcResult<TxReceipt[]>.Null => null,
+    };
 
     public Task<byte[]> GetStorageAtAsync(
         in Address address, byte[] slot, TargetHeight targetHeight = default,
