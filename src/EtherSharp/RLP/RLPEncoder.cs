@@ -18,7 +18,7 @@ public ref struct RLPEncoder
     /// Gets the encoded RLP length for a <see cref="UInt32"/> value.
     /// </summary>
     public static int GetIntSize(uint value)
-        => value < 128
+        => value < RLPConstants.SINGLE_BYTE_LIMIT
             ? 1
             : GetEncodedStringLength(GetSignificantByteCount(value));
 
@@ -26,7 +26,7 @@ public ref struct RLPEncoder
     /// Gets the encoded RLP length for a <see cref="UInt64"/> value.
     /// </summary>
     public static int GetIntSize(ulong value)
-        => value < 128
+        => value < RLPConstants.SINGLE_BYTE_LIMIT
             ? 1
             : GetEncodedStringLength(GetSignificantByteCount(value));
 
@@ -34,7 +34,7 @@ public ref struct RLPEncoder
     /// Gets the encoded RLP length for a <see cref="UInt256"/> value.
     /// </summary>
     public static int GetIntSize(in UInt256 value)
-        => value._u3 == 0 && value._u2 == 0 && value._u1 == 0 && value._u0 < 128
+        => value._u3 == 0 && value._u2 == 0 && value._u1 == 0 && value._u0 < RLPConstants.SINGLE_BYTE_LIMIT
             ? 1
             : GetEncodedStringLength(GetSignificantByteCount(in value));
 
@@ -43,7 +43,7 @@ public ref struct RLPEncoder
     /// </summary>
     /// <param name="byteCount">The number of payload bytes before RLP prefixing.</param>
     public static int GetEncodedStringLength(int byteCount)
-        => byteCount < 56
+        => byteCount < RLPConstants.SHORT_PAYLOAD_LIMIT
             ? byteCount + 1
             : byteCount + GetSignificantByteCount((uint) byteCount) + 1;
 
@@ -51,7 +51,7 @@ public ref struct RLPEncoder
     /// Gets the encoded RLP length for the provided byte span when encoded as a string element.
     /// </summary>
     public static int GetStringSize(ReadOnlySpan<byte> data)
-        => data.Length == 1 && data[0] < 128
+        => data.Length == 1 && data[0] < RLPConstants.SINGLE_BYTE_LIMIT
             ? 1
             : GetPrefixLength(data.Length) + data.Length;
 
@@ -66,7 +66,7 @@ public ref struct RLPEncoder
     /// Gets the RLP prefix length for a payload of the specified byte size.
     /// </summary>
     public static int GetPrefixLength(int byteCount)
-        => byteCount < 56
+        => byteCount < RLPConstants.SHORT_PAYLOAD_LIMIT
             ? 1
             : 1 + GetSignificantByteCount((uint) byteCount);
 
@@ -120,7 +120,7 @@ public ref struct RLPEncoder
         {
             return EncodeString();
         }
-        else if(value < 128)
+        else if(value < RLPConstants.SINGLE_BYTE_LIMIT)
         {
             _destination[0] = (byte) value;
             _destination = _destination[1..];
@@ -128,7 +128,7 @@ public ref struct RLPEncoder
         else
         {
             int significantBytes = GetSignificantByteCount(value);
-            _destination[0] = (byte) (0x80 + significantBytes);
+            _destination[0] = (byte) (RLPConstants.SHORT_STRING_PREFIX + significantBytes);
 
             Span<byte> buffer = stackalloc byte[4];
             BinaryPrimitives.WriteUInt32BigEndian(buffer, value);
@@ -149,7 +149,7 @@ public ref struct RLPEncoder
         {
             return EncodeString();
         }
-        else if(value < 128)
+        else if(value < RLPConstants.SINGLE_BYTE_LIMIT)
         {
             _destination[0] = (byte) value;
             _destination = _destination[1..];
@@ -158,7 +158,7 @@ public ref struct RLPEncoder
         {
             int significantBytes = GetSignificantByteCount(value);
 
-            _destination[0] = (byte) (0x80 + significantBytes);
+            _destination[0] = (byte) (RLPConstants.SHORT_STRING_PREFIX + significantBytes);
 
             Span<byte> buffer = stackalloc byte[8];
             BinaryPrimitives.WriteUInt64BigEndian(buffer, value);
@@ -182,7 +182,7 @@ public ref struct RLPEncoder
             {
                 return EncodeString();
             }
-            else if(value._u0 < 128)
+            else if(value._u0 < RLPConstants.SINGLE_BYTE_LIMIT)
             {
                 _destination[0] = (byte) value._u0;
                 _destination = _destination[1..];
@@ -195,7 +195,7 @@ public ref struct RLPEncoder
 
         buffer = buffer.TrimStart((byte) 0);
 
-        _destination[0] = (byte) (0x80 + buffer.Length);
+        _destination[0] = (byte) (RLPConstants.SHORT_STRING_PREFIX + buffer.Length);
         buffer.CopyTo(_destination[1..]);
         _destination = _destination[(1 + buffer.Length)..];
 
@@ -208,7 +208,7 @@ public ref struct RLPEncoder
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RLPEncoder EncodeString()
     {
-        _destination[0] = 0x80;
+        _destination[0] = RLPConstants.SHORT_STRING_PREFIX;
         _destination = _destination[1..];
         return this;
     }
@@ -219,14 +219,14 @@ public ref struct RLPEncoder
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RLPEncoder EncodeString(byte data)
     {
-        if(data < 128)
+        if(data < RLPConstants.SINGLE_BYTE_LIMIT)
         {
             _destination[0] = data;
             _destination = _destination[1..];
         }
         else
         {
-            _destination[0] = 0x81;
+            _destination[0] = RLPConstants.SHORT_STRING_PREFIX + 1;
             _destination[1] = data;
             _destination = _destination[2..];
         }
@@ -240,14 +240,14 @@ public ref struct RLPEncoder
     /// <param name="data">The byte payload to encode.</param>
     public RLPEncoder EncodeString(params ReadOnlySpan<byte> data)
     {
-        if(data.Length == 1 && data[0] < 128)
+        if(data.Length == 1 && data[0] < RLPConstants.SINGLE_BYTE_LIMIT)
         {
             _destination[0] = data[0];
             _destination = _destination[1..];
         }
-        else if(data.Length < 56)
+        else if(data.Length < RLPConstants.SHORT_PAYLOAD_LIMIT)
         {
-            _destination[0] = (byte) (0x80 + data.Length);
+            _destination[0] = (byte) (RLPConstants.SHORT_STRING_PREFIX + data.Length);
             data.CopyTo(_destination[1..]);
             _destination = _destination[(data.Length + 1)..];
         }
@@ -255,7 +255,7 @@ public ref struct RLPEncoder
         {
             int significantLengthBytes = GetSignificantByteCount((uint) data.Length);
 
-            _destination[0] = (byte) (0xb7 + significantLengthBytes);
+            _destination[0] = (byte) (RLPConstants.LONG_STRING_PREFIX + significantLengthBytes);
 
             Span<byte> buffer = stackalloc byte[4];
             BinaryPrimitives.WriteUInt32BigEndian(buffer, (uint) data.Length);
@@ -274,16 +274,16 @@ public ref struct RLPEncoder
     /// <param name="listLength">The total encoded byte size of the list payload.</param>
     public RLPEncoder EncodeList(int listLength)
     {
-        if(listLength < 56)
+        if(listLength < RLPConstants.SHORT_PAYLOAD_LIMIT)
         {
-            _destination[0] = (byte) (0xc0 + listLength);
+            _destination[0] = (byte) (RLPConstants.SHORT_LIST_PREFIX + listLength);
             _destination = _destination[1..];
         }
         else
         {
             int significantLengthBytes = GetSignificantByteCount((uint) listLength);
 
-            _destination[0] = (byte) (0xf7 + significantLengthBytes);
+            _destination[0] = (byte) (RLPConstants.LONG_LIST_PREFIX + significantLengthBytes);
 
             Span<byte> buffer = stackalloc byte[4];
             BinaryPrimitives.WriteUInt32BigEndian(buffer, (uint) listLength);
