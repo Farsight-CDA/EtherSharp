@@ -19,10 +19,11 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     private readonly ILogger? _logger;
 
     private readonly Lock _lock = new Lock();
+    //Waiting for the eth_subscribe response, removing a subscription uninstalls it once the response arrives
+    private readonly List<ISubscription> _installingSubscriptions = [];
     private readonly Dictionary<string, ISubscription> _activeSubscriptions = [];
     //Some nodes (e.g. Nethermind, Besu) can send notifications before the eth_subscribe response, those are parked until claimed
     private readonly Dictionary<string, List<byte[]>> _parkedNotifications = [];
-    private int _pendingInstallationCount;
     //Subscription ids are scoped to a connection, installations that span a connection loss are discarded
     private int _connectionGeneration;
     private bool _isClosed;
@@ -49,7 +50,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         lock(_lock)
         {
             ObjectDisposedException.ThrowIf(_isClosed, this);
-            _pendingInstallationCount++;
+            _installingSubscriptions.Add(subscription);
             connectionGeneration = _connectionGeneration;
         }
 
@@ -59,11 +60,11 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
         catch
         {
-            CompleteInstallation(null, connectionGeneration);
+            _ = CompleteInstallation(subscription, connectionGeneration, false);
             throw;
         }
 
-        if(CompleteInstallation(subscription, connectionGeneration))
+        if(CompleteInstallation(subscription, connectionGeneration, true))
         {
             return;
         }
@@ -77,38 +78,46 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     }
 
     //Returns whether the installed subscription was activated
-    private bool CompleteInstallation(ISubscription? installedSubscription, int connectionGeneration)
+    private bool CompleteInstallation(ISubscription subscription, int connectionGeneration, bool isInstalled)
     {
         bool isActivated = false;
-        string[] unclaimedSubscriptionIds = [];
+        List<string> subscriptionIdsToUninstall = [];
 
         lock(_lock)
         {
-            _pendingInstallationCount--;
+            bool isWanted = _installingSubscriptions.Remove(subscription);
 
-            if(installedSubscription is not null && !_isClosed && connectionGeneration == _connectionGeneration)
+            if(isInstalled && !_isClosed && connectionGeneration == _connectionGeneration)
             {
-                _activeSubscriptions.Add(installedSubscription.Id, installedSubscription);
-                isActivated = true;
-
-                if(_parkedNotifications.Remove(installedSubscription.Id, out var parkedNotifications))
+                if(isWanted)
                 {
-                    foreach(byte[] payload in parkedNotifications)
+                    _activeSubscriptions.Add(subscription.Id, subscription);
+                    isActivated = true;
+
+                    if(_parkedNotifications.Remove(subscription.Id, out var parkedNotifications))
                     {
-                        Dispatch(installedSubscription, payload);
+                        foreach(byte[] payload in parkedNotifications)
+                        {
+                            Dispatch(subscription, payload);
+                        }
                     }
+                }
+                else
+                {
+                    //Uninstalled while installing, the node side subscription is no longer needed
+                    subscriptionIdsToUninstall.Add(subscription.Id);
                 }
             }
 
             //No pending installation is left that could claim the remaining parked notifications
-            if(_pendingInstallationCount == 0 && _parkedNotifications.Count > 0)
+            if(_installingSubscriptions.Count == 0 && _parkedNotifications.Count > 0)
             {
-                unclaimedSubscriptionIds = [.. _parkedNotifications.Keys];
+                subscriptionIdsToUninstall.AddRange(_parkedNotifications.Keys);
                 _parkedNotifications.Clear();
             }
         }
 
-        foreach(string subscriptionId in unclaimedSubscriptionIds)
+        foreach(string subscriptionId in subscriptionIdsToUninstall)
         {
             _ = UninstallUnknownSubscriptionAsync(subscriptionId);
         }
@@ -127,6 +136,8 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                 && _activeSubscriptions.TryGetValue(subscriptionId, out var activeSubscription)
                 && ReferenceEquals(activeSubscription, subscription)
                 && _activeSubscriptions.Remove(subscriptionId);
+
+            _ = _installingSubscriptions.Remove(subscription);
         }
 
         try
@@ -210,7 +221,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                 return;
             }
 
-            if(_pendingInstallationCount > 0)
+            if(_installingSubscriptions.Count > 0)
             {
                 if(!_parkedNotifications.TryGetValue(subscriptionId, out var parkedNotifications))
                 {
