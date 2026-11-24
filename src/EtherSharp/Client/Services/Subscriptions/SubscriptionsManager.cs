@@ -39,7 +39,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
     //Must be called while holding _lock. Notifications can only be claimed while an eth_subscribe response is pending
     private bool IsInstalling
-        => _subscriptions.Values.Any(state => state.Status is SubscriptionStatus.Installing or SubscriptionStatus.Reinstalling);
+        => _subscriptions.Values.Any(state => state.Status == SubscriptionStatus.Installing);
 
     public SubscriptionsManager(IRPCTransport rpcTransport, IEthRpcModule ethRpcModule, IServiceProvider serviceProvider)
     {
@@ -72,6 +72,12 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
         catch
         {
+            //A new subscription that failed to install is dropped, the caller gets the exception
+            lock(_lock)
+            {
+                _ = _subscriptions.Remove(subscription);
+            }
+
             CompleteInstallation(subscription, connectionGeneration, InstallationOutcome.Failed);
             throw;
         }
@@ -85,7 +91,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         var state = _subscriptions[subscription];
         var delay = state.ReinstallDelay;
 
-        state.Status = SubscriptionStatus.Reinstalling;
+        state.Status = SubscriptionStatus.ReinstallScheduled;
         state.ReinstallDelay = TimeSpan.FromSeconds(
             Math.Clamp(delay.TotalSeconds * 2, _minReinstallDelay.TotalSeconds, _maxReinstallDelay.TotalSeconds)
         );
@@ -114,6 +120,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                 return;
             }
 
+            state.Status = SubscriptionStatus.Installing;
             connectionGeneration = _connectionGeneration;
         }
 
@@ -123,7 +130,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
         catch(Exception ex)
         {
-            _logger?.LogWarning(ex, "Failed to reinstall subscription of type {type}, retrying once reconnected", subscription);
+            _logger?.LogWarning(ex, "Failed to reinstall subscription of type {type}, retrying", subscription);
             CompleteInstallation(subscription, connectionGeneration, InstallationOutcome.Failed);
             return;
         }
@@ -155,24 +162,16 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                         }
                     }
                     break;
-                case { IsWanted: true, IsLive: false }
-                when state!.Status == SubscriptionStatus.Reinstalling
-                  || outcome == InstallationOutcome.Installed:
-                    //Ignored if the subscription was already interrupted
+                case { IsWanted: true, IsLive: false }:
                     subscription.Interrupt(new SubscriptionInterrupted(
                         SubscriptionInterruptionReason.ConnectionLost, "The connection was lost while installing the subscription."
                     ));
-                    state.Status = SubscriptionStatus.Interrupted;
+                    state!.Status = SubscriptionStatus.Interrupted;
 
-                    //Reconnected while installing, so the reconnect did not pick it up
-                    if(_isConnected && connectionGeneration != _connectionGeneration)
+                    if(_isConnected)
                     {
                         StartReinstall(subscription);
                     }
-                    break;
-                case { IsWanted: true }:
-                    //A new subscription that failed to install, the caller gets the exception
-                    _ = _subscriptions.Remove(subscription);
                     break;
                 case { IsWanted: false, IsLive: true }:
                     //Uninstalled while installing, the node side subscription is no longer needed
@@ -416,7 +415,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     private enum SubscriptionStatus
     {
         Installing,
-        Reinstalling,
+        ReinstallScheduled,
         Active,
         Interrupted,
     }
