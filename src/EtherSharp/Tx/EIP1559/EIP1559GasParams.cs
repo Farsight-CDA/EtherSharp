@@ -17,7 +17,7 @@ public sealed record EIP1559GasParams(
 ) : ITxGasParams<EIP1559GasParams>
 {
     /// <inheritdoc/>
-    static EIP1559GasParams ITxGasParams<EIP1559GasParams>.Decode(ReadOnlySpan<byte> data)
+    public static EIP1559GasParams Decode(ReadOnlySpan<byte> data)
     {
         ulong gasLimit = BinaryPrimitives.ReadUInt64BigEndian(data[0..8]);
         var maxFeePerGas = BinaryPrimitives.ReadUInt256BigEndian(data[8..40]);
@@ -27,7 +27,7 @@ public sealed record EIP1559GasParams(
     }
 
     /// <inheritdoc/>
-    byte[] ITxGasParams<EIP1559GasParams>.Encode()
+    public byte[] Encode()
     {
         int size = 8 + 32 + 32;
 
@@ -42,7 +42,7 @@ public sealed record EIP1559GasParams(
     }
 
     /// <inheritdoc/>
-    EIP1559GasParams ITxGasParams<EIP1559GasParams>.IncrementByFactor(UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement)
+    public EIP1559GasParams IncrementByFactor(UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement)
     {
         if(multiplier < divider)
         {

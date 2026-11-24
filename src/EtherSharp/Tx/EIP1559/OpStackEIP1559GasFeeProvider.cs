@@ -72,7 +72,15 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
             throw new InvalidOperationException("Not initialized");
         }
 
-        var mockTx = EIP1559Transaction.Create(_chainId, txParams, _defaultGasParams, txInput, 1_000);
+        var mockTx = new EIP1559Transaction(
+            _chainId,
+            _defaultGasParams.GasLimit,
+            1_000,
+            txInput,
+            _defaultGasParams.MaxFeePerGas,
+            _defaultGasParams.MaxPriorityFeePerGas,
+            txParams.AccessList
+        );
         Span<int> listSizes = stackalloc int[EIP1559Transaction.NestedListCount];
 
         int txByteSize = mockTx.GetEncodedSize(listSizes) + 1;

@@ -41,25 +41,32 @@ public sealed record EIP1559Transaction(
     /// </summary>
     public static byte PrefixByte => 0x02;
 
-    /// <summary>
-    /// Creates an EIP-1559 transaction from tx and gas parameter objects.
-    /// </summary>
-    /// <param name="chainId">Target chain identifier.</param>
-    /// <param name="txParams">Transaction-level parameters such as access list.</param>
-    /// <param name="gasParams">Gas and fee parameters.</param>
-    /// <param name="txInput">Destination, calldata, and value.</param>
-    /// <param name="nonce">Sender nonce.</param>
-    /// <returns>A transaction value built from the provided parameters.</returns>
-    public static EIP1559Transaction Create(ulong chainId, EIP1559TxParams txParams, EIP1559GasParams gasParams, ITxInput txInput, ulong nonce)
-        => new EIP1559Transaction(
-            chainId,
-            gasParams.GasLimit,
-            nonce,
-            txInput,
-            gasParams.MaxFeePerGas,
-            gasParams.MaxPriorityFeePerGas,
-            txParams.AccessList
-        );
+    /// <inheritdoc/>
+    public EIP1559Transaction WithGasParams(EIP1559GasParams gasParams)
+    {
+        ArgumentNullException.ThrowIfNull(gasParams);
+
+        return this with
+        {
+            Gas = gasParams.GasLimit,
+            MaxFeePerGas = gasParams.MaxFeePerGas,
+            MaxPriorityFeePerGas = gasParams.MaxPriorityFeePerGas
+        };
+    }
+
+    /// <inheritdoc/>
+    public EIP1559Transaction WithNonce(ulong nonce)
+        => this with { Nonce = nonce };
+
+    /// <inheritdoc/>
+    public EIP1559Transaction IncrementGasFeeByFactor(UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement)
+        => multiplier < divider
+            ? throw new ArgumentException("Multiplier must be larger than divider")
+            : this with
+            {
+                MaxFeePerGas = UInt256.Max(MaxFeePerGas + minimumIncrement, MaxFeePerGas * multiplier / divider),
+                MaxPriorityFeePerGas = UInt256.Max(MaxPriorityFeePerGas + minimumIncrement, MaxPriorityFeePerGas * multiplier / divider)
+            };
 
     /// <summary>
     /// Computes the RLP-encoded transaction size and stores nested list lengths.
@@ -112,12 +119,7 @@ public sealed record EIP1559Transaction(
                 .EncodeAccessList(AccessList);
     }
 
-    /// <summary>
-    /// Encodes and signs this transaction.
-    /// </summary>
-    /// <param name="signer">Signer of the transaction.</param>
-    /// <param name="cancellationToken">Token used to cancel the signing operation.</param>
-    /// <returns>The encoded signed transaction and its hash.</returns>
+    /// <inheritdoc/>
     public async ValueTask<SignedTransaction> SignAsync(IEtherSigner signer, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(signer);
@@ -182,7 +184,8 @@ public sealed record EIP1559Transaction(
     private static void EncodeSignature(
         in RecoverableEtherSignature signature,
         Span<byte> signatureBuffer,
-        out int encodedSignatureLength)
+        out int encodedSignatureLength
+    )
     {
         Span<byte> rawSignatureBuffer = stackalloc byte[65];
         signature.CopyTo(rawSignatureBuffer);
@@ -197,6 +200,7 @@ public sealed record EIP1559Transaction(
         };
 
         _ = new RLPEncoder(signatureBuffer).EncodeSignature(
-            rawSignatureBuffer[..64], parityByte, out encodedSignatureLength);
+            rawSignatureBuffer[..64], parityByte, out encodedSignatureLength
+        );
     }
 }

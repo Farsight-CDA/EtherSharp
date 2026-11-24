@@ -18,7 +18,7 @@ public sealed record EIP1559TxParams(
     public static EIP1559TxParams Default { get; } = new EIP1559TxParams([]);
 
     /// <inheritdoc/>
-    static EIP1559TxParams ITxParams<EIP1559TxParams>.Decode(ReadOnlySpan<byte> data)
+    public static EIP1559TxParams Decode(ReadOnlySpan<byte> data)
     {
         if(data.IsEmpty)
         {
@@ -80,7 +80,7 @@ public sealed record EIP1559TxParams(
     }
 
     /// <inheritdoc/>
-    byte[] ITxParams<EIP1559TxParams>.Encode()
+    public byte[] Encode()
     {
         int size = LENGTH_PREFIX_SIZE;
 

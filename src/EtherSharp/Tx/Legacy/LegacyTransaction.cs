@@ -30,22 +30,30 @@ public sealed record LegacyTransaction(
     /// </summary>
     public static int NestedListCount => 1;
 
-    /// <summary>
-    /// Creates a legacy transaction from gas parameters and transaction input.
-    /// </summary>
-    /// <param name="chainId">Target chain identifier.</param>
-    /// <param name="gasParams">Gas limit and gas price settings.</param>
-    /// <param name="txInput">Destination, calldata, and value.</param>
-    /// <param name="nonce">Sender nonce.</param>
-    /// <returns>A transaction value built from the provided parameters.</returns>
-    public static LegacyTransaction Create(ulong chainId, LegacyGasParams gasParams, ITxInput txInput, ulong nonce)
-        => new LegacyTransaction(
-            chainId,
-            gasParams.GasLimit,
-            nonce,
-            txInput,
-            gasParams.GasPrice
-        );
+    /// <inheritdoc/>
+    public LegacyTransaction WithGasParams(LegacyGasParams gasParams)
+    {
+        ArgumentNullException.ThrowIfNull(gasParams);
+
+        return this with
+        {
+            Gas = gasParams.GasLimit,
+            GasPrice = gasParams.GasPrice
+        };
+    }
+
+    /// <inheritdoc/>
+    public LegacyTransaction WithNonce(ulong nonce)
+        => this with { Nonce = nonce };
+
+    /// <inheritdoc/>
+    public LegacyTransaction IncrementGasFeeByFactor(UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement)
+        => multiplier < divider
+            ? throw new ArgumentException("Multiplier must be larger than divider")
+            : this with
+            {
+                GasPrice = UInt256.Max(GasPrice + minimumIncrement, GasPrice * multiplier / divider)
+            };
 
     /// <summary>
     /// Computes the RLP-encoded size of signable payload data (including EIP-155 chain id fields).
@@ -137,12 +145,7 @@ public sealed record LegacyTransaction(
             .EncodeString(Input.Data.Span);
     }
 
-    /// <summary>
-    /// Encodes and signs this transaction with EIP-155 replay protection.
-    /// </summary>
-    /// <param name="signer">Signer of the transaction.</param>
-    /// <param name="cancellationToken">Token used to cancel the signing operation.</param>
-    /// <returns>The encoded signed transaction and its hash.</returns>
+    /// <inheritdoc/>
     public async ValueTask<SignedTransaction> SignAsync(IEtherSigner signer, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(signer);
@@ -211,7 +214,8 @@ public sealed record LegacyTransaction(
         ulong eip155VBase,
         in RecoverableEtherSignature signature,
         Span<byte> signatureBuffer,
-        out int encodedSignatureLength)
+        out int encodedSignatureLength
+    )
     {
         Span<byte> rawSignatureBuffer = stackalloc byte[65];
         signature.CopyTo(rawSignatureBuffer);
@@ -226,6 +230,7 @@ public sealed record LegacyTransaction(
         };
 
         _ = new RLPEncoder(signatureBuffer).EncodeSignature(
-            rawSignatureBuffer[..64], eip155VBase + parityByte, out encodedSignatureLength);
+            rawSignatureBuffer[..64], eip155VBase + parityByte, out encodedSignatureLength
+        );
     }
 }

@@ -35,5 +35,11 @@ public sealed class LegacyTxTypeHandler(IEtherSigner signer)
         CancellationToken cancellationToken = default
     ) => !_isInitialized
         ? throw new InvalidOperationException("Not initialized")
-        : LegacyTransaction.Create(_chainId, txGasParams, txInput, nonce).SignAsync(_signer, cancellationToken);
+        : new LegacyTransaction(
+            _chainId,
+            txGasParams.GasLimit,
+            nonce,
+            txInput,
+            txGasParams.GasPrice
+        ).SignAsync(_signer, cancellationToken);
 }

@@ -35,5 +35,13 @@ public sealed class EIP1559TxTypeHandler(IEtherSigner signer)
         CancellationToken cancellationToken = default
     ) => !_isInitialized
         ? throw new InvalidOperationException("Not initialized")
-        : EIP1559Transaction.Create(_chainId, txParams, txGasParams, txInput, nonce).SignAsync(_signer, cancellationToken);
+        : new EIP1559Transaction(
+            _chainId,
+            txGasParams.GasLimit,
+            nonce,
+            txInput,
+            txGasParams.MaxFeePerGas,
+            txGasParams.MaxPriorityFeePerGas,
+            txParams.AccessList
+        ).SignAsync(_signer, cancellationToken);
 }
