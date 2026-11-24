@@ -113,9 +113,11 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             lock(_statusLock)
             {
                 ObjectDisposedException.ThrowIf(_isDisposed, this);
-                _connectionHandlerTask = ConnectionHandler();
                 _isInitialized = true;
             }
+
+            //Started outside the status lock, raises the initial connection event before initialization returns
+            _connectionHandlerTask = ConnectionHandler();
         }
         finally
         {
@@ -131,7 +133,10 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
             try
             {
-                await MessageHandler();
+                //Start the receive loop before notifying handlers so they can send and await RPC requests
+                var messageHandlerTask = MessageHandler();
+                RaiseConnectionEvent(OnConnectionEstablished, static handler => handler(), nameof(OnConnectionEstablished));
+                await messageHandlerTask;
 
                 if(_connectionHandlerCts.IsCancellationRequested)
                 {
@@ -167,8 +172,6 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             {
                 return;
             }
-
-            RaiseConnectionEvent(OnConnectionEstablished, static handler => handler(), nameof(OnConnectionEstablished));
         }
     }
 
