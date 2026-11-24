@@ -36,10 +36,27 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     private bool _isClosed;
 
     private readonly ObservableUpDownCounter<int>? _subscriptionsCounter;
+    private readonly OTELCounter<long>? _interruptionsCounter;
 
     //Must be called while holding _lock. Notifications can only be claimed while an eth_subscribe response is pending
     private bool IsInstalling
         => _subscriptions.Values.Any(state => state.Status == SubscriptionStatus.Installing);
+
+    //Observed from the metrics thread
+    private Measurement<int>[] ObserveSubscriptions()
+    {
+        lock(_lock)
+        {
+            int interrupted = _subscriptions.Values.Count(
+                state => state.Status is SubscriptionStatus.Interrupted or SubscriptionStatus.ReinstallScheduled
+            );
+
+            return [
+                new Measurement<int>(_activeSubscriptions.Count, new KeyValuePair<string, object?>("status", "active")),
+                new Measurement<int>(interrupted, new KeyValuePair<string, object?>("status", "interrupted")),
+            ];
+        }
+    }
 
     public SubscriptionsManager(IRPCTransport rpcTransport, IEthRpcModule ethRpcModule, IServiceProvider serviceProvider)
     {
@@ -47,7 +64,8 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         _ethRpcModule = ethRpcModule;
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger<SubscriptionsManager>();
 
-        _subscriptionsCounter = serviceProvider.CreateOTELObservableUpDownCounter("active_wss_subscriptions", () => _activeSubscriptions.Count);
+        _subscriptionsCounter = serviceProvider.CreateOTELObservableUpDownCounter<int>("wss_subscriptions", ObserveSubscriptions);
+        _interruptionsCounter = serviceProvider.CreateOTELCounter<long>("wss_subscription_interruptions");
 
         _rpcTransport.OnConnectionEstablished += HandleConnectionEstablished;
         _rpcTransport.OnConnectionLost += HandleConnectionLost;
@@ -302,6 +320,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     private void InterruptSubscription(ISubscription subscription, SubscriptionInterrupted interruption)
     {
         subscription.Interrupt(interruption);
+        _interruptionsCounter?.Add(1, new KeyValuePair<string, object?>("reason", interruption.Reason.ToString()));
         var state = _subscriptions[subscription];
         state.Status = SubscriptionStatus.Interrupted;
 

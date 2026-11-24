@@ -64,7 +64,8 @@ internal static class IServiceProviderExtensions
     }
 
     internal static ObservableUpDownCounter<T>? CreateOTELObservableUpDownCounter<T>(this IServiceProvider provider,
-        string name, Func<T> observeValue, string? unit = null, string? description = null, TagList tags = default)
+        string name, Func<T> observeValue,
+        string? unit = null, string? description = null, TagList tags = default)
         where T : struct
     {
         var options = provider.GetService<InstrumentationOptions>();
@@ -83,6 +84,33 @@ internal static class IServiceProviderExtensions
                 unit,
                 description
             );
+    }
+
+    extension(IServiceProvider provider)
+    {
+        internal ObservableUpDownCounter<T>? CreateOTELObservableUpDownCounter<T>(
+            string name, Func<IEnumerable<Measurement<T>>> observeValues,
+            string? unit = null, string? description = null, TagList tags = default
+        )
+            where T : struct
+        {
+            var options = provider.GetService<InstrumentationOptions>();
+            var meterFactory = provider.GetService<IMeterFactory>();
+
+            if(options is null || meterFactory is null)
+            {
+                return null;
+            }
+            //
+            var mergedTags = MergeTags(options.Tags, tags);
+            return meterFactory.Create(Diagnostics.METER_NAME)
+                .CreateObservableUpDownCounter(
+                    $"{options.InstrumentNamePrefix}{name}",
+                    () => observeValues().Select(x => new Measurement<T>(x.Value, MergeTags(mergedTags, new TagList(x.Tags)))),
+                    unit,
+                    description
+                );
+        }
     }
 
     internal static ObservableGauge<T>? CreateOTELObservableGauge<T>(this IServiceProvider provider,
