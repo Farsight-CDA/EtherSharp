@@ -35,7 +35,7 @@ public interface ISubscription : IAsyncDisposable
     public void Resume();
 
     /// <summary>
-    /// Installs the subscription on the remote node.
+    /// Installs the subscription on the remote node. Called again with the same options to reinstall it after an interruption.
     /// </summary>
     /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Token used to cancel the installation request.</param>

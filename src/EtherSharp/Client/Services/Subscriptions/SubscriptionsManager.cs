@@ -25,11 +25,16 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     private readonly Dictionary<string, ISubscription> _activeSubscriptions = [];
     //Some nodes (e.g. Nethermind, Besu) can send notifications before the eth_subscribe response, those are parked until claimed
     private readonly Dictionary<string, List<byte[]>> _parkedNotifications = [];
-    //Subscription ids are scoped to a connection, installations that span a connection loss are discarded
+    //Subscription ids are scoped to a connection, installations that span a connection loss are not activated
     private int _connectionGeneration;
+    private bool _isConnected = true;
     private bool _isClosed;
 
     private readonly ObservableUpDownCounter<int>? _subscriptionsCounter;
+
+    //Must be called while holding _lock. Notifications can only be claimed while an eth_subscribe response is pending
+    private bool IsInstalling
+        => _subscriptions.Values.Any(status => status is SubscriptionStatus.Installing or SubscriptionStatus.Reinstalling);
 
     public SubscriptionsManager(IRPCTransport rpcTransport, IEthRpcModule ethRpcModule, IServiceProvider serviceProvider)
     {
@@ -39,6 +44,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
         _subscriptionsCounter = serviceProvider.CreateOTELObservableUpDownCounter("active_wss_subscriptions", () => _activeSubscriptions.Count);
 
+        _rpcTransport.OnConnectionEstablished += HandleConnectionEstablished;
         _rpcTransport.OnConnectionLost += HandleConnectionLost;
         _rpcTransport.OnSubscriptionMessage += HandleSubscriptionMessage;
     }
@@ -61,11 +67,11 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
         catch
         {
-            _ = CompleteInstallation(subscription, connectionGeneration, false);
+            _ = CompleteInstallation(subscription, connectionGeneration, InstallationOutcome.Failed);
             throw;
         }
 
-        if(CompleteInstallation(subscription, connectionGeneration, true))
+        if(CompleteInstallation(subscription, connectionGeneration, InstallationOutcome.Installed))
         {
             return;
         }
@@ -78,18 +84,36 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         throw exception;
     }
 
-    //Returns whether the installed subscription was activated
-    private bool CompleteInstallation(ISubscription subscription, int connectionGeneration, bool isInstalled)
+    private async Task ReinstallAsync(ISubscription subscription, int connectionGeneration)
+    {
+        try
+        {
+            await subscription.InstallAsync(subscription.RequestOptions, CancellationToken.None);
+        }
+        catch(Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to reinstall subscription of type {type}, retrying once reconnected", subscription);
+            _ = CompleteInstallation(subscription, connectionGeneration, InstallationOutcome.Failed);
+            return;
+        }
+
+        _ = CompleteInstallation(subscription, connectionGeneration, InstallationOutcome.Installed);
+    }
+
+    private bool CompleteInstallation(ISubscription subscription, int connectionGeneration, InstallationOutcome outcome)
     {
         bool isActivated = false;
         List<string> subscriptionIdsToUninstall = [];
 
         lock(_lock)
         {
-            if(isInstalled && !_isClosed && connectionGeneration == _connectionGeneration)
+            bool isWanted = _subscriptions.TryGetValue(subscription, out var status);
+            bool isLive = outcome == InstallationOutcome.Installed && connectionGeneration == _connectionGeneration;
+
+            switch((IsWanted: isWanted, IsLive: isLive, Status: status))
             {
-                if(_subscriptions.ContainsKey(subscription))
-                {
+                case { IsWanted: true, IsLive: true }:
+                    subscription.Resume();
                     _subscriptions[subscription] = SubscriptionStatus.Active;
                     _activeSubscriptions.Add(subscription.Id, subscription);
                     isActivated = true;
@@ -101,20 +125,27 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                             Dispatch(subscription, payload);
                         }
                     }
-                }
-                else
-                {
+                    break;
+                case { IsWanted: true, Status: SubscriptionStatus.Reinstalling }:
+                    _subscriptions[subscription] = SubscriptionStatus.Interrupted;
+
+                    //Reconnected while reinstalling, so the reconnect did not pick it up
+                    if(_isConnected && connectionGeneration != _connectionGeneration)
+                    {
+                        StartReinstall(subscription);
+                    }
+                    break;
+                case { IsWanted: true }:
+                    //Failed or installed on a lost connection
+                    _ = _subscriptions.Remove(subscription);
+                    break;
+                case { IsWanted: false, IsLive: true } when !_isClosed:
                     //Uninstalled while installing, the node side subscription is no longer needed
                     subscriptionIdsToUninstall.Add(subscription.Id);
-                }
-            }
-            else
-            {
-                //Failed or installed on a lost connection
-                _ = _subscriptions.Remove(subscription);
+                    break;
             }
 
-            if(!_subscriptions.ContainsValue(SubscriptionStatus.Installing) && _parkedNotifications.Count > 0)
+            if(!IsInstalling && _parkedNotifications.Count > 0)
             {
                 subscriptionIdsToUninstall.AddRange(_parkedNotifications.Keys);
                 _parkedNotifications.Clear();
@@ -127,6 +158,14 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
 
         return isActivated;
+    }
+
+    //Must be called while holding _lock
+    private void StartReinstall(ISubscription subscription)
+    {
+        _subscriptions[subscription] = SubscriptionStatus.Reinstalling;
+        int connectionGeneration = _connectionGeneration;
+        _ = Task.Run(() => ReinstallAsync(subscription, connectionGeneration));
     }
 
     public async Task UninstallSubscription(ISubscription subscription)
@@ -177,8 +216,28 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
             _parkedNotifications.Clear();
         }
 
+        _rpcTransport.OnConnectionEstablished -= HandleConnectionEstablished;
         _rpcTransport.OnConnectionLost -= HandleConnectionLost;
         _rpcTransport.OnSubscriptionMessage -= HandleSubscriptionMessage;
+    }
+
+    private void HandleConnectionEstablished()
+    {
+        lock(_lock)
+        {
+            _isConnected = true;
+
+            //Only interrupted ones, a subscription that is still reinstalling is never installed twice
+            ISubscription[] interruptedSubscriptions = [.. _subscriptions
+                .Where(x => x.Value == SubscriptionStatus.Interrupted)
+                .Select(x => x.Key)
+            ];
+
+            foreach(var subscription in interruptedSubscriptions)
+            {
+                StartReinstall(subscription);
+            }
+        }
     }
 
     private void HandleConnectionLost(Exception connectionError)
@@ -190,11 +249,14 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                 return;
             }
 
+            _isConnected = false;
             _connectionGeneration++;
 
             if(_activeSubscriptions.Count > 0)
             {
-                _logger?.LogWarning(connectionError, "Connection lost, interrupting {count} subscriptions", _activeSubscriptions.Count);
+                _logger?.LogWarning(
+                    connectionError, "Connection lost, {count} subscriptions will be reinstalled once reconnected", _activeSubscriptions.Count
+                );
             }
 
             foreach(var subscription in _activeSubscriptions.Values)
@@ -223,7 +285,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                 return;
             }
 
-            if(_subscriptions.ContainsValue(SubscriptionStatus.Installing))
+            if(IsInstalling)
             {
                 if(!_parkedNotifications.TryGetValue(subscriptionId, out var parkedNotifications))
                 {
@@ -299,13 +361,17 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
     }
 
+    private enum InstallationOutcome
+    {
+        Installed,
+        Failed,
+    }
+
     private enum SubscriptionStatus
     {
-        //Waiting for the eth_subscribe response
         Installing,
-        //Receiving notifications, routed through _activeSubscriptions
+        Reinstalling,
         Active,
-        //Lost its node side subscription
         Interrupted,
     }
 }
