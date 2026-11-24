@@ -32,7 +32,11 @@ internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscripti
     {
         while(await _channel.Reader.WaitToReadAsync(cancellationToken))
         {
-            yield return await _channel.Reader.ReadAsync(cancellationToken);
+            while(_channel.Reader.TryRead(out var header))
+            {
+                yield return header;
+                cancellationToken.ThrowIfCancellationRequested();
+            }
         }
 
         if(_closeError is not null)

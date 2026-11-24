@@ -41,8 +41,11 @@ internal sealed class EventSubscription<TLog>(
     {
         while(await _channel.Reader.WaitToReadAsync(cancellationToken))
         {
-            var log = await _channel.Reader.ReadAsync(cancellationToken);
-            yield return TLog.Decode(log);
+            while(_channel.Reader.TryRead(out var log))
+            {
+                yield return TLog.Decode(log);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
         }
 
         if(_closeError is not null)
