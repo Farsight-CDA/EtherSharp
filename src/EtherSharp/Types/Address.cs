@@ -181,6 +181,33 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>, ISta
     }
 
     /// <summary>
+    /// Searches for the creator nonce whose CREATE operation produces <paramref name="createdAddress"/>.
+    /// </summary>
+    /// <param name="creator">The account that created the contract.</param>
+    /// <param name="createdAddress">The created contract address.</param>
+    /// <param name="startNonce">The first nonce to test.</param>
+    /// <param name="searchCount">The number of consecutive nonces to test.</param>
+    /// <param name="nonce">The matching nonce, if found.</param>
+    /// <returns><see langword="true"/> if a nonce in the range produces <paramref name="createdAddress"/>.</returns>
+    public static bool TryFindCreateNonce(in Address creator, in Address createdAddress, ulong startNonce, int searchCount, out ulong nonce)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(searchCount);
+
+        for(int i = 0; i < searchCount; i++)
+        {
+            ulong candidate = startNonce + (ulong) i;
+            if(DeriveCreate(in creator, candidate) == createdAddress)
+            {
+                nonce = candidate;
+                return true;
+            }
+        }
+
+        nonce = 0;
+        return false;
+    }
+
+    /// <summary>
     /// Derives the address created by the CREATE2 opcode.
     /// </summary>
     /// <param name="creator">The account creating the contract.</param>

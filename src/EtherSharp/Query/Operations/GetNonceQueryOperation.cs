@@ -34,20 +34,8 @@ internal sealed class GetNonceQueryOperation : IQueryOperation, IQuery<NonceSear
         var result = queryResults[0].Span;
         var account = Address.FromBytes(result[..Address.BYTES_LENGTH]);
         var createdAddress = Address.FromBytes(result.Slice(Address.BYTES_LENGTH, Address.BYTES_LENGTH));
-        if(createdAddress == default)
-        {
-            return new NonceSearchResult.NotFound();
-        }
-
-        for(int i = 0; i < _searchCount; i++)
-        {
-            ulong nonce = _startNonce + (ulong) i;
-            if(Address.DeriveCreate(in account, nonce) == createdAddress)
-            {
-                return new NonceSearchResult.Found(nonce);
-            }
-        }
-
-        return new NonceSearchResult.NotFound();
+        return createdAddress != default && Address.TryFindCreateNonce(in account, in createdAddress, _startNonce, _searchCount, out ulong nonce)
+            ? new NonceSearchResult.Found(nonce)
+            : new NonceSearchResult.NotFound();
     }
 }

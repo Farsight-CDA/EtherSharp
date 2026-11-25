@@ -15,13 +15,18 @@ public partial interface IQuery
 {
     private const int DEFAULT_NONCE_SEARCH_COUNT = 16_384;
 
-    private static IQuery<ulong> ArbitrumBlockNumberQuery { get; } = Call(IContractCall<UInt256>.ForContractCall(
+    private static IContractCall<UInt256> ArbitrumBlockNumberCall { get; } = IContractCall<UInt256>.ForContractCall(
         "0x0000000000000000000000000000000000000064",
         0,
         Convert.FromHexString("A3B1B31D"),
         new ABI.AbiEncoder(),
-        x => x.UInt256())
-    ).Map(x => (ulong) x);
+        x => x.UInt256()
+    );
+
+    private static IQuery<ulong> ArbitrumBlockNumberQuery { get; } = Call(ArbitrumBlockNumberCall).Map(x => (ulong) x);
+
+    private static IQuery<ulong> BlockHeightQuery { get; } = Combine(GetBlockNumber(), SafeCall(ArbitrumBlockNumberCall))
+        .Map(x => x.Item2 is CallResult<UInt256>.Success arb ? (ulong) arb.Value : x.Item1);
 
     /// <summary>
     /// Gets the number of low-level operations contributed to an execution plan by this query.
@@ -142,6 +147,13 @@ public partial interface IQuery
     /// </remarks>
     public static IQuery<ulong> GetArbitrumBlockNumber()
         => ArbitrumBlockNumberQuery;
+
+    /// <summary>
+    /// Creates a query that returns the block height as the RPC numbers blocks:
+    /// <c>ArbSys.arbBlockNumber()</c> on Arbitrum-based chains, otherwise EVM NUMBER.
+    /// </summary>
+    public static IQuery<ulong> GetBlockHeight()
+        => BlockHeightQuery;
 
     /// <summary>
     /// Creates a query that returns the current block timestamp as a <see cref="DateTimeOffset"/>.
