@@ -29,7 +29,7 @@ public interface IEtherClient : IAsyncDisposable
     public ulong ChainId { get; }
 
     /// <summary>
-    /// Gets the module for native-currency and account-level RPC operations.
+    /// Gets the module for native-currency balance queries and unsigned transfer inputs.
     /// </summary>
     public IEtherModule ETH { get; }
 

@@ -4,15 +4,12 @@ using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Types;
-using EtherSharp.Wallet;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace EtherSharp.Client.Modules.Ether;
 
-internal sealed class EtherModule(IEthRpcModule ethRpcModule, IServiceProvider provider) : IEtherTxModule, IEtherModule
+internal sealed class EtherModule(IEthRpcModule ethRpcModule) : IEtherModule
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
-    private readonly IServiceProvider _provider = provider;
 
     public ITxInput Transfer(in Address receiver, UInt256 amount)
         => ITxInput.ForEthTransfer(in receiver, amount);
@@ -25,13 +22,4 @@ internal sealed class EtherModule(IEthRpcModule ethRpcModule, IServiceProvider p
     public Task<UInt256> GetBalanceAsync(IEVMContract contract, TargetHeight targetHeight,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
         => _ethRpcModule.GetBalanceAsync(contract.Address, targetHeight, requestOptions, cancellationToken);
-
-    public Task<UInt256> GetMyBalanceAsync(TargetHeight targetHeight,
-        RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
-        => _ethRpcModule.GetBalanceAsync(
-            _provider.GetService<IEtherSigner>()?.Address ?? throw new InvalidOperationException("Client is not a tx client"),
-            targetHeight,
-            requestOptions,
-            cancellationToken
-        );
 }

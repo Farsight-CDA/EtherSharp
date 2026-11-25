@@ -1,5 +1,4 @@
-﻿using EtherSharp.Client.Modules.Ether;
-using EtherSharp.RPC.Transport;
+﻿using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.PendingHandler;
@@ -12,11 +11,6 @@ namespace EtherSharp.Client;
 /// </summary>
 public interface IEtherTxClient : IEtherClient
 {
-    /// <summary>
-    /// Gets the transaction-capable ETH module.
-    /// </summary>
-    public new IEtherTxModule ETH { get; }
-
     /// <summary>
     /// Creates a pending-transaction handler for a default EIP-1559 transaction.
     /// </summary>

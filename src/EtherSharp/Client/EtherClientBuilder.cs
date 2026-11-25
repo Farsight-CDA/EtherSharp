@@ -573,7 +573,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.TryAddSingleton<ITxConfirmationWatcher, PollingTxConfirmationWatcher>();
 
         _services.AddSingleton<IEtherModule, EtherModule>();
-        _services.AddSingleton<IEtherTxModule, EtherModule>();
         _services.AddSingleton<ITraceModule, TraceModule>();
         _services.AddSingleton<IBlocksModule, BlocksModule>();
         _services.AddSingleton<IMempoolModule, MempoolModule>();

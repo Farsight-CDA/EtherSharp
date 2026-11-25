@@ -34,7 +34,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private readonly CallGasLimitSettings _callGasLimitSettings;
     private readonly IRPCTransport _rpcTransport;
 
-    private IEtherTxModule _etherModule = null!;
+    private IEtherModule _etherModule = null!;
     private ITraceModule _traceModule = null!;
     private IBlocksModule _blocksModule = null!;
     private IMempoolModule _mempoolModule = null!;
@@ -74,11 +74,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     ulong IEtherClient.ChainId
         => _initialized
             ? _chainId
-            : throw new InvalidOperationException("Client not initialized");
-
-    IEtherTxModule IEtherTxClient.ETH
-        => _initialized
-            ? _etherModule
             : throw new InvalidOperationException("Client not initialized");
 
     IEtherModule IEtherClient.ETH
@@ -220,7 +215,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
         await _rpcTransport.InitializeAsync(cancellationToken);
 
-        _etherModule = _provider.GetRequiredService<IEtherTxModule>();
+        _etherModule = _provider.GetRequiredService<IEtherModule>();
         _traceModule = _provider.GetRequiredService<ITraceModule>();
         _blocksModule = _provider.GetRequiredService<IBlocksModule>();
         _mempoolModule = _provider.GetRequiredService<IMempoolModule>();

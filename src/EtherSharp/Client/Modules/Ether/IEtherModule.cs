@@ -1,15 +1,32 @@
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Transport;
+using EtherSharp.Tx;
 using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Ether;
 
 /// <summary>
-/// Provides read-only operations for the chain native currency (for example ETH).
+/// Provides balance queries and unsigned transfer inputs for the chain native currency (for example ETH).
 /// </summary>
 public interface IEtherModule
 {
+    /// <summary>
+    /// Creates a transaction input that transfers native currency to an address.
+    /// </summary>
+    /// <param name="receiver">Destination address.</param>
+    /// <param name="amount">Transfer amount in wei.</param>
+    /// <returns>An unsigned transaction input ready to estimate or send.</returns>
+    public ITxInput Transfer(in Address receiver, UInt256 amount);
+
+    /// <summary>
+    /// Creates a transaction input that transfers native currency to a payable contract.
+    /// </summary>
+    /// <param name="contract">Destination payable contract.</param>
+    /// <param name="amount">Transfer amount in wei.</param>
+    /// <returns>An unsigned transaction input ready to estimate or send.</returns>
+    public ITxInput Transfer(IPayableContract contract, UInt256 amount);
+
     /// <summary>
     /// Gets the native currency balance for a wallet address.
     /// </summary>
