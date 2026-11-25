@@ -12,7 +12,6 @@ using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Client.Services.TxScheduler;
-using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common;
 using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
@@ -140,10 +139,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
             .WithBlockingSequentialTxScheduler(nonceMode, confirmationTimeout ?? TimeSpan.FromSeconds(30))
-            .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
-                gasFeeProviderConfigurationAction: configureGasProvider
+            .AddGasFeeProvider<EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559TxParams, EIP1559GasParams>(
+                configureGasProvider
             )
-            .AddTxTypeHandler<LegacyTxTypeHandler, LegacyGasFeeProvider, LegacyGasFeeProvider.Configuration, LegacyTransaction, LegacyTxParams, LegacyGasParams>();
+            .AddGasFeeProvider<LegacyGasFeeProvider, LegacyGasFeeProvider.Configuration, LegacyTxParams, LegacyGasParams>();
     }
 
     /// <summary>
@@ -207,10 +206,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
             .WithSigner(signer)
             .WithTxPublisher<BasicTxPublisher>()
             .WithBlockingSequentialTxScheduler(nonceMode, confirmationTimeout ?? TimeSpan.FromSeconds(30))
-            .AddTxTypeHandler<EIP1559TxTypeHandler, EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
-                gasFeeProviderConfigurationAction: configureGasProvider
+            .AddGasFeeProvider<EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559TxParams, EIP1559GasParams>(
+                configureGasProvider
             )
-            .AddTxTypeHandler<LegacyTxTypeHandler, LegacyGasFeeProvider, LegacyGasFeeProvider.Configuration, LegacyTransaction, LegacyTxParams, LegacyGasParams>();
+            .AddGasFeeProvider<LegacyGasFeeProvider, LegacyGasFeeProvider.Configuration, LegacyTxParams, LegacyGasParams>();
     }
 
     /// <summary>
@@ -452,39 +451,31 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
-    /// Configures a Transaction type.
+    /// Registers a gas fee provider for the specified transaction and gas parameter types.
     /// </summary>
-    /// <typeparam name="TTxTypeHandler"></typeparam>
-    /// <typeparam name="TGasFeeProvider"></typeparam>
-    /// <typeparam name="TGasFeeProviderConfiguration"></typeparam>
-    /// <typeparam name="TTransaction"></typeparam>
-    /// <typeparam name="TTxParams"></typeparam>
-    /// <typeparam name="TTxGasParams"></typeparam>
-    /// <param name="handlerConfigureAction"></param>
-    /// <param name="gasFeeProviderConfigurationAction"></param>
-    /// <returns></returns>
-    public EtherClientBuilder AddTxTypeHandler<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTxTypeHandler,
+    /// <typeparam name="TGasFeeProvider">Provider implementation to construct.</typeparam>
+    /// <typeparam name="TGasFeeProviderConfiguration">Configuration passed to the provider constructor.</typeparam>
+    /// <typeparam name="TTxParams">Transaction parameters accepted by the provider.</typeparam>
+    /// <typeparam name="TTxGasParams">Gas parameters produced by the provider.</typeparam>
+    /// <param name="configureAction">Optional callback to configure the provider.</param>
+    /// <returns>This builder.</returns>
+    public EtherClientBuilder AddGasFeeProvider<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TGasFeeProvider,
-        TGasFeeProviderConfiguration, TTransaction, TTxParams, TTxGasParams>(
-        Action<TTxTypeHandler>? handlerConfigureAction = null,
-        Action<TGasFeeProviderConfiguration>? gasFeeProviderConfigurationAction = null
+        TGasFeeProviderConfiguration, TTxParams, TTxGasParams>(
+        Action<TGasFeeProviderConfiguration>? configureAction = null
     )
-        where TTxTypeHandler : class, ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>
         where TGasFeeProvider : class, IGasFeeProvider<TTxParams, TTxGasParams>
         where TGasFeeProviderConfiguration : class, new()
-        where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams
     {
-        var gasFeeProviderConfiguration = new TGasFeeProviderConfiguration();
-        gasFeeProviderConfigurationAction?.Invoke(gasFeeProviderConfiguration);
+        var configuration = new TGasFeeProviderConfiguration();
+        configureAction?.Invoke(configuration);
 
-        _services.AddOrReplaceSingleton<ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>, TTxTypeHandler>();
         _services.AddOrReplaceSingleton<IGasFeeProvider<TTxParams, TTxGasParams>>(provider =>
-            ActivatorUtilities.CreateInstance<TGasFeeProvider>(provider, gasFeeProviderConfiguration));
+            ActivatorUtilities.CreateInstance<TGasFeeProvider>(provider, configuration)
+        );
 
-        AddConfigureAction<ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>, TTxTypeHandler>(handlerConfigureAction);
         return this;
     }
 

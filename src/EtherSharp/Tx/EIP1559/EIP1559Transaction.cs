@@ -42,6 +42,20 @@ public sealed record EIP1559Transaction(
     public static byte PrefixByte => 0x02;
 
     /// <inheritdoc/>
+    public static EIP1559Transaction Create(
+        ulong chainId, ulong nonce, ITxInput input, EIP1559TxParams txParams, EIP1559GasParams gasParams
+    )
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(txParams);
+        ArgumentNullException.ThrowIfNull(gasParams);
+
+        return new EIP1559Transaction(
+            chainId, gasParams.GasLimit, nonce, input, gasParams.MaxFeePerGas, gasParams.MaxPriorityFeePerGas, txParams.AccessList
+        );
+    }
+
+    /// <inheritdoc/>
     public EIP1559Transaction WithGasParams(EIP1559GasParams gasParams)
     {
         ArgumentNullException.ThrowIfNull(gasParams);

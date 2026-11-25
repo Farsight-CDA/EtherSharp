@@ -43,6 +43,19 @@ public interface ITransaction<TSelf, TTxParams, TTxGasParams>
     where TSelf : ITransaction<TSelf, TTxParams, TTxGasParams>
 {
     /// <summary>
+    /// Creates an unsigned transaction from its input and resolved parameters.
+    /// </summary>
+    /// <param name="chainId">Target chain identifier.</param>
+    /// <param name="nonce">Sender nonce.</param>
+    /// <param name="input">Transaction destination, value, and calldata.</param>
+    /// <param name="txParams">Transaction-type-specific parameters.</param>
+    /// <param name="gasParams">Gas limit and fee parameters.</param>
+    /// <returns>The unsigned transaction.</returns>
+    public static abstract TSelf Create(
+        ulong chainId, ulong nonce, ITxInput input, TTxParams txParams, TTxGasParams gasParams
+    );
+
+    /// <summary>
     /// Returns a copy of this transaction with updated gas and fee parameters.
     /// </summary>
     /// <param name="gasParams">Gas and fee parameters to apply.</param>

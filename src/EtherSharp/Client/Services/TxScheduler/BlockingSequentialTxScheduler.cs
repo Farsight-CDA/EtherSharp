@@ -1,7 +1,6 @@
 ﻿using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.TxPublisher;
-using EtherSharp.Client.Services.TxTypeHandler;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
@@ -19,7 +18,7 @@ namespace EtherSharp.Client.Services.TxScheduler;
 /// <summary>
 /// Schedules transactions sequentially by nonce and drives their lifecycle until confirmation.
 /// </summary>
-/// <param name="provider">Service provider used to resolve tx handlers and optional services.</param>
+/// <param name="provider">Service provider used to resolve gas fee providers and optional services.</param>
 /// <param name="ethRpcModule">RPC module used for nonce, receipt, and chain state queries.</param>
 /// <param name="signer">Signer representing the sender account for scheduled transactions.</param>
 /// <param name="txPublisher">Publisher used to submit signed transactions to the network.</param>
@@ -63,7 +62,7 @@ public sealed class BlockingSequentialTxScheduler(
 
     private readonly SemaphoreSlim _workerSignal = new SemaphoreSlim(0);
 
-    private ulong _chainId;
+    private ulong? _chainId;
 
     private ulong _confirmedNonce;
     private ulong _peakNonce;
@@ -75,8 +74,6 @@ public sealed class BlockingSequentialTxScheduler(
         ulong chainId, RpcRequestOptions requestOptions, CancellationToken cancellationToken
     )
     {
-        _chainId = chainId;
-
         _confirmedNonce = await ethRpcModule.GetTransactionCountAsync(
             signer.Address, TargetHeight.Latest, requestOptions, cancellationToken
         );
@@ -96,6 +93,7 @@ public sealed class BlockingSequentialTxScheduler(
             };
         }
 
+        _chainId = chainId;
         _ = Task.Run(() => AdaptiveNoncePollerAsync(_cts.Token), cancellationToken);
     }
 
@@ -204,8 +202,6 @@ public sealed class BlockingSequentialTxScheduler(
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken);
-        var handler = provider.GetRequiredService<ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>>();
-        var gasFeeProvider = provider.GetRequiredService<IGasFeeProvider<TTxParams, TTxGasParams>>();
 
         await _preparationLock.WaitAsync(cts.Token);
 
@@ -233,12 +229,12 @@ public sealed class BlockingSequentialTxScheduler(
             }
 
             txParams ??= TTxParams.Default;
-            txGasParams ??= await gasFeeProvider.EstimateGasParamsAsync(
+            txGasParams ??= await provider.GetRequiredService<IGasFeeProvider<TTxParams, TTxGasParams>>()
+                .EstimateGasParamsAsync(
                 call, txParams, signer.Address, requestOptions, cts.Token
             );
 
-            var submission = await CreateSubmissionAsync(
-                handler,
+            var submission = await CreateSubmissionAsync<TTransaction, TTxParams, TTxGasParams>(
                 myNonce,
                 0,
                 call,
@@ -277,7 +273,6 @@ public sealed class BlockingSequentialTxScheduler(
     }
 
     private async ValueTask<TxSubmission<TTxParams, TTxGasParams>> CreateSubmissionAsync<TTransaction, TTxParams, TTxGasParams>(
-        ITxTypeHandler<TTransaction, TTxParams, TTxGasParams> typeHandler,
         ulong nonce, uint sequence, ITxInput call, TTxParams txParams, TTxGasParams gasParams,
         CancellationToken cancellationToken
     )
@@ -285,9 +280,11 @@ public sealed class BlockingSequentialTxScheduler(
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
-        var signedTransaction = await typeHandler.EncodeTxAsync(call, txParams, gasParams, nonce, cancellationToken);
+        ulong chainId = _chainId ?? throw new InvalidOperationException("Not initialized");
+        var transaction = TTransaction.Create(chainId, nonce, call, txParams, gasParams);
+        var signedTransaction = await transaction.SignAsync(signer, cancellationToken);
         return new TxSubmission<TTxParams, TTxGasParams>(
-            _chainId, sequence, signedTransaction.Hash, signedTransaction.EncodedTx, call, txParams, gasParams
+            chainId, sequence, signedTransaction.Hash, signedTransaction.EncodedTx, call, txParams, gasParams
         );
     }
 
@@ -388,8 +385,6 @@ public sealed class BlockingSequentialTxScheduler(
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
-        var typeHandler = provider.GetRequiredService<ITxTypeHandler<TTransaction, TTxParams, TTxGasParams>>();
-
         if(handlerContext.Nonce > 0)
         {
             await WaitForNonceCompletionAsync(handlerContext.Nonce - 1);
@@ -439,12 +434,12 @@ public sealed class BlockingSequentialTxScheduler(
 
                         return new TxConfirmationResult.Cancelled();
                     case TxConfirmationAction<TTxParams, TTxGasParams>.MinimalGasFeeIncrement:
-                        await ApplyRepricingAsync(
-                            currentSubmission.GasParams.IncrementByFactor(1105, 1000, 1), handlerContext, typeHandler
+                        await ApplyRepricingAsync<TTransaction, TTxParams, TTxGasParams>(
+                            currentSubmission.GasParams.IncrementByFactor(1105, 1000, 1), handlerContext
                         );
                         continue;
                     case TxConfirmationAction<TTxParams, TTxGasParams>.RepriceTransaction reprice:
-                        await ApplyRepricingAsync(reprice.GasParams, handlerContext, typeHandler);
+                        await ApplyRepricingAsync<TTransaction, TTxParams, TTxGasParams>(reprice.GasParams, handlerContext);
                         continue;
                 }
             }
@@ -492,8 +487,7 @@ public sealed class BlockingSequentialTxScheduler(
 
     private async Task ApplyRepricingAsync<TTransaction, TTxParams, TTxGasParams>(
         TTxGasParams gasParams,
-        PendingTxHandler<TTxParams, TTxGasParams> context,
-        ITxTypeHandler<TTransaction, TTxParams, TTxGasParams> typeHandler
+        PendingTxHandler<TTxParams, TTxGasParams> context
     )
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
@@ -501,8 +495,7 @@ public sealed class BlockingSequentialTxScheduler(
     {
         var oldSub = context.TxSubmissions[0];
 
-        var newSub = await CreateSubmissionAsync(
-            typeHandler,
+        var newSub = await CreateSubmissionAsync<TTransaction, TTxParams, TTxGasParams>(
             context.Nonce,
             oldSub.Sequence + 1,
             oldSub.Call,

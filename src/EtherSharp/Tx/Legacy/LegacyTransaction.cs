@@ -31,6 +31,18 @@ public sealed record LegacyTransaction(
     public static int NestedListCount => 1;
 
     /// <inheritdoc/>
+    public static LegacyTransaction Create(
+        ulong chainId, ulong nonce, ITxInput input, LegacyTxParams txParams, LegacyGasParams gasParams
+    )
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(txParams);
+        ArgumentNullException.ThrowIfNull(gasParams);
+
+        return new LegacyTransaction(chainId, gasParams.GasLimit, nonce, input, gasParams.GasPrice);
+    }
+
+    /// <inheritdoc/>
     public LegacyTransaction WithGasParams(LegacyGasParams gasParams)
     {
         ArgumentNullException.ThrowIfNull(gasParams);
