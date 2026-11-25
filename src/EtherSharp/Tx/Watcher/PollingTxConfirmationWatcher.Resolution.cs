@@ -93,31 +93,21 @@ public sealed partial class PollingTxConfirmationWatcher
         ulong lowBlock;
         ulong highBlock = observedBlock;
 
-        if(highestUnusedBlock is { } unused && observedBlock > unused)
+        // An unused block at or after the observed one points to diverging replicas, a reorg or a wrong seed,
+        // one further back than the lookback range to an old seed whose state a node may no longer serve.
+        if(highestUnusedBlock is { } unused && unused < observedBlock && observedBlock - unused <= _maxLookbackBlocks)
         {
             lowBlock = unused;
         }
         else
         {
-            // Nonces only increase along a chain, so this points to diverging replicas, a reorg or a wrong seed.
-            if(highestUnusedBlock is { } inconsistentBlock)
+            var level = highestUnusedBlock is null ? LogLevel.Information : LogLevel.Warning;
+            if(_logger?.IsEnabled(level) == true)
             {
-                _logger?.LogWarning(
-                    "Slot {Sender}/{Nonce}: Used at block {ObservedBlock} but unused at block {UnusedBlock}, ignoring the unused block",
-                    slot.Sender, slot.Nonce, observedBlock, inconsistentBlock
-                );
-            }
-
-            if(_maxLookbackBlocks == 0 || observedBlock == 0)
-            {
-                return new MinedBlockResult.Unavailable();
-            }
-
-            if(highestUnusedBlock is null && _logger?.IsEnabled(LogLevel.Information) == true)
-            {
-                _logger.LogInformation(
-                    "Slot {Sender}/{Nonce}: Already used when first observed at block {ObservedBlock}, looking back",
-                    slot.Sender, slot.Nonce, observedBlock
+                _logger.Log(
+                    level,
+                    "Slot {Sender}/{Nonce}: Used at block {ObservedBlock} without usable unused block {UnusedBlock}, looking back",
+                    slot.Sender, slot.Nonce, observedBlock, highestUnusedBlock
                 );
             }
 

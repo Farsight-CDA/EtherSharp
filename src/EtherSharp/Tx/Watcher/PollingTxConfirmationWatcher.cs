@@ -78,6 +78,7 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
 
         var resolved = options ?? new Options();
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(resolved.PollInterval, TimeSpan.Zero, nameof(options));
+        ArgumentOutOfRangeException.ThrowIfZero(resolved.MaxLookbackBlocks, nameof(options));
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(resolved.RetryDelay, TimeSpan.Zero, nameof(options));
         ArgumentOutOfRangeException.ThrowIfLessThan(resolved.MaxErrorBackoff, _errorBackoffDelay, nameof(options));
 
