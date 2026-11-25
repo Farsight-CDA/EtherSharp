@@ -23,6 +23,7 @@ using EtherSharp.RPC.Transport;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Legacy;
 using EtherSharp.Tx.Types;
+using EtherSharp.Tx.Watcher;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
@@ -393,6 +394,49 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
+    /// Configures the transaction confirmation watcher.
+    /// </summary>
+    /// <typeparam name="TTxConfirmationWatcher">Watcher implementation to construct for this client.</typeparam>
+    /// <returns></returns>
+    public EtherClientBuilder WithTxConfirmationWatcher<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTxConfirmationWatcher>()
+        where TTxConfirmationWatcher : class, ITxConfirmationWatcher
+    {
+        _services.AddOrReplaceSingleton<ITxConfirmationWatcher, TTxConfirmationWatcher>();
+        return this;
+    }
+
+    /// <summary>
+    /// Configures the polling transaction confirmation watcher.
+    /// </summary>
+    /// <param name="configureAction">Optional callback to configure polling.</param>
+    /// <returns></returns>
+    public EtherClientBuilder WithPollingTxConfirmationWatcher(Action<PollingTxConfirmationWatcher.Options>? configureAction = null)
+    {
+        var options = new PollingTxConfirmationWatcher.Options();
+        configureAction?.Invoke(options);
+
+        _services.AddOrReplaceSingleton<ITxConfirmationWatcher>(
+            provider => ActivatorUtilities.CreateInstance<PollingTxConfirmationWatcher>(provider, options)
+        );
+        return this;
+    }
+
+    /// <summary>
+    /// Configures the nonce source used by the polling transaction confirmation watcher.
+    /// Defaults to <see cref="ConstructorCallNonceSource"/>.
+    /// </summary>
+    /// <typeparam name="TNonceSource">Nonce source implementation to construct for this client.</typeparam>
+    /// <returns></returns>
+    public EtherClientBuilder WithNonceSource<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNonceSource>()
+        where TNonceSource : class, INonceSource
+    {
+        _services.AddOrReplaceSingleton<INonceSource, TNonceSource>();
+        return this;
+    }
+
+    /// <summary>
     /// Configures the ResiliencyLayer.
     /// </summary>
     /// <typeparam name="TResiliencyLayer"></typeparam>
@@ -570,6 +614,8 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddSingleton<IEthRpcModule, EthRpcModule>();
         _services.AddSingleton<ITraceRpcModule, TraceRpcModule>();
         _services.AddSingleton<IDebugRpcModule, DebugRpcModule>();
+        _services.TryAddSingleton<INonceSource, ConstructorCallNonceSource>();
+        _services.TryAddSingleton<ITxConfirmationWatcher, PollingTxConfirmationWatcher>();
 
         _services.AddSingleton<IEtherModule, EtherModule>();
         _services.AddSingleton<IEtherTxModule, EtherModule>();
@@ -626,11 +672,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         var configuredChainId = _configuredChainId;
         _services.AddSingleton<IEtherClient>(provider => new EtherClient(provider, false, configuredChainId));
 
-        var provider = _services.BuildServiceProvider();
-
-        RunConfigureActions(provider);
-
-        return provider.GetRequiredService<IEtherClient>();
+        return BuildClient<IEtherClient>();
     }
 
     private void AssertTxClientConfiguration()
@@ -663,10 +705,16 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddSingleton<IEtherClient>(provider => provider.GetRequiredService<IEtherTxClient>());
         _services.AddSingleton<IEtherTxClient>(provider => new EtherClient(provider, true, configuredChainId));
 
+        return BuildClient<IEtherTxClient>();
+    }
+
+    private TClient BuildClient<TClient>() where TClient : IEtherClient
+    {
         var provider = _services.BuildServiceProvider();
 
         RunConfigureActions(provider);
+        _ = provider.GetRequiredService<ITxConfirmationWatcher>();
 
-        return provider.GetRequiredService<IEtherTxClient>();
+        return provider.GetRequiredService<TClient>();
     }
 }
