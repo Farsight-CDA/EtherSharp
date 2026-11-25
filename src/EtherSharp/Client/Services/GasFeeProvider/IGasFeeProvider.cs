@@ -19,14 +19,14 @@ public interface IGasFeeProvider<TTxParams, TTxGasParams>
     /// </summary>
     /// <param name="txInput">The transaction payload to estimate gas usage for.</param>
     /// <param name="txParams">The transaction parameters used as estimation context.</param>
-    /// <param name="from">Optional sender address override. If null, uses the signer address.</param>
+    /// <param name="from">Optional sender address used when estimating gas.</param>
     /// <param name="requestOptions">Options controlling the RPC requests used for estimation.</param>
     /// <param name="cancellationToken">A token used to cancel the estimation request.</param>
     /// <returns>The estimated gas parameter object for the transaction type.</returns>
     public Task<TTxGasParams> EstimateGasParamsAsync(
         ITxInput txInput,
         TTxParams txParams,
-        Address from,
+        Address? from,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     );

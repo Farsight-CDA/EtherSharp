@@ -73,7 +73,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
 
     /// <inheritdoc/>
     public async Task<EIP1559GasParams> EstimateGasParamsAsync(
-        ITxInput txInput, EIP1559TxParams txParams, Address from,
+        ITxInput txInput, EIP1559TxParams txParams, Address? from,
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         var gasEstimationTask = _ethRpcModule.EstimateGasAsync(

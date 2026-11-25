@@ -64,7 +64,7 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
 
     /// <inheritdoc/>
     public async Task<EIP1559GasParams> EstimateGasParamsAsync(
-        ITxInput txInput, EIP1559TxParams txParams, Address from,
+        ITxInput txInput, EIP1559TxParams txParams, Address? from,
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         if(!_initialized)
@@ -120,7 +120,7 @@ public sealed class OpStackEIP1559GasFeeProvider : IInitializableService, IGasFe
     }
 
     private async Task<EIP1559GasParams> SendEstimationRequestsAsync(
-        Address sender, ITxInput txInput, StateAccess[] accessList,
+        Address? sender, ITxInput txInput, StateAccess[] accessList,
         ReadOnlyMemory<byte> getL1FeePayload,
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {

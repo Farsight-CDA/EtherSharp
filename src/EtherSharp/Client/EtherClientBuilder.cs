@@ -126,23 +126,14 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
                 new WssJsonRpcTransport(websocketUri, requestTimeout.Value, provider, configureWebSocketOptions: configureWebSocketOptions)
         };
 
-        if(loggerFactory is not null)
-        {
-            builder.WithLoggerFactory(loggerFactory);
-        }
-        if(signer is null)
-        {
-            return builder;
-        }
-        //
-        return builder
-            .WithSigner(signer)
-            .WithTxPublisher<BasicTxPublisher>()
-            .WithBlockingSequentialTxScheduler(nonceMode, confirmationTimeout ?? TimeSpan.FromSeconds(30))
-            .AddGasFeeProvider<EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559TxParams, EIP1559GasParams>(
-                configureGasProvider
-            )
-            .AddGasFeeProvider<LegacyGasFeeProvider, LegacyGasFeeProvider.Configuration, LegacyTxParams, LegacyGasParams>();
+        return ConfigureDefaults(
+            builder,
+            nonceMode,
+            confirmationTimeout,
+            signer,
+            loggerFactory,
+            configureGasProvider
+        );
     }
 
     /// <summary>
@@ -193,23 +184,42 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
                 new HttpJsonRpcTransport(rpcUri, provider, httpMessageHandler: httpMessageHandler)
         };
 
+        return ConfigureDefaults(
+            builder,
+            nonceMode,
+            confirmationTimeout,
+            signer,
+            loggerFactory,
+            configureGasProvider
+        );
+    }
+
+    private static EtherClientBuilder ConfigureDefaults(
+        EtherClientBuilder builder,
+        NonceMode nonceMode,
+        TimeSpan? confirmationTimeout,
+        IEtherSigner? signer,
+        ILoggerFactory? loggerFactory,
+        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider
+    )
+    {
         if(loggerFactory is not null)
         {
             builder.WithLoggerFactory(loggerFactory);
         }
-        if(signer is null)
-        {
-            return builder;
-        }
-        //
-        return builder
-            .WithSigner(signer)
+
+        builder
             .WithTxPublisher<BasicTxPublisher>()
-            .WithBlockingSequentialTxScheduler(nonceMode, confirmationTimeout ?? TimeSpan.FromSeconds(30))
             .AddGasFeeProvider<EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559TxParams, EIP1559GasParams>(
                 configureGasProvider
             )
             .AddGasFeeProvider<LegacyGasFeeProvider, LegacyGasFeeProvider.Configuration, LegacyTxParams, LegacyGasParams>();
+
+        return signer is null
+            ? builder
+            : builder
+                .WithSigner(signer)
+                .WithBlockingSequentialTxScheduler(nonceMode, confirmationTimeout ?? TimeSpan.FromSeconds(30));
     }
 
     /// <summary>
@@ -568,6 +578,13 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddSingleton<IDebugRpcModule, DebugRpcModule>();
         _services.TryAddSingleton<INonceSource, ConstructorCallNonceSource>();
         _services.TryAddSingleton<ITxConfirmationWatcher, PollingTxConfirmationWatcher>();
+        _services.TryAddSingleton<ITxPublisher, BasicTxPublisher>();
+        _services.TryAddSingleton<IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>>(
+            provider => new EIP1559GasFeeProvider(provider.GetRequiredService<IEthRpcModule>())
+        );
+        _services.TryAddSingleton<IGasFeeProvider<LegacyTxParams, LegacyGasParams>>(
+            provider => new LegacyGasFeeProvider(provider.GetRequiredService<IEthRpcModule>())
+        );
 
         _services.AddSingleton<IEtherModule, EtherModule>();
         _services.AddSingleton<ITraceModule, TraceModule>();
@@ -639,10 +656,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         if(!_services.Any(x => x.ServiceType == typeof(ITxScheduler)))
         {
             throw new InvalidOperationException($"No {nameof(ITxScheduler)} configured. Call the {nameof(WithTxScheduler)} method prior to {nameof(BuildTxClient)}");
-        }
-        if(!_services.Any(x => x.ServiceType == typeof(ITxPublisher)))
-        {
-            throw new InvalidOperationException($"No {nameof(ITxPublisher)} configured. Call the {nameof(WithTxPublisher)} method prior to {nameof(BuildTxClient)}");
         }
     }
 

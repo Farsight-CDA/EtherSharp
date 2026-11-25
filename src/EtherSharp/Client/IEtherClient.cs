@@ -377,7 +377,7 @@ public interface IEtherClient : IAsyncDisposable
     /// </summary>
     /// <param name="call">Transaction call definition.</param>
     /// <param name="txParams">Optional transaction parameters that influence estimation.</param>
-    /// <param name="from">Optional sender address override. If null, uses the signer address.</param>
+    /// <param name="from">Optional sender address override. If null, uses the signer address on a tx client or omits the sender address on a read client.</param>
     /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Estimated EIP-1559 gas parameters.</returns>
@@ -391,7 +391,7 @@ public interface IEtherClient : IAsyncDisposable
     /// <typeparam name="TTxGasParams">Gas parameter result type.</typeparam>
     /// <param name="call">Transaction call definition.</param>
     /// <param name="txParams">Optional transaction parameters that influence estimation.</param>
-    /// <param name="from">Optional sender address override. If null, uses the signer address.</param>
+    /// <param name="from">Optional sender address override. If null, uses the signer address on a tx client or omits the sender address on a read client.</param>
     /// <param name="requestOptions">Transport-specific request options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Estimated gas parameters.</returns>

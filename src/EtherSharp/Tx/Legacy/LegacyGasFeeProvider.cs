@@ -52,7 +52,7 @@ public sealed class LegacyGasFeeProvider : IGasFeeProvider<LegacyTxParams, Legac
 
     /// <inheritdoc/>
     public async Task<LegacyGasParams> EstimateGasParamsAsync(
-        ITxInput txInput, LegacyTxParams txParams, Address from,
+        ITxInput txInput, LegacyTxParams txParams, Address? from,
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         var gasUsedTask = _ethRpcModule.EstimateGasAsync(
