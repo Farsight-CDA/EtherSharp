@@ -532,62 +532,28 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
+    /// Configures the initial default gas limit forwarded by the flash caller to temporary contracts.
+    /// </summary>
+    /// <param name="gasLimit">Optional fallback when no per-call limit is provided.</param>
+    /// <remarks>For state-override flash calls, use <see cref="WithEthCallGasLimit"/> instead.</remarks>
+    /// <returns></returns>
+    public EtherClientBuilder WithFlashCallGasLimit(ulong? gasLimit = null)
+    {
+        CallGasLimitSettings.Validate(_ethCallGasLimit, gasLimit);
+        _flashCallGasLimit = gasLimit;
+        return this;
+    }
+
+    /// <summary>
     /// Configures flash calls and nonce polling to use <c>eth_call</c> state overrides.
     /// </summary>
     /// <remarks>Requires an RPC endpoint that supports state overrides.</remarks>
     /// <returns></returns>
     public EtherClientBuilder WithStateOverrides()
     {
-        _flashCallGasLimit = null;
         _services.RemoveAll<FlashCallExecutor>();
-        _services.RemoveAll<DeployedFlashCallExecutor.Configuration>();
         _services.AddSingleton<FlashCallExecutor, StateOverrideFlashCallExecutor>();
         return WithNonceSource<StateOverrideNonceSource>();
-    }
-
-    /// <summary>
-    /// Configures flash-call execution using a deployed FlashCall helper contract.
-    /// </summary>
-    /// <param name="contractAddress">Address of the deployed FlashCall helper contract.</param>
-    /// <param name="deploymentHeight">Optional block height at which the helper contract was deployed. When provided, initialization does not query the contract for its deployment height.</param>
-    /// <param name="allowConstructorFallback">Whether calls targeting blocks earlier than the deployment height may fall back to constructor-based execution.</param>
-    /// <param name="gasLimit">Optional fallback gas limit forwarded from the flash helper when no per-call limit is provided.</param>
-    /// <returns></returns>
-    public EtherClientBuilder WithDeployedFlashCalls(
-        Address contractAddress,
-        ulong? deploymentHeight = null,
-        bool allowConstructorFallback = true,
-        ulong? gasLimit = null
-    )
-    {
-        CallGasLimitSettings.Validate(_ethCallGasLimit, gasLimit);
-
-        _flashCallGasLimit = gasLimit;
-        _services.RemoveAll<FlashCallExecutor>();
-        _services.RemoveAll<DeployedFlashCallExecutor.Configuration>();
-        _services.AddSingleton(new DeployedFlashCallExecutor.Configuration(
-            contractAddress,
-            deploymentHeight,
-            allowConstructorFallback
-        ));
-        _services.AddSingleton<FlashCallExecutor, DeployedFlashCallExecutor>();
-        return this;
-    }
-
-    /// <summary>
-    /// Configures flash-call execution using constructor initcode execution.
-    /// </summary>
-    /// <param name="gasLimit">Optional fallback gas limit forwarded from the flash helper when no per-call limit is provided.</param>
-    /// <returns></returns>
-    public EtherClientBuilder WithConstructorFlashCalls(ulong? gasLimit = null)
-    {
-        CallGasLimitSettings.Validate(_ethCallGasLimit, gasLimit);
-
-        _flashCallGasLimit = gasLimit;
-        _services.RemoveAll<FlashCallExecutor>();
-        _services.RemoveAll<DeployedFlashCallExecutor.Configuration>();
-        _services.AddSingleton<FlashCallExecutor, ConstructorFlashCallExecutor>();
-        return this;
     }
 
     private void RunConfigureActions(IServiceProvider provider)
@@ -630,10 +596,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         }
         _services.AddSingleton<QueryExecutor>();
 
-        if(!_services.Any(x => x.ServiceType == typeof(FlashCallExecutor)))
-        {
-            _services.AddSingleton<FlashCallExecutor, ConstructorFlashCallExecutor>();
-        }
+        _services.TryAddSingleton<FlashCallExecutor, DeployedFlashCallExecutor>();
 
         if(!_services.Any(x => x.ServiceType == typeof(JsonSerializerOptions)))
         {

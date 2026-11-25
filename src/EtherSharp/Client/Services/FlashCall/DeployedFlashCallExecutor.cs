@@ -10,35 +10,17 @@ namespace EtherSharp.Client.Services.FlashCall;
 
 internal sealed class DeployedFlashCallExecutor(
     IEthRpcModule ethRpcModule,
-    CallGasLimitSettings callGasLimitSettings,
-    DeployedFlashCallExecutor.Configuration configuration) : FlashCallExecutor
+    CallGasLimitSettings callGasLimitSettings
+) : FlashCallExecutor
 {
-    internal sealed record Configuration(
-        Address ContractAddress,
-        ulong? DeploymentHeight,
-        bool AllowFallback
-    );
-
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
-    private readonly Configuration _configuration = configuration;
     private readonly CallGasLimitSettings _callGasLimitSettings = callGasLimitSettings;
     private readonly ConstructorFlashCallExecutor _constructorFlashCallExecutor = new ConstructorFlashCallExecutor(ethRpcModule, callGasLimitSettings);
 
-    private ulong? _deploymentHeight = configuration.DeploymentHeight;
+    private ulong? _deploymentHeight;
 
-    public Address ContractAddress => _configuration.ContractAddress;
-
-    public bool HasDeploymentHeight => _deploymentHeight.HasValue;
-
-    public void SetDeploymentHeight(ulong deploymentHeight)
-    {
-        if(_deploymentHeight.HasValue)
-        {
-            throw new InvalidOperationException("Deployment height has already been set.");
-        }
-
-        _deploymentHeight = deploymentHeight;
-    }
+    internal void Initialize(ulong chainId)
+        => _deploymentHeight = IFlashCaller.GetDeploymentHeight(chainId);
 
     public override async Task<TxCallResult> ExecuteAsync(
         EVMRuntimeCode runtimeCode,
@@ -58,20 +40,11 @@ internal sealed class DeployedFlashCallExecutor(
         flashCallGasLimit ??= _callGasLimitSettings.GetFlashCallGasLimit();
 
         var targetHeight = options.TargetHeight;
-
-        if(_deploymentHeight is null)
+        if(_deploymentHeight is not { } deploymentHeight || targetHeight.Value < deploymentHeight || targetHeight == TargetHeight.Earliest)
         {
-            // Initialization uses the constructor to discover the helper's deployment height.
             return await _constructorFlashCallExecutor.ExecuteAsync(
-                runtimeCode, call, flashCallGasLimit, options, requestOptions, cancellationToken);
-        }
-
-        if(targetHeight.IsNumeric && targetHeight.Value < _deploymentHeight.Value)
-        {
-            return !_configuration.AllowFallback
-                ? throw new InvalidOperationException($"Missing FlashCall contract deployment at height {targetHeight.Value}")
-                : await _constructorFlashCallExecutor.ExecuteAsync(
-                    runtimeCode, call, flashCallGasLimit, options, requestOptions, cancellationToken);
+                runtimeCode, call, flashCallGasLimit, options, requestOptions, cancellationToken
+            );
         }
 
         var initCode = EVMInitCode.FromRuntimeCode(runtimeCode);
@@ -85,7 +58,7 @@ internal sealed class DeployedFlashCallExecutor(
             DeployedFlashCallEncoding.Write(payload.Span, initCode, call.Data.Span, flashCallGasLimit);
 
             var result = await _ethRpcModule.CallAsync(
-                _configuration.ContractAddress,
+                IFlashCaller.Address,
                 null,
                 call.Value,
                 payload,
@@ -95,7 +68,7 @@ internal sealed class DeployedFlashCallExecutor(
             );
 
             return !result.Success
-                ? throw CallRevertedException.Parse(_configuration.ContractAddress, result.Data.Span)
+                ? throw CallRevertedException.Parse(IFlashCaller.Address, result.Data.Span)
                 : DeployedFlashCallEncoding.DecodeResult(result.Data);
         }
         finally

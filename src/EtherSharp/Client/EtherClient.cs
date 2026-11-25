@@ -12,7 +12,6 @@ using EtherSharp.Client.Services.QueryExecutor;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common;
-using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Query;
@@ -24,7 +23,6 @@ using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
-using System.Buffers.Binary;
 
 namespace EtherSharp.Client;
 
@@ -251,36 +249,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             ? assumedChainId
             : await _ethRpcModule.ChainIdAsync(requestOptions, cancellationToken);
 
-        ValidateChainId(chainId);
-        _chainId = chainId;
-
-        if(_flashCallExecutor is DeployedFlashCallExecutor { HasDeploymentHeight: false } deployedFlashCallExecutor)
-        {
-            var deploymentHeightResult = await _ethRpcModule.CallAsync(
-                deployedFlashCallExecutor.ContractAddress,
-                null,
-                0,
-                Convert.FromHexString("217CD3E1"),
-                TargetHeight.Latest,
-                requestOptions,
-                cancellationToken: cancellationToken
-            );
-
-            if(!deploymentHeightResult.Success)
-            {
-                throw CallRevertedException.Parse(deployedFlashCallExecutor.ContractAddress, deploymentHeightResult.Data.Span);
-            }
-
-            var deploymentHeight = BinaryPrimitives.ReadUInt256BigEndian(deploymentHeightResult.Data.Span);
-            deployedFlashCallExecutor.SetDeploymentHeight((ulong) deploymentHeight);
-        }
-
-        foreach(var initializeableService in _provider.GetServices<IInitializableService>())
-        {
-            await initializeableService.InitializeAsync(_chainId, requestOptions, cancellationToken);
-        }
-
-        _initialized = true;
+        await CompleteInitializeAsync(chainId, requestOptions, cancellationToken);
     }
 
     private async Task<T> InitializeWithQueryAsync<T>(IQuery<T>? initQuery, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
@@ -291,29 +260,28 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             ? IQuery.Noop(assumedChainId)
             : IQuery.GetChainId();
         initQuery ??= IQuery.Noop<T>(default!);
-        var deployedFlashCallExecutor = _flashCallExecutor is DeployedFlashCallExecutor { HasDeploymentHeight: false } executor
-            ? executor
-            : null;
-        var flashCallSetupQuery = deployedFlashCallExecutor is not null
-            ? IQuery.Call(IContractCall<UInt256>.ForContractCall(
-                deployedFlashCallExecutor.ContractAddress, 0, Convert.FromHexString("217CD3E1"), new ABI.AbiEncoder(), x => x.UInt256())
-            )
-            : IQuery.Noop(UInt256.Zero);
 
-        T? initResult;
-
-        (ulong chainId, initResult, var deploymentHeight) = await _queryExecutor.ExecuteQueryAsync(
-            IQuery.Combine(chainIdQuery, initQuery, flashCallSetupQuery),
+        var (chainId, initResult) = await _queryExecutor.ExecuteQueryAsync(
+            IQuery.Combine(chainIdQuery, initQuery),
             null,
             TargetHeight.Latest,
             requestOptions,
             cancellationToken
         );
 
+        await CompleteInitializeAsync(chainId, requestOptions, cancellationToken);
+        return initResult;
+    }
+
+    private async Task CompleteInitializeAsync(ulong chainId, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
+    {
         ValidateChainId(chainId);
         _chainId = chainId;
 
-        deployedFlashCallExecutor?.SetDeploymentHeight((ulong) deploymentHeight);
+        if(_flashCallExecutor is DeployedFlashCallExecutor deployedFlashCallExecutor)
+        {
+            deployedFlashCallExecutor.Initialize(chainId);
+        }
 
         foreach(var initializeableService in _provider.GetServices<IInitializableService>())
         {
@@ -321,7 +289,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         }
 
         _initialized = true;
-        return initResult!;
     }
 
     private void ValidateChainId(ulong actualChainId)
