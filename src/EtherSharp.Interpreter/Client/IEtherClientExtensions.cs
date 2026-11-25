@@ -22,7 +22,7 @@ public static class IEtherClientExtensions
     /// <param name="requestOptions">Options applied to upstream requests.</param>
     /// <param name="cancellationToken">Cancellation for fork creation only.</param>
     /// <remarks>
-    /// Requires <see cref="EtherClientBuilder.WithStateOverrideFlashCalls"/>. Named targets resolve once using
+    /// Requires <see cref="EtherClientBuilder.WithStateOverrides"/>. Named targets resolve once using
     /// <see cref="InterpreterForkOptions.BlockHeightQuery"/> or EVM NUMBER; numeric targets take precedence. Pending is unsupported.
     /// Keep the client alive for state reads. Cancellation applies only to creation; numeric pinning is not reorg-safe.
     /// </remarks>

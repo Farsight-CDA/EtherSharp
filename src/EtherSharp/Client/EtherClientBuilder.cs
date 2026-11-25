@@ -532,15 +532,17 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
-    /// Configures flash-call execution using <c>eth_call</c> state overrides.
+    /// Configures flash calls and nonce polling to use <c>eth_call</c> state overrides.
     /// </summary>
+    /// <remarks>Requires an RPC endpoint that supports state overrides.</remarks>
     /// <returns></returns>
-    public EtherClientBuilder WithStateOverrideFlashCalls()
+    public EtherClientBuilder WithStateOverrides()
     {
         _flashCallGasLimit = null;
-        ClearFlashCallRegistrations();
+        _services.RemoveAll<FlashCallExecutor>();
+        _services.RemoveAll<DeployedFlashCallExecutor.Configuration>();
         _services.AddSingleton<FlashCallExecutor, StateOverrideFlashCallExecutor>();
-        return this;
+        return WithNonceSource<StateOverrideNonceSource>();
     }
 
     /// <summary>
@@ -561,7 +563,8 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         CallGasLimitSettings.Validate(_ethCallGasLimit, gasLimit);
 
         _flashCallGasLimit = gasLimit;
-        ClearFlashCallRegistrations();
+        _services.RemoveAll<FlashCallExecutor>();
+        _services.RemoveAll<DeployedFlashCallExecutor.Configuration>();
         _services.AddSingleton(new DeployedFlashCallExecutor.Configuration(
             contractAddress,
             deploymentHeight,
@@ -581,15 +584,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         CallGasLimitSettings.Validate(_ethCallGasLimit, gasLimit);
 
         _flashCallGasLimit = gasLimit;
-        ClearFlashCallRegistrations();
-        _services.AddSingleton<FlashCallExecutor, ConstructorFlashCallExecutor>();
-        return this;
-    }
-
-    private void ClearFlashCallRegistrations()
-    {
         _services.RemoveAll<FlashCallExecutor>();
         _services.RemoveAll<DeployedFlashCallExecutor.Configuration>();
+        _services.AddSingleton<FlashCallExecutor, ConstructorFlashCallExecutor>();
+        return this;
     }
 
     private void RunConfigureActions(IServiceProvider provider)

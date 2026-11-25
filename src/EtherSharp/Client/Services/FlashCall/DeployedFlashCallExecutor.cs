@@ -51,7 +51,7 @@ internal sealed class DeployedFlashCallExecutor(
         if(options.StateOverrides is { Count: > 0 })
         {
             throw new NotSupportedException(
-                $"State overrides in queries and flash calls require {nameof(EtherClientBuilder.WithStateOverrideFlashCalls)}()."
+                $"State overrides in queries and flash calls require {nameof(EtherClientBuilder.WithStateOverrides)}()."
             );
         }
 
