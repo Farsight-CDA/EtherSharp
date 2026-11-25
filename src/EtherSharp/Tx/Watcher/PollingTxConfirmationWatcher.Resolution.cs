@@ -31,25 +31,26 @@ public sealed partial class PollingTxConfirmationWatcher
 
                 if(await FetchMinedBlockAsync(minedBlock, cancellationToken) is not { } block)
                 {
+                    // A desynced or reorging node, which says nothing about the slot, so the next heartbeat starts a fresh search.
                     _logger?.LogWarning(
-                        "Slot {Sender}/{Nonce}: Block {BlockNumber} unavailable after retries",
+                        "Slot {Sender}/{Nonce}: Block {BlockNumber} unavailable after retries, waiting for the nonce again",
                         slot.Sender, slot.Nonce, minedBlock
                     );
+                    continue;
                 }
-                else if(Array.Find(block.Transactions, tx => tx.From == slot.Sender && tx.Nonce == slot.Nonce)
+
+                if(Array.Find(block.Transactions, tx => tx.From == slot.Sender && tx.Nonce == slot.Nonce)
                     is { BlockNumber: ulong blockNumber, BlockHash: Bytes32 blockHash } match)
                 {
                     slot.Resolve(new TxWatchResult.Confirmed(match.Hash, blockNumber, blockHash));
                     return;
                 }
-                else
-                {
-                    // E.g. after a reorg, or when the nonce was used by an EIP-7702 authorization instead of a transaction.
-                    _logger?.LogWarning(
-                        "Slot {Sender}/{Nonce}: Block {BlockNumber} has no matching transaction",
-                        slot.Sender, slot.Nonce, minedBlock
-                    );
-                }
+
+                // E.g. after a reorg, or when the nonce was used by an EIP-7702 authorization instead of a transaction.
+                _logger?.LogWarning(
+                    "Slot {Sender}/{Nonce}: Block {BlockNumber} has no matching transaction",
+                    slot.Sender, slot.Nonce, minedBlock
+                );
             }
             catch(Exception ex) when(!cancellationToken.IsCancellationRequested)
             {
@@ -62,7 +63,7 @@ public sealed partial class PollingTxConfirmationWatcher
 
             errorBackoffDelay = _errorBackoffDelay;
 
-            // A finished search that could not confirm the nonce rarely changes on repetition.
+            // A reorg is found by the next search, a block that keeps lacking the transaction will not change.
             failedSearchCount++;
             if(failedSearchCount >= FAILED_SEARCH_LIMIT)
             {
