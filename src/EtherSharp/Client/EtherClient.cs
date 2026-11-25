@@ -530,7 +530,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         );
 
     async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ulong nonce, CancellationToken cancellationToken)
-        => await _txScheduler.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
-            nonce, cancellationToken);
+        Guid id, CancellationToken cancellationToken
+    ) => await _txScheduler.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(id, cancellationToken);
 }

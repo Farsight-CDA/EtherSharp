@@ -6,6 +6,7 @@ namespace EtherSharp.Tx.PendingHandler;
 /// Handler class for transactions that are still pending and not confirmed on the blockchain.
 /// </summary>
 public sealed class PendingTxHandler<TTxParams, TTxGasParams>(
+    Guid id,
     ulong nonce,
     IEnumerable<TxSubmission<TTxParams, TTxGasParams>> txSubmissions,
     Func<
@@ -44,6 +45,9 @@ public sealed class PendingTxHandler<TTxParams, TTxGasParams>(
     /// Direct access to underlying TxSubmissions list, meant for use in TxScheduler only.
     /// </summary>
     public readonly List<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions = [.. txSubmissions];
+
+    /// <inheritdoc/>
+    public Guid Id { get; } = id;
 
     /// <inheritdoc/>
     public ulong Nonce { get; } = nonce;

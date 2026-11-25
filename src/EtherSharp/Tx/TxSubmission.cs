@@ -10,7 +10,7 @@ namespace EtherSharp.Tx;
 /// <typeparam name="TTxParams">Transaction parameter type.</typeparam>
 /// <typeparam name="TTxGasParams">Gas parameter type.</typeparam>
 /// <param name="ChainId">Chain id used when signing this submission.</param>
-/// <param name="Sequence">Submission revision for the same nonce; starts at <c>0</c> and increments for replacements.</param>
+/// <param name="Sequence">Submission revision for the same logical transaction; starts at <c>0</c> and increments for replacements.</param>
 /// <param name="TxHash">Transaction hash of this signed payload.</param>
 /// <param name="SignedTx">Raw signed transaction payload used for publish.</param>
 /// <param name="Call">Original call input this submission was built from.</param>
@@ -29,12 +29,14 @@ public sealed record TxSubmission<TTxParams, TTxGasParams>(
     where TTxGasParams : class, ITxGasParams<TTxGasParams>
 {
     /// <summary>
-    /// Converts this submission to its persisted resiliency representation for a nonce.
+    /// Converts this submission to its persisted resiliency representation.
     /// </summary>
-    /// <param name="nonce">Account nonce associated with this submission chain.</param>
+    /// <param name="id">Logical transaction ID shared by all attempts.</param>
+    /// <param name="nonce">Account nonce used to sign this attempt.</param>
     /// <returns>The storage model used by the resiliency layer.</returns>
-    public TxSubmissionStorage ToStorageType(ulong nonce)
+    public TxSubmissionStorage ToStorageType(Guid id, ulong nonce)
         => new TxSubmissionStorage(
+            id,
             ChainId,
             Sequence,
             nonce,

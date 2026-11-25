@@ -6,7 +6,7 @@
 public interface IResiliencyLayer
 {
     /// <summary>
-    /// Stores a submitted transaction record.
+    /// Stores a submission attempt, identified by its transaction ID and sequence.
     /// </summary>
     /// <param name="txSubmission">The submission record to persist.</param>
     /// <param name="cancellationToken">A token used to cancel the persistence operation.</param>
@@ -14,25 +14,25 @@ public interface IResiliencyLayer
     public Task StoreTxSubmissionAsync(TxSubmissionStorage txSubmission, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes all stored submissions associated with the specified nonce.
+    /// Deletes all stored submission attempts for the specified transaction ID.
     /// </summary>
-    /// <param name="nonce">The nonce whose submissions should be removed.</param>
+    /// <param name="id">The transaction ID whose submissions should be removed.</param>
     /// <param name="cancellationToken">A token used to cancel the delete operation.</param>
     /// <returns>A task that completes when matching submissions have been deleted.</returns>
-    public Task DeleteTxSubmissionsForNonceAsync(ulong nonce, CancellationToken cancellationToken = default);
+    public Task DeleteTxSubmissionsAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the highest nonce that has been persisted.
+    /// Gets the highest nonce that has been persisted, for sequential nonce allocation on restart.
     /// </summary>
     /// <param name="cancellationToken">A token used to cancel the read operation.</param>
     /// <returns>The highest persisted nonce.</returns>
     public Task<ulong?> GetLastSubmittedNonceAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves all persisted submissions for the specified nonce.
+    /// Retrieves all persisted submission attempts for the specified transaction ID.
     /// </summary>
-    /// <param name="nonce">The nonce whose submissions should be loaded.</param>
+    /// <param name="id">The transaction ID whose submissions should be loaded.</param>
     /// <param name="cancellationToken">A token used to cancel the read operation.</param>
-    /// <returns>The submissions previously stored for the nonce.</returns>
-    public Task<IReadOnlyList<TxSubmissionStorage>> FetchTxSubmissionsAsync(ulong nonce, CancellationToken cancellationToken = default);
+    /// <returns>The submissions previously stored for the transaction, or an empty list if none exist.</returns>
+    public Task<IReadOnlyList<TxSubmissionStorage>> FetchTxSubmissionsAsync(Guid id, CancellationToken cancellationToken = default);
 }

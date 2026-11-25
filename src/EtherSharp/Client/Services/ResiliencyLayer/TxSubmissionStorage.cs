@@ -8,9 +8,10 @@ namespace EtherSharp.Client.Services.ResiliencyLayer;
 
 /// <summary>
 /// Persisted snapshot of a transaction submission attempt used by the resiliency layer
-/// to recover pending nonce flows across process restarts.
+/// to recover pending transactions across process restarts.
 /// </summary>
 public sealed record TxSubmissionStorage(
+    Guid Id,
     ulong ChainId,
     uint Sequence,
     ulong Nonce,

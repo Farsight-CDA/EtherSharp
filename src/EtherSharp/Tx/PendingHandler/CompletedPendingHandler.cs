@@ -4,6 +4,7 @@ using EtherSharp.Tx.Types;
 namespace EtherSharp.Tx.PendingHandler;
 
 internal sealed class CompletedPendingHandler<TTxParams, TTxGasParams>(
+    Guid id,
     ulong nonce,
     IEnumerable<TxSubmission<TTxParams, TTxGasParams>> txSubmissions,
     TxConfirmationResult result
@@ -11,6 +12,7 @@ internal sealed class CompletedPendingHandler<TTxParams, TTxGasParams>(
     where TTxParams : class, ITxParams<TTxParams>
     where TTxGasParams : class, ITxGasParams<TTxGasParams>
 {
+    public Guid Id { get; } = id;
     public ulong Nonce { get; } = nonce;
     public IReadOnlyList<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions { get; } = [.. txSubmissions];
 

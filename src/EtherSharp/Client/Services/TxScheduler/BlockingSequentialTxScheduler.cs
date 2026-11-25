@@ -259,6 +259,7 @@ public sealed class BlockingSequentialTxScheduler(
             }
 
             return new PendingTxHandler<TTxParams, TTxGasParams>(
+                Guid.NewGuid(),
                 myNonce,
                 [submission],
                 (ctx, onError, publishRequestOptions) => ExecuteTransactionLifeCycleAsync<TTransaction, TTxParams, TTxGasParams>(
@@ -288,7 +289,7 @@ public sealed class BlockingSequentialTxScheduler(
         );
     }
 
-    private async Task<bool> TryCancelTransactionAsync(ulong nonce, CancellationToken cancellationToken)
+    private async Task<bool> TryCancelTransactionAsync(Guid id, ulong nonce, CancellationToken cancellationToken)
     {
         await _preparationLock.WaitAsync(cancellationToken);
         try
@@ -303,7 +304,7 @@ public sealed class BlockingSequentialTxScheduler(
 
             if(_resiliencyLayer is not null)
             {
-                await _resiliencyLayer.DeleteTxSubmissionsForNonceAsync(nonce, cancellationToken);
+                await _resiliencyLayer.DeleteTxSubmissionsAsync(id, cancellationToken);
             }
 
             lock(_stateLock)
@@ -327,7 +328,8 @@ public sealed class BlockingSequentialTxScheduler(
 
     /// <inheritdoc/>
     public async Task<IPendingTxHandler<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ulong nonce, CancellationToken cancellationToken)
+        Guid id, CancellationToken cancellationToken = default
+    )
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
@@ -337,12 +339,18 @@ public sealed class BlockingSequentialTxScheduler(
             throw new NotSupportedException("Missing ResiliencyLayer");
         }
 
-        var cts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken);
 
-        var stored = await _resiliencyLayer.FetchTxSubmissionsAsync(nonce, cts.Token);
+        var stored = await _resiliencyLayer.FetchTxSubmissionsAsync(id, cts.Token);
         if(stored.Count == 0)
         {
-            throw new InvalidOperationException($"No persisted tx for nonce {nonce}");
+            throw new InvalidOperationException($"No persisted tx for ID {id}");
+        }
+
+        ulong nonce = stored[0].Nonce;
+        if(stored.Any(submission => submission.Nonce != nonce))
+        {
+            throw new InvalidOperationException($"Transaction {id} has multiple nonces and cannot be attached to the sequential scheduler");
         }
 
         var typedSubmissions = stored
@@ -355,6 +363,7 @@ public sealed class BlockingSequentialTxScheduler(
             if(nonce < _confirmedNonce)
             {
                 return new PendingTxHandler<TTxParams, TTxGasParams>(
+                    id,
                     nonce,
                     typedSubmissions,
                     (_, _, requestOptions) => FetchConfirmationInternal(typedSubmissions, 1, requestOptions)
@@ -368,6 +377,7 @@ public sealed class BlockingSequentialTxScheduler(
         }
 
         return new PendingTxHandler<TTxParams, TTxGasParams>(
+            id,
             nonce,
             typedSubmissions,
             (ctx, onError, requestOptions) => ExecuteTransactionLifeCycleAsync<TTransaction, TTxParams, TTxGasParams>(
@@ -392,7 +402,9 @@ public sealed class BlockingSequentialTxScheduler(
 
         if(isNewHandler && _resiliencyLayer is not null)
         {
-            await _resiliencyLayer.StoreTxSubmissionAsync(handlerContext.TxSubmissions[0].ToStorageType(handlerContext.Nonce), _cts.Token);
+            await _resiliencyLayer.StoreTxSubmissionAsync(
+                handlerContext.TxSubmissions[0].ToStorageType(handlerContext.Id, handlerContext.Nonce), _cts.Token
+            );
         }
 
         var confirmationGateTask = WaitForNonceCompletionAsync(handlerContext.Nonce);
@@ -426,7 +438,7 @@ public sealed class BlockingSequentialTxScheduler(
                         activeError = new TxConfirmationError.Timeout();
                         continue;
                     case TxConfirmationAction<TTxParams, TTxGasParams>.CancelTransaction:
-                        if(hasPublished || !await TryCancelTransactionAsync(handlerContext.Nonce, _cts.Token))
+                        if(hasPublished || !await TryCancelTransactionAsync(handlerContext.Id, handlerContext.Nonce, _cts.Token))
                         {
                             activeError = new TxConfirmationError.TransactionNotCancellable();
                             continue;
@@ -508,7 +520,9 @@ public sealed class BlockingSequentialTxScheduler(
 
         if(_resiliencyLayer is not null)
         {
-            await _resiliencyLayer.StoreTxSubmissionAsync(newSub.ToStorageType(context.Nonce));
+            await _resiliencyLayer.StoreTxSubmissionAsync(
+                newSub.ToStorageType(context.Id, context.Nonce)
+            );
         }
     }
 

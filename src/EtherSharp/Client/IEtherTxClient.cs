@@ -48,27 +48,27 @@ public interface IEtherTxClient : IEtherClient
         where TTxGasParams : class, ITxGasParams<TTxGasParams>;
 
     /// <summary>
-    /// Attaches to an already-pending default EIP-1559 transaction by nonce.
+    /// Attaches to a persisted default EIP-1559 transaction by ID.
     /// </summary>
-    /// <param name="nonce">Sender nonce of the pending transaction.</param>
+    /// <param name="id">The pending transaction handler's ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A pending-transaction handler bound to the existing transaction.</returns>
     public Task<IPendingTxHandler<EIP1559TxParams, EIP1559GasParams>> AttachPendingTxAsync(
-        ulong nonce, CancellationToken cancellationToken = default)
-        => AttachPendingTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
-            nonce, cancellationToken);
+        Guid id, CancellationToken cancellationToken = default
+    ) => AttachPendingTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(id, cancellationToken);
 
     /// <summary>
-    /// Attaches to an already-pending transaction by nonce using custom transaction model types.
+    /// Attaches to a persisted transaction by ID using custom transaction model types.
     /// </summary>
     /// <typeparam name="TTransaction">Transaction type implementing signing/serialization behavior.</typeparam>
     /// <typeparam name="TTxParams">Transaction parameter type.</typeparam>
     /// <typeparam name="TTxGasParams">Gas parameter type.</typeparam>
-    /// <param name="nonce">Sender nonce of the pending transaction.</param>
+    /// <param name="id">The pending transaction handler's ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A pending-transaction handler bound to the existing transaction.</returns>
     public Task<IPendingTxHandler<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ulong nonce, CancellationToken cancellationToken = default)
+        Guid id, CancellationToken cancellationToken = default
+    )
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>;

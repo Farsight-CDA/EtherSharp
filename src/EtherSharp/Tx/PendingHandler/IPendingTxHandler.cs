@@ -4,7 +4,7 @@ using EtherSharp.Tx.Types;
 namespace EtherSharp.Tx.PendingHandler;
 
 /// <summary>
-/// Represents a handler class to manage a pending transaction with a given nonce.
+/// Manages the submission and confirmation of a pending transaction.
 /// </summary>
 /// <typeparam name="TTxParams"></typeparam>
 /// <typeparam name="TTxGasParams"></typeparam>
@@ -13,12 +13,17 @@ public interface IPendingTxHandler<TTxParams, TTxGasParams>
     where TTxGasParams : class, ITxGasParams<TTxGasParams>
 {
     /// <summary>
+    /// Stable ID used to recover this transaction and its replacement attempts from the resiliency layer.
+    /// </summary>
+    public Guid Id { get; }
+
+    /// <summary>
     /// Nonce of the pending transaction managed by this handler.
     /// </summary>
     public ulong Nonce { get; }
 
     /// <summary>
-    /// Collection of parameters that the transaction with this nonce was submitted with.
+    /// Submission attempts for this transaction.
     /// </summary>
     public IReadOnlyList<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions { get; }
 

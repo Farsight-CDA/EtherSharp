@@ -31,16 +31,16 @@ public interface ITxScheduler
          where TTxGasParams : class, ITxGasParams<TTxGasParams>;
 
     /// <summary>
-    /// Reattaches to an already-submitted transaction identified by nonce.
+    /// Reattaches to an already-submitted transaction identified by its persisted ID.
     /// </summary>
     /// <typeparam name="TTransaction">The transaction model type that defines encoding and behavior.</typeparam>
     /// <typeparam name="TTxParams">The transaction parameter type associated with <typeparamref name="TTransaction"/>.</typeparam>
     /// <typeparam name="TTxGasParams">The gas parameter type associated with <typeparamref name="TTransaction"/>.</typeparam>
-    /// <param name="nonce">The nonce of the transaction to recover and track.</param>
+    /// <param name="id">The ID of the transaction to recover and track.</param>
     /// <param name="cancellationToken">A token used to cancel recovery.</param>
     /// <returns>A pending transaction handler attached to the existing on-chain submission flow.</returns>
     public Task<IPendingTxHandler<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ulong nonce, CancellationToken cancellationToken = default
+        Guid id, CancellationToken cancellationToken = default
     )
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
