@@ -243,11 +243,23 @@ public sealed partial class PollingTxConfirmationWatcher
             {
                 var hash = hashes[i].Hash;
                 var tx = await _ethRpcModule.TransactionByHashAsync(in hash, _requestOptions, cancellationToken);
-                if(tx is { BlockNumber: ulong blockNumber, BlockHash: Bytes32 blockHash })
+                if(tx is not { BlockNumber: ulong blockNumber, BlockHash: Bytes32 blockHash })
                 {
-                    slot.Resolve(new TxWatchResult.Confirmed(hash, blockNumber, blockHash));
-                    return;
+                    continue;
                 }
+
+                // A hash registered on the wrong watch must not confirm this slot.
+                if(tx.From != slot.Sender || tx.Nonce != slot.Nonce)
+                {
+                    _logger?.LogWarning(
+                        "Slot {Sender}/{Nonce}: Hash {TxHash} belongs to {TxSender}/{TxNonce}, ignoring it",
+                        slot.Sender, slot.Nonce, hash, tx.From, tx.Nonce
+                    );
+                    continue;
+                }
+
+                slot.Resolve(new TxWatchResult.Confirmed(hash, blockNumber, blockHash));
+                return;
             }
 
             if(hashes.Length == 0 || attempt == retryCount)
