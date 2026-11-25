@@ -33,11 +33,13 @@ public sealed record TxSubmission<TTxParams, TTxGasParams>(
     /// </summary>
     /// <param name="id">Logical transaction ID shared by all attempts.</param>
     /// <param name="nonce">Account nonce used to sign this attempt.</param>
+    /// <param name="sender">Address of the signer.</param>
     /// <returns>The storage model used by the resiliency layer.</returns>
-    public TxSubmissionStorage ToStorageType(Guid id, ulong nonce)
+    public TxSubmissionStorage ToStorageType(Guid id, ulong nonce, Address sender)
         => new TxSubmissionStorage(
             id,
             ChainId,
+            sender,
             Sequence,
             nonce,
             TxHash,

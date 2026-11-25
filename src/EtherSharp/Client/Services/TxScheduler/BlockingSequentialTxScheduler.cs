@@ -62,20 +62,23 @@ public sealed class BlockingSequentialTxScheduler(
 
     private readonly SemaphoreSlim _workerSignal = new SemaphoreSlim(0);
 
-    private ulong? _chainId;
+    private TxSenderKey? _senderKey;
 
     private ulong _confirmedNonce;
     private ulong _peakNonce;
 
     private readonly Dictionary<ulong, TaskCompletionSource> _nonceGates = [];
 
+    private TxSenderKey SenderKey => _senderKey ?? throw new InvalidOperationException("Not initialized");
+
     /// <inheritdoc/>
     public async ValueTask InitializeAsync(
         ulong chainId, RpcRequestOptions requestOptions, CancellationToken cancellationToken
     )
     {
+        var senderKey = new TxSenderKey(chainId, signer.Address);
         _confirmedNonce = await ethRpcModule.GetTransactionCountAsync(
-            signer.Address, TargetHeight.Latest, requestOptions, cancellationToken
+            senderKey.Sender, TargetHeight.Latest, requestOptions, cancellationToken
         );
 
         if(_resiliencyLayer is null)
@@ -84,7 +87,7 @@ public sealed class BlockingSequentialTxScheduler(
         }
         else
         {
-            ulong? dbNonce = await _resiliencyLayer.GetLastSubmittedNonceAsync(cancellationToken);
+            ulong? dbNonce = await _resiliencyLayer.GetLastSubmittedNonceAsync(senderKey, cancellationToken);
 
             _peakNonce = dbNonce switch
             {
@@ -93,7 +96,7 @@ public sealed class BlockingSequentialTxScheduler(
             };
         }
 
-        _chainId = chainId;
+        _senderKey = senderKey;
         _ = Task.Run(() => AdaptiveNoncePollerAsync(_cts.Token), cancellationToken);
     }
 
@@ -281,11 +284,10 @@ public sealed class BlockingSequentialTxScheduler(
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
-        ulong chainId = _chainId ?? throw new InvalidOperationException("Not initialized");
-        var transaction = TTransaction.Create(chainId, nonce, call, txParams, gasParams);
+        var transaction = TTransaction.Create(SenderKey.ChainId, nonce, call, txParams, gasParams);
         var signedTransaction = await transaction.SignAsync(signer, cancellationToken);
         return new TxSubmission<TTxParams, TTxGasParams>(
-            chainId, sequence, signedTransaction.Hash, signedTransaction.EncodedTx, call, txParams, gasParams
+            SenderKey.ChainId, sequence, signedTransaction.Hash, signedTransaction.EncodedTx, call, txParams, gasParams
         );
     }
 
@@ -304,7 +306,7 @@ public sealed class BlockingSequentialTxScheduler(
 
             if(_resiliencyLayer is not null)
             {
-                await _resiliencyLayer.DeleteTxSubmissionsAsync(id, cancellationToken);
+                await _resiliencyLayer.DeleteTxSubmissionsAsync(SenderKey, id, cancellationToken);
             }
 
             lock(_stateLock)
@@ -341,16 +343,24 @@ public sealed class BlockingSequentialTxScheduler(
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken);
 
-        var stored = await _resiliencyLayer.FetchTxSubmissionsAsync(id, cts.Token);
+        var stored = await _resiliencyLayer.FetchTxSubmissionsAsync(SenderKey, id, cts.Token);
         if(stored.Count == 0)
         {
             throw new InvalidOperationException($"No persisted tx for ID {id}");
         }
 
         ulong nonce = stored[0].Nonce;
-        if(stored.Any(submission => submission.Nonce != nonce))
+        foreach(var submission in stored)
         {
-            throw new InvalidOperationException($"Transaction {id} has multiple nonces and cannot be attached to the sequential scheduler");
+            if(submission.Id != id || submission.ChainId != SenderKey.ChainId || submission.Sender != SenderKey.Sender)
+            {
+                throw new InvalidOperationException($"Persisted submissions do not match transaction {id} for the current chain and sender");
+            }
+
+            if(submission.Nonce != nonce)
+            {
+                throw new InvalidOperationException($"Transaction {id} has multiple nonces and cannot be attached to the sequential scheduler");
+            }
         }
 
         var typedSubmissions = stored
@@ -403,7 +413,8 @@ public sealed class BlockingSequentialTxScheduler(
         if(isNewHandler && _resiliencyLayer is not null)
         {
             await _resiliencyLayer.StoreTxSubmissionAsync(
-                handlerContext.TxSubmissions[0].ToStorageType(handlerContext.Id, handlerContext.Nonce), _cts.Token
+                handlerContext.TxSubmissions[0].ToStorageType(handlerContext.Id, handlerContext.Nonce, SenderKey.Sender),
+                _cts.Token
             );
         }
 
@@ -521,7 +532,7 @@ public sealed class BlockingSequentialTxScheduler(
         if(_resiliencyLayer is not null)
         {
             await _resiliencyLayer.StoreTxSubmissionAsync(
-                newSub.ToStorageType(context.Id, context.Nonce)
+                newSub.ToStorageType(context.Id, context.Nonce, SenderKey.Sender)
             );
         }
     }

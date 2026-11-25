@@ -48,7 +48,7 @@ public interface IEtherTxClient : IEtherClient
         where TTxGasParams : class, ITxGasParams<TTxGasParams>;
 
     /// <summary>
-    /// Attaches to a persisted default EIP-1559 transaction by ID.
+    /// Attaches to a persisted default EIP-1559 transaction by ID for this client's chain and sender.
     /// </summary>
     /// <param name="id">The pending transaction handler's ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -58,7 +58,7 @@ public interface IEtherTxClient : IEtherClient
     ) => AttachPendingTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(id, cancellationToken);
 
     /// <summary>
-    /// Attaches to a persisted transaction by ID using custom transaction model types.
+    /// Attaches to a persisted transaction by ID for this client's chain and sender using custom transaction model types.
     /// </summary>
     /// <typeparam name="TTransaction">Transaction type implementing signing/serialization behavior.</typeparam>
     /// <typeparam name="TTxParams">Transaction parameter type.</typeparam>

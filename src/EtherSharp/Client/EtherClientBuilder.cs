@@ -436,17 +436,14 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
-    /// Configures the ResiliencyLayer.
+    /// Registers a ResiliencyLayer on this EtherClient.
     /// </summary>
-    /// <typeparam name="TResiliencyLayer"></typeparam>
-    /// <param name="configureAction"></param>
-    /// <returns></returns>
-    public EtherClientBuilder WithResiliencyLayer<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResiliencyLayer>(Action<TResiliencyLayer>? configureAction = null)
-        where TResiliencyLayer : class, IResiliencyLayer
+    /// <param name="resiliencyLayer">The caller-owned instance</param>
+    /// <returns>This builder.</returns>
+    public EtherClientBuilder WithResiliencyLayer(IResiliencyLayer resiliencyLayer)
     {
-        _services.AddOrReplaceSingleton<IResiliencyLayer, TResiliencyLayer>();
-        AddConfigureAction<IResiliencyLayer, TResiliencyLayer>(configureAction);
+        ArgumentNullException.ThrowIfNull(resiliencyLayer);
+        _services.AddOrReplaceSingleton(resiliencyLayer);
         return this;
     }
 
@@ -599,6 +596,11 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
 
         foreach(var service in _services.ToArray())
         {
+            if(service.ServiceType == typeof(IResiliencyLayer) && service.ImplementationInstance is not null)
+            {
+                continue;
+            }
+
             var serviceType = service.ImplementationType
                 ?? service.ImplementationInstance?.GetType()
                 ?? service.ServiceType;
