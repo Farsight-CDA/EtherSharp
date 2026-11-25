@@ -171,6 +171,10 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
             catch(OperationCanceledException)
             {
             }
+            catch(Exception ex)
+            {
+                _logger?.LogDebug(ex, "Dispose: In-flight work failed during shutdown");
+            }
         }
         finally
         {
