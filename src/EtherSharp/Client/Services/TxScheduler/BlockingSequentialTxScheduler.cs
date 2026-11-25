@@ -237,15 +237,14 @@ public sealed class BlockingSequentialTxScheduler(
                 call, txParams, signer.Address, requestOptions, cts.Token
             );
 
-            var signedTransaction = await handler.EncodeTxAsync(call, txParams, txGasParams, myNonce, cts.Token);
-            var submission = new TxSubmission<TTxParams, TTxGasParams>(
-                _chainId,
+            var submission = await CreateSubmissionAsync(
+                handler,
+                myNonce,
                 0,
-                signedTransaction.Hash,
-                signedTransaction.EncodedTx,
                 call,
                 txParams,
-                txGasParams
+                txGasParams,
+                cts.Token
             );
 
             lock(_stateLock)
@@ -275,6 +274,21 @@ public sealed class BlockingSequentialTxScheduler(
         {
             _preparationLock.Release();
         }
+    }
+
+    private async ValueTask<TxSubmission<TTxParams, TTxGasParams>> CreateSubmissionAsync<TTransaction, TTxParams, TTxGasParams>(
+        ITxTypeHandler<TTransaction, TTxParams, TTxGasParams> typeHandler,
+        ulong nonce, uint sequence, ITxInput call, TTxParams txParams, TTxGasParams gasParams,
+        CancellationToken cancellationToken
+    )
+        where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
+        where TTxParams : class, ITxParams<TTxParams>
+        where TTxGasParams : class, ITxGasParams<TTxGasParams>
+    {
+        var signedTransaction = await typeHandler.EncodeTxAsync(call, txParams, gasParams, nonce, cancellationToken);
+        return new TxSubmission<TTxParams, TTxGasParams>(
+            _chainId, sequence, signedTransaction.Hash, signedTransaction.EncodedTx, call, txParams, gasParams
+        );
     }
 
     private async Task<bool> TryCancelTransactionAsync(ulong nonce, CancellationToken cancellationToken)
@@ -487,21 +501,14 @@ public sealed class BlockingSequentialTxScheduler(
     {
         var oldSub = context.TxSubmissions[0];
 
-        var signedTransaction = await typeHandler.EncodeTxAsync(
+        var newSub = await CreateSubmissionAsync(
+            typeHandler,
+            context.Nonce,
+            oldSub.Sequence + 1,
             oldSub.Call,
             oldSub.Params,
             gasParams,
-            context.Nonce,
             _cts.Token
-        );
-        var newSub = new TxSubmission<TTxParams, TTxGasParams>(
-            _chainId,
-            oldSub.Sequence + 1,
-            signedTransaction.Hash,
-            signedTransaction.EncodedTx,
-            oldSub.Call,
-            oldSub.Params,
-            gasParams
         );
 
         context.TxSubmissions.Insert(0, newSub);
