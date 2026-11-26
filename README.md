@@ -23,7 +23,7 @@ EtherSharp is a high-performance, type-safe .NET library for interacting with Et
 
 ### Creating & Configuring a Client
 
-`EtherClientBuilder` provides a fluent API for configuring both read-only and transaction-capable clients.
+`EtherClientBuilder` provides a fluent API for configuring a read client. Attach a signer to an initialized client to send transactions.
 
 ```csharp
 using EtherSharp.Client;
@@ -32,17 +32,13 @@ using EtherSharp.Wallet;
 // Read-only client (calls, queries, logs)
 var readClient = EtherClientBuilder
     .CreateForHttpRpc("https://mainnet.infura.io/v3/YOUR_PROJECT_ID")
-    .BuildReadClient();
+    .Build();
 
 await readClient.InitializeAsync();
 
 // Transaction client (signing + publishing)
 var wallet = new EtherHdWallet("your mnemonic...");
-var txClient = EtherClientBuilder
-    .CreateForHttpRpc("https://mainnet.infura.io/v3/YOUR_PROJECT_ID", wallet)
-    .BuildTxClient();
-
-await txClient.InitializeAsync();
+var txClient = await readClient.Attach(wallet).BuildAsync();
 ```
 
 ### Hashing EIP-712 Messages
@@ -66,7 +62,7 @@ public readonly partial record struct Permit(
 var domain = new EIP712Domain(
     Name: "Token",
     Version: "1",
-    ChainId: new UInt256(1),
+    ChainId: 1UL,
     VerifyingContract: tokenAddress);
 
 Bytes32 signingHash = permit.GetSigningHash(domain);
@@ -80,12 +76,12 @@ Generated message members currently support `bool`, `Address`, `string`, `byte[]
 
 The source generator is bundled with the `EtherSharp` package, so no separate generator package is required.
 
-Define a partial interface and decorate it with `[AbiFile]`. Add `[Bytecode]` if you also want generated deployment helpers. Supply runtime code when the contract can execute without constructor logic; the generator creates its initcode wrapper at compile time and exposes the runtime code as `Code.Runtime` for flash calls. Supply initcode for contracts that require constructor execution.
+Define a partial interface and decorate it with `[AbiFile]`, naming an ABI file included as `AdditionalFiles`. Add `[Bytecode]` if you also want generated deployment helpers. Supply runtime code when the contract can execute without constructor logic; the generator creates its initcode wrapper at compile time and exposes the runtime code as `Code.Runtime` for flash calls. Supply initcode for contracts that require constructor execution.
 
 ```csharp
 using EtherSharp.Contract;
 
-[AbiFile("abis/erc20.json")]
+[AbiFile("erc20.json")]
 [Bytecode(runtimeCode: "0x...")]
 public partial interface IERC20 : IEVMContract;
 ```
@@ -284,7 +280,7 @@ Subscribe to live events using `CreateSubscriptionAsync` (requires a WebSocket t
 ```csharp
 var wsClient = EtherClientBuilder
     .CreateForWebsocket("wss://your-rpc-endpoint")
-    .BuildReadClient();
+    .Build();
 
 await wsClient.InitializeAsync();
 ```
@@ -317,8 +313,9 @@ await foreach (var block in blockSub.ListenAsync().IgnoreInterruptions())
 For node-level diagnostics, EtherSharp exposes trace/debug modules when the connected RPC endpoint supports them.
 
 ```csharp
-var callTrace = await txClient.Trace.TraceTransactionCallsAsync("0xtransactionHash...");
-var debugTrace = await txClient.Debug.TraceTransactionCallsAsync("0xtransactionHash...");
+var txHash = Bytes32.Parse("0xtransactionHash...");
+var callTrace = await txClient.Trace.TraceTransactionCallsAsync(txHash);
+var debugTrace = await txClient.Debug.TraceTransactionCallsAsync(txHash);
 ```
 
 ---
