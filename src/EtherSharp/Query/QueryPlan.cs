@@ -122,5 +122,8 @@ internal sealed class QueryPlan(
     private Dictionary<Address, AccountOverride> EnsureStateOverrides()
         => _stateOverrides ??= _callerStateOverrides is null
             ? []
-            : [with(_callerStateOverrides)];
+#pragma warning disable IDE0028 // Rider misreports [with(...)] here as a syntax error
+            // ReSharper disable once UseCollectionExpression
+            : new Dictionary<Address, AccountOverride>(_callerStateOverrides);
+#pragma warning restore IDE0028
 }
