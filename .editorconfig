@@ -21,6 +21,10 @@ tab_width = 4
 
 # New line preferences
 insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Encoding
+charset = utf-8
 
 #### .NET Code Actions ####
 
@@ -56,7 +60,7 @@ dotnet_style_parentheses_in_other_operators = never_if_unnecessary:suggestion
 dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
 
 # Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members
+dotnet_style_require_accessibility_modifiers = always
 
 # Expression-level preferences
 dotnet_prefer_system_hash_code = true:warning
@@ -329,3 +333,51 @@ dotnet_naming_style.all_upper.required_prefix =
 dotnet_naming_style.all_upper.required_suffix = 
 dotnet_naming_style.all_upper.word_separator = 
 dotnet_naming_style.all_upper.capitalization = all_upper
+
+#### JetBrains Rider / ReSharper ####
+
+# Line wrapping: long lines are common, never hard-wrap
+resharper_csharp_wrap_lines = false
+
+# Attributes: own line on members, inline on parameters / type parameters
+resharper_csharp_place_type_attribute_on_same_line = false
+resharper_csharp_place_method_attribute_on_same_line = false
+resharper_csharp_place_accessorholder_attribute_on_same_line = false
+resharper_csharp_place_accessor_attribute_on_same_line = false
+resharper_csharp_place_field_attribute_on_same_line = false
+resharper_csharp_max_attribute_length_for_same_line = 120
+
+# Alignment: continuation lines use regular indentation instead of aligning to the parenthesis / first operand
+resharper_csharp_align_multiline_binary_expressions_chain = false
+resharper_csharp_align_multiline_statement_conditions = false
+resharper_csharp_use_continuous_indent_inside_parens = false
+resharper_csharp_indent_braces_inside_statement_conditions = false
+resharper_csharp_indent_raw_literal_string = do_not_change
+
+# Line breaks: keep hand-formatted arrangements
+resharper_csharp_keep_existing_initializer_arrangement = true
+resharper_csharp_place_simple_initializer_on_single_line = false
+resharper_csharp_keep_existing_invocation_parens_arrangement = true
+resharper_csharp_keep_existing_declaration_parens_arrangement = true
+resharper_csharp_keep_existing_primary_constructor_declaration_parens_arrangement = true
+resharper_csharp_keep_existing_list_patterns_arrangement = true
+resharper_csharp_new_line_before_while = true
+resharper_csharp_wrap_parameters_style = wrap_if_long
+resharper_csharp_wrap_primary_constructor_parameters_style = wrap_if_long
+
+# Spaces: keep hand-aligned trailing comments / tables
+resharper_csharp_extra_spaces = leave_multiple
+
+# Blank lines
+resharper_csharp_blank_lines_around_field = 0
+resharper_csharp_blank_lines_around_auto_property = 0
+resharper_csharp_blank_lines_after_block_statements = 1
+
+# Syntax style
+resharper_csharp_trailing_comma_in_multiline_lists = false
+resharper_csharp_object_creation_when_type_evident = explicitly_typed
+resharper_csharp_object_creation_when_type_not_evident = explicitly_typed
+resharper_arrange_object_creation_when_type_evident_highlighting = warning
+resharper_suggest_var_or_type_deconstruction_declarations_highlighting = none
+# Roslyn's IDE0028 prefers [with(...)] over new T(...), don't let Rider suggest the opposite
+resharper_single_with_into_object_creation_highlighting = none
