@@ -1,8 +1,9 @@
 # Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
-# Default line-ending behavior for all text files
+# Default encoding and line endings for all text files
 [*]
+charset = utf-8
 end_of_line = lf
 
 [*.{bat,cmd}]
@@ -22,9 +23,6 @@ tab_width = 4
 # New line preferences
 insert_final_newline = true
 trim_trailing_whitespace = true
-
-# Encoding
-charset = utf-8
 
 #### .NET Code Actions ####
 

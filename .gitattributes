@@ -5,7 +5,7 @@
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
-# Common binaries should never be line-normalized.
+# Use -text for binaries to skip line-ending normalization and the UTF-8 check.
 *.png -text
 *.jpg -text
 *.jpeg -text
