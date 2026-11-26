@@ -72,18 +72,15 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="websocketUrl"></param>
     /// <param name="requestTimeout"></param>
     /// <param name="loggerFactory"></param>
-    /// <param name="configureGasProvider"></param>
     /// <param name="configureWebSocketOptions">Optional callback invoked before every connection attempt, including reconnects. Compression is disabled unless configured through the socket options.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForWebsocket(
         string websocketUrl, TimeSpan? requestTimeout = null, ILoggerFactory? loggerFactory = null,
-        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null,
         Action<ClientWebSocketOptions>? configureWebSocketOptions = null
     ) => CreateForWebsocket(
         new Uri(websocketUrl, UriKind.Absolute),
         requestTimeout,
         loggerFactory,
-        configureGasProvider,
         configureWebSocketOptions
     );
 
@@ -93,12 +90,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="websocketUri"></param>
     /// <param name="requestTimeout"></param>
     /// <param name="loggerFactory"></param>
-    /// <param name="configureGasProvider"></param>
     /// <param name="configureWebSocketOptions">Optional callback invoked before every connection attempt, including reconnects. Compression is disabled unless configured through the socket options.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForWebsocket(
         Uri websocketUri, TimeSpan? requestTimeout = null, ILoggerFactory? loggerFactory = null,
-        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null,
         Action<ClientWebSocketOptions>? configureWebSocketOptions = null
     )
     {
@@ -110,7 +105,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
                 new WssJsonRpcTransport(websocketUri, requestTimeout.Value, provider, configureWebSocketOptions: configureWebSocketOptions)
         };
 
-        return ConfigureDefaults(builder, loggerFactory, configureGasProvider);
+        return ConfigureDefaults(builder, loggerFactory);
     }
 
     /// <summary>
@@ -118,16 +113,13 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// </summary>
     /// <param name="rpcUrl"></param>
     /// <param name="loggerFactory"></param>
-    /// <param name="configureGasProvider"></param>
     /// <param name="httpMessageHandler">Optional caller-owned handler. When omitted, a handler with gzip, deflate, and Brotli response decompression enabled is created.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForHttpRpc(
-        string rpcUrl, ILoggerFactory? loggerFactory = null,
-        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null, HttpMessageHandler? httpMessageHandler = null
+        string rpcUrl, ILoggerFactory? loggerFactory = null, HttpMessageHandler? httpMessageHandler = null
     ) => CreateForHttpRpc(
         new Uri(rpcUrl, UriKind.Absolute),
         loggerFactory,
-        configureGasProvider,
         httpMessageHandler
     );
 
@@ -136,12 +128,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// </summary>
     /// <param name="rpcUri"></param>
     /// <param name="loggerFactory"></param>
-    /// <param name="configureGasProvider"></param>
     /// <param name="httpMessageHandler">Optional caller-owned handler. When omitted, a handler with gzip, deflate, and Brotli response decompression enabled is created.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForHttpRpc(
-        Uri rpcUri, ILoggerFactory? loggerFactory = null,
-        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null, HttpMessageHandler? httpMessageHandler = null
+        Uri rpcUri, ILoggerFactory? loggerFactory = null, HttpMessageHandler? httpMessageHandler = null
     )
     {
         var builder = new EtherClientBuilder()
@@ -150,14 +140,10 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
                 new HttpJsonRpcTransport(rpcUri, provider, httpMessageHandler: httpMessageHandler)
         };
 
-        return ConfigureDefaults(builder, loggerFactory, configureGasProvider);
+        return ConfigureDefaults(builder, loggerFactory);
     }
 
-    private static EtherClientBuilder ConfigureDefaults(
-        EtherClientBuilder builder,
-        ILoggerFactory? loggerFactory,
-        Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider
-    )
+    private static EtherClientBuilder ConfigureDefaults(EtherClientBuilder builder, ILoggerFactory? loggerFactory)
     {
         if(loggerFactory is not null)
         {
@@ -165,14 +151,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         }
 
         builder.WithTxPublisher<BasicTxPublisher>();
-
-        if(configureGasProvider is not null)
-        {
-            var gasProviderConfiguration = new EIP1559GasFeeProvider.Configuration();
-            configureGasProvider(gasProviderConfiguration);
-            builder._services.AddSingleton(gasProviderConfiguration);
-        }
-
         return builder;
     }
 
@@ -294,6 +272,23 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
+    /// Configures fee and gas limit estimation of the built-in gas fee providers.
+    /// </summary>
+    /// <param name="configureAction">Callback to configure the options, starting from the defaults.</param>
+    /// <returns>This builder.</returns>
+    public EtherClientBuilder WithGasFeeOptions(Action<GasFeeOptions> configureAction)
+    {
+        ArgumentNullException.ThrowIfNull(configureAction);
+
+        var options = new GasFeeOptions();
+        configureAction(options);
+        options.Validate(nameof(configureAction));
+
+        _services.AddOrReplaceSingleton(options);
+        return this;
+    }
+
+    /// <summary>
     /// Registers a ResiliencyLayer on this EtherClient.
     /// </summary>
     /// <param name="resiliencyLayer">The caller-owned instance</param>
@@ -389,6 +384,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddSingleton<ITraceRpcModule, TraceRpcModule>();
         _services.AddSingleton<IDebugRpcModule, DebugRpcModule>();
         _services.TryAddSingleton<RpcRetryOptions>();
+        _services.TryAddSingleton<GasFeeOptions>();
         _services.TryAddSingleton<NonceSource, ConstructorCallNonceSource>();
         _services.TryAddSingleton<INonceWatcher, PollingNonceWatcher>();
         _services.TryAddSingleton<ITxConfirmationWatcher, PollingTxConfirmationWatcher>();

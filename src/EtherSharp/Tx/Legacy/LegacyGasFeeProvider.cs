@@ -12,42 +12,24 @@ namespace EtherSharp.Tx.Legacy;
 /// </summary>
 public sealed class LegacyGasFeeProvider : IGasFeeProvider<LegacyTxParams, LegacyGasParams>
 {
-    /// <summary>
-    /// Configuration values used to tune legacy gas estimation.
-    /// </summary>
-    public sealed class Configuration
-    {
-        /// <summary>
-        /// Percentage added to the estimated gas price.
-        /// </summary>
-        public int GasPriceOffsetPercentage { get; set; } = 15;
-
-        /// <summary>
-        /// Percentage added to the estimated gas limit.
-        /// </summary>
-        public ulong GasWantedOffsetPercentage { get; set; } = 15;
-    }
-
     private readonly IEthRpcModule _ethRpcModule;
 
     private readonly int _gasPriceOffsetPercentage;
-    private readonly ulong _gasWantedOffsetPercentage;
+    private readonly ulong _gasLimitOffsetPercentage;
 
     /// <summary>
     /// Creates a new <see cref="LegacyGasFeeProvider"/>.
     /// </summary>
     /// <param name="ethRpcModule">RPC module used to query fee and gas data.</param>
-    /// <param name="configuration">Optional gas estimation tuning values.</param>
-    public LegacyGasFeeProvider(
-        IEthRpcModule ethRpcModule,
-        LegacyGasFeeProvider.Configuration? configuration = null
-    )
+    /// <param name="options">Gas estimation tuning values.</param>
+    public LegacyGasFeeProvider(IEthRpcModule ethRpcModule, GasFeeOptions options)
     {
-        var resolvedConfiguration = configuration ?? new LegacyGasFeeProvider.Configuration();
+        ArgumentNullException.ThrowIfNull(options);
+        options.Validate(nameof(options));
 
         _ethRpcModule = ethRpcModule;
-        _gasPriceOffsetPercentage = resolvedConfiguration.GasPriceOffsetPercentage;
-        _gasWantedOffsetPercentage = resolvedConfiguration.GasWantedOffsetPercentage;
+        _gasPriceOffsetPercentage = options.Legacy.GasPriceOffsetPercentage;
+        _gasLimitOffsetPercentage = options.GasLimitOffsetPercentage;
     }
 
     /// <inheritdoc/>
@@ -71,7 +53,7 @@ public sealed class LegacyGasFeeProvider : IGasFeeProvider<LegacyTxParams, Legac
         var adjustedGasPrice = gasPrice * (UInt256) (100 + _gasPriceOffsetPercentage) / 100;
 
         return new LegacyGasParams(
-            gasUsed * (100 + _gasWantedOffsetPercentage) / 100,
+            gasUsed * (100 + _gasLimitOffsetPercentage) / 100,
             adjustedGasPrice
         );
     }

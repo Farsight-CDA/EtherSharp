@@ -12,63 +12,30 @@ namespace EtherSharp.Tx.EIP1559;
 /// </summary>
 public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>
 {
-    /// <summary>
-    /// Configuration values used to tune EIP-1559 gas estimation.
-    /// </summary>
-    public sealed class Configuration
-    {
-        /// <summary>
-        /// Number of recent blocks used when querying fee history.
-        /// </summary>
-        public int FeeHistoryRange { get; set; } = 5;
-
-        /// <summary>
-        /// Reward percentile used to estimate the priority fee.
-        /// </summary>
-        public double PriorityFeePercentile { get; set; } = 25;
-
-        /// <summary>
-        /// Percentage added to the estimated base fee.
-        /// </summary>
-        public int BaseFeeOffsetPercentage { get; set; } = 20;
-
-        /// <summary>
-        /// Percentage added to the estimated priority fee.
-        /// </summary>
-        public int PriorityFeeOffsetPercentage { get; set; } = 20;
-
-        /// <summary>
-        /// Percentage added to the estimated gas limit.
-        /// </summary>
-        public ulong GasWantedOffsetPercentage { get; set; } = 15;
-    }
-
     private readonly IEthRpcModule _ethRpcModule;
 
     private readonly int _feeHistoryRange;
     private readonly double[] _rewardPercentiles;
     private readonly int _baseFeeOffsetPercentage;
     private readonly int _priorityFeeOffsetPercentage;
-    private readonly ulong _gasWantedOffsetPercentage;
+    private readonly ulong _gasLimitOffsetPercentage;
 
     /// <summary>
     /// Creates a new <see cref="EIP1559GasFeeProvider"/>.
     /// </summary>
     /// <param name="ethRpcModule">RPC module used to query fee and gas data.</param>
-    /// <param name="configuration">Optional gas estimation tuning values.</param>
-    public EIP1559GasFeeProvider(
-        IEthRpcModule ethRpcModule,
-        EIP1559GasFeeProvider.Configuration? configuration = null
-    )
+    /// <param name="options">Gas estimation tuning values.</param>
+    public EIP1559GasFeeProvider(IEthRpcModule ethRpcModule, GasFeeOptions options)
     {
-        var resolvedConfiguration = configuration ?? new EIP1559GasFeeProvider.Configuration();
+        ArgumentNullException.ThrowIfNull(options);
+        options.Validate(nameof(options));
 
         _ethRpcModule = ethRpcModule;
-        _feeHistoryRange = resolvedConfiguration.FeeHistoryRange;
-        _rewardPercentiles = [resolvedConfiguration.PriorityFeePercentile];
-        _baseFeeOffsetPercentage = resolvedConfiguration.BaseFeeOffsetPercentage;
-        _priorityFeeOffsetPercentage = resolvedConfiguration.PriorityFeeOffsetPercentage;
-        _gasWantedOffsetPercentage = resolvedConfiguration.GasWantedOffsetPercentage;
+        _feeHistoryRange = options.EIP1559.FeeHistoryRange;
+        _rewardPercentiles = [options.EIP1559.PriorityFeePercentile];
+        _baseFeeOffsetPercentage = options.EIP1559.BaseFeeOffsetPercentage;
+        _priorityFeeOffsetPercentage = options.EIP1559.PriorityFeeOffsetPercentage;
+        _gasLimitOffsetPercentage = options.GasLimitOffsetPercentage;
     }
 
     /// <inheritdoc/>
@@ -118,7 +85,7 @@ public sealed class EIP1559GasFeeProvider : IGasFeeProvider<EIP1559TxParams, EIP
         var adjustedPriorityFee = priorityFee * (UInt256) (100 + _priorityFeeOffsetPercentage) / 100;
 
         return new EIP1559GasParams(
-            gasEstimation * (100 + _gasWantedOffsetPercentage) / 100,
+            gasEstimation * (100 + _gasLimitOffsetPercentage) / 100,
             adjustedBaseFee + adjustedPriorityFee,
             adjustedPriorityFee
         );
