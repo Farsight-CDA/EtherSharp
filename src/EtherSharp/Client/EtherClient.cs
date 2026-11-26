@@ -340,6 +340,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         AssertReady();
         return _ethRpcModule.TransactionByHashAsync(in hash, requestOptions, cancellationToken);
     }
+
     Task<TxReceipt?> IEtherClient.GetTransactionReceiptAsync(in Bytes32 hash, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
@@ -358,17 +359,11 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         AssertReady();
         return _ethRpcModule.GetStorageAtAsync(in address, slot, targetHeight, requestOptions, cancellationToken);
     }
+
     Task<byte[]> IEtherClient.GetStorageAtAsync(IEVMContract contract, byte[] slot, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
         return _ethRpcModule.GetStorageAtAsync(contract.Address, slot, targetHeight, requestOptions, cancellationToken);
-    }
-
-    private TContract Contract<TContract>(in Address address)
-        where TContract : IEVMContract
-    {
-        AssertReady();
-        return _contractFactory.Create<TContract>(in address);
     }
 
     Task<FeeHistory> IEtherClient.GetFeeHistoryAsync(int blockCount, TargetHeight newestBlock,
@@ -377,6 +372,7 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         AssertReady();
         return _ethRpcModule.GetFeeHistoryAsync(blockCount, newestBlock, rewardPercentiles, requestOptions, cancellationToken);
     }
+
     Task<UInt256> IEtherClient.GetGasPriceAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
@@ -436,7 +432,10 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     }
 
     TContract IEtherClient.Contract<TContract>(in Address address)
-        => Contract<TContract>(in address);
+    {
+        AssertReady();
+        return _contractFactory.Create<TContract>(in address);
+    }
 
     public Task<CallResult<T>> SafeCallAsync<T>(
         ITxInput<T> call,

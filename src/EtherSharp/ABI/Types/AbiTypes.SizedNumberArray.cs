@@ -157,6 +157,7 @@ public static partial class AbiTypes
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = Byte.Decode(slot.Span);
                     }
+
                     return (TInner[]) (object) arr;
                 }
                 case Type s8 when s8 == typeof(sbyte):
@@ -167,6 +168,7 @@ public static partial class AbiTypes
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = SByte.Decode(slot.Span);
                     }
+
                     return (TInner[]) (object) arr;
                 }
                 case Type us16 when us16 == typeof(ushort):
@@ -177,6 +179,7 @@ public static partial class AbiTypes
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = UShort.Decode(slot.Span);
                     }
+
                     return (TInner[]) (object) arr;
                 }
                 case Type s16 when s16 == typeof(short):
@@ -187,6 +190,7 @@ public static partial class AbiTypes
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = Short.Decode(slot.Span);
                     }
+
                     return (TInner[]) (object) arr;
                 }
                 case Type us32 when us32 == typeof(uint):
@@ -197,6 +201,7 @@ public static partial class AbiTypes
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = UInt.Decode(slot.Span);
                     }
+
                     return (TInner[]) (object) arr;
                 }
                 case Type s32 when s32 == typeof(int):
@@ -207,9 +212,10 @@ public static partial class AbiTypes
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = Int.Decode(slot.Span);
                     }
+
                     return (TInner[]) (object) arr;
                 }
-                ;
+                    ;
                 case Type us64 when us64 == typeof(ulong):
                 {
                     ulong[] arr = new ulong[length];
@@ -218,6 +224,7 @@ public static partial class AbiTypes
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = ULong.Decode(slot.Span);
                     }
+
                     return (TInner[]) (object) arr;
                 }
                 case Type s64 when s64 == typeof(long):
@@ -228,11 +235,11 @@ public static partial class AbiTypes
                         var slot = data[(i * 32)..((i * 32) + 32)];
                         arr[i] = Long.Decode(slot.Span);
                     }
+
                     return (TInner[]) (object) arr;
                 }
                 default:
                     throw new ArgumentException($"Expected primitive number type, got {typeof(TInner)}");
-
             }
         }
     }

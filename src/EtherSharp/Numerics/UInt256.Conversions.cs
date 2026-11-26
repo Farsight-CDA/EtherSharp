@@ -189,10 +189,12 @@ public readonly partial struct UInt256 : IStackValue<UInt256>
         {
             return default;
         }
+
         if(value < DOUBLE_UINT64_UPPER_BOUND)
         {
             return new UInt256(unchecked((ulong) value));
         }
+
         if(value >= DOUBLE_UPPER_BOUND)
         {
             return MaxValue;

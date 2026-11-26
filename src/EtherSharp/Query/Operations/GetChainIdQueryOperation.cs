@@ -20,6 +20,7 @@ internal sealed class GetChainIdQueryOperation : IQueryOperation, IQuery<ulong>
 
     public void Encode(Span<byte> buffer, QueryEncodingContext context)
         => buffer[0] = (byte) QueryOperationId.GetChainId;
+
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 8;
 

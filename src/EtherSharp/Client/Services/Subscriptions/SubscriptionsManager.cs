@@ -47,11 +47,11 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     {
         lock(_lock)
         {
-            int interrupted = _subscriptions.Values.Count(
-                state => state.Status is SubscriptionStatus.Interrupted or SubscriptionStatus.ReinstallScheduled
+            int interrupted = _subscriptions.Values.Count(state => state.Status is SubscriptionStatus.Interrupted or SubscriptionStatus.ReinstallScheduled
             );
 
-            return [
+            return
+            [
                 new Measurement<int>(_activeSubscriptions.Count, new KeyValuePair<string, object?>("status", "active")),
                 new Measurement<int>(interrupted, new KeyValuePair<string, object?>("status", "interrupted")),
             ];
@@ -179,6 +179,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                             Dispatch(subscription, payload);
                         }
                     }
+
                     break;
                 case { IsWanted: true, IsLive: false }:
                     subscription.Interrupt(new SubscriptionInterrupted(
@@ -190,6 +191,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                     {
                         StartReinstall(subscription);
                     }
+
                     break;
                 case { IsWanted: false, IsLive: true }:
                     //Uninstalled while installing, the node side subscription is no longer needed
@@ -389,6 +391,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                         );
                         StartReinstall(subscription);
                     }
+
                     break;
                 case SubscriptionNotification.Kind.Malformed:
                     _logger?.LogWarning(

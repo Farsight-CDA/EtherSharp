@@ -1,4 +1,5 @@
 using EtherSharp.Types;
+
 namespace EtherSharp.Tests.Types;
 
 public sealed class AddressStabilityTests

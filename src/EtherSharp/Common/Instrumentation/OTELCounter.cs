@@ -8,6 +8,7 @@ internal sealed record OTELCounter<T>(Counter<T> Counter, TagList Tags)
 {
     public void Add(T delta)
         => Counter.Add(delta, Tags);
+
     public void Add(T delta, KeyValuePair<string, object?> tag)
     {
         if(Tags.Count == 0)
@@ -35,6 +36,7 @@ internal sealed record OTELCounter<T>(Counter<T> Counter, TagList Tags)
             {
                 merged.Add(tag);
             }
+
             Counter.Add(delta, merged);
         }
     }

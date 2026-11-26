@@ -14,6 +14,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.RPC.Transport;
+
 /// <summary>
 /// Transport for EVM Websocket RPC
 /// </summary>
@@ -315,6 +316,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 {
                     value.SetException(ex);
                 }
+
                 break;
             case PayloadType.Subscription:
                 _subscriptionMessageCounter?.Add(1);
@@ -487,6 +489,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                             _logger?.LogWarning("Failed to identify payload, failed to proceed reading");
                             return;
                         }
+
                         break;
                 }
             }
@@ -586,6 +589,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                     {
                         statistics.RecordRequest(method, payload.Length);
                     }
+
                     await _socket.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
                 }
                 finally
@@ -637,6 +641,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             _rpcRequestMetrics.Add(method, RpcRequestStatus.Success);
             return RpcResult<TResult>.Null.Instance;
         }
+
         //
         _rpcRequestMetrics.Add(method, RpcRequestStatus.Success);
         return new RpcResult<TResult>.Success(jsonRpcResponse.Result!);

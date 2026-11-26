@@ -34,6 +34,7 @@ public static class UInt256Extensions
                 Unsafe.As<UInt256, Vector256<byte>>(ref result) = Vector256.Create(source);
                 return result;
             }
+
             //
             return new UInt256(
                 BinaryPrimitives.ReadUInt64LittleEndian(source[..8]),
@@ -171,6 +172,7 @@ public static class UInt256Extensions
             {
                 result += value;
             }
+
             return result;
         }
     }
@@ -192,6 +194,7 @@ public static class UInt256Extensions
             {
                 result += selector(item);
             }
+
             return result;
         }
     }

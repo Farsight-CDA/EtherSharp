@@ -198,6 +198,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
             {
                 typeBuilder.AddFunction(createCodeFunction);
             }
+
             typeBuilder.AddFunction(createFunction);
             typeBuilder.AddFunction(create2Function);
             sectionBuilder.AddInnerType(typeBuilder);
@@ -384,7 +385,7 @@ internal sealed class ContractFunctionSectionWriter(ParamEncodingWriter paramEnc
 
                 if(isQuery)
                 {
-                    HashSet<string> usedArgumentNames = [with(inputNameList, StringComparer.Ordinal)];
+                    HashSet<string> usedArgumentNames = [with(StringComparer.Ordinal), .. inputNameList];
                     string callOptionsArgumentName = NameUtils.MakeUniquePropertyName("callOptions", usedArgumentNames);
                     string requestOptionsArgumentName = NameUtils.MakeUniquePropertyName("requestOptions", usedArgumentNames);
 

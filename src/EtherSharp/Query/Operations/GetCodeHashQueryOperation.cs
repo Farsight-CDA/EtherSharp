@@ -18,8 +18,10 @@ internal sealed class GetCodeHashQueryOperation(in Address address) : IQueryOper
         buffer[0] = (byte) QueryOperationId.GetCodeHash;
         _address.CopyTo(buffer[1..]);
     }
+
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 32;
+
     byte[] IQuery<byte[]>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
         => queryResults[0].ToArray();
 }

@@ -146,6 +146,7 @@ public readonly partial struct Int256
         {
             UInt256.Subtract(in highBits, in b._value, out highBits);
         }
+
         if(b.IsNegative)
         {
             UInt256.Subtract(in highBits, in a._value, out highBits);

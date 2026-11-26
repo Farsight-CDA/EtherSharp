@@ -36,6 +36,7 @@ public static partial class AbiTypes
                 throw new InvalidOperationException("Failed to write bytes");
             }
         }
+
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)
         {
             if(!Encoding.UTF8.TryGetBytes(Value, buffer, out _))

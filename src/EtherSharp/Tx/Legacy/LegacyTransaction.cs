@@ -118,9 +118,9 @@ public sealed record LegacyTransaction(
     {
         var encoder = new RLPEncoder(destination)
             .EncodeList(listLengths[0])
-                .EncodeInt(Nonce)
-                .EncodeInt(GasPrice)
-                .EncodeInt(Gas);
+            .EncodeInt(Nonce)
+            .EncodeInt(GasPrice)
+            .EncodeInt(Gas);
 
         encoder = Input.To is { } to
             ? encoder.EncodeAddress(to)
@@ -144,9 +144,9 @@ public sealed record LegacyTransaction(
     {
         var encoder = new RLPEncoder(destination)
             .EncodeList(listLengths[0] + signatureLength)
-                .EncodeInt(Nonce)
-                .EncodeInt(GasPrice)
-                .EncodeInt(Gas);
+            .EncodeInt(Nonce)
+            .EncodeInt(GasPrice)
+            .EncodeInt(Gas);
 
         encoder = Input.To is { } to
             ? encoder.EncodeAddress(to)
@@ -218,6 +218,7 @@ public sealed record LegacyTransaction(
             {
                 ArrayPool<byte>.Shared.Return(rented);
             }
+
             ArrayPool<int>.Shared.Return(lengthBuffer);
         }
     }

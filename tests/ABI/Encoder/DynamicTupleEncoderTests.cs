@@ -32,5 +32,4 @@ public sealed class DynamicTupleEncoderTests
             x.Int16(3463);
             x.Int72(43666575);
         }).Build());
-
 }

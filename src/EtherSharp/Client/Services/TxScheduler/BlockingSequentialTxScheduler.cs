@@ -234,8 +234,8 @@ public sealed class BlockingSequentialTxScheduler(
             txParams ??= TTxParams.Default;
             txGasParams ??= await provider.GetRequiredService<IGasFeeProvider<TTxParams, TTxGasParams>>()
                 .EstimateGasParamsAsync(
-                call, txParams, signer.Address, requestOptions, cts.Token
-            );
+                    call, txParams, signer.Address, requestOptions, cts.Token
+                );
 
             var submission = await CreateSubmissionAsync<TTransaction, TTxParams, TTxGasParams>(
                 myNonce,
@@ -555,9 +555,11 @@ public sealed class BlockingSequentialTxScheduler(
                 {
                     return new TxConfirmationResult.Success(receipt);
                 }
+
                 await Task.Delay(i * 1000);
             }
         }
+
         return new TxConfirmationResult.NonceAlreadyUsed();
     }
 

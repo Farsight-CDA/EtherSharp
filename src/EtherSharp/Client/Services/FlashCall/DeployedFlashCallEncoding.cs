@@ -41,6 +41,7 @@ internal static class DeployedFlashCallEncoding
         {
             throw new InvalidDataException("The deployed flash caller returned no status byte.");
         }
+
         //
         return data.Span[0] switch
         {

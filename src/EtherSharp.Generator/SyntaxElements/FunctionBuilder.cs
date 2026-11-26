@@ -83,7 +83,7 @@ public sealed class FunctionBuilder(string name) : ISyntaxBuilder
     }
 
     public FunctionBuilder AddArgument(string type, string argumentName,
-    bool hasExplicityDefaultValue = false, object? defaultValue = null, string? xmlComment = null)
+        bool hasExplicityDefaultValue = false, object? defaultValue = null, string? xmlComment = null)
     {
         AddArgumentXmlComment(argumentName, xmlComment);
         _ = _argumentBuilder.AddArgument(type, argumentName, hasExplicityDefaultValue, defaultValue);
@@ -98,6 +98,7 @@ public sealed class FunctionBuilder(string name) : ISyntaxBuilder
             {
                 throw new InvalidOperationException("xmlComment for that argument already set!");
             }
+
             _argumentComments.Add(argumentName, xmlComment);
         }
     }
@@ -140,10 +141,12 @@ public sealed class FunctionBuilder(string name) : ISyntaxBuilder
         {
             _ = sb.Append($"{_visibility.ToString().ToLower(CultureInfo.InvariantCulture)} ");
         }
+
         if(_isStatic)
         {
             _ = sb.Append("static ");
         }
+
         if(_isAsync)
         {
             _ = sb.Append("async ");

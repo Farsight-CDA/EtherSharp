@@ -75,13 +75,17 @@ public sealed record CallTrace(
         /// <inheritdoc/>
         public readonly void Reset()
             => throw new NotSupportedException();
+
         /// <inheritdoc/>
         public readonly void Dispose() { }
+
         /// <inheritdoc/>
         public readonly Enumerator GetEnumerator()
             => this;
+
         readonly IEnumerator<CallTrace> IEnumerable<CallTrace>.GetEnumerator()
             => this;
+
         readonly IEnumerator IEnumerable.GetEnumerator()
             => this;
     }

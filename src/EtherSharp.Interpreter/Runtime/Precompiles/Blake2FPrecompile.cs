@@ -29,6 +29,7 @@ public sealed class Blake2FPrecompile : IPrecompile
         {
             return ValueTask.FromResult(ExecutionResult.PrecompileFailure(PrecompileFailureReason.InvalidInputLength));
         }
+
         if(call.Input.Span[212] > 1)
         {
             return ValueTask.FromResult(ExecutionResult.PrecompileFailure(PrecompileFailureReason.Blake2FInvalidFinalBlockFlag));

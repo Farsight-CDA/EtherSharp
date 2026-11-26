@@ -10,11 +10,12 @@ namespace EtherSharp.RPC.Modules.Debug;
 internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
 {
     private readonly RpcClient _rpcClient = rpcClient;
+
     private readonly record struct CallTracerOptions(string Tracer);
+
     public async Task<CallTrace?> TraceTransactionCallsAsync(
         string transactionHash, RpcRequestOptions requestOptions, CancellationToken cancellationToken
-    ) => await _rpcClient.SendRpcRequestAsync<string, CallTracerOptions, CallTrace>(
-        "debug_traceTransaction", transactionHash, new CallTracerOptions("callTracer"), TargetHeight.Latest, requestOptions, cancellationToken) switch
+    ) => await _rpcClient.SendRpcRequestAsync<string, CallTracerOptions, CallTrace>("debug_traceTransaction", transactionHash, new CallTracerOptions("callTracer"), TargetHeight.Latest, requestOptions, cancellationToken) switch
     {
         RpcResult<CallTrace>.Success result => result.Result,
         RpcResult<CallTrace>.Null => null,
@@ -31,8 +32,7 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
 
     private async Task<CallTrace?> TraceTransactionCallsCoreAsync(
         Bytes32 transactionHash, RpcRequestOptions requestOptions, CancellationToken cancellationToken
-    ) => await _rpcClient.SendRpcRequestAsync<Bytes32, CallTracerOptions, CallTrace>(
-        "debug_traceTransaction", transactionHash, new CallTracerOptions("callTracer"), TargetHeight.Latest, requestOptions, cancellationToken) switch
+    ) => await _rpcClient.SendRpcRequestAsync<Bytes32, CallTracerOptions, CallTrace>("debug_traceTransaction", transactionHash, new CallTracerOptions("callTracer"), TargetHeight.Latest, requestOptions, cancellationToken) switch
     {
         RpcResult<CallTrace>.Success result => result.Result,
         RpcResult<CallTrace>.Null => null,
@@ -57,6 +57,7 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
     );
 
     private sealed record CallTracerConfig(bool? OnlyTopCall);
+
     public Task<CallTrace> TraceCallCallsAsync(
         Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool onlyTopCall, RpcRequestOptions requestOptions,
@@ -77,8 +78,7 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
         return SendAsync();
 
         async Task<CallTrace> SendAsync()
-            => await _rpcClient.SendRpcRequestAsync<TraceCallRequest, TargetHeight, TraceCallConfig<CallTracerConfig>, CallTrace>(
-                "debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
+            => await _rpcClient.SendRpcRequestAsync<TraceCallRequest, TargetHeight, TraceCallConfig<CallTracerConfig>, CallTrace>("debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
             {
                 RpcResult<CallTrace>.Success result => result.Result,
                 RpcResult<CallTrace>.Null => throw new RpcNullResultException("debug_traceCall"),
@@ -87,6 +87,7 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
     }
 
     private sealed record PrestateTracerConfig(bool? DisableCode, bool? DisableStorage);
+
     public Task<PrestateTrace> TraceCallPrestateAsync(
         Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool disableCode, bool disableStorage, RpcRequestOptions requestOptions,
@@ -106,8 +107,7 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
         return SendAsync();
 
         async Task<PrestateTrace> SendAsync()
-            => await _rpcClient.SendRpcRequestAsync<TraceCallRequest, TargetHeight, TraceCallConfig<PrestateTracerConfig>, PrestateTrace>(
-                "debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
+            => await _rpcClient.SendRpcRequestAsync<TraceCallRequest, TargetHeight, TraceCallConfig<PrestateTracerConfig>, PrestateTrace>("debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
             {
                 RpcResult<PrestateTrace>.Success result => result.Result,
                 RpcResult<PrestateTrace>.Null => throw new RpcNullResultException("debug_traceCall"),
@@ -116,6 +116,7 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
     }
 
     private sealed record PrestateDiffTracerConfig(bool DiffMode, bool? DisableCode, bool? DisableStorage);
+
     public Task<PrestateDiffTrace> TraceCallPrestateDiffAsync(
         Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in TraceCallOptions options, bool disableCode, bool disableStorage, RpcRequestOptions requestOptions,
@@ -135,8 +136,7 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
         return SendAsync();
 
         async Task<PrestateDiffTrace> SendAsync()
-            => await _rpcClient.SendRpcRequestAsync<TraceCallRequest, TargetHeight, TraceCallConfig<PrestateDiffTracerConfig>, PrestateDiffTrace>(
-                "debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
+            => await _rpcClient.SendRpcRequestAsync<TraceCallRequest, TargetHeight, TraceCallConfig<PrestateDiffTracerConfig>, PrestateDiffTrace>("debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
             {
                 RpcResult<PrestateDiffTrace>.Success result => result.Result,
                 RpcResult<PrestateDiffTrace>.Null => throw new RpcNullResultException("debug_traceCall"),
@@ -164,8 +164,7 @@ internal sealed class DebugRpcModule(RpcClient rpcClient) : IDebugRpcModule
         return SendAsync();
 
         async Task<TResult> SendAsync()
-            => await _rpcClient.SendRpcRequestAsync<TraceCallRequest, TargetHeight, TraceCallConfig<TTracerConfig>, TResult>(
-                "debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
+            => await _rpcClient.SendRpcRequestAsync<TraceCallRequest, TargetHeight, TraceCallConfig<TTracerConfig>, TResult>("debug_traceCall", request, targetHeight, config, targetHeight, requestOptions, cancellationToken) switch
             {
                 RpcResult<TResult>.Success result => result.Result,
                 RpcResult<TResult>.Null => throw new RpcNullResultException("debug_traceCall"),

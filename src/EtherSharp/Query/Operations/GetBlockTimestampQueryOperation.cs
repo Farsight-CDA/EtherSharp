@@ -20,8 +20,10 @@ internal sealed class GetBlockTimestampQueryOperation : IQueryOperation, IQuery<
 
     public void Encode(Span<byte> buffer, QueryEncodingContext context)
         => buffer[0] = (byte) QueryOperationId.GetBlockTimestamp;
+
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 8;
+
     DateTimeOffset IQuery<DateTimeOffset>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
         long seconds = (long) BinaryPrimitives.ReadUInt64BigEndian(queryResults[0].Span);

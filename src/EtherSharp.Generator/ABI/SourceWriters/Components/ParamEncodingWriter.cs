@@ -16,7 +16,6 @@ internal sealed class ParamEncodingWriter(AbiParameterTypeWriter parameterTypeWr
         var (paramType, _, encodeFunction, _) = _parameterTypeWriter.CreateParameter(parameter);
 
         return (paramName, paramType, encodeFunction);
-
     }
 
     public (string TypeName, bool IsDynamic, string DecodeFunc) GetOutputDecoding(string fallbackName, AbiParameter[] outputParameters)

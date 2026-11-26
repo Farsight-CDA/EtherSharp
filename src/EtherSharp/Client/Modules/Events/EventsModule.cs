@@ -11,7 +11,8 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Events;
 
-internal sealed class EventsModule<TLog>(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+internal sealed class EventsModule<TLog>(
+    IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
     EtherSharpJsonSerializerContext jsonSerializerContext, EventFilter? eventFilter = null) : IEventsModule<TLog>
     where TLog : ITxLog<TLog>
 {
@@ -27,6 +28,7 @@ internal sealed class EventsModule<TLog>(IEthRpcModule ethRpcModule, ISubscripti
         _eventFilterBuilder.WithContracts(contracts);
         return this;
     }
+
     public IEventsModule<TLog> WithContractAddresses(params ReadOnlySpan<Address> contractAddresses)
     {
         _eventFilterBuilder.WithContractAddresses(contractAddresses);
@@ -38,6 +40,7 @@ internal sealed class EventsModule<TLog>(IEthRpcModule ethRpcModule, ISubscripti
         _eventFilterBuilder.WithContracts(contracts);
         return this;
     }
+
     public IEventsModule<TLog> WithContractAddresses(params IEnumerable<Address> contractAddresses)
     {
         _eventFilterBuilder.WithContractAddresses(contractAddresses);
@@ -49,36 +52,43 @@ internal sealed class EventsModule<TLog>(IEthRpcModule ethRpcModule, ISubscripti
         _eventFilterBuilder.WithTopic0(topics);
         return this;
     }
+
     public IEventsModule<TLog> WithTopic0(params IEnumerable<Bytes32> topics)
     {
         _eventFilterBuilder.WithTopic0(topics);
         return this;
     }
+
     public IEventsModule<TLog> WithTopic1(params ReadOnlySpan<Bytes32> topics)
     {
         _eventFilterBuilder.WithTopic1(topics);
         return this;
     }
+
     public IEventsModule<TLog> WithTopic1(params IEnumerable<Bytes32> topics)
     {
         _eventFilterBuilder.WithTopic1(topics);
         return this;
     }
+
     public IEventsModule<TLog> WithTopic2(params ReadOnlySpan<Bytes32> topics)
     {
         _eventFilterBuilder.WithTopic2(topics);
         return this;
     }
+
     public IEventsModule<TLog> WithTopic2(params IEnumerable<Bytes32> topics)
     {
         _eventFilterBuilder.WithTopic2(topics);
         return this;
     }
+
     public IEventsModule<TLog> WithTopic3(params ReadOnlySpan<Bytes32> topics)
     {
         _eventFilterBuilder.WithTopic3(topics);
         return this;
     }
+
     public IEventsModule<TLog> WithTopic3(params IEnumerable<Bytes32> topics)
     {
         _eventFilterBuilder.WithTopic3(topics);
@@ -109,6 +119,7 @@ internal sealed class EventsModule<TLog>(IEthRpcModule ethRpcModule, ISubscripti
             return rawResults as TLog[]
                 ?? throw new ImpossibleException();
         }
+
         if(rawResults.Length == 0)
         {
             return [];

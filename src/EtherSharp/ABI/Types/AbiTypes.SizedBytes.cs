@@ -14,7 +14,8 @@ public static partial class AbiTypes
     {
         internal SizedBytes(in TBytes value)
             : base(in value)
-        { }
+        {
+        }
 
         /// <inheritdoc />
         public int PackedSize => TBytes.BYTE_LENGTH;
@@ -22,6 +23,7 @@ public static partial class AbiTypes
         /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
+
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 

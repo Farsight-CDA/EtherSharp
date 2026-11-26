@@ -6,6 +6,7 @@ public sealed class UntypedArgument(string sourceExpression)
 {
     public string SourceExpression { get; } = sourceExpression;
 }
+
 public sealed class CallArgumentsBuilder : ISyntaxBuilder
 {
     private readonly List<UntypedArgument> _arguments;

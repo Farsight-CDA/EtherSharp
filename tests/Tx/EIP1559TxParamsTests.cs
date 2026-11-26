@@ -14,20 +14,20 @@ public sealed class EIP1559TxParamsTests
     public void Should_RoundTrip_Binary_EIP1559_TxParams()
     {
         var txParams = new EIP1559TxParams(
-        [
-            new StateAccess(
-                Address.Parse("0x1111111111111111111111111111111111111111"),
-                new Bytes32[]
-                {
-                    Bytes32.Parse("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
-                    Bytes32.Parse("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-                }
-            ),
-            new StateAccess(
-                Address.Parse("0x2222222222222222222222222222222222222222"),
-                ReadOnlyMemory<Bytes32>.Empty
-            )
-        ]
+            [
+                new StateAccess(
+                    Address.Parse("0x1111111111111111111111111111111111111111"),
+                    new Bytes32[]
+                    {
+                        Bytes32.Parse("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
+                        Bytes32.Parse("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+                    }
+                ),
+                new StateAccess(
+                    Address.Parse("0x2222222222222222222222222222222222222222"),
+                    ReadOnlyMemory<Bytes32>.Empty
+                )
+            ]
         );
 
         byte[] encoded = Encode(txParams);
@@ -52,15 +52,15 @@ public sealed class EIP1559TxParamsTests
     {
         byte[] encoded = Encode(
             new EIP1559TxParams(
-            [
-                new StateAccess(
-                    Address.Parse("0x3333333333333333333333333333333333333333"),
-                    new Bytes32[]
-                    {
-                        Bytes32.Parse("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-                    }
-                )
-            ]
+                [
+                    new StateAccess(
+                        Address.Parse("0x3333333333333333333333333333333333333333"),
+                        new Bytes32[]
+                        {
+                            Bytes32.Parse("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+                        }
+                    )
+                ]
             )
         );
 

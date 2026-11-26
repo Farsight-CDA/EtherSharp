@@ -97,6 +97,7 @@ public sealed class BytesTypeExhaustiveTests
         {
             Assert.Equal(first[i], firstValue[i]);
         }
+
         Assert.Equal(first[^1], firstValue[^1]);
         Assert.Equal(first[0], firstValue[^length]);
 

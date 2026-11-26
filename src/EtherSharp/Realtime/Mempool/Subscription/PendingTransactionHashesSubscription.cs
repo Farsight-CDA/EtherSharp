@@ -6,7 +6,8 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Realtime.Mempool.Subscription;
 
-internal sealed class PendingTransactionHashesSubscription(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+internal sealed class PendingTransactionHashesSubscription(
+    IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
     EtherSharpJsonSerializerContext jsonSerializerContext)
     : SubscriptionBase<Bytes32>(subscriptionsManager, jsonSerializerContext.Bytes32), IPendingTransactionHashesSubscription
 {

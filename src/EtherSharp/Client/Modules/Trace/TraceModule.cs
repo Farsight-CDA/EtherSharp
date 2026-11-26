@@ -39,7 +39,7 @@ internal sealed class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
     {
         var children = allTraces
             .Where(x => x.TraceAddress.Length == trace.TraceAddress.Length + 1 &&
-                        x.TraceAddress.AsSpan(0, trace.TraceAddress.Length).SequenceEqual(trace.TraceAddress))
+                x.TraceAddress.AsSpan(0, trace.TraceAddress.Length).SequenceEqual(trace.TraceAddress))
             .OrderBy(x => x.TraceAddress[^1])
             .Select(x => ConvertToCallTrace(x, allTraces))
             .ToArray();
@@ -62,5 +62,4 @@ internal sealed class TraceModule(ITraceRpcModule traceRpcModule) : ITraceModule
         Bytes32 transactionHash, TraceTypes traceTypes, RpcRequestOptions requestOptions,
         CancellationToken cancellationToken
     ) => _traceRpcModule.ReplayTransactionAsync(transactionHash, traceTypes, requestOptions, cancellationToken);
-
 }

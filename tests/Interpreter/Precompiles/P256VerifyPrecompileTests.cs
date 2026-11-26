@@ -23,6 +23,7 @@ public sealed class P256VerifyPrecompileTests
                     vector.GetProperty("Expected").GetString()!
                 );
             }
+
             return vectors;
         }
     }

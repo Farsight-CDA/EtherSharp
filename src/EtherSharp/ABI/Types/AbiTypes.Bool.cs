@@ -28,6 +28,7 @@ public static partial class AbiTypes
         /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
+
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 

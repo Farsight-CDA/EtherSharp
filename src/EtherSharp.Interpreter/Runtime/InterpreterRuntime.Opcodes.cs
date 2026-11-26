@@ -38,6 +38,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
+
                     if(opcode is EvmOpcode.Div or EvmOpcode.SDiv or EvmOpcode.Mod or EvmOpcode.SMod
                         && second.IsZero)
                     {
@@ -68,6 +69,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
+
                     if(modulus.IsZero)
                     {
                         callFrame.Stack.Push(Bytes32.Zero);
@@ -222,6 +224,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     callFrame.Stack.Push(Keccak256.HashData(data.Span));
                     break;
                 }
@@ -301,6 +304,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     callFrame.CallData.CopyTo(sourceOffset, destination);
                     break;
                 }
@@ -326,6 +330,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     callFrame.CodeData.CopyTo(sourceOffset, destination);
                     break;
                 }
@@ -365,6 +370,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     externalCode.CopyTo(sourceOffset, destination);
                     break;
                 }
@@ -390,6 +396,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     if(!callFrame.ReturnData.TryCopyTo(sourceOffset, destination))
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.ReturnDataOutOfBounds);
@@ -497,6 +504,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InvalidOpcode);
                     }
+
                     if(!callFrame.Stack.TryPop(out UInt256 blobIndex))
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
@@ -538,6 +546,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     callFrame.Stack.Push(Bytes32.FromBytes(data.Span));
                     break;
                 }
@@ -552,6 +561,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     value.CopyTo(data.Span);
                     break;
                 }
@@ -566,6 +576,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     data.Span[0] = value[^1];
                     break;
                 }
@@ -602,6 +613,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
+
                     if(destination >= (UInt256) callFrame.Code.Length
                         || callFrame.Code.ByteCode.Span[(int) destination] != (byte) EvmOpcode.JumpDest
                         || callFrame.Code.PushDataMap.IsPushData((int) destination))
@@ -618,10 +630,12 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
+
                     if(condition.IsZero)
                     {
                         break;
                     }
+
                     if(destination >= (UInt256) callFrame.Code.Length
                         || callFrame.Code.ByteCode.Span[(int) destination] != (byte) EvmOpcode.JumpDest
                         || callFrame.Code.PushDataMap.IsPushData((int) destination))
@@ -695,6 +709,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     break;
                 }
                 case >= EvmOpcode.Push0 and <= EvmOpcode.Push32:
@@ -763,12 +778,14 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     byte[] data = memory.Span.ToArray();
                     _storage.AddLog(callFrame.Call.Address, topics, data);
                     if(_executionState!.Hooks is not null)
                     {
                         await _executionState.Hooks.OnLogAsync(callFrame, topics, data, _storage);
                     }
+
                     break;
                 }
                 case EvmOpcode.Create:
@@ -786,6 +803,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
+
                     if(length > (UInt256) ExecutionSpec.MaxInitCodeLength)
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InitCodeTooLarge);
@@ -802,6 +820,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     var child = CallFrame.CreateContractCreation(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.Create,
@@ -843,6 +862,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
                     }
+
                     if(length > (UInt256) ExecutionSpec.MaxInitCodeLength)
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.InitCodeTooLarge);
@@ -858,6 +878,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     var createdAddress = Address.DeriveCreate2(
                         callFrame.Call.Address,
                         salt,
@@ -913,6 +934,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     var child = CallFrame.CreateMessageCall(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.Call,
@@ -929,6 +951,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
                     callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
@@ -953,6 +976,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     var child = CallFrame.CreateMessageCall(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.CallCode,
@@ -969,6 +993,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
                     callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
@@ -1000,6 +1025,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     var child = CallFrame.CreateMessageCall(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.DelegateCall,
@@ -1015,6 +1041,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
                     callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
@@ -1038,6 +1065,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     var child = CallFrame.CreateMessageCall(
                         checked(_executionState!.NextFrameId++),
                         EvmOpcode.StaticCall,
@@ -1053,6 +1081,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.OutOfGas);
                     }
+
                     callResult.Data.Span[..Math.Min(callResult.Data.Length, output.Length)].CopyTo(output.Span);
                     callFrame.Stack.Push(callResult.IsSuccess ? UInt256.One : UInt256.Zero);
                     break;
@@ -1073,6 +1102,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.WriteProtection);
                     }
+
                     if(!callFrame.Stack.TryPop(out Address beneficiary))
                     {
                         return ExecutionResult.ExceptionalHalt(ExceptionalHaltReason.StackUnderflow);
@@ -1109,6 +1139,7 @@ internal sealed partial class InterpreterRuntime
                     {
                         await _executionState.Hooks.OnSelfDestructAsync(callFrame, beneficiary, balance, _storage);
                     }
+
                     return ExecutionResult.Success();
                 }
                 default:

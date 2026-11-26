@@ -28,6 +28,7 @@ public static partial class AbiTypes
 
             Value.AsSpan().CopyTo(payload[32..]);
         }
+
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => Value.AsSpan().CopyTo(buffer);
 

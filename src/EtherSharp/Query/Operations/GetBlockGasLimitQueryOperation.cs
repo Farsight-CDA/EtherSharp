@@ -20,6 +20,7 @@ internal sealed class GetBlockGasLimitQueryOperation : IQueryOperation, IQuery<u
 
     public void Encode(Span<byte> buffer, QueryEncodingContext context)
         => buffer[0] = (byte) QueryOperationId.GetBlockGasLimit;
+
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 8;
 

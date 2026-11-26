@@ -72,10 +72,12 @@ public readonly record struct TransactionEnvironment(
         {
             throw new InvalidOperationException("EIP-1559 transactions require a block base fee.");
         }
+
         if(transaction.MaxPriorityFeePerGas > transaction.MaxFeePerGas)
         {
             throw new InvalidOperationException("The priority fee exceeds the maximum fee.");
         }
+
         if(transaction.MaxFeePerGas < baseFee)
         {
             throw new InvalidOperationException("The maximum fee is below the block base fee.");

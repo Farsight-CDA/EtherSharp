@@ -10,9 +10,12 @@ public sealed class AbiSizedNumberEncodingTests
         => [.. Enumerable.Range(1, 32).Select(static x => x * 8)];
 
     public static TheoryData<int> NonNativeBoundedBitSizes
-        => [.. Enumerable.Range(1, 32)
-            .Select(static x => x * 8)
-            .Where(static x => x is not (8 or 16 or 32 or 64 or 256))];
+        =>
+        [
+            .. Enumerable.Range(1, 32)
+                .Select(static x => x * 8)
+                .Where(static x => x is not (8 or 16 or 32 or 64 or 256))
+        ];
 
     [Theory]
     [MemberData(nameof(BitSizes))]

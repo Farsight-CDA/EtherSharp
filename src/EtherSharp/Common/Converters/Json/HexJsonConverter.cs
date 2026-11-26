@@ -34,6 +34,7 @@ internal static class HexJsonConverter
             {
                 throw new JsonException($"Expected a valid {buffer.Length}-byte hex string for {typeName}");
             }
+
             return;
         }
 

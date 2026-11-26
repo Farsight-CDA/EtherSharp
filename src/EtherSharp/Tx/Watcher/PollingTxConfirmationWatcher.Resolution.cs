@@ -80,7 +80,9 @@ public sealed partial class PollingTxConfirmationWatcher
     private closed record MinedBlockResult
     {
         public sealed record Found(ulong BlockNumber) : MinedBlockResult;
+
         public sealed record BeyondLookback : MinedBlockResult;
+
         public sealed record Unavailable : MinedBlockResult;
     }
 
@@ -164,7 +166,7 @@ public sealed partial class PollingTxConfirmationWatcher
     private async Task<DetailedBlockData?> FetchMinedBlockAsync(ulong blockNumber, CancellationToken cancellationToken)
     {
         var retryDelay = _retryDelay;
-        for(int attempt = 0; ; attempt++)
+        for(int attempt = 0; true; attempt++)
         {
             var block = await _ethRpcModule.GetFullBlockByNumberAsync(
                 TargetHeight.Height(blockNumber), _requestOptions, cancellationToken
@@ -183,6 +185,7 @@ public sealed partial class PollingTxConfirmationWatcher
     private closed record LookbackResult
     {
         public sealed record Found(ulong LowBlock, ulong HighBlock) : LookbackResult;
+
         public sealed record OutOfRange : LookbackResult;
     }
 
@@ -222,7 +225,7 @@ public sealed partial class PollingTxConfirmationWatcher
     private async Task ResolveByHashAsync(SlotTracker slot, int retryCount, CancellationToken cancellationToken)
     {
         var retryDelay = _retryDelay;
-        for(int attempt = 0; ; attempt++)
+        for(int attempt = 0; true; attempt++)
         {
             SlotHashEntry[] hashes;
             lock(_stateLock)

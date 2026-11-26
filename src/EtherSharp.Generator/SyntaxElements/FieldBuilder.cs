@@ -8,6 +8,7 @@ public enum FieldVisibility
     Private,
     Internal
 }
+
 public sealed class FieldBuilder(string type, string name) : ISyntaxBuilder
 {
     public string Type { get; } = type;
@@ -56,8 +57,9 @@ public sealed class FieldBuilder(string type, string name) : ISyntaxBuilder
             """;
 
     private string BuildXmlComment()
-        => XmlSummaryContent is null ? "" :
-            $"""
+        => XmlSummaryContent is null
+            ? ""
+            : $"""
             /// <summary>
             /// {XmlSummaryContent}
             /// </summary>

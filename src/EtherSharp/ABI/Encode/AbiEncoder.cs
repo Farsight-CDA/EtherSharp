@@ -84,7 +84,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     /// <param name="value">String to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public AbiEncoder String(string value)
-            => AddElement(new AbiTypes.String(value));
+        => AddElement(new AbiTypes.String(value));
 
     /// <summary>
     /// Encodes a dynamic byte sequence.
@@ -241,43 +241,58 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
 
     void IArrayAbiEncoder.DynamicTuple(Action<IDynamicTupleEncoder> func)
         => DynamicTuple(func);
+
     void IArrayAbiEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
         => FixedTuple(func);
 
     IFixedTupleEncoder IFixedTupleEncoder.Bool(bool value)
         => Bool(value);
+
     IFixedTupleEncoder IFixedTupleEncoder.Address(in Address value)
         => Address(in value);
 
     IDynamicTupleEncoder IDynamicTupleEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
         => FixedTuple(func);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.DynamicTuple(Action<IDynamicTupleEncoder> func)
         => DynamicTuple(func);
+
     IFixedTupleEncoder IFixedTupleEncoder.FixedTuple(Action<IFixedTupleEncoder> func)
         => FixedTuple(func);
 
     IDynamicTupleEncoder IDynamicTupleEncoder.Bool(bool value)
         => Bool(value);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.Address(in Address value)
         => Address(in value);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.String(string value)
         => String(value);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(ReadOnlyMemory<byte> arr)
         => Bytes(arr);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.Bytes(ImmutableArray<byte> value)
         => Bytes(value);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.BoolArray(params ReadOnlySpan<bool> values)
         => BoolArray(values);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.BoolArray(ImmutableArray<bool> values)
         => BoolArray(values);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.AddressArray(params ReadOnlySpan<Address> addresses)
         => AddressArray(addresses);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.AddressArray(ImmutableArray<Address> addresses)
         => AddressArray(addresses);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.StringArray(params ReadOnlySpan<string> values)
         => StringArray(values);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.BytesArray(params ReadOnlySpan<ReadOnlyMemory<byte>> values)
         => BytesArray(values);
+
     IDynamicTupleEncoder IDynamicTupleEncoder.Array<T>(IEnumerable<T> values, Action<IArrayAbiEncoder, T> func)
         => Array(values, func);
 
@@ -295,6 +310,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
         {
             throw new ArgumentException("Invalid bitLength", nameof(bitLength));
         }
+
         //
         return AddElement(bitLength switch
         {
@@ -359,26 +375,26 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
     [OverloadResolutionPriority(1)]
     public AbiEncoder NumberArray<TNumber>(bool isUnsigned, int bitLength, ImmutableArray<TNumber> numbers)
         => bitLength % 8 != 0 || bitLength < 8 || bitLength > 256
-        ? throw new ArgumentException("Invalid bitLength", nameof(bitLength))
-        : AddElement(bitLength switch
-        {
-            8 => isUnsigned
-                ? new AbiTypes.SizedNumberArray<byte>(CastImmutableNumbers<TNumber, byte>(numbers, bitLength), bitLength)
-                : new AbiTypes.SizedNumberArray<sbyte>(CastImmutableNumbers<TNumber, sbyte>(numbers, bitLength), bitLength),
-            16 => isUnsigned
-                ? new AbiTypes.SizedNumberArray<ushort>(CastImmutableNumbers<TNumber, ushort>(numbers, bitLength), bitLength)
-                : new AbiTypes.SizedNumberArray<short>(CastImmutableNumbers<TNumber, short>(numbers, bitLength), bitLength),
-            > 16 and <= 32 => isUnsigned
-                ? new AbiTypes.SizedNumberArray<uint>(CastImmutableNumbers<TNumber, uint>(numbers, bitLength), bitLength)
-                : new AbiTypes.SizedNumberArray<int>(CastImmutableNumbers<TNumber, int>(numbers, bitLength), bitLength),
-            > 32 and <= 64 => isUnsigned
-                ? new AbiTypes.SizedNumberArray<ulong>(CastImmutableNumbers<TNumber, ulong>(numbers, bitLength), bitLength)
-                : new AbiTypes.SizedNumberArray<long>(CastImmutableNumbers<TNumber, long>(numbers, bitLength), bitLength),
-            > 64 and <= 256 => isUnsigned
-                ? new AbiTypes.UInt256Array(CastImmutableNumbers<TNumber, UInt256>(numbers, bitLength), bitLength)
-                : new AbiTypes.Int256Array(CastImmutableNumbers<TNumber, Int256>(numbers, bitLength), bitLength),
-            _ => throw new NotSupportedException()
-        });
+            ? throw new ArgumentException("Invalid bitLength", nameof(bitLength))
+            : AddElement(bitLength switch
+            {
+                8 => isUnsigned
+                    ? new AbiTypes.SizedNumberArray<byte>(CastImmutableNumbers<TNumber, byte>(numbers, bitLength), bitLength)
+                    : new AbiTypes.SizedNumberArray<sbyte>(CastImmutableNumbers<TNumber, sbyte>(numbers, bitLength), bitLength),
+                16 => isUnsigned
+                    ? new AbiTypes.SizedNumberArray<ushort>(CastImmutableNumbers<TNumber, ushort>(numbers, bitLength), bitLength)
+                    : new AbiTypes.SizedNumberArray<short>(CastImmutableNumbers<TNumber, short>(numbers, bitLength), bitLength),
+                > 16 and <= 32 => isUnsigned
+                    ? new AbiTypes.SizedNumberArray<uint>(CastImmutableNumbers<TNumber, uint>(numbers, bitLength), bitLength)
+                    : new AbiTypes.SizedNumberArray<int>(CastImmutableNumbers<TNumber, int>(numbers, bitLength), bitLength),
+                > 32 and <= 64 => isUnsigned
+                    ? new AbiTypes.SizedNumberArray<ulong>(CastImmutableNumbers<TNumber, ulong>(numbers, bitLength), bitLength)
+                    : new AbiTypes.SizedNumberArray<long>(CastImmutableNumbers<TNumber, long>(numbers, bitLength), bitLength),
+                > 64 and <= 256 => isUnsigned
+                    ? new AbiTypes.UInt256Array(CastImmutableNumbers<TNumber, UInt256>(numbers, bitLength), bitLength)
+                    : new AbiTypes.Int256Array(CastImmutableNumbers<TNumber, Int256>(numbers, bitLength), bitLength),
+                _ => throw new NotSupportedException()
+            });
 
     private static ImmutableArray<TExpected> CastImmutableNumbers<TNumber, TExpected>(
         ImmutableArray<TNumber> numbers, int bitLength
@@ -424,7 +440,7 @@ public partial class AbiEncoder : IArrayAbiEncoder, IFixedTupleEncoder, IDynamic
                         outputBuffer.Slice(
                             metaDataOffset,
                             fixEncType.Size
-                    ));
+                        ));
                     metaDataOffset += fixEncType.Size;
                     break;
             }

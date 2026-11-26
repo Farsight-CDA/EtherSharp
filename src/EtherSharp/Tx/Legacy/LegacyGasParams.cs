@@ -41,6 +41,7 @@ public sealed record LegacyGasParams(
         {
             throw new ArgumentException("Multiplier must be larger than divider");
         }
+
         //
         return new LegacyGasParams(
             GasLimit,

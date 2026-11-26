@@ -26,9 +26,9 @@ public interface ITxScheduler
         ITxInput call, TTxParams? txParams = default, TTxGasParams? txGasParams = default,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     )
-         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
-         where TTxParams : class, ITxParams<TTxParams>
-         where TTxGasParams : class, ITxGasParams<TTxGasParams>;
+        where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
+        where TTxParams : class, ITxParams<TTxParams>
+        where TTxGasParams : class, ITxGasParams<TTxGasParams>;
 
     /// <summary>
     /// Reattaches to an already-submitted transaction identified by its persisted ID.

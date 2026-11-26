@@ -10,6 +10,7 @@ public enum PropertyVisibility
     Private,
     Internal
 }
+
 public enum SetterVisibility
 {
     None,
@@ -17,6 +18,7 @@ public enum SetterVisibility
     Private,
     Init
 }
+
 public sealed class PropertyBuilder(string type, string name) : ISyntaxBuilder
 {
     public string Type { get; private set; } = type;
@@ -75,6 +77,7 @@ public sealed class PropertyBuilder(string type, string name) : ISyntaxBuilder
         {
             headerSb.AppendLine(CommentUtils.MakeSummaryComment(_summaryComment));
         }
+
         if(_jsonPropertyName is not null)
         {
             headerSb.AppendLine($"[System.Text.Json.Serialization.JsonPropertyName(\"{_jsonPropertyName}\")]");
@@ -106,15 +109,16 @@ public sealed class PropertyBuilder(string type, string name) : ISyntaxBuilder
             Type,
             Name
         );
+
     public SyntaxId GetSyntaxId()
     {
         int hashCode = HashCode.Combine(
-                Type,
-                Name,
-                _visibility,
-                _setterVisibility,
-                _isRequired,
-                _jsonPropertyName
+            Type,
+            Name,
+            _visibility,
+            _setterVisibility,
+            _isRequired,
+            _jsonPropertyName
         );
 
         return new SyntaxId(hashCode);

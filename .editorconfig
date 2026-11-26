@@ -164,7 +164,7 @@ csharp_using_directive_placement = outside_namespace:warning
 
 # New line preferences
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true:warning
-csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = false:warning
+csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true
 csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = false:warning
 csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false:warning
 csharp_style_allow_embedded_statements_on_same_line_experimental = false:warning
@@ -369,6 +369,7 @@ resharper_csharp_wrap_primary_constructor_parameters_style = wrap_if_long
 resharper_csharp_extra_spaces = leave_multiple
 
 # Blank lines
+resharper_csharp_blank_lines_after_file_scoped_namespace_directive = 1
 resharper_csharp_blank_lines_around_field = 0
 resharper_csharp_blank_lines_around_auto_property = 0
 resharper_csharp_blank_lines_after_block_statements = 1

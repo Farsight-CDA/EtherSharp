@@ -3,6 +3,7 @@ using EtherSharp.Numerics;
 using EtherSharp.Types;
 
 namespace EtherSharp.Tx;
+
 /// <summary>
 /// Represents a transaction payload.
 /// </summary>

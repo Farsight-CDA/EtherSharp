@@ -61,12 +61,16 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
         {
             return [];
         }
+
         if(requests.Length == 1 && requests.Span[0] is HostRequest.Nonce onlyNonce)
         {
-            return [new InterpreterDataResult.Nonce(
-                onlyNonce.Address,
-                await _client.GetTransactionCount(onlyNonce.Address, _targetHeight, _requestOptions)
-            )];
+            return
+            [
+                new InterpreterDataResult.Nonce(
+                    onlyNonce.Address,
+                    await _client.GetTransactionCount(onlyNonce.Address, _targetHeight, _requestOptions)
+                )
+            ];
         }
 
         Dictionary<Address, List<HostRequest>> requestsByAddress = [];
@@ -115,6 +119,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                         {
                             continue;
                         }
+
                         var key = (UInt256) slot.Key;
                         for(int offset = 0; offset <= _forwardPrefetchDistance; offset++)
                         {
@@ -138,9 +143,11 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                                 );
                                 continue;
                             }
+
                             usesDataProviderUtilities = true;
                             queries.AddQuery(IQuery.ReadStorageAndReferencedCode(slot.Address, storageKey));
                         }
+
                         break;
                     case HostRequest.Nonce nonce:
                         if(_nonceProbeMisses.Contains(nonce.Address))
@@ -148,10 +155,12 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                             nonceFallbacks.Add(nonce.Address);
                             break;
                         }
+
                         if(requiresOriginalCode)
                         {
                             continue;
                         }
+
                         queries.AddQuery(
                             IQuery.Isolate(IQuery.GetNonce()),
                             result =>
@@ -175,21 +184,25 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                             IQuery.Isolate(
                                 IQuery.SafeCall(IContractCall.ForRawContractCall(call.Target, call.Value, call.Input))
                             ),
-                            result => [new InterpreterDataResult.PrecompileCall(
-                                call.Caller, call.Target, call.Value, call.Input,
-                                result switch
-                                {
-                                    CallResult<ReadOnlyMemory<byte>>.Success success => new TxCallResult(true, success.Value),
-                                    CallResult<ReadOnlyMemory<byte>>.Reverted reverted => new TxCallResult(false, reverted.Data),
-                                    CallResult<ReadOnlyMemory<byte>>.Malformed malformed => throw malformed.Exception,
-                                }
-                            )]
+                            result =>
+                            [
+                                new InterpreterDataResult.PrecompileCall(
+                                    call.Caller, call.Target, call.Value, call.Input,
+                                    result switch
+                                    {
+                                        CallResult<ReadOnlyMemory<byte>>.Success success => new TxCallResult(true, success.Value),
+                                        CallResult<ReadOnlyMemory<byte>>.Reverted reverted => new TxCallResult(false, reverted.Data),
+                                        CallResult<ReadOnlyMemory<byte>>.Malformed malformed => throw malformed.Exception,
+                                    }
+                                )
+                            ]
                         );
                         break;
                     default:
                         throw new NotSupportedException();
                 }
             }
+
             if(queries.Queries.Count != 0)
             {
                 batch.Add(
@@ -202,7 +215,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
                                 IInterpreterDataProviderContract.Code.Runtime
                             )
                             : IQuery.WithCaller(address, queries))
-                        .Map(static results => results.SelectMany(static result => result).ToList())
+                    .Map(static results => results.SelectMany(static result => result).ToList())
                 );
             }
         }
@@ -228,6 +241,7 @@ internal sealed class StateOverrideInterpreterDataProvider : IInterpreterDataPro
             )));
             resolved.AddRange(results);
         }
+
         return resolved;
     }
 }

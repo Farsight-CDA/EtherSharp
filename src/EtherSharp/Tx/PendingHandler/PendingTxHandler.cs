@@ -2,6 +2,7 @@ using EtherSharp.RPC.Transport;
 using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Tx.PendingHandler;
+
 /// <summary>
 /// Handler class for transactions that are still pending and not confirmed on the blockchain.
 /// </summary>

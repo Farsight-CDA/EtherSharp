@@ -22,10 +22,12 @@ internal sealed class StateChangeJsonConverter<T>(JsonConverter<T> valueConverte
         {
             throw new JsonException("State change must be '=' or an object");
         }
+
         if(reader.TokenType == JsonTokenType.EndObject)
         {
             throw new JsonException("State change object is empty");
         }
+
         if(reader.TokenType != JsonTokenType.PropertyName)
         {
             throw new JsonException("State change variant must be a property");
@@ -38,9 +40,10 @@ internal sealed class StateChangeJsonConverter<T>(JsonConverter<T> valueConverte
             {
                 throw new JsonException("State change variant has no value");
             }
+
             stateChange = new StateChange<T>.Added(
                 _valueConverter.Read(ref reader, typeof(T), options)
-                    ?? throw new JsonException("State change value is null")
+                ?? throw new JsonException("State change value is null")
             );
         }
         else if(reader.ValueTextEquals("-"u8))
@@ -49,9 +52,10 @@ internal sealed class StateChangeJsonConverter<T>(JsonConverter<T> valueConverte
             {
                 throw new JsonException("State change variant has no value");
             }
+
             stateChange = new StateChange<T>.Removed(
                 _valueConverter.Read(ref reader, typeof(T), options)
-                    ?? throw new JsonException("State change value is null")
+                ?? throw new JsonException("State change value is null")
             );
         }
         else if(reader.ValueTextEquals("*"u8))
@@ -60,6 +64,7 @@ internal sealed class StateChangeJsonConverter<T>(JsonConverter<T> valueConverte
             {
                 throw new JsonException("State change variant has no value");
             }
+
             stateChange = ReadChanged(ref reader, _valueConverter, options);
         }
         else
@@ -104,10 +109,12 @@ internal sealed class StateChangeJsonConverter<T>(JsonConverter<T> valueConverte
                 {
                     throw new JsonException("Changed state value contains multiple 'from' fields");
                 }
+
                 if(!reader.Read())
                 {
                     throw new JsonException("Changed state field has no value");
                 }
+
                 from = valueConverter.Read(ref reader, typeof(T), options)
                     ?? throw new JsonException("State change 'from' value is null");
                 hasFrom = true;
@@ -118,10 +125,12 @@ internal sealed class StateChangeJsonConverter<T>(JsonConverter<T> valueConverte
                 {
                     throw new JsonException("Changed state value contains multiple 'to' fields");
                 }
+
                 if(!reader.Read())
                 {
                     throw new JsonException("Changed state field has no value");
                 }
+
                 to = valueConverter.Read(ref reader, typeof(T), options)
                     ?? throw new JsonException("State change 'to' value is null");
                 hasTo = true;
@@ -132,6 +141,7 @@ internal sealed class StateChangeJsonConverter<T>(JsonConverter<T> valueConverte
                 {
                     throw new JsonException("Changed state field has no value");
                 }
+
                 reader.Skip();
             }
         }

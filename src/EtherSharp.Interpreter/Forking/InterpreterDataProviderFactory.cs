@@ -25,6 +25,7 @@ internal static class InterpreterDataProviderFactory
         {
             throw new ArgumentException("The provider requires a fixed numeric block height.", nameof(targetHeight));
         }
+
         var internalClient = client as IInternalEtherClient
             ?? throw new InvalidOperationException("The client does not expose its query backend.");
 

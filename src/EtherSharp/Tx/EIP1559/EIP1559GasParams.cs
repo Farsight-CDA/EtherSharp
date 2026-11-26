@@ -48,6 +48,7 @@ public sealed record EIP1559GasParams(
         {
             throw new ArgumentException("Multiplier must be larger than divider");
         }
+
         //
         return new EIP1559GasParams(
             GasLimit,

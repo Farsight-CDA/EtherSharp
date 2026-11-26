@@ -1,4 +1,5 @@
 namespace EtherSharp.Types;
+
 /// <summary>
 /// Represents various conditions that result in an EVM execution to panic.
 /// </summary>
@@ -44,5 +45,4 @@ public enum PanicType : byte
     /// If you call a zero-initialized variable of internal function type.
     /// </summary>
     UninitializedInternalFunctionType = 0x51
-
 }

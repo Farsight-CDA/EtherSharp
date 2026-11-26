@@ -64,6 +64,7 @@ public sealed class ModExpPrecompile : IPrecompile
         {
             iterations += (uint) (255 - UInt256.LeadingZeroCount(in exponentHead));
         }
+
         iterations = UInt128.Max(iterations, 1);
         var words = ((UInt128) maxSize + 7) / 8;
         var complexity = maxSize <= WORD_LENGTH ? 16 : 2 * words * words;
@@ -82,6 +83,7 @@ public sealed class ModExpPrecompile : IPrecompile
         {
             input.Slice(offset, Math.Min(length, input.Length - offset)).CopyTo(word[(WORD_LENGTH - length)..]);
         }
+
         return BinaryPrimitives.ReadUInt256BigEndian(word);
     }
 
@@ -101,6 +103,7 @@ public sealed class ModExpPrecompile : IPrecompile
         {
             return ExecutionResult.PrecompileFailure(PrecompileFailureReason.ModExpOperandLengthExceeded);
         }
+
         if(modulusLength.IsZero)
         {
             return ExecutionResult.Success();

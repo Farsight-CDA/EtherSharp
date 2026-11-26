@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.RPC.Transport;
+
 /// <summary>
 /// Transport for EVM Http RPC
 /// </summary>
@@ -38,12 +39,14 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
         add { }
         remove { }
     }
+
     /// <inheritdoc />
     public event Action<Exception>? OnConnectionLost
     {
         add { }
         remove { }
     }
+
     /// <inheritdoc />
     public event Action<string, ReadOnlySpan<byte>>? OnSubscriptionMessage
     {
@@ -200,6 +203,7 @@ public sealed class HttpJsonRpcTransport : IRPCTransport, IDisposable
             {
                 statistics.RecordRequest(method, (int) (requestContent.Headers.ContentLength ?? 0));
             }
+
             response = await _client.SendAsync(httpRequestMessage, cancellationToken);
         }
         catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested)

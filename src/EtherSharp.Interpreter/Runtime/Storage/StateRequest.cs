@@ -34,6 +34,7 @@ internal readonly struct StateRequest<TValue>(
             value = Unsafe.As<EVMRuntimeCode, TValue>(ref empty);
             return true;
         }
+
         value = default!;
         return RequestKind == Kind.Default;
     }

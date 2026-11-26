@@ -19,8 +19,10 @@ internal sealed class GetCodeQueryOperation(in Address address) : IQueryOperatio
         buffer[0] = (byte) QueryOperationId.GetCode;
         _address.CopyTo(buffer[1..]);
     }
+
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 3 + ((resultData[0] << 16) | (resultData[1] << 8) | resultData[2]);
+
     EVMRuntimeCode IQuery<EVMRuntimeCode>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
         => new EVMRuntimeCode(queryResults[0][3..]);
 }

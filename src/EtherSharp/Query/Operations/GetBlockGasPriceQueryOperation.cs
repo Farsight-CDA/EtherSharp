@@ -23,6 +23,7 @@ internal sealed class GetBlockGasPriceQueryOperation : IQueryOperation, IQuery<U
 
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 32;
+
     UInt256 IQuery<UInt256>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
         => BinaryPrimitives.ReadUInt256BigEndian(queryResults[0].Span);
 }

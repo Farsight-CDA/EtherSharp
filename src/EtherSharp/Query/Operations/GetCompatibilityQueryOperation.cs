@@ -15,7 +15,8 @@ internal sealed class GetCompatibilityQueryOperation : IQuery<CompatibilityRepor
 
     private static readonly IFlashCall<bool> _call = IFlashCall.ForRawFlashCall(0, Array.Empty<byte>(), x => true);
 
-    private static readonly IQueryOperation[] _queries = [
+    private static readonly IQueryOperation[] _queries =
+    [
         new SafeFlashCallQueryOperation<bool>(_push0, _call),
         new SafeFlashCallQueryOperation<bool>(_mCopy, _call),
         new SafeFlashCallQueryOperation<bool>(_tStore, _call),

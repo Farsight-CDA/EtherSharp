@@ -5,5 +5,4 @@ namespace EtherSharp.Contract;
 /// </summary>
 public interface IPayableContract : IEVMContract
 {
-
 }

@@ -15,9 +15,12 @@ public sealed class BytesAbiEncoderTests
     public static TheoryData<int> BitSizes
         => [.. Enumerable.Range(1, 32).Select(x => x * 8)];
     public static TheoryData<int> NonNativeBitSizes
-        => [.. Enumerable.Range(1, 32)
-            .Select(x => x * 8)
-            .Where(x => x != 8 && x != 16 && x != 32 && x != 64)];
+        =>
+        [
+            .. Enumerable.Range(1, 32)
+                .Select(x => x * 8)
+                .Where(x => x != 8 && x != 16 && x != 32 && x != 64)
+        ];
 
     [Theory]
     [MemberData(nameof(BitSizes))]
@@ -32,7 +35,6 @@ public sealed class BytesAbiEncoderTests
         byte[] actual = _encoder.Bytes(randomBytes).Build();
 
         Assert.Equal(randomBytes, actual[64..(64 + bitSize)]);
-
     }
 
     [Theory]
@@ -48,6 +50,5 @@ public sealed class BytesAbiEncoderTests
         byte[] actual = _encoder.Bytes(randomBytes).Build();
 
         Assert.Equal(randomBytes, actual[64..(64 + nonNativeBitSizes)]);
-
     }
 }

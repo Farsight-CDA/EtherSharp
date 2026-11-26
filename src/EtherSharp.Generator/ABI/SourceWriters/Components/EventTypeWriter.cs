@@ -11,11 +11,11 @@ internal sealed class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, M
     private readonly MemberTypeWriter _memberTypeWriter = memberTypeWriter;
 
     private readonly FunctionBuilder _isMatchingEventFunction = new FunctionBuilder("IsMatchingEvent")
-            .AddArgument("EtherSharp.Types.Log", "log")
-            .WithReturnType<bool>()
-            .WithIsStatic()
-            .AddStatement(
-                $$"""
+        .AddArgument("EtherSharp.Types.Log", "log")
+        .WithReturnType<bool>()
+        .WithIsStatic()
+        .AddStatement(
+            $$"""
                 if (log.Topics.Length == 0 || log.Topics[0] != Topic)
                 {
                     return false;
@@ -124,6 +124,7 @@ internal sealed class EventTypeWriter(ParamEncodingWriter paramEncodingWriter, M
         {
             statementBuilder.AppendLine("EtherSharp.ABI.AbiDecoder decoder;");
         }
+
         if(eventMember.Inputs.Any(x => !x.IsIndexed))
         {
             statementBuilder.AppendLine("decoder = new EtherSharp.ABI.AbiDecoder(log.Data);");

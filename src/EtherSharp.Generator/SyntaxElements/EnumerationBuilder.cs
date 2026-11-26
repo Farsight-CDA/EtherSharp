@@ -8,6 +8,7 @@ public sealed class EnumerationEntry(string value, string? summaryComment)
     public string Value { get; } = value;
     public string? SummaryComment { get; } = summaryComment;
 }
+
 public sealed class EnumerationBuilder(string name) : ITypeBuilder
 {
     private readonly List<EnumerationEntry> _enumerationValues = [];

@@ -107,14 +107,17 @@ internal sealed class InterpreterAccountStorage(
         {
             SetBalance(in balance);
         }
+
         if(accountOverride.Nonce is { } nonce)
         {
             SetNonce(nonce);
         }
+
         if(accountOverride.Code is { } code)
         {
             SetCode(new EVMRuntimeCode(code));
         }
+
         if(accountOverride.State is { } state)
         {
             long revision = _nextRevision();
@@ -189,6 +192,7 @@ internal sealed class InterpreterAccountStorage(
                     value = Unsafe.As<UInt256, TValue>(ref balance);
                     return true;
                 }
+
                 break;
             case StateRequest<TValue>.Kind.Nonce:
                 if(_nonce.TryGetValue(out ulong nonce))
@@ -196,6 +200,7 @@ internal sealed class InterpreterAccountStorage(
                     value = Unsafe.As<ulong, TValue>(ref nonce);
                     return true;
                 }
+
                 break;
             case StateRequest<TValue>.Kind.Code:
                 if(_code.TryGetValue(out var code))
@@ -203,6 +208,7 @@ internal sealed class InterpreterAccountStorage(
                     value = Unsafe.As<EVMRuntimeCode, TValue>(ref code);
                     return true;
                 }
+
                 break;
             case StateRequest<TValue>.Kind.CodeHash:
                 if(_codeHash.TryGetValue(out var codeHash))
@@ -211,6 +217,7 @@ internal sealed class InterpreterAccountStorage(
                     value = Unsafe.As<Bytes32?, TValue>(ref nullableCodeHash);
                     return true;
                 }
+
                 break;
             case StateRequest<TValue>.Kind.Storage:
                 if(_persistentStorage.TryGetValue(request.Key, out var storage))
@@ -218,12 +225,14 @@ internal sealed class InterpreterAccountStorage(
                     value = Unsafe.As<Bytes32, TValue>(ref storage);
                     return true;
                 }
+
                 if(_persistentStorageReplaced.IsSet)
                 {
                     storage = Bytes32.Zero;
                     value = Unsafe.As<Bytes32, TValue>(ref storage);
                     return true;
                 }
+
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(request));

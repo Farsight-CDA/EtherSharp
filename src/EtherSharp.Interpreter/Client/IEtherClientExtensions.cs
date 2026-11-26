@@ -76,6 +76,7 @@ public static class IEtherClientExtensions
         {
             throw new ArgumentException("A fork requires a mined block, not the pending block.", nameof(targetHeight));
         }
+
         if(useParentState && targetHeight.Value == 0)
         {
             throw new ArgumentException("Genesis has no parent state to fork.", nameof(targetHeight));
@@ -96,6 +97,7 @@ public static class IEtherClientExtensions
             {
                 throw new ArgumentException("Genesis has no parent state to fork.", nameof(targetHeight));
             }
+
             stateHeight--;
         }
 

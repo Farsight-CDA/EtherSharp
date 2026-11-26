@@ -7,7 +7,8 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Client.Modules.Blocks;
 
-internal sealed class BlocksModule(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+internal sealed class BlocksModule(
+    IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
     EtherSharpJsonSerializerContext jsonSerializerContext) : IBlocksModule
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
@@ -17,13 +18,16 @@ internal sealed class BlocksModule(IEthRpcModule ethRpcModule, ISubscriptionsMan
     public Task<Block?> GetBlockAtHeightAsync(TargetHeight targetHeight,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
         => _ethRpcModule.GetBlockByNumberAsync(targetHeight, requestOptions, cancellationToken);
+
     public Task<DetailedBlockData?> GetFullBlockAtHeightAsync(
         TargetHeight targetHeight,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     ) => _ethRpcModule.GetFullBlockByNumberAsync(targetHeight, requestOptions, cancellationToken);
+
     public Task<ulong> GetPeakHeightAsync(RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default)
         => _ethRpcModule.BlockNumberAsync(requestOptions, cancellationToken);
+
     public async Task<IBlocksSubscription> SubscribeNewHeadsAsync(
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default)
     {

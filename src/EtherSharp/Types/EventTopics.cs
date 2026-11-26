@@ -61,14 +61,17 @@ public readonly struct EventTopics : IEquatable<EventTopics>
         {
             throw new ArgumentException("A configured topic slot must contain at least one value.", nameof(topic0));
         }
+
         if(topic1 is [])
         {
             throw new ArgumentException("A configured topic slot must contain at least one value.", nameof(topic1));
         }
+
         if(topic2 is [])
         {
             throw new ArgumentException("A configured topic slot must contain at least one value.", nameof(topic2));
         }
+
         if(topic3 is [])
         {
             throw new ArgumentException("A configured topic slot must contain at least one value.", nameof(topic3));

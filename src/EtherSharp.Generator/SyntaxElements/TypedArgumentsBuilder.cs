@@ -21,7 +21,7 @@ public sealed class TypedArgumentsBuilder : ISyntaxBuilder
     }
 
     public TypedArgumentsBuilder AddArgument(string type, string variableName,
-    bool hasExplicityDefaultValue = false, object? defaultValue = null)
+        bool hasExplicityDefaultValue = false, object? defaultValue = null)
     {
         _arguments.Add(ArgumentToString(type, variableName, hasExplicityDefaultValue, defaultValue));
         return this;

@@ -10,7 +10,7 @@ public sealed class EIP712TypeProcessor(
     IEnumerable<INamedTypeSymbol> validatedTypes)
 {
     private readonly SourceProductionContext _context = context;
-    private readonly HashSet<INamedTypeSymbol> _validatedTypes = [with(validatedTypes, SymbolEqualityComparer.Default)];
+    private readonly HashSet<INamedTypeSymbol> _validatedTypes = [with(SymbolEqualityComparer.Default), .. validatedTypes];
     private readonly Dictionary<INamedTypeSymbol, EIP712TypeModel> _models = [with(SymbolEqualityComparer.Default)];
     private readonly HashSet<INamedTypeSymbol> _visiting = [with(SymbolEqualityComparer.Default)];
 
@@ -22,6 +22,7 @@ public sealed class EIP712TypeProcessor(
         {
             return null;
         }
+
         var processedModel = model!;
         if(!TryCreateCanonicalType(processedModel, out string? canonicalType))
         {
@@ -40,6 +41,7 @@ public sealed class EIP712TypeProcessor(
         {
             return true;
         }
+
         if(!_visiting.Add(symbol))
         {
             _context.ReportDiagnostic(Diagnostic.Create(
@@ -85,6 +87,7 @@ public sealed class EIP712TypeProcessor(
                     model = null;
                     return false;
                 }
+
                 var processedMember = member!;
                 if(!NameUtils.IsValidIdentifier(processedMember.EIPName) || !eipMemberNames.Add(processedMember.EIPName))
                 {
@@ -123,18 +126,21 @@ public sealed class EIP712TypeProcessor(
             member = new EIP712MemberModel(propertyName, eipName, "bool", EIP712EncodingKind.Bool);
             return true;
         }
+
         if(type.SpecialType == SpecialType.System_String
             && type.NullableAnnotation != NullableAnnotation.Annotated)
         {
             member = new EIP712MemberModel(propertyName, eipName, "string", EIP712EncodingKind.String);
             return true;
         }
+
         if(type is IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Byte, Rank: 1 }
             && type.NullableAnnotation != NullableAnnotation.Annotated)
         {
             member = new EIP712MemberModel(propertyName, eipName, "bytes", EIP712EncodingKind.ByteArray);
             return true;
         }
+
         if(type is INamedTypeSymbol namedType
             && TryCreateNamedMember(propertyName, eipName, property, namedType, out member))
         {
@@ -162,21 +168,25 @@ public sealed class EIP712TypeProcessor(
             member = new EIP712MemberModel(propertyName, eipName, "bytes", EIP712EncodingKind.ReadOnlyMemory);
             return true;
         }
+
         if(typeNamespace == "EtherSharp.Types" && type.Name == "Address")
         {
             member = new EIP712MemberModel(propertyName, eipName, "address", EIP712EncodingKind.Address);
             return true;
         }
+
         if(typeNamespace == "EtherSharp.Numerics" && type.Name == "UInt256")
         {
             member = new EIP712MemberModel(propertyName, eipName, "uint256", EIP712EncodingKind.UInt256);
             return true;
         }
+
         if(typeNamespace == "EtherSharp.Numerics" && type.Name == "Int256")
         {
             member = new EIP712MemberModel(propertyName, eipName, "int256", EIP712EncodingKind.Int256);
             return true;
         }
+
         if(typeNamespace == "EtherSharp.Types" && SolidityTypeUtils.TryGetFixedBytesLength(type.Name, "Bytes", out int byteLength))
         {
             member = new EIP712MemberModel(
@@ -187,6 +197,7 @@ public sealed class EIP712TypeProcessor(
                 byteLength);
             return true;
         }
+
         if(property.NullableAnnotation != NullableAnnotation.Annotated && _validatedTypes.Contains(type))
         {
             if(!TryCreateModel(type, out var dependency))
@@ -194,6 +205,7 @@ public sealed class EIP712TypeProcessor(
                 member = null;
                 return false;
             }
+
             var processedDependency = dependency!;
 
             member = new EIP712MemberModel(
@@ -242,6 +254,7 @@ public sealed class EIP712TypeProcessor(
             {
                 continue;
             }
+
             if(dependency.Name == root.Name)
             {
                 _context.ReportDiagnostic(Diagnostic.Create(
@@ -251,6 +264,7 @@ public sealed class EIP712TypeProcessor(
                     $"multiple EIP-712 types are named {root.Name}"));
                 return false;
             }
+
             if(dependencies.TryGetValue(dependency.Name, out var existing))
             {
                 if(!SymbolEqualityComparer.Default.Equals(existing.Symbol, dependency.Symbol))
@@ -303,5 +317,4 @@ public sealed class EIP712TypeProcessor(
             property.Locations.FirstOrDefault(),
             property.Name,
             typeName));
-
 }

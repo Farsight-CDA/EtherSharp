@@ -29,9 +29,8 @@ internal sealed class ContractSourceWriter(
             .WithIsPartial(true)
             .AddRawContent($"public Logs.EventsModule Events => new Logs.EventsModule(this);");
 
-        if(members.Any(
-            x => (x is FallbackAbiMember fallbackMember && fallbackMember.StateMutability == StateMutability.Payable)
-              || (x is ReceiveAbiMember receiveMember && receiveMember.StateMutability == StateMutability.Payable)))
+        if(members.Any(x => (x is FallbackAbiMember fallbackMember && fallbackMember.StateMutability == StateMutability.Payable)
+            || (x is ReceiveAbiMember receiveMember && receiveMember.StateMutability == StateMutability.Payable)))
         {
             contractInterface.AddBaseInterface("EtherSharp.Contract.IPayableContract");
         }

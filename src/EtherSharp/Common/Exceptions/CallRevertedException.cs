@@ -4,6 +4,7 @@ using SolidityError = EtherSharp.Contract.Sections.SolidityErrors.Error;
 using SolidityPanic = EtherSharp.Contract.Sections.SolidityErrors.Panic;
 
 namespace EtherSharp.Common.Exceptions;
+
 /// <summary>
 /// Base exception for <c>eth_call</c> responses that indicate a revert.
 /// </summary>
@@ -59,7 +60,7 @@ public closed class CallRevertedException(Address? callAddress, string message)
     /// <param name="callAddress">Contract address the call targeted, or <see langword="null"/> for contract deployment.</param>
     /// <param name="message">Decoded Solidity <c>Error(string)</c> message.</param>
     public sealed class CallRevertedWithMessageException(Address? callAddress, string message) : CallRevertedException(callAddress,
-            $"{FormatCallSite(callAddress)} reverted: Solidity Error(string) returned '{message}'.")
+        $"{FormatCallSite(callAddress)} reverted: Solidity Error(string) returned '{message}'.")
     {
         /// <summary>
         /// The error message returned by the contract.
@@ -88,7 +89,7 @@ public closed class CallRevertedException(Address? callAddress, string message)
     /// <param name="callAddress">Contract address the call targeted, or <see langword="null"/> for contract deployment.</param>
     /// <param name="panic">Decoded Solidity panic error.</param>
     public sealed class CallRevertedWithPanicException(Address? callAddress, SolidityPanic panic) : CallRevertedException(callAddress,
-            $"{FormatCallSite(callAddress)} reverted: {FormatPanicMessage(panic)}.")
+        $"{FormatCallSite(callAddress)} reverted: {FormatPanicMessage(panic)}.")
     {
         /// <summary>
         /// The panic error returned by the contract.

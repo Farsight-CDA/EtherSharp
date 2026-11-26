@@ -67,6 +67,7 @@ public static class Int256Extensions
             {
                 result += value;
             }
+
             return result;
         }
     }
@@ -88,6 +89,7 @@ public static class Int256Extensions
             {
                 result += selector(item);
             }
+
             return result;
         }
     }

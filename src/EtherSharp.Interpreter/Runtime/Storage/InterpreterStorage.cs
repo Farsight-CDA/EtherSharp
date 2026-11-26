@@ -12,6 +12,7 @@ internal sealed partial class InterpreterStorage : IInterpreterStorage
         long Revision,
         int LogCount
     );
+
     private readonly record struct JournalLog(
         Address Address,
         ReadOnlyMemory<Bytes32> Topics,
@@ -79,6 +80,7 @@ internal sealed partial class InterpreterStorage : IInterpreterStorage
         {
             throw new ArgumentOutOfRangeException(nameof(snapshot));
         }
+
         if(snapshot.LogCount < 0 || snapshot.LogCount > _logs.Count)
         {
             throw new ArgumentOutOfRangeException(nameof(snapshot));

@@ -76,8 +76,7 @@ public sealed class ComplexEncodingTests
         byte[] encoded = new AbiEncoder()
             .Array(
                 input,
-                (encoder, value) => encoder.DynamicTuple(
-                    encoder => encoder.String(value)))
+                (encoder, value) => encoder.DynamicTuple(encoder => encoder.String(value)))
             .Build();
 
         var decoder = new AbiDecoder(encoded);

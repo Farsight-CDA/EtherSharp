@@ -245,12 +245,15 @@ public readonly partial struct UInt256
     /// Only the low eight bits of the shift count are used: <c>n &amp; 255</c>.
     /// Shifts behave identically in checked and unchecked contexts.
     /// </remarks>
+    // Rider formats this as 'operator >> (' while dotnet format requires 'operator >>(', keep Rider out of it
+    // @formatter:off
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator >>(in UInt256 a, int n)
     {
         ShiftRightLogical(in a, n, out var result);
         return result;
     }
+    // @formatter:on
 
     /// <summary>
     /// Shifts right, filling the vacated high bits with zero.
@@ -259,10 +262,12 @@ public readonly partial struct UInt256
     /// Only the low eight bits of the shift count are used: <c>n &amp; 255</c>.
     /// Shifts behave identically in checked and unchecked contexts.
     /// </remarks>
+    // @formatter:off
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt256 operator >>>(in UInt256 a, int n)
     {
         ShiftRightLogical(in a, n, out var result);
         return result;
     }
+    // @formatter:on
 }

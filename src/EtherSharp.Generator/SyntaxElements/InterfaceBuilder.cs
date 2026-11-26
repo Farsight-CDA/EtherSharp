@@ -8,6 +8,7 @@ public enum InterfaceVisibility
     Public,
     Internal
 }
+
 public sealed class InterfaceBuilder(string name)
 {
     private readonly List<FunctionBuilder> _functions = [];
@@ -85,10 +86,12 @@ public sealed class InterfaceBuilder(string name)
         {
             _ = bodySb.AppendLine(function.BuildInterfaceDefinition());
         }
+
         foreach(var innerType in _innerTypes)
         {
             _ = bodySb.AppendLine(innerType.Build());
         }
+
         foreach(string rawContent in _rawContents)
         {
             _ = bodySb.AppendLine(rawContent);

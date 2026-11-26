@@ -40,6 +40,7 @@ internal sealed class LinearMemory(int maxSize, GasBudget gas, ulong gasPerWord,
             slice = default;
             return false;
         }
+
         slice = new Slice(this, (int) offset, (int) length);
         return true;
     }
@@ -91,8 +92,8 @@ internal sealed class LinearMemory(int maxSize, GasBudget gas, ulong gasPerWord,
             UInt256.Divide(squaredWords, (UInt256) quadraticDivisor, out var quadraticCost);
             return UInt256.Add(linearCost, quadraticCost, out var cost)
                 || cost - (UInt256) GetCost(Size) > (UInt256) gas.Remaining
-                ? false
-                : throw new MemoryLimitExceededException(offset, length, _maxSize);
+                    ? false
+                    : throw new MemoryLimitExceededException(offset, length, _maxSize);
         }
 
         int end = (int) offset + (int) length;

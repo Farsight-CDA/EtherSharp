@@ -68,6 +68,7 @@ internal sealed class SafeFlashCallQueryOperation<T> : IQueryOperation, IQuery<C
 
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 4 + ((resultData[1] << 16) | (resultData[2] << 8) | resultData[3]);
+
     CallResult<T> IQuery<CallResult<T>>.ReadResultFrom(params ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
     {
         var queryResult = queryResults[0];

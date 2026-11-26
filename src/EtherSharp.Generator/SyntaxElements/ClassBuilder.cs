@@ -9,6 +9,7 @@ public enum ClassVisibility
     Public,
     Internal
 }
+
 public sealed class BaseType(string name, bool isInterface) : ISyntaxBuilder
 {
     public string Name { get; } = name;
@@ -20,6 +21,7 @@ public sealed class BaseType(string name, bool isInterface) : ISyntaxBuilder
             IsInterface
         ));
 }
+
 public sealed class ClassBuilder(string name) : ITypeBuilder
 {
     private readonly List<FunctionBuilder> _functions = [];
@@ -145,18 +147,22 @@ public sealed class ClassBuilder(string name) : ITypeBuilder
         {
             _ = bodySb.AppendLine(function.BuildMethodCode());
         }
+
         foreach(var property in _properties)
         {
             _ = bodySb.AppendLine(property.Build());
         }
+
         foreach(var field in _fields)
         {
             _ = bodySb.AppendLine(field.Build());
         }
+
         foreach(var type in _innerTypes)
         {
             _ = bodySb.AppendLine(type.Build());
         }
+
         foreach(string content in _rawContents)
         {
             _ = bodySb.AppendLine(content);
@@ -192,10 +198,10 @@ public sealed class ClassBuilder(string name) : ITypeBuilder
         {
             outputSb.AppendLine(
                 new InterfaceBuilder(interfaceName ?? $"I{_name}")
-                .AddFunctions(_functions)
-                .AddBaseTypes(_baseTypes)
-                .WithIsPartial(_isPartial)
-                .Build());
+                    .AddFunctions(_functions)
+                    .AddBaseTypes(_baseTypes)
+                    .WithIsPartial(_isPartial)
+                    .Build());
         }
 
         if(_summaryComment is not null)
@@ -216,10 +222,12 @@ public sealed class ClassBuilder(string name) : ITypeBuilder
         {
             outputSb.Append(" partial");
         }
+
         if(_isAbstract)
         {
             outputSb.Append(" abstract");
         }
+
         if(_isStatic)
         {
             outputSb.Append(" static");
@@ -262,22 +270,27 @@ public sealed class ClassBuilder(string name) : ITypeBuilder
         {
             innerSyntaxId = innerSyntaxId.Combine(syntaxId);
         }
+
         foreach(var syntaxId in _fields.Select(x => x.GetSyntaxId()))
         {
             innerSyntaxId = innerSyntaxId.Combine(syntaxId);
         }
+
         foreach(var syntaxId in _functions.Select(x => x.GetSyntaxId()))
         {
             innerSyntaxId = innerSyntaxId.Combine(syntaxId);
         }
+
         foreach(var syntaxId in _baseTypes.Select(x => x.GetSyntaxId()))
         {
             innerSyntaxId = innerSyntaxId.Combine(syntaxId);
         }
+
         foreach(var syntaxId in _innerTypes.Select(x => x.GetSyntaxId()))
         {
             innerSyntaxId = innerSyntaxId.Combine(syntaxId);
         }
+
         foreach(int syntaxId in _rawContents.Select(x => x.GetHashCode()))
         {
             innerSyntaxId = innerSyntaxId.Combine(new SyntaxId(syntaxId));

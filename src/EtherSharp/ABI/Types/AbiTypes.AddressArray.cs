@@ -17,7 +17,8 @@ public static partial class AbiTypes
 
         internal AddressArray(ImmutableArray<EtherSharp.Types.Address> values)
             : base(values.IsDefault ? [] : values)
-        { }
+        {
+        }
 
         /// <inheritdoc />
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)

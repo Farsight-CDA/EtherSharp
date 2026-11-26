@@ -31,6 +31,7 @@ internal sealed class CallAndMeasureGasQueryOperation<T>(IContractCall<T> txInpu
         BinaryPrimitives.WriteUInt256BigEndian(buffer[24..56], EthValue);
         _txInput.Data.Span.CopyTo(buffer[56..]);
     }
+
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => CallQueryEncoding.ParseResultLength(resultData) + sizeof(ulong);
 

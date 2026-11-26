@@ -42,6 +42,7 @@ internal sealed class InterpreterContextQuery(bool disableBlobBaseFee) : IQuery<
             {
                 hashes[i] = Bytes32.FromBytes(span.Slice(i * Bytes32.BYTE_LENGTH, Bytes32.BYTE_LENGTH));
             }
+
             return hashes;
         }));
 
@@ -69,6 +70,7 @@ internal sealed class InterpreterContextQuery(bool disableBlobBaseFee) : IQuery<
         {
             plan.Add(_blobBaseFee);
         }
+
         plan.Add(_recentBlockHashes);
     }
 

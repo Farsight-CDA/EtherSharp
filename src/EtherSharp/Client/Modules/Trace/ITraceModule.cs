@@ -37,5 +37,4 @@ public interface ITraceModule
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     );
-
 }

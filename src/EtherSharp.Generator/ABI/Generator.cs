@@ -71,6 +71,7 @@ public sealed class Generator : IIncrementalGenerator
             {
                 ReportDiagnostic(context, GeneratorDiagnostics.AnonymousEventNotSupported, contract.Location, anonymousEvent.Name);
             }
+
             abiMembers.RemoveAll(static member => member is EventAbiMember { IsAnonymous: true });
 
             var constructorMember = abiMembers.OfType<ConstructorAbiMember>().SingleOrDefault();
@@ -145,12 +146,14 @@ public sealed class Generator : IIncrementalGenerator
                         ReportDiagnostic(context, GeneratorDiagnostics.BytecodeVariantInvalid, contract.Location);
                         return false;
                     }
+
                     if(runtimeCode.Length > UInt16.MaxValue)
                     {
                         ReportDiagnostic(context, GeneratorDiagnostics.BytecodeTooLong, contract.Location,
                             "runtime code", runtimeCode.Length.ToString(), UInt16.MaxValue.ToString());
                         return false;
                     }
+
                     initCode = CreateInitCode(runtimeCode);
                 }
                 else
@@ -184,6 +187,7 @@ public sealed class Generator : IIncrementalGenerator
             abiMembers = [];
             return true;
         }
+
         if(contract.AbiFileAttributeCount > 1)
         {
             abiMembers = null!;
@@ -208,6 +212,7 @@ public sealed class Generator : IIncrementalGenerator
             ReportDiagnostic(context, GeneratorDiagnostics.AbiFileNotFound, contract.Location, abiFileName);
             return false;
         }
+
         if(input.AbiFile.Count > 1)
         {
             abiMembers = null!;

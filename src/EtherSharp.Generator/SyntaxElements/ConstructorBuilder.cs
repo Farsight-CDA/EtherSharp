@@ -58,6 +58,7 @@ public sealed class ConstructorBuilder(string className) : ISyntaxBuilder
                 _ = argumentBuilder.AddArgument(field.Type, $"_{field.Name}");
             }
         }
+
         foreach(var property in _properties)
         {
             if(property.Name.StartsWith("_", StringComparison.Ordinal))

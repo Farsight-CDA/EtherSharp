@@ -38,8 +38,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     }
 
     private async Task<UInt256> GetBalanceCoreAsync(Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<Address, TargetHeight, UInt256>(
-            "eth_getBalance", address, targetHeight, targetHeight, requestOptions, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<Address, TargetHeight, UInt256>("eth_getBalance", address, targetHeight, targetHeight, requestOptions, cancellationToken) switch
         {
             RpcResult<UInt256>.Success result => result.Result,
             RpcResult<UInt256>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -53,8 +52,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     }
 
     private async Task<ulong> GetTransactionCountCoreAsync(Address address, TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<Address, TargetHeight, ulong>(
-            "eth_getTransactionCount", address, targetHeight, targetHeight, requestOptions, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<Address, TargetHeight, ulong>("eth_getTransactionCount", address, targetHeight, targetHeight, requestOptions, cancellationToken) switch
         {
             RpcResult<ulong>.Success result => result.Result,
             RpcResult<ulong>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -62,9 +60,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         };
 
     public async Task<long> BlockTransactionCountByNumberAsync(TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<TargetHeight, long>(
-            "eth_getBlockTransactionCountByNumber", targetHeight, targetHeight, requestOptions, cancellationToken
-        ) switch
+        => await _rpcClient.SendRpcRequestAsync<TargetHeight, long>("eth_getBlockTransactionCountByNumber", targetHeight, targetHeight, requestOptions, cancellationToken) switch
         {
             RpcResult<long>.Success result => result.Result,
             RpcResult<long>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -74,6 +70,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
     private sealed record TransactionCall(
         Address? From, Address? To, ulong? Gas, UInt256? GasPrice, UInt256 Value, ReadOnlyMemory<byte> Data, StateAccess[]? AccessList);
+
     public Task<TxCallResult> CallAsync(
         Address? to, UInt256? gasPrice, UInt256 value, ReadOnlyMemory<byte> data,
         in CallOptions options, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
@@ -140,11 +137,10 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         };
     }
 
+    //ToDo: Calculate proper required block height
     public async Task<FeeHistory> GetFeeHistoryAsync(int blockCount, TargetHeight newestBlock,
         double[] rewardPercentiles, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<int, TargetHeight, double[], FeeHistory>(
-            //ToDo: Calculate proper required block height
-            "eth_feeHistory", blockCount, newestBlock, rewardPercentiles, newestBlock, requestOptions, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<int, TargetHeight, double[], FeeHistory>("eth_feeHistory", blockCount, newestBlock, rewardPercentiles, newestBlock, requestOptions, cancellationToken) switch
         {
             RpcResult<FeeHistory>.Success result => result.Result,
             RpcResult<FeeHistory>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -154,6 +150,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
     private sealed record EstimateGasRequest(
         Address? From, Address? To, ulong? Gas, UInt256 Value, ReadOnlyMemory<byte> Data, StateAccess[]? AccessList);
+
     public Task<ulong> EstimateGasAsync(
         Address? to, UInt256 value, ReadOnlyMemory<byte> data,
         in CallOptions options,
@@ -198,6 +195,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
 
     private sealed record CreateAccessListRequest(
         Address? From, Address? To, ulong? Gas, UInt256 Value, ReadOnlyMemory<byte> Data, StateAccess[]? AccessList);
+
     public async Task<AccessListResult> CreateAccessListAsync(
         Address? to, UInt256 value, ReadOnlyMemory<byte> data,
         CallOptions options,
@@ -227,9 +225,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
 
     public async Task<DetailedBlockData?> GetFullBlockByNumberAsync(
         TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken
-    ) => await _rpcClient.SendRpcRequestAsync<TargetHeight, bool, DetailedBlockData>(
-            "eth_getBlockByNumber", targetHeight, true, targetHeight, requestOptions, cancellationToken
-        ) switch
+    ) => await _rpcClient.SendRpcRequestAsync<TargetHeight, bool, DetailedBlockData>("eth_getBlockByNumber", targetHeight, true, targetHeight, requestOptions, cancellationToken) switch
     {
         RpcResult<DetailedBlockData>.Success result => result.Result,
         RpcResult<DetailedBlockData>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -238,9 +234,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
 
     public async Task<Block?> GetBlockByNumberAsync(
         TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken
-    ) => await _rpcClient.SendRpcRequestAsync<TargetHeight, bool, Block>(
-            "eth_getBlockByNumber", targetHeight, false, targetHeight, requestOptions, cancellationToken
-        ) switch
+    ) => await _rpcClient.SendRpcRequestAsync<TargetHeight, bool, Block>("eth_getBlockByNumber", targetHeight, false, targetHeight, requestOptions, cancellationToken) switch
     {
         RpcResult<Block>.Success result => result.Result,
         RpcResult<Block>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -253,10 +247,9 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         return TransactionByHashCoreAsync(hashValue, requestOptions, cancellationToken);
     }
 
+    //ToDo: Add notion of unspecified required block height
     private async Task<TxData?> TransactionByHashCoreAsync(Bytes32 hash, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<Bytes32, TxData>(
-            //ToDo: Add notion of unspecified required block height
-            "eth_getTransactionByHash", hash, TargetHeight.Latest, requestOptions, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<Bytes32, TxData>("eth_getTransactionByHash", hash, TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<TxData>.Success result => result.Result,
             RpcResult<TxData>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -270,8 +263,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     }
 
     private async Task<TxReceipt?> GetTransactionReceiptCoreAsync(Bytes32 transactionHash, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<Bytes32, TxReceipt>(
-            "eth_getTransactionReceipt", transactionHash, TargetHeight.Latest, requestOptions, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<Bytes32, TxReceipt>("eth_getTransactionReceipt", transactionHash, TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<TxReceipt>.Success result => result.Result,
             RpcResult<TxReceipt>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -280,9 +272,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
 
     public async Task<TxReceipt[]?> GetBlockReceiptsAsync(
         TargetHeight targetHeight, RpcRequestOptions requestOptions, CancellationToken cancellationToken
-    ) => await _rpcClient.SendRpcRequestAsync<TargetHeight, TxReceipt[]>(
-            "eth_getBlockReceipts", targetHeight, targetHeight, requestOptions, cancellationToken
-        ) switch
+    ) => await _rpcClient.SendRpcRequestAsync<TargetHeight, TxReceipt[]>("eth_getBlockReceipts", targetHeight, targetHeight, requestOptions, cancellationToken) switch
     {
         RpcResult<TxReceipt[]>.Success result => result.Result,
         RpcResult<TxReceipt[]>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -300,8 +290,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
     private async Task<byte[]> GetStorageAtCoreAsync(
         Address address, byte[] slot, TargetHeight targetHeight, RpcRequestOptions requestOptions,
         CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<Address, byte[], TargetHeight, byte[]>(
-            "eth_getStorageAt", address, slot, targetHeight, targetHeight, requestOptions, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<Address, byte[], TargetHeight, byte[]>("eth_getStorageAt", address, slot, targetHeight, targetHeight, requestOptions, cancellationToken) switch
         {
             RpcResult<byte[]>.Success result => result.Result,
             RpcResult<byte[]>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -326,6 +315,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             EventTopics? Topics
         ) : GetLogsRequest(Address, Topics);
     }
+
     public async Task<Log[]> GetLogsAsync(
         TargetHeight fromBlock, TargetHeight toBlock,
         EventFilter eventFilter, Bytes32? blockHash,
@@ -341,10 +331,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         GetLogsRequest filterOptions = blockHash is Bytes32 hash
             ? new GetLogsRequest.ByBlockHash(hash, addresses, topics)
             : new GetLogsRequest.ByRange(fromBlock, toBlock, addresses, topics
-        );
-        return await _rpcClient.SendRpcRequestAsync<GetLogsRequest, Log[]>(
-            "eth_getLogs", filterOptions, fromBlock, requestOptions, cancellationToken
-        ) switch
+            );
+        return await _rpcClient.SendRpcRequestAsync<GetLogsRequest, Log[]>("eth_getLogs", filterOptions, fromBlock, requestOptions, cancellationToken) switch
         {
             RpcResult<Log[]>.Success result => result.Result,
             RpcResult<Log[]>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -354,6 +342,7 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
 
     // Keep RPC DTOs as record classes: readonly record structs produced identical JSON but no allocation reduction and mixed serialization throughput.
     private sealed record SubscribeLogsRequest(ReadOnlyMemory<Address>? Address, EventTopics? Topics);
+
     public async Task<string> SubscribeLogsAsync(EventFilter eventFilter, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         if(!_rpcTransport.SupportsSubscriptions)
@@ -368,9 +357,8 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
             eventFilter.Topics.IsMatchAll
                 ? null
                 : eventFilter.Topics
-            );
-        return await _rpcClient.SendRpcRequestAsync<string, SubscribeLogsRequest, string>(
-            "eth_subscribe", "logs", request, TargetHeight.Latest, requestOptions, cancellationToken) switch
+        );
+        return await _rpcClient.SendRpcRequestAsync<string, SubscribeLogsRequest, string>("eth_subscribe", "logs", request, TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<string>.Success result => result.Result,
             RpcResult<string>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -384,9 +372,9 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         {
             throw new InvalidOperationException("The underlying transport does not support subscriptions");
         }
+
         //
-        return await _rpcClient.SendRpcRequestAsync<string, string>(
-                    "eth_subscribe", "newHeads", TargetHeight.Latest, requestOptions, cancellationToken) switch
+        return await _rpcClient.SendRpcRequestAsync<string, string>("eth_subscribe", "newHeads", TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<string>.Success result => result.Result,
             RpcResult<string>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -401,10 +389,9 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         {
             throw new InvalidOperationException("The underlying transport does not support subscriptions");
         }
+
         //
-        return await _rpcClient.SendRpcRequestAsync<string, string>(
-            "eth_subscribe", "newPendingTransactions", TargetHeight.Latest, requestOptions, cancellationToken
-        ) switch
+        return await _rpcClient.SendRpcRequestAsync<string, string>("eth_subscribe", "newPendingTransactions", TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<string>.Success result => result.Result,
             RpcResult<string>.Error error => throw RpcErrorException.FromRpcError(error),
@@ -418,9 +405,9 @@ internal sealed class EthRpcModule(RpcClient rpcClient, IRPCTransport rpcTranspo
         {
             throw new InvalidOperationException("The underlying transport does not support subscriptions");
         }
+
         //
-        return await _rpcClient.SendRpcRequestAsync<string, bool>(
-                "eth_unsubscribe", subscriptionId, TargetHeight.Latest, requestOptions, cancellationToken) switch
+        return await _rpcClient.SendRpcRequestAsync<string, bool>("eth_unsubscribe", subscriptionId, TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<bool>.Success result => result.Result,
             RpcResult<bool>.Error error => throw RpcErrorException.FromRpcError(error),

@@ -75,6 +75,7 @@ public sealed class EventTopicsConverter : JsonConverter<EventTopics>
             {
                 Bytes32Converter.Instance.Write(writer, topic, options);
             }
+
             writer.WriteEndArray();
         }
 
@@ -87,10 +88,12 @@ public sealed class EventTopicsConverter : JsonConverter<EventTopics>
         {
             return null;
         }
+
         if(reader.TokenType == JsonTokenType.String)
         {
             return [Bytes32Converter.Instance.Read(ref reader, typeof(Bytes32), options)];
         }
+
         if(reader.TokenType != JsonTokenType.StartArray)
         {
             throw new JsonException("Expected a topic value, an array of topic values, or null.");

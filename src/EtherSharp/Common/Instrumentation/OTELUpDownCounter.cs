@@ -36,6 +36,7 @@ internal sealed record OTELUpDownCounter<T>(UpDownCounter<T> Counter, TagList Ta
             {
                 merged.Add(tag);
             }
+
             Counter.Add(delta, merged);
         }
     }

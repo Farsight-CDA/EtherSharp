@@ -317,6 +317,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                         $"Invalid transaction nonce. Expected {senderNonce}, received {environment.Nonce}."
                     );
                 }
+
                 if(senderNonce == UInt64.MaxValue)
                 {
                     throw new InvalidOperationException("Transaction sender nonce cannot be incremented.");
@@ -332,6 +333,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
                         .GetAccountStorage(environment.Sender)
                         .SetNonce(senderNonce + 1);
                 }
+
                 result = await ExecuteMessageCallAsync(
                     CallFrame.CreateTopLevelMessageCall(
                         checked(execution.NextFrameId++),
@@ -366,11 +368,13 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             {
                 await execution.Hooks.OnExecutionEndAsync(_context, environment, result, _storage);
             }
+
             if(retainState)
             {
                 _storage.Commit();
                 snapshot = null;
             }
+
             return new TxCallResult(result.IsSuccess, result.Data);
         }
         finally
@@ -435,6 +439,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         {
             _storage.Reset(callSnapshot);
         }
+
         if(result.IsExceptionalHalt(out _))
         {
             call.Gas.ConsumeAll();
@@ -469,6 +474,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             {
                 return ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
             }
+
             if(call.From != call.Address)
             {
                 var sourceStorage = _storage.GetAccountStorage(call.From);
@@ -501,6 +507,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
             var delegationTarget = Address.FromBytes(byteCode.ByteCode.Span[3..]);
             byteCode = await _storage.GetAsync(StateRequest.Code(delegationTarget));
         }
+
         return await ExecuteOpcodesAsync(
             new BytecodeFrame(
                 call,
@@ -528,6 +535,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         {
             call.Gas.ConsumeAll();
         }
+
         if(_executionState.Hooks is not null)
         {
             await _executionState.Hooks.OnContractExitAsync(call, result, _storage);
@@ -552,6 +560,7 @@ internal sealed partial class InterpreterRuntime : IInterpreter, IInterpreterLan
         {
             return ExecutionResult.CallEntryFailure(CallEntryFailureReason.InsufficientBalance);
         }
+
         if(creatorNonce == UInt64.MaxValue)
         {
             return ExecutionResult.CallEntryFailure(CallEntryFailureReason.CreatorNonceOverflow);

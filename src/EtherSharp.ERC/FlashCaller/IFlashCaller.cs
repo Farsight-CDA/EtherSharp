@@ -36,11 +36,11 @@ public partial interface IFlashCaller : IEVMContract
                 ulong? flashCallGasLimit = null,
                 UInt256 ethValue = default
             ) => IContractCall.ForRawContractCall(
-                    contractAddress,
-                    ethValue,
-                    DeployedFlashCallEncoding.Encode(initCode, callData, flashCallGasLimit),
-                    DeployedFlashCallEncoding.DecodeResult
-                );
+                contractAddress,
+                ethValue,
+                DeployedFlashCallEncoding.Encode(initCode, callData, flashCallGasLimit),
+                DeployedFlashCallEncoding.DecodeResult
+            );
         }
     }
 }

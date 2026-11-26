@@ -57,18 +57,22 @@ public static class EIP712
         {
             encoder.Bytes32(Keccak256.HashData(domain.Name));
         }
+
         if(domain.Version is not null)
         {
             encoder.Bytes32(Keccak256.HashData(domain.Version));
         }
+
         if(domain.ChainId is UInt256 chainId)
         {
             encoder.UInt256(chainId);
         }
+
         if(domain.VerifyingContract is Address verifyingContract)
         {
             encoder.Address(verifyingContract);
         }
+
         if(domain.Salt is Bytes32 salt)
         {
             encoder.Bytes32(salt);
@@ -87,18 +91,22 @@ public static class EIP712
         {
             fields |= NAME_FIELD;
         }
+
         if(domain.Version is not null)
         {
             fields |= VERSION_FIELD;
         }
+
         if(domain.ChainId is not null)
         {
             fields |= CHAIN_ID_FIELD;
         }
+
         if(domain.VerifyingContract is not null)
         {
             fields |= VERIFYING_CONTRACT_FIELD;
         }
+
         if(domain.Salt is not null)
         {
             fields |= SALT_FIELD;

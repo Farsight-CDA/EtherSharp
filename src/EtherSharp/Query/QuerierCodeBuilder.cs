@@ -10,6 +10,7 @@ namespace EtherSharp.Query;
 internal static partial class QuerierCodeBuilder
 {
     private readonly record struct CodeRegion(QueryOperationId OperationId, int Offset, int Length);
+
     private readonly record struct JumpReference(int Offset, int Target);
 
     /// <summary>
@@ -96,10 +97,12 @@ internal static partial class QuerierCodeBuilder
             {
                 break;
             }
+
             if(includedRegions[i])
             {
                 continue;
             }
+
             if(offset < region.Offset + region.Length)
             {
                 return -1;

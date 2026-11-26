@@ -18,10 +18,12 @@ internal sealed class TraceTypesJsonConverter : JsonConverter<TraceTypes>
         {
             writer.WriteStringValue("trace");
         }
+
         if((value & TraceTypes.VmTrace) != 0)
         {
             writer.WriteStringValue("vmTrace");
         }
+
         if((value & TraceTypes.StateDiff) != 0)
         {
             writer.WriteStringValue("stateDiff");

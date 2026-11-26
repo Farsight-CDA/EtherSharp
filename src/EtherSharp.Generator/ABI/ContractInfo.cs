@@ -53,6 +53,7 @@ internal readonly struct ContractInfo(
         {
             return null;
         }
+
         var (initCode, runtimeCode) = GetBytecode(bytecodeAttributes);
 
         return new ContractInfo(

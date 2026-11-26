@@ -41,6 +41,7 @@ public sealed partial class InterpreterStateFork
                 {
                     throw new ArgumentException("At least one upstream request is required.", nameof(requests));
                 }
+
                 if(Requests is not null || _completion is not null)
                 {
                     throw new InvalidOperationException("An interpreter cannot have multiple concurrent upstream requests.");
@@ -102,6 +103,7 @@ public sealed partial class InterpreterStateFork
                     requests.RemoveAt(i);
                 }
             }
+
             if(requests.Count == 0)
             {
                 return ValueTask.CompletedTask;
@@ -119,6 +121,7 @@ public sealed partial class InterpreterStateFork
         {
             _ = ResolveAsync(run, batch);
         }
+
         return new ValueTask(completion.Task);
     }
 
@@ -187,6 +190,7 @@ public sealed partial class InterpreterStateFork
                         lane.CompleteRequests();
                     }
                 }
+
                 if(!madeProgress)
                 {
                     throw new InvalidOperationException("The data provider did not resolve any pending value.");
@@ -212,9 +216,11 @@ public sealed partial class InterpreterStateFork
                         lane.FailRequests(exception);
                     }
                 }
+
                 run.IsFetching = false;
             }
         }
+
         if(nextBatch is not null)
         {
             _ = ResolveAsync(run, nextBatch);
@@ -228,8 +234,7 @@ public sealed partial class InterpreterStateFork
         var program = run switch
         {
             InterpreterRun<TResult>.Program value => value,
-            InterpreterRun<TResult>.Lane => new InterpreterRun<TResult>.Program(
-                context => context.RunAsync(run)
+            InterpreterRun<TResult>.Lane => new InterpreterRun<TResult>.Program(context => context.RunAsync(run)
             ),
         };
 
@@ -241,6 +246,7 @@ public sealed partial class InterpreterStateFork
             {
                 throw new InvalidOperationException("Another interpreter run is already active on this fork.");
             }
+
             runState = new RunState();
             participant = program.CreateParticipant(runState, parent: null);
             runState.Participants.Add(participant);
@@ -367,6 +373,7 @@ public sealed partial class InterpreterStateFork
         {
             tasks[i] = runs[i].ExecuteAsync(this, participants[i]);
         }
+
         return await Task.WhenAll(tasks);
     }
 
@@ -396,7 +403,7 @@ public sealed partial class InterpreterStateFork
                         throw new ArgumentException("Every interpreter run must belong to this fork.");
                     case RunParticipant.Lane lane
                         when lane.Interpreter.Participant is not null
-                            || !uniqueInterpreters.Add(lane.Interpreter):
+                        || !uniqueInterpreters.Add(lane.Interpreter):
                         throw new InvalidOperationException("An interpreter can occur only once in a structured run.");
                     case RunParticipant value:
                         participants[i] = value;
@@ -409,6 +416,7 @@ public sealed partial class InterpreterStateFork
                 participant.Attach();
                 parent.Run.Participants.Add(participant);
             }
+
             parent.RemainingChildren = participants.Length;
             return participants;
         }
@@ -423,6 +431,7 @@ public sealed partial class InterpreterStateFork
             {
                 throw new InvalidOperationException("A structured run participant completed while it had active children.");
             }
+
             if(participant is RunParticipant.Lane { Requests: not null }
                 || participant is RunParticipant.Program { RemainingChildren: not 0 })
             {
@@ -438,11 +447,13 @@ public sealed partial class InterpreterStateFork
                 Debug.Assert(parent.RemainingChildren > 0);
                 parent.RemainingChildren--;
             }
+
             if(TakeBatchIfReady(out var readyBatch))
             {
                 batch = readyBatch;
             }
         }
+
         if(batch is not null)
         {
             _ = ResolveAsync(participant.Run, batch);

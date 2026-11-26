@@ -16,12 +16,12 @@ public static partial class AbiTypes
 
         internal UShort(ushort value) : base(value)
         {
-
         }
 
         /// <inheritdoc />
         public override void Encode(Span<byte> buffer)
             => EncodeInto(Value, buffer);
+
         void IPackedEncodeType.EncodePacked(Span<byte> buffer)
             => EncodeInto(Value, buffer);
 

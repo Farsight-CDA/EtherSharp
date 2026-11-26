@@ -1,5 +1,6 @@
 using EtherSharp.ABI;
 using EtherSharp.Numerics;
+
 namespace EtherSharp.Tests.ABI.Decoder;
 
 public sealed class NumberArryAbiDecoderTests

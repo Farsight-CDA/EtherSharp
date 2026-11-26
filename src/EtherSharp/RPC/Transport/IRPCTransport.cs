@@ -1,6 +1,7 @@
 using EtherSharp.Types;
 
 namespace EtherSharp.RPC.Transport;
+
 /// <summary>
 /// Common interface for all RPC Transports to implement.
 /// </summary>

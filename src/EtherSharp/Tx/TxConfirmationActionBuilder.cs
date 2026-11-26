@@ -1,6 +1,7 @@
 using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Tx;
+
 /// <summary>
 /// Builder to contruct the further actions to perform on a tx publish error.
 /// </summary>

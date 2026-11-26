@@ -50,7 +50,7 @@ public partial class PackedAbiEncoder
     /// <param name="value">String to encode.</param>
     /// <returns>This encoder instance for fluent chaining.</returns>
     public PackedAbiEncoder String(string value)
-            => AddElement(new AbiTypes.String(value));
+        => AddElement(new AbiTypes.String(value));
 
     /// <summary>
     /// Encodes a dynamic byte sequence in packed format.

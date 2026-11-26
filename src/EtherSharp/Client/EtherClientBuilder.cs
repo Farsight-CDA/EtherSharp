@@ -88,15 +88,15 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null,
         Action<ClientWebSocketOptions>? configureWebSocketOptions = null
     ) => CreateForWebsocket(
-            new Uri(websocketUrl, UriKind.Absolute),
-            requestTimeout,
-            nonceMode,
-            confirmationTimeout,
-            signer,
-            loggerFactory,
-            configureGasProvider,
-            configureWebSocketOptions
-        );
+        new Uri(websocketUrl, UriKind.Absolute),
+        requestTimeout,
+        nonceMode,
+        confirmationTimeout,
+        signer,
+        loggerFactory,
+        configureGasProvider,
+        configureWebSocketOptions
+    );
 
     /// <summary>
     /// Creates an EtherClientBuilder preconfigured for a websocket RPC.
@@ -152,14 +152,14 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null, HttpMessageHandler? httpMessageHandler = null
     ) => CreateForHttpRpc(
-            new Uri(rpcUrl, UriKind.Absolute),
-            nonceMode,
-            confirmationTimeout,
-            signer,
-            loggerFactory,
-            configureGasProvider,
-            httpMessageHandler
-        );
+        new Uri(rpcUrl, UriKind.Absolute),
+        nonceMode,
+        confirmationTimeout,
+        signer,
+        loggerFactory,
+        configureGasProvider,
+        httpMessageHandler
+    );
 
     /// <summary>
     /// Creates an EtherClientBuilder preconfigured for a HTTP RPC.
@@ -251,7 +251,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <param name="middleware"></param>
     /// <returns></returns>
     public EtherClientBuilder AddRPCMiddleware<TRpcMiddleware>(TRpcMiddleware middleware)
-         where TRpcMiddleware : class, IRpcMiddleware
+        where TRpcMiddleware : class, IRpcMiddleware
     {
         _services.AddSingleton<IRpcMiddleware>(middleware);
         return this;
@@ -364,13 +364,12 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// <returns></returns>
     public EtherClientBuilder WithBlockingSequentialTxScheduler(
         NonceMode nonceMode, TimeSpan confirmationTimeout
-    ) => WithTxScheduler<BlockingSequentialTxScheduler, BlockingSequentialTxScheduler.Options>(
-            options =>
-            {
-                options.NonceMode = nonceMode;
-                options.ConfirmationTimeout = confirmationTimeout;
-            }
-        );
+    ) => WithTxScheduler<BlockingSequentialTxScheduler, BlockingSequentialTxScheduler.Options>(options =>
+        {
+            options.NonceMode = nonceMode;
+            options.ConfirmationTimeout = confirmationTimeout;
+        }
+    );
 
     /// <summary>
     /// Configures the SubscriptionsManager.
@@ -425,8 +424,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         var options = new PollingTxConfirmationWatcher.Options();
         configureAction?.Invoke(options);
 
-        _services.AddOrReplaceSingleton<ITxConfirmationWatcher>(
-            provider => ActivatorUtilities.CreateInstance<PollingTxConfirmationWatcher>(provider, options)
+        _services.AddOrReplaceSingleton<ITxConfirmationWatcher>(provider => ActivatorUtilities.CreateInstance<PollingTxConfirmationWatcher>(provider, options)
         );
         return this;
     }
@@ -579,11 +577,9 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.TryAddSingleton<INonceSource, ConstructorCallNonceSource>();
         _services.TryAddSingleton<ITxConfirmationWatcher, PollingTxConfirmationWatcher>();
         _services.TryAddSingleton<ITxPublisher, BasicTxPublisher>();
-        _services.TryAddSingleton<IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>>(
-            provider => new EIP1559GasFeeProvider(provider.GetRequiredService<IEthRpcModule>())
+        _services.TryAddSingleton<IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>>(provider => new EIP1559GasFeeProvider(provider.GetRequiredService<IEthRpcModule>())
         );
-        _services.TryAddSingleton<IGasFeeProvider<LegacyTxParams, LegacyGasParams>>(
-            provider => new LegacyGasFeeProvider(provider.GetRequiredService<IEthRpcModule>())
+        _services.TryAddSingleton<IGasFeeProvider<LegacyTxParams, LegacyGasParams>>(provider => new LegacyGasFeeProvider(provider.GetRequiredService<IEthRpcModule>())
         );
 
         _services.AddSingleton<IEtherModule, EtherModule>();
@@ -598,6 +594,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         {
             _services.AddSingleton<ISubscriptionsManager, SubscriptionsManager>();
         }
+
         _services.AddSingleton<QueryExecutor>();
 
         _services.TryAddSingleton<FlashCallExecutor, DeployedFlashCallExecutor>();
@@ -653,6 +650,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         {
             throw new InvalidOperationException($"No {nameof(IEtherSigner)} configured. Call the {nameof(WithSigner)} method prior to {nameof(BuildTxClient)}");
         }
+
         if(!_services.Any(x => x.ServiceType == typeof(ITxScheduler)))
         {
             throw new InvalidOperationException($"No {nameof(ITxScheduler)} configured. Call the {nameof(WithTxScheduler)} method prior to {nameof(BuildTxClient)}");

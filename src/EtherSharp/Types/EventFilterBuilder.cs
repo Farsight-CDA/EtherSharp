@@ -243,5 +243,4 @@ public sealed class EventFilterBuilder
     /// <returns>The configured event filter.</returns>
     public EventFilter Build()
         => EventFilter.FromOwned(_contractAddresses, EventTopics.FromOwned(_topic0, _topic1, _topic2, _topic3));
-
 }

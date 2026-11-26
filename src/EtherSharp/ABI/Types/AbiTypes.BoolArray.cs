@@ -17,7 +17,8 @@ public static partial class AbiTypes
 
         internal BoolArray(ImmutableArray<bool> values)
             : base(values.IsDefault ? [] : values)
-        { }
+        {
+        }
 
         /// <inheritdoc />
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)

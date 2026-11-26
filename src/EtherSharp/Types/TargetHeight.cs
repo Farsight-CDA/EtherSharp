@@ -2,6 +2,7 @@ using EtherSharp.Common.Converters.Json;
 using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+
 namespace EtherSharp.Types;
 
 /// <summary>
@@ -44,6 +45,7 @@ public readonly struct TargetHeight(ulong? value, string rawValue) : IEquatable<
     /// Targets the pending block.
     /// </summary>
     public static TargetHeight Pending { get; } = new(null, "pending");
+
     /// <summary>
     /// Targets the block at a given height.
     /// </summary>
@@ -96,6 +98,7 @@ public readonly struct TargetHeight(ulong? value, string rawValue) : IEquatable<
     /// <inheritdoc/>
     public static bool operator ==(TargetHeight left, TargetHeight right)
         => left.Equals(right);
+
     /// <inheritdoc/>
     public static bool operator !=(TargetHeight left, TargetHeight right)
         => !left.Equals(right);

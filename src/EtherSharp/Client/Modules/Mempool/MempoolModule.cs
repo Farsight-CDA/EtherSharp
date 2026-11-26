@@ -6,7 +6,8 @@ using EtherSharp.RPC.Transport;
 
 namespace EtherSharp.Client.Modules.Mempool;
 
-internal sealed class MempoolModule(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+internal sealed class MempoolModule(
+    IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
     EtherSharpJsonSerializerContext jsonSerializerContext) : IMempoolModule
 {
     private readonly IEthRpcModule _ethRpcModule = ethRpcModule;

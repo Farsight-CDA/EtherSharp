@@ -1,4 +1,5 @@
 using EtherSharp.Numerics;
+
 namespace EtherSharp.Types;
 
 /// <summary>

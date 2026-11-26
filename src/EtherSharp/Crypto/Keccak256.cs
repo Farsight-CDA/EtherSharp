@@ -20,7 +20,8 @@ public ref struct Keccak256
     private const int RATE_64 = RATE >> 6;
     private const int MAX_STACKALLOC_BYTES = 1024;
 
-    private static ReadOnlySpan<ulong> KeccakRoundConstants => [
+    private static ReadOnlySpan<ulong> KeccakRoundConstants =>
+    [
         0x0000000000000001UL, 0x0000000000008082UL, 0x800000000000808aUL, 0x8000000080008000UL,
         0x000000000000808bUL, 0x0000000080000001UL, 0x8000000080008081UL, 0x8000000000008009UL,
         0x000000000000008aUL, 0x0000000000000088UL, 0x0000000080008009UL, 0x000000008000000aUL,

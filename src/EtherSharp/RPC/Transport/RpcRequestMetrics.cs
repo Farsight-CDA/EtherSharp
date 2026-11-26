@@ -32,7 +32,8 @@ internal sealed class RpcRequestMetrics
 
     private static void AddMeasurement(OTELCounter<long> counter, long value, RpcRequestStatus status, string? method = null)
     {
-        TagList tags = [
+        TagList tags =
+        [
             new KeyValuePair<string, object?>("status", status switch
             {
                 RpcRequestStatus.Success => "success",
@@ -44,6 +45,7 @@ internal sealed class RpcRequestMetrics
         {
             tags.Add("method", method);
         }
+
         counter.Add(value, tags);
     }
 }

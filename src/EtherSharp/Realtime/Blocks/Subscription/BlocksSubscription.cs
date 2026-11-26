@@ -5,7 +5,8 @@ using EtherSharp.RPC.Transport;
 
 namespace EtherSharp.Realtime.Blocks.Subscription;
 
-internal sealed class BlocksSubscription(IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
+internal sealed class BlocksSubscription(
+    IEthRpcModule ethRpcModule, ISubscriptionsManager subscriptionsManager,
     EtherSharpJsonSerializerContext jsonSerializerContext)
     : SubscriptionBase<BlockHeader>(subscriptionsManager, jsonSerializerContext.BlockHeader), IBlocksSubscription
 {

@@ -18,12 +18,14 @@ internal static class IServiceProviderExtensions
         {
             return list1;
         }
+
         //
         var merged = list1;
         foreach(var tag in list2)
         {
             merged.Add(tag);
         }
+
         return merged;
     }
 
@@ -38,6 +40,7 @@ internal static class IServiceProviderExtensions
         {
             return null;
         }
+
         //
         var mergedTags = MergeTags(options.Tags, tags);
         var counter = meterFactory.Create(Diagnostics.METER_NAME)
@@ -56,6 +59,7 @@ internal static class IServiceProviderExtensions
         {
             return null;
         }
+
         //
         var mergedTags = MergeTags(options.Tags, tags);
         var counter = meterFactory.Create(Diagnostics.METER_NAME)
@@ -75,6 +79,7 @@ internal static class IServiceProviderExtensions
         {
             return null;
         }
+
         //
         var mergedTags = MergeTags(options.Tags, tags);
         return meterFactory.Create(Diagnostics.METER_NAME)
@@ -101,6 +106,7 @@ internal static class IServiceProviderExtensions
             {
                 return null;
             }
+
             //
             var mergedTags = MergeTags(options.Tags, tags);
             return meterFactory.Create(Diagnostics.METER_NAME)
@@ -124,6 +130,7 @@ internal static class IServiceProviderExtensions
         {
             return null;
         }
+
         //
         var mergedTags = MergeTags(options.Tags, tags);
         return meterFactory.Create(Diagnostics.METER_NAME)

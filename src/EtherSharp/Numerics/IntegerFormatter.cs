@@ -106,10 +106,12 @@ internal static class IntegerFormatter
             {
                 return false;
             }
+
             if(precision >= 100_000_000)
             {
                 throw new FormatException("The numeric format precision is too large.");
             }
+
             precision = (precision * 10) + digit;
         }
 

@@ -4,7 +4,6 @@ namespace EtherSharp.Tests.ABI.Decoder;
 
 public sealed class StringAbiDecoderTest
 {
-
     [Fact]
     public void Should_Match()
     {

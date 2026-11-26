@@ -116,11 +116,11 @@ public sealed record EIP1559Transaction(
     {
         var encoder = new RLPEncoder(destination)
             .EncodeList(listLengths[0])
-                .EncodeInt(ChainId)
-                .EncodeInt(Nonce)
-                .EncodeInt(MaxPriorityFeePerGas)
-                .EncodeInt(MaxFeePerGas)
-                .EncodeInt(Gas);
+            .EncodeInt(ChainId)
+            .EncodeInt(Nonce)
+            .EncodeInt(MaxPriorityFeePerGas)
+            .EncodeInt(MaxFeePerGas)
+            .EncodeInt(Gas);
 
         encoder = Input.To is { } to
             ? encoder.EncodeAddress(to)
@@ -130,7 +130,7 @@ public sealed record EIP1559Transaction(
             .EncodeInt(Input.Value)
             .EncodeString(Input.Data.Span)
             .EncodeList(listLengths[1])
-                .EncodeAccessList(AccessList);
+            .EncodeAccessList(AccessList);
     }
 
     /// <inheritdoc/>
@@ -191,6 +191,7 @@ public sealed record EIP1559Transaction(
             {
                 ArrayPool<byte>.Shared.Return(rented);
             }
+
             ArrayPool<int>.Shared.Return(lengthBuffer);
         }
     }

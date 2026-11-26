@@ -19,7 +19,8 @@ public static partial class AbiTypes
 
         internal SizedBytesArray(ImmutableArray<TBytes> values)
             : base(values.IsDefault ? [] : values)
-        { }
+        {
+        }
 
         /// <inheritdoc />
         public override void Encode(Span<byte> metadata, Span<byte> payload, int payloadOffset)

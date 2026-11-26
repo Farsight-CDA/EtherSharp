@@ -25,8 +25,7 @@ internal sealed class TraceRpcModule(RpcClient rpcClient) : ITraceRpcModule
         CancellationToken cancellationToken)
     {
         var transaction = new TraceCallRequest(from, to, gas, gasPrice, value, data);
-        return await _rpcClient.SendRpcRequestAsync<TraceCallRequest, TraceTypes, TargetHeight, TransactionTraceResult>(
-            "trace_call", transaction, traceTypes, targetHeight, targetHeight, requestOptions, cancellationToken) switch
+        return await _rpcClient.SendRpcRequestAsync<TraceCallRequest, TraceTypes, TargetHeight, TransactionTraceResult>("trace_call", transaction, traceTypes, targetHeight, targetHeight, requestOptions, cancellationToken) switch
         {
             RpcResult<TransactionTraceResult>.Success result => result.Result,
             RpcResult<TransactionTraceResult>.Null => throw new RpcNullResultException("trace_call"),
@@ -36,8 +35,7 @@ internal sealed class TraceRpcModule(RpcClient rpcClient) : ITraceRpcModule
 
     public async Task<TransactionTraceResult?> ReplayTransactionAsync(
         Bytes32 txHash, TraceTypes traceTypes, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
-        => await _rpcClient.SendRpcRequestAsync<Bytes32, TraceTypes, TransactionTraceResult>(
-            "trace_replayTransaction", txHash, traceTypes, TargetHeight.Latest, requestOptions, cancellationToken) switch
+        => await _rpcClient.SendRpcRequestAsync<Bytes32, TraceTypes, TransactionTraceResult>("trace_replayTransaction", txHash, traceTypes, TargetHeight.Latest, requestOptions, cancellationToken) switch
         {
             RpcResult<TransactionTraceResult>.Success result => result.Result,
             RpcResult<TransactionTraceResult>.Null => null,

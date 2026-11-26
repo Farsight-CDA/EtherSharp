@@ -21,6 +21,7 @@ internal sealed class HasCodeQueryOperation(in Address address) : IQueryOperatio
 
     public int ParseResultLength(ReadOnlySpan<byte> resultData)
         => 1;
+
     bool IQuery<bool>.ReadResultFrom(params scoped ReadOnlySpan<ReadOnlyMemory<byte>> queryResults)
         => queryResults[0].Span[0] != 0;
 }

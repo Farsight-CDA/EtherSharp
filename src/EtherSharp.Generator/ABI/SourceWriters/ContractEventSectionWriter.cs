@@ -48,6 +48,7 @@ internal sealed class ContractEventSectionWriter(EventTypeWriter eventTypeWriter
                 eventNameTopics.Add(rawEventTypeName, [eventTopic]);
                 continue;
             }
+
             if(topics.Any(x => x.SequenceEqual(eventTopic)))
             {
                 continue;

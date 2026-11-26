@@ -24,8 +24,8 @@ public interface IEtherTxClient : IEtherClient
         ITxInput call, EIP1559TxParams? txParams = default, EIP1559GasParams? txGasParams = default,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
     ) => PrepareTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
-            call, txParams, txGasParams, requestOptions, cancellationToken
-        );
+        call, txParams, txGasParams, requestOptions, cancellationToken
+    );
 
     /// <summary>
     /// Creates a pending-transaction handler for a custom transaction model.

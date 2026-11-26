@@ -4,6 +4,7 @@ using EtherSharp.Numerics;
 using EtherSharp.Types;
 
 namespace EtherSharp.Tx;
+
 /// <summary>
 /// Represents a contract call transaction payload.
 /// </summary>

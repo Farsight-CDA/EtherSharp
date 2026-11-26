@@ -10,6 +10,7 @@ public sealed class InitializerArgument(string targetPropertyName, string source
 
     public bool IsReadonlyList { get; } = isReadonlyList;
 }
+
 public sealed class ObjectInitializerBuilder
 {
     private readonly List<InitializerArgument> _arguments;
@@ -99,5 +100,4 @@ public sealed class ObjectInitializerBuilder
             "RepeatedField" => true,
             _ => false,
         };
-
 }
