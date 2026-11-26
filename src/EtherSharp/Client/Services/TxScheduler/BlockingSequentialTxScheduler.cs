@@ -5,8 +5,10 @@ using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
+using EtherSharp.Tx.Nonce;
 using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Tx.Types;
+using EtherSharp.Tx.Watcher;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,15 +21,19 @@ namespace EtherSharp.Client.Services.TxScheduler;
 /// Schedules transactions sequentially by nonce and drives their lifecycle until confirmation.
 /// </summary>
 /// <param name="provider">Service provider used to resolve gas fee providers and optional services.</param>
-/// <param name="ethRpcModule">RPC module used for nonce, receipt, and chain state queries.</param>
+/// <param name="ethRpcModule">RPC module used for nonce and receipt queries.</param>
 /// <param name="signer">Signer representing the sender account for scheduled transactions.</param>
 /// <param name="txPublisher">Publisher used to submit signed transactions to the network.</param>
+/// <param name="nonceWatcher">Shared watcher used for background nonce sync and sequential gating.</param>
+/// <param name="txConfirmationWatcher">Shared watcher used to confirm transaction inclusion.</param>
 /// <param name="options">Configuration for nonce synchronization and transaction confirmation behavior.</param>
 public sealed class BlockingSequentialTxScheduler(
     IServiceProvider provider,
     IEthRpcModule ethRpcModule,
     IEtherSigner signer,
     ITxPublisher txPublisher,
+    INonceWatcher nonceWatcher,
+    ITxConfirmationWatcher txConfirmationWatcher,
     BlockingSequentialTxScheduler.Options options
 ) : ITxScheduler, IInitializableService, IDisposable
 {
@@ -60,16 +66,28 @@ public sealed class BlockingSequentialTxScheduler(
     private readonly Lock _stateLock = new Lock();
     private readonly SemaphoreSlim _preparationLock = new SemaphoreSlim(1);
 
-    private readonly SemaphoreSlim _workerSignal = new SemaphoreSlim(0);
-
-    private TxSenderKey? _senderKey;
-
+    private bool _initialized;
     private ulong _confirmedNonce;
-    private ulong _peakNonce;
 
     private readonly Dictionary<ulong, TaskCompletionSource> _nonceGates = [];
 
-    private TxSenderKey SenderKey => _senderKey ?? throw new InvalidOperationException("Not initialized");
+    private TxSenderKey SenderKey
+    {
+        get => _initialized ? field : throw new InvalidOperationException("Not initialized");
+        set;
+    }
+
+    private INonceAllocator NonceAllocator
+    {
+        get => field ?? throw new InvalidOperationException("Not initialized");
+        set;
+    } = null!;
+
+    private INonceSubscription NonceSubscription
+    {
+        get => field ?? throw new InvalidOperationException("Not initialized");
+        set;
+    } = null!;
 
     /// <inheritdoc/>
     public async ValueTask InitializeAsync(
@@ -77,27 +95,39 @@ public sealed class BlockingSequentialTxScheduler(
     )
     {
         var senderKey = new TxSenderKey(chainId, signer.Address);
-        _confirmedNonce = await ethRpcModule.GetTransactionCountAsync(
+        ulong confirmedNonce = await ethRpcModule.GetTransactionCountAsync(
             senderKey.Sender, TargetHeight.Latest, requestOptions, cancellationToken
         );
 
-        if(_resiliencyLayer is null)
-        {
-            _peakNonce = _confirmedNonce;
-        }
-        else
+        ulong initialNonce = confirmedNonce;
+        if(_resiliencyLayer is not null)
         {
             ulong? dbNonce = await _resiliencyLayer.GetLastSubmittedNonceAsync(senderKey, cancellationToken);
-
-            _peakNonce = dbNonce switch
+            if(dbNonce is { } lastSubmitted)
             {
-                ulong nonce => Math.Max(nonce + 1, _confirmedNonce),
-                _ => _confirmedNonce
-            };
+                initialNonce = Math.Max(lastSubmitted + 1, confirmedNonce);
+            }
         }
 
-        _senderKey = senderKey;
-        _ = Task.Run(() => AdaptiveNoncePollerAsync(_cts.Token), cancellationToken);
+        NonceAllocator = _nonceMode switch
+        {
+            NonceMode.ExclusiveLocal => new LocalNonceAllocator(nonceWatcher, senderKey.Sender, initialNonce),
+            NonceMode.BackgroundSync => new LocalNonceAllocator(
+                nonceWatcher,
+                senderKey.Sender,
+                initialNonce,
+                new LocalNonceAllocator.Options { SyncInterval = _backgroundSyncInterval }
+            ),
+            NonceMode.RefreshOnAllocate => new RefreshOnAllocateNonceAllocator(ethRpcModule, senderKey.Sender, initialNonce),
+            _ => throw new NotSupportedException($"Unsupported nonce mode {_nonceMode}."),
+        };
+
+        _confirmedNonce = confirmedNonce;
+        SenderKey = senderKey;
+        NonceSubscription = nonceWatcher.Subscribe(senderKey.Sender, TimeSpan.Zero, confirmedNonce);
+        _initialized = true;
+
+        _ = Task.Run(ObserveConfirmedNoncesAsync, CancellationToken.None);
     }
 
     private void AdvanceConfirmedNonceLocked(ulong actualNonce)
@@ -121,11 +151,6 @@ public sealed class BlockingSequentialTxScheduler(
         }
 
         _confirmedNonce = actualNonce;
-
-        if(_peakNonce < _confirmedNonce)
-        {
-            _peakNonce = _confirmedNonce;
-        }
     }
 
     private Task WaitForNonceCompletionAsync(ulong nonceToWaitFor)
@@ -142,55 +167,13 @@ public sealed class BlockingSequentialTxScheduler(
         }
     }
 
-    private async Task AdaptiveNoncePollerAsync(CancellationToken cancellationToken)
+    private async Task ObserveConfirmedNoncesAsync()
     {
-        while(!cancellationToken.IsCancellationRequested)
+        await foreach(var (observedNonce, _) in NonceSubscription.ListenAsync())
         {
-            try
+            lock(_stateLock)
             {
-                bool isActive;
-
-                lock(_stateLock)
-                {
-                    isActive = _peakNonce > _confirmedNonce;
-                }
-
-                if(!isActive)
-                {
-                    if(_nonceMode != NonceMode.BackgroundSync)
-                    {
-                        await _workerSignal.WaitAsync(cancellationToken);
-                        continue;
-                    }
-
-                    if(await _workerSignal.WaitAsync(_backgroundSyncInterval, cancellationToken))
-                    {
-                        continue;
-                    }
-                }
-
-                ulong actualNonce = await ethRpcModule.GetTransactionCountAsync(
-                    signer.Address, TargetHeight.Latest, default, cancellationToken
-                );
-
-                lock(_stateLock)
-                {
-                    AdvanceConfirmedNonceLocked(actualNonce);
-                }
-
-                if(isActive)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(1500), cancellationToken);
-                }
-            }
-            catch(OperationCanceledException ex) when(ex.CancellationToken == cancellationToken)
-            {
-                break;
-            }
-            catch(Exception ex)
-            {
-                _logger?.LogError(ex, "Exception while polling nonce");
-                await Task.Delay(5000, cancellationToken);
+                AdvanceConfirmedNonceLocked(observedNonce);
             }
         }
     }
@@ -210,55 +193,30 @@ public sealed class BlockingSequentialTxScheduler(
 
         try
         {
-            if(_nonceMode == NonceMode.RefreshOnAllocate)
-            {
-                ulong latestNonce = await ethRpcModule.GetTransactionCountAsync(
-                    signer.Address, TargetHeight.Latest, requestOptions, cts.Token
-                );
-
-                lock(_stateLock)
-                {
-                    if(_peakNonce < latestNonce)
-                    {
-                        _peakNonce = latestNonce;
-                    }
-                }
-            }
-
-            ulong myNonce;
-            lock(_stateLock)
-            {
-                myNonce = _peakNonce;
-            }
-
             txParams ??= TTxParams.Default;
             txGasParams ??= await provider.GetRequiredService<IGasFeeProvider<TTxParams, TTxGasParams>>()
                 .EstimateGasParamsAsync(
                     call, txParams, signer.Address, requestOptions, cts.Token
                 );
 
-            var submission = await CreateSubmissionAsync<TTransaction, TTxParams, TTxGasParams>(
-                myNonce,
-                0,
-                call,
-                txParams,
-                txGasParams,
-                cts.Token
-            );
+            ulong myNonce = await NonceAllocator.AllocateAsync(requestOptions, cts.Token);
+            TxSubmission<TTxParams, TTxGasParams> submission;
 
-            lock(_stateLock)
+            try
             {
-                if(_peakNonce > myNonce)
-                {
-                    throw new ImpossibleException();
-                }
-
-                _peakNonce = myNonce + 1;
+                submission = await CreateSubmissionAsync<TTransaction, TTxParams, TTxGasParams>(
+                    myNonce,
+                    0,
+                    call,
+                    txParams,
+                    txGasParams,
+                    cts.Token
+                );
             }
-
-            if(_workerSignal.CurrentCount == 0)
+            catch
             {
-                _workerSignal.Release();
+                _ = await NonceAllocator.TryReleaseAsync(myNonce, CancellationToken.None);
+                throw;
             }
 
             return new PendingTxHandler<TTxParams, TTxGasParams>(
@@ -272,7 +230,7 @@ public sealed class BlockingSequentialTxScheduler(
         }
         finally
         {
-            _preparationLock.Release();
+            _ = _preparationLock.Release();
         }
     }
 
@@ -296,12 +254,9 @@ public sealed class BlockingSequentialTxScheduler(
         await _preparationLock.WaitAsync(cancellationToken);
         try
         {
-            lock(_stateLock)
+            if(!await NonceAllocator.TryReleaseAsync(nonce, cancellationToken))
             {
-                if(_peakNonce != nonce + 1)
-                {
-                    return false;
-                }
+                return false;
             }
 
             if(_resiliencyLayer is not null)
@@ -311,20 +266,14 @@ public sealed class BlockingSequentialTxScheduler(
 
             lock(_stateLock)
             {
-                if(_peakNonce != nonce + 1)
-                {
-                    return false;
-                }
-
                 _logger?.LogWarning("Transaction with nonce {nonce} cancelled", nonce);
-                _peakNonce--;
-                _nonceGates.Remove(nonce, out _);
+                _ = _nonceGates.Remove(nonce, out _);
                 return true;
             }
         }
         finally
         {
-            _preparationLock.Release();
+            _ = _preparationLock.Release();
         }
     }
 
@@ -376,14 +325,15 @@ public sealed class BlockingSequentialTxScheduler(
                     id,
                     nonce,
                     typedSubmissions,
-                    (_, _, requestOptions) => FetchConfirmationInternal(typedSubmissions, 1, requestOptions)
+                    async (_, _, requestOptions) =>
+                    {
+                        Bytes32[] hashes = [.. typedSubmissions.Select(x => x.TxHash)];
+                        using var watch = txConfirmationWatcher.Watch(SenderKey.Sender, nonce, hashes);
+                        var watchResult = await watch.WaitAsync(_cts.Token);
+                        return await CompleteFromWatchAsync(watchResult, nonce, requestOptions);
+                    }
                 );
             }
-        }
-
-        if(_workerSignal.CurrentCount == 0)
-        {
-            _workerSignal.Release();
         }
 
         return new PendingTxHandler<TTxParams, TTxGasParams>(
@@ -418,7 +368,9 @@ public sealed class BlockingSequentialTxScheduler(
             );
         }
 
-        var confirmationGateTask = WaitForNonceCompletionAsync(handlerContext.Nonce);
+        Bytes32[] initialHashes = [.. handlerContext.TxSubmissions.Select(x => x.TxHash)];
+        using var watch = txConfirmationWatcher.Watch(SenderKey.Sender, handlerContext.Nonce, initialHashes);
+        var watchTask = watch.WaitAsync(_cts.Token);
 
         TxConfirmationError? activeError = null;
 
@@ -439,11 +391,11 @@ public sealed class BlockingSequentialTxScheduler(
                 {
                     case TxConfirmationAction<TTxParams, TTxGasParams>.ContinueWaiting waitAction:
                         var waitTask = Task.Delay(waitAction.Duration, _cts.Token);
-                        var completedTask = await Task.WhenAny(confirmationGateTask, waitTask);
+                        var completedTask = await Task.WhenAny(watchTask, waitTask);
 
-                        if(completedTask == confirmationGateTask)
+                        if(completedTask == watchTask)
                         {
-                            return await FetchConfirmationInternal(handlerContext.TxSubmissions, 3, requestOptions);
+                            return await CompleteFromWatchAsync(await watchTask, handlerContext.Nonce, requestOptions);
                         }
 
                         activeError = new TxConfirmationError.Timeout();
@@ -458,11 +410,11 @@ public sealed class BlockingSequentialTxScheduler(
                         return new TxConfirmationResult.Cancelled();
                     case TxConfirmationAction<TTxParams, TTxGasParams>.MinimalGasFeeIncrement:
                         await ApplyRepricingAsync<TTransaction, TTxParams, TTxGasParams>(
-                            currentSubmission.GasParams.IncrementByFactor(1105, 1000, 1), handlerContext
+                            currentSubmission.GasParams.IncrementByFactor(1105, 1000, 1), handlerContext, watch
                         );
                         continue;
                     case TxConfirmationAction<TTxParams, TTxGasParams>.RepriceTransaction reprice:
-                        await ApplyRepricingAsync<TTransaction, TTxParams, TTxGasParams>(reprice.GasParams, handlerContext);
+                        await ApplyRepricingAsync<TTransaction, TTxParams, TTxGasParams>(reprice.GasParams, handlerContext, watch);
                         continue;
                 }
             }
@@ -477,19 +429,19 @@ public sealed class BlockingSequentialTxScheduler(
                 case TxSubmissionResult.Success or TxSubmissionResult.AlreadyExists:
                 {
                     hasPublished = true;
-                    var timeoutTask = Task.Delay(_confirmationTimeout);
-                    var completedTask = await Task.WhenAny(confirmationGateTask, timeoutTask);
+                    var timeoutTask = Task.Delay(_confirmationTimeout, _cts.Token);
+                    var completedTask = await Task.WhenAny(watchTask, timeoutTask);
 
-                    if(completedTask == confirmationGateTask)
+                    if(completedTask == watchTask)
                     {
-                        return await FetchConfirmationInternal(handlerContext.TxSubmissions, 3, requestOptions);
+                        return await CompleteFromWatchAsync(await watchTask, handlerContext.Nonce, requestOptions);
                     }
 
                     activeError = new TxConfirmationError.Timeout();
                     continue;
                 }
                 case TxSubmissionResult.NonceTooLow:
-                    return await FetchConfirmationInternal(handlerContext.TxSubmissions, 3, requestOptions);
+                    return await CompleteFromWatchAsync(await watchTask, handlerContext.Nonce, requestOptions);
                 case TxSubmissionResult.TransactionUnderpriced:
                     activeError = new TxConfirmationError.TransactionUnderpriced();
                     continue;
@@ -510,7 +462,8 @@ public sealed class BlockingSequentialTxScheduler(
 
     private async Task ApplyRepricingAsync<TTransaction, TTxParams, TTxGasParams>(
         TTxGasParams gasParams,
-        PendingTxHandler<TTxParams, TTxGasParams> context
+        PendingTxHandler<TTxParams, TTxGasParams> context,
+        ITxWatch watch
     )
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
@@ -527,37 +480,45 @@ public sealed class BlockingSequentialTxScheduler(
             _cts.Token
         );
 
+        _ = watch.TryAddHash(newSub.TxHash);
         context.TxSubmissions.Insert(0, newSub);
 
         if(_resiliencyLayer is not null)
         {
             await _resiliencyLayer.StoreTxSubmissionAsync(
-                newSub.ToStorageType(context.Id, context.Nonce, SenderKey.Sender)
+                newSub.ToStorageType(context.Id, context.Nonce, SenderKey.Sender),
+                _cts.Token
             );
         }
     }
 
-    private async Task<TxConfirmationResult> FetchConfirmationInternal<TTxParams, TTxGasParams>(
-        IEnumerable<TxSubmission<TTxParams, TTxGasParams>> submissions,
-        int retries, RpcRequestOptions requestOptions
+    private async Task<TxConfirmationResult> CompleteFromWatchAsync(
+        TxWatchResult watchResult,
+        ulong nonce,
+        RpcRequestOptions requestOptions
     )
-        where TTxParams : class, ITxParams<TTxParams>
-        where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
-        foreach(var sub in submissions)
+        lock(_stateLock)
         {
-            for(int i = 1; i < retries + 1; i++)
-            {
-                var receipt = await ethRpcModule.GetTransactionReceiptAsync(
-                    sub.TxHash, requestOptions, _cts.Token
-                );
-                if(receipt is not null)
-                {
-                    return new TxConfirmationResult.Success(receipt);
-                }
+            AdvanceConfirmedNonceLocked(nonce + 1);
+        }
 
-                await Task.Delay(i * 1000);
+        if(watchResult is not TxWatchResult.Confirmed(var txHash, _, _))
+        {
+            return new TxConfirmationResult.NonceAlreadyUsed();
+        }
+
+        for(int i = 1; i <= 3; i++)
+        {
+            var receipt = await ethRpcModule.GetTransactionReceiptAsync(
+                in txHash, requestOptions, _cts.Token
+            );
+            if(receipt is not null)
+            {
+                return new TxConfirmationResult.Success(receipt);
             }
+
+            await Task.Delay(i * 1000, _cts.Token);
         }
 
         return new TxConfirmationResult.NonceAlreadyUsed();
@@ -567,8 +528,13 @@ public sealed class BlockingSequentialTxScheduler(
     public void Dispose()
     {
         _cts.Cancel();
+        if(_initialized)
+        {
+            NonceSubscription.Dispose();
+            NonceAllocator.Dispose();
+        }
+
         _cts.Dispose();
-        _workerSignal.Dispose();
         _preparationLock.Dispose();
         GC.SuppressFinalize(this);
     }
