@@ -1,4 +1,4 @@
-﻿using EtherSharp.ABI.Types;
+using EtherSharp.ABI.Types;
 using EtherSharp.ABI.Types.Base;
 using EtherSharp.Types;
 using System.Collections.Immutable;

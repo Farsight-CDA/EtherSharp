@@ -1,4 +1,4 @@
-﻿using EtherSharp.Generator.ABI.Members;
+using EtherSharp.Generator.ABI.Members;
 using EtherSharp.Generator.ABI.SourceWriters;
 using EtherSharp.Generator.ABI.SourceWriters.Components;
 using EtherSharp.Generator.ABI.Util;

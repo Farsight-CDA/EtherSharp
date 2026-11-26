@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.ABI.Types.Base;
+namespace EtherSharp.ABI.Types.Base;
 
 /// <summary>
 /// Represents an ABI type whose value is encoded in the dynamic payload section.

@@ -1,4 +1,4 @@
-﻿using EtherSharp.Crypto;
+using EtherSharp.Crypto;
 using EtherSharp.Types;
 using System.ComponentModel.DataAnnotations;
 using static System.Runtime.InteropServices.JavaScript.JSType;

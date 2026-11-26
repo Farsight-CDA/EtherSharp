@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 using EtherSharp.Bench.Common;
 using EtherSharp.Client;
 using EtherSharp.Contract;

@@ -1,4 +1,4 @@
-﻿using EtherSharp.Query;
+using EtherSharp.Query;
 
 namespace EtherSharp.Client.Modules.Query;
 

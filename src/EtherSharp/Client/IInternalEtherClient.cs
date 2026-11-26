@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Client;
+namespace EtherSharp.Client;
 
 /// <summary>
 /// Internal EtherClient Interface.

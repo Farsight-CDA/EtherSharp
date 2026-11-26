@@ -1,4 +1,4 @@
-﻿using EtherSharp.ABI.Decode.Interfaces;
+using EtherSharp.ABI.Decode.Interfaces;
 using EtherSharp.ABI.Types;
 using EtherSharp.Numerics;
 using EtherSharp.Types;

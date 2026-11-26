@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Tx.PendingHandler;
+namespace EtherSharp.Tx.PendingHandler;
 
 internal interface IInternalPendingTxHandler
 {

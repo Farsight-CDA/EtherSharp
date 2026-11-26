@@ -1,4 +1,4 @@
-﻿using EtherSharp.RPC.Modules.Trace;
+using EtherSharp.RPC.Modules.Trace;
 using EtherSharp.RPC.Modules.Trace.Types;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;

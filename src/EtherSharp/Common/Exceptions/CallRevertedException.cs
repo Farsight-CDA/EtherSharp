@@ -1,4 +1,4 @@
-﻿using EtherSharp.Common;
+using EtherSharp.Common;
 using EtherSharp.Types;
 using SolidityError = EtherSharp.Contract.Sections.SolidityErrors.Error;
 using SolidityPanic = EtherSharp.Contract.Sections.SolidityErrors.Panic;

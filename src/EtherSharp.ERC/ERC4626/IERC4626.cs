@@ -1,4 +1,4 @@
-﻿using EtherSharp.Contract;
+using EtherSharp.Contract;
 
 namespace EtherSharp.ERC.ERC4626;
 

@@ -1,4 +1,4 @@
-﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC;
 
 namespace EtherSharp.Types;

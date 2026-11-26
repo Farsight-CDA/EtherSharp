@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client.Services.FlashCall;
+using EtherSharp.Client.Services.FlashCall;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Tx;

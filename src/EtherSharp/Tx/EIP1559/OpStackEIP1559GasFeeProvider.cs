@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client;
+using EtherSharp.Client;
 using EtherSharp.Client.Services;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Common.Exceptions;

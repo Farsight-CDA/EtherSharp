@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Types;
+namespace EtherSharp.Types;
 
 /// <summary>
 /// Represents a report regarding OPCode Support on an EVM Chain.

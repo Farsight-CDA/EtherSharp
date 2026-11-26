@@ -1,4 +1,4 @@
-﻿using EtherSharp.Contract;
+using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Tx;
 using EtherSharp.Tx.Types;

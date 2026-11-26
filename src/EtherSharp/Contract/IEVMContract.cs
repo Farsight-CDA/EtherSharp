@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client;
+using EtherSharp.Client;
 using EtherSharp.Types;
 
 namespace EtherSharp.Contract;

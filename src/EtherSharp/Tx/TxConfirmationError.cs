@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Tx;
+namespace EtherSharp.Tx;
 
 /// <summary>
 /// Represents an error condition while trying to confirm a transaction on-chain.

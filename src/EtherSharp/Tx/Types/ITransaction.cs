@@ -1,4 +1,4 @@
-﻿using EtherSharp.Numerics;
+using EtherSharp.Numerics;
 using EtherSharp.Tx;
 using EtherSharp.Wallet;
 

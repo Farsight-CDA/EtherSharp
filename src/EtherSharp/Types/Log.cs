@@ -1,4 +1,4 @@
-﻿using EtherSharp.Realtime.Events;
+using EtherSharp.Realtime.Events;
 using System.Text.Json.Serialization;
 
 namespace EtherSharp.Types;

@@ -1,4 +1,4 @@
-﻿using EtherSharp.Types;
+using EtherSharp.Types;
 
 namespace EtherSharp.RPC.Transport;
 /// <summary>

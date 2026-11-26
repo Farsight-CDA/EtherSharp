@@ -1,4 +1,4 @@
-﻿using EtherSharp.Contract;
+using EtherSharp.Contract;
 using EtherSharp.Types;
 using System.Runtime.CompilerServices;
 

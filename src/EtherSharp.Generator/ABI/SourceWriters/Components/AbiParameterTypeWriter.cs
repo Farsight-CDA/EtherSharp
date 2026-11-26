@@ -1,4 +1,4 @@
-﻿using EtherSharp.Generator.ABI.Parameters;
+using EtherSharp.Generator.ABI.Parameters;
 using EtherSharp.Generator.ABI.Util;
 using EtherSharp.Generator.SyntaxElements;
 using EtherSharp.Generator.Util;

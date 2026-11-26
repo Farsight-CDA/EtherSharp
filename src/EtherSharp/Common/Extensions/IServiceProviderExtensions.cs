@@ -1,4 +1,4 @@
-﻿using EtherSharp.Common.Instrumentation;
+using EtherSharp.Common.Instrumentation;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;

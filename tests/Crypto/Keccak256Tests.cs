@@ -1,4 +1,4 @@
-﻿using EtherSharp.Crypto;
+using EtherSharp.Crypto;
 using System.Text;
 
 namespace EtherSharp.Tests.Crypto;

@@ -1,4 +1,4 @@
-﻿using EtherSharp.Generator.Util;
+using EtherSharp.Generator.Util;
 
 namespace EtherSharp.Generator.ABI.SourceWriters.Components;
 

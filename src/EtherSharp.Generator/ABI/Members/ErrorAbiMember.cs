@@ -1,4 +1,4 @@
-﻿using Epoche;
+using Epoche;
 using EtherSharp.Generator.ABI.Parameters;
 using System.Text;
 using System.Text.Json.Serialization;

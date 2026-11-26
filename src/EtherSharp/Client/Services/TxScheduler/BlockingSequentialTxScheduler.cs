@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client.Services.GasFeeProvider;
+using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Common.Exceptions;

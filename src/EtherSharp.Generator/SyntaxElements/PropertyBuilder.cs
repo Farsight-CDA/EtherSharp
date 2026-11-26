@@ -1,4 +1,4 @@
-﻿using EtherSharp.Generator.Util;
+using EtherSharp.Generator.Util;
 using System.Globalization;
 using System.Text;
 

@@ -1,4 +1,4 @@
-﻿using EtherSharp.RPC.Modules.Eth;
+using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 
 namespace EtherSharp.Client.Services.TxPublisher;

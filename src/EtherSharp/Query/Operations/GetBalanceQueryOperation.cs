@@ -1,4 +1,4 @@
-﻿using EtherSharp.Numerics;
+using EtherSharp.Numerics;
 using EtherSharp.Types;
 using System.Buffers.Binary;
 

@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Generator.ABI;
+namespace EtherSharp.Generator.ABI;
 
 public enum StateMutability
 {

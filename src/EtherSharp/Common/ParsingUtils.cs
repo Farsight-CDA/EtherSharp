@@ -1,4 +1,4 @@
-﻿using EtherSharp.Common.Converters.Json;
+using EtherSharp.Common.Converters.Json;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Trace.Converter;
 using EtherSharp.Types;

@@ -1,4 +1,4 @@
-﻿using EtherSharp.Tx;
+using EtherSharp.Tx;
 
 namespace EtherSharp.RLP;
 

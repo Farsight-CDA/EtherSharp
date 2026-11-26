@@ -1,4 +1,4 @@
-﻿using EtherSharp.Realtime;
+using EtherSharp.Realtime;
 using EtherSharp.RPC.Transport;
 
 namespace EtherSharp.Client.Services.Subscriptions;

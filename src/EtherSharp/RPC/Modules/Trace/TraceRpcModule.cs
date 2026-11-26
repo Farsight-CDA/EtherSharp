@@ -1,4 +1,4 @@
-﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Trace.Types;
 using EtherSharp.RPC.Transport;

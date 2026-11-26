@@ -1,4 +1,4 @@
-﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Common.Instrumentation;
 using EtherSharp.Realtime;

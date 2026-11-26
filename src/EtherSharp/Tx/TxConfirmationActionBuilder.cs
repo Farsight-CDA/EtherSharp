@@ -1,4 +1,4 @@
-﻿using EtherSharp.Tx.Types;
+using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Tx;
 /// <summary>

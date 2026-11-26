@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Query;
+namespace EtherSharp.Query;
 
 /// <summary>
 /// Identifies a low-level operation in the Querier protocol.

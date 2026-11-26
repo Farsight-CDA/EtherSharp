@@ -1,4 +1,4 @@
-﻿using EtherSharp.Types;
+using EtherSharp.Types;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 

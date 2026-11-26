@@ -1,4 +1,4 @@
-﻿using EtherSharp.Realtime.Events;
+using EtherSharp.Realtime.Events;
 using EtherSharp.Realtime.Events.Subscription;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;

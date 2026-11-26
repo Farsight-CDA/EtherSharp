@@ -1,4 +1,4 @@
-﻿using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.Contract;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;

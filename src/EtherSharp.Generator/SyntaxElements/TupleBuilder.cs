@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Generator.SyntaxElements;
+namespace EtherSharp.Generator.SyntaxElements;
 
 public sealed class TupleElement(string type, string? name) : ISyntaxBuilder
 {

@@ -1,4 +1,4 @@
-﻿using EtherSharp.Generator.ABI;
+using EtherSharp.Generator.ABI;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 

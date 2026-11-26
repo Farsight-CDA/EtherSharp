@@ -1,4 +1,4 @@
-﻿using EtherSharp.Crypto;
+using EtherSharp.Crypto;
 using EtherSharp.Types;
 using Keysmith.Net.EC;
 using Keysmith.Net.SLIP;

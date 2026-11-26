@@ -1,4 +1,4 @@
-﻿using EtherSharp.ABI;
+using EtherSharp.ABI;
 using EtherSharp.Types;
 
 namespace EtherSharp.Tests.ABI.Encoder;

@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client.Modules.Blocks;
+using EtherSharp.Client.Modules.Blocks;
 using EtherSharp.Client.Modules.Debug;
 using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;

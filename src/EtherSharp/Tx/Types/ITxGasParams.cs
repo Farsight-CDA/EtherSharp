@@ -1,4 +1,4 @@
-﻿using EtherSharp.Numerics;
+using EtherSharp.Numerics;
 
 namespace EtherSharp.Tx.Types;
 

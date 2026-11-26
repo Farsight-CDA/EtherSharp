@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Query.Operations;
+namespace EtherSharp.Query.Operations;
 
 internal sealed class NoopQueryOperation<T>(T value) : IQuery<T>
 {

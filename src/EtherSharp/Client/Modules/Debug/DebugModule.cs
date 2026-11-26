@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client;
+using EtherSharp.Client;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Debug;
 using EtherSharp.RPC.Transport;

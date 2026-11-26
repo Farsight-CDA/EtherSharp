@@ -1,4 +1,4 @@
-﻿using EtherSharp.Common;
+using EtherSharp.Common;
 using EtherSharp.Crypto;
 using EtherSharp.Numerics;
 using EtherSharp.RLP;

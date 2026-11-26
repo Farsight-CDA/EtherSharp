@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Generator.ABI.Util;
+namespace EtherSharp.Generator.ABI.Util;
 
 internal sealed class HexUtils
 {

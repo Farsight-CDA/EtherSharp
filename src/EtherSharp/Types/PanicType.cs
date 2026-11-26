@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Types;
+namespace EtherSharp.Types;
 /// <summary>
 /// Represents various conditions that result in an EVM execution to panic.
 /// </summary>

@@ -1,4 +1,4 @@
-﻿using EtherSharp.RPC.Transport;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Tx.Types;
 using EtherSharp.Types;

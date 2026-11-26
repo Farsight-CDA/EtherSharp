@@ -1,4 +1,4 @@
-﻿using EtherSharp.RPC.Transport;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Tx.Types;
 
 namespace EtherSharp.Tx.PendingHandler;

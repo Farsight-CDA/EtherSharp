@@ -1,4 +1,4 @@
-﻿using EtherSharp.Client;
+using EtherSharp.Client;
 using EtherSharp.Common.Exceptions;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Transport;

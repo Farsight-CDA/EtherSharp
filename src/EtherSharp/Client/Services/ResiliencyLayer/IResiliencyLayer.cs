@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Client.Services.ResiliencyLayer;
+namespace EtherSharp.Client.Services.ResiliencyLayer;
 
 /// <summary>
 /// Persists submitted transaction metadata so pending flows can be recovered after process restarts.

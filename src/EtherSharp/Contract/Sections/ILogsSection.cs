@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Contract.Sections;
+namespace EtherSharp.Contract.Sections;
 
 /// <summary>
 /// Interface for the logs section of a generated contract schema.

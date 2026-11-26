@@ -1,4 +1,4 @@
-﻿namespace EtherSharp.Contract;
+namespace EtherSharp.Contract;
 
 /// <summary>
 /// Marks an interface as a contract interface with a given ABI.
