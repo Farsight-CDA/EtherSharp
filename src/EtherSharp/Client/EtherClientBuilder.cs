@@ -21,7 +21,6 @@ using EtherSharp.RPC.Modules.Trace;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Legacy;
-using EtherSharp.Tx.Types;
 using EtherSharp.Tx.Watcher;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
@@ -208,12 +207,14 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
             builder.WithLoggerFactory(loggerFactory);
         }
 
-        builder
-            .WithTxPublisher<BasicTxPublisher>()
-            .AddGasFeeProvider<EIP1559GasFeeProvider, EIP1559GasFeeProvider.Configuration, EIP1559TxParams, EIP1559GasParams>(
-                configureGasProvider
-            )
-            .AddGasFeeProvider<LegacyGasFeeProvider, LegacyGasFeeProvider.Configuration, LegacyTxParams, LegacyGasParams>();
+        builder.WithTxPublisher<BasicTxPublisher>();
+
+        if(configureGasProvider is not null)
+        {
+            var gasProviderConfiguration = new EIP1559GasFeeProvider.Configuration();
+            configureGasProvider(gasProviderConfiguration);
+            builder._services.AddSingleton(gasProviderConfiguration);
+        }
 
         return signer is null
             ? builder
@@ -372,21 +373,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     );
 
     /// <summary>
-    /// Configures the SubscriptionsManager.
-    /// </summary>
-    /// <typeparam name="TSusbcriptionManager"></typeparam>
-    /// <param name="configureAction"></param>
-    /// <returns></returns>
-    public EtherClientBuilder WithSubscriptionsManager<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TSusbcriptionManager>(Action<TSusbcriptionManager>? configureAction = null)
-        where TSusbcriptionManager : class, ISubscriptionsManager
-    {
-        _services.AddOrReplaceSingleton<ISubscriptionsManager, TSusbcriptionManager>();
-        AddConfigureAction<ISubscriptionsManager, TSusbcriptionManager>(configureAction);
-        return this;
-    }
-
-    /// <summary>
     /// Configures the TxPublisher.
     /// </summary>
     /// <typeparam name="TTxPublisher"></typeparam>
@@ -398,35 +384,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     {
         _services.AddOrReplaceSingleton<ITxPublisher, TTxPublisher>();
         AddConfigureAction<ITxPublisher, TTxPublisher>(configureAction);
-        return this;
-    }
-
-    /// <summary>
-    /// Configures the transaction confirmation watcher.
-    /// </summary>
-    /// <typeparam name="TTxConfirmationWatcher">Watcher implementation to construct for this client.</typeparam>
-    /// <returns></returns>
-    public EtherClientBuilder WithTxConfirmationWatcher<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTxConfirmationWatcher>()
-        where TTxConfirmationWatcher : class, ITxConfirmationWatcher
-    {
-        _services.AddOrReplaceSingleton<ITxConfirmationWatcher, TTxConfirmationWatcher>();
-        return this;
-    }
-
-    /// <summary>
-    /// Configures the polling transaction confirmation watcher.
-    /// </summary>
-    /// <param name="configureAction">Optional callback to configure polling.</param>
-    /// <returns></returns>
-    public EtherClientBuilder WithPollingTxConfirmationWatcher(Action<PollingTxConfirmationWatcher.Options>? configureAction = null)
-    {
-        var options = new PollingTxConfirmationWatcher.Options();
-        configureAction?.Invoke(options);
-
-        _services.AddOrReplaceSingleton<ITxConfirmationWatcher>(
-            provider => ActivatorUtilities.CreateInstance<PollingTxConfirmationWatcher>(provider, options)
-        );
         return this;
     }
 
@@ -454,35 +411,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     {
         ArgumentNullException.ThrowIfNull(resiliencyLayer);
         _services.AddOrReplaceSingleton(resiliencyLayer);
-        return this;
-    }
-
-    /// <summary>
-    /// Registers a gas fee provider for the specified transaction and gas parameter types.
-    /// </summary>
-    /// <typeparam name="TGasFeeProvider">Provider implementation to construct.</typeparam>
-    /// <typeparam name="TGasFeeProviderConfiguration">Configuration passed to the provider constructor.</typeparam>
-    /// <typeparam name="TTxParams">Transaction parameters accepted by the provider.</typeparam>
-    /// <typeparam name="TTxGasParams">Gas parameters produced by the provider.</typeparam>
-    /// <param name="configureAction">Optional callback to configure the provider.</param>
-    /// <returns>This builder.</returns>
-    public EtherClientBuilder AddGasFeeProvider<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TGasFeeProvider,
-        TGasFeeProviderConfiguration, TTxParams, TTxGasParams>(
-        Action<TGasFeeProviderConfiguration>? configureAction = null
-    )
-        where TGasFeeProvider : class, IGasFeeProvider<TTxParams, TTxGasParams>
-        where TGasFeeProviderConfiguration : class, new()
-        where TTxParams : class, ITxParams<TTxParams>
-        where TTxGasParams : class, ITxGasParams
-    {
-        var configuration = new TGasFeeProviderConfiguration();
-        configureAction?.Invoke(configuration);
-
-        _services.AddOrReplaceSingleton<IGasFeeProvider<TTxParams, TTxGasParams>>(provider =>
-            ActivatorUtilities.CreateInstance<TGasFeeProvider>(provider, configuration)
-        );
-
         return this;
     }
 
@@ -574,10 +502,8 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.TryAddSingleton<INonceWatcher, PollingNonceWatcher>();
         _services.TryAddSingleton<ITxConfirmationWatcher, PollingTxConfirmationWatcher>();
         _services.TryAddSingleton<ITxPublisher, BasicTxPublisher>();
-        _services.TryAddSingleton<IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>>(provider => new EIP1559GasFeeProvider(provider.GetRequiredService<IEthRpcModule>())
-        );
-        _services.TryAddSingleton<IGasFeeProvider<LegacyTxParams, LegacyGasParams>>(provider => new LegacyGasFeeProvider(provider.GetRequiredService<IEthRpcModule>())
-        );
+        _services.TryAddSingleton<IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>, EIP1559GasFeeProvider>();
+        _services.TryAddSingleton<IGasFeeProvider<LegacyTxParams, LegacyGasParams>, LegacyGasFeeProvider>();
 
         _services.AddSingleton<IEtherModule, EtherModule>();
         _services.AddSingleton<ITraceModule, TraceModule>();
@@ -586,12 +512,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddSingleton<IDebugModule, DebugModule>();
 
         _services.AddSingleton<ContractFactory>();
-
-        if(!_services.Any(x => x.ServiceType == typeof(ISubscriptionsManager)))
-        {
-            _services.AddSingleton<ISubscriptionsManager, SubscriptionsManager>();
-        }
-
+        _services.TryAddSingleton<ISubscriptionsManager, SubscriptionsManager>();
         _services.AddSingleton<QueryExecutor>();
 
         _services.TryAddSingleton<FlashCallExecutor, DeployedFlashCallExecutor>();
