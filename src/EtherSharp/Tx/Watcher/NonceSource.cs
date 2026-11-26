@@ -5,7 +5,7 @@ namespace EtherSharp.Tx.Watcher;
 /// <summary>
 /// Reads the current nonces of transaction senders.
 /// </summary>
-public interface INonceSource
+public closed class NonceSource
 {
     /// <summary>
     /// A sender whose nonce should be read, with the lowest nonce of interest.
@@ -20,5 +20,5 @@ public interface INonceSource
     /// <summary>
     /// Reads the nonces of all requested senders at the latest block.
     /// </summary>
-    public Task<Snapshot> ReadAsync(ReadOnlyMemory<Request> requests, CancellationToken cancellationToken);
+    public abstract Task<Snapshot> ReadAsync(ReadOnlyMemory<Request> requests, CancellationToken cancellationToken);
 }

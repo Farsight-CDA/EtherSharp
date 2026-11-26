@@ -424,22 +424,24 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         var options = new PollingTxConfirmationWatcher.Options();
         configureAction?.Invoke(options);
 
-        _services.AddOrReplaceSingleton<ITxConfirmationWatcher>(provider => ActivatorUtilities.CreateInstance<PollingTxConfirmationWatcher>(provider, options)
+        _services.AddOrReplaceSingleton<ITxConfirmationWatcher>(
+            provider => ActivatorUtilities.CreateInstance<PollingTxConfirmationWatcher>(provider, options)
         );
         return this;
     }
 
     /// <summary>
-    /// Configures the nonce source used by the polling transaction confirmation watcher.
-    /// Defaults to <see cref="ConstructorCallNonceSource"/>.
+    /// Configures retry and backoff behavior for transient RPC failures in background watchers.
     /// </summary>
-    /// <typeparam name="TNonceSource">Nonce source implementation to construct for this client.</typeparam>
-    /// <returns></returns>
-    public EtherClientBuilder WithNonceSource<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNonceSource>()
-        where TNonceSource : class, INonceSource
+    public EtherClientBuilder WithRpcRetryOptions(Action<RpcRetryOptions> configureAction)
     {
-        _services.AddOrReplaceSingleton<INonceSource, TNonceSource>();
+        ArgumentNullException.ThrowIfNull(configureAction);
+
+        var options = new RpcRetryOptions();
+        configureAction(options);
+        options.Validate(nameof(configureAction));
+
+        _services.AddOrReplaceSingleton(options);
         return this;
     }
 
@@ -549,15 +551,8 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     {
         _services.RemoveAll<FlashCallExecutor>();
         _services.AddSingleton<FlashCallExecutor, StateOverrideFlashCallExecutor>();
-        return WithNonceSource<StateOverrideNonceSource>();
-    }
-
-    private void RunConfigureActions(IServiceProvider provider)
-    {
-        foreach(var (serviceType, _, action) in _configureActions)
-        {
-            action(provider.GetRequiredService(serviceType));
-        }
+        _services.AddOrReplaceSingleton<NonceSource, StateOverrideNonceSource>();
+        return this;
     }
 
     private void AssertReadClientConfiguration()
@@ -574,7 +569,9 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddSingleton<IEthRpcModule, EthRpcModule>();
         _services.AddSingleton<ITraceRpcModule, TraceRpcModule>();
         _services.AddSingleton<IDebugRpcModule, DebugRpcModule>();
-        _services.TryAddSingleton<INonceSource, ConstructorCallNonceSource>();
+        _services.TryAddSingleton<RpcRetryOptions>();
+        _services.TryAddSingleton<NonceSource, ConstructorCallNonceSource>();
+        _services.TryAddSingleton<INonceWatcher, PollingNonceWatcher>();
         _services.TryAddSingleton<ITxConfirmationWatcher, PollingTxConfirmationWatcher>();
         _services.TryAddSingleton<ITxPublisher, BasicTxPublisher>();
         _services.TryAddSingleton<IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>>(provider => new EIP1559GasFeeProvider(provider.GetRequiredService<IEthRpcModule>())
@@ -676,7 +673,11 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     {
         var provider = _services.BuildServiceProvider();
 
-        RunConfigureActions(provider);
+        foreach(var (serviceType, _, action) in _configureActions)
+        {
+            action(provider.GetRequiredService(serviceType));
+        }
+
         _ = provider.GetRequiredService<ITxConfirmationWatcher>();
 
         return provider.GetRequiredService<TClient>();

@@ -1,5 +1,4 @@
 using EtherSharp.Types;
-using System.Diagnostics.CodeAnalysis;
 
 namespace EtherSharp.Tx.Watcher;
 
@@ -22,15 +21,6 @@ public sealed partial class PollingTxConfirmationWatcher
         private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
         private Task _runTask = Task.CompletedTask;
 
-        // Guarded by the state lock. The waiter is set while the slot waits for the heartbeat to observe its nonce being used,
-        // the unused block collects seeds and heartbeat readings until it is handed to the next completed wait.
-        private TaskCompletionSource<(ulong? HighestUnusedBlock, ulong ObservedBlock)>? _nonceWaiter;
-        private ulong? _highestUnusedBlock;
-
-        [MemberNotNullWhen(true, nameof(_nonceWaiter))]
-        public bool IsWaitingForNonceLocked
-            => _nonceWaiter is not null;
-
         public void Start(Func<CancellationToken, Task> run)
             => _runTask = Task.Run(() => run(_cancellation.Token));
 
@@ -40,41 +30,6 @@ public sealed partial class PollingTxConfirmationWatcher
             _ = _cancellation.CancelAsync();
             return _runTask;
         }
-
-        public Task<(ulong? HighestUnusedBlock, ulong ObservedBlock)> WaitForNonceUsedAsync(CancellationToken cancellationToken)
-        {
-            using var scope = Watcher._stateLock.EnterScope();
-
-            _nonceWaiter = new TaskCompletionSource<(ulong? HighestUnusedBlock, ulong ObservedBlock)>(
-                TaskCreationOptions.RunContinuationsAsynchronously
-            );
-
-            return _nonceWaiter.Task.WaitAsync(cancellationToken);
-        }
-
-        public void ObserveNonceLocked(ulong nonce, ulong blockNumber)
-        {
-            if(!IsWaitingForNonceLocked)
-            {
-                return;
-            }
-
-            if(nonce <= Nonce)
-            {
-                RaiseUnusedBlockLocked(blockNumber);
-                return;
-            }
-
-            // The unused block is handed over once, so a wrong seed or reading is not reused after a failed search.
-            _nonceWaiter.SetResult((_highestUnusedBlock, blockNumber));
-            _nonceWaiter = null;
-            _highestUnusedBlock = null;
-        }
-
-        public void RaiseUnusedBlockLocked(ulong blockNumber)
-            => _highestUnusedBlock = _highestUnusedBlock is { } prev
-                ? Math.Max(prev, blockNumber)
-                : blockNumber;
 
         public bool TryAddHash(TxWatchHandle handle, in Bytes32 txHash)
         {

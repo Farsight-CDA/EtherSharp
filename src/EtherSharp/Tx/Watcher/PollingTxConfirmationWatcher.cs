@@ -1,3 +1,4 @@
+using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
@@ -6,8 +7,8 @@ using Microsoft.Extensions.Logging;
 namespace EtherSharp.Tx.Watcher;
 
 /// <summary>
-/// Implementation of <see cref="ITxConfirmationWatcher"/> that polls sender nonces through an
-/// <see cref="INonceSource"/> and resolves each watched slot independently once its nonce is used.
+/// Implementation of <see cref="ITxConfirmationWatcher"/> that watches sender nonces through an
+/// <see cref="INonceWatcher"/> and resolves each watched slot independently once its nonce is used.
 /// </summary>
 public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatcher, IAsyncDisposable
 {
@@ -27,69 +28,60 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
         public ulong MaxLookbackBlocks { get; set; } = 4096;
 
         /// <summary>
-        /// Initial delay before retrying a block or transaction that a lagging node does not serve yet, doubled per retry.
-        /// </summary>
-        public TimeSpan RetryDelay { get; set; } = TimeSpan.FromMilliseconds(500);
-
-        /// <summary>
-        /// Upper bound of the backoff after consecutive errors, starting at one second.
-        /// </summary>
-        public TimeSpan MaxErrorBackoff { get; set; } = TimeSpan.FromSeconds(16);
-
-        /// <summary>
         /// Optional RPC request options applied to watcher RPC calls.
         /// </summary>
         public RpcRequestOptions RequestOptions { get; set; }
     }
 
     private readonly IEthRpcModule _ethRpcModule;
-    private readonly INonceSource _nonceSource;
+    private readonly INonceWatcher _nonceWatcher;
     private readonly ILogger<PollingTxConfirmationWatcher>? _logger;
 
     private readonly TimeSpan _pollInterval;
     private readonly ulong _maxLookbackBlocks;
     private readonly TimeSpan _retryDelay;
-    private readonly TimeSpan _maxErrorBackoffDelay;
+    private readonly TimeSpan _maxErrorBackoff;
     private readonly RpcRequestOptions _requestOptions;
 
     private readonly Lock _stateLock = new Lock();
     private readonly Dictionary<(Address Sender, ulong Nonce), SlotTracker> _slots = [];
-    private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
-    private Task? _heartbeatTask;
     private bool _isDisposed;
 
     /// <summary>
     /// Creates a new <see cref="PollingTxConfirmationWatcher"/> backed by the supplied Ethereum RPC module.
     /// </summary>
     /// <param name="ethRpcModule">RPC module used to query nonces, blocks, transactions, and receipts.</param>
-    /// <param name="nonceSource">Source polled for the current sender nonces.</param>
+    /// <param name="nonceWatcher">Watcher subscribed to for sender nonce updates.</param>
     /// <param name="options">Optional watcher configuration.</param>
+    /// <param name="retryOptions">Optional retry and backoff configuration for transient RPC failures.</param>
     /// <param name="logger">Optional logger for transient RPC diagnostics.</param>
     public PollingTxConfirmationWatcher(
         IEthRpcModule ethRpcModule,
-        INonceSource nonceSource,
+        INonceWatcher nonceWatcher,
         Options? options = null,
+        RpcRetryOptions? retryOptions = null,
         ILogger<PollingTxConfirmationWatcher>? logger = null
     )
     {
         ArgumentNullException.ThrowIfNull(ethRpcModule);
-        ArgumentNullException.ThrowIfNull(nonceSource);
+        ArgumentNullException.ThrowIfNull(nonceWatcher);
 
         var resolved = options ?? new Options();
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(resolved.PollInterval, TimeSpan.Zero, nameof(options));
         ArgumentOutOfRangeException.ThrowIfZero(resolved.MaxLookbackBlocks, nameof(options));
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(resolved.RetryDelay, TimeSpan.Zero, nameof(options));
-        ArgumentOutOfRangeException.ThrowIfLessThan(resolved.MaxErrorBackoff, _errorBackoffDelay, nameof(options));
+
+        var resolvedRetryOptions = retryOptions ?? new RpcRetryOptions();
+        resolvedRetryOptions.Validate(nameof(retryOptions));
 
         _ethRpcModule = ethRpcModule;
-        _nonceSource = nonceSource;
+        _nonceWatcher = nonceWatcher;
         _logger = logger;
 
         _pollInterval = resolved.PollInterval;
         _maxLookbackBlocks = resolved.MaxLookbackBlocks;
-        _retryDelay = resolved.RetryDelay;
-        _maxErrorBackoffDelay = resolved.MaxErrorBackoff;
+        _retryDelay = resolvedRetryOptions.RetryDelay;
+        _maxErrorBackoff = resolvedRetryOptions.MaxErrorBackoff;
         _requestOptions = resolved.RequestOptions;
     }
 
@@ -111,13 +103,7 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
         {
             slot = new SlotTracker(this, sender, nonce);
             _slots.Add(key, slot);
-            slot.Start(cancellationToken => RunSlotAsync(slot, cancellationToken));
-            _heartbeatTask ??= Task.Run(() => RunHeartbeatAsync(_cts.Token));
-        }
-
-        if(unusedAtBlock is { } block)
-        {
-            slot.RaiseUnusedBlockLocked(block);
+            slot.Start(cancellationToken => RunSlotAsync(slot, unusedAtBlock, cancellationToken));
         }
 
         var handle = new TxWatchHandle(slot);
@@ -154,31 +140,19 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
                 tasks.Add(slot.CancelAsync());
             }
 
-            if(_heartbeatTask is not null)
-            {
-                tasks.Add(_heartbeatTask);
-            }
+            _slots.Clear();
         }
 
         try
         {
-            await _cts.CancelAsync();
-
-            try
-            {
-                await Task.WhenAll(tasks);
-            }
-            catch(OperationCanceledException)
-            {
-            }
-            catch(Exception ex)
-            {
-                _logger?.LogDebug(ex, "Dispose: In-flight work failed during shutdown");
-            }
+            await Task.WhenAll(tasks);
         }
-        finally
+        catch(OperationCanceledException)
         {
-            _cts.Dispose();
+        }
+        catch(Exception ex)
+        {
+            _logger?.LogDebug(ex, "Dispose: In-flight work failed during shutdown");
         }
     }
 }

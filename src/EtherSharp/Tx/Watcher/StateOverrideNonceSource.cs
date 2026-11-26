@@ -15,7 +15,7 @@ public sealed class StateOverrideNonceSource(
     IEthRpcModule ethRpcModule,
     RpcRequestOptions requestOptions = default,
     ILogger<StateOverrideNonceSource>? logger = null
-) : INonceSource
+) : NonceSource
 {
     private const ulong NONCE_SEARCH_BELOW = 256;
     private const int NONCE_SEARCH_COUNT = 4096;
@@ -26,7 +26,7 @@ public sealed class StateOverrideNonceSource(
     private readonly ILogger<StateOverrideNonceSource>? _logger = logger;
 
     /// <inheritdoc/>
-    public async Task<INonceSource.Snapshot> ReadAsync(ReadOnlyMemory<INonceSource.Request> requests, CancellationToken cancellationToken)
+    public override async Task<Snapshot> ReadAsync(ReadOnlyMemory<Request> requests, CancellationToken cancellationToken)
     {
         var nonceQueries = new IQuery<NonceSearchResult>[requests.Length];
         for(int i = 0; i < nonceQueries.Length; i++)
@@ -69,6 +69,6 @@ public sealed class StateOverrideNonceSource(
             }
         }
 
-        return new INonceSource.Snapshot(blockNumber, nonces);
+        return new Snapshot(blockNumber, nonces);
     }
 }

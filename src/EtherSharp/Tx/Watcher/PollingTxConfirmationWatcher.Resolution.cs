@@ -1,4 +1,5 @@
 using EtherSharp.Common.Exceptions;
+using EtherSharp.RPC;
 using EtherSharp.Types;
 using Microsoft.Extensions.Logging;
 
@@ -11,13 +12,39 @@ public sealed partial class PollingTxConfirmationWatcher
     private const int BLOCK_FETCH_RETRY_COUNT = 3;
     private const int FAILED_SEARCH_LIMIT = 2;
 
-    private async Task RunSlotAsync(SlotTracker slot, CancellationToken cancellationToken)
+    private async Task<(ulong? HighestUnusedBlock, ulong ObservedBlock)> WaitForNonceUsedAsync(
+        SlotTracker slot,
+        ulong? highestUnusedBlock,
+        CancellationToken cancellationToken
+    )
+    {
+        using var subscription = _nonceWatcher.Subscribe(slot.Sender, _pollInterval, slot.Nonce);
+        await foreach(var (observedNonce, blockNumber) in subscription.ListenAsync(cancellationToken))
+        {
+            if(observedNonce <= slot.Nonce)
+            {
+                highestUnusedBlock = highestUnusedBlock is { } prev
+                    ? Math.Max(prev, blockNumber)
+                    : blockNumber;
+                continue;
+            }
+
+            return (highestUnusedBlock, blockNumber);
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        throw new ObjectDisposedException(nameof(INonceWatcher));
+    }
+
+    private async Task RunSlotAsync(SlotTracker slot, ulong? unusedAtBlock, CancellationToken cancellationToken)
     {
         int failedSearchCount = 0;
-        var errorBackoffDelay = _errorBackoffDelay;
+        var errorBackoffDelay = _retryDelay;
         while(true)
         {
-            var (lowBlock, observedBlock) = await slot.WaitForNonceUsedAsync(cancellationToken);
+            var (lowBlock, observedBlock) = await WaitForNonceUsedAsync(slot, unusedAtBlock, cancellationToken);
+            // The seed is only used once so a wrong seed is not reused after a failed search.
+            unusedAtBlock = null;
 
             try
             {
@@ -57,11 +84,11 @@ public sealed partial class PollingTxConfirmationWatcher
                 // An error leaves the search unfinished, so it does not count as a failed search.
                 _logger?.LogWarning(ex, "Slot {Sender}/{Nonce}: Search failed", slot.Sender, slot.Nonce);
                 await Task.Delay(errorBackoffDelay, cancellationToken);
-                errorBackoffDelay = NextErrorBackoffDelay(errorBackoffDelay);
+                errorBackoffDelay = RpcRetryOptions.NextBackoff(errorBackoffDelay, _maxErrorBackoff);
                 continue;
             }
 
-            errorBackoffDelay = _errorBackoffDelay;
+            errorBackoffDelay = _retryDelay;
 
             // A reorg is found by the next search, a block that keeps lacking the transaction will not change.
             failedSearchCount++;

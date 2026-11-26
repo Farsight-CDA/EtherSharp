@@ -17,7 +17,7 @@ public sealed class ConstructorCallNonceSource(
     IEthRpcModule ethRpcModule,
     RpcRequestOptions requestOptions = default,
     ILogger<ConstructorCallNonceSource>? logger = null
-) : INonceSource
+) : NonceSource
 {
     private const ulong NONCE_SEARCH_BELOW = 256;
     private const int NONCE_SEARCH_COUNT = 4096;
@@ -45,7 +45,7 @@ public sealed class ConstructorCallNonceSource(
     private readonly ILogger<ConstructorCallNonceSource>? _logger = logger;
 
     /// <inheritdoc/>
-    public async Task<INonceSource.Snapshot> ReadAsync(ReadOnlyMemory<INonceSource.Request> requests, CancellationToken cancellationToken)
+    public override async Task<Snapshot> ReadAsync(ReadOnlyMemory<Request> requests, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfZero(requests.Length);
 
@@ -104,6 +104,6 @@ public sealed class ConstructorCallNonceSource(
             );
         }
 
-        return new INonceSource.Snapshot(blockNumber, nonces);
+        return new Snapshot(blockNumber, nonces);
     }
 }
