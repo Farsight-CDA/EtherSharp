@@ -27,7 +27,7 @@ internal static class BigIntegerExtensions
     /// <param name="value">The value to serialize.</param>
     /// <param name="target">The destination span; must be exactly 32 bytes long.</param>
     /// <param name="isBigEndian">Must be <see langword="true"/>; little-endian is not implemented.</param>
-    /// <exception cref="NotImplementedException"><paramref name="isBigEndian"/> is <see langword="false"/>.</exception>
+    /// <exception cref="NotSupportedException"><paramref name="isBigEndian"/> is <see langword="false"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="target"/> is not 32 bytes long.</exception>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> does not fit in 256 bits.</exception>
     /// <exception cref="OverflowException"><paramref name="value"/> is negative.</exception>
@@ -35,7 +35,7 @@ internal static class BigIntegerExtensions
     {
         if (!isBigEndian)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         if (target.Length != 32)
