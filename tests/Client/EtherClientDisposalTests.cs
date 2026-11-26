@@ -22,7 +22,7 @@ public sealed class EtherClientDisposalTests
         ((IInternalEtherClientBuilder) builder).Services.AddSingleton(_ => asyncSentinel);
         ((IInternalEtherClientBuilder) builder).Services.AddSingleton(_ => syncSentinel);
 
-        var client = builder.BuildReadClient();
+        var client = builder.Build();
 
         _ = client.AsInternal().Provider.GetRequiredService<IRPCTransport>();
         _ = client.AsInternal().Provider.GetRequiredService<IAsyncDisposable>();

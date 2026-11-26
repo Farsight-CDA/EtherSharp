@@ -11,7 +11,6 @@ using EtherSharp.Client.Services.QueryExecutor;
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.Subscriptions;
 using EtherSharp.Client.Services.TxPublisher;
-using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common;
 using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
@@ -23,7 +22,6 @@ using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Legacy;
 using EtherSharp.Tx.Watcher;
 using EtherSharp.Types;
-using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -73,25 +71,17 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// </summary>
     /// <param name="websocketUrl"></param>
     /// <param name="requestTimeout"></param>
-    /// <param name="nonceMode"></param>
-    /// <param name="confirmationTimeout">Transaction confirmation timeout. Defaults to 30 seconds.</param>
-    /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
     /// <param name="configureWebSocketOptions">Optional callback invoked before every connection attempt, including reconnects. Compression is disabled unless configured through the socket options.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForWebsocket(
-        string websocketUrl, TimeSpan? requestTimeout = null, NonceMode nonceMode = NonceMode.ExclusiveLocal,
-        TimeSpan? confirmationTimeout = null,
-        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
+        string websocketUrl, TimeSpan? requestTimeout = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null,
         Action<ClientWebSocketOptions>? configureWebSocketOptions = null
     ) => CreateForWebsocket(
         new Uri(websocketUrl, UriKind.Absolute),
         requestTimeout,
-        nonceMode,
-        confirmationTimeout,
-        signer,
         loggerFactory,
         configureGasProvider,
         configureWebSocketOptions
@@ -102,17 +92,12 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// </summary>
     /// <param name="websocketUri"></param>
     /// <param name="requestTimeout"></param>
-    /// <param name="nonceMode"></param>
-    /// <param name="confirmationTimeout">Transaction confirmation timeout. Defaults to 30 seconds.</param>
-    /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
     /// <param name="configureWebSocketOptions">Optional callback invoked before every connection attempt, including reconnects. Compression is disabled unless configured through the socket options.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForWebsocket(
-        Uri websocketUri, TimeSpan? requestTimeout = null, NonceMode nonceMode = NonceMode.ExclusiveLocal,
-        TimeSpan? confirmationTimeout = null,
-        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
+        Uri websocketUri, TimeSpan? requestTimeout = null, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null,
         Action<ClientWebSocketOptions>? configureWebSocketOptions = null
     )
@@ -125,36 +110,22 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
                 new WssJsonRpcTransport(websocketUri, requestTimeout.Value, provider, configureWebSocketOptions: configureWebSocketOptions)
         };
 
-        return ConfigureDefaults(
-            builder,
-            nonceMode,
-            confirmationTimeout,
-            signer,
-            loggerFactory,
-            configureGasProvider
-        );
+        return ConfigureDefaults(builder, loggerFactory, configureGasProvider);
     }
 
     /// <summary>
     /// Creates an EtherClientBuilder preconfigured for a HTTP RPC.
     /// </summary>
     /// <param name="rpcUrl"></param>
-    /// <param name="nonceMode"></param>
-    /// <param name="confirmationTimeout">Transaction confirmation timeout. Defaults to 30 seconds.</param>
-    /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
     /// <param name="httpMessageHandler">Optional caller-owned handler. When omitted, a handler with gzip, deflate, and Brotli response decompression enabled is created.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForHttpRpc(
-        string rpcUrl, NonceMode nonceMode = NonceMode.ExclusiveLocal, TimeSpan? confirmationTimeout = null,
-        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
+        string rpcUrl, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null, HttpMessageHandler? httpMessageHandler = null
     ) => CreateForHttpRpc(
         new Uri(rpcUrl, UriKind.Absolute),
-        nonceMode,
-        confirmationTimeout,
-        signer,
         loggerFactory,
         configureGasProvider,
         httpMessageHandler
@@ -164,16 +135,12 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     /// Creates an EtherClientBuilder preconfigured for a HTTP RPC.
     /// </summary>
     /// <param name="rpcUri"></param>
-    /// <param name="nonceMode"></param>
-    /// <param name="confirmationTimeout">Transaction confirmation timeout. Defaults to 30 seconds.</param>
-    /// <param name="signer"></param>
     /// <param name="loggerFactory"></param>
     /// <param name="configureGasProvider"></param>
     /// <param name="httpMessageHandler">Optional caller-owned handler. When omitted, a handler with gzip, deflate, and Brotli response decompression enabled is created.</param>
     /// <returns></returns>
     public static EtherClientBuilder CreateForHttpRpc(
-        Uri rpcUri, NonceMode nonceMode = NonceMode.ExclusiveLocal, TimeSpan? confirmationTimeout = null,
-        IEtherSigner? signer = null, ILoggerFactory? loggerFactory = null,
+        Uri rpcUri, ILoggerFactory? loggerFactory = null,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider = null, HttpMessageHandler? httpMessageHandler = null
     )
     {
@@ -183,21 +150,11 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
                 new HttpJsonRpcTransport(rpcUri, provider, httpMessageHandler: httpMessageHandler)
         };
 
-        return ConfigureDefaults(
-            builder,
-            nonceMode,
-            confirmationTimeout,
-            signer,
-            loggerFactory,
-            configureGasProvider
-        );
+        return ConfigureDefaults(builder, loggerFactory, configureGasProvider);
     }
 
     private static EtherClientBuilder ConfigureDefaults(
         EtherClientBuilder builder,
-        NonceMode nonceMode,
-        TimeSpan? confirmationTimeout,
-        IEtherSigner? signer,
         ILoggerFactory? loggerFactory,
         Action<EIP1559GasFeeProvider.Configuration>? configureGasProvider
     )
@@ -216,11 +173,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
             builder._services.AddSingleton(gasProviderConfiguration);
         }
 
-        return signer is null
-            ? builder
-            : builder
-                .WithSigner(signer)
-                .WithBlockingSequentialTxScheduler(nonceMode, confirmationTimeout ?? TimeSpan.FromSeconds(30));
+        return builder;
     }
 
     /// <summary>
@@ -285,17 +238,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
-    /// Configures the signer.
-    /// </summary>
-    /// <param name="signer"></param>
-    /// <returns></returns>
-    public EtherClientBuilder WithSigner(IEtherSigner signer)
-    {
-        _services.AddOrReplaceSingleton<IEtherSigner, IEtherSigner>(signer);
-        return this;
-    }
-
-    /// <summary>
     /// Configures the LoggerFactory.
     /// </summary>
     /// <param name="loggerFactory"></param>
@@ -320,57 +262,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddOrReplaceSingleton(jsonSerializerOptions);
         return this;
     }
-
-    /// <summary>
-    /// Configures the TxScheduler.
-    /// </summary>
-    /// <typeparam name="TTxScheduler"></typeparam>
-    /// <param name="configureAction"></param>
-    /// <returns></returns>
-    public EtherClientBuilder WithTxScheduler<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTxScheduler>(Action<TTxScheduler>? configureAction = null)
-        where TTxScheduler : class, ITxScheduler
-    {
-        _services.AddOrReplaceSingleton<ITxScheduler, TTxScheduler>();
-        AddConfigureAction<ITxScheduler, TTxScheduler>(configureAction);
-        return this;
-    }
-
-    /// <summary>
-    /// Configures the TxScheduler using a registration-only options object.
-    /// </summary>
-    /// <typeparam name="TTxScheduler"></typeparam>
-    /// <typeparam name="TOptions"></typeparam>
-    /// <param name="configureAction"></param>
-    /// <returns></returns>
-    public EtherClientBuilder WithTxScheduler<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTxScheduler,
-        TOptions>(Action<TOptions>? configureAction = null)
-        where TTxScheduler : class, ITxScheduler
-        where TOptions : class, new()
-    {
-        var options = new TOptions();
-        configureAction?.Invoke(options);
-
-        _services.AddOrReplaceSingleton<TTxScheduler, TTxScheduler>(provider => ActivatorUtilities.CreateInstance<TTxScheduler>(provider, options));
-        _services.AddOrReplaceSingleton<ITxScheduler>(provider => provider.GetRequiredService<TTxScheduler>());
-        return this;
-    }
-
-    /// <summary>
-    /// Configures the default blocking sequential tx scheduler.
-    /// </summary>
-    /// <param name="nonceMode"></param>
-    /// <param name="confirmationTimeout"></param>
-    /// <returns></returns>
-    public EtherClientBuilder WithBlockingSequentialTxScheduler(
-        NonceMode nonceMode, TimeSpan confirmationTimeout
-    ) => WithTxScheduler<BlockingSequentialTxScheduler, BlockingSequentialTxScheduler.Options>(options =>
-        {
-            options.NonceMode = nonceMode;
-            options.ConfirmationTimeout = confirmationTimeout;
-        }
-    );
 
     /// <summary>
     /// Configures the TxPublisher.
@@ -483,11 +374,11 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         return this;
     }
 
-    private void AssertReadClientConfiguration()
+    private void AssertConfiguration()
     {
         if(_transportRegistration is null)
         {
-            throw new InvalidOperationException($"No RPCTransport configured. Call the {nameof(WithRPCTransport)} method prior to {nameof(BuildReadClient)}.");
+            throw new InvalidOperationException($"No RPCTransport configured. Call the {nameof(WithRPCTransport)} method prior to {nameof(Build)}.");
         }
 
         _services.AddSingleton(_transportRegistration);
@@ -547,51 +438,16 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
-    /// Builds a client supporting read-only operations.
+    /// Builds an <see cref="IEtherClient"/>.
     /// </summary>
     /// <returns></returns>
-    public IEtherClient BuildReadClient()
+    public IEtherClient Build()
     {
-        AssertReadClientConfiguration();
+        AssertConfiguration();
 
         var configuredChainId = _configuredChainId;
-        _services.AddSingleton<IEtherClient>(provider => new EtherClient(provider, false, configuredChainId));
+        _services.AddSingleton<IEtherClient>(provider => new EtherClient(provider, configuredChainId));
 
-        return BuildClient<IEtherClient>();
-    }
-
-    private void AssertTxClientConfiguration()
-    {
-        AssertReadClientConfiguration();
-
-        if(!_services.Any(x => x.ServiceType == typeof(IEtherSigner)))
-        {
-            throw new InvalidOperationException($"No {nameof(IEtherSigner)} configured. Call the {nameof(WithSigner)} method prior to {nameof(BuildTxClient)}");
-        }
-
-        if(!_services.Any(x => x.ServiceType == typeof(ITxScheduler)))
-        {
-            throw new InvalidOperationException($"No {nameof(ITxScheduler)} configured. Call the {nameof(WithTxScheduler)} method prior to {nameof(BuildTxClient)}");
-        }
-    }
-
-    /// <summary>
-    /// Creates a client supporting read and write operations.
-    /// </summary>
-    /// <returns></returns>
-    public IEtherTxClient BuildTxClient()
-    {
-        AssertTxClientConfiguration();
-
-        var configuredChainId = _configuredChainId;
-        _services.AddSingleton<IEtherClient>(provider => provider.GetRequiredService<IEtherTxClient>());
-        _services.AddSingleton<IEtherTxClient>(provider => new EtherClient(provider, true, configuredChainId));
-
-        return BuildClient<IEtherTxClient>();
-    }
-
-    private TClient BuildClient<TClient>() where TClient : IEtherClient
-    {
         var provider = _services.BuildServiceProvider();
 
         foreach(var (serviceType, _, action) in _configureActions)
@@ -601,6 +457,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
 
         _ = provider.GetRequiredService<ITxConfirmationWatcher>();
 
-        return provider.GetRequiredService<TClient>();
+        return provider.GetRequiredService<IEtherClient>();
     }
 }

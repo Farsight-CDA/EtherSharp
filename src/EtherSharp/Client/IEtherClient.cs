@@ -13,6 +13,7 @@ using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
 using EtherSharp.Tx.Types;
 using EtherSharp.Types;
+using EtherSharp.Wallet;
 
 namespace EtherSharp.Client;
 
@@ -147,6 +148,11 @@ public interface IEtherClient : IAsyncDisposable
     /// </summary>
     /// <returns>The internal client view.</returns>
     public IInternalEtherClient AsInternal();
+
+    /// <summary>
+    /// Creates a builder for attaching a signer to this client.
+    /// </summary>
+    public EtherTxClientBuilder Attach(IEtherSigner signer);
 
     /// <summary>
     /// Initializes the client and loads chain capabilities.

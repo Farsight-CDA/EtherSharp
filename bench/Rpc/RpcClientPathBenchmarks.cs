@@ -122,7 +122,7 @@ public class RpcClientPathBenchmarks
             builder.AddRPCMiddleware(middleware);
         }
 
-        var client = builder.BuildReadClient();
+        var client = builder.Build();
         return client.AsInternal().Provider.GetRequiredService<RpcClient>();
     }
 }

@@ -18,7 +18,7 @@ public sealed class EtherModuleTests
         await using var client = EtherClientBuilder.CreateEmpty()
             .WithRPCTransport(transport)
             .WithChainId(1, ChainIdMode.Assume)
-            .BuildReadClient();
+            .Build();
         await client.InitializeAsync(forceNoQuery: true);
         transport.ClearReceivedCalls();
 

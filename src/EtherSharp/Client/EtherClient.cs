@@ -10,7 +10,6 @@ using EtherSharp.Client.Services.FlashCall;
 using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.QueryExecutor;
 using EtherSharp.Client.Services.Subscriptions;
-using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.Common;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
@@ -19,17 +18,15 @@ using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
-using EtherSharp.Tx.PendingHandler;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EtherSharp.Client;
 
-internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEtherClient
+internal sealed class EtherClient : IEtherClient, IInternalEtherClient
 {
     private readonly IServiceProvider _provider;
-    private readonly bool _isTxClient;
     private readonly (ulong ChainId, ChainIdMode Mode)? _configuredChainId;
     private readonly CallGasLimitSettings _callGasLimitSettings;
     private readonly IRPCTransport _rpcTransport;
@@ -41,9 +38,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     private IDebugModule _debugModule = null!;
 
     private IEthRpcModule _ethRpcModule = null!;
-
-    private IEtherSigner _signer = null!;
-    private ITxScheduler _txScheduler = null!;
 
     private QueryExecutor _queryExecutor = null!;
     private FlashCallExecutor _flashCallExecutor = null!;
@@ -58,12 +52,10 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
     internal EtherClient(
         IServiceProvider provider,
-        bool isTxClient,
         (ulong ChainId, ChainIdMode Mode)? configuredChainId
     )
     {
         _provider = provider;
-        _isTxClient = isTxClient;
         _configuredChainId = configuredChainId;
         _callGasLimitSettings = provider.GetRequiredService<CallGasLimitSettings>();
         _rpcTransport = provider.GetRequiredService<IRPCTransport>();
@@ -228,12 +220,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         _subscriptionsManager = _provider.GetRequiredService<ISubscriptionsManager>();
         _contractFactory = _provider.GetRequiredService<ContractFactory>();
         _jsonSerializerContext = _provider.GetRequiredService<EtherSharpJsonSerializerContext>();
-
-        if(_isTxClient)
-        {
-            _signer = _provider.GetRequiredService<IEtherSigner>();
-            _txScheduler = _provider.GetRequiredService<ITxScheduler>();
-        }
     }
 
     private async Task InitializeNoQueryAsync(RpcRequestOptions requestOptions, CancellationToken cancellationToken)
@@ -335,6 +321,9 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
 
     IInternalEtherClient IEtherClient.AsInternal() => this;
 
+    EtherTxClientBuilder IEtherClient.Attach(IEtherSigner signer)
+        => new EtherTxClientBuilder(this, signer);
+
     Task<TxData?> IEtherClient.GetTransactionAsync(in Bytes32 hash, RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
@@ -391,12 +380,8 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
-
-        return options.From is null && _isTxClient
-            ? _ethRpcModule.EstimateGasAsync(
-                call.To, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
-            : _ethRpcModule.EstimateGasAsync(
-                call.To, call.Value, call.Data, options, requestOptions, cancellationToken);
+        return _ethRpcModule.EstimateGasAsync(
+            call.To, call.Value, call.Data, options, requestOptions, cancellationToken);
     }
 
     public Task<AccessListResult> CreateAccessListAsync(
@@ -404,12 +389,8 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         RpcRequestOptions requestOptions, CancellationToken cancellationToken)
     {
         AssertReady();
-
-        return options.From is null && _isTxClient
-            ? _ethRpcModule.CreateAccessListAsync(
-                call.To, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
-            : _ethRpcModule.CreateAccessListAsync(
-                call.To, call.Value, call.Data, options, requestOptions, cancellationToken);
+        return _ethRpcModule.CreateAccessListAsync(
+            call.To, call.Value, call.Data, options, requestOptions, cancellationToken);
     }
 
     async Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
@@ -420,11 +401,6 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
         var gasFeeProvider = _provider.GetService<IGasFeeProvider<TTxParams, TTxGasParams>>()
             ?? throw new InvalidOperationException(
                 $"No GasFeeProvider found that supports {typeof(TTxParams).FullName};{typeof(TTxGasParams).FullName} is not registered");
-
-        if(from is null && _isTxClient)
-        {
-            from = _signer.Address;
-        }
 
         return await gasFeeProvider.EstimateGasParamsAsync(
             call, txParams ?? TTxParams.Default, from, requestOptions, cancellationToken
@@ -444,11 +420,8 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
     {
         AssertReady();
 
-        var resultTask = options.From is null && _isTxClient
-            ? _ethRpcModule.CallAsync(
-                call.To, null, call.Value, call.Data, options with { From = _signer.Address }, requestOptions, cancellationToken)
-            : _ethRpcModule.CallAsync(
-                call.To, null, call.Value, call.Data, options, requestOptions, cancellationToken);
+        var resultTask = _ethRpcModule.CallAsync(
+            call.To, null, call.Value, call.Data, options, requestOptions, cancellationToken);
 
         return ParseAsync(call, resultTask);
 
@@ -523,18 +496,4 @@ internal sealed class EtherClient : IEtherClient, IEtherTxClient, IInternalEther
             return result.Unwrap();
         }
     }
-
-    async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams,
-        RpcRequestOptions requestOptions, CancellationToken cancellationToken
-    )
-        where TTxParams : class
-        where TTxGasParams : class
-        => await _txScheduler.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
-            call, txParams, txGasParams, requestOptions, cancellationToken
-        );
-
-    async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        Guid id, CancellationToken cancellationToken
-    ) => await _txScheduler.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(id, cancellationToken);
 }

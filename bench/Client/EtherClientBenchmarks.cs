@@ -2,21 +2,19 @@ using BenchmarkDotNet.Attributes;
 using EtherSharp.Bench.Common;
 using EtherSharp.Client;
 using EtherSharp.Contract;
-using EtherSharp.Wallet;
 
 namespace EtherSharp.Bench.Client;
 
 [MemoryDiagnoser]
 public class EtherClientBenchmarks
 {
-    private readonly IEtherTxClient _client;
+    private readonly IEtherClient _client;
 
     public EtherClientBenchmarks()
     {
-        var wallet = EtherHdWallet.Create();
         _client = EtherClientBuilder
-            .CreateForHttpRpc("https://optimism.llamarpc.com", signer: wallet)
-            .BuildTxClient();
+            .CreateForHttpRpc("https://optimism.llamarpc.com")
+            .Build();
 
         _client.InitializeAsync().GetAwaiter().GetResult();
     }

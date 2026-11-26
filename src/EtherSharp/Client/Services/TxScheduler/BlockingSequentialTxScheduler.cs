@@ -20,113 +20,56 @@ namespace EtherSharp.Client.Services.TxScheduler;
 /// <summary>
 /// Schedules transactions sequentially by nonce and drives their lifecycle until confirmation.
 /// </summary>
-/// <param name="provider">Service provider used to resolve gas fee providers and optional services.</param>
-/// <param name="ethRpcModule">RPC module used for nonce and receipt queries.</param>
-/// <param name="signer">Signer representing the sender account for scheduled transactions.</param>
-/// <param name="txPublisher">Publisher used to submit signed transactions to the network.</param>
-/// <param name="nonceWatcher">Shared watcher used for background nonce sync and sequential gating.</param>
-/// <param name="txConfirmationWatcher">Shared watcher used to confirm transaction inclusion.</param>
-/// <param name="options">Configuration for nonce synchronization and transaction confirmation behavior.</param>
-public sealed class BlockingSequentialTxScheduler(
-    IServiceProvider provider,
-    IEthRpcModule ethRpcModule,
-    IEtherSigner signer,
-    ITxPublisher txPublisher,
-    INonceWatcher nonceWatcher,
-    ITxConfirmationWatcher txConfirmationWatcher,
-    BlockingSequentialTxScheduler.Options options
-) : ITxScheduler, IInitializableService, IDisposable
+internal sealed class BlockingSequentialTxScheduler : IDisposable
 {
-    /// <summary>
-    /// Configuration for <see cref="BlockingSequentialTxScheduler"/>.
-    /// </summary>
-    public sealed class Options
-    {
-        /// <summary>
-        /// Controls how nonce allocation is synchronized with the node.
-        /// </summary>
-        public NonceMode NonceMode { get; set; } = NonceMode.ExclusiveLocal;
-
-        /// <summary>
-        /// Time to wait for confirmation after publishing before invoking the error callback with a timeout.
-        /// </summary>
-        public TimeSpan ConfirmationTimeout { get; set; } = TimeSpan.FromSeconds(30);
-
-        internal TimeSpan BackgroundSyncInterval { get; init; } = TimeSpan.FromSeconds(300);
-    }
-
-    private readonly IResiliencyLayer? _resiliencyLayer = provider.GetService<IResiliencyLayer>();
-    private readonly ILogger? _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<BlockingSequentialTxScheduler>();
-    private readonly NonceMode _nonceMode = options.NonceMode;
-    private readonly TimeSpan _confirmationTimeout = options.ConfirmationTimeout;
-    private readonly TimeSpan _backgroundSyncInterval = options.BackgroundSyncInterval;
+    private readonly IServiceProvider _provider;
+    private readonly IEthRpcModule _ethRpcModule;
+    private readonly IEtherSigner _signer;
+    private readonly ITxPublisher _txPublisher;
+    private readonly ITxConfirmationWatcher _txConfirmationWatcher;
+    private readonly INonceAllocator _nonceAllocator;
+    private readonly INonceSubscription _nonceSubscription;
+    private readonly IResiliencyLayer? _resiliencyLayer;
+    private readonly ILogger? _logger;
+    private readonly TxSenderKey _senderKey;
+    private readonly TimeSpan _confirmationTimeout;
 
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
-
     private readonly Lock _stateLock = new Lock();
     private readonly SemaphoreSlim _preparationLock = new SemaphoreSlim(1);
-
-    private bool _initialized;
-    private ulong _confirmedNonce;
-
     private readonly Dictionary<ulong, TaskCompletionSource> _nonceGates = [];
 
-    private TxSenderKey SenderKey
-    {
-        get => _initialized ? field : throw new InvalidOperationException("Not initialized");
-        set;
-    }
+    private ulong _confirmedNonce;
 
-    private INonceAllocator NonceAllocator
-    {
-        get => field ?? throw new InvalidOperationException("Not initialized");
-        set;
-    } = null!;
-
-    private INonceSubscription NonceSubscription
-    {
-        get => field ?? throw new InvalidOperationException("Not initialized");
-        set;
-    } = null!;
-
-    /// <inheritdoc/>
-    public async ValueTask InitializeAsync(
-        ulong chainId, RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    /// <summary>
+    /// Creates a new <see cref="BlockingSequentialTxScheduler"/>.
+    /// </summary>
+    public BlockingSequentialTxScheduler(
+        IServiceProvider provider,
+        IEthRpcModule ethRpcModule,
+        IEtherSigner signer,
+        ITxPublisher txPublisher,
+        INonceWatcher nonceWatcher,
+        ITxConfirmationWatcher txConfirmationWatcher,
+        INonceAllocator nonceAllocator,
+        ulong chainId,
+        ulong confirmedNonce,
+        TimeSpan confirmationTimeout
     )
     {
-        var senderKey = new TxSenderKey(chainId, signer.Address);
-        ulong confirmedNonce = await ethRpcModule.GetTransactionCountAsync(
-            senderKey.Sender, TargetHeight.Latest, requestOptions, cancellationToken
-        );
-
-        ulong initialNonce = confirmedNonce;
-        if(_resiliencyLayer is not null)
-        {
-            ulong? dbNonce = await _resiliencyLayer.GetLastSubmittedNonceAsync(senderKey, cancellationToken);
-            if(dbNonce is { } lastSubmitted)
-            {
-                initialNonce = Math.Max(lastSubmitted + 1, confirmedNonce);
-            }
-        }
-
-        NonceAllocator = _nonceMode switch
-        {
-            NonceMode.ExclusiveLocal => new LocalNonceAllocator(nonceWatcher, senderKey.Sender, initialNonce),
-            NonceMode.BackgroundSync => new LocalNonceAllocator(
-                nonceWatcher,
-                senderKey.Sender,
-                initialNonce,
-                new LocalNonceAllocator.Options { SyncInterval = _backgroundSyncInterval }
-            ),
-            NonceMode.RefreshOnAllocate => new RefreshOnAllocateNonceAllocator(ethRpcModule, senderKey.Sender, initialNonce),
-            _ => throw new NotSupportedException($"Unsupported nonce mode {_nonceMode}."),
-        };
-
+        _provider = provider;
+        _ethRpcModule = ethRpcModule;
+        _signer = signer;
+        _txPublisher = txPublisher;
+        _txConfirmationWatcher = txConfirmationWatcher;
+        _nonceAllocator = nonceAllocator;
+        _resiliencyLayer = provider.GetService<IResiliencyLayer>();
+        _logger = provider.GetService<ILoggerFactory>()?.CreateLogger<BlockingSequentialTxScheduler>();
+        _senderKey = new TxSenderKey(chainId, signer.Address);
         _confirmedNonce = confirmedNonce;
-        SenderKey = senderKey;
-        NonceSubscription = nonceWatcher.Subscribe(senderKey.Sender, TimeSpan.Zero, confirmedNonce);
-        _initialized = true;
+        _confirmationTimeout = confirmationTimeout;
 
+        _nonceSubscription = nonceWatcher.Subscribe(signer.Address, TimeSpan.Zero, confirmedNonce);
         _ = Task.Run(ObserveConfirmedNoncesAsync, CancellationToken.None);
     }
 
@@ -169,7 +112,7 @@ public sealed class BlockingSequentialTxScheduler(
 
     private async Task ObserveConfirmedNoncesAsync()
     {
-        await foreach(var (observedNonce, _) in NonceSubscription.ListenAsync())
+        await foreach(var (observedNonce, _) in _nonceSubscription.ListenAsync())
         {
             lock(_stateLock)
             {
@@ -178,7 +121,6 @@ public sealed class BlockingSequentialTxScheduler(
         }
     }
 
-    /// <inheritdoc/>
     public async ValueTask<IPendingTxHandler<TTxParams, TTxGasParams>> PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
         ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams,
         RpcRequestOptions requestOptions = default, CancellationToken cancellationToken = default
@@ -194,12 +136,12 @@ public sealed class BlockingSequentialTxScheduler(
         try
         {
             txParams ??= TTxParams.Default;
-            txGasParams ??= await provider.GetRequiredService<IGasFeeProvider<TTxParams, TTxGasParams>>()
+            txGasParams ??= await _provider.GetRequiredService<IGasFeeProvider<TTxParams, TTxGasParams>>()
                 .EstimateGasParamsAsync(
-                    call, txParams, signer.Address, requestOptions, cts.Token
+                    call, txParams, _signer.Address, requestOptions, cts.Token
                 );
 
-            ulong myNonce = await NonceAllocator.AllocateAsync(requestOptions, cts.Token);
+            ulong myNonce = await _nonceAllocator.AllocateAsync(requestOptions, cts.Token);
             TxSubmission<TTxParams, TTxGasParams> submission;
 
             try
@@ -215,7 +157,7 @@ public sealed class BlockingSequentialTxScheduler(
             }
             catch
             {
-                _ = await NonceAllocator.TryReleaseAsync(myNonce, CancellationToken.None);
+                _ = await _nonceAllocator.TryReleaseAsync(myNonce, CancellationToken.None);
                 throw;
             }
 
@@ -242,10 +184,10 @@ public sealed class BlockingSequentialTxScheduler(
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
-        var transaction = TTransaction.Create(SenderKey.ChainId, nonce, call, txParams, gasParams);
-        var signedTransaction = await transaction.SignAsync(signer, cancellationToken);
+        var transaction = TTransaction.Create(_senderKey.ChainId, nonce, call, txParams, gasParams);
+        var signedTransaction = await transaction.SignAsync(_signer, cancellationToken);
         return new TxSubmission<TTxParams, TTxGasParams>(
-            SenderKey.ChainId, sequence, signedTransaction.Hash, signedTransaction.EncodedTx, call, txParams, gasParams
+            _senderKey.ChainId, sequence, signedTransaction.Hash, signedTransaction.EncodedTx, call, txParams, gasParams
         );
     }
 
@@ -254,14 +196,14 @@ public sealed class BlockingSequentialTxScheduler(
         await _preparationLock.WaitAsync(cancellationToken);
         try
         {
-            if(!await NonceAllocator.TryReleaseAsync(nonce, cancellationToken))
+            if(!await _nonceAllocator.TryReleaseAsync(nonce, cancellationToken))
             {
                 return false;
             }
 
             if(_resiliencyLayer is not null)
             {
-                await _resiliencyLayer.DeleteTxSubmissionsAsync(SenderKey, id, cancellationToken);
+                await _resiliencyLayer.DeleteTxSubmissionsAsync(_senderKey, id, cancellationToken);
             }
 
             lock(_stateLock)
@@ -277,7 +219,6 @@ public sealed class BlockingSequentialTxScheduler(
         }
     }
 
-    /// <inheritdoc/>
     public async Task<IPendingTxHandler<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
         Guid id, CancellationToken cancellationToken = default
     )
@@ -292,7 +233,7 @@ public sealed class BlockingSequentialTxScheduler(
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken);
 
-        var stored = await _resiliencyLayer.FetchTxSubmissionsAsync(SenderKey, id, cts.Token);
+        var stored = await _resiliencyLayer.FetchTxSubmissionsAsync(_senderKey, id, cts.Token);
         if(stored.Count == 0)
         {
             throw new InvalidOperationException($"No persisted tx for ID {id}");
@@ -301,7 +242,7 @@ public sealed class BlockingSequentialTxScheduler(
         ulong nonce = stored[0].Nonce;
         foreach(var submission in stored)
         {
-            if(submission.Id != id || submission.ChainId != SenderKey.ChainId || submission.Sender != SenderKey.Sender)
+            if(submission.Id != id || submission.ChainId != _senderKey.ChainId || submission.Sender != _senderKey.Sender)
             {
                 throw new InvalidOperationException($"Persisted submissions do not match transaction {id} for the current chain and sender");
             }
@@ -328,7 +269,7 @@ public sealed class BlockingSequentialTxScheduler(
                     async (_, _, requestOptions) =>
                     {
                         Bytes32[] hashes = [.. typedSubmissions.Select(x => x.TxHash)];
-                        using var watch = txConfirmationWatcher.Watch(SenderKey.Sender, nonce, hashes);
+                        using var watch = _txConfirmationWatcher.Watch(_senderKey.Sender, nonce, hashes);
                         var watchResult = await watch.WaitAsync(_cts.Token);
                         return await CompleteFromWatchAsync(watchResult, nonce, requestOptions);
                     }
@@ -363,13 +304,13 @@ public sealed class BlockingSequentialTxScheduler(
         if(isNewHandler && _resiliencyLayer is not null)
         {
             await _resiliencyLayer.StoreTxSubmissionAsync(
-                handlerContext.TxSubmissions[0].ToStorageType(handlerContext.Id, handlerContext.Nonce, SenderKey.Sender),
+                handlerContext.TxSubmissions[0].ToStorageType(handlerContext.Id, handlerContext.Nonce, _senderKey.Sender),
                 _cts.Token
             );
         }
 
         Bytes32[] initialHashes = [.. handlerContext.TxSubmissions.Select(x => x.TxHash)];
-        using var watch = txConfirmationWatcher.Watch(SenderKey.Sender, handlerContext.Nonce, initialHashes);
+        using var watch = _txConfirmationWatcher.Watch(_senderKey.Sender, handlerContext.Nonce, initialHashes);
         var watchTask = watch.WaitAsync(_cts.Token);
 
         TxConfirmationError? activeError = null;
@@ -420,7 +361,7 @@ public sealed class BlockingSequentialTxScheduler(
             }
 
             // --- Publish & Monitor Phase ---
-            var pubResult = await txPublisher.PublishTxAsync(
+            var pubResult = await _txPublisher.PublishTxAsync(
                 currentSubmission.SignedTx, requestOptions, _cts.Token
             );
 
@@ -486,7 +427,7 @@ public sealed class BlockingSequentialTxScheduler(
         if(_resiliencyLayer is not null)
         {
             await _resiliencyLayer.StoreTxSubmissionAsync(
-                newSub.ToStorageType(context.Id, context.Nonce, SenderKey.Sender),
+                newSub.ToStorageType(context.Id, context.Nonce, _senderKey.Sender),
                 _cts.Token
             );
         }
@@ -510,7 +451,7 @@ public sealed class BlockingSequentialTxScheduler(
 
         for(int i = 1; i <= 3; i++)
         {
-            var receipt = await ethRpcModule.GetTransactionReceiptAsync(
+            var receipt = await _ethRpcModule.GetTransactionReceiptAsync(
                 in txHash, requestOptions, _cts.Token
             );
             if(receipt is not null)
@@ -528,12 +469,8 @@ public sealed class BlockingSequentialTxScheduler(
     public void Dispose()
     {
         _cts.Cancel();
-        if(_initialized)
-        {
-            NonceSubscription.Dispose();
-            NonceAllocator.Dispose();
-        }
-
+        _nonceSubscription.Dispose();
+        _nonceAllocator.Dispose();
         _cts.Dispose();
         _preparationLock.Dispose();
         GC.SuppressFinalize(this);
