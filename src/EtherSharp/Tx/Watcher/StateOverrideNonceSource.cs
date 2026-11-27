@@ -1,5 +1,6 @@
 using EtherSharp.Client.Services.FlashCall;
 using EtherSharp.Client.Services.QueryExecutor;
+using EtherSharp.Common.Extensions;
 using EtherSharp.Query;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
@@ -60,13 +61,7 @@ public sealed class StateOverrideNonceSource(
                 in sender, TargetHeight.Height(blockNumber), _requestOptions, cancellationToken
             );
 
-            if(_logger?.IsEnabled(LogLevel.Warning) == true)
-            {
-                _logger.LogWarning(
-                    "Nonce {Nonce} of {Sender} is outside the search range starting at {SearchStart}; read it with eth_getTransactionCount at block {BlockNumber}",
-                    nonces[i], sender, searchStart, blockNumber
-                );
-            }
+            _logger?.TxWatcher.NonceOutsideSearchRange(nonces[i], sender, searchStart, blockNumber);
         }
 
         return new Snapshot(blockNumber, nonces);

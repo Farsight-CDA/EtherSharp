@@ -148,7 +148,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
         catch(Exception ex)
         {
-            _logger?.LogWarning(ex, "Failed to reinstall subscription of type {type}, retrying", subscription);
+            _logger?.Subscriptions.ReinstallFailed(ex, subscription);
             CompleteInstallation(subscription, connectionGeneration, InstallationOutcome.Failed);
             return;
         }
@@ -236,7 +236,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         catch(Exception ex)
         {
             //Either gone with the connection, or uninstalled once its next notification arrives as unknown
-            _logger?.LogWarning(ex, "Failed to unsubscribe subscription id {id} of type {type}", subscription.Id, subscription);
+            _logger?.Subscriptions.UnsubscribeFailed(ex, subscription.Id, subscription);
         }
         finally
         {
@@ -300,9 +300,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
             if(_activeSubscriptions.Count > 0)
             {
-                _logger?.LogWarning(
-                    connectionError, "Connection lost, {count} subscriptions will be reinstalled once reconnected", _activeSubscriptions.Count
-                );
+                _logger?.Subscriptions.ConnectionLost(connectionError, _activeSubscriptions.Count);
             }
 
             foreach(var subscription in _activeSubscriptions.Values)
@@ -376,12 +374,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
                     subscription.HandleSubscriptionMessage(notification.Result);
                     break;
                 case SubscriptionNotification.Kind.Terminated:
-                    _logger?.LogWarning(
-                        "Subscription id {id} of type {type} was terminated by the node, reinstalling. Reason: {reason}",
-                        subscription.Id,
-                        subscription,
-                        notification.Error
-                    );
+                    _logger?.Subscriptions.TerminatedByNode(subscription.Id, subscription, notification.Error);
 
                     if(_activeSubscriptions.Remove(subscription.Id))
                     {
@@ -394,15 +387,13 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
 
                     break;
                 case SubscriptionNotification.Kind.Malformed:
-                    _logger?.LogWarning(
-                        "Received notification without result for subscription id {id} of type {type}", subscription.Id, subscription
-                    );
+                    _logger?.Subscriptions.MalformedNotification(subscription.Id, subscription);
                     break;
             }
         }
         catch(Exception ex)
         {
-            _logger?.LogWarning(ex, "Failed to process payload for subscription id {id} of type {type}", subscription.Id, subscription);
+            _logger?.Subscriptions.PayloadProcessingFailed(ex, subscription.Id, subscription);
         }
     }
 
@@ -410,11 +401,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
     {
         try
         {
-            if(_logger?.IsEnabled(LogLevel.Debug) == true)
-            {
-                _logger.LogDebug("Uninstalling unknown active subscription with id {id}", subscriptionId);
-            }
-
+            _logger?.Subscriptions.UninstallingUnknown(subscriptionId);
             await _ethRpcModule.UnsubscribeAsync(subscriptionId);
         }
         catch(RpcErrorException ex) when(ex.Message.Contains("not found"))
@@ -423,7 +410,7 @@ internal sealed class SubscriptionsManager : ISubscriptionsManager
         }
         catch(Exception ex)
         {
-            _logger?.LogCritical(ex, "Failed to uninstall unknown subscription with id {id}", subscriptionId);
+            _logger?.Subscriptions.UninstallUnknownFailed(ex, subscriptionId);
         }
     }
 

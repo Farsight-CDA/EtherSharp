@@ -1,3 +1,4 @@
+using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
 using EtherSharp.Types;
 using Microsoft.Extensions.Logging;
@@ -135,7 +136,7 @@ public sealed class PollingNonceWatcher : INonceWatcher, IAsyncDisposable
             }
             catch(Exception ex) when(!cancellationToken.IsCancellationRequested)
             {
-                _logger?.LogWarning(ex, "Heartbeat: Reading nonces of {SenderCount} senders failed", requests.Length);
+                _logger?.TxWatcher.NonceReadFailed(ex, requests.Length);
                 await Task.Delay(errorBackoffDelay, cancellationToken);
                 errorBackoffDelay = RpcRetryOptions.NextBackoff(errorBackoffDelay, _maxErrorBackoff);
             }
@@ -235,7 +236,7 @@ public sealed class PollingNonceWatcher : INonceWatcher, IAsyncDisposable
             }
             catch(Exception ex)
             {
-                _logger?.LogDebug(ex, "Dispose: Heartbeat failed during shutdown");
+                _logger?.TxWatcher.HeartbeatShutdownFailed(ex);
             }
         }
         finally

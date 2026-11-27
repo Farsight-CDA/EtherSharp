@@ -1,3 +1,4 @@
+using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
@@ -152,7 +153,7 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
         }
         catch(Exception ex)
         {
-            _logger?.LogDebug(ex, "Dispose: In-flight work failed during shutdown");
+            _logger?.TxWatcher.InFlightWorkShutdownFailed(ex);
         }
     }
 }

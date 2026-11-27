@@ -1,4 +1,5 @@
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
 using EtherSharp.Types;
 using Microsoft.Extensions.Logging;
@@ -59,10 +60,7 @@ public sealed partial class PollingTxConfirmationWatcher
                 if(await FetchMinedBlockAsync(minedBlock, cancellationToken) is not { } block)
                 {
                     // A desynced or reorging node, which says nothing about the slot, so the next heartbeat starts a fresh search.
-                    _logger?.LogWarning(
-                        "Slot {Sender}/{Nonce}: Block {BlockNumber} unavailable after retries, waiting for the nonce again",
-                        slot.Sender, slot.Nonce, minedBlock
-                    );
+                    _logger?.TxWatcher.SlotBlockUnavailable(slot.Sender, slot.Nonce, minedBlock);
                     continue;
                 }
 
@@ -74,15 +72,12 @@ public sealed partial class PollingTxConfirmationWatcher
                 }
 
                 // E.g. after a reorg, or when the nonce was used by an EIP-7702 authorization instead of a transaction.
-                _logger?.LogWarning(
-                    "Slot {Sender}/{Nonce}: Block {BlockNumber} has no matching transaction",
-                    slot.Sender, slot.Nonce, minedBlock
-                );
+                _logger?.TxWatcher.SlotBlockWithoutMatchingTransaction(slot.Sender, slot.Nonce, minedBlock);
             }
             catch(Exception ex) when(!cancellationToken.IsCancellationRequested)
             {
                 // An error leaves the search unfinished, so it does not count as a failed search.
-                _logger?.LogWarning(ex, "Slot {Sender}/{Nonce}: Search failed", slot.Sender, slot.Nonce);
+                _logger?.TxWatcher.SlotSearchFailed(ex, slot.Sender, slot.Nonce);
                 await Task.Delay(errorBackoffDelay, cancellationToken);
                 errorBackoffDelay = RpcRetryOptions.NextBackoff(errorBackoffDelay, _maxErrorBackoff);
                 continue;
@@ -94,10 +89,7 @@ public sealed partial class PollingTxConfirmationWatcher
             failedSearchCount++;
             if(failedSearchCount >= FAILED_SEARCH_LIMIT)
             {
-                _logger?.LogWarning(
-                    "Slot {Sender}/{Nonce}: Unconfirmed after {SearchCount} searches, treating the nonce as used",
-                    slot.Sender, slot.Nonce, failedSearchCount
-                );
+                _logger?.TxWatcher.SlotUnconfirmed(slot.Sender, slot.Nonce, failedSearchCount);
                 slot.Resolve(null);
                 return;
             }
@@ -132,14 +124,7 @@ public sealed partial class PollingTxConfirmationWatcher
         else
         {
             var level = highestUnusedBlock is null ? LogLevel.Information : LogLevel.Warning;
-            if(_logger?.IsEnabled(level) == true)
-            {
-                _logger.Log(
-                    level,
-                    "Slot {Sender}/{Nonce}: Used at block {ObservedBlock} without usable unused block {UnusedBlock}, looking back",
-                    slot.Sender, slot.Nonce, observedBlock, highestUnusedBlock
-                );
-            }
+            _logger?.TxWatcher.SlotLookingBack(level, slot.Sender, slot.Nonce, observedBlock, highestUnusedBlock);
 
             LookbackResult lookback;
             try
@@ -149,20 +134,13 @@ public sealed partial class PollingTxConfirmationWatcher
             catch(RpcErrorException ex)
             {
                 // E.g. pruned historical state, or a lagging node that does not serve the block yet.
-                _logger?.LogWarning(
-                    ex,
-                    "Slot {Sender}/{Nonce}: Lookback failed, looking up hashes",
-                    slot.Sender, slot.Nonce
-                );
+                _logger?.TxWatcher.SlotLookbackFailed(ex, slot.Sender, slot.Nonce);
                 return new MinedBlockResult.Unavailable();
             }
 
             if(lookback is not LookbackResult.Found(var foundLowBlock, var foundHighBlock))
             {
-                _logger?.LogWarning(
-                    "Slot {Sender}/{Nonce}: Used more than {MaxLookbackBlocks} blocks before block {ObservedBlock}, looking up hashes",
-                    slot.Sender, slot.Nonce, _maxLookbackBlocks, observedBlock
-                );
+                _logger?.TxWatcher.SlotBeyondLookback(slot.Sender, slot.Nonce, _maxLookbackBlocks, observedBlock);
                 return new MinedBlockResult.BeyondLookback();
             }
 
@@ -272,10 +250,7 @@ public sealed partial class PollingTxConfirmationWatcher
                 // A hash registered on the wrong watch must not confirm this slot.
                 if(tx.From != slot.Sender || tx.Nonce != slot.Nonce)
                 {
-                    _logger?.LogWarning(
-                        "Slot {Sender}/{Nonce}: Hash {TxHash} belongs to {TxSender}/{TxNonce}, ignoring it",
-                        slot.Sender, slot.Nonce, hash, tx.From, tx.Nonce
-                    );
+                    _logger?.TxWatcher.SlotHashMismatch(slot.Sender, slot.Nonce, hash, tx.From, tx.Nonce);
                     continue;
                 }
 

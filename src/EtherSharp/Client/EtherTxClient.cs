@@ -6,6 +6,7 @@ using EtherSharp.Client.Modules.Mempool;
 using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.TxPublisher;
+using EtherSharp.Common.Extensions;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Query;
@@ -220,13 +221,7 @@ internal sealed class EtherTxClient(
                 linkedCts.Token.ThrowIfCancellationRequested();
 
                 var id = Guid.NewGuid();
-                if(Logger?.IsEnabled(LogLevel.Information) == true)
-                {
-                    Logger.LogInformation(
-                        "Tx {TxId} {Sender}/{Nonce}: Prepared {TxHash}",
-                        id, Signer.Address, nonce, submission.TxHash
-                    );
-                }
+                Logger?.Tx.Prepared(id, Signer.Address, nonce, submission.TxHash);
 
                 return new PendingTx<TTransaction, TTxParams, TTxGasParams>(
                     id,
@@ -296,13 +291,7 @@ internal sealed class EtherTxClient(
 
         Array.Sort(typedSubmissions, static (a, b) => b.Sequence.CompareTo(a.Sequence));
 
-        if(Logger?.IsEnabled(LogLevel.Information) == true)
-        {
-            Logger.LogInformation(
-                "Tx {TxId} {Sender}/{Nonce}: Attached with {SubmissionCount} submissions, latest {TxHash}",
-                id, Signer.Address, nonce, typedSubmissions.Length, typedSubmissions[0].TxHash
-            );
-        }
+        Logger?.Tx.Attached(id, Signer.Address, nonce, typedSubmissions.Length, typedSubmissions[0].TxHash);
 
         return new PendingTx<TTransaction, TTxParams, TTxGasParams>(
             id,

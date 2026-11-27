@@ -1,5 +1,6 @@
 using EtherSharp.Client;
 using EtherSharp.Common.Exceptions;
+using EtherSharp.Common.Extensions;
 using EtherSharp.Numerics;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
@@ -96,12 +97,9 @@ public sealed class ConstructorCallNonceSource(
             );
         }
 
-        if(!foundFirstNonce && _logger?.IsEnabled(LogLevel.Warning) == true)
+        if(!foundFirstNonce)
         {
-            _logger.LogWarning(
-                "Nonce {Nonce} of {Sender} is outside the search range starting at {SearchStart}; read it with eth_getTransactionCount at block {BlockNumber}",
-                nonces[0], firstSender, searchStart, blockNumber
-            );
+            _logger?.TxWatcher.NonceOutsideSearchRange(nonces[0], firstSender, searchStart, blockNumber);
         }
 
         return new Snapshot(blockNumber, nonces);

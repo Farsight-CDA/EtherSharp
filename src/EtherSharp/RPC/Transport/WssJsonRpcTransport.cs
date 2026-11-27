@@ -154,9 +154,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 connectionError = ex;
             }
 
-            _logger?.LogWarning(
-                connectionError, "Websocket connection lost, killing {RequestCount} pending requests...", _pendingRequests.Count
-            );
+            _logger?.WssTransport.ConnectionLost(connectionError, _pendingRequests.Count);
 
             RaiseConnectionEvent(OnConnectionLost, handler => handler(connectionError), nameof(OnConnectionLost));
 
@@ -192,7 +190,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                     return false;
                 }
 
-                _logger?.LogCritical(ex, "Websocket reconnection attempt crashed, retrying in 3s...");
+                _logger?.WssTransport.ReconnectionCrashed(ex);
             }
 
             try
@@ -217,7 +215,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             }
             catch(Exception ex)
             {
-                _logger?.LogWarning(ex, "{EventName} handler threw", eventName);
+                _logger?.WssTransport.ConnectionEventHandlerThrew(ex, eventName);
             }
         }
     }
@@ -225,7 +223,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
     //Returns on successful connection. Will retry infinitly
     private async Task ConnectSocketAsync(CancellationToken cancellationToken)
     {
-        _logger?.LogDebug("Initiating websocket connection...");
+        _logger?.WssTransport.Connecting();
 
         while(_socket is null || _socket.State != WebSocketState.Open)
         {
@@ -247,12 +245,12 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             }
             catch(Exception ex) when(!cancellationToken.IsCancellationRequested)
             {
-                _logger?.LogDebug(ex, "Connection attempt failed, retrying in 3s...");
+                _logger?.WssTransport.ConnectionAttemptFailed(ex);
                 await Task.Delay(3000, cancellationToken);
             }
         }
 
-        _logger?.LogInformation("Websocket connection established...");
+        _logger?.WssTransport.Connected();
     }
 
     private async Task MessageHandler()
@@ -304,7 +302,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             case PayloadType.Response:
                 if(!_pendingRequests.TryRemove(requestId, out var value))
                 {
-                    _logger?.LogDebug("Received response to request id that is not pending");
+                    _logger?.WssTransport.ResponseNotPending();
                     break;
                 }
 
@@ -323,8 +321,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 DispatchSubscriptionMessage(subscriptionId, message);
                 break;
             default:
-                string payload = System.Text.Encoding.UTF8.GetString(message);
-                _logger?.LogWarning("Received unidentified websocket payload: {payload}", payload);
+                _logger?.WssTransport.UnidentifiedPayload(message);
                 break;
         }
     }
@@ -345,7 +342,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             }
             catch(Exception ex)
             {
-                _logger?.LogWarning(ex, "Subscription handler threw for subscription {SubscriptionId}", subscriptionId);
+                _logger?.WssTransport.SubscriptionHandlerThrew(ex, subscriptionId);
             }
 
             return;
@@ -359,7 +356,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
             }
             catch(Exception ex)
             {
-                _logger?.LogWarning(ex, "Subscription handler threw for subscription {SubscriptionId}", subscriptionId);
+                _logger?.WssTransport.SubscriptionHandlerThrew(ex, subscriptionId);
             }
         }
     }
@@ -380,7 +377,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
             if(reader.TokenType != JsonTokenType.StartObject)
             {
-                _logger?.LogWarning("Failed to identify payload, JSON root is not an object");
+                _logger?.WssTransport.PayloadRootNotObject();
                 return;
             }
 
@@ -423,7 +420,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
 
                             if(!reader.ValueTextEquals("eth_subscription"u8))
                             {
-                                _logger?.LogWarning("Failed to identify payload with method {Method}", reader.GetString());
+                                _logger?.WssTransport.PayloadMethodUnknown(reader.GetString());
                                 return;
                             }
 
@@ -486,7 +483,7 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                     default:
                         if(!reader.Read())
                         {
-                            _logger?.LogWarning("Failed to identify payload, failed to proceed reading");
+                            _logger?.WssTransport.PayloadReadFailed();
                             return;
                         }
 
@@ -494,11 +491,11 @@ public sealed class WssJsonRpcTransport : IRPCTransport, IAsyncDisposable
                 }
             }
 
-            _logger?.LogWarning("Failed to identify payload, no marker found till end of payload");
+            _logger?.WssTransport.PayloadMarkerMissing();
         }
         catch(Exception ex)
         {
-            _logger?.LogWarning(ex, "Exception while trying to identify payload");
+            _logger?.WssTransport.PayloadIdentificationFailed(ex);
         }
     }
 
