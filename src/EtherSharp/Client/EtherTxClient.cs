@@ -239,7 +239,7 @@ internal sealed class EtherTxClient(
         }
     }
 
-    async Task<IPendingTx<TTxParams, TTxGasParams>> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
+    async Task<IPendingTx<TTxParams, TTxGasParams>?> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
         Guid id, CancellationToken cancellationToken
     )
     {
@@ -258,7 +258,7 @@ internal sealed class EtherTxClient(
 
         if(stored.Count == 0)
         {
-            throw new InvalidOperationException($"No persisted tx for ID {id}");
+            return null;
         }
 
         ulong nonce = stored[0].Nonce;

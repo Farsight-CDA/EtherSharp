@@ -130,8 +130,10 @@ public interface IEtherTxClient : IEtherClient
     /// </summary>
     /// <param name="id">The pending transaction's ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A pending transaction handle bound to the existing transaction.</returns>
-    public Task<IPendingTx<EIP1559TxParams, EIP1559GasParams>> AttachPendingTxAsync(
+    /// <returns>
+    /// A pending transaction handle bound to the existing transaction, or <see langword="null"/> if no persisted submissions exist for <paramref name="id"/>.
+    /// </returns>
+    public Task<IPendingTx<EIP1559TxParams, EIP1559GasParams>?> AttachPendingTxAsync(
         Guid id,
         CancellationToken cancellationToken = default
     ) => AttachPendingTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(id, cancellationToken);
@@ -144,8 +146,10 @@ public interface IEtherTxClient : IEtherClient
     /// <typeparam name="TTxGasParams">Gas parameter type.</typeparam>
     /// <param name="id">The pending transaction's ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A pending transaction handle bound to the existing transaction.</returns>
-    public Task<IPendingTx<TTxParams, TTxGasParams>> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
+    /// <returns>
+    /// A pending transaction handle bound to the existing transaction, or <see langword="null"/> if no persisted submissions exist for <paramref name="id"/>.
+    /// </returns>
+    public Task<IPendingTx<TTxParams, TTxGasParams>?> AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
         Guid id,
         CancellationToken cancellationToken = default
     )
