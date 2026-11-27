@@ -1,5 +1,4 @@
 using EtherSharp.Client;
-using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Numerics;
@@ -72,15 +71,29 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             _disposalCts.Token, _clientDisposalToken, cancellationToken
         );
 
-        var submission = LatestSubmission;
-        if(_txClient.ResiliencyLayer is { } resiliencyLayer && _lastPersistedSubmission != submission)
+        await _lock.WaitAsync(linkedCts.Token);
+        try
         {
-            submission = await PersistLatestSubmissionAsync(resiliencyLayer, linkedCts.Token);
-        }
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        var result = await _txClient.TxPublisher.PublishTxAsync(submission.SignedTx, requestOptions, linkedCts.Token);
-        LogPublishResult(submission, result);
-        return result;
+            var submission = LatestSubmission;
+            if(_txClient.ResiliencyLayer is { } resiliencyLayer && _lastPersistedSubmission != submission)
+            {
+                await resiliencyLayer.StoreTxSubmissionAsync(
+                    submission.ToStorageType(Id, _txClient.Signer.Address),
+                    linkedCts.Token
+                );
+                _lastPersistedSubmission = submission;
+            }
+
+            var result = await _txClient.TxPublisher.PublishTxAsync(submission.SignedTx, requestOptions, linkedCts.Token);
+            LogPublishResult(submission, result);
+            return result;
+        }
+        finally
+        {
+            _ = _lock.Release();
+        }
     }
 
     private void LogPublishResult(TxSubmission<TTxParams, TTxGasParams> submission, TxSubmissionResult result)
@@ -136,6 +149,8 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         await _lock.WaitAsync(linkedCts.Token);
         try
         {
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
+
             var submissions = _txSubmissions;
             var latest = submissions[0];
             var gasParams = getGasParams(latest.GasParams);
@@ -293,34 +308,6 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         await _disposalCts.CancelAsync();
         _disposalCts.Dispose();
         _watch.Dispose();
-    }
-
-    private async Task<TxSubmission<TTxParams, TTxGasParams>> PersistLatestSubmissionAsync(
-        IResiliencyLayer resiliencyLayer,
-        CancellationToken cancellationToken
-    )
-    {
-        await _lock.WaitAsync(cancellationToken);
-        try
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var submission = LatestSubmission;
-
-            if(_lastPersistedSubmission != submission)
-            {
-                await resiliencyLayer.StoreTxSubmissionAsync(
-                    submission.ToStorageType(Id, _txClient.Signer.Address),
-                    cancellationToken
-                );
-                _lastPersistedSubmission = submission;
-            }
-
-            return submission;
-        }
-        finally
-        {
-            _ = _lock.Release();
-        }
     }
 
     // Returns the receipt, or null when it stays unavailable after the retries.
