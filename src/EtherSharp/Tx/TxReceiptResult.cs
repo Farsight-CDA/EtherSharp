@@ -1,4 +1,5 @@
 using EtherSharp.Types;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EtherSharp.Tx;
 
@@ -25,4 +26,21 @@ public closed record TxReceiptResult
     /// The nonce was already consumed on-chain and the including transaction could not be located.
     /// </summary>
     public sealed record NonceAlreadyUsed() : TxReceiptResult;
+
+    /// <summary>
+    /// Returns the receipt for a confirmed transaction result.
+    /// </summary>
+    /// <returns>The confirmed transaction receipt.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when this result is not <see cref="Confirmed"/>.</exception>
+    public TxReceipt Unwrap()
+        => this switch
+        {
+            Confirmed confirmed => confirmed.Receipt,
+            Replaced replaced => throw new InvalidOperationException(
+                $"Transaction was replaced by {replaced.TransactionHash} in block {replaced.BlockNumber}"
+            ),
+            NonceAlreadyUsed => throw new InvalidOperationException(
+                "Transaction nonce was already used on-chain"
+            ),
+        };
 }
