@@ -32,7 +32,8 @@ internal sealed class EtherTxClient(
     private readonly IEtherClient _baseClient = baseClient;
     private readonly INonceAllocator _nonceAllocator = nonceAllocator;
 
-    private int _isDisposed;
+    private readonly CancellationTokenSource _disposalCts = new CancellationTokenSource();
+    private volatile bool _isDisposed;
 
     internal IEtherSigner Signer { get; } = signer;
     internal ITxPublisher TxPublisher { get; } = txPublisher;
@@ -181,19 +182,21 @@ internal sealed class EtherTxClient(
         where TTxGasParams : class
     {
         ArgumentNullException.ThrowIfNull(call);
-        ObjectDisposedException.ThrowIf(Volatile.Read(ref _isDisposed) != 0, this);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        var disposalToken = _disposalCts.Token;
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(disposalToken, cancellationToken);
 
         txParams ??= TTxParams.Default;
         txGasParams ??= await _baseClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
-            call, txParams, Signer.Address, requestOptions, cancellationToken
+            call, txParams, Signer.Address, requestOptions, linkedCts.Token
         );
 
-        ulong nonce = await _nonceAllocator.AllocateAsync(requestOptions, cancellationToken);
+        ulong nonce = await _nonceAllocator.AllocateAsync(requestOptions, linkedCts.Token);
 
         try
         {
             var transaction = TTransaction.Create(_baseClient.ChainId, nonce, call, txParams, txGasParams);
-            var signedTransaction = await transaction.SignAsync(Signer, cancellationToken);
+            var signedTransaction = await transaction.SignAsync(Signer, linkedCts.Token);
             var submission = new TxSubmission<TTxParams, TTxGasParams>(
                 _baseClient.ChainId,
                 nonce,
@@ -205,16 +208,22 @@ internal sealed class EtherTxClient(
                 txGasParams
             );
 
+            linkedCts.Token.ThrowIfCancellationRequested();
             return new PendingTx<TTransaction, TTxParams, TTxGasParams>(
                 Guid.NewGuid(),
                 [submission],
                 this,
-                isPersisted: false
+                isPersisted: false,
+                clientDisposalToken: disposalToken
             );
         }
         catch
         {
-            _ = await _nonceAllocator.TryReleaseAsync(nonce, CancellationToken.None);
+            if(!_isDisposed)
+            {
+                _ = await _nonceAllocator.TryReleaseAsync(nonce, CancellationToken.None);
+            }
+
             throw;
         }
     }
@@ -223,16 +232,18 @@ internal sealed class EtherTxClient(
         Guid id, CancellationToken cancellationToken
     )
     {
-        ObjectDisposedException.ThrowIf(Volatile.Read(ref _isDisposed) != 0, this);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         if(ResiliencyLayer is null)
         {
             throw new NotSupportedException("Missing ResiliencyLayer");
         }
 
+        var disposalToken = _disposalCts.Token;
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(disposalToken, cancellationToken);
         var senderKey = new TxSenderKey(_baseClient.ChainId, Signer.Address);
-        var stored = await ResiliencyLayer.FetchTxSubmissionsAsync(senderKey, id, cancellationToken);
-        ObjectDisposedException.ThrowIf(Volatile.Read(ref _isDisposed) != 0, this);
+        var stored = await ResiliencyLayer.FetchTxSubmissionsAsync(senderKey, id, linkedCts.Token);
+        linkedCts.Token.ThrowIfCancellationRequested();
 
         if(stored.Count == 0)
         {
@@ -265,16 +276,20 @@ internal sealed class EtherTxClient(
             id,
             typedSubmissions,
             this,
-            isPersisted: true
+            isPersisted: true,
+            clientDisposalToken: disposalToken
         );
     }
 
     public async ValueTask DisposeAsync()
     {
-        if(Interlocked.Exchange(ref _isDisposed, 1) != 0)
+        if(Interlocked.Exchange(ref _isDisposed, true))
         {
             return;
         }
+
+        await _disposalCts.CancelAsync();
+        _disposalCts.Dispose();
 
         _ownerClient.UnregisterTxClient(this);
         _nonceAllocator.Dispose();

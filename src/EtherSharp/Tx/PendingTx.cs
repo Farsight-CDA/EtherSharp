@@ -19,6 +19,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     private readonly EtherTxClient _txClient;
     private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
     private readonly ITxWatch _watch;
+    private readonly CancellationToken _clientDisposalToken;
     private readonly CancellationTokenSource _disposalCts = new CancellationTokenSource();
 
     private volatile TxSubmission<TTxParams, TTxGasParams>[] _txSubmissions;
@@ -35,7 +36,8 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         Guid id,
         TxSubmission<TTxParams, TTxGasParams>[] txSubmissions,
         EtherTxClient txClient,
-        bool isPersisted
+        bool isPersisted,
+        CancellationToken clientDisposalToken
     )
     {
         ArgumentNullException.ThrowIfNull(txSubmissions);
@@ -50,6 +52,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         Id = id;
         _txSubmissions = txSubmissions;
         _txClient = txClient;
+        _clientDisposalToken = clientDisposalToken;
         _lastPersistedSubmission = isPersisted ? txSubmissions[0] : null;
 
         var sender = txClient.Signer.Address;
@@ -75,7 +78,10 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     )
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_disposalCts.Token, cancellationToken);
+        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            _disposalCts.Token, _clientDisposalToken, cancellationToken
+        );
 
         var submission = _txSubmissions[0];
         if(_txClient.ResiliencyLayer is { } resiliencyLayer && _lastPersistedSubmission != submission)
@@ -93,7 +99,10 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     {
         ArgumentNullException.ThrowIfNull(gasParams);
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_disposalCts.Token, cancellationToken);
+        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            _disposalCts.Token, _clientDisposalToken, cancellationToken
+        );
 
         await _lock.WaitAsync(linkedCts.Token);
         try
@@ -143,7 +152,10 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     )
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_disposalCts.Token, cancellationToken);
+        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            _disposalCts.Token, _clientDisposalToken, cancellationToken
+        );
         return await _watch.WaitAsync(linkedCts.Token);
     }
 
@@ -154,6 +166,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
         ObjectDisposedException.ThrowIf(_isDisposed, this);
+        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
         cancellationToken.ThrowIfCancellationRequested();
 
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -163,7 +176,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         {
             return await WaitForInclusionAsync(timeoutCts.Token);
         }
-        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested && !_isDisposed)
+        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested && !_isDisposed && !_clientDisposalToken.IsCancellationRequested)
         {
             return null;
         }
@@ -175,7 +188,10 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     )
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_disposalCts.Token, cancellationToken);
+        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            _disposalCts.Token, _clientDisposalToken, cancellationToken
+        );
 
         var inclusion = await _watch.WaitAsync(linkedCts.Token);
         return inclusion switch
@@ -198,6 +214,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
         ObjectDisposedException.ThrowIf(_isDisposed, this);
+        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
         cancellationToken.ThrowIfCancellationRequested();
 
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -207,7 +224,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         {
             return await WaitForReceiptAsync(requestOptions, timeoutCts.Token);
         }
-        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested && !_isDisposed)
+        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested && !_isDisposed && !_clientDisposalToken.IsCancellationRequested)
         {
             return null;
         }
