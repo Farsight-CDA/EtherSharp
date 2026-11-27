@@ -228,7 +228,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
-    /// Configures retry and backoff behavior for transient RPC failures in background watchers.
+    /// Configures retry and backoff behavior for transient RPC failures.
     /// </summary>
     public EtherClientBuilder WithRpcRetryOptions(Action<RpcRetryOptions> configureAction)
     {

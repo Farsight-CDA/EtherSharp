@@ -7,10 +7,6 @@ namespace EtherSharp.Client.Services.TxPublisher;
 /// <summary>
 /// Represents the outcome of broadcasting a signed transaction payload.
 /// </summary>
-/// <remarks>
-/// The scheduler uses this result to choose its next action: continue waiting for confirmation,
-/// reprice and retry, or resolve completion through receipt polling.
-/// </remarks>
 public closed record TxSubmissionResult
 {
     private static readonly SearchValues<string> _alreadyExistsMessages = SearchValues.Create(
@@ -77,16 +73,13 @@ public closed record TxSubmissionResult
     /// <summary>
     /// The node rejected the transaction because the effective gas price is too low.
     /// </summary>
-    /// <remarks>
-    /// Schedulers can respond by increasing fees and submitting a replacement transaction with the same nonce.
-    /// </remarks>
     public sealed record TransactionUnderpriced() : TxSubmissionResult;
 
     /// <summary>
     /// The submitted nonce is lower than the account nonce known by the node.
     /// </summary>
     /// <remarks>
-    /// This commonly means the nonce was already consumed by a mined or competing transaction.
+    /// The nonce may have been consumed by an earlier submission of the same transaction.
     /// </remarks>
     public sealed record NonceTooLow() : TxSubmissionResult;
 
