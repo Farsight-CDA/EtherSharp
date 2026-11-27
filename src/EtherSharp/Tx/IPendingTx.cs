@@ -51,13 +51,13 @@ public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
     /// <summary>
     /// Signs a new submission at the same nonce with updated gas parameters and registers its hash with
     /// the active watcher. Does not persist or broadcast.
+    /// Does not check whether the nonce is still open: if it was already consumed, <see cref="PublishAsync"/>
+    /// reports <see cref="TxSubmissionResult.NonceTooLow"/> and the wait methods report the outcome.
     /// </summary>
     /// <param name="gasParams">Updated gas parameters for the replacement submission.</param>
     /// <param name="cancellationToken">Token used to cancel signing.</param>
-    /// <returns>
-    /// The newly created submission, or <see langword="null"/> if this transaction's nonce has already resolved on-chain.
-    /// </returns>
-    public Task<TxSubmission<TTxParams, TTxGasParams>?> TryRepriceAsync(
+    /// <returns>The newly created submission, which is now <see cref="LatestSubmission"/>.</returns>
+    public Task<TxSubmission<TTxParams, TTxGasParams>> RepriceAsync(
         TTxGasParams gasParams,
         CancellationToken cancellationToken = default
     );
@@ -65,22 +65,26 @@ public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
     /// <summary>
     /// Signs a replacement at the same nonce using the latest fees scaled by 1105/1000 (a 10.5% bump),
     /// with a minimum increase of 1 wei per gas. Does not persist or broadcast.
+    /// Does not check whether the nonce is still open: if it was already consumed, <see cref="PublishAsync"/>
+    /// reports <see cref="TxSubmissionResult.NonceTooLow"/> and the wait methods report the outcome.
     /// </summary>
     /// <param name="cancellationToken">Token used to cancel signing.</param>
-    /// <returns>The signed replacement, or <see langword="null"/> if the nonce has already resolved on-chain.</returns>
-    public Task<TxSubmission<TTxParams, TTxGasParams>?> TryBumpFeesAsync(CancellationToken cancellationToken = default)
-        => TryBumpFeesAsync(1105, 1000, 1, cancellationToken);
+    /// <returns>The signed replacement, which is now <see cref="LatestSubmission"/>.</returns>
+    public Task<TxSubmission<TTxParams, TTxGasParams>> BumpFeesAsync(CancellationToken cancellationToken = default)
+        => BumpFeesAsync(1105, 1000, 1, cancellationToken);
 
     /// <summary>
     /// Signs a replacement at the same nonce by scaling the latest submission's fees.
     /// Registers the replacement hash with the active watcher without persisting or broadcasting.
+    /// Does not check whether the nonce is still open: if it was already consumed, <see cref="PublishAsync"/>
+    /// reports <see cref="TxSubmissionResult.NonceTooLow"/> and the wait methods report the outcome.
     /// </summary>
     /// <param name="multiplier">Numerator of the fee scaling factor, at least <paramref name="divider"/>.</param>
     /// <param name="divider">Nonzero denominator of the fee scaling factor.</param>
     /// <param name="minimumIncrement">Minimum absolute increase in each fee per gas.</param>
     /// <param name="cancellationToken">Token used to cancel signing.</param>
-    /// <returns>The signed replacement, or <see langword="null"/> if the nonce has already resolved on-chain.</returns>
-    public Task<TxSubmission<TTxParams, TTxGasParams>?> TryBumpFeesAsync(
+    /// <returns>The signed replacement, which is now <see cref="LatestSubmission"/>.</returns>
+    public Task<TxSubmission<TTxParams, TTxGasParams>> BumpFeesAsync(
         UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement,
         CancellationToken cancellationToken = default
     );

@@ -93,26 +93,26 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         return await _txClient.TxPublisher.PublishTxAsync(submission.SignedTx, requestOptions, linkedCts.Token);
     }
 
-    public async Task<TxSubmission<TTxParams, TTxGasParams>?> TryRepriceAsync(
+    public async Task<TxSubmission<TTxParams, TTxGasParams>> RepriceAsync(
         TTxGasParams gasParams,
         CancellationToken cancellationToken = default
     )
     {
         ArgumentNullException.ThrowIfNull(gasParams);
-        return await TryRepriceAsync(_ => gasParams, cancellationToken);
+        return await RepriceAsync(_ => gasParams, cancellationToken);
     }
 
-    public Task<TxSubmission<TTxParams, TTxGasParams>?> TryBumpFeesAsync(
+    public Task<TxSubmission<TTxParams, TTxGasParams>> BumpFeesAsync(
         UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement,
         CancellationToken cancellationToken = default
     )
     {
         ArgumentOutOfRangeException.ThrowIfEqual(divider, UInt256.Zero);
         ArgumentOutOfRangeException.ThrowIfLessThan(multiplier, divider);
-        return TryRepriceAsync(latest => latest.IncrementByFactor(multiplier, divider, minimumIncrement), cancellationToken);
+        return RepriceAsync(latest => latest.IncrementByFactor(multiplier, divider, minimumIncrement), cancellationToken);
     }
 
-    private async Task<TxSubmission<TTxParams, TTxGasParams>?> TryRepriceAsync(
+    private async Task<TxSubmission<TTxParams, TTxGasParams>> RepriceAsync(
         Func<TTxGasParams, TTxGasParams> getGasParams, CancellationToken cancellationToken
     )
     {
@@ -150,7 +150,6 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             if(!_watch.TryAddHash(submission.TxHash))
             {
                 linkedCts.Token.ThrowIfCancellationRequested();
-                return null;
             }
 
             var updatedSubmissions = new TxSubmission<TTxParams, TTxGasParams>[submissions.Length + 1];
