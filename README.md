@@ -11,6 +11,7 @@ EtherSharp is a high-performance, type-safe .NET library for interacting with Et
 - **Source-Generated Contracts**: Generate strongly-typed methods, events, and errors directly from ABI files.
 - **High Performance**: Optimized for low-latency and high-throughput workloads.
 - **Query Batching**: Combine multiple reads into a single logical query to reduce RPC round trips.
+- **Transaction Lifecycle Support**: Built-in nonce management, fee bumping, and inclusion tracking.
 - **Flash Calling**: Simulate a temporary deployment plus call in one `eth_call` flow.
 - **Realtime Support**: Subscribe to contract events and new block headers over WebSocket transports.
 - **EIP-712 Signing Hashes**: Generate typed-data hashes from source-generated message types.
@@ -22,7 +23,7 @@ EtherSharp is a high-performance, type-safe .NET library for interacting with Et
 
 ### Creating & Configuring a Client
 
-`EtherClientBuilder` provides a fluent API for configuring a read client. You can attach a signer to an initialized client.
+`EtherClientBuilder` provides a fluent API for configuring a read client. Attach a signer to an initialized client to send transactions.
 
 ```csharp
 using EtherSharp.Client;
@@ -35,7 +36,7 @@ var readClient = EtherClientBuilder
 
 await readClient.InitializeAsync();
 
-// Signer-bound client
+// Transaction client (signing + publishing)
 var wallet = new EtherHdWallet("your mnemonic...");
 var txClient = await readClient.Attach(wallet).BuildAsync();
 ```
@@ -101,12 +102,58 @@ var transferCall = erc20.Transfer("0xreceiver...", 1000);
 bool canTransfer = await readClient.CallAsync(transferCall);
 ```
 
+### Sending Transactions
+
+`SendTxAndWaitForReceiptAsync` signs and publishes a transaction once, then waits for its receipt. It throws a `TxPublishException` if the node rejects the transaction.
+
+```csharp
+var erc20Tx = txClient.Contract<IERC20>("0x123...abc");
+
+TxReceiptResult result = await txClient.SendTxAndWaitForReceiptAsync(erc20Tx.Transfer("0xreceiver...", 1000));
+TxReceipt receipt = result.Unwrap(); // Throws if the nonce was consumed by another transaction
+```
+
+The helper never reprices or rebroadcasts. If you need control over the lifecycle, `PrepareTxAsync` reserves a nonce and returns an `IPendingTx` handle. You then decide when to publish, bump fees, and wait.
+
+```csharp
+await using var pendingTx = await txClient.PrepareTxAsync(erc20Tx.Transfer("0xreceiver...", 1000));
+
+TxReceiptResult? result = null;
+while (result is null)
+{
+    var publishResult = await pendingTx.PublishAsync();
+
+    result = publishResult switch
+    {
+        TxSubmissionResult.InsufficientFunds or TxSubmissionResult.UnhandledException
+            => throw new TxPublishException(publishResult),
+        TxSubmissionResult.TransactionUnderpriced => null,
+        _ => await pendingTx.WaitForReceiptAsync(TimeSpan.FromSeconds(30)),
+    };
+
+    // Underpriced or not included in time: sign a replacement at the same nonce with higher fees
+    if (result is null)
+    {
+        await pendingTx.BumpFeesAsync();
+    }
+}
+
+if (result is TxReceiptResult.Confirmed confirmed)
+{
+    Console.WriteLine($"Transaction confirmed: {confirmed.Receipt.TransactionHash}");
+}
+```
+
+If you've configured a resiliency layer with `WithResiliencyLayer`, submissions are persisted when they're published. 
+After a restart, you can resume a transaction with `txClient.AttachPendingTxAsync(pendingTx.Id)`.
+
 ### Native ETH Transfers
 
 You can also build native ETH transfers without creating a contract call.
 
 ```csharp
 var transferInput = txClient.ETH.Transfer("0xreceiver...", 1_000_000_000_000_000_000UL);
+var transferReceipt = (await txClient.SendTxAndWaitForReceiptAsync(transferInput)).Unwrap();
 ```
 
 ### Query API
