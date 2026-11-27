@@ -4,14 +4,14 @@ using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
 using EtherSharp.Client.Modules.Mempool;
 using EtherSharp.Client.Modules.Trace;
-using EtherSharp.Client.Services.TxScheduler;
+using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Query;
 using EtherSharp.Realtime.Events;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
-using EtherSharp.Tx.PendingHandler;
+using EtherSharp.Tx.Nonce;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 
@@ -20,13 +20,15 @@ namespace EtherSharp.Client;
 internal sealed class EtherTxClient(
     EtherClient baseClient,
     IEtherSigner signer,
-    BlockingSequentialTxScheduler txScheduler
+    INonceAllocator nonceAllocator,
+    ITxPublisher txPublisher
 ) : IEtherTxClient
 {
     private readonly EtherClient _ownerClient = baseClient;
     private readonly IEtherClient _baseClient = baseClient;
     private readonly IEtherSigner _signer = signer;
-    private readonly BlockingSequentialTxScheduler _txScheduler = txScheduler;
+    private readonly INonceAllocator _nonceAllocator = nonceAllocator;
+    private readonly ITxPublisher _txPublisher = txPublisher;
 
     private int _isDisposed;
 
@@ -157,27 +159,6 @@ internal sealed class EtherTxClient(
             call, txParams, from ?? _signer.Address, requestOptions, cancellationToken
         );
 
-    async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams,
-        RpcRequestOptions requestOptions, CancellationToken cancellationToken
-    )
-        where TTxParams : class
-        where TTxGasParams : class
-    {
-        ObjectDisposedException.ThrowIf(Volatile.Read(ref _isDisposed) != 0, this);
-        return await _txScheduler.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
-            call, txParams, txGasParams, requestOptions, cancellationToken
-        );
-    }
-
-    async Task<IPendingTxHandler<TTxParams, TTxGasParams>> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
-        Guid id, CancellationToken cancellationToken
-    )
-    {
-        ObjectDisposedException.ThrowIf(Volatile.Read(ref _isDisposed) != 0, this);
-        return await _txScheduler.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(id, cancellationToken);
-    }
-
     public async ValueTask DisposeAsync()
     {
         if(Interlocked.Exchange(ref _isDisposed, 1) != 0)
@@ -186,6 +167,7 @@ internal sealed class EtherTxClient(
         }
 
         _ownerClient.UnregisterTxClient(this);
-        await _txScheduler.DisposeAsync();
+        _nonceAllocator.Dispose();
+        await _txPublisher.DisposeAsync();
     }
 }

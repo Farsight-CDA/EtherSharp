@@ -1,6 +1,5 @@
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.TxPublisher;
-using EtherSharp.Client.Services.TxScheduler;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx.Nonce;
@@ -21,7 +20,6 @@ public sealed class EtherTxClientBuilder
     private readonly IEtherSigner _signer;
 
     private ulong? _initialNonce;
-    private TimeSpan _confirmationTimeout = TimeSpan.FromSeconds(30);
     private Func<IServiceProvider, CancellationToken, ValueTask<ITxPublisher>>? _txPublisherFactory;
     private Func<IServiceProvider, ulong, CancellationToken, ValueTask<INonceAllocator>>? _nonceAllocatorFactory;
 
@@ -105,16 +103,6 @@ public sealed class EtherTxClientBuilder
     }
 
     /// <summary>
-    /// Configures the confirmation timeout before invoking the error callback with a timeout.
-    /// </summary>
-    public EtherTxClientBuilder WithConfirmationTimeout(TimeSpan confirmationTimeout)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(confirmationTimeout, TimeSpan.Zero, nameof(confirmationTimeout));
-        _confirmationTimeout = confirmationTimeout;
-        return this;
-    }
-
-    /// <summary>
     /// Configures the <see cref="ITxPublisher"/> used for transactions sent by this signer.
     /// </summary>
     public EtherTxClientBuilder WithTxPublisher(Func<IServiceProvider, ITxPublisher> txPublisherFactory)
@@ -171,7 +159,6 @@ public sealed class EtherTxClientBuilder
 
         INonceAllocator? nonceAllocator = null;
         ITxPublisher? txPublisher = null;
-        BlockingSequentialTxScheduler txScheduler;
 
         try
         {
@@ -186,19 +173,6 @@ public sealed class EtherTxClientBuilder
             txPublisher = _txPublisherFactory is not null
                 ? await _txPublisherFactory(provider, cancellationToken)
                 : new BasicTxPublisher(ethRpcModule);
-
-            txScheduler = new BlockingSequentialTxScheduler(
-                provider,
-                ethRpcModule,
-                _signer,
-                txPublisher,
-                provider.GetRequiredService<INonceWatcher>(),
-                provider.GetRequiredService<ITxConfirmationWatcher>(),
-                nonceAllocator,
-                _baseClient.ChainId,
-                confirmedNonce,
-                _confirmationTimeout
-            );
         }
         catch
         {
@@ -211,7 +185,7 @@ public sealed class EtherTxClientBuilder
             throw;
         }
 
-        var txClient = new EtherTxClient(_ownerClient, _signer, txScheduler);
+        var txClient = new EtherTxClient(_ownerClient, _signer, nonceAllocator, txPublisher);
 
         try
         {

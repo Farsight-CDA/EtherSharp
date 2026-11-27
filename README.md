@@ -11,7 +11,6 @@ EtherSharp is a high-performance, type-safe .NET library for interacting with Et
 - **Source-Generated Contracts**: Generate strongly-typed methods, events, and errors directly from ABI files.
 - **High Performance**: Optimized for low-latency and high-throughput workloads.
 - **Query Batching**: Combine multiple reads into a single logical query to reduce RPC round trips.
-- **Transaction Lifecycle Support**: Built-in nonce management, gas estimation, and confirmation handling.
 - **Flash Calling**: Simulate a temporary deployment plus call in one `eth_call` flow.
 - **Realtime Support**: Subscribe to contract events and new block headers over WebSocket transports.
 - **EIP-712 Signing Hashes**: Generate typed-data hashes from source-generated message types.
@@ -23,7 +22,7 @@ EtherSharp is a high-performance, type-safe .NET library for interacting with Et
 
 ### Creating & Configuring a Client
 
-`EtherClientBuilder` provides a fluent API for configuring a read client. Attach a signer to an initialized client to send transactions.
+`EtherClientBuilder` provides a fluent API for configuring a read client. You can attach a signer to an initialized client.
 
 ```csharp
 using EtherSharp.Client;
@@ -36,7 +35,7 @@ var readClient = EtherClientBuilder
 
 await readClient.InitializeAsync();
 
-// Transaction client (signing + publishing)
+// Signer-bound client
 var wallet = new EtherHdWallet("your mnemonic...");
 var txClient = await readClient.Attach(wallet).BuildAsync();
 ```
@@ -102,42 +101,12 @@ var transferCall = erc20.Transfer("0xreceiver...", 1000);
 bool canTransfer = await readClient.CallAsync(transferCall);
 ```
 
-### Sending Transactions
-
-`PrepareTxAsync` reserves a nonce and prepares a pending transaction handler. `PublishAndConfirmAsync` publishes and waits for confirmation, with a callback for retry/cancel policy.
-
-```csharp
-// Prepare transaction (reserves a nonce)
-var erc20Tx = txClient.Contract<IERC20>("0x123...abc");
-var txHandler = await txClient.PrepareTxAsync(erc20Tx.Transfer("0xreceiver...", 1000));
-
-// Publish and wait for confirmation with custom retry logic
-var result = await txHandler.PublishAndConfirmAsync(
-    (err, builder, submission) => 
-    {
-        // Strategy for handling failures (e.g., gas price too low)
-        return builder.MinimalGasFeeIncrement(); 
-    }
-);
-
-// Check result using pattern matching
-if (result is TxConfirmationResult.Success success) 
-{
-    Console.WriteLine($"Transaction confirmed: {success.Receipt.TransactionHash}");
-}
-```
-
 ### Native ETH Transfers
 
 You can also build native ETH transfers without creating a contract call.
 
 ```csharp
 var transferInput = txClient.ETH.Transfer("0xreceiver...", 1_000_000_000_000_000_000UL);
-var transferHandler = await txClient.PrepareTxAsync(transferInput);
-
-var transferResult = await transferHandler.PublishAndConfirmAsync(
-    (err, builder, submission) => builder.MinimalGasFeeIncrement()
-);
 ```
 
 ### Query API
