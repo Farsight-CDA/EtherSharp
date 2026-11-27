@@ -1,5 +1,6 @@
 using EtherSharp.Client;
 using EtherSharp.RPC.Transport;
+using EtherSharp.Tx;
 using EtherSharp.Tx.Nonce;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
@@ -51,6 +52,9 @@ public sealed class EtherClientDisposalTests
         Assert.Equal(1, CountCalls(nonceAllocator, nameof(IDisposable.Dispose)));
         Assert.Equal(0, CountCalls((IAsyncDisposable) transport, nameof(IAsyncDisposable.DisposeAsync)));
         Assert.Equal(1UL, client.ChainId);
+        _ = await Assert.ThrowsAsync<ObjectDisposedException>(
+            () => txClient.PrepareTxAsync(Substitute.For<ITxInput>())
+        );
     }
 
     [Fact]
@@ -67,6 +71,12 @@ public sealed class EtherClientDisposalTests
         Assert.Equal(1, CountCalls(firstAllocator, nameof(IDisposable.Dispose)));
         Assert.Equal(1, CountCalls(secondAllocator, nameof(IDisposable.Dispose)));
         Assert.Equal(1, CountCalls((IAsyncDisposable) transport, nameof(IAsyncDisposable.DisposeAsync)));
+        _ = await Assert.ThrowsAsync<ObjectDisposedException>(
+            () => firstTxClient.PrepareTxAsync(Substitute.For<ITxInput>())
+        );
+        _ = await Assert.ThrowsAsync<ObjectDisposedException>(
+            () => secondTxClient.PrepareTxAsync(Substitute.For<ITxInput>())
+        );
         _ = await Assert.ThrowsAsync<ObjectDisposedException>(
             () => AttachAsync(client, Substitute.For<INonceAllocator>())
         );

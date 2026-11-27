@@ -4,16 +4,20 @@ using EtherSharp.Client.Modules.Ether;
 using EtherSharp.Client.Modules.Events;
 using EtherSharp.Client.Modules.Mempool;
 using EtherSharp.Client.Modules.Trace;
+using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Query;
-using EtherSharp.Realtime.Events;
+using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Tx.Nonce;
+using EtherSharp.Tx.Watcher;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EtherSharp.Client;
 
@@ -26,12 +30,22 @@ internal sealed class EtherTxClient(
 {
     private readonly EtherClient _ownerClient = baseClient;
     private readonly IEtherClient _baseClient = baseClient;
-    private readonly IEtherSigner _signer = signer;
     private readonly INonceAllocator _nonceAllocator = nonceAllocator;
-    private readonly ITxPublisher _txPublisher = txPublisher;
 
     private int _isDisposed;
 
+    internal IEtherSigner Signer { get; } = signer;
+    internal ITxPublisher TxPublisher { get; } = txPublisher;
+    internal ITxConfirmationWatcher TxConfirmationWatcher { get; }
+        = ((IEtherClient) baseClient).AsInternal().Provider.GetRequiredService<ITxConfirmationWatcher>();
+    internal IEthRpcModule EthRpcModule { get; }
+        = ((IEtherClient) baseClient).AsInternal().Provider.GetRequiredService<IEthRpcModule>();
+    internal RpcRetryOptions RetryOptions { get; }
+        = ((IEtherClient) baseClient).AsInternal().Provider.GetRequiredService<RpcRetryOptions>();
+    internal IResiliencyLayer? ResiliencyLayer { get; }
+        = ((IEtherClient) baseClient).AsInternal().Provider.GetService<IResiliencyLayer>();
+
+    Address IEtherTxClient.Address => Signer.Address;
     bool IEtherClient.IsInitialized => _baseClient.IsInitialized;
     ulong IEtherClient.ChainId => _baseClient.ChainId;
     IEtherModule IEtherClient.ETH => _baseClient.ETH;
@@ -107,13 +121,13 @@ internal sealed class EtherTxClient(
     Task<CallResult<T>> IEtherClient.SafeCallAsync<T>(
         ITxInput<T> call, in CallOptions options, RpcRequestOptions requestOptions, CancellationToken cancellationToken
     ) => options.From is null
-        ? _baseClient.SafeCallAsync(call, options with { From = _signer.Address }, requestOptions, cancellationToken)
+        ? _baseClient.SafeCallAsync(call, options with { From = Signer.Address }, requestOptions, cancellationToken)
         : _baseClient.SafeCallAsync(call, in options, requestOptions, cancellationToken);
 
     Task<T> IEtherClient.CallAsync<T>(
         ITxInput<T> call, in CallOptions options, RpcRequestOptions requestOptions, CancellationToken cancellationToken
     ) => options.From is null
-        ? _baseClient.CallAsync(call, options with { From = _signer.Address }, requestOptions, cancellationToken)
+        ? _baseClient.CallAsync(call, options with { From = Signer.Address }, requestOptions, cancellationToken)
         : _baseClient.CallAsync(call, in options, requestOptions, cancellationToken);
 
     Task<CallResult<T>> IEtherClient.SafeFlashCallAsync<T>(
@@ -143,21 +157,117 @@ internal sealed class EtherTxClient(
     Task<ulong> IEtherClient.EstimateGasLimitAsync(
         ITxInput call, in CallOptions options, RpcRequestOptions requestOptions, CancellationToken cancellationToken
     ) => options.From is null
-        ? _baseClient.EstimateGasLimitAsync(call, options with { From = _signer.Address }, requestOptions, cancellationToken)
+        ? _baseClient.EstimateGasLimitAsync(call, options with { From = Signer.Address }, requestOptions, cancellationToken)
         : _baseClient.EstimateGasLimitAsync(call, in options, requestOptions, cancellationToken);
 
     Task<AccessListResult> IEtherClient.CreateAccessListAsync(
         ITxInput call, in CallOptions options, RpcRequestOptions requestOptions, CancellationToken cancellationToken
     ) => options.From is null
-        ? _baseClient.CreateAccessListAsync(call, options with { From = _signer.Address }, requestOptions, cancellationToken)
+        ? _baseClient.CreateAccessListAsync(call, options with { From = Signer.Address }, requestOptions, cancellationToken)
         : _baseClient.CreateAccessListAsync(call, in options, requestOptions, cancellationToken);
 
     Task<TTxGasParams> IEtherClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
         ITxInput call, TTxParams? txParams, Address? from, RpcRequestOptions requestOptions, CancellationToken cancellationToken
     ) where TTxParams : class
         => _baseClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
-            call, txParams, from ?? _signer.Address, requestOptions, cancellationToken
+            call, txParams, from ?? Signer.Address, requestOptions, cancellationToken
         );
+
+    async Task<IPendingTx<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams,
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    )
+        where TTxParams : class
+        where TTxGasParams : class
+    {
+        ArgumentNullException.ThrowIfNull(call);
+        ObjectDisposedException.ThrowIf(Volatile.Read(ref _isDisposed) != 0, this);
+
+        txParams ??= TTxParams.Default;
+        txGasParams ??= await _baseClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
+            call, txParams, Signer.Address, requestOptions, cancellationToken
+        );
+
+        ulong nonce = await _nonceAllocator.AllocateAsync(requestOptions, cancellationToken);
+
+        try
+        {
+            var transaction = TTransaction.Create(_baseClient.ChainId, nonce, call, txParams, txGasParams);
+            var signedTransaction = await transaction.SignAsync(Signer, cancellationToken);
+            var submission = new TxSubmission<TTxParams, TTxGasParams>(
+                _baseClient.ChainId,
+                nonce,
+                0,
+                signedTransaction.Hash,
+                signedTransaction.EncodedTx,
+                call,
+                txParams,
+                txGasParams
+            );
+
+            return new PendingTx<TTransaction, TTxParams, TTxGasParams>(
+                Guid.NewGuid(),
+                [submission],
+                this,
+                isPersisted: false
+            );
+        }
+        catch
+        {
+            _ = await _nonceAllocator.TryReleaseAsync(nonce, CancellationToken.None);
+            throw;
+        }
+    }
+
+    async Task<IPendingTx<TTxParams, TTxGasParams>> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        Guid id, CancellationToken cancellationToken
+    )
+    {
+        ObjectDisposedException.ThrowIf(Volatile.Read(ref _isDisposed) != 0, this);
+
+        if(ResiliencyLayer is null)
+        {
+            throw new NotSupportedException("Missing ResiliencyLayer");
+        }
+
+        var senderKey = new TxSenderKey(_baseClient.ChainId, Signer.Address);
+        var stored = await ResiliencyLayer.FetchTxSubmissionsAsync(senderKey, id, cancellationToken);
+        ObjectDisposedException.ThrowIf(Volatile.Read(ref _isDisposed) != 0, this);
+
+        if(stored.Count == 0)
+        {
+            throw new InvalidOperationException($"No persisted tx for ID {id}");
+        }
+
+        ulong nonce = stored[0].Nonce;
+        foreach(var submission in stored)
+        {
+            if(submission.Id != id || submission.ChainId != senderKey.ChainId || submission.Sender != senderKey.Sender)
+            {
+                throw new InvalidOperationException($"Persisted submissions do not match transaction {id} for the current chain and sender");
+            }
+
+            if(submission.Nonce != nonce)
+            {
+                throw new InvalidOperationException($"Transaction {id} has persisted submissions across multiple nonces");
+            }
+        }
+
+        var typedSubmissions = new TxSubmission<TTxParams, TTxGasParams>[stored.Count];
+        for(int i = 0; i < stored.Count; i++)
+        {
+            typedSubmissions[i] = stored[i].ToTxSubmission<TTxParams, TTxGasParams>();
+        }
+
+        Array.Sort(typedSubmissions, static (a, b) => b.Sequence.CompareTo(a.Sequence));
+
+        return new PendingTx<TTransaction, TTxParams, TTxGasParams>(
+            id,
+            typedSubmissions,
+            this,
+            isPersisted: true
+        );
+    }
 
     public async ValueTask DisposeAsync()
     {
@@ -168,6 +278,6 @@ internal sealed class EtherTxClient(
 
         _ownerClient.UnregisterTxClient(this);
         _nonceAllocator.Dispose();
-        await _txPublisher.DisposeAsync();
+        await TxPublisher.DisposeAsync();
     }
 }
