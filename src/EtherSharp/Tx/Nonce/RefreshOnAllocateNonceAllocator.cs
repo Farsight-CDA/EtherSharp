@@ -14,6 +14,7 @@ public sealed class RefreshOnAllocateNonceAllocator : INonceAllocator
     private readonly SemaphoreSlim _allocationLock = new SemaphoreSlim(1, 1);
 
     private ulong _nextNonce;
+    private ulong _minNonce;
     private bool _isDisposed;
 
     /// <summary>
@@ -30,6 +31,7 @@ public sealed class RefreshOnAllocateNonceAllocator : INonceAllocator
         _ethRpcModule = ethRpcModule;
         _sender = sender;
         _nextNonce = initialNonce;
+        _minNonce = initialNonce;
     }
 
     /// <inheritdoc/>
@@ -46,6 +48,11 @@ public sealed class RefreshOnAllocateNonceAllocator : INonceAllocator
             ulong latestNonce = await _ethRpcModule.GetTransactionCountAsync(
                 in _sender, TargetHeight.Latest, requestOptions, cancellationToken
             );
+
+            if(latestNonce > _minNonce)
+            {
+                _minNonce = latestNonce;
+            }
 
             if(latestNonce > _nextNonce)
             {
@@ -71,7 +78,7 @@ public sealed class RefreshOnAllocateNonceAllocator : INonceAllocator
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-            if(_nextNonce != nonce + 1)
+            if(nonce < _minNonce || _nextNonce <= _minNonce || _nextNonce - 1 != nonce)
             {
                 return false;
             }

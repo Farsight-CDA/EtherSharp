@@ -24,6 +24,7 @@ public sealed class LocalNonceAllocator : INonceAllocator
     private readonly INonceSubscription _subscription;
 
     private ulong _nextNonce;
+    private ulong _minNonce;
     private bool _isDisposed;
 
     /// <summary>
@@ -42,6 +43,7 @@ public sealed class LocalNonceAllocator : INonceAllocator
         ArgumentOutOfRangeException.ThrowIfLessThan(resolved.SyncInterval, TimeSpan.Zero, nameof(options));
 
         _nextNonce = initialNonce;
+        _minNonce = initialNonce;
         _subscription = nonceWatcher.Subscribe(in sender, resolved.SyncInterval, initialNonce);
         _ = Task.Run(ObserveNoncesAsync);
     }
@@ -68,7 +70,7 @@ public sealed class LocalNonceAllocator : INonceAllocator
         lock(_lock)
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
-            if(_nextNonce != nonce + 1)
+            if(nonce < _minNonce || _nextNonce <= _minNonce || _nextNonce - 1 != nonce)
             {
                 return ValueTask.FromResult(false);
             }
@@ -99,6 +101,11 @@ public sealed class LocalNonceAllocator : INonceAllocator
         {
             lock(_lock)
             {
+                if(observedNonce > _minNonce)
+                {
+                    _minNonce = observedNonce;
+                }
+
                 if(observedNonce > _nextNonce)
                 {
                     _nextNonce = observedNonce;
