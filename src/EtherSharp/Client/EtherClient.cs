@@ -46,9 +46,10 @@ internal sealed class EtherClient : IEtherClient, IInternalEtherClient
     private EtherSharpJsonSerializerContext _jsonSerializerContext = null!;
 
     private bool _initialized;
-    private bool _isDisposed;
+    internal bool IsDisposed { get; private set; }
     private ulong _chainId;
     private readonly Lock _disposeLock = new Lock();
+    private readonly HashSet<EtherTxClient> _txClients = [];
 
     internal EtherClient(
         IServiceProvider provider,
@@ -284,7 +285,7 @@ internal sealed class EtherClient : IEtherClient, IInternalEtherClient
 
     private void AssertReady()
     {
-        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
 
         if(!_initialized)
         {
@@ -292,30 +293,54 @@ internal sealed class EtherClient : IEtherClient, IInternalEtherClient
         }
     }
 
-    public async ValueTask DisposeAsync()
+    internal void RegisterTxClient(EtherTxClient txClient)
     {
         lock(_disposeLock)
         {
-            if(_isDisposed)
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            _ = _txClients.Add(txClient);
+        }
+    }
+
+    internal void UnregisterTxClient(EtherTxClient txClient)
+    {
+        lock(_disposeLock)
+        {
+            if(IsDisposed)
             {
                 return;
             }
 
-            _isDisposed = true;
+            _ = _txClients.Remove(txClient);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        lock(_disposeLock)
+        {
+            if(IsDisposed)
+            {
+                return;
+            }
+
+            IsDisposed = true;
             _initialized = false;
         }
 
-        _subscriptionsManager?.CloseSubscriptions();
-
-        if(_provider is IAsyncDisposable asyncDisposable)
+        // IsDisposed freezes _txClients: Register throws and Unregister becomes a no-op.
+        try
         {
-            await asyncDisposable.DisposeAsync();
-            return;
+            foreach(var txClient in _txClients)
+            {
+                await txClient.DisposeAsync();
+            }
         }
-
-        if(_provider is IDisposable disposable)
+        finally
         {
-            disposable.Dispose();
+            _subscriptionsManager?.CloseSubscriptions();
+
+            await ((IAsyncDisposable) _provider).DisposeAsync();
         }
     }
 

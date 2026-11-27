@@ -16,6 +16,7 @@ namespace EtherSharp.Client;
 /// </summary>
 public sealed class EtherTxClientBuilder
 {
+    private readonly EtherClient _ownerClient;
     private readonly IEtherClient _baseClient;
     private readonly IEtherSigner _signer;
 
@@ -24,11 +25,12 @@ public sealed class EtherTxClientBuilder
     private ITxPublisher? _txPublisher;
     private Func<IServiceProvider, ulong, INonceAllocator>? _nonceAllocatorFactory;
 
-    internal EtherTxClientBuilder(IEtherClient baseClient, IEtherSigner signer)
+    internal EtherTxClientBuilder(EtherClient baseClient, IEtherSigner signer)
     {
         ArgumentNullException.ThrowIfNull(baseClient);
         ArgumentNullException.ThrowIfNull(signer);
 
+        _ownerClient = baseClient;
         _baseClient = baseClient;
         _signer = signer;
     }
@@ -68,17 +70,6 @@ public sealed class EtherTxClientBuilder
             _signer.Address,
             initialNonce
         );
-        return this;
-    }
-
-    /// <summary>
-    /// Configures a custom <see cref="INonceAllocator"/> instance.
-    /// </summary>
-    public EtherTxClientBuilder WithNonceAllocator(INonceAllocator nonceAllocator)
-    {
-        ArgumentNullException.ThrowIfNull(nonceAllocator);
-
-        _nonceAllocatorFactory = (_, _) => nonceAllocator;
         return this;
     }
 
@@ -123,6 +114,8 @@ public sealed class EtherTxClientBuilder
         CancellationToken cancellationToken = default
     )
     {
+        ObjectDisposedException.ThrowIf(_ownerClient.IsDisposed, _ownerClient);
+
         if(!_baseClient.IsInitialized)
         {
             throw new InvalidOperationException("Client not initialized");
@@ -169,6 +162,18 @@ public sealed class EtherTxClientBuilder
             _confirmationTimeout
         );
 
-        return new EtherTxClient(_baseClient, _signer, txScheduler);
+        var txClient = new EtherTxClient(_ownerClient, _signer, txScheduler);
+
+        try
+        {
+            _ownerClient.RegisterTxClient(txClient);
+        }
+        catch
+        {
+            await txClient.DisposeAsync();
+            throw;
+        }
+
+        return txClient;
     }
 }

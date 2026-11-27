@@ -18,11 +18,12 @@ using EtherSharp.Wallet;
 namespace EtherSharp.Client;
 
 internal sealed class EtherTxClient(
-    IEtherClient baseClient,
+    EtherClient baseClient,
     IEtherSigner signer,
     BlockingSequentialTxScheduler txScheduler
 ) : IEtherTxClient
 {
+    private readonly EtherClient _ownerClient = baseClient;
     private readonly IEtherClient _baseClient = baseClient;
     private readonly IEtherSigner _signer = signer;
     private readonly BlockingSequentialTxScheduler _txScheduler = txScheduler;
@@ -184,6 +185,7 @@ internal sealed class EtherTxClient(
             return ValueTask.CompletedTask;
         }
 
+        _ownerClient.UnregisterTxClient(this);
         _txScheduler.Dispose();
         return ValueTask.CompletedTask;
     }
