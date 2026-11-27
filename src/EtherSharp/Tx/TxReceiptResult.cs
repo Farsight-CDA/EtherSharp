@@ -3,7 +3,7 @@ using EtherSharp.Types;
 namespace EtherSharp.Tx;
 
 /// <summary>
-/// Outcome of waiting for a transaction's inclusion and receipt via <see cref="IPendingTx{TTxParams, TTxGasParams}.WaitForReceiptAsync"/>.
+/// Outcome of waiting for a transaction's inclusion and receipt via <see cref="IPendingTx{TTxParams, TTxGasParams}"/>.
 /// </summary>
 public closed record TxReceiptResult
 {

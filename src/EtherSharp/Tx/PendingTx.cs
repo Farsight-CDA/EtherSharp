@@ -143,6 +143,28 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         return _watch.WaitAsync(cancellationToken);
     }
 
+    public async Task<TxWatchResult?> WaitForInclusionAsync(
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(timeout);
+
+        try
+        {
+            return await _watch.WaitAsync(timeoutCts.Token);
+        }
+        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested)
+        {
+            return null;
+        }
+    }
+
     public async Task<TxReceiptResult> WaitForReceiptAsync(
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
@@ -159,6 +181,29 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             ),
             TxWatchResult.NonceAlreadyUsed => new TxReceiptResult.NonceAlreadyUsed(),
         };
+    }
+
+    public async Task<TxReceiptResult?> WaitForReceiptAsync(
+        TimeSpan timeout,
+        RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(timeout);
+
+        try
+        {
+            return await WaitForReceiptAsync(requestOptions, timeoutCts.Token);
+        }
+        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested)
+        {
+            return null;
+        }
     }
 
     public async ValueTask DisposeAsync()

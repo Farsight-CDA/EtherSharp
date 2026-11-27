@@ -63,6 +63,20 @@ public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
     );
 
     /// <summary>
+    /// Waits up to <paramref name="timeout"/> for this transaction's nonce slot to resolve on-chain as confirmed or replaced.
+    /// Timing out or cancelling <paramref name="cancellationToken"/> only ends this wait operation.
+    /// </summary>
+    /// <param name="timeout">Maximum duration to wait before returning <see langword="null"/>.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting.</param>
+    /// <returns>
+    /// The inclusion outcome for this transaction's nonce slot, or <see langword="null"/> if <paramref name="timeout"/> elapsed.
+    /// </returns>
+    public Task<TxWatchResult?> WaitForInclusionAsync(
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Waits for inclusion and, if one of this transaction's submissions was included, fetches its receipt.
     /// Cancelling <paramref name="cancellationToken"/> only cancels this wait operation.
     /// </summary>
@@ -70,6 +84,22 @@ public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
     /// <param name="cancellationToken">Token used to cancel waiting or receipt retrieval.</param>
     /// <returns>The receipt outcome for this transaction.</returns>
     public Task<TxReceiptResult> WaitForReceiptAsync(
+        RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Waits up to <paramref name="timeout"/> for inclusion and, if one of this transaction's submissions was included, fetches its receipt.
+    /// Timing out or cancelling <paramref name="cancellationToken"/> only ends this wait operation.
+    /// </summary>
+    /// <param name="timeout">Maximum duration to wait before returning <see langword="null"/>.</param>
+    /// <param name="requestOptions">Transport-specific request options used when fetching the receipt.</param>
+    /// <param name="cancellationToken">Token used to cancel waiting or receipt retrieval.</param>
+    /// <returns>
+    /// The receipt outcome for this transaction, or <see langword="null"/> if <paramref name="timeout"/> elapsed.
+    /// </returns>
+    public Task<TxReceiptResult?> WaitForReceiptAsync(
+        TimeSpan timeout,
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     );
