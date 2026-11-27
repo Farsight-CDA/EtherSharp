@@ -2,7 +2,7 @@
 
 Source: https://github.com/NethermindEth/int256
 
-Pinned commit: `fab76ab4d63d5f4cf2d04fb49876c5f6158b1e56` (upstream `main`, version 1.12.0)
+Pinned commit: `0ce7d566a0bd6bb17efd0c9bbc43c2767f945083` (upstream `main`, version 1.15.0)
 
 The vendored sources are all `.cs` files in upstream's `src/Nethermind.Int256`,
 except `UInt256.zkevm.cs`. EtherSharp uses the standard implementation in
@@ -24,9 +24,8 @@ Local source adaptations:
   `u3`).
 - In `UInt256.divmod.cs`, change `Multiply256To512Bit` from `private` to
   `internal` for the existing full-width multiplication wrappers.
-- Fix XML documentation references by qualifying `IBinaryInteger` in
-  `UInt256.Ctors.cs` and specifying the `ToDouble(in UInt256)` overload in
-  `UInt256.numerics.cs`.
+- In `BigIntegerExtensions.cs`, throw (and document) `NotSupportedException`
+  instead of `NotImplementedException` for little-endian `ToBytes32(Span<byte>)` output.
 
 The original `Nethermind.Int256` namespace and source formatting are preserved.
 The `.editorconfig` uses generated-code tooling exclusions to prevent formatting
@@ -38,7 +37,7 @@ and analyzer churn; these files are not generated.
 2. Apply the upstream Git diff from the pinned revision to the desired revision
    for the source file set described above, `LICENSE`, and `THIRD-PARTY-NOTICES`.
    Review any upstream changes to the standard implementation's file list or dependencies.
-3. Preserve or reapply the visibility, hashing, multiplication-helper, and XML documentation adaptations documented above.
+3. Preserve or reapply the visibility, hashing, multiplication-helper, and exception-type adaptations documented above.
 4. Compare against the pristine revision to confirm that only the documented
    adaptations differ, then review the update diff against the previous vendored version.
 5. Update the pinned commit in this document and any required package dependency version.

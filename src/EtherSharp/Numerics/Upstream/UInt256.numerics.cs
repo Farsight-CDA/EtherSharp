@@ -556,6 +556,11 @@ internal readonly partial struct UInt256 : IBinaryInteger<UInt256>, IMinMaxValue
             return TryParseBits(s, style, out result, out overflow);
         }
 
+        if (style == NumberStyles.None)
+        {
+            return TryParseDigits(s, out result, out overflow);
+        }
+
         overflow = false;
         result = default;
         NumberFormatInfo info = NumberFormatInfo.GetInstance(provider);

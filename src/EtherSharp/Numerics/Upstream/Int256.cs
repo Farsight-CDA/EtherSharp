@@ -53,18 +53,10 @@ internal readonly partial struct Int256 : IEquatable<Int256>, IComparable, IComp
         }
     }
 
-    public Int256(int n)
+    // Sign-extends like the long overload. Negating first went wrong for int.MinValue: -n wraps to itself, and the
+    // widened magnitude then negates to -(2^64 - 2^31).
+    public Int256(int n) : this((long)n)
     {
-        if (n < 0)
-        {
-            Int256 value = new(new UInt256((ulong)-n));
-            value.Neg(out Int256 res);
-            _value = res._value;
-        }
-        else
-        {
-            _value = new UInt256((ulong)n);
-        }
     }
 
     // Without this, the implicit long conversion binds to Int256(BigInteger), so every long turns
@@ -344,6 +336,7 @@ internal readonly partial struct Int256 : IEquatable<Int256>, IComparable, IComp
     }
 
     // Mod sets res to (sign x) * { abs(x) modulus abs(y) }, and throws when y is zero.
+    [SkipLocalsInit]
     public static void Mod(in Int256 x, in Int256 y, out Int256 res)
     {
         bool xIsNegative = x.IsNegative;
@@ -359,12 +352,24 @@ internal readonly partial struct Int256 : IEquatable<Int256>, IComparable, IComp
             return;
         }
 
-        Int256 xIn = x, yIn = y;
-        if (xIsNegative) Neg(x, out xIn);
-        if (yIsNegative) Neg(y, out yIn);
-        UInt256.Mod(in xIn._value, in yIn._value, out UInt256 value);
-        res = new Int256(value);
-        if (xIsNegative) Neg(res, out res);
+        UInt256 dividend, divisor;
+        if (xIsNegative) NegateLimbs(in x._value, out dividend); else dividend = x._value;
+        if (yIsNegative) NegateLimbs(in y._value, out divisor); else divisor = y._value;
+        UInt256.Mod(in dividend, in divisor, out UInt256 remainder);
+        if (xIsNegative) NegateLimbs(in remainder, out remainder);
+        res = new Int256(remainder);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void NegateLimbs(in UInt256 x, out UInt256 res)
+    {
+        ulong x0 = x.u0, x1 = x.u1, x2 = x.u2, x3 = x.u3;
+        ulong borrow = x0 != 0 ? 1UL : 0UL;
+        ulong r1 = 0UL - x1 - borrow;
+        borrow |= x1 != 0 ? 1UL : 0UL;
+        ulong r2 = 0UL - x2 - borrow;
+        borrow |= x2 != 0 ? 1UL : 0UL;
+        res = new UInt256(0UL - x0, r1, r2, 0UL - x3 - borrow);
     }
 
     public void Mod(in Int256 m, out Int256 res) => Mod(this, m, out res);
@@ -707,32 +712,48 @@ internal readonly partial struct Int256 : IEquatable<Int256>, IComparable, IComp
 
     public TypeCode GetTypeCode() => TypeCode.Object;
     public bool ToBoolean(IFormatProvider? provider) => !IsZero;
-    public byte ToByte(IFormatProvider? provider) => System.Convert.ToByte(ToDecimal(provider), provider);
-    public char ToChar(IFormatProvider? provider) => System.Convert.ToChar(ToDecimal(provider), provider);
-    public DateTime ToDateTime(IFormatProvider? provider) => System.Convert.ToDateTime(ToDecimal(provider), provider);
-    public decimal ToDecimal(IFormatProvider? provider) => (decimal)(BigInteger)this;
-    public double ToDouble(IFormatProvider? provider) => (double)(BigInteger)this;
-    public short ToInt16(IFormatProvider? provider) => System.Convert.ToInt16(ToDecimal(provider), provider);
-    public int ToInt32(IFormatProvider? provider) => System.Convert.ToInt32(ToDecimal(provider), provider);
-    public long ToInt64(IFormatProvider? provider) => System.Convert.ToInt64(ToDecimal(provider), provider);
-    public sbyte ToSByte(IFormatProvider? provider) => System.Convert.ToSByte(ToDecimal(provider), provider);
-    public float ToSingle(IFormatProvider? provider) => (float)(BigInteger)this;
+    public byte ToByte(IFormatProvider? provider) => System.Convert.ToByte(ToDecimal(provider));
+    public char ToChar(IFormatProvider? provider) => System.Convert.ToChar(ToDecimal(provider));
+    public DateTime ToDateTime(IFormatProvider? provider) => System.Convert.ToDateTime(ToDecimal(provider));
+    // The integral members narrow from here, so none of them build a BigInteger.
+    public decimal ToDecimal(IFormatProvider? provider) => UInt256.ToDecimal(Magnitude(in this), IsNegative, ConversionMode.Checked);
+    public double ToDouble(IFormatProvider? provider)
+    {
+        double magnitude = TruncateToDouble(Magnitude(in this));
+        return IsNegative ? -magnitude : magnitude;
+    }
+    public short ToInt16(IFormatProvider? provider) => System.Convert.ToInt16(ToDecimal(provider));
+    public int ToInt32(IFormatProvider? provider) => System.Convert.ToInt32(ToDecimal(provider));
+    public long ToInt64(IFormatProvider? provider) => System.Convert.ToInt64(ToDecimal(provider));
+    public sbyte ToSByte(IFormatProvider? provider) => System.Convert.ToSByte(ToDecimal(provider));
+    // Rounds through double, as the BigInteger conversion this replaces did.
+    public float ToSingle(IFormatProvider? provider) => (float)ToDouble(provider);
     public object ToType(Type conversionType, IFormatProvider? provider) => conversionType == typeof(BigInteger)
         ? (BigInteger)this
         : System.Convert.ChangeType(ToDecimal(provider), conversionType, provider);
-    public ushort ToUInt16(IFormatProvider? provider) => System.Convert.ToUInt16(ToDecimal(provider), provider);
-    public uint ToUInt32(IFormatProvider? provider) => System.Convert.ToUInt32(ToDecimal(provider), provider);
-    public ulong ToUInt64(IFormatProvider? provider) => System.Convert.ToUInt64(ToDecimal(provider), provider);
+    public ushort ToUInt16(IFormatProvider? provider) => System.Convert.ToUInt16(ToDecimal(provider));
+    public uint ToUInt32(IFormatProvider? provider) => System.Convert.ToUInt32(ToDecimal(provider));
+    public ulong ToUInt64(IFormatProvider? provider) => System.Convert.ToUInt64(ToDecimal(provider));
 
-    public string ToString(IFormatProvider? provider)
+    /// <summary>
+    /// Keeps the top 53 bits and drops the rest, as the <see cref="BigInteger"/> conversion that <see cref="ToDouble"/>
+    /// used before. <c>double.CreateChecked</c> rounds to nearest instead.
+    /// </summary>
+    private static double TruncateToDouble(in UInt256 magnitude)
     {
-        if (IsNegative)
+        int length = magnitude.BitLen;
+        if (length <= 53)
         {
-            Neg(out Int256 res);
-            return "-" + res._value.ToString(provider);
+            return magnitude.u0;
         }
-        return _value.ToString(provider);
+
+        magnitude.RightShift(length - 53, out UInt256 top);
+        ulong exponent = (ulong)(length - 1 + 1023);
+        return BitConverter.UInt64BitsToDouble((exponent << 52) | (top.u0 & 0x000F_FFFF_FFFF_FFFF));
     }
+
+    // The sign has always been a literal '-' here and the digits are ASCII, so the provider changes nothing.
+    public string ToString(IFormatProvider? provider) => ToString();
 
     public static void And(in Int256 a, in Int256 b, out Int256 res)
     {
