@@ -37,7 +37,7 @@ jobs:
         run: dotnet restore "$TEST_PROJECT"
 
       - name: Build
-        run: dotnet build "$TEST_PROJECT" --configuration Release --no-restore
+        run: dotnet build "$TEST_PROJECT" --configuration Release --no-restore -p:RunAnalyzers=false -p:GeneratePackageOnBuild=false
 
       - name: Run Tests
         run: dotnet test "$TEST_PROJECT" --configuration Release --no-build
