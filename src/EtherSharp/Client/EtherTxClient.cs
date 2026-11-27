@@ -178,15 +178,14 @@ internal sealed class EtherTxClient(
         return await _txScheduler.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(id, cancellationToken);
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if(Interlocked.Exchange(ref _isDisposed, 1) != 0)
         {
-            return ValueTask.CompletedTask;
+            return;
         }
 
         _ownerClient.UnregisterTxClient(this);
-        _txScheduler.Dispose();
-        return ValueTask.CompletedTask;
+        await _txScheduler.DisposeAsync();
     }
 }

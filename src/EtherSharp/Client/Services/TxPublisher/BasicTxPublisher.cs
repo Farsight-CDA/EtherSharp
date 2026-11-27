@@ -25,4 +25,8 @@ public sealed class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
             return TxSubmissionResult.FromException(ex);
         }
     }
+
+    /// <inheritdoc/>
+    public ValueTask DisposeAsync()
+        => ValueTask.CompletedTask;
 }

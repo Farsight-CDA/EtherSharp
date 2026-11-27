@@ -10,7 +10,6 @@ using EtherSharp.Client.Services.GasFeeProvider;
 using EtherSharp.Client.Services.QueryExecutor;
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.Subscriptions;
-using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Common;
 using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
@@ -45,19 +44,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
 
     private Func<IServiceProvider, IRPCTransport>? _transportRegistration;
 
-    private readonly List<(Type ServiceType, Type ActionType, Action<object> Action)> _configureActions = [];
     private EtherClientBuilder() { }
-
-    private void AddConfigureAction<TService, TActionParam>(Action<TActionParam>? configureAction)
-    {
-        if(configureAction is null)
-        {
-            return;
-        }
-
-        _configureActions.RemoveAll(x => x.ServiceType == typeof(TService));
-        _configureActions.Add((typeof(TService), typeof(TActionParam), value => configureAction((TActionParam) value)));
-    }
 
     /// <summary>
     /// Creates an empty unconfigured EtherClientBuilder.
@@ -150,7 +137,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
             builder.WithLoggerFactory(loggerFactory);
         }
 
-        builder.WithTxPublisher<BasicTxPublisher>();
         return builder;
     }
 
@@ -238,21 +224,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     {
         ArgumentNullException.ThrowIfNull(jsonSerializerOptions);
         _services.AddOrReplaceSingleton(jsonSerializerOptions);
-        return this;
-    }
-
-    /// <summary>
-    /// Configures the TxPublisher.
-    /// </summary>
-    /// <typeparam name="TTxPublisher"></typeparam>
-    /// <param name="configureAction"></param>
-    /// <returns></returns>
-    public EtherClientBuilder WithTxPublisher<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTxPublisher>(Action<TTxPublisher>? configureAction = null)
-        where TTxPublisher : class, ITxPublisher
-    {
-        _services.AddOrReplaceSingleton<ITxPublisher, TTxPublisher>();
-        AddConfigureAction<ITxPublisher, TTxPublisher>(configureAction);
         return this;
     }
 
@@ -388,7 +359,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.TryAddSingleton<NonceSource, ConstructorCallNonceSource>();
         _services.TryAddSingleton<INonceWatcher, PollingNonceWatcher>();
         _services.TryAddSingleton<ITxConfirmationWatcher, PollingTxConfirmationWatcher>();
-        _services.TryAddSingleton<ITxPublisher, BasicTxPublisher>();
         _services.TryAddSingleton<IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>, EIP1559GasFeeProvider>();
         _services.TryAddSingleton<IGasFeeProvider<LegacyTxParams, LegacyGasParams>, LegacyGasFeeProvider>();
 
@@ -445,11 +415,6 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddSingleton<IEtherClient>(provider => new EtherClient(provider, configuredChainId));
 
         var provider = _services.BuildServiceProvider();
-
-        foreach(var (serviceType, _, action) in _configureActions)
-        {
-            action(provider.GetRequiredService(serviceType));
-        }
 
         _ = provider.GetRequiredService<ITxConfirmationWatcher>();
 

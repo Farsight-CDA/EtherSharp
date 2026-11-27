@@ -103,7 +103,7 @@ public sealed class EtherClientDisposalTests
 
         return client.Attach(signer)
             .WithInitialNonce(0)
-            .WithNonceAllocator(_ => nonceAllocator)
+            .WithNonceAllocator((_, _) => nonceAllocator)
             .BuildAsync();
     }
 

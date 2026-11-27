@@ -5,7 +5,7 @@ namespace EtherSharp.Client.Services.TxPublisher;
 /// <summary>
 /// Publishes signed transaction payloads to an Ethereum-compatible network.
 /// </summary>
-public interface ITxPublisher
+public interface ITxPublisher : IAsyncDisposable
 {
     /// <summary>
     /// Submits a signed transaction to the network and returns submission details.

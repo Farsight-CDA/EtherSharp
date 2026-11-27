@@ -20,7 +20,7 @@ namespace EtherSharp.Client.Services.TxScheduler;
 /// <summary>
 /// Schedules transactions sequentially by nonce and drives their lifecycle until confirmation.
 /// </summary>
-internal sealed class BlockingSequentialTxScheduler : IDisposable
+internal sealed class BlockingSequentialTxScheduler : IAsyncDisposable
 {
     private readonly IServiceProvider _provider;
     private readonly IEthRpcModule _ethRpcModule;
@@ -466,11 +466,12 @@ internal sealed class BlockingSequentialTxScheduler : IDisposable
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         _cts.Cancel();
         _nonceSubscription.Dispose();
         _nonceAllocator.Dispose();
+        await _txPublisher.DisposeAsync();
         _cts.Dispose();
         _preparationLock.Dispose();
         GC.SuppressFinalize(this);

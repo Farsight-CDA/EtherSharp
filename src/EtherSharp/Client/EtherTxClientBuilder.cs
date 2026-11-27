@@ -22,8 +22,8 @@ public sealed class EtherTxClientBuilder
 
     private ulong? _initialNonce;
     private TimeSpan _confirmationTimeout = TimeSpan.FromSeconds(30);
-    private ITxPublisher? _txPublisher;
-    private Func<IServiceProvider, ulong, INonceAllocator>? _nonceAllocatorFactory;
+    private Func<IServiceProvider, CancellationToken, ValueTask<ITxPublisher>>? _txPublisherFactory;
+    private Func<IServiceProvider, ulong, CancellationToken, ValueTask<INonceAllocator>>? _nonceAllocatorFactory;
 
     internal EtherTxClientBuilder(EtherClient baseClient, IEtherSigner signer)
     {
@@ -50,37 +50,43 @@ public sealed class EtherTxClientBuilder
     public EtherTxClientBuilder WithLocalNonceAllocator(TimeSpan syncInterval = default)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(syncInterval, TimeSpan.Zero, nameof(syncInterval));
-
-        _nonceAllocatorFactory = (provider, initialNonce) => new LocalNonceAllocator(
+        return WithNonceAllocator((provider, initialNonce) => new LocalNonceAllocator(
             provider.GetRequiredService<INonceWatcher>(),
             _signer.Address,
             initialNonce,
             new LocalNonceAllocator.Options { SyncInterval = syncInterval }
-        );
-        return this;
+        ));
     }
 
     /// <summary>
     /// Configures <see cref="RefreshOnAllocateNonceAllocator"/>.
     /// </summary>
     public EtherTxClientBuilder WithRefreshOnAllocateNonceAllocator()
-    {
-        _nonceAllocatorFactory = (provider, initialNonce) => new RefreshOnAllocateNonceAllocator(
+        => WithNonceAllocator((provider, initialNonce) => new RefreshOnAllocateNonceAllocator(
             provider.GetRequiredService<IEthRpcModule>(),
             _signer.Address,
             initialNonce
-        );
-        return this;
-    }
+        ));
 
     /// <summary>
     /// Configures a custom <see cref="INonceAllocator"/> factory receiving the resolved initial nonce.
     /// </summary>
-    public EtherTxClientBuilder WithNonceAllocator(Func<ulong, INonceAllocator> nonceAllocatorFactory)
+    public EtherTxClientBuilder WithNonceAllocator(Func<IServiceProvider, ulong, INonceAllocator> nonceAllocatorFactory)
     {
         ArgumentNullException.ThrowIfNull(nonceAllocatorFactory);
+        _nonceAllocatorFactory = (provider, initialNonce, _) => ValueTask.FromResult(nonceAllocatorFactory(provider, initialNonce));
+        return this;
+    }
 
-        _nonceAllocatorFactory = (_, initialNonce) => nonceAllocatorFactory(initialNonce);
+    /// <summary>
+    /// Configures a custom asynchronous <see cref="INonceAllocator"/> factory receiving the resolved initial nonce.
+    /// </summary>
+    public EtherTxClientBuilder WithNonceAllocator(
+        Func<IServiceProvider, ulong, CancellationToken, ValueTask<INonceAllocator>> nonceAllocatorFactory
+    )
+    {
+        ArgumentNullException.ThrowIfNull(nonceAllocatorFactory);
+        _nonceAllocatorFactory = nonceAllocatorFactory;
         return this;
     }
 
@@ -90,19 +96,27 @@ public sealed class EtherTxClientBuilder
     public EtherTxClientBuilder WithConfirmationTimeout(TimeSpan confirmationTimeout)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(confirmationTimeout, TimeSpan.Zero, nameof(confirmationTimeout));
-
         _confirmationTimeout = confirmationTimeout;
         return this;
     }
 
     /// <summary>
-    /// Overrides the <see cref="ITxPublisher"/> used for transactions sent by this signer.
+    /// Configures the <see cref="ITxPublisher"/> used for transactions sent by this signer.
     /// </summary>
-    public EtherTxClientBuilder WithTxPublisher(ITxPublisher txPublisher)
+    public EtherTxClientBuilder WithTxPublisher(Func<IServiceProvider, ITxPublisher> txPublisherFactory)
     {
-        ArgumentNullException.ThrowIfNull(txPublisher);
+        ArgumentNullException.ThrowIfNull(txPublisherFactory);
+        _txPublisherFactory = (provider, _) => ValueTask.FromResult(txPublisherFactory(provider));
+        return this;
+    }
 
-        _txPublisher = txPublisher;
+    /// <summary>
+    /// Configures the <see cref="ITxPublisher"/> used for transactions sent by this signer via an asynchronous factory.
+    /// </summary>
+    public EtherTxClientBuilder WithTxPublisher(Func<IServiceProvider, CancellationToken, ValueTask<ITxPublisher>> txPublisherFactory)
+    {
+        ArgumentNullException.ThrowIfNull(txPublisherFactory);
+        _txPublisherFactory = txPublisherFactory;
         return this;
     }
 
@@ -141,26 +155,47 @@ public sealed class EtherTxClientBuilder
             }
         }
 
-        var nonceAllocator = _nonceAllocatorFactory is not null
-            ? _nonceAllocatorFactory(provider, initialAllocatorNonce)
-            : new LocalNonceAllocator(
-                provider.GetRequiredService<INonceWatcher>(),
-                _signer.Address,
-                initialAllocatorNonce
-            );
+        INonceAllocator? nonceAllocator = null;
+        ITxPublisher? txPublisher = null;
+        BlockingSequentialTxScheduler txScheduler;
 
-        var txScheduler = new BlockingSequentialTxScheduler(
-            provider,
-            ethRpcModule,
-            _signer,
-            _txPublisher ?? provider.GetRequiredService<ITxPublisher>(),
-            provider.GetRequiredService<INonceWatcher>(),
-            provider.GetRequiredService<ITxConfirmationWatcher>(),
-            nonceAllocator,
-            _baseClient.ChainId,
-            confirmedNonce,
-            _confirmationTimeout
-        );
+        try
+        {
+            nonceAllocator = _nonceAllocatorFactory is not null
+                ? await _nonceAllocatorFactory(provider, initialAllocatorNonce, cancellationToken)
+                : new LocalNonceAllocator(
+                    provider.GetRequiredService<INonceWatcher>(),
+                    _signer.Address,
+                    initialAllocatorNonce
+                );
+
+            txPublisher = _txPublisherFactory is not null
+                ? await _txPublisherFactory(provider, cancellationToken)
+                : new BasicTxPublisher(ethRpcModule);
+
+            txScheduler = new BlockingSequentialTxScheduler(
+                provider,
+                ethRpcModule,
+                _signer,
+                txPublisher,
+                provider.GetRequiredService<INonceWatcher>(),
+                provider.GetRequiredService<ITxConfirmationWatcher>(),
+                nonceAllocator,
+                _baseClient.ChainId,
+                confirmedNonce,
+                _confirmationTimeout
+            );
+        }
+        catch
+        {
+            nonceAllocator?.Dispose();
+            if(txPublisher is not null)
+            {
+                await txPublisher.DisposeAsync();
+            }
+
+            throw;
+        }
 
         var txClient = new EtherTxClient(_ownerClient, _signer, txScheduler);
 
