@@ -15,6 +15,7 @@ using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Tx.Nonce;
+using EtherSharp.Tx.Types;
 using EtherSharp.Tx.Watcher;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
@@ -179,7 +180,7 @@ internal sealed class EtherTxClient(
             call, txParams, from ?? Signer.Address, requestOptions, cancellationToken
         );
 
-    async Task<IPendingTx<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
+    Task<IPendingTx<TTxParams, TTxGasParams>> IEtherTxClient.PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
         ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams,
         RpcRequestOptions requestOptions, CancellationToken cancellationToken
     )
@@ -187,6 +188,39 @@ internal sealed class EtherTxClient(
         where TTxGasParams : class
     {
         ArgumentNullException.ThrowIfNull(call);
+        return PrepareTxCoreAsync<TTransaction, TTxParams, TTxGasParams>(
+            replaceTx: null, call, txParams, txGasParams, requestOptions, cancellationToken
+        );
+    }
+
+    Task<IPendingTx<TTxParams, TTxGasParams>> IEtherTxClient.ReplaceTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        IPendingTx pendingTx, ITxInput? call, TTxParams? txParams, TTxGasParams? txGasParams,
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    )
+        where TTxParams : class
+        where TTxGasParams : class
+    {
+        ArgumentNullException.ThrowIfNull(pendingTx);
+        var resolvedCall = call ?? pendingTx.Call;
+        var resolvedTxParams = txParams ?? (
+            call is null && pendingTx is IPendingTx<TTxParams, TTxGasParams> sameTyped
+                ? sameTyped.LatestSubmission.Params
+                : TTxParams.Default
+        );
+
+        return PrepareTxCoreAsync<TTransaction, TTxParams, TTxGasParams>(
+            replaceTx: pendingTx, resolvedCall, resolvedTxParams, txGasParams, requestOptions, cancellationToken
+        );
+    }
+
+    private async Task<IPendingTx<TTxParams, TTxGasParams>> PrepareTxCoreAsync<TTransaction, TTxParams, TTxGasParams>(
+        IPendingTx? replaceTx, ITxInput call, TTxParams? txParams, TTxGasParams? txGasParams,
+        RpcRequestOptions requestOptions, CancellationToken cancellationToken
+    )
+        where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
+        where TTxParams : class, ITxParams<TTxParams>
+        where TTxGasParams : class, ITxGasParams<TTxGasParams>
+    {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         var disposalToken = _disposalCts.Token;
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(disposalToken, cancellationToken);
@@ -195,6 +229,8 @@ internal sealed class EtherTxClient(
         txGasParams ??= await _baseClient.EstimateTxGasParamsAsync<TTxParams, TTxGasParams>(
             call, txParams, Signer.Address, requestOptions, linkedCts.Token
         );
+
+        PendingTx<TTransaction, TTxParams, TTxGasParams> pendingTx;
 
         // Serializes nonce allocation with signing so a failed or cancelled signature can always
         // release its nonce, instead of leaving a gap below nonces already handed to concurrent callers.
@@ -220,14 +256,24 @@ internal sealed class EtherTxClient(
 
                 linkedCts.Token.ThrowIfCancellationRequested();
 
-                var id = Guid.NewGuid();
+                bool isPersisted = false;
+                var id = replaceTx?.Id ?? Guid.NewGuid();
+                if(replaceTx is not null && ResiliencyLayer is { } resiliencyLayer)
+                {
+                    await resiliencyLayer.ReplaceTxSubmissionsAsync(
+                        submission.ToStorageType(id, Signer.Address),
+                        linkedCts.Token
+                    );
+                    isPersisted = true;
+                }
+
                 Logger?.Tx.Prepared(id, Signer.Address, nonce, submission.TxHash);
 
-                return new PendingTx<TTransaction, TTxParams, TTxGasParams>(
+                pendingTx = new PendingTx<TTransaction, TTxParams, TTxGasParams>(
                     id,
                     [submission],
                     this,
-                    isPersisted: false,
+                    isPersisted: isPersisted,
                     clientDisposalToken: disposalToken
                 );
             }
@@ -245,6 +291,13 @@ internal sealed class EtherTxClient(
         {
             _ = _preparationLock.Release();
         }
+
+        if(replaceTx is not null)
+        {
+            await replaceTx.DisposeAsync();
+        }
+
+        return pendingTx;
     }
 
     async Task<IPendingTx<TTxParams, TTxGasParams>?> IEtherTxClient.AttachPendingTxAsync<TTransaction, TTxParams, TTxGasParams>(

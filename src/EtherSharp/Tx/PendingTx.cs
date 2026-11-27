@@ -31,6 +31,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     private volatile bool _isDisposed;
 
     public Guid Id { get; }
+    public ITxInput Call => LatestSubmission.Call;
     public TxSubmission<TTxParams, TTxGasParams> LatestSubmission => _txSubmissions[0];
 
     public ImmutableArray<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions

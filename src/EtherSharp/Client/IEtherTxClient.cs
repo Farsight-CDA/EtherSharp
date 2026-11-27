@@ -65,6 +65,37 @@ public interface IEtherTxClient : IEtherClient
         where TTxGasParams : class, ITxGasParams<TTxGasParams>;
 
     /// <summary>
+    /// Prepares and signs a default EIP-1559 transaction on a newly allocated nonce under <paramref name="pendingTx"/>'s ID,
+    /// replacing its persisted submissions and disposing the old handle.
+    /// </summary>
+    public Task<IPendingTx<EIP1559TxParams, EIP1559GasParams>> ReplaceTxAsync(
+        IPendingTx pendingTx,
+        ITxInput? call = default,
+        EIP1559TxParams? txParams = default,
+        EIP1559GasParams? txGasParams = default,
+        RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    ) => ReplaceTxAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
+        pendingTx, call, txParams, txGasParams, requestOptions, cancellationToken
+    );
+
+    /// <summary>
+    /// Prepares and signs a transaction for a custom transaction model on a newly allocated nonce under
+    /// <paramref name="pendingTx"/>'s ID, replacing its persisted submissions and disposing the old handle.
+    /// </summary>
+    public Task<IPendingTx<TTxParams, TTxGasParams>> ReplaceTxAsync<TTransaction, TTxParams, TTxGasParams>(
+        IPendingTx pendingTx,
+        ITxInput? call = default,
+        TTxParams? txParams = default,
+        TTxGasParams? txGasParams = default,
+        RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    )
+        where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
+        where TTxParams : class, ITxParams<TTxParams>
+        where TTxGasParams : class, ITxGasParams<TTxGasParams>;
+
+    /// <summary>
     /// Prepares, signs and publishes a default EIP-1559 transaction once, then waits for its receipt.
     /// Never reprices or rebroadcasts; use <see cref="PrepareTxAsync"/> for control over the submission lifecycle.
     /// </summary>

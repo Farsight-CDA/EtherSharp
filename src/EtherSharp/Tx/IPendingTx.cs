@@ -8,17 +8,13 @@ using System.Collections.Immutable;
 namespace EtherSharp.Tx;
 
 /// <summary>
-/// Represents a prepared or in-flight logical transaction with single-step publish, reprice, and confirmation operations.
+/// Represents a prepared or in-flight logical transaction independent of its transaction parameter types.
 /// </summary>
 /// <remarks>
 /// Disposing cancels in-flight operations and stops local tracking, but never rolls back:
 /// the nonce stays allocated, persisted submissions are kept and broadcast transactions may still be included.
 /// </remarks>
-/// <typeparam name="TTxParams">Transaction parameter type.</typeparam>
-/// <typeparam name="TTxGasParams">Gas parameter type.</typeparam>
-public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
-    where TTxParams : class, ITxParams<TTxParams>
-    where TTxGasParams : class, ITxGasParams<TTxGasParams>
+public interface IPendingTx : IAsyncDisposable
 {
     /// <summary>
     /// Stable ID identifying this logical transaction in the resiliency layer.
@@ -26,14 +22,9 @@ public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
     public Guid Id { get; }
 
     /// <summary>
-    /// Most recent signed submission attempt for this transaction on its active nonce.
+    /// Original call payload for this transaction.
     /// </summary>
-    public TxSubmission<TTxParams, TTxGasParams> LatestSubmission { get; }
-
-    /// <summary>
-    /// Signed submission attempts for this transaction on its active nonce, ordered newest first.
-    /// </summary>
-    public ImmutableArray<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions { get; }
+    public ITxInput Call { get; }
 
     /// <summary>
     /// Persists the latest submission if it has not yet been persisted, broadcasts the latest signed payload
@@ -45,47 +36,6 @@ public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
     /// <returns>The immediate broadcast outcome.</returns>
     public Task<TxSubmissionResult> PublishAsync(
         RpcRequestOptions requestOptions = default,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    /// Signs a new submission at the same nonce with updated gas parameters and registers its hash with
-    /// the active watcher. Does not persist or broadcast.
-    /// Does not check whether the nonce is still open: if it was already consumed, <see cref="PublishAsync"/>
-    /// reports <see cref="TxSubmissionResult.NonceTooLow"/> and the wait methods report the outcome.
-    /// </summary>
-    /// <param name="gasParams">Updated gas parameters for the replacement submission.</param>
-    /// <param name="cancellationToken">Token used to cancel signing.</param>
-    /// <returns>The newly created submission, which is now <see cref="LatestSubmission"/>.</returns>
-    public Task<TxSubmission<TTxParams, TTxGasParams>> RepriceAsync(
-        TTxGasParams gasParams,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    /// Signs a replacement at the same nonce using the latest fees scaled by 1105/1000 (a 10.5% bump),
-    /// with a minimum increase of 1 wei per gas. Does not persist or broadcast.
-    /// Does not check whether the nonce is still open: if it was already consumed, <see cref="PublishAsync"/>
-    /// reports <see cref="TxSubmissionResult.NonceTooLow"/> and the wait methods report the outcome.
-    /// </summary>
-    /// <param name="cancellationToken">Token used to cancel signing.</param>
-    /// <returns>The signed replacement, which is now <see cref="LatestSubmission"/>.</returns>
-    public Task<TxSubmission<TTxParams, TTxGasParams>> BumpFeesAsync(CancellationToken cancellationToken = default)
-        => BumpFeesAsync(1105, 1000, 1, cancellationToken);
-
-    /// <summary>
-    /// Signs a replacement at the same nonce by scaling the latest submission's fees.
-    /// Registers the replacement hash with the active watcher without persisting or broadcasting.
-    /// Does not check whether the nonce is still open: if it was already consumed, <see cref="PublishAsync"/>
-    /// reports <see cref="TxSubmissionResult.NonceTooLow"/> and the wait methods report the outcome.
-    /// </summary>
-    /// <param name="multiplier">Numerator of the fee scaling factor, at least <paramref name="divider"/>.</param>
-    /// <param name="divider">Nonzero denominator of the fee scaling factor.</param>
-    /// <param name="minimumIncrement">Minimum absolute increase in each fee per gas.</param>
-    /// <param name="cancellationToken">Token used to cancel signing.</param>
-    /// <returns>The signed replacement, which is now <see cref="LatestSubmission"/>.</returns>
-    public Task<TxSubmission<TTxParams, TTxGasParams>> BumpFeesAsync(
-        UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement,
         CancellationToken cancellationToken = default
     );
 
@@ -148,4 +98,65 @@ public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
     /// <param name="cancellationToken">Token used to cancel waiting to abandon.</param>
     /// <returns><see langword="true"/> if abandoned; <see langword="false"/> if the handle remains active.</returns>
     public Task<bool> TryAbandonAsync(CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Represents a prepared or in-flight logical transaction with single-step publish, reprice, and confirmation operations.
+/// </summary>
+/// <typeparam name="TTxParams">Transaction parameter type.</typeparam>
+/// <typeparam name="TTxGasParams">Gas parameter type.</typeparam>
+public interface IPendingTx<TTxParams, TTxGasParams> : IPendingTx
+    where TTxParams : class, ITxParams<TTxParams>
+    where TTxGasParams : class, ITxGasParams<TTxGasParams>
+{
+    /// <summary>
+    /// Most recent signed submission attempt for this transaction on its active nonce.
+    /// </summary>
+    public TxSubmission<TTxParams, TTxGasParams> LatestSubmission { get; }
+
+    /// <summary>
+    /// Signed submission attempts for this transaction on its active nonce, ordered newest first.
+    /// </summary>
+    public ImmutableArray<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions { get; }
+
+    /// <summary>
+    /// Signs a new submission at the same nonce with updated gas parameters and registers its hash with
+    /// the active watcher. Does not persist or broadcast.
+    /// Does not check whether the nonce is still open: if it was already consumed, <see cref="IPendingTx.PublishAsync"/>
+    /// reports <see cref="TxSubmissionResult.NonceTooLow"/> and the wait methods report the outcome.
+    /// </summary>
+    /// <param name="gasParams">Updated gas parameters for the replacement submission.</param>
+    /// <param name="cancellationToken">Token used to cancel signing.</param>
+    /// <returns>The newly created submission, which is now <see cref="LatestSubmission"/>.</returns>
+    public Task<TxSubmission<TTxParams, TTxGasParams>> RepriceAsync(
+        TTxGasParams gasParams,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Signs a replacement at the same nonce using the latest fees scaled by 1105/1000 (a 10.5% bump),
+    /// with a minimum increase of 1 wei per gas. Does not persist or broadcast.
+    /// Does not check whether the nonce is still open: if it was already consumed, <see cref="IPendingTx.PublishAsync"/>
+    /// reports <see cref="TxSubmissionResult.NonceTooLow"/> and the wait methods report the outcome.
+    /// </summary>
+    /// <param name="cancellationToken">Token used to cancel signing.</param>
+    /// <returns>The signed replacement, which is now <see cref="LatestSubmission"/>.</returns>
+    public Task<TxSubmission<TTxParams, TTxGasParams>> BumpFeesAsync(CancellationToken cancellationToken = default)
+        => BumpFeesAsync(1105, 1000, 1, cancellationToken);
+
+    /// <summary>
+    /// Signs a replacement at the same nonce by scaling the latest submission's fees.
+    /// Registers the replacement hash with the active watcher without persisting or broadcasting.
+    /// Does not check whether the nonce is still open: if it was already consumed, <see cref="IPendingTx.PublishAsync"/>
+    /// reports <see cref="TxSubmissionResult.NonceTooLow"/> and the wait methods report the outcome.
+    /// </summary>
+    /// <param name="multiplier">Numerator of the fee scaling factor, at least <paramref name="divider"/>.</param>
+    /// <param name="divider">Nonzero denominator of the fee scaling factor.</param>
+    /// <param name="minimumIncrement">Minimum absolute increase in each fee per gas.</param>
+    /// <param name="cancellationToken">Token used to cancel signing.</param>
+    /// <returns>The signed replacement, which is now <see cref="LatestSubmission"/>.</returns>
+    public Task<TxSubmission<TTxParams, TTxGasParams>> BumpFeesAsync(
+        UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement,
+        CancellationToken cancellationToken = default
+    );
 }
