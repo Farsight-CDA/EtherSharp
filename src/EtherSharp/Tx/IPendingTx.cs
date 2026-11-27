@@ -9,6 +9,10 @@ namespace EtherSharp.Tx;
 /// <summary>
 /// Represents a prepared or in-flight logical transaction with single-step publish, reprice, and confirmation operations.
 /// </summary>
+/// <remarks>
+/// Disposing cancels in-flight operations and stops local tracking, but never rolls back:
+/// the nonce stays allocated, persisted submissions are kept and broadcast transactions may still be included.
+/// </remarks>
 /// <typeparam name="TTxParams">Transaction parameter type.</typeparam>
 /// <typeparam name="TTxGasParams">Gas parameter type.</typeparam>
 public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
