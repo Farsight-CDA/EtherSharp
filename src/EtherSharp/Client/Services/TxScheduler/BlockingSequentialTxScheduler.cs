@@ -13,6 +13,7 @@ using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 
 namespace EtherSharp.Client.Services.TxScheduler;
@@ -163,7 +164,6 @@ internal sealed class BlockingSequentialTxScheduler : IAsyncDisposable
 
             return new PendingTxHandler<TTxParams, TTxGasParams>(
                 Guid.NewGuid(),
-                myNonce,
                 [submission],
                 (ctx, onError, publishRequestOptions) => ExecuteTransactionLifeCycleAsync<TTransaction, TTxParams, TTxGasParams>(
                     ctx, onError, true, publishRequestOptions
@@ -187,7 +187,7 @@ internal sealed class BlockingSequentialTxScheduler : IAsyncDisposable
         var transaction = TTransaction.Create(_senderKey.ChainId, nonce, call, txParams, gasParams);
         var signedTransaction = await transaction.SignAsync(_signer, cancellationToken);
         return new TxSubmission<TTxParams, TTxGasParams>(
-            _senderKey.ChainId, sequence, signedTransaction.Hash, signedTransaction.EncodedTx, call, txParams, gasParams
+            _senderKey.ChainId, nonce, sequence, signedTransaction.Hash, signedTransaction.EncodedTx, call, txParams, gasParams
         );
     }
 
@@ -256,7 +256,7 @@ internal sealed class BlockingSequentialTxScheduler : IAsyncDisposable
         var typedSubmissions = stored
             .Select(x => x.ToTxSubmission<TTxParams, TTxGasParams>())
             .OrderByDescending(x => x.Sequence)
-            .ToList();
+            .ToImmutableArray();
 
         lock(_stateLock)
         {
@@ -264,7 +264,6 @@ internal sealed class BlockingSequentialTxScheduler : IAsyncDisposable
             {
                 return new PendingTxHandler<TTxParams, TTxGasParams>(
                     id,
-                    nonce,
                     typedSubmissions,
                     async (_, _, requestOptions) =>
                     {
@@ -279,7 +278,6 @@ internal sealed class BlockingSequentialTxScheduler : IAsyncDisposable
 
         return new PendingTxHandler<TTxParams, TTxGasParams>(
             id,
-            nonce,
             typedSubmissions,
             (ctx, onError, requestOptions) => ExecuteTransactionLifeCycleAsync<TTransaction, TTxParams, TTxGasParams>(
                 ctx, onError, false, requestOptions
@@ -296,21 +294,22 @@ internal sealed class BlockingSequentialTxScheduler : IAsyncDisposable
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
     {
-        if(handlerContext.Nonce > 0)
+        ulong nonce = handlerContext.TxSubmissions[0].Nonce;
+        if(nonce > 0)
         {
-            await WaitForNonceCompletionAsync(handlerContext.Nonce - 1);
+            await WaitForNonceCompletionAsync(nonce - 1);
         }
 
         if(isNewHandler && _resiliencyLayer is not null)
         {
             await _resiliencyLayer.StoreTxSubmissionAsync(
-                handlerContext.TxSubmissions[0].ToStorageType(handlerContext.Id, handlerContext.Nonce, _senderKey.Sender),
+                handlerContext.TxSubmissions[0].ToStorageType(handlerContext.Id, _senderKey.Sender),
                 _cts.Token
             );
         }
 
-        Bytes32[] initialHashes = [.. handlerContext.TxSubmissions.Select(x => x.TxHash)];
-        using var watch = _txConfirmationWatcher.Watch(_senderKey.Sender, handlerContext.Nonce, initialHashes);
+        var initialHashes = handlerContext.GetSubmissionHashes();
+        using var watch = _txConfirmationWatcher.Watch(_senderKey.Sender, nonce, initialHashes);
         var watchTask = watch.WaitAsync(_cts.Token);
 
         TxConfirmationError? activeError = null;
@@ -336,13 +335,13 @@ internal sealed class BlockingSequentialTxScheduler : IAsyncDisposable
 
                         if(completedTask == watchTask)
                         {
-                            return await CompleteFromWatchAsync(await watchTask, handlerContext.Nonce, requestOptions);
+                            return await CompleteFromWatchAsync(await watchTask, currentSubmission.Nonce, requestOptions);
                         }
 
                         activeError = new TxConfirmationError.Timeout();
                         continue;
                     case TxConfirmationAction<TTxParams, TTxGasParams>.CancelTransaction:
-                        if(hasPublished || !await TryCancelTransactionAsync(handlerContext.Id, handlerContext.Nonce, _cts.Token))
+                        if(hasPublished || !await TryCancelTransactionAsync(handlerContext.Id, currentSubmission.Nonce, _cts.Token))
                         {
                             activeError = new TxConfirmationError.TransactionNotCancellable();
                             continue;
@@ -375,14 +374,14 @@ internal sealed class BlockingSequentialTxScheduler : IAsyncDisposable
 
                     if(completedTask == watchTask)
                     {
-                        return await CompleteFromWatchAsync(await watchTask, handlerContext.Nonce, requestOptions);
+                        return await CompleteFromWatchAsync(await watchTask, currentSubmission.Nonce, requestOptions);
                     }
 
                     activeError = new TxConfirmationError.Timeout();
                     continue;
                 }
                 case TxSubmissionResult.NonceTooLow:
-                    return await CompleteFromWatchAsync(await watchTask, handlerContext.Nonce, requestOptions);
+                    return await CompleteFromWatchAsync(await watchTask, currentSubmission.Nonce, requestOptions);
                 case TxSubmissionResult.TransactionUnderpriced:
                     activeError = new TxConfirmationError.TransactionUnderpriced();
                     continue;
@@ -413,7 +412,7 @@ internal sealed class BlockingSequentialTxScheduler : IAsyncDisposable
         var oldSub = context.TxSubmissions[0];
 
         var newSub = await CreateSubmissionAsync<TTransaction, TTxParams, TTxGasParams>(
-            context.Nonce,
+            oldSub.Nonce,
             oldSub.Sequence + 1,
             oldSub.Call,
             oldSub.Params,
@@ -422,12 +421,12 @@ internal sealed class BlockingSequentialTxScheduler : IAsyncDisposable
         );
 
         _ = watch.TryAddHash(newSub.TxHash);
-        context.TxSubmissions.Insert(0, newSub);
+        context.AddSubmission(newSub);
 
         if(_resiliencyLayer is not null)
         {
             await _resiliencyLayer.StoreTxSubmissionAsync(
-                newSub.ToStorageType(context.Id, context.Nonce, _senderKey.Sender),
+                newSub.ToStorageType(context.Id, _senderKey.Sender),
                 _cts.Token
             );
         }

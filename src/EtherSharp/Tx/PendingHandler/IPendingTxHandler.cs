@@ -1,5 +1,6 @@
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx.Types;
+using System.Collections.Immutable;
 
 namespace EtherSharp.Tx.PendingHandler;
 
@@ -18,14 +19,9 @@ public interface IPendingTxHandler<TTxParams, TTxGasParams>
     public Guid Id { get; }
 
     /// <summary>
-    /// Nonce of the pending transaction managed by this handler.
-    /// </summary>
-    public ulong Nonce { get; }
-
-    /// <summary>
     /// Submission attempts for this transaction.
     /// </summary>
-    public IReadOnlyList<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions { get; }
+    public ImmutableArray<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions { get; }
 
     /// <summary>
     /// Publishes the most recent tx submission to the mempool and waits for it to be confirmed on the blockchain.

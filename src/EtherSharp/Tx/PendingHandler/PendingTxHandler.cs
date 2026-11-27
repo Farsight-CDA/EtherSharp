@@ -1,27 +1,14 @@
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx.Types;
+using EtherSharp.Types;
+using System.Collections.Immutable;
 
 namespace EtherSharp.Tx.PendingHandler;
 
 /// <summary>
 /// Handler class for transactions that are still pending and not confirmed on the blockchain.
 /// </summary>
-public sealed class PendingTxHandler<TTxParams, TTxGasParams>(
-    Guid id,
-    ulong nonce,
-    IEnumerable<TxSubmission<TTxParams, TTxGasParams>> txSubmissions,
-    Func<
-        PendingTxHandler<TTxParams, TTxGasParams>,
-        Func<
-            TxConfirmationError,
-            TxConfirmationActionBuilder<TTxParams, TTxGasParams>,
-            TxSubmission<TTxParams, TTxGasParams>,
-            TxConfirmationAction<TTxParams, TTxGasParams>
-        >,
-        RpcRequestOptions,
-        Task<TxConfirmationResult>
-    > processFunc
-) : IPendingTxHandler<TTxParams, TTxGasParams>, IInternalPendingTxHandler
+public sealed class PendingTxHandler<TTxParams, TTxGasParams> : IPendingTxHandler<TTxParams, TTxGasParams>, IInternalPendingTxHandler
     where TTxParams : class, ITxParams<TTxParams>
     where TTxGasParams : class, ITxGasParams<TTxGasParams>
 {
@@ -35,25 +22,98 @@ public sealed class PendingTxHandler<TTxParams, TTxGasParams>(
         >,
         RpcRequestOptions,
         Task<TxConfirmationResult>
-    > _processFunc = processFunc;
+    > _processFunc;
 
-    private readonly Lock _isConfirmCalledLock = new Lock();
-    private bool _isConfirmCalled;
+    private readonly Lock _lock = new Lock();
     private readonly TaskCompletionSource<TxConfirmationResult> _completionCts
         = new TaskCompletionSource<TxConfirmationResult>();
 
-    /// <summary>
-    /// Direct access to underlying TxSubmissions list, meant for use in TxScheduler only.
-    /// </summary>
-    public readonly List<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions = [.. txSubmissions];
+    private ImmutableArray<TxSubmission<TTxParams, TTxGasParams>> _txSubmissions;
+    private bool _isConfirmCalled;
 
     /// <inheritdoc/>
-    public Guid Id { get; } = id;
+    public Guid Id { get; }
 
     /// <inheritdoc/>
-    public ulong Nonce { get; } = nonce;
-    /// <inheritdoc/>
-    IReadOnlyList<TxSubmission<TTxParams, TTxGasParams>> IPendingTxHandler<TTxParams, TTxGasParams>.TxSubmissions => [.. TxSubmissions];
+    public ImmutableArray<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions
+    {
+        get {
+            lock(_lock)
+            {
+                return _txSubmissions;
+            }
+        }
+    }
+
+    internal PendingTxHandler(
+        Guid id,
+        ImmutableArray<TxSubmission<TTxParams, TTxGasParams>> txSubmissions,
+        Func<
+            PendingTxHandler<TTxParams, TTxGasParams>,
+            Func<
+                TxConfirmationError,
+                TxConfirmationActionBuilder<TTxParams, TTxGasParams>,
+                TxSubmission<TTxParams, TTxGasParams>,
+                TxConfirmationAction<TTxParams, TTxGasParams>
+            >,
+            RpcRequestOptions,
+            Task<TxConfirmationResult>
+        > processFunc
+    )
+    {
+        ArgumentNullException.ThrowIfNull(processFunc);
+
+        if(txSubmissions.IsDefaultOrEmpty)
+        {
+            throw new ArgumentException("At least one transaction submission is required.", nameof(txSubmissions));
+        }
+
+        ulong nonce = txSubmissions[0].Nonce;
+        for(int i = 1; i < txSubmissions.Length; i++)
+        {
+            if(txSubmissions[i].Nonce != nonce)
+            {
+                throw new ArgumentException("All submissions for a pending transaction must share the same nonce.", nameof(txSubmissions));
+            }
+        }
+
+        Id = id;
+        _txSubmissions = txSubmissions;
+        _processFunc = processFunc;
+    }
+
+    internal void AddSubmission(TxSubmission<TTxParams, TTxGasParams> submission)
+    {
+        lock(_lock)
+        {
+            if(submission.Nonce != _txSubmissions[0].Nonce)
+            {
+                throw new InvalidOperationException("Replacement submission nonce must match the active transaction nonce.");
+            }
+
+            _txSubmissions = _txSubmissions.Insert(0, submission);
+        }
+    }
+
+    internal void ReplaceSubmissions(TxSubmission<TTxParams, TTxGasParams> submission)
+    {
+        lock(_lock)
+        {
+            _txSubmissions = [submission];
+        }
+    }
+
+    internal Bytes32[] GetSubmissionHashes()
+    {
+        var submissions = TxSubmissions;
+        var hashes = new Bytes32[submissions.Length];
+        for(int i = 0; i < submissions.Length; i++)
+        {
+            hashes[i] = submissions[i].TxHash;
+        }
+
+        return hashes;
+    }
 
     async Task<TxConfirmationResult> IPendingTxHandler<TTxParams, TTxGasParams>.PublishAndConfirmAsync(
         Func<
@@ -65,7 +125,7 @@ public sealed class PendingTxHandler<TTxParams, TTxGasParams>(
         RpcRequestOptions requestOptions
     )
     {
-        lock(_isConfirmCalledLock)
+        lock(_lock)
         {
             if(_isConfirmCalled)
             {

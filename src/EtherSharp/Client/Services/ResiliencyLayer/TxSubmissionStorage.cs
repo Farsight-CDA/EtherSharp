@@ -30,6 +30,7 @@ public sealed record TxSubmissionStorage(
         where TTxGasParams : class, ITxGasParams<TTxGasParams>
         => new TxSubmission<TTxParams, TTxGasParams>(
             ChainId,
+            Nonce,
             Sequence,
             TxHash,
             SignedTx,

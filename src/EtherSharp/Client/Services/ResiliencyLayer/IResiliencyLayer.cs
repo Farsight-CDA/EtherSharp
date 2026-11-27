@@ -14,6 +14,14 @@ public interface IResiliencyLayer
     public Task StoreTxSubmissionAsync(TxSubmissionStorage txSubmission, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Atomically replaces all stored submission attempts for the specified transaction ID with a new submission attempt.
+    /// </summary>
+    /// <param name="txSubmission">The replacement submission record to persist.</param>
+    /// <param name="cancellationToken">A token used to cancel the persistence operation.</param>
+    /// <returns>A task that completes when the previous submissions have been replaced.</returns>
+    public Task ReplaceTxSubmissionsAsync(TxSubmissionStorage txSubmission, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Deletes all stored submission attempts for the specified sender and transaction ID.
     /// </summary>
     /// <param name="senderKey">The chain and sender to delete submissions for.</param>
