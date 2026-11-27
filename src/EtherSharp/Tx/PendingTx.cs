@@ -233,23 +233,27 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
                 case TxWatchResult.Confirmed confirmed:
                     if(await TryFetchReceiptAsync(confirmed.TransactionHash, requestOptions, linkedCts.Token) is { } receipt)
                     {
-                        if(receipt.Success)
-                        {
-                            _txClient.Logger?.Tx.Confirmed(
-                                Id, _txClient.Signer.Address, LatestSubmission.Nonce,
-                                receipt.TransactionHash, receipt.BlockNumber, receipt.GasUsed
-                            );
-                        }
-
+                        _txClient.Logger?.Tx.Confirmed(
+                            Id, _txClient.Signer.Address, LatestSubmission.Nonce,
+                            receipt.TransactionHash, receipt.BlockNumber, receipt.Success, receipt.GasUsed
+                        );
                         return new TxReceiptResult.Confirmed(receipt);
                     }
 
                     // E.g. the including block was reorged out, so the slot is watched again.
+                    _txClient.Logger?.Tx.ReceiptUnavailable(
+                        Id, _txClient.Signer.Address, LatestSubmission.Nonce,
+                        confirmed.TransactionHash, confirmed.BlockNumber, RECEIPT_FETCH_RETRY_COUNT
+                    );
                     await RewatchAsync(watch, confirmed.BlockNumber, linkedCts.Token);
                     break;
                 case TxWatchResult.Replaced replaced:
+                    _txClient.Logger?.Tx.Replaced(
+                        Id, _txClient.Signer.Address, LatestSubmission.Nonce, replaced.TransactionHash, replaced.BlockNumber
+                    );
                     return new TxReceiptResult.Replaced(replaced.TransactionHash, replaced.BlockNumber, replaced.BlockHash);
                 case TxWatchResult.NonceAlreadyUsed:
+                    _txClient.Logger?.Tx.NonceAlreadyUsed(Id, _txClient.Signer.Address, LatestSubmission.Nonce);
                     return new TxReceiptResult.NonceAlreadyUsed();
             }
         }

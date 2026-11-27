@@ -231,11 +231,11 @@ internal sealed class EtherTxClient(
                     clientDisposalToken: disposalToken
                 );
             }
-            catch
+            catch(Exception ex)
             {
-                if(!_isDisposed)
+                if(!_isDisposed && !await _nonceAllocator.TryReleaseAsync(nonce, CancellationToken.None))
                 {
-                    _ = await _nonceAllocator.TryReleaseAsync(nonce, CancellationToken.None);
+                    Logger?.Tx.NonceNotReleased(ex, Signer.Address, nonce);
                 }
 
                 throw;
