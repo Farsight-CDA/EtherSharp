@@ -33,6 +33,7 @@ internal sealed class EtherTxClient(
     private readonly INonceAllocator _nonceAllocator = nonceAllocator;
 
     private readonly CancellationTokenSource _disposalCts = new CancellationTokenSource();
+    private readonly SemaphoreSlim _preparationLock = new SemaphoreSlim(1, 1);
     private volatile bool _isDisposed;
 
     internal IEtherSigner Signer { get; } = signer;
@@ -191,40 +192,50 @@ internal sealed class EtherTxClient(
             call, txParams, Signer.Address, requestOptions, linkedCts.Token
         );
 
-        ulong nonce = await _nonceAllocator.AllocateAsync(requestOptions, linkedCts.Token);
-
+        // Serializes nonce allocation with signing so a failed or cancelled signature can always
+        // release its nonce, instead of leaving a gap below nonces already handed to concurrent callers.
+        await _preparationLock.WaitAsync(linkedCts.Token);
         try
         {
-            var transaction = TTransaction.Create(_baseClient.ChainId, nonce, call, txParams, txGasParams);
-            var signedTransaction = await transaction.SignAsync(Signer, linkedCts.Token);
-            var submission = new TxSubmission<TTxParams, TTxGasParams>(
-                _baseClient.ChainId,
-                nonce,
-                0,
-                signedTransaction.Hash,
-                signedTransaction.EncodedTx,
-                call,
-                txParams,
-                txGasParams
-            );
+            ulong nonce = await _nonceAllocator.AllocateAsync(requestOptions, linkedCts.Token);
 
-            linkedCts.Token.ThrowIfCancellationRequested();
-            return new PendingTx<TTransaction, TTxParams, TTxGasParams>(
-                Guid.NewGuid(),
-                [submission],
-                this,
-                isPersisted: false,
-                clientDisposalToken: disposalToken
-            );
-        }
-        catch
-        {
-            if(!_isDisposed)
+            try
             {
-                _ = await _nonceAllocator.TryReleaseAsync(nonce, CancellationToken.None);
-            }
+                var transaction = TTransaction.Create(_baseClient.ChainId, nonce, call, txParams, txGasParams);
+                var signedTransaction = await transaction.SignAsync(Signer, linkedCts.Token);
+                var submission = new TxSubmission<TTxParams, TTxGasParams>(
+                    _baseClient.ChainId,
+                    nonce,
+                    0,
+                    signedTransaction.Hash,
+                    signedTransaction.EncodedTx,
+                    call,
+                    txParams,
+                    txGasParams
+                );
 
-            throw;
+                linkedCts.Token.ThrowIfCancellationRequested();
+                return new PendingTx<TTransaction, TTxParams, TTxGasParams>(
+                    Guid.NewGuid(),
+                    [submission],
+                    this,
+                    isPersisted: false,
+                    clientDisposalToken: disposalToken
+                );
+            }
+            catch
+            {
+                if(!_isDisposed)
+                {
+                    _ = await _nonceAllocator.TryReleaseAsync(nonce, CancellationToken.None);
+                }
+
+                throw;
+            }
+        }
+        finally
+        {
+            _ = _preparationLock.Release();
         }
     }
 
