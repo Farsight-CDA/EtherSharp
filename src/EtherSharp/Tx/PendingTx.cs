@@ -7,6 +7,7 @@ using EtherSharp.RPC.Transport;
 using EtherSharp.Tx.Types;
 using EtherSharp.Tx.Watcher;
 using EtherSharp.Types;
+using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 
@@ -76,7 +77,39 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             submission = await PersistLatestSubmissionAsync(resiliencyLayer, linkedCts.Token);
         }
 
-        return await _txClient.TxPublisher.PublishTxAsync(submission.SignedTx, requestOptions, linkedCts.Token);
+        var result = await _txClient.TxPublisher.PublishTxAsync(submission.SignedTx, requestOptions, linkedCts.Token);
+        LogPublishResult(submission, result);
+        return result;
+    }
+
+    private void LogPublishResult(TxSubmission<TTxParams, TTxGasParams> submission, TxSubmissionResult result)
+    {
+        if(result.IsAccepted)
+        {
+            if(_txClient.Logger?.IsEnabled(LogLevel.Information) == true)
+            {
+                _txClient.Logger.LogInformation(
+                    "Tx {TxId} {Sender}/{Nonce}: Published submission {Sequence} {TxHash} ({Result})",
+                    Id, _txClient.Signer.Address, submission.Nonce, submission.Sequence, submission.TxHash, result.GetType().Name
+                );
+            }
+
+            return;
+        }
+
+        var level = result is TxSubmissionResult.NonceTooLow
+            ? LogLevel.Information
+            : LogLevel.Warning;
+
+        if(_txClient.Logger?.IsEnabled(level) == true)
+        {
+            _txClient.Logger.Log(
+                level,
+                (result as TxSubmissionResult.UnhandledException)?.Exception,
+                "Tx {TxId} {Sender}/{Nonce}: Publish of submission {Sequence} {TxHash} rejected ({Result})",
+                Id, _txClient.Signer.Address, submission.Nonce, submission.Sequence, submission.TxHash, result.GetType().Name
+            );
+        }
     }
 
     public async Task<TxSubmission<TTxParams, TTxGasParams>> RepriceAsync(
@@ -143,6 +176,14 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             Array.Copy(submissions, 0, updatedSubmissions, 1, submissions.Length);
             _txSubmissions = updatedSubmissions;
 
+            if(_txClient.Logger?.IsEnabled(LogLevel.Information) == true)
+            {
+                _txClient.Logger.LogInformation(
+                    "Tx {TxId} {Sender}/{Nonce}: Repriced to submission {Sequence} {TxHash}",
+                    Id, _txClient.Signer.Address, submission.Nonce, submission.Sequence, submission.TxHash
+                );
+            }
+
             return submission;
         }
         finally
@@ -206,6 +247,15 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
                 case TxWatchResult.Confirmed confirmed:
                     if(await TryFetchReceiptAsync(confirmed.TransactionHash, requestOptions, linkedCts.Token) is { } receipt)
                     {
+                        if(receipt.Success && _txClient.Logger?.IsEnabled(LogLevel.Information) == true)
+                        {
+                            _txClient.Logger.LogInformation(
+                                "Tx {TxId} {Sender}/{Nonce}: Confirmed {TxHash} in block {BlockNumber}, gas used {GasUsed}",
+                                Id, _txClient.Signer.Address, LatestSubmission.Nonce,
+                                receipt.TransactionHash, receipt.BlockNumber, receipt.GasUsed
+                            );
+                        }
+
                         return new TxReceiptResult.Confirmed(receipt);
                     }
 

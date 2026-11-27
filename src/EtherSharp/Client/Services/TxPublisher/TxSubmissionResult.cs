@@ -95,6 +95,13 @@ public closed record TxSubmissionResult
     public sealed record UnhandledException(Exception Exception) : TxSubmissionResult;
 
     /// <summary>
+    /// Indicates whether the node holds the transaction, either because it was <see cref="Success">published</see>
+    /// or because it <see cref="AlreadyExists">already knew it</see>.
+    /// </summary>
+    public bool IsAccepted
+        => this is Success or AlreadyExists;
+
+    /// <summary>
     /// Returns a human-readable description of this submission outcome.
     /// </summary>
     /// <returns>A description of the outcome.</returns>

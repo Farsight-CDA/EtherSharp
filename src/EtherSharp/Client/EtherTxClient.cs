@@ -18,6 +18,7 @@ using EtherSharp.Tx.Watcher;
 using EtherSharp.Types;
 using EtherSharp.Wallet;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EtherSharp.Client;
 
@@ -46,6 +47,8 @@ internal sealed class EtherTxClient(
         = ((IEtherClient) baseClient).AsInternal().Provider.GetRequiredService<RpcRetryOptions>();
     internal IResiliencyLayer? ResiliencyLayer { get; }
         = ((IEtherClient) baseClient).AsInternal().Provider.GetService<IResiliencyLayer>();
+    internal ILogger? Logger { get; }
+        = ((IEtherClient) baseClient).AsInternal().Provider.GetService<ILoggerFactory>()?.CreateLogger<EtherTxClient>();
 
     Address IEtherTxClient.Address => Signer.Address;
     bool IEtherClient.IsInitialized => _baseClient.IsInitialized;
@@ -215,8 +218,18 @@ internal sealed class EtherTxClient(
                 );
 
                 linkedCts.Token.ThrowIfCancellationRequested();
+
+                var id = Guid.NewGuid();
+                if(Logger?.IsEnabled(LogLevel.Information) == true)
+                {
+                    Logger.LogInformation(
+                        "Tx {TxId} {Sender}/{Nonce}: Prepared {TxHash}",
+                        id, Signer.Address, nonce, submission.TxHash
+                    );
+                }
+
                 return new PendingTx<TTransaction, TTxParams, TTxGasParams>(
-                    Guid.NewGuid(),
+                    id,
                     [submission],
                     this,
                     isPersisted: false,
@@ -282,6 +295,14 @@ internal sealed class EtherTxClient(
         }
 
         Array.Sort(typedSubmissions, static (a, b) => b.Sequence.CompareTo(a.Sequence));
+
+        if(Logger?.IsEnabled(LogLevel.Information) == true)
+        {
+            Logger.LogInformation(
+                "Tx {TxId} {Sender}/{Nonce}: Attached with {SubmissionCount} submissions, latest {TxHash}",
+                id, Signer.Address, nonce, typedSubmissions.Length, typedSubmissions[0].TxHash
+            );
+        }
 
         return new PendingTx<TTransaction, TTxParams, TTxGasParams>(
             id,
