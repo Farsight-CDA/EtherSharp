@@ -21,6 +21,11 @@ public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
     public Guid Id { get; }
 
     /// <summary>
+    /// Active account nonce used by this transaction's current submissions.
+    /// </summary>
+    public ulong Nonce { get; }
+
+    /// <summary>
     /// Signed submission attempts for this transaction on its active nonce, ordered newest first.
     /// </summary>
     public ImmutableArray<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions { get; }

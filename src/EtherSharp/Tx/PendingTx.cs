@@ -25,6 +25,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     private volatile bool _isDisposed;
 
     public Guid Id { get; }
+    public ulong Nonce => _txSubmissions[0].Nonce;
 
     public ImmutableArray<TxSubmission<TTxParams, TTxGasParams>> TxSubmissions
         => ImmutableCollectionsMarshal.AsImmutableArray(_txSubmissions);
