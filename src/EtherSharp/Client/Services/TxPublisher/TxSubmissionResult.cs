@@ -102,6 +102,21 @@ public closed record TxSubmissionResult
     public sealed record UnhandledException(Exception Exception) : TxSubmissionResult;
 
     /// <summary>
+    /// Returns a human-readable description of this submission outcome.
+    /// </summary>
+    /// <returns>A description of the outcome.</returns>
+    public string Describe()
+        => this switch
+        {
+            Success success => $"Transaction {success.TxHash} was published successfully",
+            AlreadyExists => "Transaction is already known by the node",
+            TransactionUnderpriced => "Transaction was rejected as underpriced",
+            NonceTooLow => "Transaction was rejected because its nonce is too low",
+            InsufficientFunds => "Transaction was rejected because the sender has insufficient funds",
+            UnhandledException unhandled => $"Transaction publish failed: {unhandled.Exception.Message}",
+        };
+
+    /// <summary>
     /// Converts an exception raised while submitting a transaction into a submission result.
     /// </summary>
     /// <param name="exception">The exception raised while submitting a transaction.</param>

@@ -1,3 +1,5 @@
+using EtherSharp.Client.Services.TxPublisher;
+using EtherSharp.Common.Exceptions;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx;
 using EtherSharp.Tx.EIP1559;
@@ -61,6 +63,67 @@ public interface IEtherTxClient : IEtherClient
         where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
         where TTxParams : class, ITxParams<TTxParams>
         where TTxGasParams : class, ITxGasParams<TTxGasParams>;
+
+    /// <summary>
+    /// Prepares, signs and publishes a default EIP-1559 transaction once, then waits for its receipt.
+    /// Never reprices or rebroadcasts; use <see cref="PrepareTxAsync"/> for control over the submission lifecycle.
+    /// </summary>
+    /// <param name="call">Transaction call payload.</param>
+    /// <param name="txParams">Optional transaction parameters (access list, etc.).</param>
+    /// <param name="txGasParams">Optional precomputed gas parameters.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The receipt outcome for the transaction.</returns>
+    /// <exception cref="TxPublishException">The node rejected the transaction.</exception>
+    public Task<TxReceiptResult> SendTxAndWaitForReceiptAsync(
+        ITxInput call,
+        EIP1559TxParams? txParams = default,
+        EIP1559GasParams? txGasParams = default,
+        RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    ) => SendTxAndWaitForReceiptAsync<EIP1559Transaction, EIP1559TxParams, EIP1559GasParams>(
+        call, txParams, txGasParams, requestOptions, cancellationToken
+    );
+
+    /// <summary>
+    /// Prepares, signs and publishes a transaction for a custom transaction model once, then waits for its receipt.
+    /// Never reprices or rebroadcasts; use <see cref="PrepareTxAsync{TTransaction, TTxParams, TTxGasParams}"/>
+    /// for control over the submission lifecycle.
+    /// </summary>
+    /// <typeparam name="TTransaction">Transaction type implementing signing/serialization behavior.</typeparam>
+    /// <typeparam name="TTxParams">Transaction parameter type.</typeparam>
+    /// <typeparam name="TTxGasParams">Gas parameter type.</typeparam>
+    /// <param name="call">Transaction call payload.</param>
+    /// <param name="txParams">Optional transaction parameters.</param>
+    /// <param name="txGasParams">Optional precomputed gas parameters.</param>
+    /// <param name="requestOptions">Transport-specific request options.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The receipt outcome for the transaction.</returns>
+    /// <exception cref="TxPublishException">The node rejected the transaction.</exception>
+    /// <remarks>
+    /// A <see cref="TxSubmissionResult.NonceTooLow"/> publish result is not treated as a failure, as the nonce
+    /// may have been consumed by this transaction itself. The returned result reports the actual outcome.
+    /// </remarks>
+    public async Task<TxReceiptResult> SendTxAndWaitForReceiptAsync<TTransaction, TTxParams, TTxGasParams>(
+        ITxInput call,
+        TTxParams? txParams = default,
+        TTxGasParams? txGasParams = default,
+        RpcRequestOptions requestOptions = default,
+        CancellationToken cancellationToken = default
+    )
+        where TTransaction : class, ITransaction<TTransaction, TTxParams, TTxGasParams>
+        where TTxParams : class, ITxParams<TTxParams>
+        where TTxGasParams : class, ITxGasParams<TTxGasParams>
+    {
+        await using var pendingTx = await PrepareTxAsync<TTransaction, TTxParams, TTxGasParams>(
+            call, txParams, txGasParams, requestOptions, cancellationToken
+        );
+
+        var submissionResult = await pendingTx.PublishAsync(requestOptions, cancellationToken);
+        return submissionResult is TxSubmissionResult.Success or TxSubmissionResult.AlreadyExists or TxSubmissionResult.NonceTooLow
+            ? await pendingTx.WaitForReceiptAsync(requestOptions, cancellationToken)
+            : throw new TxPublishException(submissionResult);
+    }
 
     /// <summary>
     /// Attaches to a persisted default EIP-1559 transaction by ID for this client's chain and sender.
