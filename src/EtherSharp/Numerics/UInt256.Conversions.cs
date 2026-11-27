@@ -10,7 +10,6 @@ namespace EtherSharp.Numerics;
 public readonly partial struct UInt256 : IStackValue<UInt256>
 {
     private const double DOUBLE_UPPER_BOUND = 1.157920892373162E77;
-    private const double DOUBLE_UINT64_UPPER_BOUND = 18446744073709551616.0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static UInt256 IStackValue<UInt256>.FromStackWord(in Bytes32 value)
@@ -184,27 +183,7 @@ public readonly partial struct UInt256 : IStackValue<UInt256>
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator UInt256(double value)
-    {
-        if(!(value >= 1))
-        {
-            return default;
-        }
-
-        if(value < DOUBLE_UINT64_UPPER_BOUND)
-        {
-            return new UInt256(unchecked((ulong) value));
-        }
-
-        if(value >= DOUBLE_UPPER_BOUND)
-        {
-            return MaxValue;
-        }
-
-        ulong bits = BitConverter.DoubleToUInt64Bits(value);
-        int exponent = (int) ((bits >> 52) & 0x7FF) - 1023;
-        ulong significand = (bits & 0x000F_FFFF_FFFF_FFFFUL) | (1UL << 52);
-        return FromUpstream(new CoreUInt256(significand) << (exponent - 52));
-    }
+        => FromUpstream(CoreUInt256.CreateSaturating(value));
 
     /// <summary>
     /// Converts a <see cref="Double"/> to a <see cref="UInt256"/>, truncating toward zero.
@@ -438,12 +417,12 @@ public readonly partial struct UInt256 : IStackValue<UInt256>
         => CoreUInt256.ToDouble(AsUpstream(in value));
 
     /// <summary>
-    /// Converts to a <see cref="Single"/> through <see cref="Double"/>.
+    /// Converts to a <see cref="Single"/>, rounding to the nearest value with ties rounded to even.
     /// Values that round beyond the finite range become positive infinity in either context.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator float(in UInt256 value)
-        => (float) (double) value;
+        => CoreUInt256.ToSingle(AsUpstream(in value));
 
     /// <summary>
     /// Converts to a <see cref="Half"/>, rounding to the nearest value with ties rounded to even.
@@ -460,7 +439,10 @@ public readonly partial struct UInt256 : IStackValue<UInt256>
     /// <exception cref="OverflowException">The value exceeds Decimal.MaxValue.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator decimal(in UInt256 value)
-        => checked((decimal) (UInt128) value);
+        // The UInt128 conversion checks the decimal range; values above it get the same message.
+        => (value._u2 | value._u3) != 0
+            ? throw new OverflowException("Value was either too large or too small for a Decimal.")
+            : (decimal) unchecked((UInt128) value);
 
     /// <summary>
     /// Represents the unsigned value as exactly 32 big-endian bytes.

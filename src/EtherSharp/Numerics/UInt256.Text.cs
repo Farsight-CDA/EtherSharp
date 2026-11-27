@@ -39,6 +39,7 @@ public readonly partial struct UInt256 : ISpanFormattable, IUtf8SpanFormattable
     /// Supports standard and custom BigInteger numeric formats. Hexadecimal (X/x) and binary (B/b)
     /// formats represent the unsigned value without an extra sign digit or a prefix.
     /// Precision specifies a minimum digit count, padded with zeros.
+    /// As with BigInteger, G with a precision also specifies a minimum digit count and never uses scientific notation.
     /// A null or empty format uses decimal notation; a null provider uses the current culture.
     /// </remarks>
     /// <exception cref="FormatException">The numeric format is invalid.</exception>

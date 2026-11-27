@@ -2,6 +2,7 @@ using EtherSharp.Types;
 using System.Buffers.Binary;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using CoreInt256 = Nethermind.Int256.Int256;
 
 namespace EtherSharp.Numerics;
 
@@ -69,12 +70,7 @@ public readonly partial struct Int256 : IStackValue<Int256>
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Int256(long value)
-    {
-        ulong signExtension = value < 0 ? UInt64.MaxValue : 0;
-        return new Int256(new UInt256(
-            unchecked((ulong) value), signExtension, signExtension, signExtension
-        ));
-    }
+        => FromUpstream(new CoreInt256(value));
 
     /// <summary>
     /// Converts a <see cref="UInt128"/> to an <see cref="Int256"/>.
@@ -354,7 +350,14 @@ public readonly partial struct Int256 : IStackValue<Int256>
     /// <exception cref="OverflowException">The value is outside the decimal range.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator decimal(in Int256 value)
-        => checked((decimal) (Int128) value);
+    {
+        // The Int128 conversion checks the decimal range; values outside Int128 get the same message.
+        var low = unchecked((Int128) value);
+        ulong signExtension = low < 0 ? UInt64.MaxValue : 0;
+        return value._value._u2 != signExtension || value._value._u3 != signExtension
+            ? throw new OverflowException("Value was either too large or too small for a Decimal.")
+            : (decimal) low;
+    }
 
     /// <summary>
     /// Represents the value as big-endian, 256-bit two's-complement bytes.

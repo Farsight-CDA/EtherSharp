@@ -71,10 +71,7 @@ public readonly partial struct UInt256
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Negate(in UInt256 value, out UInt256 result)
-    {
-        CoreUInt256.Subtract(CoreUInt256.Zero, AsUpstream(in value), out var coreResult);
-        result = FromUpstream(coreResult);
-    }
+        => result = FromUpstream(CoreUInt256.Negate(AsUpstream(in value)));
 
     /// <summary>
     /// Multiplies two values, storing the product modulo 2^256 in <paramref name="result"/>.
