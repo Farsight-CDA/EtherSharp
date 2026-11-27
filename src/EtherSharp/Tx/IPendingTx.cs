@@ -1,4 +1,5 @@
 using EtherSharp.Client.Services.TxPublisher;
+using EtherSharp.Numerics;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx.Types;
 using EtherSharp.Tx.Watcher;
@@ -25,9 +26,9 @@ public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
     public Guid Id { get; }
 
     /// <summary>
-    /// Active account nonce used by this transaction's current submissions.
+    /// Most recent signed submission attempt for this transaction on its active nonce.
     /// </summary>
-    public ulong Nonce { get; }
+    public TxSubmission<TTxParams, TTxGasParams> LatestSubmission { get; }
 
     /// <summary>
     /// Signed submission attempts for this transaction on its active nonce, ordered newest first.
@@ -58,6 +59,29 @@ public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
     /// </returns>
     public Task<TxSubmission<TTxParams, TTxGasParams>?> TryRepriceAsync(
         TTxGasParams gasParams,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Signs a replacement at the same nonce using the latest fees scaled by 1105/1000 (a 10.5% bump),
+    /// with a minimum increase of 1 wei per gas. Does not persist or broadcast.
+    /// </summary>
+    /// <param name="cancellationToken">Token used to cancel signing.</param>
+    /// <returns>The signed replacement, or <see langword="null"/> if the nonce has already resolved on-chain.</returns>
+    public Task<TxSubmission<TTxParams, TTxGasParams>?> TryBumpFeesAsync(CancellationToken cancellationToken = default)
+        => TryBumpFeesAsync(1105, 1000, 1, cancellationToken);
+
+    /// <summary>
+    /// Signs a replacement at the same nonce by scaling the latest submission's fees.
+    /// Registers the replacement hash with the active watcher without persisting or broadcasting.
+    /// </summary>
+    /// <param name="multiplier">Numerator of the fee scaling factor, at least <paramref name="divider"/>.</param>
+    /// <param name="divider">Nonzero denominator of the fee scaling factor.</param>
+    /// <param name="minimumIncrement">Minimum absolute increase in each fee per gas.</param>
+    /// <param name="cancellationToken">Token used to cancel signing.</param>
+    /// <returns>The signed replacement, or <see langword="null"/> if the nonce has already resolved on-chain.</returns>
+    public Task<TxSubmission<TTxParams, TTxGasParams>?> TryBumpFeesAsync(
+        UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement,
         CancellationToken cancellationToken = default
     );
 
