@@ -17,12 +17,14 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     where TTxParams : class, ITxParams<TTxParams>
     where TTxGasParams : class, ITxGasParams<TTxGasParams>
 {
+    private const int RECEIPT_FETCH_RETRY_COUNT = 3;
+
     private readonly EtherTxClient _txClient;
     private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
-    private readonly ITxWatch _watch;
     private readonly CancellationToken _clientDisposalToken;
     private readonly CancellationTokenSource _disposalCts = new CancellationTokenSource();
 
+    private volatile ITxWatch _watch;
     private volatile TxSubmission<TTxParams, TTxGasParams>[] _txSubmissions;
     private volatile TxSubmission<TTxParams, TTxGasParams>? _lastPersistedSubmission;
     private volatile bool _isDisposed;
@@ -49,28 +51,12 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             throw new ArgumentException("At least one transaction submission is required.", nameof(txSubmissions));
         }
 
-        ulong nonce = txSubmissions[0].Nonce;
         Id = id;
         _txSubmissions = txSubmissions;
         _txClient = txClient;
         _clientDisposalToken = clientDisposalToken;
         _lastPersistedSubmission = isPersisted ? txSubmissions[0] : null;
-
-        var sender = txClient.Signer.Address;
-        if(txSubmissions.Length == 1)
-        {
-            _watch = txClient.TxConfirmationWatcher.Watch(in sender, nonce, txSubmissions[0].TxHash);
-        }
-        else
-        {
-            var hashes = new Bytes32[txSubmissions.Length];
-            for(int i = 0; i < txSubmissions.Length; i++)
-            {
-                hashes[i] = txSubmissions[i].TxHash;
-            }
-
-            _watch = txClient.TxConfirmationWatcher.Watch(in sender, nonce, hashes);
-        }
+        _watch = CreateWatch(txSubmissions, null);
     }
 
     public async Task<TxSubmissionResult> PublishAsync(
@@ -84,7 +70,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             _disposalCts.Token, _clientDisposalToken, cancellationToken
         );
 
-        var submission = _txSubmissions[0];
+        var submission = LatestSubmission;
         if(_txClient.ResiliencyLayer is { } resiliencyLayer && _lastPersistedSubmission != submission)
         {
             submission = await PersistLatestSubmissionAsync(resiliencyLayer, linkedCts.Token);
@@ -211,17 +197,27 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             _disposalCts.Token, _clientDisposalToken, cancellationToken
         );
 
-        var inclusion = await _watch.WaitAsync(linkedCts.Token);
-        return inclusion switch
+        while(true)
         {
-            TxWatchResult.Confirmed confirmed => new TxReceiptResult.Confirmed(
-                await FetchReceiptAsync(confirmed.TransactionHash, requestOptions, linkedCts.Token)
-            ),
-            TxWatchResult.Replaced replaced => new TxReceiptResult.Replaced(
-                replaced.TransactionHash, replaced.BlockNumber, replaced.BlockHash
-            ),
-            TxWatchResult.NonceAlreadyUsed => new TxReceiptResult.NonceAlreadyUsed(),
-        };
+            var watch = _watch;
+            var inclusion = await watch.WaitAsync(linkedCts.Token);
+            switch(inclusion)
+            {
+                case TxWatchResult.Confirmed confirmed:
+                    if(await TryFetchReceiptAsync(confirmed.TransactionHash, requestOptions, linkedCts.Token) is { } receipt)
+                    {
+                        return new TxReceiptResult.Confirmed(receipt);
+                    }
+
+                    // E.g. the including block was reorged out, so the slot is watched again.
+                    await RewatchAsync(watch, confirmed.BlockNumber, linkedCts.Token);
+                    break;
+                case TxWatchResult.Replaced replaced:
+                    return new TxReceiptResult.Replaced(replaced.TransactionHash, replaced.BlockNumber, replaced.BlockHash);
+                case TxWatchResult.NonceAlreadyUsed:
+                    return new TxReceiptResult.NonceAlreadyUsed();
+            }
+        }
     }
 
     public async Task<TxReceiptResult?> WaitForReceiptAsync(
@@ -269,7 +265,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var submission = _txSubmissions[0];
+            var submission = LatestSubmission;
 
             if(_lastPersistedSubmission != submission)
             {
@@ -288,25 +284,77 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         }
     }
 
-    private async Task<TxReceipt> FetchReceiptAsync(
+    // Returns the receipt, or null when it stays unavailable after the retries.
+    private async Task<TxReceipt?> TryFetchReceiptAsync(
         Bytes32 txHash,
         RpcRequestOptions requestOptions,
         CancellationToken cancellationToken
     )
     {
         var delay = _txClient.RetryOptions.RetryDelay;
-        while(true)
+        for(int attempt = 0; true; attempt++)
         {
             var receipt = await _txClient.EthRpcModule.GetTransactionReceiptAsync(
                 in txHash, requestOptions, cancellationToken
             );
-            if(receipt is not null)
+            if(receipt is not null || attempt == RECEIPT_FETCH_RETRY_COUNT)
             {
                 return receipt;
             }
 
+            // A lagging node may not serve the receipt yet.
             await Task.Delay(delay, cancellationToken);
             delay = RpcRetryOptions.NextBackoff(delay, _txClient.RetryOptions.MaxErrorBackoff);
         }
+    }
+
+    // Replaces a resolved watch whose inclusion could not be verified with a fresh watch on the same slot.
+    private async Task RewatchAsync(ITxWatch staleWatch, ulong includedAtBlock, CancellationToken cancellationToken)
+    {
+        await _lock.WaitAsync(cancellationToken);
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // A concurrent wait may already have replaced the stale watch.
+            if(_watch != staleWatch)
+            {
+                return;
+            }
+
+            // The nonce was unused before the including block on any chain that shares the history up to it.
+            var watch = CreateWatch(
+                _txSubmissions,
+                includedAtBlock > 0
+                    ? includedAtBlock - 1
+                    : null
+                );
+            _ = Interlocked.Exchange(ref _watch, watch);
+
+            // Pairs with DisposeAsync, which flags disposal before disposing the current watch.
+            if(_isDisposed)
+            {
+                watch.Dispose();
+            }
+
+            staleWatch.Dispose();
+        }
+        finally
+        {
+            _ = _lock.Release();
+        }
+    }
+
+    private ITxWatch CreateWatch(TxSubmission<TTxParams, TTxGasParams>[] submissions, ulong? unusedAtBlock)
+    {
+        var hashes = new Bytes32[submissions.Length];
+        for(int i = 0; i < submissions.Length; i++)
+        {
+            hashes[i] = submissions[i].TxHash;
+        }
+
+        return unusedAtBlock is { } block
+            ? _txClient.TxConfirmationWatcher.Watch(_txClient.Signer.Address, submissions[0].Nonce, block, hashes)
+            : _txClient.TxConfirmationWatcher.Watch(_txClient.Signer.Address, submissions[0].Nonce, hashes);
     }
 }
