@@ -146,7 +146,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
                 latest.Params,
                 gasParams
             );
-            var signedTransaction = await transaction.SignAsync(_txClient.Signer, linkedCts.Token);
+            var signedTransaction = await _txClient.Signer.SignTransactionAsync(transaction, linkedCts.Token);
             var submission = new TxSubmission<TTxParams, TTxGasParams>(
                 latest.ChainId,
                 latest.Nonce,

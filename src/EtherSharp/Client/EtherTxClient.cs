@@ -206,7 +206,7 @@ internal sealed class EtherTxClient(
             try
             {
                 var transaction = TTransaction.Create(_baseClient.ChainId, nonce, call, txParams, txGasParams);
-                var signedTransaction = await transaction.SignAsync(Signer, linkedCts.Token);
+                var signedTransaction = await Signer.SignTransactionAsync(transaction, linkedCts.Token);
                 var submission = new TxSubmission<TTxParams, TTxGasParams>(
                     _baseClient.ChainId,
                     nonce,

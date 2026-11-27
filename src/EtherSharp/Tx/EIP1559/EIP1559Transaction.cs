@@ -133,8 +133,7 @@ public sealed record EIP1559Transaction(
             .EncodeAccessList(AccessList);
     }
 
-    /// <inheritdoc/>
-    public async ValueTask<SignedTransaction> SignAsync(IEtherSigner signer, CancellationToken cancellationToken = default)
+    async ValueTask<SignedTransaction> ITransaction.SignAsync(IEtherSigner signer, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(signer);
 

@@ -1,4 +1,6 @@
 using EtherSharp.Crypto;
+using EtherSharp.Tx;
+using EtherSharp.Tx.Types;
 using EtherSharp.Types;
 using System.ComponentModel.DataAnnotations;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -106,6 +108,21 @@ public interface IEtherSigner
                 cancellationToken
             )
         );
+
+    /// <summary>
+    /// Encodes and signs a transaction.
+    /// </summary>
+    /// <param name="transaction">The unsigned transaction to sign.</param>
+    /// <param name="cancellationToken">Token used to cancel the signing operation.</param>
+    /// <returns>The encoded signed transaction and its hash.</returns>
+    public ValueTask<SignedTransaction> SignTransactionAsync(
+        ITransaction transaction,
+        CancellationToken cancellationToken = default
+    )
+    {
+        ArgumentNullException.ThrowIfNull(transaction);
+        return transaction.SignAsync(this, cancellationToken);
+    }
 
     private static async ValueTask<RecoverableEtherSignature> NormalizeRecoveryIdAsync(
         ValueTask<RecoverableEtherSignature> signatureTask)

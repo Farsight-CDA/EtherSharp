@@ -18,13 +18,7 @@ public interface ITransaction
     /// <summary>Gets the transaction destination, value, and calldata.</summary>
     public ITxInput Input { get; }
 
-    /// <summary>
-    /// Encodes and signs this transaction.
-    /// </summary>
-    /// <param name="signer">Signer of the transaction.</param>
-    /// <param name="cancellationToken">Token used to cancel the signing operation.</param>
-    /// <returns>The encoded signed transaction and its hash.</returns>
-    public ValueTask<SignedTransaction> SignAsync(
+    internal ValueTask<SignedTransaction> SignAsync(
         IEtherSigner signer,
         CancellationToken cancellationToken = default
     );
