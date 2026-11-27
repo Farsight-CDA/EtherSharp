@@ -298,6 +298,35 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         }
     }
 
+    public async Task<bool> TryAbandonAsync(CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            _disposalCts.Token, _clientDisposalToken, cancellationToken
+        );
+
+        await _lock.WaitAsync(linkedCts.Token);
+        try
+        {
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+            ulong nonce = LatestSubmission.Nonce;
+            if(!await _txClient.TryAbandonNonceAsync(Id, nonce, _lastPersistedSubmission is not null, linkedCts.Token))
+            {
+                return false;
+            }
+
+            _txClient.Logger?.Tx.Abandoned(Id, _txClient.Signer.Address, nonce);
+            await DisposeAsync();
+            return true;
+        }
+        finally
+        {
+            _ = _lock.Release();
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
         if(Interlocked.Exchange(ref _isDisposed, true))

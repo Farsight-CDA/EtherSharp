@@ -120,9 +120,13 @@ public interface IEtherTxClient : IEtherClient
         );
 
         var submissionResult = await pendingTx.PublishAsync(requestOptions, cancellationToken);
-        return submissionResult.IsAccepted || submissionResult is TxSubmissionResult.NonceTooLow
-            ? await pendingTx.WaitForReceiptAsync(requestOptions, cancellationToken)
-            : throw new TxPublishException(submissionResult);
+        if(submissionResult.IsAccepted || submissionResult is TxSubmissionResult.NonceTooLow)
+        {
+            return await pendingTx.WaitForReceiptAsync(requestOptions, cancellationToken);
+        }
+
+        _ = await pendingTx.TryAbandonAsync(CancellationToken.None);
+        throw new TxPublishException(submissionResult);
     }
 
     /// <summary>

@@ -302,6 +302,49 @@ internal sealed class EtherTxClient(
         );
     }
 
+    internal async Task<bool> TryAbandonNonceAsync(
+        Guid id,
+        ulong nonce,
+        bool deletePersistedSubmissions,
+        CancellationToken cancellationToken
+    )
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+        await _preparationLock.WaitAsync(cancellationToken);
+        try
+        {
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+            if(!await _nonceAllocator.TryReleaseAsync(nonce, CancellationToken.None))
+            {
+                return false;
+            }
+
+            if(deletePersistedSubmissions && ResiliencyLayer is { } resiliencyLayer)
+            {
+                try
+                {
+                    await resiliencyLayer.DeleteTxSubmissionsAsync(
+                        new TxSenderKey(_baseClient.ChainId, Signer.Address),
+                        id,
+                        CancellationToken.None
+                    );
+                }
+                catch(Exception ex)
+                {
+                    Logger?.Tx.AbandonedCleanupFailed(ex, id, Signer.Address, nonce);
+                }
+            }
+
+            return true;
+        }
+        finally
+        {
+            _ = _preparationLock.Release();
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
         if(Interlocked.Exchange(ref _isDisposed, true))

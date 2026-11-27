@@ -140,4 +140,12 @@ public interface IPendingTx<TTxParams, TTxGasParams> : IAsyncDisposable
         RpcRequestOptions requestOptions = default,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Releases the nonce back to the allocator, deletes persisted submissions, and disposes this handle
+    /// if the nonce can still be released. Does not cancel anything on-chain.
+    /// </summary>
+    /// <param name="cancellationToken">Token used to cancel waiting to abandon.</param>
+    /// <returns><see langword="true"/> if abandoned; <see langword="false"/> if the handle remains active.</returns>
+    public Task<bool> TryAbandonAsync(CancellationToken cancellationToken = default);
 }

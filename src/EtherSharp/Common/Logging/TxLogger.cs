@@ -44,4 +44,13 @@ internal sealed partial class TxLogger(ILogger logger)
 
     [LoggerMessage(LogLevel.Warning, "{Sender}/{Nonce}: Nonce not released after failed preparation, later transactions may stall on the gap")]
     public partial void NonceNotReleased(Exception exception, Address sender, ulong nonce);
+
+    [LoggerMessage(LogLevel.Information, "Tx {TxId} {Sender}/{Nonce}: Abandoned and nonce released")]
+    public partial void Abandoned(Guid txId, Address sender, ulong nonce);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Tx {TxId} {Sender}/{Nonce}: Released nonce on abandon but failed to delete persisted submissions"
+    )]
+    public partial void AbandonedCleanupFailed(Exception exception, Guid txId, Address sender, ulong nonce);
 }
