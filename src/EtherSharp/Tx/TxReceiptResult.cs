@@ -1,5 +1,4 @@
 using EtherSharp.Types;
-using System.Diagnostics.CodeAnalysis;
 
 namespace EtherSharp.Tx;
 

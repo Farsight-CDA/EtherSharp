@@ -1,6 +1,7 @@
 using EtherSharp.Client;
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.TxPublisher;
+using EtherSharp.Numerics;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx.Types;
@@ -98,6 +99,23 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     )
     {
         ArgumentNullException.ThrowIfNull(gasParams);
+        return await TryRepriceAsync(_ => gasParams, cancellationToken);
+    }
+
+    public Task<TxSubmission<TTxParams, TTxGasParams>?> TryBumpFeesAsync(
+        UInt256 multiplier, UInt256 divider, UInt256 minimumIncrement,
+        CancellationToken cancellationToken = default
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfEqual(divider, UInt256.Zero);
+        ArgumentOutOfRangeException.ThrowIfLessThan(multiplier, divider);
+        return TryRepriceAsync(latest => latest.IncrementByFactor(multiplier, divider, minimumIncrement), cancellationToken);
+    }
+
+    private async Task<TxSubmission<TTxParams, TTxGasParams>?> TryRepriceAsync(
+        Func<TTxGasParams, TTxGasParams> getGasParams, CancellationToken cancellationToken
+    )
+    {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
@@ -109,6 +127,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         {
             var submissions = _txSubmissions;
             var latest = submissions[0];
+            var gasParams = getGasParams(latest.GasParams);
             var transaction = TTransaction.Create(
                 latest.ChainId,
                 latest.Nonce,
