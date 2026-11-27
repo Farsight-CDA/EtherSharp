@@ -20,6 +20,10 @@ public sealed class BasicTxPublisher(IEthRpcModule ethRpcModule) : ITxPublisher
         {
             return await _ethRpcModule.SendRawTransactionAsync(transactionHex, requestOptions, cancellationToken);
         }
+        catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch(Exception ex)
         {
             return TxSubmissionResult.FromException(ex);
