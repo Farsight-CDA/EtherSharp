@@ -45,6 +45,20 @@ public sealed class EtherTxClientBuilder
     }
 
     /// <summary>
+    /// Seeds the initial on-chain nonce from a <see cref="NonceSearchResult"/>.
+    /// <see cref="NonceSearchResult.Found"/> seeds its nonce; <see cref="NonceSearchResult.NotFound"/> clears any
+    /// seeded nonce so it is fetched via <c>eth_getTransactionCount</c> during <see cref="BuildAsync"/>.
+    /// </summary>
+    public EtherTxClientBuilder WithInitialNonce(NonceSearchResult nonceSearchResult)
+    {
+        ArgumentNullException.ThrowIfNull(nonceSearchResult);
+        _initialNonce = nonceSearchResult is NonceSearchResult.Found found
+            ? found.Nonce
+            : null;
+        return this;
+    }
+
+    /// <summary>
     /// Configures the default <see cref="LocalNonceAllocator"/>.
     /// </summary>
     public EtherTxClientBuilder WithLocalNonceAllocator(TimeSpan syncInterval = default)
