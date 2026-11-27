@@ -1,4 +1,5 @@
 using EtherSharp.Common.Converters.Json;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
@@ -11,7 +12,7 @@ namespace EtherSharp.Numerics;
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
 [JsonConverter(typeof(UInt256HexConverter))]
-public readonly partial struct UInt256
+public readonly partial struct UInt256 : IAdditiveIdentity<UInt256, UInt256>, IMultiplicativeIdentity<UInt256, UInt256>
 {
     /// <summary>
     /// Represents the value zero.
@@ -42,6 +43,9 @@ public readonly partial struct UInt256
     /// Represents the largest possible value, 2^256 - 1.
     /// </summary>
     public static readonly UInt256 MaxValue = new UInt256(UInt64.MaxValue, UInt64.MaxValue, UInt64.MaxValue, UInt64.MaxValue);
+
+    static UInt256 IAdditiveIdentity<UInt256, UInt256>.AdditiveIdentity => Zero;
+    static UInt256 IMultiplicativeIdentity<UInt256, UInt256>.MultiplicativeIdentity => One;
 
     internal readonly ulong _u0;
     internal readonly ulong _u1;
