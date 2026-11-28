@@ -113,6 +113,9 @@ public sealed partial class PollingTxConfirmationWatcher
             {
                 _ = Watcher._txHashSlots.Remove(entry.Hash);
             }
+
+            // Stops a search still running when the slot was resolved by NotifyIncluded.
+            _ = CancelAsync();
         }
 
         public void Unregister(TxWatchHandle handle)

@@ -136,6 +136,31 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
     }
 
     /// <inheritdoc/>
+    public void NotifyIncluded(ulong blockNumber, in Bytes32 blockHash, ReadOnlySpan<Bytes32> transactionHashes)
+    {
+        // Read without the lock: a stale count only skips hashes registered concurrently, which polling still resolves.
+        if(_txHashSlots.Count == 0)
+        {
+            return;
+        }
+
+        using var scope = _stateLock.EnterScope();
+
+        if(_isDisposed)
+        {
+            return;
+        }
+
+        foreach(var txHash in transactionHashes)
+        {
+            if(_txHashSlots.TryGetValue(txHash, out var slot))
+            {
+                slot.Resolve(new TxWatchResult.Confirmed(txHash, blockNumber, blockHash));
+            }
+        }
+    }
+
+    /// <inheritdoc/>
     public async ValueTask DisposeAsync()
     {
         List<Task> tasks = [];

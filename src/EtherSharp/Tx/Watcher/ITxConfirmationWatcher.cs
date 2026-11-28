@@ -28,4 +28,12 @@ public interface ITxConfirmationWatcher
     /// <returns>A disposable handle representing this watch registration.</returns>
     /// <exception cref="InvalidOperationException">A hash is already watched for another <c>(sender, nonce)</c> slot.</exception>
     public ITxWatch Watch(in Address sender, ulong nonce, ulong unusedAtBlock, params ReadOnlySpan<Bytes32> txHashes);
+
+    /// <summary>
+    /// Signals that transactions were included in a block, resolving the slots tracking any of their hashes.
+    /// </summary>
+    /// <param name="blockNumber">Number of the including block.</param>
+    /// <param name="blockHash">Hash of the including block.</param>
+    /// <param name="transactionHashes">Hashes of the included transactions.</param>
+    public void NotifyIncluded(ulong blockNumber, in Bytes32 blockHash, ReadOnlySpan<Bytes32> transactionHashes);
 }
