@@ -6,18 +6,6 @@ namespace EtherSharp.RLP;
 
 internal static class TxRLPDecoder
 {
-    public static bool TryReadAddress(this ref RLPDecoder decoder, out Address address)
-    {
-        if(!decoder.TryReadString(Address.BYTES_LENGTH, out var bytes))
-        {
-            address = default;
-            return false;
-        }
-
-        address = Address.FromBytes(bytes);
-        return true;
-    }
-
     public static bool TryReadOptionalAddress(this ref RLPDecoder decoder, out Address? address)
     {
         var candidate = decoder;
@@ -80,12 +68,10 @@ internal static class TxRLPDecoder
         var result = new Bytes32[count];
         for(int i = 0; i < result.Length; i++)
         {
-            if(!keys.TryReadString(Bytes32.BYTE_LENGTH, out var key))
+            if(!keys.TryReadBytes32(out result[i]))
             {
                 return false;
             }
-
-            result[i] = Bytes32.FromBytes(key);
         }
 
         storageKeys = result;

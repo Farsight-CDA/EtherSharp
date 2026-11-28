@@ -167,6 +167,54 @@ public sealed class RLPDecoderTests
     }
 
     [Fact]
+    public void Should_Round_Trip_Address_And_Bytes32()
+    {
+        var address = Address.Parse("0x0011111111111111111111111111111111111111");
+        var value = Bytes32.Parse("0x0000000000000000000000000000000000000000000000000000000000000001");
+        byte[] buffer = new byte[RLPEncoder.ADDRESS_STRING_SIZE + RLPEncoder.BYTES32_STRING_SIZE];
+        _ = new RLPEncoder(buffer)
+            .EncodeAddress(address)
+            .EncodeBytes32(value);
+
+        var decoder = new RLPDecoder(buffer);
+
+        Assert.True(decoder.TryReadAddress(out var decodedAddress));
+        Assert.Equal(address, decodedAddress);
+        Assert.True(decoder.TryReadBytes32(out var decodedValue));
+        Assert.Equal(value, decodedValue);
+        Assert.True(decoder.IsComplete);
+    }
+
+    [Theory]
+    [InlineData("80")]
+    [InlineData("9311111111111111111111111111111111111111")]
+    [InlineData("a0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")]
+    [InlineData("c0")]
+    public void Should_Reject_Invalid_Address_Without_Advancing(string hex)
+    {
+        byte[] encoded = Convert.FromHexString(hex);
+        var decoder = new RLPDecoder(encoded);
+
+        Assert.False(decoder.TryReadAddress(out _));
+        AssertNextItem(decoder, encoded);
+    }
+
+    [Theory]
+    [InlineData("80")]
+    [InlineData("01")]
+    [InlineData("9fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")]
+    [InlineData("940011111111111111111111111111111111111111")]
+    [InlineData("c0")]
+    public void Should_Reject_Invalid_Bytes32_Without_Advancing(string hex)
+    {
+        byte[] encoded = Convert.FromHexString(hex);
+        var decoder = new RLPDecoder(encoded);
+
+        Assert.False(decoder.TryReadBytes32(out _));
+        AssertNextItem(decoder, encoded);
+    }
+
+    [Fact]
     public void Should_Round_Trip_Signature()
     {
         byte[] signature = new byte[64];

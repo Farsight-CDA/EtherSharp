@@ -84,6 +84,45 @@ public sealed class RLPEncoderTests
     }
 
     [Fact]
+    public void Should_Encode_Address_As_20_Byte_String()
+    {
+        var address = Address.Parse("0x0011111111111111111111111111111111111111");
+        byte[] buffer = new byte[RLPEncoder.ADDRESS_STRING_SIZE];
+
+        _ = new RLPEncoder(buffer).EncodeAddress(address);
+
+        Assert.Equal(RLPEncoder.ADDRESS_STRING_SIZE, RLPEncoder.GetStringSize(address.ToArray()));
+        Assert.Equal(Convert.FromHexString("940011111111111111111111111111111111111111"), buffer);
+    }
+
+    [Fact]
+    public void Should_Encode_Bytes32_As_32_Byte_String_Keeping_Leading_Zeros()
+    {
+        var value = Bytes32.Parse("0x0000000000000000000000000000000000000000000000000000000000000001");
+        byte[] buffer = new byte[RLPEncoder.BYTES32_STRING_SIZE];
+
+        _ = new RLPEncoder(buffer).EncodeBytes32(value);
+
+        Assert.Equal(RLPEncoder.BYTES32_STRING_SIZE, RLPEncoder.GetStringSize(value.ToArray()));
+        Assert.Equal(Convert.FromHexString("a00000000000000000000000000000000000000000000000000000000000000001"), buffer);
+    }
+
+    [Fact]
+    public void Should_Advance_Cursor_After_Fixed_Size_Values()
+    {
+        byte[] buffer = new byte[RLPEncoder.ADDRESS_STRING_SIZE + RLPEncoder.BYTES32_STRING_SIZE + 1];
+
+        _ = new RLPEncoder(buffer)
+            .EncodeAddress(Address.Zero)
+            .EncodeBytes32(Bytes32.Zero)
+            .EncodeString(0x01);
+
+        Assert.Equal(0x94, buffer[0]);
+        Assert.Equal(0xa0, buffer[RLPEncoder.ADDRESS_STRING_SIZE]);
+        Assert.Equal(0x01, buffer[^1]);
+    }
+
+    [Fact]
     public void Should_Encode_Single_Byte_0x80_With_String_Prefix()
     {
         Span<byte> buffer = stackalloc byte[RLPEncoder.GetStringSize([0x80])];

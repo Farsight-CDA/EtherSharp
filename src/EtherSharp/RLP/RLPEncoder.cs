@@ -1,4 +1,5 @@
 using EtherSharp.Numerics;
+using EtherSharp.Types;
 using System.Buffers.Binary;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -14,6 +15,16 @@ namespace EtherSharp.RLP;
 /// </remarks>
 public ref struct RLPEncoder
 {
+    /// <summary>
+    /// The encoded RLP length of an <see cref="Address"/>.
+    /// </summary>
+    public const int ADDRESS_STRING_SIZE = 1 + Address.BYTES_LENGTH;
+
+    /// <summary>
+    /// The encoded RLP length of a <see cref="Bytes32"/>.
+    /// </summary>
+    public const int BYTES32_STRING_SIZE = 1 + Bytes32.BYTE_LENGTH;
+
     /// <summary>
     /// Gets the encoded RLP length for a <see cref="UInt32"/> value.
     /// </summary>
@@ -265,6 +276,28 @@ public ref struct RLPEncoder
             _destination = _destination[(significantLengthBytes + 1 + data.Length)..];
         }
 
+        return this;
+    }
+
+    /// <summary>
+    /// Encodes an <see cref="Address"/> as a 20-byte RLP string element.
+    /// </summary>
+    public RLPEncoder EncodeAddress(scoped in Address address)
+    {
+        _destination[0] = RLPConstants.SHORT_STRING_PREFIX + Address.BYTES_LENGTH;
+        address.DangerousGetReadOnlySpan().CopyTo(_destination[1..]);
+        _destination = _destination[ADDRESS_STRING_SIZE..];
+        return this;
+    }
+
+    /// <summary>
+    /// Encodes a <see cref="Bytes32"/> as a 32-byte RLP string element without trimming leading zeros.
+    /// </summary>
+    public RLPEncoder EncodeBytes32(scoped in Bytes32 value)
+    {
+        _destination[0] = RLPConstants.SHORT_STRING_PREFIX + Bytes32.BYTE_LENGTH;
+        value.DangerousGetReadOnlySpan().CopyTo(_destination[1..]);
+        _destination = _destination[BYTES32_STRING_SIZE..];
         return this;
     }
 

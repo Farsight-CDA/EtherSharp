@@ -4,10 +4,10 @@ namespace EtherSharp.RLP;
 
 internal static class TxRLPEncoder
 {
-    public static int AddressStringSize { get; } = RLPEncoder.GetEncodedStringLength(Types.Address.BYTES_LENGTH);
-
     public static int GetAddressStringSize(Types.Address? address)
-        => address is null ? RLPEncoder.GetStringSize([]) : AddressStringSize;
+        => address is null
+            ? RLPEncoder.GetStringSize([])
+            : RLPEncoder.ADDRESS_STRING_SIZE;
 
     public static int GetAccessListLength(ReadOnlySpan<StateAccess> accessList)
     {
@@ -16,7 +16,7 @@ internal static class TxRLPEncoder
         foreach(var access in accessList)
         {
             totalSize += RLPEncoder.GetListSize(
-                AddressStringSize +
+                RLPEncoder.ADDRESS_STRING_SIZE +
                 RLPEncoder.GetListSize(GetStorageKeysLength(access))
             );
         }
@@ -25,37 +25,27 @@ internal static class TxRLPEncoder
     }
 
     private static int GetStorageKeysLength(StateAccess access)
-    {
-        int storageKeySize = 0;
-
-        foreach(var storageKey in access.StorageKeys.Span)
-        {
-            storageKeySize += RLPEncoder.GetStringSize(storageKey.DangerousGetReadOnlySpan());
-        }
-
-        return storageKeySize;
-    }
+        => access.StorageKeys.Length * RLPEncoder.BYTES32_STRING_SIZE;
 
     public static RLPEncoder EncodeAccessList(this RLPEncoder encoder, ReadOnlySpan<StateAccess> accessList)
     {
         foreach(var access in accessList)
         {
-            encoder = encoder
-                .EncodeList(AddressStringSize + RLPEncoder.GetListSize(GetStorageKeysLength(access)))
-                .EncodeAddress(access.Address)
-                .EncodeList(GetStorageKeysLength(access));
+            int storageKeysLength = GetStorageKeysLength(access);
 
-            foreach(var storageKey in access.StorageKeys.Span)
+            encoder = encoder
+                .EncodeList(RLPEncoder.ADDRESS_STRING_SIZE + RLPEncoder.GetListSize(storageKeysLength))
+                .EncodeAddress(access.Address)
+                .EncodeList(storageKeysLength);
+
+            foreach(ref readonly var storageKey in access.StorageKeys.Span)
             {
-                encoder = encoder.EncodeString(storageKey.DangerousGetReadOnlySpan());
+                encoder = encoder.EncodeBytes32(in storageKey);
             }
         }
 
         return encoder;
     }
-
-    public static RLPEncoder EncodeAddress(this RLPEncoder encoder, Types.Address address)
-        => encoder.EncodeString(address.DangerousGetReadOnlySpan());
 
     private const int MAX_ENCODED_SIGNATURE_COMPONENT_LENGTH = 1 + 32;
 

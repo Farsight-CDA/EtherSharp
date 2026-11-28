@@ -167,15 +167,14 @@ public readonly struct Address : IEquatable<Address>, IComparable<Address>, ISta
     /// <returns>The address of the created contract.</returns>
     public static Address DeriveCreate(in Address creator, ulong oldNonce)
     {
-        int addressLength = RLPEncoder.GetStringSize(creator.DangerousGetReadOnlySpan());
-        int contentLength = addressLength + RLPEncoder.GetIntSize(oldNonce);
+        int contentLength = RLPEncoder.ADDRESS_STRING_SIZE + RLPEncoder.GetIntSize(oldNonce);
         int payloadLength = RLPEncoder.GetListSize(contentLength);
 
         Span<byte> payload = stackalloc byte[payloadLength];
         Span<byte> hash = stackalloc byte[Bytes32.BYTE_LENGTH];
         new RLPEncoder(payload)
             .EncodeList(contentLength)
-            .EncodeString(creator.DangerousGetReadOnlySpan())
+            .EncodeAddress(creator)
             .EncodeInt(oldNonce);
         _ = Keccak256.TryHashData(payload, hash);
         return FromBytes(hash[^BYTES_LENGTH..]);

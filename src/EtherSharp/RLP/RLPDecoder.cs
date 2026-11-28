@@ -1,4 +1,5 @@
 using EtherSharp.Numerics;
+using EtherSharp.Types;
 using System.Buffers.Binary;
 
 namespace EtherSharp.RLP;
@@ -82,6 +83,36 @@ public ref partial struct RLPDecoder
         }
 
         this = candidate;
+        return true;
+    }
+
+    /// <summary>
+    /// Reads the next item as a 20-byte <see cref="Address"/> string element.
+    /// </summary>
+    public bool TryReadAddress(out Address address)
+    {
+        if(!TryReadString(Address.BYTES_LENGTH, out var bytes))
+        {
+            address = default;
+            return false;
+        }
+
+        address = Address.FromBytes(bytes);
+        return true;
+    }
+
+    /// <summary>
+    /// Reads the next item as a 32-byte <see cref="Bytes32"/> string element.
+    /// </summary>
+    public bool TryReadBytes32(out Bytes32 value)
+    {
+        if(!TryReadString(Bytes32.BYTE_LENGTH, out var bytes))
+        {
+            value = default;
+            return false;
+        }
+
+        value = Bytes32.FromBytes(bytes);
         return true;
     }
 
