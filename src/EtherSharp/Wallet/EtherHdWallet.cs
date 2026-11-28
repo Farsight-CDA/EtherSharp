@@ -45,9 +45,9 @@ public sealed class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSi
     /// <param name="passphrase">The optional mnemonic passphrase.</param>
     public EtherHdWallet(string mnemonic, uint accountIndex = 0, string passphrase = "")
         : base(Secp256k1.Instance, mnemonic, passphrase,
-            Slip10.HardenedOffset + 44,
-            Slip10.HardenedOffset + (uint) Slip44CoinType.Ethereum,
-            Slip10.HardenedOffset,
+            Slip10.HARDENED_OFFSET + 44,
+            Slip10.HARDENED_OFFSET + (uint) Slip44CoinType.Ethereum,
+            Slip10.HARDENED_OFFSET,
             0,
             accountIndex)
     {
@@ -68,13 +68,9 @@ public sealed class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSi
 
     private Address GenerateAddress()
     {
-        var pkSpan = _uncompressedPublicKey.AsSpan();
-
-        pkSpan[..32].Reverse();
-        pkSpan[32..64].Reverse();
-
+        // Uncompressed SEC1 public key: 0x04 || X || Y. The address is derived from X || Y.
         Span<byte> hashBuffer = stackalloc byte[32];
-        _ = Keccak256.TryHashData(_uncompressedPublicKey, hashBuffer);
+        _ = Keccak256.TryHashData(_uncompressedPublicKey.AsSpan(1), hashBuffer);
         return Address.FromBytes(hashBuffer[^20..]);
     }
 
@@ -87,9 +83,6 @@ public sealed class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSi
         {
             throw new CryptographicException("Failed to sign hash.");
         }
-
-        signatureBuffer[..32].Reverse();
-        signatureBuffer[32..64].Reverse();
 
         var signature = new EtherSignature(
             Bytes32.FromBytes(signatureBuffer[..32]),
@@ -109,9 +102,6 @@ public sealed class EtherHdWallet : BaseWeierstrassHdWallet<Secp256k1>, IEtherSi
         {
             throw new CryptographicException("Failed to sign hash.");
         }
-
-        signatureBuffer[..32].Reverse();
-        signatureBuffer[32..64].Reverse();
 
         var signature = new RecoverableEtherSignature(
             Bytes32.FromBytes(signatureBuffer[..32]),
