@@ -185,7 +185,9 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             Array.Copy(submissions, 0, updatedSubmissions, 1, submissions.Length);
             _txSubmissions = updatedSubmissions;
 
-            _txClient.Logger?.Tx.Repriced(Id, _txClient.Signer.Address, submission.Nonce, submission.Sequence, submission.TxHash);
+            _txClient.Logger?.Tx.Repriced(
+                Id, _txClient.Signer.Address, submission.Nonce, submission.Sequence, submission.TxHash, submission.GasParams
+            );
 
             return submission;
         }
@@ -252,7 +254,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
                     {
                         _txClient.Logger?.Tx.Confirmed(
                             Id, _txClient.Signer.Address, LatestSubmission.Nonce,
-                            receipt.TransactionHash, receipt.BlockNumber, receipt.Success, receipt.GasUsed
+                            receipt.TransactionHash, receipt.BlockNumber, receipt.Success, receipt.GasUsed, receipt.EffectiveGasPrice
                         );
                         return new TxReceiptResult.Confirmed(receipt);
                     }

@@ -270,7 +270,7 @@ internal sealed class EtherTxClient(
                     isPersisted = true;
                 }
 
-                Logger?.Tx.Prepared(id, Signer.Address, nonce, submission.TxHash);
+                Logger?.Tx.Prepared(id, Signer.Address, nonce, submission.TxHash, submission.GasParams);
 
                 pendingTx = new PendingTx<TTransaction, TTxParams, TTxGasParams>(
                     id,
@@ -347,7 +347,9 @@ internal sealed class EtherTxClient(
 
         Array.Sort(typedSubmissions, static (a, b) => b.Sequence.CompareTo(a.Sequence));
 
-        Logger?.Tx.Attached(id, Signer.Address, nonce, typedSubmissions.Length, typedSubmissions[0].TxHash);
+        Logger?.Tx.Attached(
+            id, Signer.Address, nonce, typedSubmissions.Length, typedSubmissions[0].TxHash, typedSubmissions[0].GasParams
+        );
 
         return new PendingTx<TTransaction, TTxParams, TTxGasParams>(
             id,
