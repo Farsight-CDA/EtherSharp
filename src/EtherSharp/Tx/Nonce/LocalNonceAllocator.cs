@@ -30,7 +30,7 @@ public sealed class LocalNonceAllocator : INonceAllocator
 
         _nextNonce = initialNonce;
         _minNonce = initialNonce;
-        _subscription = nonceWatcher.Subscribe(in sender, TimeSpan.Zero, initialNonce);
+        _subscription = nonceWatcher.Subscribe(in sender, NonceSubscriptionMode.Passive, initialNonce);
         _ = Task.Run(ObserveNoncesAsync);
     }
 

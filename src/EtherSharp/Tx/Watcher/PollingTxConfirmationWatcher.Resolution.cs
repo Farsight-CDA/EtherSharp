@@ -19,7 +19,7 @@ public sealed partial class PollingTxConfirmationWatcher
         CancellationToken cancellationToken
     )
     {
-        using var subscription = _nonceWatcher.Subscribe(slot.Sender, _pollInterval, slot.Nonce);
+        using var subscription = _nonceWatcher.Subscribe(slot.Sender, NonceSubscriptionMode.Active, slot.Nonce);
         await foreach(var (observedNonce, blockNumber) in subscription.ListenAsync(cancellationToken))
         {
             if(observedNonce <= slot.Nonce)

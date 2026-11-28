@@ -19,11 +19,6 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
     public sealed class Options
     {
         /// <summary>
-        /// Delay between nonce reads while at least one watch waits for its nonce to be used.
-        /// </summary>
-        public TimeSpan PollInterval { get; set; } = TimeSpan.FromSeconds(2);
-
-        /// <summary>
         /// Maximum backward distance in blocks probed via exponential lookback before falling back to transaction lookups by hash.
         /// </summary>
         public ulong MaxLookbackBlocks { get; set; } = 4096;
@@ -38,7 +33,6 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
     private readonly INonceWatcher _nonceWatcher;
     private readonly ILogger<PollingTxConfirmationWatcher>? _logger;
 
-    private readonly TimeSpan _pollInterval;
     private readonly ulong _maxLookbackBlocks;
     private readonly TimeSpan _retryDelay;
     private readonly TimeSpan _maxErrorBackoff;
@@ -70,7 +64,6 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
         ArgumentNullException.ThrowIfNull(nonceWatcher);
 
         var resolved = options ?? new Options();
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(resolved.PollInterval, TimeSpan.Zero, nameof(options));
         ArgumentOutOfRangeException.ThrowIfZero(resolved.MaxLookbackBlocks, nameof(options));
 
         var resolvedRetryOptions = retryOptions ?? new RpcRetryOptions();
@@ -80,7 +73,6 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
         _nonceWatcher = nonceWatcher;
         _logger = logger;
 
-        _pollInterval = resolved.PollInterval;
         _maxLookbackBlocks = resolved.MaxLookbackBlocks;
         _retryDelay = resolvedRetryOptions.RetryDelay;
         _maxErrorBackoff = resolvedRetryOptions.MaxErrorBackoff;

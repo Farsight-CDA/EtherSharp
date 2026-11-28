@@ -11,11 +11,11 @@ public interface INonceWatcher
     /// Subscribes to nonce observations for a sender address.
     /// </summary>
     /// <param name="sender">The sender account address.</param>
-    /// <param name="refreshInterval">Maximum interval between reads, or <see cref="TimeSpan.Zero"/> to only piggyback on free reads.</param>
+    /// <param name="mode">Whether the subscription causes reads.</param>
     /// <param name="startNonce">Optional initial nonce hint.</param>
     public INonceSubscription Subscribe(
         in Address sender,
-        TimeSpan refreshInterval = default,
+        NonceSubscriptionMode mode,
         ulong startNonce = 0
     );
 }
