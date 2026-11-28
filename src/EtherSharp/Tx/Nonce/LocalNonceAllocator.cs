@@ -5,21 +5,11 @@ using EtherSharp.Types;
 namespace EtherSharp.Tx.Nonce;
 
 /// <summary>
-/// Allocates nonces from a local cursor kept in sync through <see cref="INonceWatcher"/>.
+/// Allocates nonces from a local cursor that catches up with nonce reads <see cref="INonceWatcher"/> makes anyway,
+/// e.g. while transactions of the sender are pending. Never triggers reads of its own.
 /// </summary>
 public sealed class LocalNonceAllocator : INonceAllocator
 {
-    /// <summary>
-    /// Configuration for <see cref="LocalNonceAllocator"/>.
-    /// </summary>
-    public sealed class Options
-    {
-        /// <summary>
-        /// Maximum interval between background nonce reads when idle, or <see cref="TimeSpan.Zero"/> to only update from free reads.
-        /// </summary>
-        public TimeSpan SyncInterval { get; set; } = TimeSpan.Zero;
-    }
-
     private readonly Lock _lock = new Lock();
     private readonly INonceSubscription _subscription;
 
@@ -33,18 +23,14 @@ public sealed class LocalNonceAllocator : INonceAllocator
     public LocalNonceAllocator(
         INonceWatcher nonceWatcher,
         in Address sender,
-        ulong initialNonce,
-        Options? options = null
+        ulong initialNonce
     )
     {
         ArgumentNullException.ThrowIfNull(nonceWatcher);
 
-        var resolved = options ?? new Options();
-        ArgumentOutOfRangeException.ThrowIfLessThan(resolved.SyncInterval, TimeSpan.Zero, nameof(options));
-
         _nextNonce = initialNonce;
         _minNonce = initialNonce;
-        _subscription = nonceWatcher.Subscribe(in sender, resolved.SyncInterval, initialNonce);
+        _subscription = nonceWatcher.Subscribe(in sender, TimeSpan.Zero, initialNonce);
         _ = Task.Run(ObserveNoncesAsync);
     }
 

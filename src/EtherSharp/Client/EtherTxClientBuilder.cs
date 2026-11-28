@@ -59,16 +59,12 @@ public sealed class EtherTxClientBuilder
     /// <summary>
     /// Configures the default <see cref="LocalNonceAllocator"/>.
     /// </summary>
-    public EtherTxClientBuilder WithLocalNonceAllocator(TimeSpan syncInterval = default)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(syncInterval, TimeSpan.Zero, nameof(syncInterval));
-        return WithNonceAllocator((provider, initialNonce) => new LocalNonceAllocator(
+    public EtherTxClientBuilder WithLocalNonceAllocator()
+        => WithNonceAllocator((provider, initialNonce) => new LocalNonceAllocator(
             provider.GetRequiredService<INonceWatcher>(),
             _signer.Address,
-            initialNonce,
-            new LocalNonceAllocator.Options { SyncInterval = syncInterval }
+            initialNonce
         ));
-    }
 
     /// <summary>
     /// Configures <see cref="RefreshOnAllocateNonceAllocator"/>.
