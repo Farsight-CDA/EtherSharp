@@ -243,6 +243,23 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
     }
 
     /// <summary>
+    /// Configures when sender nonces are read to detect transaction confirmations.
+    /// </summary>
+    /// <param name="configureAction">Callback to configure the options, starting from the defaults.</param>
+    /// <returns>This builder.</returns>
+    public EtherClientBuilder WithNonceWatcherOptions(Action<NonceWatcherOptions> configureAction)
+    {
+        ArgumentNullException.ThrowIfNull(configureAction);
+
+        var options = new NonceWatcherOptions();
+        configureAction(options);
+        options.Validate(nameof(configureAction));
+
+        _services.AddOrReplaceSingleton(options);
+        return this;
+    }
+
+    /// <summary>
     /// Configures fee and gas limit estimation of the built-in gas fee providers.
     /// </summary>
     /// <param name="configureAction">Callback to configure the options, starting from the defaults.</param>
@@ -356,6 +373,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.AddSingleton<IDebugRpcModule, DebugRpcModule>();
         _services.TryAddSingleton<RpcRetryOptions>();
         _services.TryAddSingleton<GasFeeOptions>();
+        _services.TryAddSingleton<NonceWatcherOptions>();
         _services.TryAddSingleton<NonceSource, ConstructorCallNonceSource>();
         _services.TryAddSingleton<INonceWatcher, NonceWatcher>();
         _services.TryAddSingleton<ITxConfirmationWatcher, PollingTxConfirmationWatcher>();

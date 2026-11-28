@@ -3,7 +3,6 @@ using EtherSharp.Common.Extensions;
 using EtherSharp.Realtime;
 using EtherSharp.Realtime.Blocks;
 using EtherSharp.Realtime.Blocks.Subscription;
-using EtherSharp.RPC.Transport;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
@@ -11,38 +10,35 @@ namespace EtherSharp.Tx.Watcher;
 
 internal closed class NonceReadTrigger : IAsyncDisposable
 {
-    private static readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(2);
-    private static readonly TimeSpan _minHeadSpacing = TimeSpan.FromMilliseconds(500);
-
     public static async Task<NonceReadTrigger> CreateAsync(
-        IRPCTransport transport,
+        bool useNewHeads,
+        TimeSpan pollInterval,
+        TimeSpan minHeadSpacing,
         IBlocksModule blocksModule,
         ILogger? logger,
         CancellationToken cancellationToken
     )
     {
-        if(!transport.SupportsSubscriptions)
+        if(!useNewHeads)
         {
-            return new Interval(_pollInterval);
+            return new Interval(pollInterval);
         }
 
         try
         {
             var subscription = await blocksModule.SubscribeNewHeadsAsync(cancellationToken: cancellationToken);
-            return new NewHeads(subscription, _minHeadSpacing);
+            return new NewHeads(subscription, minHeadSpacing);
         }
         catch(Exception ex) when(!cancellationToken.IsCancellationRequested)
         {
-            logger?.TxWatcher.NewHeadsUnavailable(ex, _pollInterval);
-            return new Interval(_pollInterval);
+            logger?.TxWatcher.NewHeadsUnavailable(ex, pollInterval);
+            return new Interval(pollInterval);
         }
     }
 
     public sealed class Interval(TimeSpan interval) : NonceReadTrigger
     {
-        private readonly TimeSpan _interval = interval > TimeSpan.Zero
-            ? interval
-            : throw new ArgumentOutOfRangeException(nameof(interval));
+        private readonly TimeSpan _interval = interval;
 
         public override Task WaitAsync(CancellationToken cancellationToken)
             => Task.Delay(_interval, cancellationToken);

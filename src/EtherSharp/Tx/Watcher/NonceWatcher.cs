@@ -15,8 +15,10 @@ namespace EtherSharp.Tx.Watcher;
 internal sealed class NonceWatcher : INonceWatcher, IAsyncDisposable
 {
     private readonly NonceSource _nonceSource;
-    private readonly IRPCTransport _transport;
     private readonly IBlocksModule _blocksModule;
+    private readonly bool _useNewHeads;
+    private readonly TimeSpan _pollInterval;
+    private readonly TimeSpan _minHeadSpacing;
     private readonly TimeSpan _retryDelay;
     private readonly TimeSpan _maxErrorBackoff;
     private readonly ILogger<NonceWatcher>? _logger;
@@ -41,18 +43,18 @@ internal sealed class NonceWatcher : INonceWatcher, IAsyncDisposable
         NonceSource nonceSource,
         IRPCTransport transport,
         IBlocksModule blocksModule,
-        RpcRetryOptions? retryOptions = null,
+        NonceWatcherOptions options,
+        RpcRetryOptions retryOptions,
         ILoggerFactory? loggerFactory = null
     )
     {
-        var resolvedRetryOptions = retryOptions ?? new RpcRetryOptions();
-        resolvedRetryOptions.Validate(nameof(retryOptions));
-
         _nonceSource = nonceSource;
-        _transport = transport;
         _blocksModule = blocksModule;
-        _retryDelay = resolvedRetryOptions.RetryDelay;
-        _maxErrorBackoff = resolvedRetryOptions.MaxErrorBackoff;
+        _useNewHeads = options.UseNewHeads && transport.SupportsSubscriptions;
+        _pollInterval = options.PollInterval;
+        _minHeadSpacing = options.MinHeadSpacing;
+        _retryDelay = retryOptions.RetryDelay;
+        _maxErrorBackoff = retryOptions.MaxErrorBackoff;
         _logger = loggerFactory?.CreateLogger<NonceWatcher>();
         _heartbeatTask = Task.Run(() => RunHeartbeatAsync(_cts.Token));
     }
@@ -120,7 +122,9 @@ internal sealed class NonceWatcher : INonceWatcher, IAsyncDisposable
         {
             await WaitForActiveSubscriptionAsync(cancellationToken);
 
-            await using var readTrigger = await NonceReadTrigger.CreateAsync(_transport, _blocksModule, _logger, cancellationToken);
+            await using var readTrigger = await NonceReadTrigger.CreateAsync(
+                _useNewHeads, _pollInterval, _minHeadSpacing, _blocksModule, _logger, cancellationToken
+            );
 
             do
             {
