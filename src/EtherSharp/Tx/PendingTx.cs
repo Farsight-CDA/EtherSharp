@@ -1,13 +1,12 @@
-using EtherSharp.Client;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Common.Extensions;
 using EtherSharp.Numerics;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
 using EtherSharp.Tx.Types;
 using EtherSharp.Tx.Watcher;
 using EtherSharp.Types;
-using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 
@@ -20,9 +19,11 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
 {
     private const int RECEIPT_FETCH_RETRY_COUNT = 3;
 
-    private readonly EtherTxClient _txClient;
+    private readonly TxSender _sender;
+    private readonly ITxConfirmationWatcher _txConfirmationWatcher;
+    private readonly IEthRpcModule _ethRpcModule;
+    private readonly RpcRetryOptions _retryOptions;
     private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
-    private readonly CancellationToken _clientDisposalToken;
     private readonly CancellationTokenSource _disposalCts = new CancellationTokenSource();
 
     private volatile ITxWatch _watch;
@@ -40,13 +41,15 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     internal PendingTx(
         Guid id,
         TxSubmission<TTxParams, TTxGasParams>[] txSubmissions,
-        EtherTxClient txClient,
         bool isPersisted,
-        CancellationToken clientDisposalToken
+        TxSender sender,
+        ITxConfirmationWatcher txConfirmationWatcher,
+        IEthRpcModule ethRpcModule,
+        RpcRetryOptions retryOptions
     )
     {
         ArgumentNullException.ThrowIfNull(txSubmissions);
-        ArgumentNullException.ThrowIfNull(txClient);
+        ArgumentNullException.ThrowIfNull(sender);
 
         if(txSubmissions.Length == 0)
         {
@@ -55,8 +58,10 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
 
         Id = id;
         _txSubmissions = txSubmissions;
-        _txClient = txClient;
-        _clientDisposalToken = clientDisposalToken;
+        _sender = sender;
+        _txConfirmationWatcher = txConfirmationWatcher;
+        _ethRpcModule = ethRpcModule;
+        _retryOptions = retryOptions;
         _lastPersistedSubmission = isPersisted ? txSubmissions[0] : null;
         _watch = CreateWatch(txSubmissions, null);
     }
@@ -67,9 +72,9 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     )
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        _sender.ThrowIfDisposed();
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-            _disposalCts.Token, _clientDisposalToken, cancellationToken
+            _disposalCts.Token, _sender.DisposalToken, cancellationToken
         );
 
         await _lock.WaitAsync(linkedCts.Token);
@@ -78,45 +83,17 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             ObjectDisposedException.ThrowIf(_isDisposed, this);
 
             var submission = LatestSubmission;
-            if(_txClient.ResiliencyLayer is { } resiliencyLayer && _lastPersistedSubmission != submission)
+            if(_lastPersistedSubmission != submission && await _sender.TryPersistAsync(Id, submission, linkedCts.Token))
             {
-                await resiliencyLayer.StoreTxSubmissionAsync(
-                    submission.ToStorageType(Id, _txClient.Signer.Address),
-                    linkedCts.Token
-                );
                 _lastPersistedSubmission = submission;
             }
 
-            var result = await _txClient.TxPublisher.PublishTxAsync(submission.SignedTx, requestOptions, linkedCts.Token);
-            _txClient.TxPublishResultsCounter?.Add(1, new KeyValuePair<string, object?>("outcome", result.GetType().Name));
-            LogPublishResult(submission, result);
-            return result;
+            return await _sender.PublishAsync(Id, submission, requestOptions, linkedCts.Token);
         }
         finally
         {
             _ = _lock.Release();
         }
-    }
-
-    private void LogPublishResult(TxSubmission<TTxParams, TTxGasParams> submission, TxSubmissionResult result)
-    {
-        if(result.IsAccepted)
-        {
-            _txClient.Logger?.Tx.SubmissionPublished(
-                Id, _txClient.Signer.Address, submission.Nonce, submission.Sequence, submission.TxHash, result.GetType().Name
-            );
-            return;
-        }
-
-        var level = result is TxSubmissionResult.NonceTooLow
-            ? LogLevel.Information
-            : LogLevel.Warning;
-
-        _txClient.Logger?.Tx.SubmissionRejected(
-            level,
-            (result as TxSubmissionResult.UnhandledException)?.Exception,
-            Id, _txClient.Signer.Address, submission.Nonce, submission.Sequence, submission.TxHash, result.GetType().Name
-        );
     }
 
     public async Task<TxSubmission<TTxParams, TTxGasParams>> RepriceAsync(
@@ -143,9 +120,9 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     )
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        _sender.ThrowIfDisposed();
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-            _disposalCts.Token, _clientDisposalToken, cancellationToken
+            _disposalCts.Token, _sender.DisposalToken, cancellationToken
         );
 
         await _lock.WaitAsync(linkedCts.Token);
@@ -163,7 +140,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
                 latest.Params,
                 gasParams
             );
-            var signedTransaction = await _txClient.Signer.SignTransactionAsync(transaction, linkedCts.Token);
+            var signedTransaction = await _sender.SignAsync(transaction, linkedCts.Token);
             var submission = new TxSubmission<TTxParams, TTxGasParams>(
                 latest.ChainId,
                 latest.Nonce,
@@ -185,8 +162,8 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             Array.Copy(submissions, 0, updatedSubmissions, 1, submissions.Length);
             _txSubmissions = updatedSubmissions;
 
-            _txClient.Logger?.Tx.Repriced(
-                Id, _txClient.Signer.Address, submission.Nonce, submission.Sequence, submission.TxHash, submission.GasParams
+            _sender.Logger?.Tx.Repriced(
+                Id, _sender.Address, submission.Nonce, submission.Sequence, submission.TxHash, submission.GasParams
             );
 
             return submission;
@@ -202,9 +179,9 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     )
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        _sender.ThrowIfDisposed();
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-            _disposalCts.Token, _clientDisposalToken, cancellationToken
+            _disposalCts.Token, _sender.DisposalToken, cancellationToken
         );
         return await _watch.WaitAsync(linkedCts.Token);
     }
@@ -216,7 +193,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        _sender.ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -226,7 +203,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         {
             return await WaitForInclusionAsync(timeoutCts.Token);
         }
-        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested && !_isDisposed && !_clientDisposalToken.IsCancellationRequested)
+        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested && !_isDisposed && !_sender.DisposalToken.IsCancellationRequested)
         {
             return null;
         }
@@ -238,9 +215,9 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     )
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        _sender.ThrowIfDisposed();
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-            _disposalCts.Token, _clientDisposalToken, cancellationToken
+            _disposalCts.Token, _sender.DisposalToken, cancellationToken
         );
 
         while(true)
@@ -252,27 +229,27 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
                 case TxWatchResult.Confirmed confirmed:
                     if(await TryFetchReceiptAsync(confirmed.TransactionHash, requestOptions, linkedCts.Token) is { } receipt)
                     {
-                        _txClient.Logger?.Tx.Confirmed(
-                            Id, _txClient.Signer.Address, LatestSubmission.Nonce,
+                        _sender.Logger?.Tx.Confirmed(
+                            Id, _sender.Address, LatestSubmission.Nonce,
                             receipt.TransactionHash, receipt.BlockNumber, receipt.Success, receipt.GasUsed, receipt.EffectiveGasPrice
                         );
                         return new TxReceiptResult.Confirmed(receipt);
                     }
 
                     // E.g. the including block was reorged out, so the slot is watched again.
-                    _txClient.Logger?.Tx.ReceiptUnavailable(
-                        Id, _txClient.Signer.Address, LatestSubmission.Nonce,
+                    _sender.Logger?.Tx.ReceiptUnavailable(
+                        Id, _sender.Address, LatestSubmission.Nonce,
                         confirmed.TransactionHash, confirmed.BlockNumber, RECEIPT_FETCH_RETRY_COUNT
                     );
                     await RewatchAsync(watch, confirmed.BlockNumber, linkedCts.Token);
                     break;
                 case TxWatchResult.Replaced replaced:
-                    _txClient.Logger?.Tx.Replaced(
-                        Id, _txClient.Signer.Address, LatestSubmission.Nonce, replaced.TransactionHash, replaced.BlockNumber
+                    _sender.Logger?.Tx.Replaced(
+                        Id, _sender.Address, LatestSubmission.Nonce, replaced.TransactionHash, replaced.BlockNumber
                     );
                     return new TxReceiptResult.Replaced(replaced.TransactionHash, replaced.BlockNumber, replaced.BlockHash);
                 case TxWatchResult.NonceAlreadyUsed:
-                    _txClient.Logger?.Tx.NonceAlreadyUsed(Id, _txClient.Signer.Address, LatestSubmission.Nonce);
+                    _sender.Logger?.Tx.NonceAlreadyUsed(Id, _sender.Address, LatestSubmission.Nonce);
                     return new TxReceiptResult.NonceAlreadyUsed();
             }
         }
@@ -286,7 +263,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        _sender.ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -296,7 +273,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         {
             return await WaitForReceiptAsync(requestOptions, timeoutCts.Token);
         }
-        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested && !_isDisposed && !_clientDisposalToken.IsCancellationRequested)
+        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested && !_isDisposed && !_sender.DisposalToken.IsCancellationRequested)
         {
             return null;
         }
@@ -305,9 +282,9 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
     public async Task<bool> TryAbandonAsync(CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        ObjectDisposedException.ThrowIf(_clientDisposalToken.IsCancellationRequested, _txClient);
+        _sender.ThrowIfDisposed();
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-            _disposalCts.Token, _clientDisposalToken, cancellationToken
+            _disposalCts.Token, _sender.DisposalToken, cancellationToken
         );
 
         await _lock.WaitAsync(linkedCts.Token);
@@ -316,12 +293,12 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             ObjectDisposedException.ThrowIf(_isDisposed, this);
 
             ulong nonce = LatestSubmission.Nonce;
-            if(!await _txClient.TryAbandonNonceAsync(Id, nonce, _lastPersistedSubmission is not null, linkedCts.Token))
+            if(!await _sender.TryAbandonNonceAsync(Id, nonce, _lastPersistedSubmission is not null, linkedCts.Token))
             {
                 return false;
             }
 
-            _txClient.Logger?.Tx.Abandoned(Id, _txClient.Signer.Address, nonce);
+            _sender.Logger?.Tx.Abandoned(Id, _sender.Address, nonce);
             await DisposeAsync();
             return true;
         }
@@ -350,10 +327,10 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         CancellationToken cancellationToken
     )
     {
-        var delay = _txClient.RetryOptions.RetryDelay;
+        var delay = _retryOptions.RetryDelay;
         for(int attempt = 0; true; attempt++)
         {
-            var receipt = await _txClient.EthRpcModule.GetTransactionReceiptAsync(
+            var receipt = await _ethRpcModule.GetTransactionReceiptAsync(
                 in txHash, requestOptions, cancellationToken
             );
             if(receipt is not null || attempt == RECEIPT_FETCH_RETRY_COUNT)
@@ -363,7 +340,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
 
             // A lagging node may not serve the receipt yet.
             await Task.Delay(delay, cancellationToken);
-            delay = RpcRetryOptions.NextBackoff(delay, _txClient.RetryOptions.MaxErrorBackoff);
+            delay = RpcRetryOptions.NextBackoff(delay, _retryOptions.MaxErrorBackoff);
         }
     }
 
@@ -413,7 +390,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
         }
 
         return unusedAtBlock is { } block
-            ? _txClient.TxConfirmationWatcher.Watch(_txClient.Signer.Address, submissions[0].Nonce, block, hashes)
-            : _txClient.TxConfirmationWatcher.Watch(_txClient.Signer.Address, submissions[0].Nonce, hashes);
+            ? _txConfirmationWatcher.Watch(_sender.Address, submissions[0].Nonce, block, hashes)
+            : _txConfirmationWatcher.Watch(_sender.Address, submissions[0].Nonce, hashes);
     }
 }

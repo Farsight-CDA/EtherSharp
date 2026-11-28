@@ -1,3 +1,4 @@
+using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Numerics;
 using EtherSharp.Tx.Types;
 using EtherSharp.Types;
@@ -20,11 +21,28 @@ internal sealed partial class TxLogger(ILogger logger)
         Guid txId, Address sender, ulong nonce, int submissionCount, Bytes32 txHash, ITxGasParams gasParams
     );
 
+    public void PublishResult(Guid txId, Address sender, ulong nonce, uint sequence, Bytes32 txHash, TxSubmissionResult result)
+    {
+        if(result.IsAccepted)
+        {
+            SubmissionPublished(txId, sender, nonce, sequence, txHash, result.GetType().Name);
+            return;
+        }
+
+        SubmissionRejected(
+            result is TxSubmissionResult.NonceTooLow
+                ? LogLevel.Information
+                : LogLevel.Warning,
+            (result as TxSubmissionResult.UnhandledException)?.Exception,
+            txId, sender, nonce, sequence, txHash, result.GetType().Name
+        );
+    }
+
     [LoggerMessage(LogLevel.Information, "Tx {TxId} {Sender}/{Nonce}: Published submission {Sequence} {TxHash} ({Result})")]
-    public partial void SubmissionPublished(Guid txId, Address sender, ulong nonce, uint sequence, Bytes32 txHash, string result);
+    private partial void SubmissionPublished(Guid txId, Address sender, ulong nonce, uint sequence, Bytes32 txHash, string result);
 
     [LoggerMessage("Tx {TxId} {Sender}/{Nonce}: Publish of submission {Sequence} {TxHash} rejected ({Result})")]
-    public partial void SubmissionRejected(
+    private partial void SubmissionRejected(
         LogLevel level, Exception? exception, Guid txId, Address sender, ulong nonce, uint sequence, Bytes32 txHash, string result
     );
 

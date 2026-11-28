@@ -1,7 +1,9 @@
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.TxPublisher;
+using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
 using EtherSharp.RPC.Transport;
+using EtherSharp.Tx;
 using EtherSharp.Tx.Nonce;
 using EtherSharp.Tx.Watcher;
 using EtherSharp.Types;
@@ -165,6 +167,7 @@ public sealed class EtherTxClientBuilder
 
         INonceAllocator? nonceAllocator = null;
         ITxPublisher? txPublisher = null;
+        TxSender sender;
 
         try
         {
@@ -179,6 +182,18 @@ public sealed class EtherTxClientBuilder
             txPublisher = _txPublisherFactory is not null
                 ? await _txPublisherFactory(provider, cancellationToken)
                 : new BasicTxPublisher(ethRpcModule);
+
+            sender = new TxSender(
+                _baseClient.ChainId,
+                _signer,
+                nonceAllocator,
+                txPublisher,
+                provider.GetRequiredService<ITxConfirmationWatcher>(),
+                ethRpcModule,
+                provider.GetRequiredService<RpcRetryOptions>(),
+                resiliencyLayer,
+                provider
+            );
         }
         catch
         {
@@ -191,7 +206,7 @@ public sealed class EtherTxClientBuilder
             throw;
         }
 
-        var txClient = new EtherTxClient(_ownerClient, _signer, nonceAllocator, txPublisher);
+        var txClient = new EtherTxClient(_ownerClient, sender);
 
         try
         {
