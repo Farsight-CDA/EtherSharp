@@ -6,9 +6,10 @@ using Microsoft.Extensions.Logging;
 
 namespace EtherSharp.Tx.Watcher;
 
-public sealed partial class PollingTxConfirmationWatcher
+internal sealed partial class PollingTxConfirmationWatcher
 {
     private const ulong INITIAL_LOOKBACK_STEP = 16;
+    private const ulong MAX_LOOKBACK_BLOCKS = 4096;
     private const int HASH_LOOKUP_RETRY_COUNT = 3;
     private const int BLOCK_FETCH_RETRY_COUNT = 3;
     private const int FAILED_SEARCH_LIMIT = 2;
@@ -117,7 +118,7 @@ public sealed partial class PollingTxConfirmationWatcher
 
         // An unused block at or after the observed one points to diverging replicas, a reorg or a wrong seed,
         // one further back than the lookback range to an old seed whose state a node may no longer serve.
-        if(highestUnusedBlock is { } unused && unused < observedBlock && observedBlock - unused <= _maxLookbackBlocks)
+        if(highestUnusedBlock is { } unused && unused < observedBlock && observedBlock - unused <= MAX_LOOKBACK_BLOCKS)
         {
             lowBlock = unused;
         }
@@ -140,7 +141,7 @@ public sealed partial class PollingTxConfirmationWatcher
 
             if(lookback is not LookbackResult.Found(var foundLowBlock, var foundHighBlock))
             {
-                _logger?.TxWatcher.SlotBeyondLookback(slot.Sender, slot.Nonce, _maxLookbackBlocks, observedBlock);
+                _logger?.TxWatcher.SlotBeyondLookback(slot.Sender, slot.Nonce, MAX_LOOKBACK_BLOCKS, observedBlock);
                 return new MinedBlockResult.BeyondLookback();
             }
 
@@ -151,7 +152,7 @@ public sealed partial class PollingTxConfirmationWatcher
         {
             ulong midBlock = lowBlock + ((highBlock - lowBlock) / 2);
             ulong midNonce = await _ethRpcModule.GetTransactionCountAsync(
-                slot.Sender, TargetHeight.Height(midBlock), _requestOptions, cancellationToken
+                slot.Sender, TargetHeight.Height(midBlock), cancellationToken: cancellationToken
             );
 
             if(midNonce <= slot.Nonce)
@@ -174,7 +175,7 @@ public sealed partial class PollingTxConfirmationWatcher
         for(int attempt = 0; true; attempt++)
         {
             var block = await _ethRpcModule.GetFullBlockByNumberAsync(
-                TargetHeight.Height(blockNumber), _requestOptions, cancellationToken
+                TargetHeight.Height(blockNumber), cancellationToken: cancellationToken
             );
             if(block is not null || attempt == BLOCK_FETCH_RETRY_COUNT)
             {
@@ -202,12 +203,12 @@ public sealed partial class PollingTxConfirmationWatcher
     )
     {
         ulong highBlock = observedBlock;
-        ulong distance = Math.Min(INITIAL_LOOKBACK_STEP, _maxLookbackBlocks);
+        ulong distance = INITIAL_LOOKBACK_STEP;
         while(true)
         {
             ulong probeBlock = observedBlock > distance ? observedBlock - distance : 0;
             ulong probeNonce = await _ethRpcModule.GetTransactionCountAsync(
-                slot.Sender, TargetHeight.Height(probeBlock), _requestOptions, cancellationToken
+                slot.Sender, TargetHeight.Height(probeBlock), cancellationToken: cancellationToken
             );
 
             if(probeNonce <= slot.Nonce)
@@ -215,14 +216,14 @@ public sealed partial class PollingTxConfirmationWatcher
                 return new LookbackResult.Found(probeBlock, highBlock);
             }
 
-            if(probeBlock == 0 || distance >= _maxLookbackBlocks)
+            if(probeBlock == 0 || distance >= MAX_LOOKBACK_BLOCKS)
             {
                 return new LookbackResult.OutOfRange();
             }
 
             highBlock = probeBlock;
-            distance = distance > (_maxLookbackBlocks / 4)
-                ? _maxLookbackBlocks
+            distance = distance > (MAX_LOOKBACK_BLOCKS / 4)
+                ? MAX_LOOKBACK_BLOCKS
                 : distance * 4;
         }
     }
@@ -241,7 +242,7 @@ public sealed partial class PollingTxConfirmationWatcher
             for(int i = hashes.Length - 1; i >= 0; i--)
             {
                 var hash = hashes[i].Hash;
-                var tx = await _ethRpcModule.TransactionByHashAsync(in hash, _requestOptions, cancellationToken);
+                var tx = await _ethRpcModule.TransactionByHashAsync(in hash, cancellationToken: cancellationToken);
                 if(tx is not { BlockNumber: ulong blockNumber, BlockHash: Bytes32 blockHash })
                 {
                     continue;

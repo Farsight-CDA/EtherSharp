@@ -1,83 +1,30 @@
 using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
 using EtherSharp.RPC.Modules.Eth;
-using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 using Microsoft.Extensions.Logging;
 
 namespace EtherSharp.Tx.Watcher;
 
-/// <summary>
-/// Implementation of <see cref="ITxConfirmationWatcher"/> that watches sender nonces through an
-/// <see cref="INonceWatcher"/> and resolves each watched slot independently once its nonce is used.
-/// </summary>
-public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatcher, IAsyncDisposable
+internal sealed partial class PollingTxConfirmationWatcher(
+    IEthRpcModule ethRpcModule,
+    INonceWatcher nonceWatcher,
+    RpcRetryOptions retryOptions,
+    ILoggerFactory? loggerFactory = null
+    ) : ITxConfirmationWatcher, IAsyncDisposable
 {
-    /// <summary>
-    /// Configuration for <see cref="PollingTxConfirmationWatcher"/>.
-    /// </summary>
-    public sealed class Options
-    {
-        /// <summary>
-        /// Maximum backward distance in blocks probed via exponential lookback before falling back to transaction lookups by hash.
-        /// </summary>
-        public ulong MaxLookbackBlocks { get; set; } = 4096;
+    private readonly IEthRpcModule _ethRpcModule = ethRpcModule;
+    private readonly INonceWatcher _nonceWatcher = nonceWatcher;
+    private readonly ILogger<PollingTxConfirmationWatcher>? _logger = loggerFactory?.CreateLogger<PollingTxConfirmationWatcher>();
 
-        /// <summary>
-        /// Optional RPC request options applied to watcher RPC calls.
-        /// </summary>
-        public RpcRequestOptions RequestOptions { get; set; }
-    }
-
-    private readonly IEthRpcModule _ethRpcModule;
-    private readonly INonceWatcher _nonceWatcher;
-    private readonly ILogger<PollingTxConfirmationWatcher>? _logger;
-
-    private readonly ulong _maxLookbackBlocks;
-    private readonly TimeSpan _retryDelay;
-    private readonly TimeSpan _maxErrorBackoff;
-    private readonly RpcRequestOptions _requestOptions;
+    private readonly TimeSpan _retryDelay = retryOptions.RetryDelay;
+    private readonly TimeSpan _maxErrorBackoff = retryOptions.MaxErrorBackoff;
 
     private readonly Lock _stateLock = new Lock();
     private readonly Dictionary<(Address Sender, ulong Nonce), SlotTracker> _slots = [];
     private readonly Dictionary<Bytes32, SlotTracker> _txHashSlots = [];
 
     private bool _isDisposed;
-
-    /// <summary>
-    /// Creates a new <see cref="PollingTxConfirmationWatcher"/> backed by the supplied Ethereum RPC module.
-    /// </summary>
-    /// <param name="ethRpcModule">RPC module used to query nonces, blocks, transactions, and receipts.</param>
-    /// <param name="nonceWatcher">Watcher subscribed to for sender nonce updates.</param>
-    /// <param name="options">Optional watcher configuration.</param>
-    /// <param name="retryOptions">Optional retry and backoff configuration for transient RPC failures.</param>
-    /// <param name="logger">Optional logger for transient RPC diagnostics.</param>
-    public PollingTxConfirmationWatcher(
-        IEthRpcModule ethRpcModule,
-        INonceWatcher nonceWatcher,
-        Options? options = null,
-        RpcRetryOptions? retryOptions = null,
-        ILogger<PollingTxConfirmationWatcher>? logger = null
-    )
-    {
-        ArgumentNullException.ThrowIfNull(ethRpcModule);
-        ArgumentNullException.ThrowIfNull(nonceWatcher);
-
-        var resolved = options ?? new Options();
-        ArgumentOutOfRangeException.ThrowIfZero(resolved.MaxLookbackBlocks, nameof(options));
-
-        var resolvedRetryOptions = retryOptions ?? new RpcRetryOptions();
-        resolvedRetryOptions.Validate(nameof(retryOptions));
-
-        _ethRpcModule = ethRpcModule;
-        _nonceWatcher = nonceWatcher;
-        _logger = logger;
-
-        _maxLookbackBlocks = resolved.MaxLookbackBlocks;
-        _retryDelay = resolvedRetryOptions.RetryDelay;
-        _maxErrorBackoff = resolvedRetryOptions.MaxErrorBackoff;
-        _requestOptions = resolved.RequestOptions;
-    }
 
     /// <inheritdoc/>
     public ITxWatch Watch(in Address sender, ulong nonce, params ReadOnlySpan<Bytes32> txHashes)

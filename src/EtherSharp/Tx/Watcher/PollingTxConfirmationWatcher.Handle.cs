@@ -2,7 +2,7 @@ using EtherSharp.Types;
 
 namespace EtherSharp.Tx.Watcher;
 
-public sealed partial class PollingTxConfirmationWatcher
+internal sealed partial class PollingTxConfirmationWatcher
 {
     private sealed class SlotHashEntry(Bytes32 hash)
     {
