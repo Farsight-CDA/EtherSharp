@@ -43,8 +43,11 @@ public sealed partial class PollingTxConfirmationWatcher
             var entry = FindHashLocked(in txHash);
             if(entry is null)
             {
+                Watcher.ThrowIfTrackedByOtherSlotLocked(in txHash, this);
+
                 entry = new SlotHashEntry(txHash);
                 Hashes.Add(entry);
+                Watcher._txHashSlots.Add(txHash, this);
             }
             else if(handle.Hashes.Contains(entry))
             {
@@ -105,6 +108,11 @@ public sealed partial class PollingTxConfirmationWatcher
             }
 
             Handles.Clear();
+
+            foreach(var entry in Hashes)
+            {
+                _ = Watcher._txHashSlots.Remove(entry.Hash);
+            }
         }
 
         public void Unregister(TxWatchHandle handle)
@@ -139,6 +147,7 @@ public sealed partial class PollingTxConfirmationWatcher
             if(entry.RefCount == 0)
             {
                 _ = Hashes.Remove(entry);
+                _ = Watcher._txHashSlots.Remove(entry.Hash);
             }
         }
 

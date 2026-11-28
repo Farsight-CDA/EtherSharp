@@ -46,6 +46,7 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
 
     private readonly Lock _stateLock = new Lock();
     private readonly Dictionary<(Address Sender, ulong Nonce), SlotTracker> _slots = [];
+    private readonly Dictionary<Bytes32, SlotTracker> _txHashSlots = [];
 
     private bool _isDisposed;
 
@@ -100,7 +101,14 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         var key = (sender, nonce);
-        if(!_slots.TryGetValue(key, out var slot))
+        _ = _slots.TryGetValue(key, out var slot);
+
+        foreach(var txHash in txHashes)
+        {
+            ThrowIfTrackedByOtherSlotLocked(in txHash, slot);
+        }
+
+        if(slot is null)
         {
             slot = new SlotTracker(this, sender, nonce);
             _slots.Add(key, slot);
@@ -115,6 +123,16 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
         }
 
         return handle;
+    }
+
+    private void ThrowIfTrackedByOtherSlotLocked(in Bytes32 txHash, SlotTracker? slot)
+    {
+        if(_txHashSlots.TryGetValue(txHash, out var owner) && owner != slot)
+        {
+            throw new InvalidOperationException(
+                $"Transaction hash {txHash} is already watched for {owner.Sender}/{owner.Nonce}."
+            );
+        }
     }
 
     /// <inheritdoc/>
@@ -142,6 +160,7 @@ public sealed partial class PollingTxConfirmationWatcher : ITxConfirmationWatche
             }
 
             _slots.Clear();
+            _txHashSlots.Clear();
         }
 
         try

@@ -25,6 +25,7 @@ public interface ITxWatch : IDisposable
     /// <see langword="true"/> if the watch is still active and the hash is tracked;
     /// <see langword="false"/> if the watch has already resolved or been disposed.
     /// </returns>
+    /// <exception cref="InvalidOperationException">The hash is already watched for another <c>(sender, nonce)</c> slot.</exception>
     public bool TryAddHash(in Bytes32 txHash);
 
     /// <summary>
