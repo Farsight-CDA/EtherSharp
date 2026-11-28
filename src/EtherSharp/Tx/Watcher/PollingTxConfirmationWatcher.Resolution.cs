@@ -41,7 +41,7 @@ internal sealed partial class PollingTxConfirmationWatcher
     private async Task RunSlotAsync(SlotTracker slot, ulong? unusedAtBlock, CancellationToken cancellationToken)
     {
         int failedSearchCount = 0;
-        var errorBackoffDelay = _retryDelay;
+        var errorBackoffDelay = _retryOptions.RetryDelay;
         while(true)
         {
             var (lowBlock, observedBlock) = await WaitForNonceUsedAsync(slot, unusedAtBlock, cancellationToken);
@@ -80,11 +80,11 @@ internal sealed partial class PollingTxConfirmationWatcher
                 // An error leaves the search unfinished, so it does not count as a failed search.
                 _logger?.TxWatcher.SlotSearchFailed(ex, slot.Sender, slot.Nonce);
                 await Task.Delay(errorBackoffDelay, cancellationToken);
-                errorBackoffDelay = RpcRetryOptions.NextBackoff(errorBackoffDelay, _maxErrorBackoff);
+                errorBackoffDelay = RpcRetryOptions.NextBackoff(errorBackoffDelay, _retryOptions.MaxErrorBackoff);
                 continue;
             }
 
-            errorBackoffDelay = _retryDelay;
+            errorBackoffDelay = _retryOptions.RetryDelay;
 
             // A reorg is found by the next search, a block that keeps lacking the transaction will not change.
             failedSearchCount++;
@@ -171,7 +171,7 @@ internal sealed partial class PollingTxConfirmationWatcher
     // Returns the block, or null when it stays unavailable after the retries.
     private async Task<DetailedBlockData?> FetchMinedBlockAsync(ulong blockNumber, CancellationToken cancellationToken)
     {
-        var retryDelay = _retryDelay;
+        var retryDelay = _retryOptions.RetryDelay;
         for(int attempt = 0; true; attempt++)
         {
             var block = await _ethRpcModule.GetFullBlockByNumberAsync(
@@ -230,7 +230,7 @@ internal sealed partial class PollingTxConfirmationWatcher
 
     private async Task ResolveByHashAsync(SlotTracker slot, int retryCount, CancellationToken cancellationToken)
     {
-        var retryDelay = _retryDelay;
+        var retryDelay = _retryOptions.RetryDelay;
         for(int attempt = 0; true; attempt++)
         {
             SlotHashEntry[] hashes;

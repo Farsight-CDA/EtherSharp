@@ -17,8 +17,7 @@ internal sealed partial class PollingTxConfirmationWatcher(
     private readonly INonceWatcher _nonceWatcher = nonceWatcher;
     private readonly ILogger<PollingTxConfirmationWatcher>? _logger = loggerFactory?.CreateLogger<PollingTxConfirmationWatcher>();
 
-    private readonly TimeSpan _retryDelay = retryOptions.RetryDelay;
-    private readonly TimeSpan _maxErrorBackoff = retryOptions.MaxErrorBackoff;
+    private readonly RpcRetryOptions _retryOptions = retryOptions;
 
     private readonly Lock _stateLock = new Lock();
     private readonly Dictionary<(Address Sender, ulong Nonce), SlotTracker> _slots = [];

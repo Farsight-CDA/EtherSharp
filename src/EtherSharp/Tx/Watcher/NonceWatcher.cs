@@ -16,11 +16,9 @@ internal sealed class NonceWatcher : INonceWatcher, IAsyncDisposable
 {
     private readonly NonceSource _nonceSource;
     private readonly IBlocksModule _blocksModule;
+    private readonly NonceWatcherOptions _options;
+    private readonly RpcRetryOptions _retryOptions;
     private readonly bool _useNewHeads;
-    private readonly TimeSpan _pollInterval;
-    private readonly TimeSpan _minHeadSpacing;
-    private readonly TimeSpan _retryDelay;
-    private readonly TimeSpan _maxErrorBackoff;
     private readonly ILogger<NonceWatcher>? _logger;
 
     private readonly Lock _stateLock = new Lock();
@@ -50,11 +48,9 @@ internal sealed class NonceWatcher : INonceWatcher, IAsyncDisposable
     {
         _nonceSource = nonceSource;
         _blocksModule = blocksModule;
+        _options = options;
+        _retryOptions = retryOptions;
         _useNewHeads = options.UseNewHeads && transport.SupportsSubscriptions;
-        _pollInterval = options.PollInterval;
-        _minHeadSpacing = options.MinHeadSpacing;
-        _retryDelay = retryOptions.RetryDelay;
-        _maxErrorBackoff = retryOptions.MaxErrorBackoff;
         _logger = loggerFactory?.CreateLogger<NonceWatcher>();
         _heartbeatTask = Task.Run(() => RunHeartbeatAsync(_cts.Token));
     }
@@ -123,7 +119,7 @@ internal sealed class NonceWatcher : INonceWatcher, IAsyncDisposable
             await WaitForActiveSubscriptionAsync(cancellationToken);
 
             await using var readTrigger = await NonceReadTrigger.CreateAsync(
-                _useNewHeads, _pollInterval, _minHeadSpacing, _blocksModule, _logger, cancellationToken
+                _useNewHeads, _options.PollInterval, _options.MinHeadSpacing, _blocksModule, _logger, cancellationToken
             );
 
             do
@@ -156,7 +152,7 @@ internal sealed class NonceWatcher : INonceWatcher, IAsyncDisposable
     // Returns false once no subscription needs reads anymore.
     private async Task<bool> ReadUntilSucceededAsync(CancellationToken cancellationToken)
     {
-        var errorBackoffDelay = _retryDelay;
+        var errorBackoffDelay = _retryOptions.RetryDelay;
 
         while(GetReadRequests() is { IsEmpty: false } requests)
         {
@@ -182,7 +178,7 @@ internal sealed class NonceWatcher : INonceWatcher, IAsyncDisposable
             {
                 _logger?.TxWatcher.NonceReadFailed(ex, requests.Length);
                 await Task.Delay(errorBackoffDelay, cancellationToken);
-                errorBackoffDelay = RpcRetryOptions.NextBackoff(errorBackoffDelay, _maxErrorBackoff);
+                errorBackoffDelay = RpcRetryOptions.NextBackoff(errorBackoffDelay, _retryOptions.MaxErrorBackoff);
             }
         }
 
