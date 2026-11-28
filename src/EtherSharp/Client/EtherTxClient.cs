@@ -7,6 +7,7 @@ using EtherSharp.Client.Modules.Trace;
 using EtherSharp.Client.Services.ResiliencyLayer;
 using EtherSharp.Client.Services.TxPublisher;
 using EtherSharp.Common.Extensions;
+using EtherSharp.Common.Instrumentation;
 using EtherSharp.Contract;
 using EtherSharp.Numerics;
 using EtherSharp.Query;
@@ -41,6 +42,8 @@ internal sealed class EtherTxClient(
 
     internal IEtherSigner Signer { get; } = signer;
     internal ITxPublisher TxPublisher { get; } = txPublisher;
+    internal OTELCounter<long>? TxPublishResultsCounter { get; }
+        = ((IEtherClient) baseClient).AsInternal().Provider.CreateOTELCounter<long>("tx_publish_results");
     internal ITxConfirmationWatcher TxConfirmationWatcher { get; }
         = ((IEtherClient) baseClient).AsInternal().Provider.GetRequiredService<ITxConfirmationWatcher>();
     internal IEthRpcModule EthRpcModule { get; }

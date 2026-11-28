@@ -88,6 +88,7 @@ internal sealed class PendingTx<TTransaction, TTxParams, TTxGasParams> : IPendin
             }
 
             var result = await _txClient.TxPublisher.PublishTxAsync(submission.SignedTx, requestOptions, linkedCts.Token);
+            _txClient.TxPublishResultsCounter?.Add(1, new KeyValuePair<string, object?>("outcome", result.GetType().Name));
             LogPublishResult(submission, result);
             return result;
         }
