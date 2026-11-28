@@ -1,5 +1,7 @@
+using EtherSharp.Client.Modules.Blocks;
 using EtherSharp.Common.Extensions;
 using EtherSharp.RPC;
+using EtherSharp.RPC.Transport;
 using EtherSharp.Types;
 using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
@@ -7,25 +9,26 @@ using System.Threading.Channels;
 namespace EtherSharp.Tx.Watcher;
 
 /// <summary>
-/// Polls sender nonces through a <see cref="NonceSource"/> while any subscription is active,
+/// Reads sender nonces through a <see cref="NonceSource"/> while any subscription is active,
 /// and delivers observations to all subscribers.
 /// </summary>
-public sealed class PollingNonceWatcher : INonceWatcher, IAsyncDisposable
+internal sealed class NonceWatcher : INonceWatcher, IAsyncDisposable
 {
-    private static readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(2);
-
     private readonly NonceSource _nonceSource;
-    private readonly NonceReadTrigger _readTrigger;
+    private readonly IRPCTransport _transport;
+    private readonly IBlocksModule _blocksModule;
     private readonly TimeSpan _retryDelay;
     private readonly TimeSpan _maxErrorBackoff;
-    private readonly ILogger<PollingNonceWatcher>? _logger;
+    private readonly ILogger<NonceWatcher>? _logger;
 
     private readonly Lock _stateLock = new Lock();
     private readonly Dictionary<Address, SenderTracker> _senders = [];
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+    private readonly SemaphoreSlim _activeSignal = new SemaphoreSlim(0, 1);
     private readonly Task _heartbeatTask;
 
     private NonceSource.Request[] _requestBuffer = [];
+    private int _activeSubscriptionCount;
     private bool _isDisposed;
 
     private bool BatchesSenders => _nonceSource switch
@@ -34,25 +37,23 @@ public sealed class PollingNonceWatcher : INonceWatcher, IAsyncDisposable
         ConstructorCallNonceSource => false,
     };
 
-    /// <summary>
-    /// Creates a new <see cref="PollingNonceWatcher"/>.
-    /// </summary>
-    public PollingNonceWatcher(
+    public NonceWatcher(
         NonceSource nonceSource,
+        IRPCTransport transport,
+        IBlocksModule blocksModule,
         RpcRetryOptions? retryOptions = null,
-        ILogger<PollingNonceWatcher>? logger = null
+        ILoggerFactory? loggerFactory = null
     )
     {
-        ArgumentNullException.ThrowIfNull(nonceSource);
-
         var resolvedRetryOptions = retryOptions ?? new RpcRetryOptions();
         resolvedRetryOptions.Validate(nameof(retryOptions));
 
         _nonceSource = nonceSource;
-        _readTrigger = new NonceReadTrigger.Interval(_pollInterval);
+        _transport = transport;
+        _blocksModule = blocksModule;
         _retryDelay = resolvedRetryOptions.RetryDelay;
         _maxErrorBackoff = resolvedRetryOptions.MaxErrorBackoff;
-        _logger = logger;
+        _logger = loggerFactory?.CreateLogger<NonceWatcher>();
         _heartbeatTask = Task.Run(() => RunHeartbeatAsync(_cts.Token));
     }
 
@@ -74,6 +75,17 @@ public sealed class PollingNonceWatcher : INonceWatcher, IAsyncDisposable
 
         var handle = new NonceSubscriptionHandle(this, sender, mode);
         tracker.AddHandleLocked(handle, startNonce);
+
+        if(mode == NonceSubscriptionMode.Active)
+        {
+            _activeSubscriptionCount++;
+
+            if(_activeSubscriptionCount == 1 && _activeSignal.CurrentCount == 0)
+            {
+                _ = _activeSignal.Release();
+            }
+        }
+
         return handle;
     }
 
@@ -91,6 +103,11 @@ public sealed class PollingNonceWatcher : INonceWatcher, IAsyncDisposable
             return;
         }
 
+        if(handle.Mode == NonceSubscriptionMode.Active)
+        {
+            _activeSubscriptionCount--;
+        }
+
         if(tracker.Handles.Count == 0)
         {
             _ = _senders.Remove(handle.Sender);
@@ -101,13 +118,39 @@ public sealed class PollingNonceWatcher : INonceWatcher, IAsyncDisposable
     {
         while(true)
         {
-            await _readTrigger.WaitAsync(cancellationToken);
-            await ReadUntilSucceededAsync(cancellationToken);
+            await WaitForActiveSubscriptionAsync(cancellationToken);
+
+            await using var readTrigger = await NonceReadTrigger.CreateAsync(_transport, _blocksModule, _logger, cancellationToken);
+
+            do
+            {
+                await readTrigger.WaitAsync(cancellationToken);
+            }
+            while(await ReadUntilSucceededAsync(cancellationToken));
+        }
+    }
+
+    private async Task WaitForActiveSubscriptionAsync(CancellationToken cancellationToken)
+    {
+        while(true)
+        {
+            lock(_stateLock)
+            {
+                if(_activeSubscriptionCount > 0)
+                {
+                    return;
+                }
+
+                _ = _activeSignal.Wait(0, cancellationToken);
+            }
+
+            await _activeSignal.WaitAsync(cancellationToken);
         }
     }
 
     // Retries a failed read with backoff instead of waiting for the next trigger.
-    private async Task ReadUntilSucceededAsync(CancellationToken cancellationToken)
+    // Returns false once no subscription needs reads anymore.
+    private async Task<bool> ReadUntilSucceededAsync(CancellationToken cancellationToken)
     {
         var errorBackoffDelay = _retryDelay;
 
@@ -129,7 +172,7 @@ public sealed class PollingNonceWatcher : INonceWatcher, IAsyncDisposable
                     }
                 }
 
-                return;
+                return true;
             }
             catch(Exception ex) when(!cancellationToken.IsCancellationRequested)
             {
@@ -138,32 +181,34 @@ public sealed class PollingNonceWatcher : INonceWatcher, IAsyncDisposable
                 errorBackoffDelay = RpcRetryOptions.NextBackoff(errorBackoffDelay, _maxErrorBackoff);
             }
         }
+
+        return false;
     }
 
     private ReadOnlyMemory<NonceSource.Request> GetReadRequests()
     {
         using var scope = _stateLock.EnterScope();
 
+        if(_activeSubscriptionCount == 0)
+        {
+            return ReadOnlyMemory<NonceSource.Request>.Empty;
+        }
+
         if(_requestBuffer.Length < _senders.Count)
         {
             _requestBuffer = new NonceSource.Request[_senders.Count];
         }
 
-        bool hasActive = false;
         int count = 0;
         foreach(var tracker in _senders.Values)
         {
-            hasActive |= tracker.IsActive;
-
             if(BatchesSenders || tracker.IsActive)
             {
                 _requestBuffer[count++] = new NonceSource.Request(tracker.Sender, tracker.LastKnownNonce);
             }
         }
 
-        return hasActive
-            ? _requestBuffer.AsMemory(0, count)
-            : ReadOnlyMemory<NonceSource.Request>.Empty;
+        return _requestBuffer.AsMemory(0, count);
     }
 
     /// <inheritdoc/>
@@ -210,6 +255,7 @@ public sealed class PollingNonceWatcher : INonceWatcher, IAsyncDisposable
         finally
         {
             _cts.Dispose();
+            _activeSignal.Dispose();
         }
     }
 
@@ -265,7 +311,7 @@ public sealed class PollingNonceWatcher : INonceWatcher, IAsyncDisposable
     }
 
     private sealed class NonceSubscriptionHandle(
-        PollingNonceWatcher watcher,
+        NonceWatcher watcher,
         Address sender,
         NonceSubscriptionMode mode
     ) : INonceSubscription

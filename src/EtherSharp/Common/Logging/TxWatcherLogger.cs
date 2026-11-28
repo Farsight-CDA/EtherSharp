@@ -10,6 +10,9 @@ internal sealed partial class TxWatcherLogger(ILogger logger)
     [LoggerMessage(LogLevel.Warning, "Heartbeat: Reading nonces of {SenderCount} senders failed")]
     public partial void NonceReadFailed(Exception exception, int senderCount);
 
+    [LoggerMessage(LogLevel.Warning, "Heartbeat: newHeads subscription unavailable, polling nonces every {PollInterval} instead")]
+    public partial void NewHeadsUnavailable(Exception exception, TimeSpan pollInterval);
+
     [LoggerMessage(LogLevel.Debug, "Dispose: Heartbeat failed during shutdown")]
     public partial void HeartbeatShutdownFailed(Exception exception);
 

@@ -357,7 +357,7 @@ public sealed class EtherClientBuilder : IInternalEtherClientBuilder
         _services.TryAddSingleton<RpcRetryOptions>();
         _services.TryAddSingleton<GasFeeOptions>();
         _services.TryAddSingleton<NonceSource, ConstructorCallNonceSource>();
-        _services.TryAddSingleton<INonceWatcher, PollingNonceWatcher>();
+        _services.TryAddSingleton<INonceWatcher, NonceWatcher>();
         _services.TryAddSingleton<ITxConfirmationWatcher, PollingTxConfirmationWatcher>();
         _services.TryAddSingleton<IGasFeeProvider<EIP1559TxParams, EIP1559GasParams>, EIP1559GasFeeProvider>();
         _services.TryAddSingleton<IGasFeeProvider<LegacyTxParams, LegacyGasParams>, LegacyGasFeeProvider>();
