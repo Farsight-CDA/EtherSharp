@@ -67,6 +67,16 @@ public sealed class EtherTxClientBuilder
         ));
 
     /// <summary>
+    /// Configures <see cref="OnChainNonceAllocator"/>.
+    /// </summary>
+    public EtherTxClientBuilder WithOnChainNonceAllocator()
+        => WithNonceAllocator((provider, initialNonce) => new OnChainNonceAllocator(
+            provider.GetRequiredService<INonceWatcher>(),
+            _signer.Address,
+            initialNonce
+        ));
+
+    /// <summary>
     /// Configures <see cref="RefreshOnAllocateNonceAllocator"/>.
     /// </summary>
     public EtherTxClientBuilder WithRefreshOnAllocateNonceAllocator()
